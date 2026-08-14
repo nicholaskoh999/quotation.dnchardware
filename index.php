@@ -3211,44 +3211,43 @@ input,select,textarea{
   <div class="modal wqa-modal">
     <div class="wqa-confirm" id="wqaConfirm" hidden>
       <div class="wqa-confirm-box" role="alertdialog" aria-labelledby="wqaConfirmTitle">
-        <div class="wqa-confirm-title" id="wqaConfirmTitle">Discard Quick Add changes?</div>
-        <div class="wqa-confirm-sub">The pasted text, parsed items, pricing entry and accessories in this session will be lost.</div>
+        <div class="wqa-confirm-title" id="wqaConfirmTitle" data-i18n="wqaDiscardTitle">Discard Quick Add changes?</div>
+        <div class="wqa-confirm-sub" data-i18n="wqaDiscardSub">The pasted text, parsed items, pricing entry and accessories in this session will be lost.</div>
         <div class="wqa-confirm-actions">
-          <button type="button" class="btn btn-primary" id="wqaKeepBtn" onclick="wqaCancelClose()">Keep Editing</button>
-          <button type="button" class="btn btn-ghost" onclick="wqaConfirmDiscard()">Discard</button>
+          <button type="button" class="btn btn-primary" id="wqaKeepBtn" onclick="wqaCancelClose()" data-i18n="wqaKeepEditing">Keep Editing</button>
+          <button type="button" class="btn btn-ghost" onclick="wqaConfirmDiscard()" data-i18n="wqaDiscard">Discard</button>
         </div>
       </div>
     </div>
-    <div class="modal-title">WhatsApp Quick Add <span class="sub">/ 快速添加</span>
+    <div class="modal-title"><span data-i18n="wqaTitle">WhatsApp Quick Add</span>
       <button class="modal-close" onclick="wqaRequestClose()">✕</button></div>
 
     <!-- STEP 1 — paste text OR upload a photo / PDF -->
     <div id="wqaStep1">
-      <div class="wqa-method" role="group" aria-label="Input method">
-        <button type="button" id="wqaTabPaste" class="wqa-method-btn is-on" onclick="wqaSetMethod('paste')">Paste WhatsApp Text</button>
-        <button type="button" id="wqaTabUpload" class="wqa-method-btn" onclick="wqaSetMethod('upload')">Upload Photo / PDF</button>
+      <div class="wqa-method" role="group" data-i18n-aria="wqaAriaMethod" aria-label="Input method">
+        <button type="button" id="wqaTabPaste" class="wqa-method-btn is-on" onclick="wqaSetMethod('paste')" data-i18n="wqaTabPaste">Paste WhatsApp Text</button>
+        <button type="button" id="wqaTabUpload" class="wqa-method-btn" onclick="wqaSetMethod('upload')" data-i18n="wqaTabUpload">Upload Photo / PDF</button>
       </div>
 
       <div id="wqaPastePane">
-        <p class="wqa-hint">Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.</p>
+        <p class="wqa-hint" data-i18n="wqaPasteHint">Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.</p>
         <textarea id="wqaInput" class="wqa-input" rows="9" spellcheck="false"
           placeholder="ms hdg sag rod&#10;&#10;1. m12 x 1000 x 100 - 1&#10;2. m12 x 1070 x 100 - 2pc&#10;3. m12 x 1120 x 100 - 3pcs"></textarea>
       </div>
 
       <div id="wqaUploadPane" hidden>
-        <p class="wqa-hint">Upload a screenshot, photo, drawing or PDF of the customer's request.
-          JPG / PNG / WEBP up to 10&nbsp;MB, PDF up to 20&nbsp;MB (max 10 pages). One file per analysis.</p>
+        <p class="wqa-hint" data-i18n="wqaUploadHint">Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.</p>
         <div id="wqaDropZone" class="wqa-drop" ondragenter="wqaDragEnter(event)" ondragover="wqaDragOver(event)"
              ondragleave="wqaDragLeave(event)" ondrop="wqaDrop(event)">
-          <div class="wqa-drop-main">Drop image or PDF here</div>
-          <div class="wqa-drop-or">or</div>
+          <div class="wqa-drop-main" data-i18n="wqaDropMain">Drop image or PDF here</div>
+          <div class="wqa-drop-or" data-i18n="wqaDropOr">or</div>
           <label class="wqa-file-pick">
             <input type="file" id="wqaFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
                    onchange="wqaFileChosen(this)">
-            <span class="btn btn-outline">Choose File…</span>
+            <span class="btn btn-outline" data-i18n="wqaChooseFile">Choose File…</span>
           </label>
           <div class="wqa-drop-types">JPG / PNG / WEBP / PDF</div>
-          <div class="wqa-file-info" id="wqaFileInfo">No file selected</div>
+          <div class="wqa-file-info" id="wqaFileInfo" data-i18n="wqaNoFile">No file selected</div>
         </div>
         <div class="wqa-ai-preview" id="wqaAiPreviewBox" hidden>
           <img id="wqaAiPreview" alt="preview" hidden>
@@ -3258,17 +3257,17 @@ input,select,textarea{
         </div>
         <div class="wqa-ai-status" id="wqaAiStatus" hidden>
           <span class="wqa-spinner"></span>
-          <span>Analyzing document…<br><small>Extracting product, dimensions and quantities…</small></span>
+          <span><span data-i18n="wqaAnalyzing">Analyzing document…</span><br><small data-i18n="wqaExtracting">Extracting product, dimensions and quantities…</small></span>
         </div>
-        <p class="wqa-ai-privacy">Uploaded files are used only for AI extraction and are not saved with the quotation.</p>
+        <p class="wqa-ai-privacy" data-i18n="wqaPrivacy">Uploaded files are used only for AI extraction and are not saved with the quotation.</p>
         <div id="wqaAiMsg" class="wqa-msg" hidden></div>
       </div>
 
       <div id="wqaParseMsg" class="wqa-msg" hidden></div>
       <div class="wqa-actions">
-        <button class="btn btn-ghost" onclick="wqaRequestClose()">Cancel</button>
-        <button class="btn btn-primary" id="wqaParseBtn" onclick="wqaParseAndReview()">Parse Items</button>
-        <button class="btn btn-primary" id="wqaAnalyzeBtn" onclick="wqaAnalyze()" hidden disabled>Analyze</button>
+        <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel">Cancel</button>
+        <button class="btn btn-primary" id="wqaParseBtn" onclick="wqaParseAndReview()" data-i18n="wqaParseItems">Parse Items</button>
+        <button class="btn btn-primary" id="wqaAnalyzeBtn" onclick="wqaAnalyze()" hidden disabled data-i18n="wqaAnalyze">Analyze</button>
       </div>
     </div>
 
@@ -3280,21 +3279,21 @@ input,select,textarea{
       <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
       <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
       <div class="wqa-rows-head">
-        <span id="wqaRowsCount">0 items</span>
-        <span class="wqa-view-toggle" role="group" aria-label="View">
-          <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')">Compact</button>
-          <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')">Expanded</button>
+        <span id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
+        <span class="wqa-view-toggle" role="group" data-i18n-aria="wqaAriaView" aria-label="View">
+          <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')" data-i18n="wqaCompact">Compact</button>
+          <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')" data-i18n="wqaExpanded">Expanded</button>
         </span>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="wqaBackToPaste()">← Edit pasted text</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="wqaBackToPaste()" data-i18n="wqaEditPasted">← Edit pasted text</button>
       </div>
       <div class="wqa-list-head" id="wqaListHead" hidden></div>
       <div class="wqa-rows" id="wqaRows"></div>
       </div><!-- /.wqa-scroll -->
       <div class="wqa-actions wqa-sticky-actions">
-        <span class="wqa-foot-count"><span id="wqaFootTotal">0 items</span><span
+        <span class="wqa-foot-count"><span id="wqaFootTotal" data-i18n="wqaZeroItems">0 items</span><span
           class="wqa-foot-need" id="wqaFootNeed" hidden></span></span>
-        <button class="btn btn-ghost" onclick="wqaRequestClose()">Cancel</button>
-        <button class="btn btn-primary" id="wqaAddBtn" onclick="wqaAddAll()">Add Items to Quotation</button>
+        <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel">Cancel</button>
+        <button class="btn btn-primary" id="wqaAddBtn" onclick="wqaAddAll()" data-i18n="wqaAddItems">Add Items to Quotation</button>
       </div>
     </div>
   </div>
@@ -3713,6 +3712,58 @@ const I18N={
     /* Chinese glosses under three product buttons. The product NAME stays
        English in both modes; the gloss is help text, so it is empty in EN. */
     glossPlate:'', glossWAS:'', glossOthers:'',
+    /* ── WhatsApp Quick Add ── */
+    cancel:'Cancel', nItems:'{n} items', needAttention:'{n} need attention',
+    needs:'Needs {f}', fieldProduct:'Product', fieldSize:'Size', fieldLength:'Length',
+    fieldSizeType:'Size Type', fieldPrice:'Price',
+    badgeNoThread:'No thread', badgeParseWarning:'Parse warning', badgeCheck:'Check {f}',
+    badgeAsymmetric:'Asymmetric', badgeLastPrice:'Last price',
+    wqaTitle:'WhatsApp Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
+    wqaDiscardTitle:'Discard Quick Add changes?',
+    wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
+    wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
+    wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
+    wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.",
+    wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
+    wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
+    wqaNoFile:'No file selected', wqaAnalyzing:'Analyzing document…',
+    wqaExtracting:'Extracting product, dimensions and quantities…',
+    wqaPrivacy:'Uploaded files are used only for AI extraction and are not saved with the quotation.',
+    wqaParseItems:'Parse Items', wqaAnalyze:'Analyze',
+    wqaCompact:'Compact', wqaExpanded:'Expanded', wqaEditPasted:'← Edit pasted text',
+    wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items',
+    wqaCommonItemTitle:'Common Item Fields — Apply to All',
+    wqaCommonPriceTitle:'Pricing Entry — Apply to All',
+    wqaCommonAccTitle:'Accessories — Apply to All',
+    wqaMsgNoRows:'No item rows could be read from this file. Try again or paste the text manually.',
+    wqaMsgCannotAnalyze:'Could not analyze this file. Try again or paste the text manually.',
+    wqaMsgNoProduct:'Could not read a supported product from this file. Try again or paste the text manually.',
+    wqaMsgNoLines:'No item lines found. Each line needs dimensions, e.g. "m12 x 1000 x 100 - 2pcs".',
+    wqaMsgPasteFirst:'Paste the customer text first.',
+    wqaDropNoFile:'That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.',
+    wqaToastEnterSizeThread:'Enter a Size or a Thread first', wqaToastNoItems:'There are no items to apply to',
+    wqaToastPriceApplied:'Pricing entry applied to all items',
+    wqaToastLastPriceOff:'Last Price switched off on {n} row(s)',
+    wqaToastAccCleared:'Accessories cleared on all items',
+    wqaToastSetManual:'Set Price Mode to Manual Price first',
+    wqaToastEnterManual:'Enter a manual unit price first',
+    /* Server error codes -> UI language. The endpoint keeps returning its
+       English message for backward compatibility; the code is what we map. */
+    errNoFile:'Upload exactly one file.', errTooLarge:'That file is larger than the server allows.',
+    errUploadFailed:'The upload did not complete. Please try again.', errEmptyFile:'The file is empty.',
+    errNoFileinfo:'AI upload validation is unavailable because the PHP fileinfo extension is not enabled on this server.',
+    errTooManyPages:'PDFs are limited to 10 pages for analysis.',
+    errNetwork:'Could not reach the analysis service. Check the connection and try again.',
+    errAuth:"The analysis service rejected the server's credentials. Ask the administrator to check the API key.",
+    errRate:'The analysis service is busy. Wait a moment and try again.',
+    errUpstream:'The analysis service had a problem. Try again shortly.',
+    errRequest:'Could not analyze this file. Try again or paste the text manually.',
+    errMethod:'Could not analyze this file. Try again or paste the text manually.',
+    errNotConfigured:'AI extraction is not configured on this server yet.',
+    errAiOutputInvalid:'Could not analyze this file. Try again or paste the text manually.',
+    errUnsupportedType:'Only JPG, PNG, WEBP images and PDF files are supported.',
+    errPdfTooLarge:'PDF files must be 20 MB or smaller.',
+    errImgTooLarge:'Images must be 10 MB or smaller.',
   },
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
@@ -3766,6 +3817,57 @@ const I18N={
     statusNewDraft:'新草稿', statusUnsaved:'未保存更改',
     statusSavedLocked:'已保存 / 已锁定', statusEditing:'正在编辑', statusSavedUpdated:'已更新保存',
     glossPlate:'铁板', glossWAS:'焊接锚栓组合', glossOthers:'其他 / 特殊螺栓',
+    /* ── WhatsApp Quick Add ── */
+    cancel:'取消', nItems:'{n} 项', needAttention:'{n} 项需检查',
+    needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'长度',
+    fieldSizeType:'尺寸类型', fieldPrice:'价格',
+    badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
+    badgeAsymmetric:'左右不对称', badgeLastPrice:'上次价格',
+    wqaTitle:'WhatsApp 快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
+    wqaDiscardTitle:'要放弃快速添加的内容吗？',
+    wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
+    wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
+    wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
+    wqaPasteHint:'粘贴客户的 WhatsApp 信息。支持 Sag Rod、Stud 和 Anchor Bolt。',
+    wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
+    wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
+    wqaNoFile:'未选择文件', wqaAnalyzing:'正在分析文件…',
+    wqaExtracting:'正在提取产品、尺寸与数量…',
+    wqaPrivacy:'上传的文件只用于 AI 提取，不会随报价保存。',
+    wqaParseItems:'解析产品', wqaAnalyze:'分析',
+    wqaCompact:'精简', wqaExpanded:'展开', wqaEditPasted:'← 编辑粘贴文字',
+    wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项',
+    wqaCommonItemTitle:'通用项目参数 — 应用到全部',
+    wqaCommonPriceTitle:'价格设置 — 应用到全部',
+    wqaCommonAccTitle:'配件 — 应用到全部',
+    wqaMsgNoRows:'无法从这个文件读取到产品行。请重试，或改用粘贴文字。',
+    wqaMsgCannotAnalyze:'无法分析这个文件。请重试，或改用粘贴文字。',
+    wqaMsgNoProduct:'无法从这个文件读出支持的产品。请重试，或改用粘贴文字。',
+    wqaMsgNoLines:'找不到产品行。每一行都需要尺寸，例如 "m12 x 1000 x 100 - 2pcs"。',
+    wqaMsgPasteFirst:'请先粘贴客户文字。',
+    wqaDropNoFile:'拖进来的不是文件。请拖入 JPG、PNG、WEBP 或 PDF。',
+    wqaToastEnterSizeThread:'请先填写尺寸或牙长', wqaToastNoItems:'没有可应用的项目',
+    wqaToastPriceApplied:'价格设置已应用到全部项目',
+    wqaToastLastPriceOff:'{n} 行的上次价格已关闭',
+    wqaToastAccCleared:'已清除全部项目的配件',
+    wqaToastSetManual:'请先把价格模式设为 Manual Price',
+    wqaToastEnterManual:'请先填写手动单价',
+    /* 服务器错误代码 → 界面语言 */
+    errNoFile:'每次只能上传一个文件。', errTooLarge:'文件超过服务器允许的大小。',
+    errUploadFailed:'上传没有完成，请重试。', errEmptyFile:'文件是空的。',
+    errNoFileinfo:'服务器未启用 PHP fileinfo 扩展，暂时无法验证上传文件。',
+    errTooManyPages:'PDF 最多只能分析 10 页。',
+    errNetwork:'无法连接分析服务。请检查网络后重试。',
+    errAuth:'分析服务拒绝了服务器凭证。请联系管理员检查 API key。',
+    errRate:'分析服务繁忙，请稍等再试。',
+    errUpstream:'分析服务出现问题，请稍后再试。',
+    errRequest:'无法分析这个文件。请重试，或改用粘贴文字。',
+    errMethod:'无法分析这个文件。请重试，或改用粘贴文字。',
+    errNotConfigured:'服务器尚未配置 AI 提取功能。',
+    errAiOutputInvalid:'无法分析这个文件。请重试，或改用粘贴文字。',
+    errUnsupportedType:'只支持 JPG、PNG、WEBP 和 PDF 文件。',
+    errPdfTooLarge:'PDF 文件不可超过 20 MB。',
+    errImgTooLarge:'图片不可超过 10 MB。',
   },
 };
 /* Current language. Anything other than a known code reads as 'en', so a
@@ -3812,6 +3914,26 @@ function dcRelabel(){
   DC_RELABEL.forEach(fn=>{ try{ fn(); }catch(e){} });   // one bad renderer must not block the rest
   try{ if(typeof showToast==='function') showToast(dcT('langSwitched')); }catch(e){}
 }
+/* Server errors: the endpoint returns a STABLE error code alongside its English
+   message, so the code is what gets localised. The backend is untouched and
+   stays language-agnostic; an unknown or missing code falls back to whatever
+   message the server sent, which keeps older responses working unchanged. */
+const DC_ERR={
+  no_file:'errNoFile', too_large:'errTooLarge', upload_failed:'errUploadFailed',
+  empty_file:'errEmptyFile', no_fileinfo:'errNoFileinfo', unsupported_type:'errUnsupportedType',
+  too_many_pages:'errTooManyPages', network:'errNetwork', auth:'errAuth', rate:'errRate',
+  upstream:'errUpstream', request:'errRequest', method:'errMethod',
+  not_configured:'errNotConfigured', ai_output_invalid:'errAiOutputInvalid',
+};
+function dcServerError(j){
+  const key = j && j.error && DC_ERR[j.error];
+  if(key){
+    const txt=dcT(key,'');
+    if(txt) return txt;
+  }
+  return (j && j.message) || dcT('wqaMsgCannotAnalyze');   // unknown code: trust the server's words
+}
+
 /* Markup all precedes this script, so the first pass can run immediately. */
 dcApplyLang();
 
@@ -5407,6 +5529,22 @@ dcOnRelabel(()=>{ if(typeof editingItemIndex!=='undefined' && editingItemIndex!=
    them would overwrite a real quotation number with placeholder text. Both read
    their values back from the form, so this re-labels and stores nothing. */
 dcOnRelabel(()=>{ try{ syncQI(); }catch(e){} try{ updateQuoteLockUI(); }catch(e){} });
+/* Quick Add builds its panels and rows from templates, so re-render them when
+   the language changes. Only runs while the modal is actually open, and every
+   renderer reads from wqa state — no row, price or accessory value is altered. */
+dcOnRelabel(()=>{
+  const m=el('wqaModal');
+  if(!m || !m.classList.contains('open')) return;
+  try{ wqaUpdateAiPane(); }catch(e){}
+  if(wqa.rows && wqa.rows.length){
+    try{ wqaRenderCommon(); }catch(e){}
+    try{ wqaRenderCommonItem(true); }catch(e){}
+    try{ wqaRenderCommonPrice(true); }catch(e){}
+    try{ wqaRenderCommonAcc(true); }catch(e){}
+    try{ wqaRenderRows(true); }catch(e){}
+    try{ wqaUpdateAddButton(); }catch(e){}
+  }
+});
 function editItem(i){
   if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return; }
   if(!quoteItems[i]) return;
@@ -7327,7 +7465,7 @@ function wqaRenderCommonItem(force){
   if(!force && wqaTypingIn(box)){ wqaPatchItemPanel(); wqaDeferRender('item'); return; }
   const c=wqa.commonItem||(wqa.commonItem=wqaEmptyItem());
   const need=wqaItemNeedCount();
-  const head=wqaPanelHead('item','Common Item Fields — Apply to All',wqaItemSummary(c),
+  const head=wqaPanelHead('item',dcT('wqaCommonItemTitle'),wqaItemSummary(c),
                           need?need+' incomplete':'');
   box.innerHTML = head + (!wqa.panels.item ? '' :
     `<div class="wqa-panel-body">
@@ -7369,9 +7507,9 @@ function wqaApplyItemToAll(){
   const c=wqa.commonItem||wqaEmptyItem();
   const size=wqaNormSize(c.size);
   const thread=String(c.thread||'').trim();
-  if(!size && !thread){ showToast('Enter a Size or a Thread first'); return; }
+  if(!size && !thread){ showToast(dcT('wqaToastEnterSizeThread')); return; }
   const live=wqa.rows.filter(r=>!r.removed);
-  if(!live.length){ showToast('There are no items to apply to'); return; }
+  if(!live.length){ showToast(dcT('wqaToastNoItems')); return; }
   /* A blank field is not an instruction to clear. Only what was filled in gets
      copied, so Size-only leaves every row's thread exactly as it was — an
      asymmetric 50/110 included — and Thread-only leaves every row's size. */
@@ -7475,7 +7613,7 @@ function wqaRenderCommonPrice(force){
   const entered=[c.costRate!==''?'Cost Rate '+c.costRate:'',c.addCost!==''?'Add Cost '+c.addCost:'',
                  c.markup!==''?'Markup '+c.markup+'%':'',wqaPriceModeLabel(c.priceMode)].filter(Boolean).join('  ·  ');
   el('wqaCommonPrice').innerHTML=
-    wqaPanelHead('price','Pricing Entry — Apply to All',wqaPriceSummary(c),'') +
+    wqaPanelHead('price',dcT('wqaCommonPriceTitle'),wqaPriceSummary(c),'') +
     (!wqa.panels.price ? '' : `<div class="wqa-panel-body">
        <div class="wqa-acc-note">Entry values only. Auto Round and No Round rows each recalculate their own Final Unit Price from their own dimensions.</div>
      <div class="wqa-price-line">
@@ -7531,14 +7669,14 @@ function wqaApplyPriceToAll(){
   wqa.panels.price=true;    // stay open while staff keep editing
   wqaRenderCommonPrice();
   wqaRecomputeAll();
-  showToast('Pricing entry applied to all items'+(droppedLast?' · Last Price switched off on '+droppedLast+' row'+(droppedLast>1?'s':''):''));
+  showToast(dcT('wqaToastPriceApplied')+(droppedLast?' · '+dcT('wqaToastLastPriceOff').replace('{n}',droppedLast):''));
 }
 /* Separate, manual-only, and never triggered by the button above. */
 function wqaApplyManualPriceToAll(){
   const c=wqa.commonPrice||wqaEmptyPrice();
-  if(c.priceMode!=='manual'){ showToast('Set Price Mode to Manual Price first'); return; }
+  if(c.priceMode!=='manual'){ showToast(dcT('wqaToastSetManual')); return; }
   const v=String(c.manualUnitPrice||'').trim();
-  if(v===''||!(parseFloat(v)>0)){ showToast('Enter a manual unit price first'); return; }
+  if(v===''||!(parseFloat(v)>0)){ showToast(dcT('wqaToastEnterManual')); return; }
   wqa.rows.forEach(r=>{ if(r.removed) return; r.priceMode='manual'; r.manualPrice=v; r.useLastPrice=false; });
   wqa.panels.price=true;
   wqaRenderCommonPrice();
@@ -7577,7 +7715,7 @@ function wqaRenderCommonAcc(force){
   if(!force && wqaTypingIn(el('wqaCommonAcc'))){ wqaPatchAccPanel(); wqaDeferRender('acc'); return; }
   const a=wqa.commonAcc||(wqa.commonAcc=wqaEmptyAcc());
   const n=wqaAccActiveCount(a);
-  const head=wqaPanelHead('acc','Accessories — Apply to All',wqaAccShortSummary(a),n?n+' active':'');
+  const head=wqaPanelHead('acc',dcT('wqaCommonAccTitle'),wqaAccShortSummary(a),n?n+' active':'');
   el('wqaCommonAcc').innerHTML = head + (!wqa.panels.acc ? '' :
     `<div class="wqa-panel-body">
        <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards.</div>
@@ -7610,7 +7748,7 @@ function wqaClearAllAcc(){
   wqa.panels.acc=true;
   wqaRenderCommonAcc();
   wqaRecomputeAll();
-  showToast('Accessories cleared on all items');
+  showToast(dcT('wqaToastAccCleared'));
 }
 function wqaEditAcc(i,group,field,value){
   const r=wqa.rows[i]; if(!r) return;
@@ -7813,12 +7951,14 @@ function wqaFmtPrice(v){ const n=Number(v)||0; return n>0 ? 'RM'+n.toFixed(2) : 
 /* Small pills, never alert blocks. */
 function wqaRowBadges(r){
   const out=[];
-  wqaRowMissing(r).forEach(m=>out.push({t:'Needs '+m,k:'req'}));
-  if(r.defaulted && r.defaulted.threadMissing) out.push({t:'No thread',k:'warn'});
-  if(r.issues.includes('extra'))                out.push({t:'Parse warning',k:'warn'});
-  (r.aiUncertain||[]).forEach(f=>out.push({t:'Check '+f,k:'warn'}));
-  if(wqaIsAsymmetric(r))                        out.push({t:'Asymmetric',k:'info'});
-  if(r.useLastPrice)                            out.push({t:'Last price',k:'info'});
+  /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
+     either language instead of a translated word glued to an English one. */
+  wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',dcT('field'+m.replace(/\s/g,''))),k:'req'}));
+  if(r.defaulted && r.defaulted.threadMissing) out.push({t:dcT('badgeNoThread'),k:'warn'});
+  if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
+  (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
+  if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
+  if(r.useLastPrice)                            out.push({t:dcT('badgeLastPrice'),k:'info'});
   return out;
 }
 function wqaBadgeHtml(r){
@@ -7828,12 +7968,12 @@ function wqaUpdateAddButton(){
   const live=wqa.rows.filter(r=>!r.removed);
   const blocked=live.filter(r=>wqaRowMissing(r).length).length;
   const btn=el('wqaAddBtn'); if(!btn) return;
-  el('wqaRowsCount').textContent=live.length+(live.length===1?' item':' items');
+  el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',live.length);
   btn.disabled = live.length===0 || blocked>0;
-  btn.textContent = live.length? `Add ${live.length} Item${live.length===1?'':'s'} to Quotation` : 'Add Items to Quotation';
+  btn.textContent = live.length? dcT('wqaAddNItems').replace('{n}',live.length) : dcT('wqaAddItems');
   const ft=el('wqaFootTotal'), fn=el('wqaFootNeed');
-  if(ft) ft.textContent=live.length+(live.length===1?' item':' items');
-  if(fn){ fn.textContent=blocked?blocked+' need attention':''; fn.hidden=!blocked; }
+  if(ft) ft.textContent=dcT('nItems').replace('{n}',live.length);
+  if(fn){ fn.textContent=blocked?dcT('needAttention').replace('{n}',blocked):''; fn.hidden=!blocked; }
   /* Keeps the "N incomplete" badge live as rows are edited, without ever
      re-rendering the panel out from under a caret. */
   wqaPatchItemPanel();
@@ -8140,7 +8280,7 @@ function wqaDrop(e){
   wqa._dragDepth=0; wqaDragPaint(false);
   const dt=e.dataTransfer, files=(dt&&dt.files)||null;
   if(!files || !files.length){
-    wqaRejectFile('That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.');
+    wqaRejectFile(dcT('wqaDropNoFile'));
     return;
   }
   /* One file per analysis, unchanged from V2.1: extras are ignored rather than
@@ -8165,9 +8305,9 @@ function wqaAcceptFile(f){
   if(!f){ wqaUpdateAiPane(); return; }
   const isPdf = f.type==='application/pdf' || /\.pdf$/i.test(f.name);
   const isImg = /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
-  if(!isPdf && !isImg){ wqaRejectFile('Only JPG, PNG, WEBP images and PDF files are supported.'); return; }
-  if(isPdf && f.size>WQA_AI_MAX_PDF){ wqaRejectFile('PDF files must be 20 MB or smaller.'); return; }
-  if(!isPdf && f.size>WQA_AI_MAX_IMG){ wqaRejectFile('Images must be 10 MB or smaller.'); return; }
+  if(!isPdf && !isImg){ wqaRejectFile(dcT('errUnsupportedType')); return; }
+  if(isPdf && f.size>WQA_AI_MAX_PDF){ wqaRejectFile(dcT('errPdfTooLarge')); return; }
+  if(!isPdf && f.size>WQA_AI_MAX_IMG){ wqaRejectFile(dcT('errImgTooLarge')); return; }
   wqa.aiFile=f; wqa.aiIsPdf=isPdf;
   if(!isPdf){ try{ wqa.aiPreviewUrl=URL.createObjectURL(f); }catch(e){ wqa.aiPreviewUrl=''; } }
   /* Clear the picker after a drop so it cannot hold a stale file: re-picking
@@ -8183,7 +8323,7 @@ function wqaFmtBytes(n){ return n>=1048576 ? (n/1048576).toFixed(1)+' MB' : Math
 function wqaUpdateAiPane(){
   const info=el('wqaFileInfo'), box=el('wqaAiPreviewBox'), img=el('wqaAiPreview'),
         chip=el('wqaAiPdfChip'), pname=el('wqaAiPdfName'), btn=el('wqaAnalyzeBtn');
-  if(info) info.textContent = wqa.aiFile ? (wqa.aiFile.name+' · '+wqaFmtBytes(wqa.aiFile.size)) : 'No file selected';
+  if(info) info.textContent = wqa.aiFile ? (wqa.aiFile.name+' · '+wqaFmtBytes(wqa.aiFile.size)) : dcT('wqaNoFile');
   /* Images preview inline; a PDF gets a plain file indicator — rendering its
      pages would buy nothing here, the server reads it either way. */
   const showImg=!!wqa.aiPreviewUrl, showPdf=!!wqa.aiFile&&!!wqa.aiIsPdf;
@@ -8214,12 +8354,12 @@ async function wqaAnalyze(){
     const res=await fetch('ai_extract.php',{method:'POST',body:fd});
     let j=null; try{ j=await res.json(); }catch(e){}
     if(!j || !j.ok){
-      wqaMsg('wqaAiMsg',(j&&j.message)||'Could not analyze this file. Try again or paste the text manually.',true);
+      wqaMsg('wqaAiMsg',dcServerError(j),true);
       return;                                          // file stays selected for a retry
     }
     await wqaAiApply(j.data);
   }catch(e){
-    wqaMsg('wqaAiMsg','Could not analyze this file. Try again or paste the text manually.',true);
+    wqaMsg('wqaAiMsg',dcT('wqaMsgCannotAnalyze'),true);
   }finally{
     wqa.aiBusy=false; el('wqaAiStatus').hidden=true; wqaUpdateAiPane();
   }
@@ -8262,7 +8402,7 @@ async function wqaAiApply(d){
     return row;
   });
   if(!rows.length){
-    wqaMsg('wqaAiMsg','No item rows could be read from this file. Try again or paste the text manually.',true);
+    wqaMsg('wqaAiMsg',dcT('wqaMsgNoRows'),true);
     return;
   }
 
@@ -8276,7 +8416,7 @@ async function wqaAiApply(d){
       ' — not supported by Quick Add yet. Please add these manually.',true);
     return;
   } else if(d.product==='OTHER'){
-    wqaMsg('wqaAiMsg','Could not read a supported product from this file. Try again or paste the text manually.',true);
+    wqaMsg('wqaAiMsg',dcT('wqaMsgNoProduct'),true);
     return;
   }
 
@@ -8341,7 +8481,7 @@ function wqaResetState(){
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
   wqa.method='paste';
   if(el('wqaFileInput'))   el('wqaFileInput').value='';
-  if(el('wqaFileInfo'))    el('wqaFileInfo').textContent='No file selected';
+  if(el('wqaFileInfo'))    el('wqaFileInfo').textContent=dcT('wqaNoFile');
   if(el('wqaAiPreviewBox')) el('wqaAiPreviewBox').hidden=true;
   if(el('wqaAiPreview')){  el('wqaAiPreview').src=''; el('wqaAiPreview').hidden=true; }
   if(el('wqaAiPdfChip'))   el('wqaAiPdfChip').hidden=true;
@@ -8366,11 +8506,11 @@ function wqaResetState(){
 
   if(el('wqaInput'))     el('wqaInput').value='';
   if(el('wqaConfirm'))   el('wqaConfirm').hidden=true;
-  if(el('wqaRowsCount')) el('wqaRowsCount').textContent='0 items';
-  if(el('wqaFootTotal')) el('wqaFootTotal').textContent='0 items';
+  if(el('wqaRowsCount')) el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',0);
+  if(el('wqaFootTotal')) el('wqaFootTotal').textContent=dcT('nItems').replace('{n}',0);
   if(el('wqaFootNeed')){ el('wqaFootNeed').textContent=''; el('wqaFootNeed').hidden=true; }
   if(el('wqaAddBtn')){ el('wqaAddBtn').disabled=true;
-                       el('wqaAddBtn').textContent='Add Items to Quotation'; }
+                       el('wqaAddBtn').textContent=dcT('wqaAddItems'); }
   wqaMsg('wqaParseMsg','',false);
   if(el('wqaStep1')) el('wqaStep1').hidden=false;
   if(el('wqaStep2')) el('wqaStep2').hidden=true;
@@ -8421,14 +8561,14 @@ function wqaMsg(id,text,warn){
 
 async function wqaParseAndReview(){
   const text=el('wqaInput').value||'';
-  if(!text.trim()){ wqaMsg('wqaParseMsg','Paste the customer text first.',true); return; }
+  if(!text.trim()){ wqaMsg('wqaParseMsg',dcT('wqaMsgPasteFirst'),true); return; }
   const parsed=wqaParseText(text);
   if(!parsed.common.product){
     wqaMsg('wqaParseMsg','Could not tell which product this is. V1 understands Sag Rod, Stud and Anchor Bolt — add the product name to the text.',true);
     return;
   }
   if(!parsed.rows.length){
-    wqaMsg('wqaParseMsg','No item lines found. Each line needs dimensions, e.g. "m12 x 1000 x 100 - 2pcs".',true);
+    wqaMsg('wqaParseMsg',dcT('wqaMsgNoLines'),true);
     return;
   }
   wqaMsg('wqaParseMsg','',false);
