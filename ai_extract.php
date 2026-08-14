@@ -178,11 +178,32 @@ prose, no reasoning, no explanations, no quotes from the source. Never invent a
 value: unknown = null. Absent qty = null, never 1. Ignore greetings, logos,
 signatures, stamps, prices and unrelated text.
 
-product — classify by GEOMETRY / table structure first, wording last. A table
-with D/L/TL plus a bend or width column (B) is L_BOLT even if the text says
-"Anchor Bolt", "Foundation Bolt" or "Bolt & Nut". Diameter+length+thread with
-no bend: SAG_ROD or ANCHOR_BOLT per the wording. Diameter+length only: STUD.
-Anything else: OTHER.
+product — classify by GEOMETRY first and customer wording LAST. Titles such as
+"Anchor Bolt", "Foundation Bolt", "Bolt", "Bolt & Nut", "Stud" and "Sag Rod"
+are used loosely and routinely disagree with what is actually drawn, so the
+title is the WEAKEST signal, not the strongest. Never copy the drawing title
+into product. Resolve in this order: 1 geometry, 2 dimensional structure,
+3 which portions are threaded or bent, 4 drawing annotations, 5 wording.
+  - bend/width column (B), or a drawn L / J / U bend -> L_BOLT, even when the
+    text says "Anchor Bolt" or "Foundation Bolt"
+  - STRAIGHT rod, no bend, threaded at BOTH ends — our M + overall L + TL1/TL2
+    shape -> SAG_ROD, even when the title says "Anchor Bolt"
+  - straight rod threaded at ONE end only -> SAG_ROD or ANCHOR_BOLT per the
+    wording
+  - diameter + length only, no thread -> STUD
+  - anything else -> OTHER
+Geometry has to be VISIBLE to be used. A bare list of lengths and quantities
+shows no geometry at all, so none of the above fires — see DO NOT FILL IN WHAT
+IS NOT THERE.
+
+Title-vs-geometry worked example. "DETAIL OF ANCHOR BOLT (GR8.8)": one straight
+rod, no bend, 48 dimensioned across the rod, overall length 3850, top thread
+250, bottom thread 100, middle not dimensioned, no quantity ->
+  product SAG_ROD (geometry beats the title), material "GR8.8"
+  {"M":"M48","L":3850,"W":null,"TL":"250/100","qty":null,"Bmid":null}
+L is the OVERALL 3850. A shorter dimension elsewhere on the same drawing (3600)
+is a reference dimension, not L. Bmid stays null because the plain middle is
+not dimensioned — never compute it.
 
 material / finish / sizeType — copy the raw wording exactly, do not translate
 (materials: MS, S45C, 4140, 4140 QT, G8.8, GR8.8, Grade 8.8, Y BAR; finishes:
@@ -196,9 +217,15 @@ lock nuts into items, never let them change qty, never price them. Staff decide
 accessories by hand.
 
 items — one per document row, in document order:
-  M  = diameter (M12, M39)
+  M  = diameter (M12, M39). A dimension drawn ACROSS the rod — a section width,
+       a leader onto the shaft, a "48" spanning the rod's thickness — IS the
+       diameter, so 48 across the rod means M48. Use it only where the drawing
+       context makes it a metric rod diameter; an unrelated 48 somewhere else
+       on the sheet is not M48.
   L  = length in mm — see the drawing rule below
-  W  = bend/width in mm (B column on an L-bolt table), null when absent
+  W  = bend/width in mm (B column on an L-bolt table), null when absent. On a
+       straight rod with no bend W is null — a dimension across the rod is M,
+       never W.
   TL = thread length; a pair as the string "75/75" or "50/110", preserving
        asymmetry exactly; a single value as a number
   Bmid = centre unthreaded segment of a segmented sag rod drawing, else null.
