@@ -2012,6 +2012,14 @@ input,select,textarea{
 .side-lang .lang-btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.lang-btn{transition:none}}
 
+/* Quick Add — "AI assisted" source badge. Informational only: muted text on a
+   faint neutral chip, no warning colour, no border emphasis, and it never
+   competes with the row badges beside it. */
+.wqa-ai-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--pill-r);
+  background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:700;
+  letter-spacing:.01em;white-space:nowrap;flex:0 0 auto}
+.wqa-ai-badge[hidden]{display:none}
+
 /* Quick Add — common Size / Thread panel */
 .wqa-item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:11px}
 @media (max-width:560px){.wqa-item-grid{grid-template-columns:1fr}}
@@ -3306,6 +3314,8 @@ input,select,textarea{
       <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
       <div class="wqa-rows-head">
         <span id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
+        <!-- Shown only when an AI call actually produced the rows below. -->
+        <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiAssisted" hidden>✨ AI assisted</span>
         <span class="wqa-view-toggle" role="group" data-i18n-aria="wqaAriaView" aria-label="View">
           <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')" data-i18n="wqaCompact">Compact</button>
           <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')" data-i18n="wqaExpanded">Expanded</button>
@@ -3757,7 +3767,7 @@ const I18N={
     wqaPrivacy:'Uploaded files are used only for AI extraction and are not saved with the quotation.',
     wqaParseItems:'Parse Items', wqaAnalyze:'Analyze',
     wqaCompact:'Compact', wqaExpanded:'Expanded', wqaEditPasted:'← Edit pasted text',
-    wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items',
+    wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiAssisted:'✨ AI assisted',
     wqaCommonItemTitle:'Common Item Fields — Apply to All',
     wqaCommonPriceTitle:'Pricing Entry — Apply to All',
     wqaCommonAccTitle:'Accessories — Apply to All',
@@ -3921,7 +3931,7 @@ const I18N={
     wqaPrivacy:'上传的文件只用于 AI 提取，不会随报价保存。',
     wqaParseItems:'解析产品', wqaAnalyze:'分析',
     wqaCompact:'精简', wqaExpanded:'展开', wqaEditPasted:'← 编辑粘贴文字',
-    wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项',
+    wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
     wqaCommonItemTitle:'通用项目参数 — 应用到全部',
     wqaCommonPriceTitle:'价格设置 — 应用到全部',
     wqaCommonAccTitle:'配件 — 应用到全部',
@@ -5684,6 +5694,7 @@ dcOnRelabel(()=>{
   const m=el('wqaModal');
   if(!m || !m.classList.contains('open')) return;
   try{ wqaUpdateAiPane(); }catch(e){}
+  try{ wqaRenderAiBadge(); }catch(e){}
   if(wqa.rows && wqa.rows.length){
     try{ wqaRenderCommon(); }catch(e){}
     try{ wqaRenderCommonItem(true); }catch(e){}
@@ -8579,6 +8590,11 @@ async function wqaAiApply(d){
   /* Drawings routinely show standard assembly hardware that the quotation may
      not include, so the wording is reported and nothing is enabled: no nut, no
      washer, no quantity, no price. Accessories stay entirely manual. */
+  /* The extraction came from the AI endpoint and is about to become the rows,
+     so this session is genuinely AI-assisted. Set here rather than in wqaAnalyze
+     because a call that fails or returns nothing usable never reaches this line
+     — the badge reflects a result that was USED, not merely a request sent. */
+  wqa.aiAssisted = true;
   wqa.aiWarnings = d.note
     ? ['Document mentions: '+d.note+' — accessories are never added automatically. Add them yourself if this quotation includes them.']
     : [];
@@ -8627,6 +8643,9 @@ function wqaResetState(){
      error all belong to the session and go with it. */
   wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
+  /* A new Quick Add session is never AI-assisted until it earns it again. */
+  wqa.aiAssisted=false;
+  if(el('wqaAiBadge')) el('wqaAiBadge').hidden=true;
   wqa.method='paste';
   if(el('wqaFileInput'))   el('wqaFileInput').value='';
   if(el('wqaFileInfo'))    el('wqaFileInfo').textContent=dcT('wqaNoFile');
@@ -8691,6 +8710,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source){
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
   wqaRenderCommon();
+  wqaRenderAiBadge();
   /* Opened by default when anything is actually missing — on a shorthand photo
      that is every row, and this panel is the one-action fix. */
   wqa.panels.item = wqaItemNeedCount() > 0;
@@ -8700,6 +8720,12 @@ async function wqaEnterReview(common, rows, rawText, skipped, source){
   await wqaRecomputeAll();
 }
 
+/* The flag is the single source of truth, so a deterministic parse simply
+   never shows it. */
+function wqaRenderAiBadge(){
+  const b=el('wqaAiBadge');
+  if(b) b.hidden = !wqa.aiAssisted;
+}
 function wqaBackToPaste(){ el('wqaStep2').hidden=true; el('wqaStep1').hidden=false; }
 function wqaMsg(id,text,warn){
   const b=el(id); if(!b) return;
