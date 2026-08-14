@@ -3768,6 +3768,14 @@ const I18N={
     wqaParseItems:'Parse Items', wqaAnalyze:'Analyze',
     wqaCompact:'Compact', wqaExpanded:'Expanded', wqaEditPasted:'← Edit pasted text',
     wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiAssisted:'✨ AI assisted',
+    notSet:'Not set', none:'None',
+    pmAutoRound:'Auto Round', pmNoRound:'No Round', pmManualPrice:'Manual Price',
+    sizeTypeRequired:'Size Type is required for {p} — it was not stated in the message, so it is not guessed.',
+    wqaMsgUnsupported:'Detected as {p} — not supported by Quick Add yet. Please add these manually.',
+    wqaTextAnalyzing:'Reading the message…',
+    wqaCannotRead:'Could not confidently read this message. Please edit the pasted text or enter the items manually.',
+    errNoText:'No text was supplied.',
+    errTextTooLong:'That message is too long to analyze. Trim it and try again.',
     wqaCommonItemTitle:'Common Item Fields — Apply to All',
     wqaCommonPriceTitle:'Pricing Entry — Apply to All',
     wqaCommonAccTitle:'Accessories — Apply to All',
@@ -3932,6 +3940,14 @@ const I18N={
     wqaParseItems:'解析产品', wqaAnalyze:'分析',
     wqaCompact:'精简', wqaExpanded:'展开', wqaEditPasted:'← 编辑粘贴文字',
     wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
+    notSet:'未设置', none:'无',
+    pmAutoRound:'自动进位', pmNoRound:'不进位', pmManualPrice:'手动价格',
+    sizeTypeRequired:'{p} 需要选择 Size Type — 信息里没有写明，所以不作猜测。',
+    wqaMsgUnsupported:'识别为 {p} — 快速添加暂不支持。请手动添加。',
+    wqaTextAnalyzing:'正在识别这段内容…',
+    wqaCannotRead:'无法可靠识别这段内容。请编辑粘贴文字，或手动输入产品。',
+    errNoText:'没有提供文字。',
+    errTextTooLong:'这段内容太长，无法分析。请精简后再试。',
     wqaCommonItemTitle:'通用项目参数 — 应用到全部',
     wqaCommonPriceTitle:'价格设置 — 应用到全部',
     wqaCommonAccTitle:'配件 — 应用到全部',
@@ -4078,6 +4094,7 @@ const DC_ERR={
   too_many_pages:'errTooManyPages', network:'errNetwork', auth:'errAuth', rate:'errRate',
   upstream:'errUpstream', request:'errRequest', method:'errMethod',
   not_configured:'errNotConfigured', ai_output_invalid:'errAiOutputInvalid',
+  no_text:'errNoText', text_too_long:'errTextTooLong',
 };
 function dcServerError(j){
   const key = j && j.error && DC_ERR[j.error];
@@ -7611,7 +7628,7 @@ function wqaItemSummary(c){
   const bits=[];
   if(String(c.size||'').trim())   bits.push('Size '+wqaNormSize(c.size));
   if(String(c.thread||'').trim()) bits.push('Thread '+String(c.thread).trim());
-  return bits.length ? bits.join(' · ') : 'Not set';
+  return bits.length ? bits.join(' · ') : dcT('notSet');
 }
 /* Rows still missing a size or a thread — the reason this panel exists, so it
    is surfaced on the collapsed header too. */
@@ -7707,7 +7724,7 @@ function wqaEmptyAcc(){
 }
 function wqaAccHas(a){ return !!(a&&((a.nut&&a.nut.enabled)||(a.fw&&a.fw.enabled)||(a.custom&&a.custom.enabled))); }
 function wqaAccSummary(a){
-  if(!wqaAccHas(a)) return 'None';
+  if(!wqaAccHas(a)) return dcT('none');
   const money=v=>Number(v)>0?(' @ RM'+Number(v).toFixed(2)):'';
   const out=[];
   if(a.nut.enabled) out.push('Nut x'+(a.nut.qty||2)+(a.nut.finish?' '+a.nut.finish:'')+money(a.nut.unitPrice));
@@ -7760,7 +7777,12 @@ function wqaSetAccField(a,group,field,value){
    separate button so it can never happen by accident. */
 const WQA_PRICE_MODES=[{v:'auto',label:'Auto Round'},{v:'no_round',label:'No Round'},{v:'manual',label:'Manual Price'}];
 function wqaEmptyPrice(){ return {costRate:'',addCost:'',markup:'',priceMode:'auto',manualUnitPrice:''}; }
-function wqaPriceModeLabel(m){ const f=WQA_PRICE_MODES.find(x=>x.v===m); return f?f.label:'Auto Round'; }
+/* Looked up so the summary follows the UI language; the underlying values
+   (auto / no_round / manual) never change. */
+function wqaPriceModeLabel(m){
+  const k={auto:'pmAutoRound',no_round:'pmNoRound',manual:'pmManualPrice'}[m];
+  return k ? dcT(k) : dcT('pmAutoRound');
+}
 
 function wqaRenderCommonPrice(force){
   /* `force` is for structural changes (Price Mode), where the panel must show
@@ -7859,7 +7881,7 @@ function wqaEditRowManualPrice(i,v){
 /* Compact form for the collapsed header: names and counts only, so the line
    stays readable on a phone. The full detail is one tap away. */
 function wqaAccShortSummary(a){
-  if(!wqaAccHas(a)) return 'None';
+  if(!wqaAccHas(a)) return dcT('none');
   const out=[];
   if(a.nut.enabled) out.push('Nut ×'+(a.nut.qty||2));
   if(a.fw.enabled)  out.push('FW ×'+(a.fw.qty||1));
@@ -8528,7 +8550,10 @@ async function wqaAnalyze(){
    text path uses, so bare 4140 / G8.8 default to 4140 QT, aliases resolve, and
    nothing bypasses the business rules. Pricing, weight and accessories all run
    in the existing calculator, never in the model. */
-async function wqaAiApply(d){
+async function wqaAiApply(d, msgTarget){
+  /* The photo/PDF path writes into the upload pane; the paste fallback writes
+     into the paste pane. Default keeps the image path byte-identical. */
+  const MT = msgTarget || 'wqaAiMsg';
   const map={'SAG_ROD':'sagrod','STUD':'stud','ANCHOR_BOLT':'anchorbolt'};
   const word={'SAG_ROD':'SAG ROD','STUD':'STUD','ANCHOR_BOLT':'ANCHOR BOLT','L_BOLT':'L BOLT'};
 
@@ -8561,8 +8586,8 @@ async function wqaAiApply(d){
     return row;
   });
   if(!rows.length){
-    wqaMsg('wqaAiMsg',dcT('wqaMsgNoRows'),true);
-    return;
+    wqaMsg(MT,dcT('wqaMsgNoRows'),true);
+    return false;
   }
 
   /* Product: geometry-classified by the model, then held to what Quick Add can
@@ -8571,12 +8596,11 @@ async function wqaAiApply(d){
   let prod='';
   if(d.product && map[d.product]) prod=map[d.product];
   else if(d.product && d.product!=='OTHER'){
-    wqaMsg('wqaAiMsg','Detected as '+(word[d.product]||d.product)+
-      ' — not supported by Quick Add yet. Please add these manually.',true);
-    return;
+    wqaMsg(MT,dcT('wqaMsgUnsupported').replace('{p}',word[d.product]||d.product),true);
+    return false;
   } else if(d.product==='OTHER'){
-    wqaMsg('wqaAiMsg',dcT('wqaMsgNoProduct'),true);
-    return;
+    wqaMsg(MT,dcT('wqaMsgNoProduct'),true);
+    return false;
   }
 
   /* SAME business rules as the text path. Only wording the document actually
@@ -8598,7 +8622,64 @@ async function wqaAiApply(d){
   wqa.aiWarnings = d.note
     ? ['Document mentions: '+d.note+' — accessories are never added automatically. Add them yourself if this quotation includes them.']
     : [];
-  await wqaEnterReview(common, rows, '[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file'), [], 'ai');
+  await wqaEnterReview(common, rows, wqa.aiRaw || ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')), [], 'ai');
+  return true;
+}
+
+/* ── Deterministic-first quality gate ───────────────────────────────────────
+   Decides whether the parser genuinely understood the message. Deliberately
+   NOT a completeness check: a blank Qty, Size Type, Finish, Material or even
+   Product is a legitimate staff-review state and never triggers AI on its own.
+
+   Two things do:
+     * no row carries a usable length at all, or
+     * far fewer rows came out than the message has numeric lines — the shape of
+       a free-form sentence the parser skimmed rather than read.
+
+   Measured against the real parser: a normal list scores 0.67, a qty-first list
+   and a shorthand length list both score 1.0, while the free-form
+   "left thread 68 / center 12 / other side 20" message scores 0.17. */
+function wqaParseQuality(parsed, text){
+  const usable = (parsed.rows||[]).filter(r=>parseFloat(r.length)>0);
+  if(!usable.length) return {ok:false, why:'no-usable-rows'};
+  const contentLines = String(text||'').split(/\r?\n/)
+    .map(l=>l.trim()).filter(l=>l && /\d/.test(l)).length;
+  if(contentLines>0 && (usable.length/contentLines) < 0.5){
+    return {ok:false, why:'low-coverage', rows:usable.length, lines:contentLines};
+  }
+  return {ok:true, rows:usable.length};
+}
+
+/* Only reached when the parser could not read the message. One call, never in
+   parallel with the parser, and never on a paste the parser handled. */
+async function wqaTextFallback(text){
+  if(wqa.aiBusy) return;
+  wqa.aiBusy = true;
+  const btn = el('wqaParseBtn');
+  if(btn) btn.disabled = true;
+  wqaMsg('wqaParseMsg', dcT('wqaTextAnalyzing'), false);
+  try{
+    const fd = new FormData();
+    fd.append('text', text);                    // the key never leaves the server
+    const res = await fetch('ai_extract.php',{method:'POST',body:fd});
+    let j=null; try{ j=await res.json(); }catch(e){}
+    if(!j || !j.ok || !j.data){
+      /* Deliberately NOT dcServerError(): those messages are written for the
+         file path ("Could not analyze this file"), which reads wrong under a
+         pasted message. One clean line for every fallback failure, and the
+         pasted text is left exactly as the customer sent it. */
+      wqaMsg('wqaParseMsg', dcT('wqaCannotRead'), true);
+      return;
+    }
+    wqa.aiRaw = text;                           // review keeps the original message
+    const applied = await wqaAiApply(j.data, 'wqaParseMsg');
+    if(applied) wqaMsg('wqaParseMsg','',false);
+  }catch(e){
+    wqaMsg('wqaParseMsg', dcT('wqaCannotRead'), true);
+  }finally{
+    wqa.aiBusy = false;
+    if(btn) btn.disabled = false;
+  }
 }
 
 /* ── Safe close ────────────────────────────────────────────────────────────
@@ -8644,7 +8725,7 @@ function wqaResetState(){
   wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
   /* A new Quick Add session is never AI-assisted until it earns it again. */
-  wqa.aiAssisted=false;
+  wqa.aiAssisted=false; wqa.aiRaw='';
   if(el('wqaAiBadge')) el('wqaAiBadge').hidden=true;
   wqa.method='paste';
   if(el('wqaFileInput'))   el('wqaFileInput').value='';
@@ -8736,17 +8817,26 @@ function wqaMsg(id,text,warn){
 async function wqaParseAndReview(){
   const text=el('wqaInput').value||'';
   if(!text.trim()){ wqaMsg('wqaParseMsg',dcT('wqaMsgPasteFirst'),true); return; }
-  const parsed=wqaParseText(text);
-  if(!parsed.common.product){
-    wqaMsg('wqaParseMsg','Could not tell which product this is. V1 understands Sag Rod, Stud and Anchor Bolt — add the product name to the text.',true);
-    return;
-  }
-  if(!parsed.rows.length){
-    wqaMsg('wqaParseMsg',dcT('wqaMsgNoLines'),true);
-    return;
-  }
   wqaMsg('wqaParseMsg','',false);
-  await wqaEnterReview(parsed.common, parsed.rows, text, parsed.skipped);
+  let parsed=wqaParseText(text);
+  /* A message that never names its product is still readable — the review screen
+     already asks for one, exactly as it does for an extracted photo. Re-read the
+     dimensions under the most general shape rather than refusing outright, and
+     leave product blank so nothing is invented. Picking a product in review
+     re-parses the same text under that product's rules. */
+  if(!parsed.common.product){
+    const probe=wqaParseText(text,'sagrod');
+    if(probe.rows.length){
+      parsed={...probe, common:{...probe.common, product:''}};
+    }
+  }
+  const q=wqaParseQuality(parsed,text);
+  if(q.ok){
+    /* Parser understood it. No AI call, no badge, no cost. */
+    await wqaEnterReview(parsed.common, parsed.rows, text, parsed.skipped);
+    return;
+  }
+  await wqaTextFallback(text);
 }
 
 function wqaMaterialOptions(sel){
@@ -8792,7 +8882,7 @@ function wqaRenderCommon(){
     </div>
     ${matNote}
     ${wqa.product?'':'<div class="wqa-flag wqa-flag-req">The document does not say which product this is, so it is not guessed. Choose the product to price these items.</div>'}
-    ${stNeeded?'<div class="wqa-flag wqa-flag-req">Size Type is required for '+prod.label+' — it was not stated in the message, so it is not guessed.</div>':''}
+    ${stNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('sizeTypeRequired').replace('{p}',prod.label)+'</div>':''}
     ${skipNote}${aiNote}`;
 }
 /* Changing the product re-parses the same text under the new product's rules —

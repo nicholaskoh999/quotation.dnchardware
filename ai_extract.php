@@ -2,7 +2,12 @@
 /**
  * Der-Cheng Quotation — AI photo / PDF extraction endpoint (Quick Add V2.1)
  *
- * POST multipart/form-data { file } -> JSON { ok, data | error }
+ * POST multipart/form-data { file }  -> JSON { ok, data | error }   photo / PDF
+ * POST                      { text }  -> JSON { ok, data | error }   pasted text
+ *
+ * Exactly one of the two per request. Both shapes share the same instructions,
+ * the same JSON schema and the same sanitiser, so there is one set of
+ * extraction rules rather than a second, drifting prompt for text.
  *
  * The browser NEVER talks to OpenAI. This endpoint receives the upload,
  * validates it, sends it to the OpenAI Responses API server-side with a strict
@@ -40,6 +45,9 @@ const AI_MAX_IMAGE_BYTES = 10485760;  // 10 MB
 const AI_MAX_PDF_BYTES   = 20971520;  // 20 MB
 const AI_MAX_PDF_PAGES   = 10;
 const AI_MAX_ITEMS       = 100;
+/* Pasted WhatsApp text. Generous for a long customer list, small enough that a
+   pasted document can never turn into a large bill. */
+const AI_MAX_TEXT_CHARS  = 6000;
 
 const AI_ALLOWED_MIME = [
     'image/jpeg' => 'image',
@@ -124,6 +132,27 @@ function ai_validate_upload($file) {
     $name = preg_replace('/[^A-Za-z0-9._-]/', '_', (string)($file['name'] ?? 'upload'));
     if ($name === '' || $name === '.') $name = $kind === 'pdf' ? 'upload.pdf' : 'upload.png';
     return ['ok'=>true,'kind'=>$kind,'mime'=>$mime,'bytes'=>$bytes,'size'=>$size,'name'=>$name];
+}
+
+/**
+ * Validate a pasted-text request. Returns
+ *   ['ok'=>true,'text'=>...]  or  ['ok'=>false,'error'=>...,'message'=>...].
+ * Same result shape as ai_validate_upload() so the endpoint handles both the
+ * same way.
+ */
+function ai_validate_text($raw) {
+    if (!is_string($raw)) {
+        return ['ok'=>false,'error'=>'no_text','message'=>'No text was supplied.'];
+    }
+    $t = trim($raw);
+    if ($t === '') {
+        return ['ok'=>false,'error'=>'no_text','message'=>'No text was supplied.'];
+    }
+    if (mb_strlen($t) > AI_MAX_TEXT_CHARS) {
+        return ['ok'=>false,'error'=>'text_too_long',
+                'message'=>'That message is too long to analyze. Trim it and try again.'];
+    }
+    return ['ok'=>true,'text'=>$t];
 }
 
 // ── structured-output schema ─────────────────────────────────────────────────
@@ -318,6 +347,33 @@ function ai_build_payload($upload) {
     ];
 }
 
+/**
+ * Payload for pasted text. Deliberately shares ai_instructions() and
+ * ai_output_schema() with the image path: one prompt philosophy, one schema,
+ * one set of business rules. The only difference is that the content is text
+ * rather than a file, so geometry has to be read from wording and layout.
+ */
+function ai_build_text_payload($text) {
+    return [
+        'model' => AI_EXTRACT_MODEL_PRIMARY,
+        'instructions' => ai_instructions(),
+        'input' => [[
+            'role' => 'user',
+            'content' => [[
+                'type' => 'input_text',
+                'text' => "Extract the quotation specification from this customer message.\n\n" . $text,
+            ]],
+        ]],
+        'text' => ['format' => [
+            'type'   => 'json_schema',
+            'name'   => 'quote_extraction',
+            'strict' => true,
+            'schema' => ai_output_schema(),
+        ]],
+        'max_output_tokens' => 4096,
+    ];
+}
+
 /** POST to the OpenAI Responses API. Returns [httpCode, decodedBody|null, curlErr]. */
 function ai_call_openai($payload) {
     $ch = curl_init('https://api.openai.com/v1/responses');
@@ -428,17 +484,34 @@ if (!defined('AI_EXTRACT_TEST')) {
         ai_json(['ok'=>false,'error'=>'not_configured',
                  'message'=>'AI extraction is not configured on this server yet.'], 503);
     }
-    if (count($_FILES) !== 1 || !isset($_FILES['file'])) {
+    /* Two request shapes, one endpoint: a file upload (photo / PDF) or pasted
+       text from the Quick Add fallback. Exactly one of them, never both, so a
+       request cannot smuggle a file past the text path. */
+    $hasFile = isset($_FILES['file']);
+    $hasText = isset($_POST['text']);
+    if ($hasFile === $hasText) {                 // neither, or both
+        ai_json(['ok'=>false,'error'=>'no_file',
+                 'message'=>'Send exactly one file or one block of text.'], 400);
+    }
+    if ($hasFile && count($_FILES) !== 1) {
         ai_json(['ok'=>false,'error'=>'no_file','message'=>'Upload exactly one file.'], 400);
     }
 
     set_time_limit(180);
     $t0 = microtime(true);
 
-    $upload = ai_validate_upload($_FILES['file']);
-    // The temp upload is consumed into memory above; remove it immediately so
-    // no copy of the customer document remains on disk past this point.
-    @unlink($_FILES['file']['tmp_name']);
+    if ($hasText) {
+        $upload = ai_validate_text($_POST['text']);
+        $upload['kind'] = 'text';
+        // Logged like the upload path: size only, never the customer's words.
+        $upload['mime'] = 'text/plain';
+        $upload['size'] = $upload['ok'] ? mb_strlen($upload['text']) : 0;
+    } else {
+        $upload = ai_validate_upload($_FILES['file']);
+        // The temp upload is consumed into memory above; remove it immediately so
+        // no copy of the customer document remains on disk past this point.
+        @unlink($_FILES['file']['tmp_name']);
+    }
     if (!$upload['ok']) {
         error_log('[ai_extract] reject '.$upload['error']);
         // A missing PHP extension is a server fault the admin must fix, not a
@@ -447,8 +520,10 @@ if (!defined('AI_EXTRACT_TEST')) {
         ai_json(['ok'=>false,'error'=>$upload['error'],'message'=>$upload['message']], $status);
     }
 
-    $payload = ai_build_payload($upload);
-    unset($upload['bytes']);                     // free the raw file from memory
+    $payload = $upload['kind'] === 'text'
+        ? ai_build_text_payload($upload['text'])
+        : ai_build_payload($upload);
+    unset($upload['bytes'], $upload['text']);    // free the raw input from memory
 
     list($code, $body, $curlErr) = ai_call_openai($payload);
     $ms = (int)round((microtime(true)-$t0)*1000);
