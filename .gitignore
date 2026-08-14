@@ -1,0 +1,20 @@
+# ── Server-only secrets — NEVER commit ───────────────────────────────────────
+# These live on the server only and are created from their .sample.php
+# templates. Nothing here may enter Git, a patch, or a release ZIP.
+ai_config.php
+db.php
+
+# ── Production runtime output ────────────────────────────────────────────────
+error_log
+*.log
+
+# ── Release / backup archives ────────────────────────────────────────────────
+# Git history is the source of truth for previous states; snapshot ZIPs of the
+# whole app must not be committed back into it.
+*.zip
+
+# ── OS / editor noise ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
