@@ -34,20 +34,27 @@
 <style>
 /* ═══════════════ DESIGN TOKENS ═══════════════ */
 :root{
-  --bg:#eef1f5; --surface:#ffffff; --surface2:#f6f7f9;
+  /* v2.24.1 brightness pass. The page and the sidebar sit on a cool tinted
+     ground; cards stay pure white and now read as raised panels on top of it
+     rather than as slightly-different white on white. Not a dark theme — every
+     surface is still light, just no longer all within two points of #fff. */
+  --bg:#e8ecf3; --surface:#ffffff; --surface2:#f3f5f8; --sidebar-bg:#e8edf4;
   /* Quick Add review table: a barely-there blue-grey for even rows, and one
      muted blue used for EVERY item number (never a colour per row). */
   --zebra:#fafbfd; --accent-num:#5a6ea8; --surface3:#eef0f4;
-  --border:#e1e5ec; --border-focus:#3b5bdb;
+  /* Slightly deeper so an edge still reads against a tinted page. */
+  --border:#d9dfe9; --border-focus:#3b5bdb;
   --text:#0d0f14; --text-2:#2a3040; --text-muted:#505868;
   --accent:#2547d0; --accent-2:#1c3faa; --accent-light:#eef1fd; --accent-mid:#c7d0f8;
   --green:#0e7a38; --green-2:#16a34a; --green-light:#e5f7ea;
   --wa:#25d366; --wa-hover:#1db954;
   --red:#dc2626; --red-light:#fef2f2; --red-mid:#fecaca;
   --amber:#b45309; --amber-light:#fffbeb; --amber-mid:#fde68a;
-  --shadow-sm:0 1px 2px rgba(20,25,40,.05), 0 1px 4px rgba(20,25,40,.05);
-  --shadow:0 1px 3px rgba(20,25,40,.06), 0 6px 20px rgba(20,25,40,.07);
-  --shadow-lg:0 10px 34px rgba(20,25,40,.16);
+  /* Softer but deeper: a hairline to seat the edge, then a wider low-opacity
+     spread so a white card lifts off the tinted page without a hard drop. */
+  --shadow-sm:0 1px 2px rgba(20,25,40,.06), 0 2px 8px rgba(20,25,40,.07);
+  --shadow:0 1px 3px rgba(20,25,40,.07), 0 8px 24px rgba(20,25,40,.09);
+  --shadow-lg:0 12px 38px rgba(20,25,40,.18);
   --r:14px; --r-sm:10px; --r-xs:7px;
   /* one control height language, shared with companies.php */
   --control-h:40px; --control-h-lg:48px; --pill-r:999px;
@@ -154,6 +161,8 @@ input,select,textarea{font-family:inherit}
   max-width:1440px; margin:0 auto; padding:0 12px;
 }
 .sidebar{
+  /* Its own tone so the rail reads as chrome, distinct from the white cards. */
+  background:var(--sidebar-bg); border-right:1px solid var(--border);
   width:196px; flex-shrink:0; padding:14px 8px 14px 4px; position:sticky;
   top:calc(var(--banner-h) + var(--header-h)); height:calc(100vh - var(--banner-h) - var(--header-h));
   overflow-y:auto;
@@ -1477,7 +1486,9 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qo-label .zh{text-transform:none;letter-spacing:0;font-weight:600;margin-left:4px}
 .qo-row{display:flex;gap:8px;align-items:stretch}
 .qo-input{flex:1 1 auto;min-width:0;height:var(--control-h-lg);padding:0 13px;font-size:16px;font-family:inherit;
-  font-weight:600;letter-spacing:.02em;color:var(--text);background:var(--bg);
+  /* A secondary surface, not the page ground — otherwise it darkens with the
+     page and reads as a hole punched in the card. */
+  font-weight:600;letter-spacing:.02em;color:var(--text);background:var(--surface2);
   border:1.5px solid var(--border);border-radius:var(--r-sm);outline:none;
   transition:border-color .15s,box-shadow .15s}
 .qo-input::placeholder{color:var(--text-muted);font-weight:500;letter-spacing:0}

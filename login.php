@@ -54,13 +54,14 @@ $justLoggedOut = isset($_GET['out']);
      dark mode. color-scheme:light also keeps form controls light on iOS/macOS. */
   :root{
     color-scheme: light;
-    --page:#ffffff;
+    /* v2.24.1: the card stays white, the ground behind it does not. */
+    --page:#e8ecf3;
     --card:#ffffff;
-    --border:#e5e7eb;
+    --border:#d9dfe9;
     --border-strong:#d5d9e0;
     --text:#111827;
     --muted:#6b7280;
-    --field:#fbfcfd;
+    --field:#f3f5f8;
     --brand:#5b7af5;
     --brand-dark:#4a67e8;
     --red:#b91c1c;

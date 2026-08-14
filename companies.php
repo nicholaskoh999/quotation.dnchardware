@@ -30,16 +30,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef0f4;--surface:#fff;--surface2:#f6f7f9;--surface3:#f0f2f6;
-  --border:#e0e4eb;--border-focus:#3b5bdb;
+  /* v2.24.1 brightness pass — same ground and surfaces as index.php. */
+  --bg:#e8ecf3;--surface:#fff;--surface2:#f3f5f8;--surface3:#eceff5;
+  --border:#d9dfe9;--border-focus:#3b5bdb;
   --text:#111318;--text-2:#3d4452;--text-muted:#6b7280;
   --accent:#2547d0;--accent-2:#1c3faa;--accent-light:#eef1fd;--accent-mid:#c7d0f8;
   --green:#0e7a38;--green-light:#dcfce7;
   --red:#dc2626;--red-light:#fef2f2;--red-mid:#fecaca;
   --amber:#d97706;--amber-light:#fffbeb;--amber-mid:#fde68a;
   --purple:#7c3aed;--purple-light:#f5f3ff;
-  --shadow:0 1px 3px rgba(0,0,0,.07),0 4px 20px rgba(0,0,0,.07);
-  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 10px 30px rgba(0,0,0,.09);
+  --shadow:0 1px 3px rgba(20,25,40,.07),0 8px 24px rgba(20,25,40,.09);
+  --shadow-md:0 4px 8px rgba(20,25,40,.08),0 12px 34px rgba(20,25,40,.11);
   --r:14px;--r-sm:10px;--r-xs:7px;
   /* one control height language, shared with index.php */
   --control-h:40px;--control-h-lg:48px;--pill-r:999px;
