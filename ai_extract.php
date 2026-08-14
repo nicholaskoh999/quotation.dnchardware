@@ -31,7 +31,9 @@ if (!defined('OPENAI_API_KEY')) {
     define('OPENAI_API_KEY', $envKey === false ? '' : $envKey);
 }
 if (!defined('AI_EXTRACT_MODEL_PRIMARY')) {
-    define('AI_EXTRACT_MODEL_PRIMARY', 'gpt-5-mini');
+    // Same model production runs, so an install using only the environment key
+    // behaves identically to one with a full ai_config.php.
+    define('AI_EXTRACT_MODEL_PRIMARY', 'gpt-5.6-luna');
 }
 
 const AI_MAX_IMAGE_BYTES = 10485760;  // 10 MB
@@ -79,6 +81,21 @@ function ai_validate_upload($file) {
     $size = (int)$file['size'];
     if ($size <= 0) {
         return ['ok'=>false,'error'=>'empty_file','message'=>'The file is empty.'];
+    }
+    /* The fileinfo extension is not guaranteed on shared hosting — a cPanel
+       MultiPHP version switch once removed it here and every upload died with
+       an uncaught "Class 'finfo' not found". Two variants must both land in
+       this branch rather than in a fatal: the extension is absent (no class at
+       all), or the host neutered it through the disable_classes ini directive,
+       which leaves a stub class whose ->file() does not exist.
+       Fail CLOSED. Content-based sniffing is the only thing separating a real
+       image from an arbitrary payload, so there is deliberately no fallback to
+       $file['type'] — the browser controls that field and can set it to
+       anything. Better to refuse every upload until an admin fixes the server
+       than to accept one unverified. */
+    if (!class_exists('finfo') || !method_exists('finfo', 'file')) {
+        return ['ok'=>false,'error'=>'no_fileinfo',
+                'message'=>'AI upload validation is unavailable because the PHP fileinfo extension is not enabled on this server.'];
     }
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mime  = $finfo->file($file['tmp_name']);
@@ -397,7 +414,10 @@ if (!defined('AI_EXTRACT_TEST')) {
     @unlink($_FILES['file']['tmp_name']);
     if (!$upload['ok']) {
         error_log('[ai_extract] reject '.$upload['error']);
-        ai_json(['ok'=>false,'error'=>$upload['error'],'message'=>$upload['message']], 400);
+        // A missing PHP extension is a server fault the admin must fix, not a
+        // bad request — 503, matching the not_configured case above.
+        $status = $upload['error'] === 'no_fileinfo' ? 503 : 400;
+        ai_json(['ok'=>false,'error'=>$upload['error'],'message'=>$upload['message']], $status);
     }
 
     $payload = ai_build_payload($upload);

@@ -18,6 +18,6 @@ define('OPENAI_API_KEY', 'sk-REPLACE-ME');
 
 // Official OpenAI API model IDs — verified against the current model docs.
 // Do not use marketing nicknames here; only real API IDs work.
-define('AI_EXTRACT_MODEL_PRIMARY', 'gpt-5-mini');   // vision + structured outputs, $0.25/$2 per 1M
+define('AI_EXTRACT_MODEL_PRIMARY', 'gpt-5.6-luna');  // vision + structured outputs
 // Optional future fallback (not called in V2.1):
 // define('AI_EXTRACT_MODEL_FALLBACK', 'gpt-5.4-mini');
