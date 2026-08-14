@@ -8356,6 +8356,67 @@ function wqaLineHasSignal(line,common){
   return false;
 }
 
+/* ── Shared spec headers ────────────────────────────────────────────────────
+   A line that states the diameter and ONE short dimension, carries no quantity,
+   and sits above a list of much longer rows is the shared specification for
+   that list, not a row of its own: "M12 X 75MM" over 1000 and 2000 means M12
+   with a 75mm thread, never a 75mm rod.
+
+   The pair spelling ("M12 x 75/75") already reads as context, because the
+   thread recogniser consumes both of its numbers. These are the single-value
+   spellings the same messages use — 75MM, THREAD 75, TL 75, x thread 75mm.
+
+   The judgement is structural, not a customer format. The line must carry a
+   diameter, no quantity and exactly one leftover number, and what follows it
+   must be quantities written against lengths several times larger. Where the
+   wording says "thread" outright, the wording decides and no ratio is needed.
+   Where the evidence sits between the two, nothing is guessed: the row is kept
+   but the parse is reported as low confidence, which sends the message to the
+   existing AI fallback rather than showing a thread length as an item.      */
+const WQA_THREAD_WORD_RE=/\b(?:thread|threaded|thd|tl|t\s*\/\s*l)\b/i;
+const WQA_THREAD_MAX=200;    /* beyond this a bare number is a length, not a
+                                thread — the catalogue's longest is 150 */
+const WQA_HEADER_RATIO=3;    // "much larger": the list is at least 3x the spec
+const WQA_AMBIG_RATIO=1.5;   // between the two the structure cannot decide
+
+/* Judged on the line alone: could this be a shared spec rather than an item? */
+function wqaSpecCandidate(f){
+  return !!f && !!f.size && f.qty===null && f.nums.length===1 &&
+         /^\d+(?:\.\d+)?$/.test(f.nums[0]);
+}
+
+/* Which lines are spec headers, decided across the whole message: a candidate
+   is only readable from the rows underneath it, so this cannot be settled line
+   by line inside the row loop. Returns index -> 'header' | 'risky'. */
+function wqaSpecHeaderPlan(entries){
+  const plan={};
+  entries.forEach((e,i)=>{
+    if(!wqaSpecCandidate(e.f)) return;
+    const n=Number(e.f.nums[0]);
+    if(!(n>0)) return;
+    if(WQA_THREAD_WORD_RE.test(e.n||'')){ plan[i]='header'; return; }
+    if(n>WQA_THREAD_MAX) return;
+    /* The list underneath: quantities written against lengths. A second
+       candidate ends the block — it opens one of its own, which is what keeps a
+       plain short-item list ("M12 x 100 / M12 x 150") reading as items. */
+    const below=[];
+    for(let j=i+1;j<entries.length;j++){
+      const g=entries[j].f;
+      if(!g) continue;
+      if(wqaSpecCandidate(g)) break;
+      if(g.qty!==null && g.nums.length){
+        const v=Number(g.nums[0]);
+        if(v>0) below.push(v);
+      }
+    }
+    if(!below.length) return;            // nothing under it: read it as an item
+    const smallest=Math.min.apply(null,below);
+    if(smallest>=n*WQA_HEADER_RATIO)     plan[i]='header';
+    else if(smallest>=n*WQA_AMBIG_RATIO) plan[i]='risky';
+  });
+  return plan;
+}
+
 function wqaParseText(text,forceProduct){
   const common=wqaDetectCommon(text);
   if(forceProduct) common.product=forceProduct;   // "change product" re-parse
@@ -8367,34 +8428,57 @@ function wqaParseText(text,forceProduct){
      (product, material, finish, size type, diameter), a bare number IS a
      length. This is context-driven — no customer-specific format. */
   let inList=false;
+  /* Set when a short spec line could not be told apart from an item. The row is
+     still produced — nothing is dropped silently — but the parse is reported as
+     low confidence so the message goes to the AI fallback. */
+  let risky=false;
 
-  lines.forEach(raw=>{
+  /* Every line's fields are read first. A spec header is only recognisable from
+     the rows below it, so the classification has to precede the row loop. */
+  const entries=lines.map(raw=>{
     const t=raw.trim();
-    if(!t) return;
-    if(WQA_SECTION_RE.test(wqaNorm(t))){ inList=true; return; }   // "Length:" — structural
-    if(!wqaLineHasSignal(t,common)){ skipped.push(t); return; }
+    if(!t) return {blank:true};
+    const n=wqaNorm(t);
+    if(WQA_SECTION_RE.test(n)) return {t,n,section:true};          // "Length:" — structural
+    if(!wqaLineHasSignal(t,common)) return {t,n,noise:true};
+    return {t,n,f:wqaExtractFields(t)};
+  });
+  const plan=wqaSpecHeaderPlan(entries);
+
+  entries.forEach((e,i)=>{
+    if(e.blank) return;
+    if(e.section){ inList=true; return; }
+    if(e.noise){ skipped.push(e.t); return; }
     if(!common.product) return;
 
-    const f=wqaExtractFields(t);
+    const f=e.f;
     /* Numbers alone are not enough — "Total 6 items" is not a 6mm bolt. An item
        needs a dimensional signal: an M-size, a thread, an x separator or an mm
        suffix, or an explicit quantity. */
     const dimSignal = !!f.size || f.threadLen!==null || f.hadX || (f.mm||[]).some(Boolean) ||
                       (inList && !!ctx.size);          // a length list under a header
-    const isItem = (f.qty!==null && (dimSignal || f.nums.length>0)) ||
-                   (dimSignal && f.nums.length>0);
+    const isItem = plan[i]!=='header' &&
+                   ((f.qty!==null && (dimSignal || f.nums.length>0)) ||
+                    (dimSignal && f.nums.length>0));
     if(!isItem){
       /* No length and no qty: this is context, not an item. It may still carry
          a diameter and a thread for the rows below it. */
       if(f.size) ctx.size=f.size;
       if(f.threadLen!==null){ ctx.threadLen=f.threadLen; ctx.threadLen2=f.threadLen2||''; }
+      else if(plan[i]==='header'){
+        /* One thread value shared by the whole list. Both ends are the same
+           until a row says otherwise, so 75 becomes the 75/75 pair the
+           calculator already stores rather than a half-filled thread. */
+        ctx.threadLen=f.nums[0]; ctx.threadLen2=f.nums[0];
+      }
       return;
     }
+    if(plan[i]==='risky') risky=true;
     const r=wqaResolveLine(f,ctx,common.product);
-    rows.push({...r.row,issues:r.issues,defaulted:r.defaulted,conf:r.conf,raw:t});
+    rows.push({...r.row,issues:r.issues,defaulted:r.defaulted,conf:r.conf,raw:e.t});
   });
 
-  return {common,rows,skipped};
+  return {common,rows,skipped,risky};
 }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
@@ -8631,8 +8715,10 @@ async function wqaAiApply(d, msgTarget){
    NOT a completeness check: a blank Qty, Size Type, Finish, Material or even
    Product is a legitimate staff-review state and never triggers AI on its own.
 
-   Two things do:
-     * no row carries a usable length at all, or
+   Three things do:
+     * no row carries a usable length at all,
+     * a shared spec header could not be told apart from an item row, so a
+       thread length may be sitting in the list as a 75mm rod, or
      * far fewer rows came out than the message has numeric lines — the shape of
        a free-form sentence the parser skimmed rather than read.
 
@@ -8642,6 +8728,10 @@ async function wqaAiApply(d, msgTarget){
 function wqaParseQuality(parsed, text){
   const usable = (parsed.rows||[]).filter(r=>parseFloat(r.length)>0);
   if(!usable.length) return {ok:false, why:'no-usable-rows'};
+  /* A short spec line the structure could not separate from an item: the row we
+     would show may be a thread length wearing a length's clothes. Hand the
+     message to the AI rather than accept it. */
+  if(parsed.risky) return {ok:false, why:'spec-header-ambiguous'};
   const contentLines = String(text||'').split(/\r?\n/)
     .map(l=>l.trim()).filter(l=>l && /\d/.test(l)).length;
   if(contentLines>0 && (usable.length/contentLines) < 0.5){
