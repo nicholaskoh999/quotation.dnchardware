@@ -4,6 +4,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script>
+/* Language boot. Runs before first paint so the page never flashes the wrong
+   language on reload. Deliberately duplicates the few lines of dcLang() rather
+   than waiting for the main script at the end of <body> — keep the storage key
+   and the two language codes in step with the i18n runtime down there. */
+(function(){try{
+  var l=localStorage.getItem('dc_lang'); if(l!=='zh'&&l!=='en') l='en';
+  var r=document.documentElement;
+  r.setAttribute('data-lang',l);
+  r.setAttribute('lang', l==='zh' ? 'zh-Hans' : 'en');
+}catch(e){}})();
+</script>
 <title>Der-Cheng Quotation v2.23.2</title>
 <!-- App icons / Home Screen -->
 <link rel="icon" href="/assets/icons/favicon.ico" sizes="any">
@@ -1965,6 +1977,30 @@ input,select,textarea{
   font-size:10.5px;font-weight:800;letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){.wqa-drop{transition:none}}
 
+/* ── Language switch (EN / 中文) ──────────────────────────────────────────
+   Two real buttons, never flags, and the labels themselves are never
+   translated: "EN" and "中文" read the same in both modes, so a lost user can
+   always find their way back. */
+.lang-switch{display:inline-flex;border:1px solid rgba(255,255,255,.24);border-radius:var(--pill-r);
+  overflow:hidden;flex-shrink:0}
+.lang-btn{background:rgba(255,255,255,.14);border:0;color:#fff;font-family:inherit;font-size:12px;
+  font-weight:700;padding:6px 11px;cursor:pointer;line-height:1;white-space:nowrap;
+  transition:background .15s ease}
+.lang-btn+.lang-btn{border-left:1px solid rgba(255,255,255,.24)}
+.lang-btn:hover{background:rgba(255,255,255,.26)}
+.lang-btn.is-on{background:#fff;color:var(--accent-2)}
+.lang-btn:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+/* The header row is hidden below 820px, so the sidebar copy is the only way in
+   on tablet and phone — it gets a full 44px touch target. */
+.side-lang{display:flex;margin:2px 12px 12px;border:1.5px solid var(--border);
+  border-radius:var(--r-sm);overflow:hidden}
+.side-lang .lang-btn{flex:1;background:var(--surface2);color:var(--text-muted);
+  min-height:44px;font-size:13px;border-left-color:var(--border)}
+.side-lang .lang-btn:hover{background:var(--surface2);color:var(--text-2)}
+.side-lang .lang-btn.is-on{background:var(--accent-light);color:var(--accent-2)}
+.side-lang .lang-btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.lang-btn{transition:none}}
+
 /* Quick Add — common Size / Thread panel */
 .wqa-item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:11px}
 @media (max-width:560px){.wqa-item-grid{grid-template-columns:1fr}}
@@ -1986,6 +2022,10 @@ input,select,textarea{
        Default Prices and Diameter Settings live in the sidebar and are not
        duplicated here. -->
   <div class="hdr-actions">
+    <div class="lang-switch" role="group" data-i18n-aria="langAria" aria-label="Language">
+      <button type="button" class="lang-btn" data-lang-set="en" aria-pressed="true"  onclick="dcSetLang('en')">EN</button>
+      <button type="button" class="lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
+    </div>
     <a class="hdr-btn is-active" href="index.php" aria-current="page">Calculator</a>
     <a class="hdr-btn" href="companies.php">Companies</a>
     <a class="hdr-btn is-secondary" href="logout.php" title="Sign out on this device only">Sign Out</a>
@@ -2006,6 +2046,12 @@ input,select,textarea{
       <button class="side-link" onclick="openRefModal();toggleSidebar(false)"><span class="side-link-inner">Pricing Guide</span></button>
       <button class="side-link" onclick="openModal('versionUpdatesModal');toggleSidebar(false)"><span class="side-link-inner">Version Updates</span></button>
       <a class="side-link" href="logout.php"><span class="side-link-inner">Sign Out</span></a>
+    </div>
+    <!-- The header switch is hidden below 820px; this is the tablet/phone route. -->
+    <div class="side-section-title" data-i18n="language">Language</div>
+    <div class="side-lang" role="group" data-i18n-aria="langAria" aria-label="Language">
+      <button type="button" class="lang-btn" data-lang-set="en" aria-pressed="true"  onclick="dcSetLang('en')">EN</button>
+      <button type="button" class="lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
     </div>
   </aside>
 
@@ -3579,6 +3625,82 @@ input,select,textarea{
    Formulas below are copied unchanged from the production
    quotation system (index.php) — do not alter the math.
 ══════════════════════════════════════════════════════ */
+/* ═══════════════════ i18n runtime — EN / 中文 ═══════════════════════════════
+   PRESENTATION ONLY. Nothing here reads or writes quotation data. No stored
+   value, API payload, customer name, quotation ref or internal product /
+   material / finish code passes through it — switching language re-labels the
+   UI and changes nothing else.
+
+   The helper is dcT(), NOT t(). This script already uses `const t=` as a local
+   in ten functions (getPlateType, the toast, wqaAiApply and others), and a
+   global t() would be shadowed inside every one of them — t('someKey') there
+   would try to call a string. Renaming those locals would mean editing
+   business logic inside a localisation change, so the helper takes a name that
+   can never collide instead.
+
+   Dictionary shape — the later localisation commits fill this in:
+     I18N.en.someKey = 'English text'
+     I18N.zh.someKey = '中文'
+   Markup opts in per attribute, so one element can localise several parts:
+     <span   data-i18n="key">        textContent
+     <input  data-i18n-ph="key">     placeholder
+     <button data-i18n-aria="key">   aria-label
+     <a      data-i18n-title="key">  title
+   A key with no zh entry falls back to en, then to the key itself, so a
+   missing translation degrades to readable text rather than a blank element —
+   which is what makes a staged rollout safe. */
+const DC_LANG_KEY='dc_lang', DC_LANGS=['en','zh'];
+const I18N={
+  en:{ language:'Language', langAria:'Language', langSwitched:'Language set to English' },
+  zh:{ language:'语言',     langAria:'语言',     langSwitched:'已切换为中文' },
+};
+/* Current language. Anything other than a known code reads as 'en', so a
+   corrupted or hand-edited localStorage value can never blank the UI. */
+function dcLang(){
+  try{ const v=localStorage.getItem(DC_LANG_KEY); if(DC_LANGS.indexOf(v)>=0) return v; }catch(e){}
+  return 'en';
+}
+function dcT(key,fallback){
+  const l=dcLang();
+  const hit=(I18N[l]&&I18N[l][key])!==undefined ? I18N[l][key]
+          : (I18N.en&&I18N.en[key])!==undefined ? I18N.en[key] : undefined;
+  return hit!==undefined ? hit : (fallback!==undefined ? fallback : key);
+}
+/* Re-label every element that opted in, and mark the active button. Cheap
+   enough to run on every switch; no reload, no re-fetch, no data touched. */
+function dcApplyLang(){
+  const l=dcLang(), r=document.documentElement;
+  r.setAttribute('data-lang',l);
+  r.setAttribute('lang', l==='zh' ? 'zh-Hans' : 'en');
+  document.querySelectorAll('[data-i18n]').forEach(n=>{ n.textContent=dcT(n.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(n=>{ n.placeholder=dcT(n.getAttribute('data-i18n-ph')); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(n=>{ n.setAttribute('aria-label',dcT(n.getAttribute('data-i18n-aria'))); });
+  document.querySelectorAll('[data-i18n-title]').forEach(n=>{ n.setAttribute('title',dcT(n.getAttribute('data-i18n-title'))); });
+  document.querySelectorAll('[data-lang-set]').forEach(b=>{
+    const on=b.getAttribute('data-lang-set')===l;
+    b.classList.toggle('is-on',on);
+    b.setAttribute('aria-pressed',on?'true':'false');
+  });
+}
+function dcSetLang(l){
+  if(DC_LANGS.indexOf(l)<0) return;
+  const before=dcLang();
+  try{ localStorage.setItem(DC_LANG_KEY,l); }catch(e){}   // private mode: session-only, still switches
+  dcApplyLang();
+  if(before!==l) dcRelabel();
+}
+/* Screens that build their own markup cannot be re-labelled by the attribute
+   scan above, so each localisation commit registers its renderer here. One
+   list means a converted screen can never be forgotten on switch. */
+const DC_RELABEL=[];
+function dcOnRelabel(fn){ if(typeof fn==='function') DC_RELABEL.push(fn); }
+function dcRelabel(){
+  DC_RELABEL.forEach(fn=>{ try{ fn(); }catch(e){} });   // one bad renderer must not block the rest
+  try{ if(typeof showToast==='function') showToast(dcT('langSwitched')); }catch(e){}
+}
+/* Markup all precedes this script, so the first pass can run immediately. */
+dcApplyLang();
+
 const HANDOFF_KEY='loadQuote';
 const UNSAVED_DRAFT_KEY='dc_quote_unsaved_draft_v1';
 
