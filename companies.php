@@ -4,6 +4,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* Language boot — same storage key and codes as index.php, so a choice made on
+   either page is already in force when the other one paints. */
+(function(){try{
+  var l=localStorage.getItem('dc_lang'); if(l!=='zh'&&l!=='en') l='en';
+  var r=document.documentElement;
+  r.setAttribute('data-lang',l);
+  r.setAttribute('lang', l==='zh' ? 'zh-Hans' : 'en');
+}catch(e){}})();
+</script>
 <title>Der-Cheng Quotation / Companies</title>
 <!-- App icons / Home Screen -->
 <link rel="icon" href="/assets/icons/favicon.ico" sizes="any">
@@ -635,6 +645,17 @@ input,select,textarea{
   .mob-pane.mob-pane-active,.cp-search-result:not([hidden]){animation:none}
 }
 
+/* Language switch (EN / 中文) — mirrors index.php */
+.lang-switch{display:inline-flex;border:1px solid rgba(255,255,255,.24);border-radius:var(--pill-r,999px);
+  overflow:hidden;flex-shrink:0}
+.lang-btn{background:rgba(255,255,255,.14);border:0;color:#fff;font-family:inherit;font-size:12px;
+  font-weight:700;padding:6px 11px;cursor:pointer;line-height:1;white-space:nowrap;min-height:40px}
+.lang-btn+.lang-btn{border-left:1px solid rgba(255,255,255,.24)}
+.lang-btn:hover{background:rgba(255,255,255,.26)}
+.lang-btn.is-on{background:#fff;color:var(--accent-2)}
+.lang-btn:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+@media (max-width:440px){ .lang-btn{padding:0 8px;font-size:10.5px} }
+
 /* Global nav states — same language as index.php */
 .nav-btn.is-active{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.55);font-weight:800}
 .nav-btn.is-active:hover{background:rgba(255,255,255,.34)}
@@ -692,9 +713,13 @@ input,select,textarea{
   </a>
   <!-- Global nav: identical to index.php -->
   <div class="header-actions">
-    <a href="index.php" class="nav-btn" title="Quotation Calculator">Calculator</a>
-    <a href="companies.php" class="nav-btn is-active" aria-current="page">Companies</a>
-    <a href="logout.php" class="nav-btn is-secondary" title="Sign out on this device only">Sign Out</a>
+    <div class="lang-switch" role="group" data-i18n-aria="langAria" aria-label="Language">
+      <button type="button" class="lang-btn" data-lang-set="en" aria-pressed="true"  onclick="dcSetLang('en')">EN</button>
+      <button type="button" class="lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
+    </div>
+    <a href="index.php" class="nav-btn" data-i18n-title="navCalculatorTitle" title="Quotation Calculator" data-i18n="navCalculator">Calculator</a>
+    <a href="companies.php" class="nav-btn is-active" aria-current="page" data-i18n="navCompanies">Companies</a>
+    <a href="logout.php" class="nav-btn is-secondary" data-i18n-title="navSignOutTitle" title="Sign out on this device only" data-i18n="navSignOut">Sign Out</a>
   </div>
 </div>
 
@@ -702,19 +727,19 @@ input,select,textarea{
 
   <!-- Page identity lives in the content area; the header carries the global brand -->
   <div class="page-title">
-    <h2>Companies</h2>
-    <p>Manage customers &amp; saved quotations</p>
+    <h2 data-i18n="pageCompanies">Companies</h2>
+    <p data-i18n="pageCompaniesSub">Manage customers &amp; saved quotations</p>
   </div>
 
   <!-- Mobile tabs (≤980px only) -->
   <div class="mob-tab-bar" id="mobTabBar">
-    <button class="mob-tab active" id="mobTabRecent" onclick="switchMobTab('recent')">📋 Recent Quotations</button>
-    <button class="mob-tab" id="mobTabCustomers" onclick="switchMobTab('customers')">🏢 Customers</button>
+    <button class="mob-tab active" id="mobTabRecent" onclick="switchMobTab('recent')" data-i18n="tabRecent">📋 Recent Quotations</button>
+    <button class="mob-tab" id="mobTabCustomers" onclick="switchMobTab('customers')" data-i18n="tabCustomers">🏢 Customers</button>
   </div>
 
   <!-- Dashboard summary -->
   <div class="summary-grid" id="summaryGrid"></div>
-  <div class="summary-note">💡 Quotation total is reference only — actual order quantity may differ.</div>
+  <div class="summary-note" data-i18n="summaryNote">💡 Quotation total is reference only — actual order quantity may differ.</div>
 
   <div class="cp-main-grid">
 
@@ -726,7 +751,7 @@ input,select,textarea{
         <div class="search-bar">
           <div class="search-input-wrap">
             <span class="icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="Search company, phone, quotation no." autocomplete="off"
+            <input type="text" id="searchInput" data-i18n-ph="phSearchCompany" placeholder="Search company, phone, quotation no." autocomplete="off"
                    oninput="onCpSearchInput()"
                    onkeydown="if(event.key==='Enter'){event.preventDefault();cpSearchSubmit();}">
           </div>
@@ -739,17 +764,17 @@ input,select,textarea{
         <div class="cp-search-result" id="cpSearchResult" hidden></div>
       </div>
 
-      <button class="btn btn-primary" id="addCompanyToggleBtn" style="width:100%;margin-bottom:12px" onclick="toggleAddCompanyForm()">＋ Add Company <span class="sub">新增公司</span></button>
+      <button class="btn btn-primary" id="addCompanyToggleBtn" style="width:100%;margin-bottom:12px" onclick="toggleAddCompanyForm()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
 
       <div class="card" id="addCompanyForm" hidden style="margin-bottom:14px">
         <div class="section-label"><span class="sl-icon">➕</span>Add Company <span class="sub">新增公司</span></div>
-        <div class="field"><label>Company Name * <span class="sub">公司名称</span></label><input type="text" id="c-name" placeholder="e.g. SL Struktur Sdn Bhd"></div>
-        <div class="field"><label>Short Code <span class="sub">简称</span></label><input type="text" id="c-code" placeholder="e.g. SLSPJ" style="text-transform:uppercase"></div>
-        <div class="field"><label>Phone <span class="sub">电话</span></label><input type="text" id="c-phone" placeholder="03-XXXX XXXX"></div>
-        <div class="field"><label>Address <span class="sub">地址</span></label><textarea id="c-addr" rows="2" placeholder="Optional"></textarea></div>
+        <div class="field"><label data-i18n="lblCompanyName">Company Name *</label><input type="text" id="c-name" placeholder="e.g. SL Struktur Sdn Bhd"></div>
+        <div class="field"><label data-i18n="lblShortCode">Short Code</label><input type="text" id="c-code" placeholder="e.g. SLSPJ" style="text-transform:uppercase"></div>
+        <div class="field"><label data-i18n="lblPhone">Phone</label><input type="text" id="c-phone" placeholder="03-XXXX XXXX"></div>
+        <div class="field"><label data-i18n="lblAddress">Address</label><textarea id="c-addr" rows="2" placeholder="Optional"></textarea></div>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="btn btn-primary" style="flex:1" onclick="addCompany()">＋ Add Company <span class="sub">新增公司</span></button>
-          <button class="btn btn-ghost" style="flex:1" onclick="closeAddCompanyForm()">Cancel</button>
+          <button class="btn btn-primary" style="flex:1" onclick="addCompany()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
+          <button class="btn btn-ghost" style="flex:1" onclick="closeAddCompanyForm()" data-i18n="cancel">Cancel</button>
         </div>
       </div>
 
@@ -757,7 +782,7 @@ input,select,textarea{
         <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">🏢</span>Companies <span class="sub">所有公司</span></div>
         <span class="list-count" id="companyCount">0</span>
       </div>
-      <div id="companyList"><div class="empty-state"><div class="icon">🏢</div><p>No companies yet <span class="sub">还没有公司</span></p></div></div>
+      <div id="companyList"><div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanies">No companies yet</span> <span class="sub">还没有公司</span></p></div></div>
     </div>
 
     <!-- Right: Recent Quotations (default) or Selected company panel -->
@@ -789,14 +814,14 @@ input,select,textarea{
 <!-- Edit Company Modal -->
 <div class="modal-overlay" id="editCompanyModal">
   <div class="modal">
-    <div class="modal-title">✏️ Edit Company <span style="font-size:11px;opacity:.7;font-weight:400">编辑公司</span> <button class="modal-close" onclick="closeModal('editCompanyModal')">✕</button></div>
+    <div class="modal-title">✏️ <span data-i18n="editCompany">Edit Company</span> <button class="modal-close" onclick="closeModal('editCompanyModal')">✕</button></div>
     <input type="hidden" id="ec-id">
-    <div class="field"><label>Company Name * <span class="sub">公司名称</span></label><input type="text" id="ec-name"></div>
-    <div class="field"><label>Short Code <span class="sub">简称</span></label><input type="text" id="ec-code"></div>
-    <div class="field"><label>Phone <span class="sub">电话</span></label><input type="text" id="ec-phone"></div>
-    <div class="field"><label>Address <span class="sub">地址</span></label><textarea id="ec-addr" rows="2"></textarea></div>
+    <div class="field"><label data-i18n="lblCompanyName">Company Name *</label><input type="text" id="ec-name"></div>
+    <div class="field"><label data-i18n="lblShortCode">Short Code</label><input type="text" id="ec-code"></div>
+    <div class="field"><label data-i18n="lblPhone">Phone</label><input type="text" id="ec-phone"></div>
+    <div class="field"><label data-i18n="lblAddress">Address</label><textarea id="ec-addr" rows="2"></textarea></div>
     <div class="modal-btns">
-      <button class="btn btn-primary" onclick="saveEditCompany()">💾 Save <span style="font-size:10.5px;opacity:.8">保存</span></button>
+      <button class="btn btn-primary" onclick="saveEditCompany()"><span data-i18n="save">💾 Save</span></button>
       <button class="btn btn-ghost" onclick="closeModal('editCompanyModal')">Cancel <span style="font-size:10.5px;opacity:.8">取消</span></button>
     </div>
   </div>
@@ -806,13 +831,13 @@ input,select,textarea{
 <div class="modal-overlay" id="viewModal">
   <div class="modal" style="max-width:600px">
     <div class="modal-title">
-      📋 Quotation Detail <span style="font-size:11px;opacity:.7;font-weight:400">报价详情</span>
+      📋 <span data-i18n="quotationDetail">Quotation Detail</span>
       <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
     </div>
     <div id="viewModalBody"></div>
     <div class="modal-btns" style="margin-top:16px">
-      <button class="btn btn-primary" onclick="loadAndGo()">📂 Load &amp; Edit <span style="font-size:10.5px;opacity:.8">载入并编辑</span></button>
-      <button class="btn btn-ghost" onclick="closeModal('viewModal')">Close</button>
+      <button class="btn btn-primary" onclick="loadAndGo()">📂 <span data-i18n="loadAndEdit">Load &amp; Edit</span></button>
+      <button class="btn btn-ghost" onclick="closeModal('viewModal')" data-i18n="close">Close</button>
     </div>
   </div>
 </div>
@@ -820,6 +845,123 @@ input,select,textarea{
 <div class="toast" id="toast"></div>
 
 <script>
+/* ═══════════════════ i18n runtime — EN / 中文 ═══════════════════════════════
+   Same contract and the same dc_lang key as index.php, so a choice made on
+   either page is already in force on the other. The runtime is inlined rather
+   than shared because a new file cannot be added without editing .cpanel.yml's
+   APPFILES allowlist, and a missing include would fatal the whole page. The
+   dictionary below is page-scoped: only what companies.php actually shows.
+
+   PRESENTATION ONLY. Company names, quotation numbers, item descriptions,
+   dates and every API payload pass through untranslated. */
+const DC_LANG_KEY='dc_lang', DC_LANGS=['en','zh'];
+const I18N={
+  en:{
+    language:'Language', langAria:'Language', langSwitched:'Language set to English',
+    navCalculator:'Calculator', navCalculatorTitle:'Quotation Calculator',
+    navCompanies:'Companies', navSignOut:'Sign Out',
+    navSignOutTitle:'Sign out on this device only',
+    pageCompanies:'Companies', pageCompaniesSub:'Manage customers & saved quotations',
+    tabRecent:'📋 Recent Quotations', tabCustomers:'🏢 Customers',
+    summaryNote:'💡 Quotation total is reference only — actual order quantity may differ.',
+    phSearchCompany:'Search company, phone, quotation no.',
+    /* modals + actions */
+    addCompanyBtn:'＋ Add Company', addCompany:'Add Company', editCompany:'Edit Company',
+    quotationDetail:'Quotation Detail', loadAndEdit:'Load & Edit', save:'💾 Save',
+    close:'Close', cancel:'Cancel',
+    lblCompanyName:'Company Name *', lblShortCode:'Short Code',
+    lblPhone:'Phone', lblAddress:'Address',
+    /* messages + empty states */
+    msgFailLoadMore:'❌ Failed to load more quotations', msgNoMore:'No more quotations',
+    msgCompanyNameRequired:'⚠️ Company name required', msgCompanyAdded:'✅ Company added',
+    msgNameRequired:'⚠️ Name required', msgUpdated:'✅ Updated', msgDeleted:'🗑️ Deleted',
+    msgFailLoadQuotes:'❌ Failed to load quotations', msgFailLoad:'❌ Failed to load',
+    msgDupFail:'❌ Unable to get new quotation no. Duplicate cancelled.', msgFailed:'❌ Failed',
+    msgQuoteNotFound:'Quotation not found', msgLoading:'Loading…',
+    msgLoadMore:'Load More Quotations', msgNoRecent:'No recent quotations found.',
+    msgLookingUp:'Looking up quotation…', msgSearchingHistory:'Searching quotation history…',
+    msgTryFewer:'Try fewer words, or a size and product like “M16 J BOLT”.',
+    msgNoCompanies:'No companies yet', msgNoCompanyMatch:'No companies match your search',
+    msgNoSavedQuotes:'No saved quotations for this company yet', msgNoItems:'No items',
+  },
+  zh:{
+    language:'语言', langAria:'语言', langSwitched:'已切换为中文',
+    navCalculator:'计算器', navCalculatorTitle:'报价计算器',
+    navCompanies:'公司', navSignOut:'退出',
+    navSignOutTitle:'只退出此设备',
+    pageCompanies:'公司', pageCompaniesSub:'管理客户与已保存报价',
+    tabRecent:'📋 最新报价', tabCustomers:'🏢 客户',
+    summaryNote:'💡 报价总额仅供参考 — 实际订购数量可能不同。',
+    phSearchCompany:'搜索公司、电话、报价单号',
+    /* modals + actions */
+    addCompanyBtn:'＋ 新增公司', addCompany:'新增公司', editCompany:'编辑公司',
+    quotationDetail:'报价详情', loadAndEdit:'载入并编辑', save:'💾 保存',
+    close:'关闭', cancel:'取消',
+    lblCompanyName:'公司名称 *', lblShortCode:'简称',
+    lblPhone:'电话', lblAddress:'地址',
+    /* messages + empty states */
+    msgFailLoadMore:'❌ 加载更多报价失败', msgNoMore:'没有更多报价',
+    msgCompanyNameRequired:'⚠️ 请填写公司名称', msgCompanyAdded:'✅ 公司已添加',
+    msgNameRequired:'⚠️ 请填写名称', msgUpdated:'✅ 已更新', msgDeleted:'🗑️ 已删除',
+    msgFailLoadQuotes:'❌ 加载报价失败', msgFailLoad:'❌ 加载失败',
+    msgDupFail:'❌ 无法取得新报价单号，复制已取消。', msgFailed:'❌ 失败',
+    msgQuoteNotFound:'找不到报价', msgLoading:'加载中…',
+    msgLoadMore:'加载更多报价', msgNoRecent:'暂无最新报价。',
+    msgLookingUp:'正在查找报价…', msgSearchingHistory:'正在搜索报价记录…',
+    msgTryFewer:'试试少几个字，或输入尺寸加产品，例如 “M16 J BOLT”。',
+    msgNoCompanies:'还没有公司', msgNoCompanyMatch:'没有符合搜索的公司',
+    msgNoSavedQuotes:'这家公司还没有已保存的报价', msgNoItems:'没有产品',
+  },
+};
+function dcLang(){
+  try{ const v=localStorage.getItem(DC_LANG_KEY); if(DC_LANGS.indexOf(v)>=0) return v; }catch(e){}
+  return 'en';
+}
+function dcT(key,fallback){
+  const l=dcLang();
+  const hit=(I18N[l]&&I18N[l][key])!==undefined ? I18N[l][key]
+          : (I18N.en&&I18N.en[key])!==undefined ? I18N.en[key] : undefined;
+  return hit!==undefined ? hit : (fallback!==undefined ? fallback : key);
+}
+function dcApplyLang(){
+  const l=dcLang(), r=document.documentElement;
+  r.setAttribute('data-lang',l);
+  r.setAttribute('lang', l==='zh' ? 'zh-Hans' : 'en');
+  document.querySelectorAll('[data-i18n]').forEach(n=>{ n.textContent=dcT(n.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(n=>{ n.placeholder=dcT(n.getAttribute('data-i18n-ph')); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(n=>{ n.setAttribute('aria-label',dcT(n.getAttribute('data-i18n-aria'))); });
+  document.querySelectorAll('[data-i18n-title]').forEach(n=>{ n.setAttribute('title',dcT(n.getAttribute('data-i18n-title'))); });
+  document.querySelectorAll('[data-lang-set]').forEach(b=>{
+    const on=b.getAttribute('data-lang-set')===l;
+    b.classList.toggle('is-on',on);
+    b.setAttribute('aria-pressed',on?'true':'false');
+  });
+}
+const DC_RELABEL=[];
+function dcOnRelabel(fn){ if(typeof fn==='function') DC_RELABEL.push(fn); }
+function dcRelabel(){
+  DC_RELABEL.forEach(fn=>{ try{ fn(); }catch(e){} });
+  try{ if(typeof showToast==='function') showToast(dcT('langSwitched')); }catch(e){}
+}
+/* The lists are rebuilt from cached API data, so re-render them on a switch and
+   re-scan for any data-i18n emitted by those renderers. Every renderer reads
+   from the existing cache — no API call, no stored value altered. */
+dcOnRelabel(()=>{
+  try{ if(typeof renderCompanies==='function') renderCompanies(); }catch(e){}
+  try{ if(typeof renderRecentQuotes==='function') renderRecentQuotes(); }catch(e){}
+  try{ if(typeof renderSummary==='function') renderSummary(); }catch(e){}
+  dcApplyLang();
+});
+function dcSetLang(l){
+  if(DC_LANGS.indexOf(l)<0) return;
+  const before=dcLang();
+  try{ localStorage.setItem(DC_LANG_KEY,l); }catch(e){}
+  dcApplyLang();
+  if(before!==l) dcRelabel();
+}
+
+dcApplyLang();
+
 let selectedCompanyId = null;
 let viewingQuote = null;
 
@@ -885,7 +1027,7 @@ function renderRecentQuotations(){
       </div>
       <div class="empty-state empty-state-compact">
         <div class="icon">📭</div>
-        <p>No recent quotations found.</p>
+        <p><span data-i18n="msgNoRecent">No recent quotations found.</span></p>
       </div>`;
     return;
   }
@@ -894,7 +1036,7 @@ function renderRecentQuotations(){
     const items = q.items||[];
     const previewText = items.length
       ? items.slice(0,1).map(it=>it.desc||it.size||'').join('') + (items.length>1?` +${items.length-1} more`:'')
-      : 'No items';
+      : dcT('msgNoItems');
     return `
       <div class="rq-card">
         <div class="rq-card-top">
@@ -947,12 +1089,12 @@ async function loadMoreRecentQuotations(){
   if(recentQuotesLoading || !recentQuotesHasMore || selectedCompanyId!==null) return;
   recentQuotesLoading=true;
   const btn=document.getElementById('recentQuotesMoreBtn');
-  if(btn){btn.disabled=true;btn.textContent='Loading... / 加载中...';}
+  if(btn){btn.disabled=true;btn.textContent=dcT('msgLoading');}
   const res=await api('get_quotations&limit='+RECENT_QUOTES_PAGE_SIZE+'&offset='+recentQuotesOffset);
   if(!res.ok){
     recentQuotesLoading=false;
-    if(btn){btn.disabled=false;btn.textContent='Load More Quotations / 加载更多报价';}
-    showToast('❌ Failed to load more quotations');
+    if(btn){btn.disabled=false;btn.textContent=dcT('msgLoadMore');}
+    showToast(dcT('msgFailLoadMore'));
     return;
   }
   const quotes=(res.data||[]).sort((a,b)=>new Date(b.created_at||b.quote_date)-new Date(a.created_at||a.quote_date));
@@ -966,7 +1108,7 @@ async function loadMoreRecentQuotations(){
   renderSummary();
   renderCompanyCards();
   renderRecentQuotations();
-  if(!fresh.length && !recentQuotesHasMore) showToast('No more quotations / 没有更多报价');
+  if(!fresh.length && !recentQuotesHasMore) showToast(dcT('msgNoMore'));
 }
 
 function fmtMoneyCP(v){ return "RM " + Number(v||0).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -1061,7 +1203,7 @@ function cpSearchSubmit(){
 
 function cpBusyPanel(){
   const b=document.getElementById('cpSearchResult');
-  b.innerHTML='<div class="cp-hit-msg cp-hit-busy">Looking up quotation…</div>';
+  b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span data-i18n="msgLookingUp">Looking up quotation…</span></div>';
   b.hidden=false;
 }
 function cpNotFoundPanel(term){
@@ -1111,14 +1253,14 @@ function itemSearchSubmit(){
 }
 function itemBusyPanel(){
   const b=document.getElementById('itemSearchResult');
-  b.innerHTML='<div class="cp-hit-msg cp-hit-busy">Searching quotation history…</div>';
+  b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span data-i18n="msgSearchingHistory">Searching quotation history…</span></div>';
   b.hidden=false;
 }
 function itemEmptyPanel(term){
   const b=document.getElementById('itemSearchResult');
   b.innerHTML='<div class="cp-empty"><div class="cp-empty-icon">🔍</div>'
     +'<p class="cp-empty-main">No past items match “'+esc(term)+'”</p>'
-    +'<p class="cp-empty-sub">Try fewer words, or a size and product like “M16 J BOLT”.</p></div>';
+    +'<p class="cp-empty-sub"><span data-i18n="msgTryFewer">Try fewer words, or a size and product like “M16 J BOLT”.</span></p></div>';
   b.hidden=false;
 }
 async function itemRunSearch(term){
@@ -1217,14 +1359,14 @@ function renderCompanyCards(){
   document.getElementById('companyCount').textContent = list.length;
 
   if(!allCompaniesCache.length){
-    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p>No companies yet <span class="sub">还没有公司</span></p></div>';
+    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanies">No companies yet</span> <span class="sub">还没有公司</span></p></div>';
     return;
   }
   if(!list.length){
     /* Item results live in the right pane now, so this only ever speaks for the
        Companies list and can say so plainly. */
     document.getElementById('companyList').innerHTML=
-      '<div class="empty-state"><div class="icon">🏢</div><p>No companies match your search</p></div>';
+      '<div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanyMatch">No companies match your search</span></p></div>';
     return;
   }
 
@@ -1276,7 +1418,7 @@ function closeAddCompanyForm(){
 
 async function addCompany(){
   const name=document.getElementById('c-name').value.trim();
-  if(!name){showToast('⚠️ Company name required');return}
+  if(!name){showToast(dcT('msgCompanyNameRequired'));return}
   const res=await api('add_company',{
     name,
     short_code:document.getElementById('c-code').value.trim().toUpperCase(),
@@ -1288,7 +1430,7 @@ async function addCompany(){
     document.getElementById('c-code').value='';
     document.getElementById('c-phone').value='';
     document.getElementById('c-addr').value='';
-    showToast('✅ Company added');
+    showToast(dcT('msgCompanyAdded'));
     closeAddCompanyForm();
     loadCompanies();
   } else showToast('❌ '+(res.error||'Error'));
@@ -1306,21 +1448,21 @@ function openEditCompany(id,name,code,phone,addr){
 async function saveEditCompany(){
   const id=document.getElementById('ec-id').value;
   const name=document.getElementById('ec-name').value.trim();
-  if(!name){showToast('⚠️ Name required');return}
+  if(!name){showToast(dcT('msgNameRequired'));return}
   const res=await api('update_company',{
     id,name,
     short_code:document.getElementById('ec-code').value.trim().toUpperCase(),
     phone:document.getElementById('ec-phone').value.trim(),
     address:document.getElementById('ec-addr').value.trim()
   },'POST');
-  if(res.ok){showToast('✅ Updated');closeModal('editCompanyModal');loadCompanies()}
+  if(res.ok){showToast(dcT('msgUpdated'));closeModal('editCompanyModal');loadCompanies()}
   else showToast('❌ '+(res.error||'Error'));
 }
 
 async function deleteCompany(id,name){
   if(!confirm('Delete company "'+name+'"?\nAll linked quotations will be unlinked.'))return;
   const res=await api('delete_company',{id},'POST');
-  if(res.ok){showToast('🗑️ Deleted');if(selectedCompanyId==id){selectedCompanyId=null;}loadCompanies();}
+  if(res.ok){showToast(dcT('msgDeleted'));if(selectedCompanyId==id){selectedCompanyId=null;}loadCompanies();}
   else showToast('❌ '+(res.error||'Error'));
 }
 
@@ -1373,7 +1515,7 @@ async function selectCompany(id){
   renderCompanyCards(); // re-render to update selected state
 
   const res=await api('get_quotations&company_id='+id+'&limit='+COMPANY_QUOTES_PAGE_SIZE+'&offset=0');
-  if(!res.ok){showToast('❌ Failed to load quotations');return}
+  if(!res.ok){showToast(dcT('msgFailLoadQuotes'));return}
   const quotes=(res.data||[]).sort((a,b)=>new Date(b.quote_date||b.created_at)-new Date(a.quote_date||a.created_at));
   const totalQuotesForCompany = Number.isFinite(Number(res.total)) ? Number(res.total) : quotes.length;
   companyQuotesOffset=quotes.length;
@@ -1420,9 +1562,9 @@ async function selectCompany(id){
           <button class="btn btn-danger" onclick="deleteQuote(${q.id})">🗑️ Delete</button>
         </div>
       </div>`;
-  }).join('') : '<div class="empty-state"><div class="icon">📭</div><p>No saved quotations for this company yet</p></div>';
+  }).join('') : '<div class="empty-state"><div class="icon">📭</div><p><span data-i18n="msgNoSavedQuotes">No saved quotations for this company yet</span></p></div>';
 
-  quotesHtml = quotes.length ? quotes.map(renderCompanyQuoteCard).join('') : '<div class="empty-state"><div class="icon">📭</div><p>No saved quotations for this company yet</p></div>';
+  quotesHtml = quotes.length ? quotes.map(renderCompanyQuoteCard).join('') : '<div class="empty-state"><div class="icon">📭</div><p><span data-i18n="msgNoSavedQuotes">No saved quotations for this company yet</span></p></div>';
 
   document.getElementById('rightPanel').innerHTML = `
     <div class="card selected-panel" style="margin-bottom:16px">
@@ -1461,12 +1603,12 @@ async function loadMoreCompanyQuotations(){
   if(!selectedCompanyId || companyQuotesLoading || !companyQuotesHasMore) return;
   companyQuotesLoading=true;
   const btn=document.getElementById('companyQuotesMoreBtn');
-  if(btn){btn.disabled=true;btn.textContent='Loading... / 加载中...';}
+  if(btn){btn.disabled=true;btn.textContent=dcT('msgLoading');}
   const res=await api('get_quotations&company_id='+selectedCompanyId+'&limit='+COMPANY_QUOTES_PAGE_SIZE+'&offset='+companyQuotesOffset);
   if(!res.ok){
     companyQuotesLoading=false;
-    if(btn){btn.disabled=false;btn.textContent='Load More Quotations / 加载更多报价';}
-    showToast('❌ Failed to load more quotations');
+    if(btn){btn.disabled=false;btn.textContent=dcT('msgLoadMore');}
+    showToast(dcT('msgFailLoadMore'));
     return;
   }
   const quotes=(res.data||[]).sort((a,b)=>new Date(b.quote_date||b.created_at)-new Date(a.quote_date||a.created_at));
@@ -1481,9 +1623,9 @@ async function loadMoreCompanyQuotations(){
   const done=document.getElementById('companyQuotesDone');
   if(wrap) wrap.style.display=companyQuotesHasMore?'block':'none';
   if(done) done.style.display=companyQuotesHasMore?'none':'block';
-  if(btn){btn.disabled=false;btn.textContent='Load More Quotations / 加载更多报价';}
+  if(btn){btn.disabled=false;btn.textContent=dcT('msgLoadMore');}
   companyQuotesLoading=false;
-  if(!fresh.length && !companyQuotesHasMore) showToast('No more quotations / 没有更多报价');
+  if(!fresh.length && !companyQuotesHasMore) showToast(dcT('msgNoMore'));
 }
 
 function clearCompanySelection(){
@@ -1551,7 +1693,7 @@ function loadAndGo(){
 
 async function loadQuoteToCalc(id){
   const res=await api('get_quotation&id='+id);
-  if(!res.ok){showToast('❌ Failed to load');return}
+  if(!res.ok){showToast(dcT('msgFailLoad'));return}
   sessionStorage.setItem('loadQuote', JSON.stringify(res.data));
   window.location.href='index.php';
 }
@@ -1563,18 +1705,18 @@ async function duplicateQuote(id){
   delete q.id;
   let nr;
   try{nr=await api('get_next_ref');}catch(e){nr=null;}
-  if(!nr || !nr.ok || !nr.ref_no){showToast('❌ Unable to get new quotation no. Duplicate cancelled.');return;}
+  if(!nr || !nr.ok || !nr.ref_no){showToast(dcT('msgDupFail'));return;}
   q.ref_no=nr.ref_no;
   const saveRes=await api('save_quotation',q,'POST');
   if(saveRes.ok){showToast('📄 Duplicated as #'+saveRes.id);await loadAllQuotations();renderSummary();renderCompanyCards();selectCompany(selectedCompanyId);}
-  else showToast('❌ Failed');
+  else showToast(dcT('msgFailed'));
 }
 
 async function deleteQuote(id){
   if(!confirm('Delete this quotation?'))return;
   const res=await api('delete_quotation',{id},'POST');
-  if(res.ok){showToast('🗑️ Deleted');await loadAllQuotations();renderSummary();renderCompanyCards();selectCompany(selectedCompanyId);}
-  else showToast('❌ Failed');
+  if(res.ok){showToast(dcT('msgDeleted'));await loadAllQuotations();renderSummary();renderCompanyCards();selectCompany(selectedCompanyId);}
+  else showToast(dcT('msgFailed'));
 }
 
 /* ── Modal helpers ── */
@@ -1606,7 +1748,7 @@ async function openByRefFromUrl(){
   if(openId){
     try{ history.replaceState(null,'',location.pathname); }catch(e){}
     const id=parseInt(openId,10);
-    if(id>0) viewQuote(id); else showToast('Quotation not found');
+    if(id>0) viewQuote(id); else showToast(dcT('msgQuoteNotFound'));
     return;
   }
   if(!ref) return;
