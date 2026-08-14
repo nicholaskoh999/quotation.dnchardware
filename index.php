@@ -2043,8 +2043,8 @@ input,select,textarea{
       <a class="side-link" href="companies.php"><span class="side-link-inner" data-i18n="sideCompanies">Companies / Saved</span></a>
       <button class="side-link" onclick="openDPModal();toggleSidebar(false)"><span class="side-link-inner" data-i18n="sideDefaultPrices">Default Prices</span></button>
       <button class="side-link" onclick="openDSModal();toggleSidebar(false)"><span class="side-link-inner" data-i18n="sideDiameterSettings">Diameter Settings</span></button>
-      <button class="side-link" onclick="openRefModal();toggleSidebar(false)"><span class="side-link-inner" data-i18n="sidePricingGuide" data-i18n="sidePricingGuide">Pricing Guide</span></button>
-      <button class="side-link" onclick="openModal('versionUpdatesModal');toggleSidebar(false)"><span class="side-link-inner" data-i18n="sideVersionUpdates" data-i18n="sideVersionUpdates">Version Updates</span></button>
+      <button class="side-link" onclick="openRefModal();toggleSidebar(false)"><span class="side-link-inner" data-i18n="sidePricingGuide">Pricing Guide</span></button>
+      <button class="side-link" onclick="openModal('versionUpdatesModal');toggleSidebar(false)"><span class="side-link-inner" data-i18n="sideVersionUpdates">Version Updates</span></button>
       <a class="side-link" href="logout.php"><span class="side-link-inner" data-i18n="navSignOut">Sign Out</span></a>
     </div>
     <!-- The header switch is hidden below 820px; this is the tablet/phone route. -->
@@ -2217,13 +2217,13 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="sagrod-customEnabled"><input type="checkbox" id="sagrod-customEnabled" onchange="onAccChange('sagrod')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="sagrod-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('sagrod')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="sagrod-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('sagrod')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="sagrod-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('sagrod')"></div>
               </div>
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="sagrod-costRate" placeholder="Enter rate" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','costRate');}"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="sagrod-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0.00" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="sagrod-markup" placeholder="0" min="0" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="sagrod-qty" value="1" min="1" step="1"></div>
@@ -2272,13 +2272,13 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="stud-customEnabled"><input type="checkbox" id="stud-customEnabled" onchange="onAccChange('stud')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="stud-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('stud')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="stud-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('stud')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="stud-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('stud')"></div>
               </div>
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="stud-costRate" placeholder="Enter rate" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','costRate');}"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="stud-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0.00" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="stud-markup" placeholder="0" min="0" oninput="calcStud()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="stud-qty" value="1" min="1" step="1"></div>
@@ -2332,13 +2332,13 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="anchorbolt-customEnabled"><input type="checkbox" id="anchorbolt-customEnabled" onchange="onAccChange('anchorbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="anchorbolt-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('anchorbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="anchorbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('anchorbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="anchorbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('anchorbolt')"></div>
               </div>
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="anchorbolt-costRate" placeholder="Enter rate" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="anchorbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0.00" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="anchorbolt-markup" placeholder="0" min="0" oninput="calcAnchorBolt()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="anchorbolt-qty" value="1" min="1" step="1"></div>
@@ -2362,7 +2362,7 @@ input,select,textarea{
           <div class="field"><label>ID</label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
           <div class="field"><label>IH</label><input type="number" id="ubolt-ih" placeholder="60" step="0.1" oninput="calcUBolt('ubolt')"></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"></div>
-          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="ubolt-length" placeholder="Auto calculated" oninput="calcUBolt('ubolt',true)"></div>
+          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="ubolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcUBolt('ubolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="ubolt-accToggle" onclick="toggleAccPanel('ubolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -2387,13 +2387,13 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="ubolt-customEnabled"><input type="checkbox" id="ubolt-customEnabled" onchange="onAccChange('ubolt')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="ubolt-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('ubolt')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="ubolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('ubolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="ubolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('ubolt')"></div>
               </div>
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="ubolt-costRate" placeholder="Enter rate" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="ubolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0.00" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="ubolt-markup" placeholder="0" min="0" oninput="calcUBolt('ubolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="ubolt-qty" value="1" min="1" step="1"></div>
@@ -2417,7 +2417,7 @@ input,select,textarea{
           <div class="field"><label>OH</label><input type="number" id="squbolt-oh" placeholder="100" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
           <div class="field"><label>W</label><input type="number" id="squbolt-w" placeholder="150" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="squbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
-          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="squbolt-length" placeholder="Auto calculated" oninput="calcSQUBolt('squbolt',true)"></div>
+          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="squbolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcSQUBolt('squbolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="squbolt-accToggle" onclick="toggleAccPanel('squbolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -2442,13 +2442,13 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="squbolt-customEnabled"><input type="checkbox" id="squbolt-customEnabled" onchange="onAccChange('squbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="squbolt-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('squbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="squbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('squbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="squbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('squbolt')"></div>
               </div>
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="squbolt-costRate" placeholder="Enter rate" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="squbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0.00" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="squbolt-markup" placeholder="0" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="squbolt-qty" value="1" min="1" step="1"></div>
@@ -2472,7 +2472,7 @@ input,select,textarea{
           <div class="field"><label>L</label><input type="number" id="lbolt-l" placeholder="500" step="0.1" oninput="calcLBolt('lbolt')"></div>
           <div class="field"><label>W</label><input type="number" id="lbolt-w" placeholder="100" step="0.1" oninput="calcLBolt('lbolt')"></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="lbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
-          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="lbolt-length" placeholder="Auto calculated" oninput="calcLBolt('lbolt',true)"></div>
+          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="lbolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcLBolt('lbolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="lbolt-accToggle" onclick="toggleAccPanel('lbolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -2497,13 +2497,13 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="lbolt-customEnabled"><input type="checkbox" id="lbolt-customEnabled" onchange="onAccChange('lbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="lbolt-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('lbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="lbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('lbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="lbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('lbolt')"></div>
               </div>
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="lbolt-costRate" placeholder="Enter rate" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="lbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0.00" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="lbolt-markup" placeholder="0" min="0" oninput="calcLBolt('lbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="lbolt-qty" value="1" min="1" step="1"></div>
@@ -2528,7 +2528,7 @@ input,select,textarea{
           <div class="field"><label>ID</label><input type="number" id="jbolt-id" placeholder="80" step="0.1" oninput="calcJBolt('jbolt')"></div>
           <div class="field"><label>S</label><input type="number" id="jbolt-s" placeholder="105" step="0.1" oninput="calcJBolt('jbolt')"></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="jbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
-          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="jbolt-length" placeholder="Auto calculated" oninput="calcJBolt('jbolt',true)"></div>
+          <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="jbolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcJBolt('jbolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="jbolt-accToggle" onclick="toggleAccPanel('jbolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -2553,13 +2553,13 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="jbolt-customEnabled"><input type="checkbox" id="jbolt-customEnabled" onchange="onAccChange('jbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="jbolt-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('jbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="jbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('jbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="jbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('jbolt')"></div>
               </div>
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="jbolt-costRate" placeholder="Enter rate" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="jbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0.00" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="jbolt-markup" placeholder="0" min="0" oninput="calcJBolt('jbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="jbolt-qty" value="1" min="1" step="1"></div>
@@ -2619,8 +2619,8 @@ input,select,textarea{
           <div class="group-label full" id="plate-dim-group-tri" style="display:none">Dimension Entry <span class="gl-zh">/ 尺寸资料</span></div>
           <div class="field" id="plate-f-tri-l" style="display:none"><label data-i18n="lblLength">Length</label><input type="number" id="plate-tri-l" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-h" style="display:none"><label data-i18n="lblHeight">Height</label><input type="number" id="plate-tri-h" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-cl" style="display:none"><label>Cut Length <span class="gl-zh field-zh">切边长度（可选）</span></label><input type="number" id="plate-tri-cl" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-ch" style="display:none"><label>Cut Height <span class="gl-zh field-zh">切边高度（可选）</span></label><input type="number" id="plate-tri-ch" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-cl" style="display:none"><label>Cut Length <span class="gl-zh field-zh">切边长度（可选）</span></label><input type="number" id="plate-tri-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-ch" style="display:none"><label>Cut Height <span class="gl-zh field-zh">切边高度（可选）</span></label><input type="number" id="plate-tri-ch" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-t" style="display:none"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-tri-t" placeholder="mm, e.g. 8" step="0.1" min="0.1" oninput="calcPlate()"></div>
 
           <!-- Accessories -->
@@ -2648,7 +2648,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="plate-customEnabled"><input type="checkbox" id="plate-customEnabled" onchange="onAccChange('plate')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="plate-customText" placeholder="Enter c/w wording" disabled oninput="onAccChange('plate')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="plate-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('plate')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="plate-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('plate')"></div>
               </div>
             </div>
@@ -2656,7 +2656,7 @@ input,select,textarea{
 
           <!-- Pricing Entry -->
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label>Cost Rate <span class="gl-zh field-zh">每公斤成本</span></label><input type="text" class="hl" id="plate-costRate" placeholder="Enter rate" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','costRate');}"></div>
+          <div class="field"><label>Cost Rate <span class="gl-zh field-zh" data-i18n="costRateSub">Cost per kg</span></label><input type="text" class="hl" id="plate-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','costRate');}"></div>
           <div class="field"><label>Additional Cost <span class="gl-zh field-zh">额外加工费</span></label><input type="text" class="hl" id="plate-addCost" placeholder="0.00" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','addCost');}"></div>
           <div class="field"><label>Markup <span class="gl-zh field-zh">加价</span></label><input type="number" id="plate-markup" placeholder="0" min="0" oninput="calcPlate()"></div>
           <div class="field"><label>Qty <span class="gl-zh field-zh">数量</span></label><input type="number" id="plate-qty" value="1" min="1" step="1" oninput="calcPlate()"></div>
@@ -2751,10 +2751,10 @@ input,select,textarea{
             <input type="number" id="was-tp-h" placeholder="180" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label>Cut Length <span class="gl-zh field-zh">切边长度 mm（可选）</span></label>
-            <input type="number" id="was-tp-cl" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-tp-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label>Cut Height <span class="gl-zh field-zh">切边高度 mm（可选）</span></label>
-            <input type="number" id="was-tp-ch" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-tp-ch" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblThicknessMm">Thickness</label>
             <input type="number" id="was-tp-t" placeholder="8" step="0.1" min="0.1" oninput="calcWAS()">
@@ -2788,7 +2788,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="was-customEnabled"><input type="checkbox" id="was-customEnabled" onchange="onAccChange('was')"><span class="acc-title-txt">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="was-customText" placeholder="e.g. welding" disabled oninput="onAccChange('was')"></div>
+                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="was-customText" data-i18n-ph="phEgWelding" placeholder="e.g. welding" disabled oninput="onAccChange('was')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="was-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('was')"></div>
               </div>
             </div>
@@ -2797,13 +2797,13 @@ input,select,textarea{
           <!-- ── Pricing ── -->
           <div class="group-label full" data-i18n="pricing">Pricing</div>
           <div class="field"><label>Anchor Cost Rate <span class="gl-zh field-zh">锚栓每公斤成本</span></label>
-            <input type="text" class="hl" id="was-anchorCostRate" placeholder="Enter rate" oninput="calcWAS()">
+            <input type="text" class="hl" id="was-anchorCostRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcWAS()">
           </div>
           <div class="field"><label>Base Plate Cost Rate <span class="gl-zh field-zh">底板每公斤成本</span></label>
-            <input type="text" class="hl" id="was-basePlateCostRate" placeholder="Enter rate" oninput="calcWAS()">
+            <input type="text" class="hl" id="was-basePlateCostRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcWAS()">
           </div>
           <div class="field"><label>Triangle Plate Cost Rate <span class="gl-zh field-zh">三角板每公斤成本</span></label>
-            <input type="text" class="hl" id="was-trianglePlateCostRate" placeholder="Optional when Qty is 0" oninput="calcWAS()">
+            <input type="text" class="hl" id="was-trianglePlateCostRate" data-i18n-ph="phOptionalQty0" placeholder="Optional when Qty is 0" oninput="calcWAS()">
           </div>
           <div class="field"><label>Additional Cost <span class="gl-zh field-zh">额外加工费</span></label>
             <input type="text" class="hl" id="was-addCost" placeholder="0.00" oninput="calcWAS()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('was','addCost');}">
@@ -2824,9 +2824,9 @@ input,select,textarea{
           <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Final Unit Price</label><span id="cpFinal">—</span></div>
         </div>
         <div class="price-mode-preview" id="priceModePreview">
-          <div>Raw Price<strong id="pmPreviewRaw">RM 0.00</strong></div>
-          <div>Price Mode<strong id="pmPreviewMode">Auto Round</strong></div>
-          <div>Final Unit Price<strong id="pmPreviewFinal">RM 0.00</strong></div>
+          <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
+          <div><span data-i18n="lblPriceMode">Price Mode</span><strong id="pmPreviewMode">Auto Round</strong></div>
+          <div><span data-i18n="lblFinalUnitPrice">Final Unit Price</span><strong id="pmPreviewFinal">RM 0.00</strong></div>
         </div>
         <div class="was-breakdown" id="wasBreakdown" aria-live="polite">
           <div class="was-breakdown-title">Cost Breakdown <span class="zh">/ 成本拆分</span></div>
@@ -2836,7 +2836,7 @@ input,select,textarea{
           <div class="was-breakdown-row"><span class="was-breakdown-label">Additional Cost</span><span class="was-breakdown-value" id="wasBreakdownAdditional">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label">Accessories</span><span class="was-breakdown-value" id="wasBreakdownAccessories">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblBasePrice">Base Price</span><span class="was-breakdown-value was-breakdown-total" id="wasBreakdownBasePrice">—</span></div>
-          <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblFinalUnitPrice" data-i18n="lblFinalUnitPrice">Final Unit Price</span><span class="was-breakdown-value was-breakdown-total" id="wasBreakdownFinal">—</span></div>
+          <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblFinalUnitPrice">Final Unit Price</span><span class="was-breakdown-value was-breakdown-total" id="wasBreakdownFinal">—</span></div>
         </div>
         <div class="ubolt-debug-wrap" id="uboltDebugWrap">
           <div class="ubolt-debug-head">
@@ -2859,13 +2859,13 @@ input,select,textarea{
           </div>
         </div>
         <div class="dp-status" id="dpStatus">
-          Default price applied
+          <span data-i18n="mDefaultApplied">Default price applied</span>
           <button class="dp-edit" onclick="openDPModal()" data-i18n="mManageRules">Manage rules</button>
         </div>
 
         <div class="ph-mini" id="phMini">
           <div class="ph-mini-head">
-            <span class="ph-title"><span data-i18n="prevQuotedPrices">Previous Quoted Prices</span> <span class="ph-tag">reference only, does not change your price</span></span>
+            <span class="ph-title"><span data-i18n="prevQuotedPrices">Previous Quoted Prices</span> <span class="ph-tag" data-i18n="mRefOnly">reference only, does not change your price</span></span>
             <button class="btn btn-outline btn-sm" onclick="checkPreviousPrice()"><span data-i18n="checkPrevPrices">Check Previous Prices</span></button>
           </div>
           <div id="phResults" style="display:none">
@@ -2905,7 +2905,7 @@ input,select,textarea{
         <div class="card-head">
           <div>
             <div class="step-caption" data-i18n="step3Caption">Step 3 · Review &amp; Save</div>
-            <span class="step-caption-sub">检查与保存</span>
+            <span class="step-caption-sub" data-i18n="step3Sub">Review & save</span>
             <div class="card-title"><span data-i18n="quotationList">Quotation List</span> <span class="count-pill" id="quoteCount">0</span></div>
           </div>
           <button class="btn btn-danger btn-sm" id="clearAllBtn" onclick="clearAllItems()" data-i18n="clearAll">Clear All</button>
@@ -2935,9 +2935,9 @@ input,select,textarea{
             <div><div class="qt-label"><span data-i18n="quotationTotal">Quotation Total</span></div><div class="qt-amt" id="quoteTotalAmt">RM 0.00</div></div>
           </div>
           <div class="step-caption" style="margin-top:12px" data-i18n="step4Caption">Step 4 · Print / WhatsApp</div>
-          <span class="step-caption-sub" style="display:block;margin-bottom:10px">打印 / WhatsApp</span>
+          <span class="step-caption-sub" style="display:block;margin-bottom:10px" data-i18n="step4Sub">Print / WhatsApp</span>
           <div class="quote-actions">
-            <button class="btn btn-save btn-xl btn-bi" id="saveQuoteBtn" onclick="openSaveModal()"><span data-i18n="saveQuotation" data-i18n="saveQuotation">Save Quotation</span></button>
+            <button class="btn btn-save btn-xl btn-bi" id="saveQuoteBtn" onclick="openSaveModal()"><span data-i18n="saveQuotation">Save Quotation</span></button>
             <button class="btn btn-ghost btn-sm" onclick="doPrint()" data-i18n="print">Print</button>
             <button class="btn btn-wa btn-sm" onclick="doWhatsApp()">WhatsApp</button>
             <button class="btn btn-outline btn-sm" onclick="doCopyWA()" data-i18n="copy">Copy</button>
@@ -2953,8 +2953,8 @@ input,select,textarea{
 <div class="mobile-bar">
   <div class="mb-total"><label>Total</label><span id="mbTotal">RM 0.00</span></div>
   <div style="display:flex;gap:8px">
-    <button class="btn btn-outline btn-sm" onclick="scrollToQuote()"><span id="mbCount">0</span> items / 项</button>
-    <button class="btn btn-save" id="mobileSaveBtn" style="padding:10px 18px;font-size:13.5px" onclick="openSaveModal()">Save / 保存</button>
+    <button class="btn btn-outline btn-sm" onclick="scrollToQuote()"><span id="mbCount">0</span> <span data-i18n="itemsUnit">items</span></button>
+    <button class="btn btn-save" id="mobileSaveBtn" style="padding:10px 18px;font-size:13.5px" onclick="openSaveModal()" data-i18n="save">Save</button>
   </div>
 </div>
 
@@ -2997,7 +2997,7 @@ input,select,textarea{
 <div class="modal-overlay" id="versionUpdatesModal">
   <div class="modal version-updates-modal">
     <div class="modal-title version-updates-head">
-      <span>Version Updates <span class="sub">/ 版本更新</span></span>
+      <span data-i18n="sideVersionUpdates">Version Updates</span>
       <button class="modal-close" onclick="closeModal('versionUpdatesModal')">✕</button>
     </div>
     <div class="version-updates-list">
@@ -3280,7 +3280,7 @@ input,select,textarea{
 
       <div id="wqaParseMsg" class="wqa-msg" hidden></div>
       <div class="wqa-actions">
-        <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel" data-i18n="cancel">Cancel</button>
+        <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel">Cancel</button>
         <button class="btn btn-primary" id="wqaParseBtn" onclick="wqaParseAndReview()" data-i18n="wqaParseItems">Parse Items</button>
         <button class="btn btn-primary" id="wqaAnalyzeBtn" onclick="wqaAnalyze()" hidden disabled data-i18n="wqaAnalyze">Analyze</button>
       </div>
@@ -3307,7 +3307,7 @@ input,select,textarea{
       <div class="wqa-actions wqa-sticky-actions">
         <span class="wqa-foot-count"><span id="wqaFootTotal" data-i18n="wqaZeroItems">0 items</span><span
           class="wqa-foot-need" id="wqaFootNeed" hidden></span></span>
-        <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel" data-i18n="cancel">Cancel</button>
+        <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel">Cancel</button>
         <button class="btn btn-primary" id="wqaAddBtn" onclick="wqaAddAll()" data-i18n="wqaAddItems">Add Items to Quotation</button>
       </div>
     </div>
@@ -3316,7 +3316,7 @@ input,select,textarea{
 
 <div class="modal-overlay" id="refModal">
   <div class="modal" style="max-width:720px">
-    <div class="modal-title">Pricing Guide <span class="zh">价格说明</span> <button class="modal-close" onclick="closeModal('refModal')">✕</button></div>
+    <div class="modal-title"><span data-i18n="sidePricingGuide">Pricing Guide</span> <span class="zh" data-i18n="pricingGuideSub">Pricing guide</span> <button class="modal-close" onclick="closeModal('refModal')">✕</button></div>
     <div class="ref-tabs">
       <button class="ref-tab active" onclick="switchRefTab('cost')">Cost Rate</button>
       <button class="ref-tab" onclick="switchRefTab('addcost')">Additional Cost</button>
@@ -3324,18 +3324,18 @@ input,select,textarea{
       <button class="ref-tab" onclick="switchRefTab('examples')" data-i18n="mProductExamples">Product Examples</button>
     </div>
     <div class="ref-panel active" id="ref-cost">
-      <div class="ref-note"><h4>Cost Rate <span class="zh">每公斤成本</span></h4>
+      <div class="ref-note"><h4>Cost Rate <span class="zh" data-i18n="costRateSub">Cost per kg</span></h4>
         <p>Cost Rate = material cost per kg.</p>
-        <p class="cn">Cost Rate（每公斤成本）= 材料每公斤的成本。</p></div>
-      <div class="ref-note"><h4>Example <span class="zh">例子</span></h4>
-        <div class="ref-mini"><span>Weight 2 kg</span><span>Cost Rate RM3.50/kg</span></div>
-        <p><strong>Material Cost = 2 × 3.50 = RM7.00</strong></p></div>
+        <p class="cn" data-i18n="mCostRateExplain">Cost Rate = the material cost per kilogram.</p></div>
+      <div class="ref-note"><h4 data-i18n="mExample">Example</h4>
+        <div class="ref-mini"><span data-i18n="mWeight2kg">Weight 2 kg</span><span>Cost Rate RM3.50/kg</span></div>
+        <p><strong><span data-i18n="mMatCostEg">Material Cost = 2 × 3.50 = RM7.00</span></strong></p></div>
     </div>
     <div class="ref-panel" id="ref-addcost">
       <div class="ref-note"><h4>Additional Cost <span class="zh">额外加工费</span></h4>
         <p>Used for extra work, such as:</p>
         <div class="ref-mini"><span>Thread processing</span><span>Drilling</span><span>Welding</span><span>Special process</span><span>Extra customer requirement</span></div></div>
-      <div class="ref-note"><h4>Example <span class="zh">例子</span></h4>
+      <div class="ref-note"><h4 data-i18n="mExample">Example</h4>
         <div class="ref-mini"><span>Material Cost RM7.00</span><span>Additional Cost RM2.00</span></div>
         <p><strong>Base Price = RM7.00 + RM2.00 = RM9.00</strong></p></div>
     </div>
@@ -3369,7 +3369,7 @@ input,select,textarea{
 <!-- ═══ SAVE MODAL ═══ -->
 <div class="modal-overlay" id="saveModal">
   <div class="modal">
-    <div class="modal-title" id="saveModalTitle"><span data-i18n="saveQuotation" data-i18n="saveQuotation">Save Quotation</span> <button class="modal-close" onclick="closeModal('saveModal')">✕</button></div>
+    <div class="modal-title" id="saveModalTitle"><span data-i18n="saveQuotation">Save Quotation</span> <button class="modal-close" onclick="closeModal('saveModal')">✕</button></div>
     <div class="modal-grid">
       <div class="field full"><label data-i18n="mCompany">Company</label>
         <select id="sv-company"><option value="" data-i18n="mNoCompanyStandalone">— No company (standalone) —</option></select></div>
@@ -3388,10 +3388,10 @@ input,select,textarea{
 <!-- Unsaved draft recovery -->
 <div class="modal-overlay" id="draftRecoveryModal">
   <div class="modal" style="max-width:460px">
-    <div class="modal-title">Restore unsaved draft? <span class="sub" style="display:block">恢复未保存草稿？</span></div>
+    <div class="modal-title"><span data-i18n="mRestoreTitle">Restore unsaved draft?</span> <span class="sub" style="display:block" data-i18n="mRestoreTitleZh">Restore unsaved draft?</span></div>
     <div class="draft-recovery-copy">
-      You have an unsaved quotation draft. Restore it or discard it?
-      <span class="sub" style="display:block;margin-top:3px">您有一份未保存的报价草稿。要恢复还是删除？</span>
+      <span data-i18n="mRestoreSub">You have an unsaved quotation draft. Restore it or discard it?</span>
+      <span class="sub" style="display:block;margin-top:3px" data-i18n="mRestoreSubZh">You have an unsaved quotation draft. Restore it or discard it?</span>
       <span class="draft-recovery-time" id="draftRecoveryTime"></span>
     </div>
     <div class="modal-btns">
@@ -3404,15 +3404,15 @@ input,select,textarea{
 <!-- ═══ DEFAULT PRICE SETTINGS MODAL ═══ -->
 <div class="modal-overlay" id="dpModal">
   <div class="modal" style="max-width:800px">
-    <div class="modal-title">Default Price Settings <span style="font-size:11px;font-weight:500;color:var(--text-muted)">saved to MySQL</span><button class="modal-close" onclick="closeModal('dpModal')">✕</button></div>
+    <div class="modal-title"><span data-i18n="mDefaultPriceSettings">Default Price Settings</span> <span style="font-size:11px;font-weight:500;color:var(--text-muted)" data-i18n="mSavedToMysql">saved to MySQL</span><button class="modal-close" onclick="closeModal('dpModal')">✕</button></div>
 
     <!-- Master Data Tools -->
     <div class="mdt-box">
-      <div class="mdt-title">Master Data Tools <span class="mdt-sub" data-i18n="mDefaultPriceRules">Default Price Rules</span></div>
+      <div class="mdt-title"><span data-i18n="mMasterData">Master Data Tools</span> <span class="mdt-sub" data-i18n="mDefaultPriceRules">Default Price Rules</span></div>
       <div class="mdt-actions">
-        <a class="btn btn-ghost btn-sm" href="api.php?action=default_price_template">Download Template</a>
+        <a class="btn btn-ghost btn-sm" href="api.php?action=default_price_template" data-i18n="mDownloadTemplate">Download Template</a>
         <button class="btn btn-ghost btn-sm" onclick="mdtPickFile('dp')" data-i18n="mImportExcel">Import Excel</button>
-        <a class="btn btn-ghost btn-sm" href="api.php?action=export_default_prices">Export Current</a>
+        <a class="btn btn-ghost btn-sm" href="api.php?action=export_default_prices" data-i18n="mExportCurrent">Export Current</a>
         <input type="file" id="dpImportFile" accept=".csv" style="display:none" onchange="mdtImportFileSelected('dp',this)">
       </div>
       <div class="mdt-preview" id="dpImportPreview" style="display:none">
@@ -3456,40 +3456,40 @@ input,select,textarea{
         <div class="dp-section-label" data-i18n="mDefaultPricing">Default Pricing</div>
         <div class="field"><label>Cost Rate <small style="color:var(--text-muted);font-weight:500">RM/kg</small></label><input type="number" id="dp-costRate" step="0.01" placeholder="0.00" min="0"></div>
         <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="number" id="dp-addCost" step="0.01" placeholder="0.00" min="0"></div>
-        <div class="field"><label>Markup <small style="color:var(--text-muted);font-weight:500">%</small></label><input type="number" id="dp-markup" step="1" placeholder="0" min="0"></div>
-        <div class="dp-section-label">Status</div>
+        <div class="field"><label><span data-i18n="lblMarkup">Markup</span> <small style="color:var(--text-muted);font-weight:500">%</small></label><input type="number" id="dp-markup" step="1" placeholder="0" min="0"></div>
+        <div class="dp-section-label" data-i18n="mStatus">Status</div>
         <div class="field"><label data-i18n="mRuleStatus">Rule Status</label>
           <select id="dp-active"><option value="1" data-i18n="mActive">Active</option><option value="0" data-i18n="mDisabled">Disabled</option></select></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="saveDPRule()">Save Rule</button>
-        <button class="btn btn-ghost" onclick="resetDPForm()">Clear</button>
+        <button class="btn btn-primary" onclick="saveDPRule()" data-i18n="saveRule">Save Rule</button>
+        <button class="btn btn-ghost" onclick="resetDPForm()" data-i18n="mClear">Clear</button>
       </div>
     </div>
 
     <!-- List -->
-    <div style="font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Saved Rules <span class="count-pill" id="dpRuleCount">0</span></div>
+    <div style="font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px"><span data-i18n="mSavedRules">Saved Rules</span> <span class="count-pill" id="dpRuleCount">0</span></div>
     <div class="settings-mode-row">
       <div class="settings-mode-buttons">
-        <button class="settings-mode-btn active" id="dpModeCustom" onclick="setDPSourceMode('custom')">Custom</button>
-        <button class="settings-mode-btn" id="dpModeSystem" onclick="setDPSourceMode('system')">System</button>
-        <button class="settings-mode-btn" id="dpModeAll" onclick="setDPSourceMode('all')">All</button>
+        <button class="settings-mode-btn active" id="dpModeCustom" onclick="setDPSourceMode('custom')" data-i18n="mSrcCustom">Custom</button>
+        <button class="settings-mode-btn" id="dpModeSystem" onclick="setDPSourceMode('system')" data-i18n="mSrcSystem">System</button>
+        <button class="settings-mode-btn" id="dpModeAll" onclick="setDPSourceMode('all')" data-i18n="mSrcAll">All</button>
       </div>
-      <div class="settings-count-text" id="dpCountText">Showing 0 of 0 rules / 显示 0 / 0 条规则</div>
+      <div class="settings-count-text" id="dpCountText"><span data-i18n="mShowingRules">Showing rules</span></div>
     </div>
     <div class="settings-filter-grid">
-      <div class="field"><label data-i18n="lblProductType">Product Type</label><select id="dpFilterType" onchange="renderDPList()"><option value="">All</option><option value="sagrod">Sag Rod</option><option value="stud">Stud</option><option value="anchorbolt">Anchor Bolt</option><option value="ubolt">U-Bolt</option><option value="squbolt">SQ U-Bolt</option><option value="lbolt">L Bolt</option><option value="lbolt45">L Bolt 45DEG</option><option value="jbolt">J Bolt</option></select></div>
-      <div class="field"><label data-i18n="lblMaterial">Material</label><select id="dpFilterMaterial" onchange="renderDPList()"><option value="">All</option><option>MS</option><option>S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option>SS304</option><option>SS316</option><option value="Y_BAR">Y BAR</option></select></div>
-      <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="dpFilterSizeType" onchange="renderDPList()"><option value="">All</option><option value="FULLSIZE">FULLSIZE</option><option value="UNDERSIZE">UNDERSIZE</option><option value="NO_SIZE_TYPE" data-i18n="mNoSizeType">No Size Type</option></select></div>
-      <div class="field"><label data-i18n="lblFinish">Finish</label><select id="dpFilterFinish" onchange="renderDPList()"><option value="">All</option><option value="NA">N/A</option><option value="PL">PL</option><option value="ZP">ZP</option><option value="HDG">HDG</option></select></div>
-      <div class="field"><label>Status</label><select id="dpFilterSource" onchange="syncDPModeButtons();renderDPList()"><option value="custom" data-i18n="mCustomOnly">Custom Only</option><option value="system" data-i18n="mSystemDefaults">System Defaults</option><option value="all">All</option></select></div>
-      <div class="field"><label data-i18n="mSizeSearch">Size Search</label><input type="text" id="dpSearch" placeholder="Search size, e.g. M12" oninput="renderDPList()"></div>
+      <div class="field"><label data-i18n="lblProductType">Product Type</label><select id="dpFilterType" onchange="renderDPList()"><option value="" data-i18n="mSrcAll">All</option><option value="sagrod">Sag Rod</option><option value="stud">Stud</option><option value="anchorbolt">Anchor Bolt</option><option value="ubolt">U-Bolt</option><option value="squbolt">SQ U-Bolt</option><option value="lbolt">L Bolt</option><option value="lbolt45">L Bolt 45DEG</option><option value="jbolt">J Bolt</option></select></div>
+      <div class="field"><label data-i18n="lblMaterial">Material</label><select id="dpFilterMaterial" onchange="renderDPList()"><option value="" data-i18n="mSrcAll">All</option><option>MS</option><option>S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option>SS304</option><option>SS316</option><option value="Y_BAR">Y BAR</option></select></div>
+      <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="dpFilterSizeType" onchange="renderDPList()"><option value="" data-i18n="mSrcAll">All</option><option value="FULLSIZE">FULLSIZE</option><option value="UNDERSIZE">UNDERSIZE</option><option value="NO_SIZE_TYPE" data-i18n="mNoSizeType">No Size Type</option></select></div>
+      <div class="field"><label data-i18n="lblFinish">Finish</label><select id="dpFilterFinish" onchange="renderDPList()"><option value="" data-i18n="mSrcAll">All</option><option value="NA">N/A</option><option value="PL">PL</option><option value="ZP">ZP</option><option value="HDG">HDG</option></select></div>
+      <div class="field"><label data-i18n="mStatus">Status</label><select id="dpFilterSource" onchange="syncDPModeButtons();renderDPList()"><option value="custom" data-i18n="mCustomOnly">Custom Only</option><option value="system" data-i18n="mSystemDefaults">System Defaults</option><option value="all" data-i18n="mSrcAll">All</option></select></div>
+      <div class="field"><label data-i18n="mSizeSearch">Size Search</label><input type="text" id="dpSearch" data-i18n-ph="phSearchSize" placeholder="Search size, e.g. M12" oninput="renderDPList()"></div>
     </div>
     <div class="dp-table-wrap">
       <table class="dp-table">
         <thead><tr>
-          <th>Type</th><th>Material</th><th>Size Type</th><th>Size</th><th>Finish</th>
-          <th>Cost Rate</th><th data-i18n="mAddCost">Add. Cost</th><th>Markup</th><th data-i18n="mSource">Source</th><th>Status</th><th></th>
+          <th data-i18n="mThType">Type</th><th data-i18n="lblMaterial">Material</th><th>Size Type</th><th data-i18n="lblSize">Size</th><th data-i18n="lblFinish">Finish</th>
+          <th>Cost Rate</th><th data-i18n="mAddCost">Add. Cost</th><th data-i18n="lblMarkup">Markup</th><th data-i18n="mSource">Source</th><th data-i18n="mStatus">Status</th><th></th>
         </tr></thead>
         <tbody id="dpListBody"></tbody>
       </table>
@@ -3503,12 +3503,12 @@ input,select,textarea{
   <div class="modal" style="max-width:680px">
     <div class="modal-title">
       WhatsApp Message Template
-      <span style="display:block;font-size:11.5px;font-weight:600;color:var(--text-muted);margin-top:2px">WhatsApp 文字模板</span>
+      <span style="display:block;font-size:11.5px;font-weight:600;color:var(--text-muted);margin-top:2px" data-i18n="waTemplateSub">WhatsApp message template</span>
       <button class="modal-close" onclick="closeModal('waTemplateModal')" style="align-self:flex-start">✕</button>
     </div>
 
     <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
-      Placeholders: <code>{customer}</code> <code>{quotationNo}</code> <code>{no}</code> <code>{date}</code> <code>{total}</code> <code>{items}</code> <code>{preparedBy}</code>
+      <span data-i18n="mPlaceholders">Placeholders:</span> <code>{customer}</code> <code>{quotationNo}</code> <code>{no}</code> <code>{date}</code> <code>{total}</code> <code>{items}</code> <code>{preparedBy}</code>
     </p>
 
     <div class="field" style="margin-bottom:10px">
@@ -3537,15 +3537,15 @@ input,select,textarea{
       <span data-i18n="sideDiameterSettings">Diameter Settings</span>
       <button class="modal-close" onclick="closeModal('dsModal')">✕</button>
     </div>
-    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Custom diameter rules take priority over built-in defaults. Leave Size blank to match all sizes of a product+material combination.</p>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px" data-i18n="mDsHelp">Custom diameter rules take priority over built-in defaults. Leave Size blank to match all sizes of a product+material combination.</p>
 
     <!-- Master Data Tools -->
     <div class="mdt-box">
-      <div class="mdt-title">Master Data Tools <span class="mdt-sub" data-i18n="mDiameterRules">Diameter Rules</span></div>
+      <div class="mdt-title"><span data-i18n="mMasterData">Master Data Tools</span> <span class="mdt-sub" data-i18n="mDiameterRules">Diameter Rules</span></div>
       <div class="mdt-actions">
-        <a class="btn btn-ghost btn-sm" href="api.php?action=diameter_template">Download Template</a>
+        <a class="btn btn-ghost btn-sm" href="api.php?action=diameter_template" data-i18n="mDownloadTemplate">Download Template</a>
         <button class="btn btn-ghost btn-sm" onclick="mdtPickFile('ds')" data-i18n="mImportExcel">Import Excel</button>
-        <a class="btn btn-ghost btn-sm" href="api.php?action=export_diameter_settings">Export Current</a>
+        <a class="btn btn-ghost btn-sm" href="api.php?action=export_diameter_settings" data-i18n="mExportCurrent">Export Current</a>
         <input type="file" id="dsImportFile" accept=".csv" style="display:none" onchange="mdtImportFileSelected('ds',this)">
       </div>
       <div class="mdt-preview" id="dsImportPreview" style="display:none">
@@ -3574,7 +3574,7 @@ input,select,textarea{
             <option value="lbolt45">L Bolt 45DEG</option>
             <option value="jbolt">J Bolt</option>
           </select></div>
-        <div class="field"><label>Material / 材料</label>
+        <div class="field"><label><span data-i18n="lblMaterial">Material</span></label>
           <select id="ds-material">
             <option value="MS">MS</option><option value="S45C">S45C</option>
             <option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option>
@@ -3582,18 +3582,18 @@ input,select,textarea{
             <option value="4140_PLAIN">4140</option>
             <option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option>
           </select></div>
-        <div class="field" id="ds-sizeType-field"><label>Size Type / 尺寸类型</label>
+        <div class="field" id="ds-sizeType-field"><label data-i18n="lblSizeType">Size Type</label>
           <select id="ds-sizeType">
             <option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option>
           </select></div>
-        <div class="field"><label>Size / 尺寸</label>
+        <div class="field"><label><span data-i18n="lblSize">Size</span></label>
           <input type="text" id="ds-size" list="sizeOptions" placeholder="M12"></div>
         <div class="field"><label><span data-i18n="lblDiameterMm">Diameter (mm)</span></label>
           <input type="number" id="ds-diameter" step="0.01" placeholder="10.6" min="0"></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         <button class="btn btn-primary" onclick="saveDSRule()"><span data-i18n="saveRule">Save Rule</span></button>
-        <button class="btn btn-ghost" onclick="resetDSForm()">Clear</button>
+        <button class="btn btn-ghost" onclick="resetDSForm()" data-i18n="mClear">Clear</button>
       </div>
     </div>
 
@@ -3603,23 +3603,23 @@ input,select,textarea{
     </div>
     <div class="settings-mode-row">
       <div class="settings-mode-buttons">
-        <button class="settings-mode-btn active" id="dsModeCustom" onclick="setDSSourceMode('custom')">Custom</button>
-        <button class="settings-mode-btn" id="dsModeSystem" onclick="setDSSourceMode('system')">System</button>
-        <button class="settings-mode-btn" id="dsModeAll" onclick="setDSSourceMode('all')">All</button>
+        <button class="settings-mode-btn active" id="dsModeCustom" onclick="setDSSourceMode('custom')" data-i18n="mSrcCustom">Custom</button>
+        <button class="settings-mode-btn" id="dsModeSystem" onclick="setDSSourceMode('system')" data-i18n="mSrcSystem">System</button>
+        <button class="settings-mode-btn" id="dsModeAll" onclick="setDSSourceMode('all')" data-i18n="mSrcAll">All</button>
       </div>
-      <div class="settings-count-text" id="dsCountText">Showing 0 of 0 rules / 显示 0 / 0 条规则</div>
+      <div class="settings-count-text" id="dsCountText"><span data-i18n="mShowingRules">Showing rules</span></div>
     </div>
     <div class="settings-filter-grid">
-      <div class="field"><label data-i18n="lblProductType">Product Type</label><select id="dsFilterType" onchange="renderDSList()"><option value="">All</option><option value="sagrod">Sag Rod</option><option value="stud">Stud</option><option value="anchorbolt">Anchor Bolt</option><option value="ubolt">U-Bolt</option><option value="squbolt">SQ U-Bolt</option><option value="lbolt">L Bolt</option><option value="lbolt45">L Bolt 45DEG</option><option value="jbolt">J Bolt</option></select></div>
-      <div class="field"><label data-i18n="lblMaterial">Material</label><select id="dsFilterMaterial" onchange="renderDSList()"><option value="">All</option><option>MS</option><option>S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option>SS304</option><option>SS316</option><option value="Y_BAR">Y BAR</option></select></div>
-      <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="dsFilterSizeType" onchange="renderDSList()"><option value="">All</option><option value="FULLSIZE">FULLSIZE</option><option value="UNDERSIZE">UNDERSIZE</option><option value="NO_SIZE_TYPE" data-i18n="mNoSizeType">No Size Type</option></select></div>
-      <div class="field"><label>Status</label><select id="dsFilterSource" onchange="syncDSModeButtons();renderDSList()"><option value="custom" data-i18n="mCustomOnly">Custom Only</option><option value="system" data-i18n="mSystemDefaults">System Defaults</option><option value="all">All</option></select></div>
-      <div class="field"><label data-i18n="mSizeSearch">Size Search</label><input type="text" id="dsSearch" placeholder="Search size, e.g. M12" oninput="renderDSList()"></div>
+      <div class="field"><label data-i18n="lblProductType">Product Type</label><select id="dsFilterType" onchange="renderDSList()"><option value="" data-i18n="mSrcAll">All</option><option value="sagrod">Sag Rod</option><option value="stud">Stud</option><option value="anchorbolt">Anchor Bolt</option><option value="ubolt">U-Bolt</option><option value="squbolt">SQ U-Bolt</option><option value="lbolt">L Bolt</option><option value="lbolt45">L Bolt 45DEG</option><option value="jbolt">J Bolt</option></select></div>
+      <div class="field"><label data-i18n="lblMaterial">Material</label><select id="dsFilterMaterial" onchange="renderDSList()"><option value="" data-i18n="mSrcAll">All</option><option>MS</option><option>S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option>SS304</option><option>SS316</option><option value="Y_BAR">Y BAR</option></select></div>
+      <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="dsFilterSizeType" onchange="renderDSList()"><option value="" data-i18n="mSrcAll">All</option><option value="FULLSIZE">FULLSIZE</option><option value="UNDERSIZE">UNDERSIZE</option><option value="NO_SIZE_TYPE" data-i18n="mNoSizeType">No Size Type</option></select></div>
+      <div class="field"><label data-i18n="mStatus">Status</label><select id="dsFilterSource" onchange="syncDSModeButtons();renderDSList()"><option value="custom" data-i18n="mCustomOnly">Custom Only</option><option value="system" data-i18n="mSystemDefaults">System Defaults</option><option value="all" data-i18n="mSrcAll">All</option></select></div>
+      <div class="field"><label data-i18n="mSizeSearch">Size Search</label><input type="text" id="dsSearch" data-i18n-ph="phSearchSize" placeholder="Search size, e.g. M12" oninput="renderDSList()"></div>
     </div>
     <div class="dp-table-wrap">
       <table class="dp-table">
         <thead><tr>
-          <th>Type</th><th>Material</th><th>Size Type</th><th>Size</th><th>Diameter (mm)</th><th>Status</th><th></th>
+          <th data-i18n="mThType">Type</th><th data-i18n="lblMaterial">Material</th><th>Size Type</th><th data-i18n="lblSize">Size</th><th data-i18n="lblDiameterMm">Diameter (mm)</th><th data-i18n="mStatus">Status</th><th></th>
         </tr></thead>
         <tbody id="dsListBody"></tbody>
       </table>
@@ -3813,6 +3813,31 @@ const I18N={
     mDiameterRules:'Diameter Rules', mResetAllRules:'Reset All Rules',
     mMessageTemplate:'Message Template', mPlaceholders:'Placeholders:',
     wqaOpenSub:'Paste customer text · Sag Rod / Stud / Anchor Bolt',
+    /* ── commit 5: settings modals, guide, placeholders, toasts ── */
+    optNone:'— none —', mThType:'Type',
+    step3Sub:'Review & save', step4Sub:'Print / WhatsApp', itemsUnit:'items', save:'Save',
+    pricingGuideSub:'Pricing guide', costRateSub:'Cost per kg',
+    waTemplateSub:'WhatsApp message template',
+    mRestoreTitleZh:'Restore unsaved draft?',
+    mRestoreSubZh:'You have an unsaved quotation draft. Restore it or discard it?',
+    mCostRateExplain:'Cost Rate = the material cost per kilogram.', mRefOnly:'reference only, does not change your price',
+    mSavedToMysql:'saved to MySQL', mStatus:'Status', mClear:'Clear',
+    mSrcCustom:'Custom', mSrcSystem:'System', mSrcAll:'All',
+    mShowingRules:'Showing rules', mDsHelp:'Custom diameter rules take priority over built-in defaults. Leave Size blank to match all sizes of a product type.',
+    mWeight2kg:'Weight 2 kg', mMatCostEg:'Material Cost = 2 × 3.50 = RM7.00',
+    phCwWording:'Enter c/w wording', phEnterRate:'Enter rate', phAutoCalculated:'Auto calculated',
+    phManualTotalLen:'Enter manual total length', phEgEyeBolt:'e.g. EYE BOLT',
+    phOptional:'Optional', phEgWelding:'e.g. welding', phOptionalQty0:'Optional when Qty is 0',
+    phSearchSize:'Search size, e.g. M12',
+    tQtyWhole:'Qty must be a whole number — no decimals or minus',
+    tQtyMin1:'Qty must be at least 1', tQtyTooLarge:'Qty is too large — please check',
+    tQtyWholeMin:'Qty must be a whole number of at least 1',
+    tUnitNeg:'Unit price is negative — check Cost Rate / Markup',
+    tLineNeg:'Line total is negative — check inputs',
+    tIdIhNeg:'ID / IH cannot be negative', tItemUpdated:'Item updated',
+    tOldNoRate:'Old item has no saved Cost Rate. Please confirm pricing.',
+    tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
+    tSagRodAdded:'Sag Rod added', tStudAdded:'Stud added', tAnchorAdded:'Anchor Bolt added',
   },
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
@@ -3951,6 +3976,31 @@ const I18N={
     mDiameterRules:'直径规则', mResetAllRules:'重置所有规则',
     mMessageTemplate:'信息模板', mPlaceholders:'占位符：',
     wqaOpenSub:'粘贴客户文字 · Sag Rod / Stud / Anchor Bolt',
+    /* ── 第 5 次：设置弹窗、说明、占位符、提示 ── */
+    optNone:'— 无 —', mThType:'类型',
+    step3Sub:'检查与保存', step4Sub:'打印 / WhatsApp', itemsUnit:'项', save:'保存',
+    pricingGuideSub:'价格说明', costRateSub:'每公斤成本',
+    waTemplateSub:'WhatsApp 文字模板',
+    mRestoreTitleZh:'恢复未保存草稿？',
+    mRestoreSubZh:'您有一份未保存的报价草稿。要恢复还是删除？',
+    mCostRateExplain:'Cost Rate（每公斤成本）= 材料每公斤的成本。', mRefOnly:'仅供参考，不会改变价格',
+    mSavedToMysql:'已保存到 MySQL', mStatus:'状态', mClear:'清除',
+    mSrcCustom:'自定义', mSrcSystem:'系统', mSrcAll:'全部',
+    mShowingRules:'显示规则', mDsHelp:'自定义直径规则优先于内置默认值。尺寸留空则匹配该产品类型的所有尺寸。',
+    mWeight2kg:'重量 2 kg', mMatCostEg:'材料成本 = 2 × 3.50 = RM7.00',
+    phCwWording:'输入 c/w 说明', phEnterRate:'输入费率', phAutoCalculated:'自动计算',
+    phManualTotalLen:'输入手动总长度', phEgEyeBolt:'例如 EYE BOLT',
+    phOptional:'可选', phEgWelding:'例如 welding', phOptionalQty0:'数量为 0 时可选',
+    phSearchSize:'搜索尺寸，例如 M12',
+    tQtyWhole:'数量必须是整数，不能有小数或负号',
+    tQtyMin1:'数量至少为 1', tQtyTooLarge:'数量过大，请检查',
+    tQtyWholeMin:'数量必须是至少为 1 的整数',
+    tUnitNeg:'单价为负数，请检查 Cost Rate / Markup',
+    tLineNeg:'总额为负数，请检查输入',
+    tIdIhNeg:'ID / IH 不能为负数', tItemUpdated:'产品已更新',
+    tOldNoRate:'旧项目没有保存 Cost Rate，请确认价格。',
+    tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
+    tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
   },
 };
 /* Current language. Anything other than a known code reads as 'en', so a
@@ -4019,6 +4069,10 @@ function dcServerError(j){
 
 /* Markup all precedes this script, so the first pass can run immediately. */
 dcApplyLang();
+/* Some selects and panels are rebuilt during init, AFTER the pass above — they
+   carry their keys but were never scanned. One more idempotent pass on load
+   catches those without any renderer needing to know about i18n. */
+window.addEventListener('load',()=>{ try{ dcApplyLang(); }catch(e){} });
 
 const HANDOFF_KEY='loadQuote';
 const UNSAVED_DRAFT_KEY='dc_quote_unsaved_draft_v1';
@@ -4245,13 +4299,13 @@ function restoreUnsavedDraft(){
   updateQuoteLockUI();
   scheduleDraftAutosave();
   goToStep(quoteItems.length?3:(hasMeaningfulProductEntry(draft.productEntry)?2:1));
-  showToast('Draft restored / 草稿已恢复');
+  showToast(dcT('tDraftRestored'));
 }
 function discardUnsavedDraft(){
   clearUnsavedDraft();
   productEntryTouchedFields.clear();
   closeModal('draftRecoveryModal');
-  showToast('Draft discarded / 草稿已删除');
+  showToast(dcT('tDraftDiscarded'));
 }
 
 function getQuotationStateSnapshot(){
@@ -4300,7 +4354,7 @@ function updateQuoteLockUI(){
   ['addBtn','saveQuoteBtn','mobileSaveBtn','saveModalSubmitBtn','clearAllBtn','cancelItemEditBtn'].forEach(id=>{ const e=el(id); if(e) e.disabled=locked; });
   document.querySelectorAll('.qi-del').forEach(b=>{ b.disabled=locked; b.style.display=locked?'none':''; });
   document.querySelectorAll('.qi-edit-btn').forEach(b=>{ b.disabled=locked; b.style.display=locked?'none':''; });
-  const saveText=editingQuoteId?'<span data-i18n="updateQuotation">Update Quotation</span>':'<span data-i18n="saveQuotation" data-i18n="saveQuotation">Save Quotation</span>';
+  const saveText=editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation');
   const saveBtn=el('saveQuoteBtn'); if(saveBtn) saveBtn.innerHTML=saveText;
   const mobileSave=el('mobileSaveBtn'); if(mobileSave) mobileSave.textContent=editingQuoteId?'Update / 更新':'Save / 保存';
 }
@@ -4425,10 +4479,10 @@ function evalRateField(type,field){
    message instead of a rejected save. */
 function validateQtyEntry(type){
   const raw=(fv(type,'qty')||'').trim();
-  if(!/^\d+$/.test(raw)){ showToast('Qty must be a whole number — no decimals or minus / 数量必须是整数'); return null; }
+  if(!/^\d+$/.test(raw)){ showToast(dcT('tQtyWhole')); return null; }
   const q=parseInt(raw,10);
-  if(q<1){ showToast('Qty must be at least 1 / 数量至少为 1'); return null; }
-  if(q>1000000){ showToast('Qty is too large — please check / 数量过大，请检查'); return null; }
+  if(q<1){ showToast(dcT('tQtyMin1')); return null; }
+  if(q>1000000){ showToast(dcT('tQtyTooLarge')); return null; }
   return q;
 }
 /* Rate fields accept simple expressions (evalExpr). Reject negative results and
@@ -4453,9 +4507,9 @@ function validateDims(dims){
 }
 /* Final safety net before an item enters the quotation list. */
 function validateFinalItem(qty,finalUnitPrice,totalAmount){
-  if(!Number.isInteger(qty)||qty<1){ showToast('Qty must be a whole number of at least 1 / 数量必须是至少为 1 的整数'); return false; }
-  if(!isFinite(finalUnitPrice)||finalUnitPrice<0){ showToast('Unit price is negative — check Cost Rate / Markup / 单价为负数，请检查'); return false; }
-  if(!isFinite(totalAmount)||totalAmount<0){ showToast('Line total is negative — check inputs / 总额为负数，请检查'); return false; }
+  if(!Number.isInteger(qty)||qty<1){ showToast(dcT('tQtyWholeMin')); return false; }
+  if(!isFinite(finalUnitPrice)||finalUnitPrice<0){ showToast(dcT('tUnitNeg')); return false; }
+  if(!isFinite(totalAmount)||totalAmount<0){ showToast(dcT('tLineNeg')); return false; }
   return true;
 }
 function round05(v){
@@ -5143,7 +5197,7 @@ function addSagRod(){
   if(!pushItem('sagrod',sizeLabel,fv('sagrod','material'),qty,final,final*qty,markup,size,fv('sagrod','sizeType'),acc,weight)) return;
   el('sagrod-length').value=''; calcSagRod();
   flashPreview();
-  if(!wasEditing) showToast('Sag Rod added · 已加入报价');
+  if(!wasEditing) showToast(dcT('tSagRodAdded'));
   setTimeout(()=>{try{el('sagrod-length').focus()}catch(e){}},50);
 }
 
@@ -5193,7 +5247,7 @@ function addStud(){
   if(!pushItem('stud',sizeLabel,fv('stud','material'),qty,final,final*qty,markup,size,'',acc,weight)) return;
   el('stud-l').value=''; calcStud();
   flashPreview();
-  if(!wasEditing) showToast('Stud added · 已加入报价');
+  if(!wasEditing) showToast(dcT('tStudAdded'));
   setTimeout(()=>{try{el('stud-l').focus()}catch(e){}},50);
 }
 
@@ -5231,7 +5285,7 @@ function addAnchorBolt(){
   if(!pushItem('anchorbolt',sizeLabel,fv('anchorbolt','material'),qty,final,final*qty,markup,size,fv('anchorbolt','sizeType'),acc,weight)) return;
   el('anchorbolt-l').value=''; calcAnchorBolt();
   flashPreview();
-  if(!wasEditing) showToast('Anchor Bolt added · 已加入报价');
+  if(!wasEditing) showToast(dcT('tAnchorAdded'));
   setTimeout(()=>{try{el('anchorbolt-l').focus()}catch(e){}},50);
 }
 
@@ -5311,7 +5365,7 @@ function addUBolt(){
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
   if(!totalLen){showToast('Total Length is 0 — check Diameter, ID, IH');return}
   if(!validateDims({'Diameter':d,'Total Length':totalLen})) return;
-  if((id&&parseFloat(id)<0)||(ih&&parseFloat(ih)<0)){showToast('ID / IH cannot be negative / 不能为负数');return}
+  if((id&&parseFloat(id)<0)||(ih&&parseFloat(ih)<0)){showToast(dcT('tIdIhNeg'));return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
   if(!costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
   if(!addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
@@ -5582,7 +5636,7 @@ function fillItemFormFromItem(item){
   if(type==='others') onOthersWeightModeChange();
   if(!hasSavedCostRate || !hasSavedAddCost){
     applyDefaultPrice();
-    showToast('Old item has no saved Cost Rate. Please confirm pricing. / 旧项目没有保存 Cost Rate，请确认价格。');
+    showToast(dcT('tOldNoRate'));
   }
   recalcCurrent();
 }
@@ -5869,7 +5923,7 @@ function addPlate(){
     quoteItems[idx]=item;
     editingItemIndex=null;
     markQuotationDirty(); setItemEditMode(null); renderQuote(idx);
-    showToast('Item updated / 产品已更新'); return;
+    showToast(dcT('tItemUpdated')); return;
   }
   quoteItems.push(item);
   markQuotationDirty(); renderQuote(quoteItems.length-1);
@@ -6078,7 +6132,7 @@ function addWAS(){
     markQuotationDirty();setItemEditMode(null);
     resetAccPanel('was');                     // same rule as pushItem: no carry-over
     renderQuote(idx);
-    showToast('Item updated / 产品已更新');return;
+    showToast(dcT('tItemUpdated'));return;
   }
   quoteItems.push(item);
   markQuotationDirty();
@@ -6182,7 +6236,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
        to "next item" state, so its accessory panel must not leak into it. */
     resetAccPanel(type);
     renderQuote(updatedIndex);
-    showToast('Item updated / 产品已更新');
+    showToast(dcT('tItemUpdated'));
     return true;
   }
   quoteItems.push(item);
@@ -6902,7 +6956,7 @@ async function openSaveModal(){
   el('sv-date').value=qi.date||todayStr();
   el('sv-prepby').value=qi.prepby||'';
   el('sv-remarks').value=qi.remarks||'';
-  el('saveModalTitle').innerHTML = (editingQuoteId?'Update Quotation / 更新报价':'<span data-i18n="saveQuotation" data-i18n="saveQuotation">Save Quotation</span>') + ' <button class="modal-close" onclick="closeModal(\'saveModal\')">✕</button>';
+  el('saveModalTitle').innerHTML = (editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation')) + ' <button class="modal-close" onclick="closeModal(\'saveModal\')">✕</button>';
   const submit=el('saveModalSubmitBtn');
   if(submit) submit.textContent=editingQuoteId?'Update Quotation':'Save Quotation';
   openModal('saveModal');
@@ -7348,7 +7402,7 @@ function ensureLBolt45Form(){
     .replace(/for="lbolt/g,'for="lbolt45');
   const totalLength=clone.querySelector('#lbolt45-length');
   if(totalLength){
-    totalLength.placeholder='Enter manual total length';
+    totalLength.placeholder=dcT('phManualTotalLen');
     totalLength.setAttribute('oninput',"calcLBolt('lbolt45',true)");
   }
   const heading=document.createElement('div');
@@ -7372,15 +7426,15 @@ function ensureOthersForm(){
   form.dataset.type='others';
   form.innerHTML=`
     <div class="group-label full">Product Details <span class="gl-zh">/ 产品资料</span></div>
-    <div class="field"><label>Product Name <span class="field-zh">产品名称</span></label><input type="text" id="others-productName" placeholder="e.g. EYE BOLT" style="text-transform:uppercase" oninput="upperOthersProductName();calcOthers()" onblur="upperOthersProductName()"></div>
+    <div class="field"><label>Product Name <span class="field-zh">产品名称</span></label><input type="text" id="others-productName" data-i18n-ph="phEgEyeBolt" placeholder="e.g. EYE BOLT" style="text-transform:uppercase" oninput="upperOthersProductName();calcOthers()" onblur="upperOthersProductName()"></div>
     <div class="field"><label>Material <span class="field-zh">材料</span></label>
       <select id="others-material" onchange="onMaterialSizeChange('others')">
-        <option value="" selected>— none —</option>
+        <option value="" selected data-i18n="optNone">— none —</option>
         <option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option>
         <option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option>
       </select>
     </div>
-    <div class="field"><label>Size Type <span class="field-zh">尺寸类型</span></label><select id="others-sizeType" onchange="calcOthers()"><option value="" selected>— none —</option><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
+    <div class="field"><label>Size Type <span class="field-zh">尺寸类型</span></label><select id="others-sizeType" onchange="calcOthers()"><option value="" selected data-i18n="optNone">— none —</option><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
     <div class="field full finish-field"><label>Finish <span class="field-zh">表面处理</span></label>
       <div class="finish-pills" id="others-finishPills">
         <label class="finish-pill" id="others-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="others-finish" value="" onchange="onFinishChange('others')"><span class="fp-code">N/A</span></label>
@@ -7402,7 +7456,7 @@ function ensureOthersForm(){
     </div>
     ${accessoriesHtml}
     <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-    <div class="field"><label>Cost Rate <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" placeholder="Enter rate" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
+    <div class="field"><label>Cost Rate <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
     <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="others-addCost" placeholder="0.00" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
     <div class="field"><label>Markup <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
     <div class="field"><label data-i18n="lblQty">Qty</label><input type="number" id="others-qty" value="1" min="1" step="1" oninput="calcOthers()"></div>`;

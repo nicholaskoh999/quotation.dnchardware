@@ -782,7 +782,7 @@ input,select,textarea{
         <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">🏢</span><span data-i18n="secCompanies">Companies</span></div>
         <span class="list-count" id="companyCount">0</span>
       </div>
-      <div id="companyList"><div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanies">No companies yet</span> <span class="sub">还没有公司</span></p></div></div>
+      <div id="companyList"><div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanies">No companies yet</span> <span class="sub" data-i18n="msgNoCompanies">No companies yet</span></p></div></div>
     </div>
 
     <!-- Right: Recent Quotations (default) or Selected company panel -->
@@ -1388,7 +1388,7 @@ function renderCompanyCards(){
   document.getElementById('companyCount').textContent = list.length;
 
   if(!allCompaniesCache.length){
-    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p>'+dcT('msgNoCompanies')+' <span class="sub">还没有公司</span></p></div>';
+    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p>'+dcT('msgNoCompanies')+' <span class="sub" data-i18n="msgNoCompanies">No companies yet</span></p></div>';
     return;
   }
   if(!list.length){
