@@ -11,45 +11,58 @@
 # only when Deploy HEAD Commit is pressed. Deployment stays manual as long as
 # no post-receive hook is added to the server-side repository.
 #
-# SAFETY MODEL — two independent layers protect production:
-#   1. rsync runs WITHOUT --delete. Nothing on the live site is ever removed,
-#      so files that exist only on production are untouched by definition.
-#   2. ai_config.php, db.php and error_log are ALSO excluded by name. Layer 1
-#      already protects them today; layer 2 means that if one of them is ever
-#      committed to Git by accident, the deploy still cannot overwrite the
-#      live copy with a repo version.
+# NO rsync. This host does not have it. Everything below uses shell builtins
+# plus mkdir, cp, wc and test — all POSIX, present on any shared-hosting
+# account. No package installation is required. cmp is used as an extra check
+# when present, and skipped without failing when it is not.
 #
-# NOT DEPLOYED, and why:
-#   php.ini               cPanel-generated and managed via MultiPHP INI Editor.
-#                         Overwriting it with a committed snapshot could revert
-#                         settings made in cPanel — including PHP extension
-#                         changes such as the fileinfo setting.
-#   source-icon-blue.png  844 KB icon design source, referenced nowhere in the
-#                         app. The generated icons in assets/icons/ are what
-#                         the app and manifest actually load.
+# SAFETY MODEL
+#   * ALLOWLIST, not exclusions. Only the files named in APPFILES and the
+#     contents of assets/icons/ are ever copied. A new file appearing in the
+#     repository is NOT deployed until it is added here on purpose.
+#   * Nothing is ever removed. There is no rm, no rmdir, no --delete and no
+#     cleanup step anywhere in this file, so production-only files and
+#     directories survive every deploy by construction.
+#   * PROTECTED names are refused even if one is ever added to APPFILES by
+#     mistake, so a future edit still cannot overwrite the live secrets.
+#   * Two-phase: every source file is checked to exist BEFORE the first copy,
+#     so a broken checkout aborts the deploy instead of half-applying it.
+#   * Every copy is verified after writing — byte size always, full content
+#     when cmp exists. A mismatch (disk quota, truncated write) aborts.
+#
+# NEVER DEPLOYED (live copies are authoritative and stay untouched):
+#   ai_config.php   real OpenAI key — server-only, absent from Git
+#   db.php          real database credentials — server-only, absent from Git
+#   error_log       production runtime log
+#   php.ini         cPanel-generated, managed via MultiPHP INI Editor
 # ─────────────────────────────────────────────────────────────────────────────
 
 deployment:
   tasks:
-    # ── Target ───────────────────────────────────────────────────────────────
+    # ── Target and file lists ────────────────────────────────────────────────
     - 'export DEPLOYPATH=/home5/dnchardw/quo.dnchardware.com/'
+    - 'export APPFILES="index.php api.php companies.php ai_extract.php auth.php login.php logout.php manifest.webmanifest ai_config.sample.php db.sample.php"'
+    - 'export PROTECTED="ai_config.php db.php error_log php.ini"'
 
-    # ── Preflight: fail loudly instead of half-deploying ─────────────────────
-    - 'export RSYNC=$(command -v rsync)'
+    # ── Phase 1: preflight. Abort before touching anything. ──────────────────
     # Braces, not parentheses: { } runs in the current shell so exit aborts the
     # whole deployment. A ( ) subshell would only end itself and the deploy
     # would carry on past a failed check.
-    - 'test -n "$RSYNC" || { echo "FATAL: rsync not found on this server; aborting deploy." >&2; exit 1; }'
     - 'test -d "$DEPLOYPATH" || { echo "FATAL: deploy path does not exist: $DEPLOYPATH" >&2; exit 1; }'
+    - 'test -w "$DEPLOYPATH" || { echo "FATAL: deploy path is not writable: $DEPLOYPATH" >&2; exit 1; }'
+    - 'for f in $APPFILES; do test -f "$f" || { echo "FATAL: source file missing from checkout: $f" >&2; exit 1; }; done'
+    - 'test -d assets/icons || { echo "FATAL: assets/icons missing from checkout" >&2; exit 1; }'
+    # cmp is near-universal but this host proved rsync was not, so it is treated
+    # as optional. The wc -c size check below always runs and needs no package.
+    - 'export CMP=$(command -v cmp)'
+    - 'test -n "$CMP" || echo "NOTE: cmp not available; verifying copies by size only."'
     - 'echo "Deploying $(git rev-parse --short HEAD) to $DEPLOYPATH"'
 
-    # ── Copy application files ───────────────────────────────────────────────
-    # -r recurse  -l symlinks  -p perms  -t times   (no -o/-g: not root)
-    # NO --delete anywhere: additive copy only.
-    # The leading tests repeat the preflight so the copy cannot run against an
-    # unset or missing path even if the guards above are ever reordered.
-    - 'test -n "$RSYNC" && test -d "$DEPLOYPATH" && "$RSYNC" -rlpt --itemize-changes --human-readable --exclude=".git/" --exclude=".gitignore" --exclude=".gitattributes" --exclude=".cpanel.yml" --exclude="ai_config.php" --exclude="db.php" --exclude="error_log" --exclude="*.log" --exclude="*.zip" --exclude="*.md" --exclude="README*" --exclude="php.ini" --exclude="source-icon-blue.png" --exclude=".DS_Store" --exclude="Thumbs.db" ./ "$DEPLOYPATH"'
+    # ── Phase 2: copy. mkdir -p is safe on an existing directory. ────────────
+    - 'mkdir -p "${DEPLOYPATH}assets/icons" || { echo "FATAL: cannot create ${DEPLOYPATH}assets/icons" >&2; exit 1; }'
+    - 'for f in $APPFILES; do case " $PROTECTED " in *" $f "*) echo "  REFUSED (production-only, never overwritten): $f"; continue;; esac; cp -f "$f" "${DEPLOYPATH}$f" || { echo "FATAL: copy failed: $f" >&2; exit 1; }; test "$(wc -c < "$f")" = "$(wc -c < "${DEPLOYPATH}$f")" || { echo "FATAL: size mismatch after copy (disk full or quota?): $f" >&2; exit 1; }; test -z "$CMP" || "$CMP" -s "$f" "${DEPLOYPATH}$f" || { echo "FATAL: content mismatch after copy: $f" >&2; exit 1; }; echo "  deployed: $f"; done'
+    - 'for f in assets/icons/*; do test -f "$f" || continue; cp -f "$f" "${DEPLOYPATH}$f" || { echo "FATAL: copy failed: $f" >&2; exit 1; }; test "$(wc -c < "$f")" = "$(wc -c < "${DEPLOYPATH}$f")" || { echo "FATAL: size mismatch after copy (disk full or quota?): $f" >&2; exit 1; }; test -z "$CMP" || "$CMP" -s "$f" "${DEPLOYPATH}$f" || { echo "FATAL: content mismatch after copy: $f" >&2; exit 1; }; echo "  deployed: $f"; done'
 
-    # ── Post-deploy report (informational; never fails the deploy) ────────────
-    - 'for f in ai_config.php db.php error_log; do test -e "$DEPLOYPATH$f" && echo "preserved on live: $f" || echo "NOT PRESENT on live (create it on the server): $f"; done'
-    - 'echo "Deploy complete. No files were deleted from $DEPLOYPATH"'
+    # ── Phase 3: report. Informational; never fails the deploy. ──────────────
+    - 'for f in $PROTECTED; do test -e "${DEPLOYPATH}$f" && echo "  untouched on live: $f" || echo "  not present on live (create it on the server): $f"; done'
+    - 'echo "Deploy complete. Nothing was deleted from $DEPLOYPATH"'
