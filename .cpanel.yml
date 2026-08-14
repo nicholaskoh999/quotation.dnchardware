@@ -1,0 +1,55 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# cPanel Git Version Control — MANUAL deployment for quo.dnchardware.com
+#
+# HOW TO DEPLOY (manual, two clicks — nothing here runs on its own):
+#   cPanel -> Git Version Control -> Manage
+#     1. "Update from Remote"   pulls the branch into the server-side clone
+#     2. "Deploy HEAD Commit"   runs the tasks below
+#
+# This file does NOT enable automatic deployment. cPanel executes these tasks
+# only when Deploy HEAD Commit is pressed. Deployment stays manual as long as
+# no post-receive hook is added to the server-side repository.
+#
+# SAFETY MODEL — two independent layers protect production:
+#   1. rsync runs WITHOUT --delete. Nothing on the live site is ever removed,
+#      so files that exist only on production are untouched by definition.
+#   2. ai_config.php, db.php and error_log are ALSO excluded by name. Layer 1
+#      already protects them today; layer 2 means that if one of them is ever
+#      committed to Git by accident, the deploy still cannot overwrite the
+#      live copy with a repo version.
+#
+# NOT DEPLOYED, and why:
+#   php.ini               cPanel-generated and managed via MultiPHP INI Editor.
+#                         Overwriting it with a committed snapshot could revert
+#                         settings made in cPanel — including PHP extension
+#                         changes such as the fileinfo setting.
+#   source-icon-blue.png  844 KB icon design source, referenced nowhere in the
+#                         app. The generated icons in assets/icons/ are what
+#                         the app and manifest actually load.
+# ─────────────────────────────────────────────────────────────────────────────
+
+deployment:
+  tasks:
+    # ── Target ───────────────────────────────────────────────────────────────
+    - 'export DEPLOYPATH=/home5/dnchardw/quo.dnchardware.com/'
+
+    # ── Preflight: fail loudly instead of half-deploying ─────────────────────
+    - 'export RSYNC=$(command -v rsync)'
+    # Braces, not parentheses: { } runs in the current shell so exit aborts the
+    # whole deployment. A ( ) subshell would only end itself and the deploy
+    # would carry on past a failed check.
+    - 'test -n "$RSYNC" || { echo "FATAL: rsync not found on this server; aborting deploy." >&2; exit 1; }'
+    - 'test -d "$DEPLOYPATH" || { echo "FATAL: deploy path does not exist: $DEPLOYPATH" >&2; exit 1; }'
+    - 'echo "Deploying $(git rev-parse --short HEAD) to $DEPLOYPATH"'
+
+    # ── Copy application files ───────────────────────────────────────────────
+    # -r recurse  -l symlinks  -p perms  -t times   (no -o/-g: not root)
+    # NO --delete anywhere: additive copy only.
+    # The leading tests repeat the preflight so the copy cannot run against an
+    # unset or missing path even if the guards above are ever reordered.
+    - 'test -n "$RSYNC" && test -d "$DEPLOYPATH" && "$RSYNC" -rlpt --itemize-changes --human-readable --exclude=".git/" --exclude=".gitignore" --exclude=".gitattributes" --exclude=".cpanel.yml" --exclude="ai_config.php" --exclude="db.php" --exclude="error_log" --exclude="*.log" --exclude="*.zip" --exclude="*.md" --exclude="README*" --exclude="php.ini" --exclude="source-icon-blue.png" --exclude=".DS_Store" --exclude="Thumbs.db" ./ "$DEPLOYPATH"'
+
+    # ── Post-deploy report (informational; never fails the deploy) ────────────
+    - 'for f in ai_config.php db.php error_log; do test -e "$DEPLOYPATH$f" && echo "preserved on live: $f" || echo "NOT PRESENT on live (create it on the server): $f"; done'
+    - 'echo "Deploy complete. No files were deleted from $DEPLOYPATH"'
