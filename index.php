@@ -1944,6 +1944,30 @@ input,select,textarea{
 @keyframes wqaspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.wqa-spinner{animation:none}}
 .wqa-ai-privacy{margin-top:10px;font-size:11px;font-weight:600;color:var(--text-muted)}
+
+/* Quick Add — drag & drop upload zone (AI Quick Add V2.1) */
+.wqa-drop{border:2px dashed var(--border);border-radius:var(--r-sm);background:var(--surface2);
+  padding:20px 14px;text-align:center;transition:border-color .15s ease,background-color .15s ease}
+.wqa-drop.is-drag{border-color:var(--accent);background:var(--accent-light)}
+.wqa-drop.is-bad{border-color:var(--red)}
+.wqa-drop-main{font-size:13.5px;font-weight:800;color:var(--text-2)}
+.wqa-drop.is-drag .wqa-drop-main{color:var(--accent-2)}
+.wqa-drop-or{font-size:11.5px;font-weight:700;color:var(--text-muted);margin:7px 0}
+.wqa-drop-types{margin-top:10px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.03em}
+.wqa-drop .wqa-file-pick{justify-content:center}
+.wqa-drop .wqa-file-info{display:block;margin-top:10px}
+/* Children must not steal dragenter/dragleave from the zone. */
+.wqa-drop.is-drag *{pointer-events:none}
+.wqa-pdf-chip{display:inline-flex;align-items:center;gap:9px;padding:10px 13px;border:1.5px solid var(--border);
+  border-radius:var(--r-xs);background:var(--surface2);font-size:12.5px;font-weight:700;color:var(--text-2);
+  max-width:100%;overflow-wrap:anywhere}
+.wqa-pdf-badge{flex:0 0 auto;padding:3px 7px;border-radius:4px;background:var(--red);color:#fff;
+  font-size:10.5px;font-weight:800;letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){.wqa-drop{transition:none}}
+
+/* Quick Add — common Size / Thread panel */
+.wqa-item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:11px}
+@media (max-width:560px){.wqa-item-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -3168,13 +3192,24 @@ input,select,textarea{
       <div id="wqaUploadPane" hidden>
         <p class="wqa-hint">Upload a screenshot, photo, drawing or PDF of the customer's request.
           JPG / PNG / WEBP up to 10&nbsp;MB, PDF up to 20&nbsp;MB (max 10 pages). One file per analysis.</p>
-        <label class="wqa-file-pick">
-          <input type="file" id="wqaFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
-                 onchange="wqaFileChosen(this)">
-          <span class="btn btn-outline">Choose File…</span>
-          <span class="wqa-file-info" id="wqaFileInfo">No file selected</span>
-        </label>
-        <div class="wqa-ai-preview" id="wqaAiPreviewBox" hidden><img id="wqaAiPreview" alt="preview"></div>
+        <div id="wqaDropZone" class="wqa-drop" ondragenter="wqaDragEnter(event)" ondragover="wqaDragOver(event)"
+             ondragleave="wqaDragLeave(event)" ondrop="wqaDrop(event)">
+          <div class="wqa-drop-main">Drop image or PDF here</div>
+          <div class="wqa-drop-or">or</div>
+          <label class="wqa-file-pick">
+            <input type="file" id="wqaFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
+                   onchange="wqaFileChosen(this)">
+            <span class="btn btn-outline">Choose File…</span>
+          </label>
+          <div class="wqa-drop-types">JPG / PNG / WEBP / PDF</div>
+          <div class="wqa-file-info" id="wqaFileInfo">No file selected</div>
+        </div>
+        <div class="wqa-ai-preview" id="wqaAiPreviewBox" hidden>
+          <img id="wqaAiPreview" alt="preview" hidden>
+          <div class="wqa-pdf-chip" id="wqaAiPdfChip" hidden>
+            <span class="wqa-pdf-badge">PDF</span><span id="wqaAiPdfName"></span>
+          </div>
+        </div>
         <div class="wqa-ai-status" id="wqaAiStatus" hidden>
           <span class="wqa-spinner"></span>
           <span>Analyzing document…<br><small>Extracting product, dimensions and quantities…</small></span>
@@ -3195,6 +3230,7 @@ input,select,textarea{
     <div id="wqaStep2" hidden>
       <div class="wqa-scroll">
       <div class="wqa-common" id="wqaCommon"></div>
+      <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
       <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
       <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
       <div class="wqa-rows-head">
@@ -6979,13 +7015,15 @@ const WQA_FINISHES=[
   {re:/\bpl\b|\bplain\b/i,                         value:'PL'},
 ];
 
-const wqa={raw:'',product:null,common:{},commonAcc:null,commonPrice:null,
-           panels:{price:false,acc:false},view:'compact',rows:[],busy:false};
+const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPrice:null,
+           panels:{item:false,price:false,acc:false},view:'compact',rows:[],busy:false};
 /* Both common sections start COLLAPSED at every width, so the parsed items are
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
 function wqaTogglePanel(which){ wqa.panels[which]=!wqa.panels[which];
-  if(which==='price') wqaRenderCommonPrice(true); else wqaRenderCommonAcc(true); }
+  if(which==='item')       wqaRenderCommonItem(true);
+  else if(which==='price') wqaRenderCommonPrice(true);
+  else                     wqaRenderCommonAcc(true); }
 function wqaPanelHead(which,title,summary,badge){
   const open=!!wqa.panels[which];
   return `<button type="button" class="wqa-panel-head${open?' open':''}" onclick="wqaTogglePanel('${which}')"
@@ -6997,6 +7035,118 @@ function wqaPanelHead(which,title,summary,badge){
      </span>
      <span class="wqa-panel-badge"${badge?'':' hidden'}>${escHtml(badge||'')}</span>
    </button>`;
+}
+
+/* ── Common Size / Thread — Apply to All ───────────────────────────────────
+   Shorthand photos routinely carry only lengths and quantities:
+
+     1068 - 38pcs / 1430 - 148pcs / 1295 - 34pcs / under size / ZP
+
+   The document never states the diameter or the thread, and the extractor is
+   deliberately forbidden from inventing them — a guessed M12 would be silently
+   wrong on every row. Staff know both values, so they enter them ONCE here
+   instead of retyping them down thirty rows.
+
+   A one-time copy, exactly like Pricing and Accessories below it. Nothing is
+   linked: after applying, every row stays independently editable and a later
+   edit here does nothing until Apply is pressed again. */
+function wqaEmptyItem(){ return {size:'',thread:''}; }
+
+/* "12", "m12" and "M12.0" all mean M12. Same shape an extracted M value is
+   normalised into, so a typed size and a read one land identically. */
+function wqaNormSize(v){
+  const s=String(v||'').trim();
+  if(!s) return '';
+  const m=s.match(/^m?\s*(\d+(?:\.\d+)?)$/i);
+  return m ? 'M'+m[1].replace(/\.0$/,'') : s.toUpperCase();
+}
+function wqaItemSummary(c){
+  const bits=[];
+  if(String(c.size||'').trim())   bits.push('Size '+wqaNormSize(c.size));
+  if(String(c.thread||'').trim()) bits.push('Thread '+String(c.thread).trim());
+  return bits.length ? bits.join(' · ') : 'Not set';
+}
+/* Rows still missing a size or a thread — the reason this panel exists, so it
+   is surfaced on the collapsed header too. */
+function wqaItemNeedCount(){
+  return wqa.rows.filter(r=>!r.removed &&
+    (!String(r.size||'').trim() || !wqaThreadValue(r))).length;
+}
+function wqaRenderCommonItem(force){
+  const box=el('wqaCommonItem'); if(!box) return;
+  if(!force && wqaTypingIn(box)){ wqaPatchItemPanel(); wqaDeferRender('item'); return; }
+  const c=wqa.commonItem||(wqa.commonItem=wqaEmptyItem());
+  const need=wqaItemNeedCount();
+  const head=wqaPanelHead('item','Common Item Fields — Apply to All',wqaItemSummary(c),
+                          need?need+' incomplete':'');
+  box.innerHTML = head + (!wqa.panels.item ? '' :
+    `<div class="wqa-panel-body">
+       <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards. A blank field is left alone — it never clears what a row already has.</div>
+       <div class="wqa-item-grid">
+         <label class="wqa-acc-f"><span>Size</span>
+           <input type="text" id="wqaCommonSize" value="${escHtml(c.size)}" placeholder="M12"
+                  oninput="wqaEditCommonItem('size',this.value)"></label>
+         <label class="wqa-acc-f"><span>Thread</span>
+           <input type="text" id="wqaCommonThread" value="${escHtml(c.thread)}" placeholder="75/75"
+                  oninput="wqaEditCommonItem('thread',this.value)"></label>
+       </div>
+       <div class="wqa-acc-actions">
+         <button type="button" class="btn btn-outline btn-sm" onclick="wqaApplyItemToAll()">Apply to All Items</button>
+         <span class="wqa-acc-sum">Current: ${escHtml(wqaItemSummary(c))}</span>
+       </div>
+     </div>`);
+}
+/* Read-only nodes only, so a focused input is never touched. */
+function wqaPatchItemPanel(){
+  const box=el('wqaCommonItem'); if(!box) return;
+  const c=wqa.commonItem||wqaEmptyItem();
+  wqaPanelSum(box,wqaItemSummary(c));
+  const need=wqaItemNeedCount();
+  wqaPanelBadge(box,need?need+' incomplete':'');
+  const cur=box.querySelector('.wqa-acc-sum');
+  if(cur) cur.textContent='Current: '+wqaItemSummary(c);
+}
+function wqaEditCommonItem(field,value){
+  if(!wqa.commonItem) wqa.commonItem=wqaEmptyItem();
+  wqa.commonItem[field]=value;
+  /* Typing here changes nothing on the rows — they are untouched until Apply —
+     so only the summary text is refreshed and the caret is left alone. */
+  wqaPatchItemPanel();
+}
+/* One-time copy of Size and Thread ONLY. Length, Qty, Material, Finish, Size
+   Type, pricing entry and accessories are never read or written here. */
+function wqaApplyItemToAll(){
+  const c=wqa.commonItem||wqaEmptyItem();
+  const size=wqaNormSize(c.size);
+  const thread=String(c.thread||'').trim();
+  if(!size && !thread){ showToast('Enter a Size or a Thread first'); return; }
+  const live=wqa.rows.filter(r=>!r.removed);
+  if(!live.length){ showToast('There are no items to apply to'); return; }
+  /* A blank field is not an instruction to clear. Only what was filled in gets
+     copied, so Size-only leaves every row's thread exactly as it was — an
+     asymmetric 50/110 included — and Thread-only leaves every row's size. */
+  live.forEach(r=>{
+    if(size){
+      r.size=size;
+      r.issues=r.issues.filter(x=>x!=='size');
+    }
+    if(thread){
+      /* Thread stays ONE field. Both ends live behind it as threadLen and
+         threadLen2, split on "/" exactly as wqaEditThread does, so 75/75,
+         50/110 and 68/20 all keep their asymmetry. */
+      const p=thread.split('/');
+      r.threadLen=String(p[0]||'').trim();
+      r.threadLen2=p.length>1?String(p[1]||'').trim():'';
+      r.issues=r.issues.filter(x=>x!=='threadLen');
+      if(r.defaulted) r.defaulted.threadMissing=false;   // the badge is no longer true
+    }
+  });
+  wqa.panels.item=true;                 // stay open while staff keep editing
+  wqaRenderCommonItem(true);
+  wqaRecomputeAll();                    // existing validation + calculator, unchanged
+  const what = size&&thread ? 'Size '+size+' and Thread '+thread
+             : (size ? 'Size '+size : 'Thread '+thread);
+  showToast(what+' applied to '+live.length+' item'+(live.length===1?'':'s'));
 }
 
 /* Accessory shape is the EXISTING one used by getAccessories() /
@@ -7434,6 +7584,9 @@ function wqaUpdateAddButton(){
   const ft=el('wqaFootTotal'), fn=el('wqaFootNeed');
   if(ft) ft.textContent=live.length+(live.length===1?' item':' items');
   if(fn){ fn.textContent=blocked?blocked+' need attention':''; fn.hidden=!blocked; }
+  /* Keeps the "N incomplete" badge live as rows are edited, without ever
+     re-rendering the panel out from under a caret. */
+  wqaPatchItemPanel();
 }
 /* A render that arrives mid-typing (price history landing, a debounced
    recompute) patches instead, and the real render runs once focus leaves. */
@@ -7446,6 +7599,7 @@ function wqaDeferRender(kind){
     setTimeout(()=>{
       const d=wqa._deferred||{};
       if(d.rows  && !wqaTypingIn(el('wqaRows')))        { d.rows=false;  wqaRenderRows(); }
+      if(d.item  && !wqaTypingIn(el('wqaCommonItem')))  { d.item=false;  wqaRenderCommonItem(); }
       if(d.price && !wqaTypingIn(el('wqaCommonPrice'))) { d.price=false; wqaRenderCommonPrice(); }
       if(d.acc   && !wqaTypingIn(el('wqaCommonAcc')))   { d.acc=false;   wqaRenderCommonAcc(); }
     },0);
@@ -7702,38 +7856,104 @@ function wqaSetMethod(m){
 }
 function wqaClearAiFile(rerender){
   if(wqa.aiPreviewUrl){ try{ URL.revokeObjectURL(wqa.aiPreviewUrl); }catch(e){} }
-  wqa.aiFile=null; wqa.aiPreviewUrl='';
+  wqa.aiFile=null; wqa.aiPreviewUrl=''; wqa.aiIsPdf=false;
+  wqa._dragDepth=0; wqaDragPaint(false); wqaDropBad(false);
   if(rerender!==false) wqaUpdateAiPane();
 }
-function wqaFileChosen(input){
-  wqaClearAiFile(false); wqaMsg('wqaAiMsg','',false);
-  const f = input.files && input.files[0];
+/* ── Drag & drop ───────────────────────────────────────────────────────────
+   Dropping a file does exactly what Choose File does — same validation, same
+   preview, same Analyze button. It never uploads on its own: the user still
+   presses Analyze, so a mis-drop costs nothing.
+
+   dragenter/dragleave fire for every child element the pointer crosses, so the
+   highlight is driven by a depth counter rather than by the last event seen. */
+function wqaDragPaint(on){ const z=el('wqaDropZone'); if(z) z.classList.toggle('is-drag',!!on); }
+function wqaDropBad(on){   const z=el('wqaDropZone'); if(z) z.classList.toggle('is-bad',!!on); }
+function wqaDragEnter(e){
+  e.preventDefault(); e.stopPropagation();
+  wqa._dragDepth=(wqa._dragDepth||0)+1;
+  wqaDragPaint(true);
+}
+function wqaDragOver(e){
+  /* Without this preventDefault the browser refuses the drop and opens the file
+     in the tab instead, taking the whole Quick Add session with it. */
+  e.preventDefault(); e.stopPropagation();
+  if(e.dataTransfer) try{ e.dataTransfer.dropEffect='copy'; }catch(err){}
+}
+function wqaDragLeave(e){
+  e.preventDefault(); e.stopPropagation();
+  wqa._dragDepth=Math.max(0,(wqa._dragDepth||0)-1);
+  if(!wqa._dragDepth) wqaDragPaint(false);
+}
+function wqaDrop(e){
+  e.preventDefault(); e.stopPropagation();
+  wqa._dragDepth=0; wqaDragPaint(false);
+  const dt=e.dataTransfer, files=(dt&&dt.files)||null;
+  if(!files || !files.length){
+    wqaRejectFile('That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.');
+    return;
+  }
+  /* One file per analysis, unchanged from V2.1: extras are ignored rather than
+     queued, and a second drop replaces the first selection outright. */
+  const many=files.length>1;
+  wqaAcceptFile(files[0]);
+  if(many && wqa.aiFile) wqaMsg('wqaAiMsg','One file per analysis — using '+wqa.aiFile.name+'.',false);
+}
+/* Rejection is shared so the picker and the drop zone fail identically. */
+function wqaRejectFile(msg){
+  if(el('wqaFileInput')) el('wqaFileInput').value='';
+  wqaDropBad(true);
+  wqaUpdateAiPane();
+  wqaMsg('wqaAiMsg',msg,true);
+}
+/* The single entry point for a chosen file, whichever way it arrived. These are
+   the same client rules as before; the server re-validates from content and
+   remains the authority. */
+function wqaAcceptFile(f){
+  wqaClearAiFile(false);              // revokes the previous object URL
+  wqaMsg('wqaAiMsg','',false);
   if(!f){ wqaUpdateAiPane(); return; }
   const isPdf = f.type==='application/pdf' || /\.pdf$/i.test(f.name);
   const isImg = /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
-  if(!isPdf && !isImg){
-    input.value=''; wqaUpdateAiPane();
-    wqaMsg('wqaAiMsg','Only JPG, PNG, WEBP images and PDF files are supported.',true); return;
-  }
-  if(isPdf && f.size>WQA_AI_MAX_PDF){
-    input.value=''; wqaUpdateAiPane();
-    wqaMsg('wqaAiMsg','PDF files must be 20 MB or smaller.',true); return;
-  }
-  if(!isPdf && f.size>WQA_AI_MAX_IMG){
-    input.value=''; wqaUpdateAiPane();
-    wqaMsg('wqaAiMsg','Images must be 10 MB or smaller.',true); return;
-  }
-  wqa.aiFile=f;
+  if(!isPdf && !isImg){ wqaRejectFile('Only JPG, PNG, WEBP images and PDF files are supported.'); return; }
+  if(isPdf && f.size>WQA_AI_MAX_PDF){ wqaRejectFile('PDF files must be 20 MB or smaller.'); return; }
+  if(!isPdf && f.size>WQA_AI_MAX_IMG){ wqaRejectFile('Images must be 10 MB or smaller.'); return; }
+  wqa.aiFile=f; wqa.aiIsPdf=isPdf;
   if(!isPdf){ try{ wqa.aiPreviewUrl=URL.createObjectURL(f); }catch(e){ wqa.aiPreviewUrl=''; } }
+  /* Clear the picker after a drop so it cannot hold a stale file: re-picking
+     that same file later would otherwise fire no change event and silently
+     leave the dropped one selected. The File object above is already captured.*/
+  if(el('wqaFileInput')) el('wqaFileInput').value='';
   wqaUpdateAiPane();
+}
+function wqaFileChosen(input){
+  wqaAcceptFile(input.files && input.files[0]);
 }
 function wqaFmtBytes(n){ return n>=1048576 ? (n/1048576).toFixed(1)+' MB' : Math.max(1,Math.round(n/1024))+' KB'; }
 function wqaUpdateAiPane(){
-  const info=el('wqaFileInfo'), box=el('wqaAiPreviewBox'), img=el('wqaAiPreview'), btn=el('wqaAnalyzeBtn');
+  const info=el('wqaFileInfo'), box=el('wqaAiPreviewBox'), img=el('wqaAiPreview'),
+        chip=el('wqaAiPdfChip'), pname=el('wqaAiPdfName'), btn=el('wqaAnalyzeBtn');
   if(info) info.textContent = wqa.aiFile ? (wqa.aiFile.name+' · '+wqaFmtBytes(wqa.aiFile.size)) : 'No file selected';
-  if(box){ box.hidden=!wqa.aiPreviewUrl; if(img) img.src=wqa.aiPreviewUrl||''; }
+  /* Images preview inline; a PDF gets a plain file indicator — rendering its
+     pages would buy nothing here, the server reads it either way. */
+  const showImg=!!wqa.aiPreviewUrl, showPdf=!!wqa.aiFile&&!!wqa.aiIsPdf;
+  if(img){ img.hidden=!showImg; img.src=wqa.aiPreviewUrl||''; }
+  if(chip)  chip.hidden=!showPdf;
+  if(pname) pname.textContent = showPdf ? wqa.aiFile.name : '';
+  if(box)   box.hidden = !(showImg||showPdf);
   if(btn) btn.disabled = !wqa.aiFile || !!wqa.aiBusy;
 }
+/* A file dropped ANYWHERE else in the modal would navigate the tab to it and
+   destroy the session, so the default is refused across the whole modal while
+   it is open. The zone's own handlers run first and are left alone. */
+['dragover','drop'].forEach(evt=>document.addEventListener(evt,e=>{
+  const m=el('wqaModal');
+  if(!m || !m.classList.contains('open')) return;
+  const t=e.target;
+  if(t && t.closest && t.closest('#wqaDropZone')) return;
+  e.preventDefault();
+  if(evt==='drop'){ wqa._dragDepth=0; wqaDragPaint(false); }
+}));
 async function wqaAnalyze(){
   if(!wqa.aiFile || wqa.aiBusy) return;               // no double-submit
   wqa.aiBusy=true;
@@ -7859,18 +8079,24 @@ function wqaResetState(){
   wqa._deferred={};
 
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
+  wqa.commonItem=wqaEmptyItem();
   wqa.commonAcc=wqaEmptyAcc(); wqa.commonPrice=wqaEmptyPrice();
-  wqa.panels={price:false,acc:false}; wqa.view='compact';
+  wqa.panels={item:false,price:false,acc:false}; wqa.view='compact';
   wqa.skipped=[]; wqa.busy=false;
 
-  /* AI upload session state */
-  wqaClearAiFile(false);
+  /* AI upload session state — the selected/dropped file, its name, its preview,
+     the object URL behind that preview, the drag-over highlight and any upload
+     error all belong to the session and go with it. */
+  wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
   wqa.method='paste';
   if(el('wqaFileInput'))   el('wqaFileInput').value='';
   if(el('wqaFileInfo'))    el('wqaFileInfo').textContent='No file selected';
   if(el('wqaAiPreviewBox')) el('wqaAiPreviewBox').hidden=true;
-  if(el('wqaAiPreview'))   el('wqaAiPreview').src='';
+  if(el('wqaAiPreview')){  el('wqaAiPreview').src=''; el('wqaAiPreview').hidden=true; }
+  if(el('wqaAiPdfChip'))   el('wqaAiPdfChip').hidden=true;
+  if(el('wqaAiPdfName'))   el('wqaAiPdfName').textContent='';
+  if(el('wqaDropZone'))    el('wqaDropZone').classList.remove('is-drag','is-bad');
   if(el('wqaAiStatus'))    el('wqaAiStatus').hidden=true;
   wqaMsg('wqaAiMsg','',false);
   if(el('wqaPastePane'))   el('wqaPastePane').hidden=false;
@@ -7880,7 +8106,7 @@ function wqaResetState(){
   if(el('wqaTabPaste'))    el('wqaTabPaste').classList.add('is-on');
   if(el('wqaTabUpload'))   el('wqaTabUpload').classList.remove('is-on');
 
-  ['wqaRows','wqaCommon','wqaCommonPrice','wqaCommonAcc','wqaListHead']
+  ['wqaRows','wqaCommon','wqaCommonItem','wqaCommonPrice','wqaCommonAcc','wqaListHead']
     .forEach(id=>{ const n=el(id); if(n) n.innerHTML=''; });
   const lh=el('wqaListHead'); if(lh) lh.hidden=true;
   const rows=el('wqaRows');   if(rows) rows.classList.remove('has-head');
@@ -7927,6 +8153,10 @@ async function wqaEnterReview(common, rows, rawText, skipped, source){
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
   wqaRenderCommon();
+  /* Opened by default when anything is actually missing — on a shorthand photo
+     that is every row, and this panel is the one-action fix. */
+  wqa.panels.item = wqaItemNeedCount() > 0;
+  wqaRenderCommonItem(true);
   wqaRenderCommonPrice();
   wqaRenderCommonAcc();
   await wqaRecomputeAll();
