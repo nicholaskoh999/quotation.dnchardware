@@ -708,7 +708,7 @@ input,select,textarea{
     <img class="logo" src="/assets/icons/icon-192.png" alt="" width="32" height="32" decoding="async">
     <div class="header-text">
       <h1>Der-Cheng Quotation</h1>
-      <p>Quotation System · v2.23.2</p>
+      <p data-i18n="brandSub">Quotation System · v2.24.0</p>
     </div>
   </a>
   <!-- Global nav: identical to index.php -->
@@ -756,9 +756,9 @@ input,select,textarea{
                    onkeydown="if(event.key==='Enter'){event.preventDefault();cpSearchSubmit();}">
           </div>
           <select class="cp-sort-select" id="sortSelect" onchange="renderCompanyCards()">
-            <option value="latest">Sort: Latest First</option>
-            <option value="name">Sort: Company A–Z</option>
-            <option value="count">Sort: Most Quotations</option>
+            <option value="latest" data-i18n="sortLatest">Sort: Latest First</option>
+            <option value="name" data-i18n="sortAZ">Sort: Company A–Z</option>
+            <option value="count" data-i18n="sortMost">Sort: Most Quotations</option>
           </select>
         </div>
         <div class="cp-search-result" id="cpSearchResult" hidden></div>
@@ -767,11 +767,11 @@ input,select,textarea{
       <button class="btn btn-primary" id="addCompanyToggleBtn" style="width:100%;margin-bottom:12px" onclick="toggleAddCompanyForm()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
 
       <div class="card" id="addCompanyForm" hidden style="margin-bottom:14px">
-        <div class="section-label"><span class="sl-icon">➕</span>Add Company <span class="sub">新增公司</span></div>
-        <div class="field"><label data-i18n="lblCompanyName">Company Name *</label><input type="text" id="c-name" placeholder="e.g. SL Struktur Sdn Bhd"></div>
-        <div class="field"><label data-i18n="lblShortCode">Short Code</label><input type="text" id="c-code" placeholder="e.g. SLSPJ" style="text-transform:uppercase"></div>
-        <div class="field"><label data-i18n="lblPhone">Phone</label><input type="text" id="c-phone" placeholder="03-XXXX XXXX"></div>
-        <div class="field"><label data-i18n="lblAddress">Address</label><textarea id="c-addr" rows="2" placeholder="Optional"></textarea></div>
+        <div class="section-label"><span class="sl-icon">➕</span><span data-i18n="addCompany">Add Company</span></div>
+        <div class="field"><label data-i18n="lblCompanyName">Company Name *</label><input type="text" id="c-name" data-i18n-ph="phCompanyEg" placeholder="e.g. SL Struktur Sdn Bhd"></div>
+        <div class="field"><label data-i18n="lblShortCode">Short Code</label><input type="text" id="c-code" data-i18n-ph="phShortEg" placeholder="e.g. SLSPJ" style="text-transform:uppercase"></div>
+        <div class="field"><label data-i18n="lblPhone">Phone</label><input type="text" id="c-phone" data-i18n-ph="phPhoneEg" placeholder="03-XXXX XXXX"></div>
+        <div class="field"><label data-i18n="lblAddress">Address</label><textarea id="c-addr" rows="2" data-i18n-ph="phOptional" placeholder="Optional"></textarea></div>
         <div style="display:flex;gap:8px;margin-top:4px">
           <button class="btn btn-primary" style="flex:1" onclick="addCompany()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
           <button class="btn btn-ghost" style="flex:1" onclick="closeAddCompanyForm()" data-i18n="cancel">Cancel</button>
@@ -779,7 +779,7 @@ input,select,textarea{
       </div>
 
       <div class="list-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">🏢</span>Companies <span class="sub">所有公司</span></div>
+        <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">🏢</span><span data-i18n="secCompanies">Companies</span></div>
         <span class="list-count" id="companyCount">0</span>
       </div>
       <div id="companyList"><div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanies">No companies yet</span> <span class="sub">还没有公司</span></p></div></div>
@@ -792,11 +792,11 @@ input,select,textarea{
     <div class="card item-search-tools">
       <div class="search-input-wrap">
         <span class="icon">🔍</span>
-        <input type="text" id="itemSearchInput" placeholder="Search item, material, size, product..." autocomplete="off"
+        <input type="text" id="itemSearchInput" data-i18n-ph="phSearchItem" placeholder="Search item, material, size, product..." autocomplete="off"
                oninput="onItemSearchInput()"
                onkeydown="if(event.key==='Enter'){event.preventDefault();itemSearchSubmit();}">
       </div>
-      <p class="item-search-hint">Past quoted prices — try “M16 J BOLT”, “4140”, “Y BAR”</p>
+      <p class="item-search-hint"><span data-i18n="itemSearchHint">Past quoted prices — try “M16 J BOLT”, “4140”, “Y BAR”</span></p>
       <div class="cp-search-result" id="itemSearchResult" hidden></div>
     </div>
     <div id="rightPanel">
@@ -822,7 +822,7 @@ input,select,textarea{
     <div class="field"><label data-i18n="lblAddress">Address</label><textarea id="ec-addr" rows="2"></textarea></div>
     <div class="modal-btns">
       <button class="btn btn-primary" onclick="saveEditCompany()"><span data-i18n="save">💾 Save</span></button>
-      <button class="btn btn-ghost" onclick="closeModal('editCompanyModal')">Cancel <span style="font-size:10.5px;opacity:.8">取消</span></button>
+      <button class="btn btn-ghost" onclick="closeModal('editCompanyModal')" data-i18n="cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -883,6 +883,21 @@ const I18N={
     msgTryFewer:'Try fewer words, or a size and product like “M16 J BOLT”.',
     msgNoCompanies:'No companies yet', msgNoCompanyMatch:'No companies match your search',
     msgNoSavedQuotes:'No saved quotations for this company yet', msgNoItems:'No items',
+    /* summary cards + section labels + search pane */
+    cardTotalCompanies:'Total Companies', cardTotalCompaniesSub:'Active customer records',
+    cardSavedQuotations:'Saved Quotations', cardSavedQuotationsSub:'Across all companies',
+    cardRecentQuotes:'Recent Quotes', cardRecentQuotesSub:'Created in the last 14 days',
+    cardLatestSavedQuote:'Latest Saved Quote', cardNoQuotationsYet:'No quotations yet',
+    secCompanies:'Companies', secRecentQuotations:'Recent Quotations',
+    secSavedQuotations:'Saved Quotations',
+    phSearchItem:'Search item, material, size, product...',
+    /* the three examples stay English: they are what staff actually type */
+    itemSearchHint:'Past quoted prices — try “M16 J BOLT”, “4140”, “Y BAR”',
+    sortLatest:'Sort: Latest First', sortAZ:'Sort: Company A–Z', sortMost:'Sort: Most Quotations',
+    brandSub:'Quotation System · v2.24.0',
+    /* Example values stay as typed — they show the expected FORMAT. */
+    phCompanyEg:'e.g. SL Struktur Sdn Bhd', phShortEg:'e.g. SLSPJ',
+    phPhoneEg:'03-XXXX XXXX', phOptional:'Optional',
   },
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
@@ -911,6 +926,19 @@ const I18N={
     msgTryFewer:'试试少几个字，或输入尺寸加产品，例如 “M16 J BOLT”。',
     msgNoCompanies:'还没有公司', msgNoCompanyMatch:'没有符合搜索的公司',
     msgNoSavedQuotes:'这家公司还没有已保存的报价', msgNoItems:'没有产品',
+    /* 汇总卡片 + 区块标题 + 搜索 */
+    cardTotalCompanies:'公司总数', cardTotalCompaniesSub:'有效客户记录',
+    cardSavedQuotations:'已保存报价', cardSavedQuotationsSub:'所有公司',
+    cardRecentQuotes:'近期报价', cardRecentQuotesSub:'最近 14 天建立',
+    cardLatestSavedQuote:'最新保存报价', cardNoQuotationsYet:'暂无报价',
+    secCompanies:'公司', secRecentQuotations:'最新报价',
+    secSavedQuotations:'报价记录',
+    phSearchItem:'搜索产品、材料、尺寸...',
+    itemSearchHint:'搜索历史报价，例如 “M16 J BOLT”、“4140”、“Y BAR”',
+    sortLatest:'排序：最新优先', sortAZ:'排序：公司 A–Z', sortMost:'排序：报价最多',
+    brandSub:'报价系统 · v2.24.0',
+    phCompanyEg:'例如 SL Struktur Sdn Bhd', phShortEg:'例如 SLSPJ',
+    phPhoneEg:'03-XXXX XXXX', phOptional:'可选',
   },
 };
 function dcLang(){
@@ -1023,11 +1051,11 @@ function renderRecentQuotations(){
   if(!recent.length){
     panel.innerHTML = `
       <div class="card" style="margin-bottom:12px">
-        <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>Recent Quotations <span class="sub">最新报价</span></div>
+        <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>${dcT('secRecentQuotations')}</div>
       </div>
       <div class="empty-state empty-state-compact">
         <div class="icon">📭</div>
-        <p><span data-i18n="msgNoRecent">No recent quotations found.</span></p>
+        <p>${dcT('msgNoRecent')}</p>
       </div>`;
     return;
   }
@@ -1061,7 +1089,7 @@ function renderRecentQuotations(){
 
   panel.innerHTML = `
     <div class="card" style="margin-bottom:12px">
-      <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>Recent Quotations <span class="sub">最新报价</span></div>
+      <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>${dcT('secRecentQuotations')}</div>
     </div>
     <div class="q-helper">ℹ️ Select a company on the left to view all saved quotations for that company.</div>
     ${cardsHtml}
@@ -1139,11 +1167,12 @@ function renderSummary(){
     : null;
 
   const cards = [
-    { cls:"", label:"Total Companies", value:totalCompanies, sub:"Active customer records" },
-    { cls:"sc-green", label:"Saved Quotations", value:totalQuotes, sub:"Across all companies" },
-    { cls:"sc-amber", label:"Recent Quotes", value:recentQuotes, sub:"Created in the last 14 days" },
-    { cls:"sc-purple", label:"Latest Saved Quote", value: latest?(latest.ref_no||'(No Ref)'):'—',
-      sub: latest ? (fmtDate(latest.quote_date||latest.created_at)+' — '+esc(latest.company_name||'')) : 'No quotations yet' }
+    { cls:"", label:dcT('cardTotalCompanies'), value:totalCompanies, sub:dcT('cardTotalCompaniesSub') },
+    { cls:"sc-green", label:dcT('cardSavedQuotations'), value:totalQuotes, sub:dcT('cardSavedQuotationsSub') },
+    { cls:"sc-amber", label:dcT('cardRecentQuotes'), value:recentQuotes, sub:dcT('cardRecentQuotesSub') },
+    /* ref_no, date and company_name are stored data and pass through as-is. */
+    { cls:"sc-purple", label:dcT('cardLatestSavedQuote'), value: latest?(latest.ref_no||'(No Ref)'):'—',
+      sub: latest ? (fmtDate(latest.quote_date||latest.created_at)+' — '+esc(latest.company_name||'')) : dcT('cardNoQuotationsYet') }
   ];
   document.getElementById('summaryGrid').innerHTML = cards.map(c=>`
     <div class="summary-card ${c.cls}">
@@ -1359,14 +1388,14 @@ function renderCompanyCards(){
   document.getElementById('companyCount').textContent = list.length;
 
   if(!allCompaniesCache.length){
-    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanies">No companies yet</span> <span class="sub">还没有公司</span></p></div>';
+    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p>'+dcT('msgNoCompanies')+' <span class="sub">还没有公司</span></p></div>';
     return;
   }
   if(!list.length){
     /* Item results live in the right pane now, so this only ever speaks for the
        Companies list and can say so plainly. */
     document.getElementById('companyList').innerHTML=
-      '<div class="empty-state"><div class="icon">🏢</div><p><span data-i18n="msgNoCompanyMatch">No companies match your search</span></p></div>';
+      '<div class="empty-state"><div class="icon">🏢</div><p>'+dcT('msgNoCompanyMatch')+'</p></div>';
     return;
   }
 
@@ -1562,9 +1591,9 @@ async function selectCompany(id){
           <button class="btn btn-danger" onclick="deleteQuote(${q.id})">🗑️ Delete</button>
         </div>
       </div>`;
-  }).join('') : '<div class="empty-state"><div class="icon">📭</div><p><span data-i18n="msgNoSavedQuotes">No saved quotations for this company yet</span></p></div>';
+  }).join('') : '<div class="empty-state"><div class="icon">📭</div><p>'+dcT('msgNoSavedQuotes')+'</p></div>';
 
-  quotesHtml = quotes.length ? quotes.map(renderCompanyQuoteCard).join('') : '<div class="empty-state"><div class="icon">📭</div><p><span data-i18n="msgNoSavedQuotes">No saved quotations for this company yet</span></p></div>';
+  quotesHtml = quotes.length ? quotes.map(renderCompanyQuoteCard).join('') : '<div class="empty-state"><div class="icon">📭</div><p>'+dcT('msgNoSavedQuotes')+'</p></div>';
 
   document.getElementById('rightPanel').innerHTML = `
     <div class="card selected-panel" style="margin-bottom:16px">
