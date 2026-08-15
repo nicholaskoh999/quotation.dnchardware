@@ -1696,6 +1696,16 @@ input,select,textarea{
   .wqa-sticky-actions .wqa-foot-count{flex:1 0 100%;margin-right:0}
 }
 
+/* The file a Review was built from: one line, on every screen size, because it
+   is a label and not a document. */
+.wqa-file-src{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:9px 12px}
+.wqa-file-lbl{font-size:12.5px;font-weight:800;color:var(--text)}
+.wqa-file-chip{font-size:11px;font-weight:800;padding:2px 8px;border-radius:var(--pill-r);
+  background:var(--accent-light);border:1px solid var(--accent-mid);color:var(--accent-2)}
+.wqa-file-name{font-size:12.5px;font-weight:700;color:var(--text-2);
+  overflow-wrap:anywhere;min-width:0;flex:1 1 auto}
+.wqa-file-src .btn{flex:0 0 auto}
+
 /* Quick Add — accessories (common panel + per-item editor share this markup) */
 .wqa-acc-common{background:var(--surface);margin-bottom:12px}
 .wqa-acc-head{font-size:12.5px;font-weight:800;margin-bottom:8px}
@@ -3837,6 +3847,7 @@ const I18N={
     wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
     wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
     wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
+    wqaSourceFile:'Source', wqaImage:'Image',
     wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.",
     wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
     wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
@@ -4020,6 +4031,7 @@ const I18N={
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
     wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
+    wqaSourceFile:'来源文件', wqaImage:'图片',
     wqaPasteHint:'粘贴客户的 WhatsApp 信息。支持 Sag Rod、Stud 和 Anchor Bolt。',
     wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
     wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
@@ -8566,6 +8578,21 @@ function wqaDetectCommon(text){
   return out;
 }
 
+/* "M20, M24" is two sizes, not M20 x 24. Written as a header it says which
+   diameters this enquiry covers, and the rows underneath say which is which —
+   so the line is read, consumed, and produces NO item of its own. Two or more
+   M-prefixed tokens are what makes it a list: "M20 x 24" has one, so the 24
+   stays a dimension and is left alone. Nor does the list choose a size for a
+   row that has none — with two candidates and no way to tell, that would be a
+   guess, and Review asks instead. */
+const WQA_SIZE_LIST_RE=/^m\s*\d+(?:\.\d+)?(?:\s*(?:,|\/|&|\+|and)\s*m\s*\d+(?:\.\d+)?)+\s*[,.]?\s*$/i;
+function wqaSizeList(n){
+  const s=String(n||'').trim();
+  if(!WQA_SIZE_LIST_RE.test(s)) return null;
+  const out=(s.match(/m\s*\d+(?:\.\d+)?/ig)||[]).map(x=>'M'+x.replace(/[^\d.]/g,''));
+  return out.length>1 ? out : null;
+}
+
 /* Section markers carry no data; they must not count as unread lines. */
 const WQA_SECTION_RE=/^(lengths?|sizes?|items?|list)\s*[:：]?\s*$/i;
 /* "1." or "1)" at the head of a numbered list — but NOT the "4." of a line
@@ -8877,7 +8904,10 @@ function wqaThreadOnlyValue(e){
   const f=e.f;
   if(f.size || f.qty!==null || f.threadLen!==null) return null;
   const n=e.n||'';
-  if(!WQA_THREAD_WORD_RE.test(n)) return null;
+  /* "both end 100" names the ends without using the word thread; on a rod that
+     is the only thing an end can be measuring. */
+  if(!WQA_THREAD_WORD_RE.test(n) && !WQA_BOTH_END_RE.test(n) && !WQA_ONE_END_RE.test(n)
+     && !WQA_OTHER_END_RE.test(n)) return null;
   /* In "TL1 60" the 1 names the END, not a measurement, so the label is taken
      off before the line's numbers are counted. Only the attached form is a
      label: "thread 12" really is a 12mm thread and is left alone. */
@@ -8890,6 +8920,12 @@ function wqaThreadOnlyValue(e){
    length 3850", "OAL 3850" — the way a drawing gets written out in words. A
    counting line ("Total 6 items") is not a dimension, so it is excluded. */
 const WQA_OVERALL_RE=/\b(?:overall|over\s*all|o\s*\/\s*a|oal|total\s*length|full\s*length|length|long)\b/i;
+/* The plain middle of a sag rod, named. Every one of these is an explicit
+   label — that is the whole point: an unlabelled number is never a centre, and
+   nothing is ever derived from one. "Centre length 50" is NOT an overall
+   length, which is what this used to be read as: the rod then went out at
+   50mm instead of 250mm, with nothing on screen to say so. */
+const WQA_CENTER_RE=/\b(?:cent(?:er|re)\s*(?:length|body|section)?|middle\s*(?:length|section)|body\s*length|unthreaded\s*(?:length|section)|plain\s*(?:section\s*)?length)\b/i;
 const WQA_COUNT_WORD_RE=/\b(?:items?|qty|quantity|pcs?|nos?|sets?|units?)\b/i;
 /* The wording that makes a quantity everyone's rather than the row above it. */
 const WQA_ALL_QTY_RE=/\b(?:all|each|every|per)\b/i;
@@ -8900,6 +8936,19 @@ function wqaOverallLengthValue(e){
   const n=e.n||'';
   if(!WQA_OVERALL_RE.test(n) || WQA_COUNT_WORD_RE.test(n)) return null;
   if(WQA_THREAD_WORD_RE.test(n)) return null;        // "thread length 60" is a thread
+  if(WQA_CENTER_RE.test(n))      return null;        // "centre length 50" is the middle
+  const v=Number(f.nums[0]);
+  return v>0 ? String(v) : null;
+}
+/* The centre segment stated on a line of its own, and only when it is LABELLED
+   as one. Same shape as the overall reader above, deliberately. */
+function wqaCenterLengthValue(e){
+  if(!e || !e.f) return null;
+  const f=e.f;
+  if(f.size || f.qty!==null || f.threadLen!==null || f.nums.length!==1) return null;
+  const n=e.n||'';
+  if(!WQA_CENTER_RE.test(n) || WQA_COUNT_WORD_RE.test(n)) return null;
+  if(WQA_THREAD_WORD_RE.test(n)) return null;        // a threaded part, not the plain one
   const v=Number(f.nums[0]);
   return v>0 ? String(v) : null;
 }
@@ -8925,6 +8974,9 @@ function wqaCtxAddThread(ctx,v,productType){
    other side 100" states two, whatever the words "one side" suggest. */
 const WQA_ONE_END_RE=/\b(?:(?:one|1|single)\s*(?:end|side)\s*(?:only\s*)?(?:thread(?:ed)?)?|thread(?:ed)?\s*(?:on\s*)?(?:one|1|single)\s*(?:end|side)|one\s*threaded\s*end)\b/i;
 const WQA_BOTH_END_RE=/\b(?:(?:both|two|2)\s*(?:end|side)s?\s*(?:thread(?:ed)?)?|thread(?:ed)?\s*(?:on\s*)?(?:both|two|2)\s*(?:end|side)s?|two\s*threaded\s*ends?)\b/i;
+/* "other side 20" after "left thread 68" is the SECOND end, said the way a
+   person says it. On a rod, an end that carries a measurement is a thread. */
+const WQA_OTHER_END_RE=/\b(?:other|opposite)\s*(?:side|end)\b/i;
 function wqaThreadEndEvidence(text,entries){
   let stated=0, pair=false;
   (entries||[]).forEach(e=>{
@@ -8989,7 +9041,8 @@ function wqaParseText(text,forceProduct){
   /* Running context: a header line updates it, later lines inherit from it. A
      ROW never writes back into it — a value stated on a row applies to that row
      only, and the shared context carries on unchanged for the rows after it. */
-  const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:'',qty:'',
+  const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:'',qty:'',center:'',
+             sizeList:null,
              material:'',finish:'',sizeType:'',matFrom:'',matDefaulted:false};
   /* Once a line has stated a material, finish or size type for a GROUP, the
      document-wide reading of that field stops being a fallback — it was only
@@ -9024,6 +9077,8 @@ function wqaParseText(text,forceProduct){
     if(!t) return {blank:true};
     const n=wqaNorm(t);
     if(WQA_SECTION_RE.test(n)) return {t,n,section:true};          // "Length:" — structural
+    const sl=wqaSizeList(n);
+    if(sl) return {t,n,sizeList:sl};                                // "M20, M24"
     if(!wqaLineHasSignal(t,common)) return {t,n,noise:true};
     /* The same whole-message rules, run over ONE line, so a line can state its
        own material or finish exactly as the document can. */
@@ -9045,6 +9100,9 @@ function wqaParseText(text,forceProduct){
     const counts=/\d/.test(wqaStripSpecWords(e.n||''));
     if(counts) numeric++;
     if(e.section){ inList=true; return; }
+    /* Read and understood — it just does not produce a row, and does not put a
+       diameter into the context either. */
+    if(e.sizeList){ ctx.sizeList=e.sizeList; return; }
     if(e.noise){ skipped.push(e.t); if(counts) unread++; return; }
     if(!common.product){ if(counts) unread++; return; }
 
@@ -9090,7 +9148,11 @@ function wqaParseText(text,forceProduct){
            itself becomes neither a thread nor an item. */
         risky=true;
       } else {
-        const ov=wqaOverallLengthValue(e);
+        /* Asked BEFORE the overall, because "centre length 50" contains the
+           word length and would otherwise be recorded as the rod's length. */
+        const cv=wqaCenterLengthValue(e);
+        if(cv!=null){ ctx.center=cv; used=true; }
+        const ov=cv!=null ? null : wqaOverallLengthValue(e);
         if(ov!=null){ ctx.length=ov; used=true; }
         /* A quantity on a line of its own belongs to the row above it, which is
            how a single-item message is written ("M12 x 1000 x TL100" / "10pcs").
@@ -9147,15 +9209,51 @@ function wqaParseText(text,forceProduct){
     });
   }
 
+  /* ── Derived overall length ───────────────────────────────────────────────
+     A sag rod is a threaded end, a plain middle and a threaded end, so when the
+     customer labels all three the overall length is arithmetic, not a guess:
+     100 + 50 + 100 = 250. A DEFINED business rule, and it needs the labels —
+     "M16 / 50 / 100 / 100" is three bare numbers and nothing is derived from
+     them, because deciding which one is the middle would be the guess.
+
+     Where the customer ALSO states the overall, theirs is the length and the
+     arithmetic only checks it. A disagreement is shown to the reviewer, never
+     resolved silently and never added to anything. */
+  let derivedL=0, lenClash=false;
+  if(ctx.center && ctx.threadLen && wqaThreadEnds(common.product)===2){
+    const a=Number(ctx.threadLen), c=Number(ctx.threadLen2||ctx.threadLen), mid=Number(ctx.center);
+    if(isFinite(a)&&isFinite(c)&&isFinite(mid)&&(a+mid+c)>0) derivedL=a+mid+c;
+    const stated=ctx.length!=='' ? Number(ctx.length) : null;
+    lenClash = derivedL>0 && stated!=null && isFinite(stated) && Math.abs(stated-derivedL)>0.5;
+    if(derivedL>0){
+      items.forEach(it=>{
+        if(it.L==null||it.L===''){
+          /* The customer's own overall wins; the arithmetic fills only where
+             they did not state one. */
+          it.L=String(stated!=null&&isFinite(stated) ? stated : derivedL);
+          it.conf.length=WQA_CONF.INHERITED;
+        }
+        if(lenClash) it.Bbad=true;    // shown as "segments vs length" in Review
+      });
+    }
+  }
+
   /* A message that describes ONE rod instead of listing several — a drawing
      written out in words — leaves the whole specification in the context with no
      row to hang it on. Only when nothing else was read at all does that context
      become the single item it describes. Nothing is invented: every field here
      came from a line the customer actually wrote. */
-  if(!items.length && common.product && ctx.size && ctx.length){
-    items.push({M:ctx.size, L:ctx.length,
+  /* A quantity is evidence of a rod too: "M16 / 50 / 100 / 100 / Qty 10" gives
+     a diameter and a count and no length anyone can trust, and that INCOMPLETE
+     row — with Review asking for the length — is a truer answer than no row at
+     all. Nothing is invented: L stays null, and the parse still reports itself
+     low-confidence, so the message goes on to the AI exactly as before. */
+  if(!items.length && common.product && ctx.size && (ctx.length || derivedL || ctx.qty)){
+    const L = ctx.length ? ctx.length : (derivedL ? String(derivedL) : null);
+    items.push({M:ctx.size, L,
                 TL:ctx.threadLen?(ctx.threadLen2?ctx.threadLen+'/'+ctx.threadLen2:ctx.threadLen):null,
                 qty:ctx.qty||null, raw:lines.map(l=>l.trim()).filter(Boolean).join(' · '),
+                Bbad:lenClash,
                 conf:{size:WQA_CONF.INHERITED,length:WQA_CONF.INHERITED,threadLen:WQA_CONF.INHERITED},
                 issues:[], defaulted:{}});
   }
@@ -9409,9 +9507,14 @@ function wqaNormalizeExtraction(d, opts){
     const issues=(it.issues||[]).filter(x=>x!=='size'&&x!=='length');
     const defaulted={...(it.defaulted||{})};
 
+    /* A row that says it could not be read is not completed from its
+       neighbours. Filling the gap would turn "I could not tell M20 from M30"
+       into a confident M20 off the row above — the exact substitution this
+       flag exists to prevent. It stays null and Review asks. */
+    const unread=!!it.unclear;
     let M=wqaNormM(it.M,rodSize);
     if(M) inh.M=M;
-    else if(opts.inheritGaps && inh.M){ M=inh.M; conf.size=WQA_CONF.INHERITED; }
+    else if(opts.inheritGaps && inh.M && !unread){ M=inh.M; conf.size=WQA_CONF.INHERITED; }
 
     /* An item may carry its own material and finish. The deterministic parser
        hands over values it has already resolved (materialValue); a photo or a
@@ -9440,7 +9543,7 @@ function wqaNormalizeExtraction(d, opts){
     spec.finish=wqaFinishFor(spec.material,spec.finish);
     let tl=wqaSplitThread(it.TL);
     if(tl.a) inh.TL=it.TL;
-    else if(opts.inheritGaps && inh.TL){ tl=wqaSplitThread(inh.TL); conf.threadLen=WQA_CONF.INHERITED; }
+    else if(opts.inheritGaps && inh.TL && !unread){ tl=wqaSplitThread(inh.TL); conf.threadLen=WQA_CONF.INHERITED; }
 
     const row={size:M,
                length:(it.L==null||it.L==='')?'':String(it.L),
@@ -9464,6 +9567,10 @@ function wqaNormalizeExtraction(d, opts){
     /* A + B + C did not reconcile with the overall length: surfaced for a human
        look, never silently corrected and never dropped. */
     if(it.Bbad) row.aiUncertain.push('segments vs length');
+    /* The extractor could not read something on this row and said so. It is a
+       note for a person, never a value: whatever it names is null, and the row
+       asks for it in the ordinary way. */
+    if(it.unclear) row.aiUncertain.push(String(it.unclear).slice(0,40));
     /* Product-aware: only a product that HAS a thread can be missing one. */
     if(ends>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
     if(!row.size)   issues.push('size');
@@ -9518,7 +9625,14 @@ async function wqaAiApply(d, msgTarget){
   wqa.aiWarnings = d.note
     ? ['Document mentions: '+d.note+' — accessories are never added automatically. Add them yourself if this quotation includes them.']
     : [];
-  await wqaEnterReview(norm.common, norm.rows, wqa.aiRaw || ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')), [], 'ai');
+  /* A pasted message that the parser handed to the AI is still the customer's
+     own words, so it stays a TEXT source. An upload has no trustworthy
+     transcript — a filename is not what the customer said — so it is a FILE
+     source and the panel names the file instead of inventing a transcript. */
+  const fromText = !!msgTarget && msgTarget==='wqaParseMsg';
+  await wqaEnterReview(norm.common, norm.rows,
+                       fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')),
+                       [], 'ai', fromText ? 'text' : 'file');
   return true;
 }
 
@@ -9623,6 +9737,8 @@ function wqaResetState(){
   wqa._deferred={};
 
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
+  /* Both source states, and which of them the Review is showing. */
+  wqa.textSource=''; wqa.fileSource=null; wqa.srcKind='text';
   wqa.commonItem=wqaEmptyItem();
   wqa.commonAcc=wqaEmptyAcc(); wqa.commonPrice=wqaEmptyPrice();
   wqa.panels={source:false,item:false,price:false,acc:false}; wqa.view='compact';
@@ -9695,9 +9811,20 @@ document.addEventListener('keydown',e=>{
 });
 /* One entry into the review step, shared by the text parser and the AI
    extraction path, so both get identical row shape, rendering and recompute. */
-async function wqaEnterReview(common, rows, rawText, skipped, source){
+async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   wqa.raw=rawText; wqa.product=common.product||'';
   wqa.source=source||'paste';
+  /* Text unless the caller says otherwise, and the file is captured HERE, from
+     the file that produced these very rows — so replacing image A with image B
+     replaces what Review names, and a PDF followed by an image leaves no PDF
+     behind. */
+  wqa.srcKind = srcKind==='file' ? 'file' : 'text';
+  if(wqa.srcKind==='file'){
+    wqa.fileSource = wqa.aiFile
+      ? {name:String(wqa.aiFile.name||''), pdf:!!wqa.aiIsPdf} : null;
+  } else {
+    wqa.textSource = String(rawText||'');
+  }
   wqa.common={...common};
   wqa.rows=rows.map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',useLastPrice:false,manualPrice:'',
                          priceOverride:{},history:undefined,removed:false}));
@@ -9724,9 +9851,14 @@ async function wqaEnterReview(common, rows, rawText, skipped, source){
    transcript — "[uploaded] drawing.png" is a filename, not what the customer
    said — so the panel stays away and the Back button takes its place. Nothing
    is fetched or generated to fill it. */
+/* Which source these rows came from — and it is the ONLY thing the panel may
+   read. The pasted text and the uploaded file are kept apart on purpose: they
+   both survive a trip back to Choose Input, so neither is lost by switching,
+   but a Review built from a photograph must never show the message someone
+   pasted before it. That is what made an image extraction look as though the
+   AI had read the wrong document. */
 function wqaSourceText(){
-  if(wqa.source==='paste') return String(wqa.raw||'');
-  return String(wqa.aiRaw||'');            // the AI text fallback: the same paste
+  return wqa.srcKind==='file' ? '' : String(wqa.textSource||'');
 }
 /* A phone opens it closed: a long message would otherwise be the whole screen
    before a single row. Everything wider opens it expanded. */
@@ -9736,6 +9868,22 @@ function wqaSourceOpenDefault(){
 function wqaRenderSource(force){
   const box=el('wqaSource'), back=el('wqaBackBtn');
   if(!box) return;
+  /* A file source gets a one-line panel: what was read, by name. No transcript
+     is shown, because none was captured — nothing is fetched or generated to
+     fill it, and it is never labelled as the customer's message. */
+  if(wqa.srcKind==='file' && wqa.fileSource){
+    const f=wqa.fileSource;
+    box.hidden=false;
+    box.innerHTML=`<div class="wqa-file-src">
+        <span class="wqa-file-lbl" data-i18n="wqaSourceFile">${escHtml(dcT('wqaSourceFile'))}</span>
+        <span class="wqa-file-chip">${escHtml(f.pdf?'PDF':dcT('wqaImage'))}</span>
+        <span class="wqa-file-name">${escHtml(f.name||'')}</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="wqaBackToPaste()"
+                data-i18n="wqaBackToUpload">${escHtml(dcT('wqaBackToUpload'))}</button>
+      </div>`;
+    if(back) back.hidden=true;
+    return;
+  }
   const txt=wqaSourceText();
   if(!txt.trim()){
     box.hidden=true; box.innerHTML='';

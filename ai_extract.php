@@ -203,8 +203,13 @@ function ai_output_schema() {
                         'material' => ['type'=>['string','null']],
                         'finish'   => ['type'=>['string','null']],
                         'sizeType' => ['type'=>['string','null']],
+                        // What could NOT be read on this row, in a few words:
+                        // "size M20 or M30". Informational only — it is shown
+                        // to staff as "Check ..." and never becomes a value.
+                        // The field it describes must be null.
+                        'unclear'  => ['type'=>['string','null']],
                     ],
-                    'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType'],
+                    'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType','unclear'],
                 ],
             ],
         ],
@@ -221,7 +226,21 @@ signatures, stamps, prices and unrelated text.
 
 A field being required is never a reason to fill it. Do not read a dimension
 off the drawing's scale, off how long a part looks next to another, or off what
-is normally used at that size — if it is not written, it is null. Where two
+is normally used at that size — if it is not written, it is null.
+
+HANDWRITING YOU CANNOT READ WITH CERTAINTY
+Handwritten digits look alike: 0/3/6/8, 2/7, 1/7, 5/6. When a handwritten value
+could plausibly be either of two readings — M20 or M30, M12 or M17, M16 or M18,
+55 or 66 — do NOT pick the one that looks more likely and do NOT pick one just
+to complete the row. Return null for that field and put a few words in the
+row's "unclear" field: "size M20 or M30". A quotation carries that number to a
+customer; a null asks a person, and only the null can be corrected.
+You MAY resolve it when something other than the handwriting settles it: the
+same size written clearly elsewhere on the sheet, a title or specification block
+that lists it, a dimension callout that cross-references the row, or a repeated
+group heading that fixes it. Appearance alone is never enough. Where a value is
+clearly written, read it normally — this rule is only for the ones that are
+genuinely in doubt, and "unclear" stays null for every field you could read. Where two
 parts of the document disagree, or a number's role cannot be established, return
 null rather than choosing. Our review screen asks a person for what is missing;
 a guessed value would be silently wrong in a quotation instead.
@@ -305,6 +324,9 @@ items — one per document row, in document order:
   Bmid = centre unthreaded segment of a segmented sag rod drawing, else null.
        This is NOT the L-bolt bend column — a bend/B column goes to W.
   qty from pcs/pc/nos/qty — a quantity is never a dimension
+  unclear = a few words naming what could not be read on THIS row, e.g.
+       "size M20 or M30" or "qty unreadable"; null when everything on the row
+       was legible. Never a value — the field it names must be null.
   material / finish / sizeType = what THIS row is made of, when the row or the
        block it sits under says so — raw wording again, same vocabulary. One
        drawing carrying "GRADE 8.8 / HDG" over the first rows and "S/S 304" over
@@ -526,6 +548,8 @@ function ai_sanitise_extraction($text) {
             'material' => $str($it['material'] ?? null, 40),
             'finish'   => $str($it['finish'] ?? null, 40),
             'sizeType' => $str($it['sizeType'] ?? null, 40),
+            // Shown to staff, never used as a value.
+            'unclear'  => $str($it['unclear'] ?? null, 40),
         ];
         /* A + B + C = L, checked HERE rather than trusting the model to have
            checked it. Only a flag: the printed numbers are never rewritten. */
