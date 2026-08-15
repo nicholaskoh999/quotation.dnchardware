@@ -208,8 +208,22 @@ function ai_output_schema() {
                         // to staff as "Check ..." and never becomes a value.
                         // The field it describes must be null.
                         'unclear'  => ['type'=>['string','null']],
+                        // What THIS row is, when the row's own geometry says so
+                        // — one drawing may hold a bent L-bolt and several
+                        // straight two-end rods. Null means "this row does not
+                        // say"; the document-level product then applies.
+                        'product'  => ['type'=>['string','null'],
+                            'enum'=>['SAG_ROD','STUD','ANCHOR_BOLT','L_BOLT','OTHER',null]],
+                        // How many ends of THIS row's rod carry a thread. Row
+                        // evidence: our own code turns it into the product.
+                        'threadEnds' => ['type'=>['integer','null'], 'enum'=>[1,2,null]],
+                        // The rod's ACTUAL body/shank diameter where the
+                        // drawing states one ("body 33mm" under an M32). Never
+                        // the nominal size and never a length.
+                        'bodyDia'  => ['type'=>['number','null']],
                     ],
-                    'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType','unclear'],
+                    'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType','unclear',
+                                 'product','threadEnds','bodyDia'],
                 ],
             ],
         ],
@@ -259,6 +273,12 @@ into product. Resolve in this order: 1 geometry, 2 dimensional structure,
     wording
   - diameter + length only, no thread -> STUD
   - anything else -> OTHER
+ONE DOCUMENT MAY HOLD MORE THAN ONE PRODUCT. A drawing with a bent 90-degree
+rod at the top and straight rods threaded at both ends underneath is an L_BOLT
+and several SAG_RODs, not one product repeated. Classify EACH item by its own
+geometry and put the answer in that item's "product"; leave the document-level
+product null when the items differ. Never classify the whole sheet by the first
+product you find, and never copy one item's product onto the others.
 A STANDARD number names the product where geometry is absent: DIN 937, DIN937
 or DIN-937 is a stud/stud-bolt standard -> STUD. The DIN wording must be there;
 a bare "937" is a quantity or a job number and says nothing. A standard number
@@ -324,6 +344,17 @@ items — one per document row, in document order:
   Bmid = centre unthreaded segment of a segmented sag rod drawing, else null.
        This is NOT the L-bolt bend column — a bend/B column goes to W.
   qty from pcs/pc/nos/qty — a quantity is never a dimension
+  product = what THIS row is, by its own geometry — SAG_ROD, STUD, ANCHOR_BOLT,
+       L_BOLT — or null when the row does not show it and the document already
+       said. Geometry beats wording here exactly as it does at document level.
+  threadEnds = how many ends of THIS row's rod are threaded: 2, 1, or null.
+       Row evidence, not a product name: "thread one end 100" is 1, "thread both
+       ends 80" is 2, and two thread values given for one row are 2.
+  bodyDia = the rod's ACTUAL body or shank diameter when the drawing states one
+       — "body 33mm", "shank dia 33", "(body 38.1)". It is NOT the nominal size
+       and NOT a length: an M32 rod with a 33mm body has M "M32", bodyDia 33,
+       and its own separate length. Never put it in L, and never turn it into
+       the nominal size — if the nominal size is not written, M stays null.
   unclear = a few words naming what could not be read on THIS row, e.g.
        "size M20 or M30" or "qty unreadable"; null when everything on the row
        was legible. Never a value — the field it names must be null.
@@ -419,7 +450,15 @@ answer. Use OTHER only when the document clearly shows a product we did not
 list.
 
 Notes such as "1 bolt 4 nut" are accessory wording. Ignore them entirely for
-item extraction: they never become dimensions and never change qty.
+item extraction: they never become dimensions and never change qty. The note
+field describes THIS document only — never carry over wording from anything you
+were shown before.
+
+A NUMBER WHOSE ROLE YOU CANNOT ESTABLISH IS NOT A FIELD. Every unknown labelled
+dimension stays out of M, L, TL, W and qty rather than being pushed into
+whichever of them is still empty. Requirement-completeness is never a reason to
+place a number: a row with three of its five fields filled and two nulls is a
+correct row, and the review screen asks a person for the rest.
 TXT;
 }
 
@@ -550,6 +589,11 @@ function ai_sanitise_extraction($text) {
             'sizeType' => $str($it['sizeType'] ?? null, 40),
             // Shown to staff, never used as a value.
             'unclear'  => $str($it['unclear'] ?? null, 40),
+            // Row-level product and end count: evidence, mapped in our own code.
+            'product'  => (is_string($it['product'] ?? null) && in_array($it['product'],$prodOk,true))
+                            ? $it['product'] : null,
+            'threadEnds' => in_array($it['threadEnds'] ?? null, [1,2], true) ? $it['threadEnds'] : null,
+            'bodyDia'  => $num($it['bodyDia'] ?? null),
         ];
         /* A + B + C = L, checked HERE rather than trusting the model to have
            checked it. Only a flag: the printed numbers are never rewritten. */

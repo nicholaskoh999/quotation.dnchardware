@@ -3847,7 +3847,8 @@ const I18N={
     wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
     wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
     wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
-    wqaSourceFile:'Source', wqaImage:'Image',
+    wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia',
+    wqaNotPriced:'not priced in Quick Add',
     wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.",
     wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
     wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
@@ -4031,7 +4032,8 @@ const I18N={
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
     wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
-    wqaSourceFile:'来源文件', wqaImage:'图片',
+    wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径',
+    wqaNotPriced:'快速添加暂不支持计价',
     wqaPasteHint:'粘贴客户的 WhatsApp 信息。支持 Sag Rod、Stud 和 Anchor Bolt。',
     wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
     wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
@@ -7854,11 +7856,11 @@ function wqaItemSummary(c){
 /* Rows still missing a size or a thread — the reason this panel exists, so it
    is surfaced on the collapsed header too. */
 function wqaItemNeedCount(){
-  /* Product-specific: a Stud has no thread, so it is never counted as missing
-     one. A Sag Rod and an Anchor Bolt both need theirs. */
-  const wantsThread=wqaThreadEnds(wqa.product)>0;
+  /* Product-specific, per row: a Stud has no thread, so it is never counted as
+     missing one, even when the Sag Rod beside it is. */
   return wqa.rows.filter(r=>!r.removed &&
-    (!String(r.size||'').trim() || (wantsThread && !wqaThreadValue(r)))).length;
+    (!String(r.size||'').trim() ||
+     (wqaThreadEnds(wqaRowProduct(r))>0 && !wqaThreadValue(r)))).length;
 }
 function wqaRenderCommonItem(force){
   const box=el('wqaCommonItem'); if(!box) return;
@@ -7868,7 +7870,8 @@ function wqaRenderCommonItem(force){
   /* A Stud is threaded over its whole length by definition, so there is no
      thread for a customer to state and none to ask for here. Sag Rod wants the
      pair, Anchor Bolt the single value — the placeholder says which. */
-  const ends=wqaThreadEnds(wqa.product);
+  /* Mixed rows: the box is offered when ANY of them has a thread. */
+  const ends=wqaMaxEnds();
   const head=wqaPanelHead('item',wqaScopeTitle('wqaCommonItemTitle'),wqaItemSummary(c),
                           need?dcT('wqaNIncomplete').replace('{n}',need):'');
   box.innerHTML = head + (!wqa.panels.item ? '' :
@@ -7914,8 +7917,7 @@ function wqaApplyItemToAll(){
   const size=wqaNormSize(c.size);
   /* Suppressed only where we KNOW the product has no thread. An unknown product
      still copies whatever was typed — losing it would be worse than carrying it. */
-  const prod=wqaProductByType(wqa.product);
-  const thread=(prod && prod.threadEnds===0) ? '' : String(c.thread||'').trim();
+  const thread=(wqaMaxEnds()===0) ? '' : String(c.thread||'').trim();
   if(!size && !thread){ showToast(dcT('wqaToastEnterSizeThread')); return; }
   const live=wqaApplyTargets();
   if(!live.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
@@ -8211,6 +8213,22 @@ const WQA_ROW_SPEC=['material','finish','sizeType'];
    said. That is what stops an HDG stated for rows 1-2 from reaching the
    stainless rows underneath, wherever the finish came from. */
 const WQA_BARE_MATERIALS=['SS304','SS316'];
+/* ── Size Type defaults ─────────────────────────────────────────────────────
+   Two, both confirmed, both overridden the moment the customer says otherwise:
+     · 4140, 4140 QT and 4340 QT are bought fullsize
+     · MS at M12 (and its imperial twin 1/2") is bought undersize
+   Nothing else has a default. MS at M16 or M20 stays blank and Review asks —
+   inventing a third rule here would be exactly the guess the whole review
+   screen exists to avoid. A defaulted value is marked as defaulted, so the
+   screen can say it was ours and not the customer's. */
+const WQA_FULLSIZE_MATERIALS=['4140','4140_PLAIN','4340'];
+const WQA_UNDERSIZE_MS_SIZES=['M12','1/2','1/2"'];
+function wqaDefaultSizeType(material,size){
+  const m=String(material||''), s=String(size||'').trim();
+  if(WQA_FULLSIZE_MATERIALS.indexOf(m)>=0) return 'FULLSIZE';
+  if(m==='MS' && WQA_UNDERSIZE_MS_SIZES.indexOf(s)>=0) return 'UNDERSIZE';
+  return '';
+}
 function wqaNoFinish(material){ return WQA_BARE_MATERIALS.indexOf(String(material||''))>=0; }
 function wqaFinishFor(material,finish){ return wqaNoFinish(material) ? '' : String(finish||''); }
 /* What the header should show for a field: the shared value, or Mixed. */
@@ -8230,6 +8248,21 @@ function wqaRowsCommonValueOf(rows,k){
 }
 /* The one place anything downstream asks a row what it is made of. */
 function wqaRowSpec(r,k){ return String((r&&r[k])||''); }
+/* And what it IS. A row carries its own product, so an Anchor Bolt and a Sag
+   Rod in one document are each validated, weighed and priced as themselves.
+   Falls back to the session product only while a row has none of its own —
+   which is what happens when staff choose the product for the whole list. */
+function wqaRowProduct(r){ return String((r&&r.product)||'') || String(wqa.product||''); }
+/* Every product actually in use, for the parts of the UI that must cover them
+   all: the compact column layout, the common Item panel's placeholder. */
+function wqaLiveProducts(){
+  const out=[];
+  wqa.rows.filter(r=>!r.removed).forEach(r=>{ const t=wqaRowProduct(r);
+    if(t && out.indexOf(t)<0) out.push(t); });
+  if(!out.length && wqa.product) out.push(wqa.product);
+  return out;
+}
+function wqaMaxEnds(){ return wqaLiveProducts().reduce((m,t)=>Math.max(m,wqaThreadEnds(t)),0); }
 
 function wqaProductByType(t){ return WQA_PRODUCTS.find(p=>p.type===t)||null; }
 function wqaProductByToken(k){ return WQA_PRODUCTS.find(p=>p.token===k)||null; }
@@ -8429,14 +8462,23 @@ function wqaEditThread(i,v){
 /* Only worth saying on the row when the rows disagree — otherwise the header
    above has already said it once for all of them. */
 function wqaRowSpecLine(r){
-  if(!(wqaIsMixed('material')||wqaIsMixed('finish'))) return '';
+  if(!(wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('product')||r.bodyDia)) return '';
   const bits=[];
+  /* Named on the row only while the list holds more than one product — one
+     word, in front of the material, so the compact list stays a list. */
+  if(wqaIsMixed('product')){
+    const p=wqaProductByType(wqaRowProduct(r));
+    bits.push(p?p.label:dcT('needs').replace('{f}','Product'));
+  }
   const m=wqaRowSpec(r,'material'); if(m) bits.push(materialLabel(m));
   else bits.push(dcT('needs').replace('{f}',dcT('fieldMaterial')));
   const f=wqaRowSpec(r,'finish');
   /* N/A is the stainless answer and is worth printing: a blank would read as a
      finish nobody has got round to yet. */
   if(f) bits.push(f); else if(wqaNoFinish(m)) bits.push('N/A');
+  /* Evidence the customer gave us and we did not use for the price: shown so
+     nobody wonders where it went. */
+  if(r.bodyDia) bits.push(dcT('wqaBodyDia')+' '+r.bodyDia+'mm');
   return `<div class="wqa-row-spec">${escHtml(bits.join(' · '))}</div>`;
 }
 function wqaCompactCells(r){
@@ -8451,8 +8493,10 @@ function wqaCompactCells(r){
     + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span>`;
 }
 function wqaHasThreadCol(){
-  const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
-  return !!(prod && prod.dims.includes('threadLen'));
+  /* One column layout for the list, so the column appears when ANY row has a
+     thread — a Stud row simply leaves its cell empty. */
+  return wqaLiveProducts().some(t=>{ const p=wqaProductByType(t);
+    return !!(p && p.dims.includes('threadLen')); });
 }
 /* The header uses the same grid, so labels sit exactly over their column. */
 function wqaRenderListHead(){
@@ -8485,7 +8529,7 @@ function wqaFmtPrice(v){ const n=Number(v)||0; return n>0 ? 'RM'+n.toFixed(2) : 
    The weight beside it does not: it comes from diameter and length alone and is
    true whatever the rod is made of. */
 function wqaShownPrice(r){
-  if(wqa.product && !wqaRowSpec(r,'material')) return 0;
+  if(wqaRowProduct(r) && !wqaRowSpec(r,'material')) return 0;
   return (r.calc||{}).finalUnitPrice;
 }
 /* Small pills, never alert blocks. */
@@ -8494,6 +8538,7 @@ function wqaRowBadges(r){
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
      either language instead of a translated word glued to an English one. */
   wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',dcT('field'+m.replace(/\s/g,''))),k:'req'}));
+  if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
@@ -8555,13 +8600,19 @@ function wqaMatchMaterial(m,said){
 function wqaDetectCommon(text){
   const hay=' '+wqaNorm(text).toLowerCase()+' ';
   const out={product:null,material:'',materialDefaulted:false,finish:'',sizeType:''};
+  /* Every product the wording names, not the first one. A document that says
+     "SAG ROD / ANCHOR BOLT" has not said which, and choosing for the customer
+     is exactly the confident-and-wrong answer we refuse to give: product stays
+     null and Review asks. A drawing that genuinely CONTAINS both is the same
+     answer at document level — each row then says what it is. */
+  const named=[];
   for(const p of WQA_PRODUCTS){
-    /* A standard number counts as naming the product, exactly as its name does:
-       "DIN 937 M16 x 100" is a stud enquiry. */
     if((p.std && p.std.test(hay)) ||
        p.aliases.some(a=>hay.includes(' '+a+' ')||hay.includes(' '+a+'s ')||hay.includes(a))){
-      out.product=p.type; break; }
+      named.push(p.type); }
   }
+  out.product = named.length===1 ? named[0] : null;
+  out.productAmbiguous = named.length>1;
   /* Matched against the text as WRITTEN, not the lower-cased copy, so the note
      can show the customer's own wording back to them: HT, High Tensile, G8.8. */
   const said=' '+wqaNorm(text)+' ';
@@ -8692,8 +8743,14 @@ function wqaInchMm(t){ return String(Math.round(t.inches*WQA_IN_MM*1000)/1000); 
    re-read as part of a diameter ("4pcs - M12" never becomes 4PCSM12).      */
 function wqaExtractFields(rawLine,opts){
   let s=wqaNorm(rawLine).replace(WQA_LIST_NUM_RE,'');
-  const f={qty:null,size:null,threadLen:null,threadLen2:null,nums:[],mm:[],hadX:/\sx\s|\dx\d/i.test(s)};
+  const f={qty:null,size:null,threadLen:null,threadLen2:null,nums:[],mm:[],bodyDia:null,
+           hadX:/\sx\s|\dx\d/i.test(s)};
   s=wqaStripSpecWords(s);
+  /* "SS304 (body 38.1) Sag Rod M32 x 1000" states the body diameter in the
+     middle of a real item line, so it is taken out here — before any number is
+     read — exactly as an inch token is. Left in, the 38.1 would win the length. */
+  if(!WQA_CENTER_RE.test(s))
+    s=s.replace(WQA_BODY_NUM_RE,(w,v)=>{ if(f.bodyDia==null) f.bodyDia=String(Number(v)); return ' '; });
 
   /* Inch tokens are read and REMOVED before anything else looks at the line, so
      the fraction in 3/4" can never be mistaken for a 3/4 thread pair. */
@@ -8775,7 +8832,10 @@ function wqaExtractFields(rawLine,opts){
 /* Resolve one line's fields against the running context. Explicit values on the
    line always beat the context. */
 function wqaResolveLine(f,ctx,productType){
-  const prod=wqaProductByType(productType);
+  /* A message whose ROWS say what they are — "thread one end 100" — reaches
+     here before any product is settled, so the general shape stands in and the
+     row's own product is resolved a step later, in the normaliser. */
+  const prod=wqaProductByType(productType)||WQA_NO_PRODUCT;
   const wantsThread=prod.dims.includes('threadLen');
   const issues=[], defaulted={}, conf={};
   const row={size:'',length:'',threadLen:'',threadLen2:'',qty:''};
@@ -8920,6 +8980,15 @@ function wqaThreadOnlyValue(e){
    length 3850", "OAL 3850" — the way a drawing gets written out in words. A
    counting line ("Total 6 items") is not a dimension, so it is excluded. */
 const WQA_OVERALL_RE=/\b(?:overall|over\s*all|o\s*\/\s*a|oal|total\s*length|full\s*length|length|long)\b/i;
+/* The rod's ACTUAL body: "body 33mm", "shank dia 33", "body Ø38.1". It is a
+   diameter, not a length and not a nominal size — a customer who writes both
+   ("M32 body 33mm") is telling us two different things, and putting the 33 in
+   either of the other boxes quotes the wrong rod. Read as evidence, kept on the
+   row, and used by nothing else: the weight and price still come from the
+   nominal size exactly as before. */
+const WQA_BODY_RE=/\b(?:actual\s*)?(?:rod\s*)?(?:body|shank)\s*(?:bar\s*)?(?:dia(?:meter)?|\u00f8|size)?\b/i;
+const WQA_BODY_NUM_RE=new RegExp(WQA_BODY_RE.source+'\\s*[:=]?\\s*\\u00f8?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?','ig');
+
 /* The plain middle of a sag rod, named. Every one of these is an explicit
    label — that is the whole point: an unlabelled number is never a centre, and
    nothing is ever derived from one. "Centre length 50" is NOT an overall
@@ -8937,8 +9006,24 @@ function wqaOverallLengthValue(e){
   if(!WQA_OVERALL_RE.test(n) || WQA_COUNT_WORD_RE.test(n)) return null;
   if(WQA_THREAD_WORD_RE.test(n)) return null;        // "thread length 60" is a thread
   if(WQA_CENTER_RE.test(n))      return null;        // "centre length 50" is the middle
+  if(WQA_BODY_RE.test(n))        return null;        // "body 33mm" is a diameter
   const v=Number(f.nums[0]);
   return v>0 ? String(v) : null;
+}
+/* The body diameter stated on a line of its own. Same shape again. */
+function wqaBodyDiaValue(e){
+  if(!e || !e.f) return null;
+  const f=e.f;
+  /* The line states a body diameter AND NOTHING ELSE dimensional: it is a
+     specification line, not an item. A line that also carries a length is an
+     item, and keeps its body diameter as evidence beside the length. */
+  if(f.bodyDia==null) return null;
+  if(f.qty!==null || f.threadLen!==null || f.nums.length) return null;
+  if(WQA_COUNT_WORD_RE.test(e.n||'')) return null;
+  /* "centre body 50" names the MIDDLE — the word body is doing different work
+     there, and the centre reader owns that line. */
+  if(WQA_CENTER_RE.test(e.n||'')) return null;
+  return f.bodyDia;
 }
 /* The centre segment stated on a line of its own, and only when it is LABELLED
    as one. Same shape as the overall reader above, deliberately. */
@@ -8977,6 +9062,40 @@ const WQA_BOTH_END_RE=/\b(?:(?:both|two|2)\s*(?:end|side)s?\s*(?:thread(?:ed)?)?
 /* "other side 20" after "left thread 68" is the SECOND end, said the way a
    person says it. On a rod, an end that carries a measurement is a thread. */
 const WQA_OTHER_END_RE=/\b(?:other|opposite)\s*(?:side|end)\b/i;
+/* How many ends one LINE names, if it says. Row evidence: it decides what that
+   row is, whatever the document called itself. */
+function wqaLineEnds(n){
+  const s=String(n||'');
+  if(WQA_BOTH_END_RE.test(s)) return 2;
+  if(WQA_ONE_END_RE.test(s))  return 1;
+  return null;
+}
+/* Ends alone name a product when the document did not: one threaded end is an
+   Anchor Bolt, two are a Sag Rod. The same mapping the whole app already uses,
+   read off the row instead of off the message. */
+function wqaProductFromEnds(ends){
+  const p=WQA_PRODUCTS.find(x=>x.threadEnds===ends);
+  return p ? p.type : '';
+}
+/* A thread stated UNDER a row belongs to that row — the same way a bare
+   quantity does — and never to the rows after it. Two values make a pair, and
+   a pair is two ends whatever the wording said. */
+function wqaRowAddThread(it,v,ends,docProduct){
+  if(it==null || v==null) return false;
+  if(ends===1||ends===2) it.threadEnds=ends;
+  const list=it._tl || (it._tl = it.TL ? String(it.TL).split('/').filter(Boolean) : []);
+  if(list.length>=2) return false;                 // both ends already stated
+  list.push(String(v));
+  if(list.length===2) it.threadEnds=2;
+  const want=it.threadEnds || wqaThreadEnds(docProduct);
+  /* One value on a two-end rod means both ends; on a one-end rod it stays
+     single; and where nothing says which, it is not assigned to an end at all
+     — an unplaced number is not a thread length. */
+  it.TL = list.length===2 ? list.join('/')
+        : (want===2 ? list[0]+'/'+list[0] : (want===1 ? list[0] : null));
+  if(it.TL!=null) it.conf.threadLen=WQA_CONF.DETECTED;
+  return true;
+}
 function wqaThreadEndEvidence(text,entries){
   let stated=0, pair=false;
   (entries||[]).forEach(e=>{
@@ -9042,7 +9161,7 @@ function wqaParseText(text,forceProduct){
      ROW never writes back into it — a value stated on a row applies to that row
      only, and the shared context carries on unchanged for the rows after it. */
   const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:'',qty:'',center:'',
-             sizeList:null,
+             sizeList:null, bodyDia:'',
              material:'',finish:'',sizeType:'',matFrom:'',matDefaulted:false};
   /* Once a line has stated a material, finish or size type for a GROUP, the
      document-wide reading of that field stops being a fallback — it was only
@@ -9063,6 +9182,8 @@ function wqaParseText(text,forceProduct){
      thread end, an overall length — has been read just as truly as one that
      becomes an item. */
   let numeric=0, unread=0;
+  /* End-count evidence stated ABOVE the rows: shared, like a header thread. */
+  let ctxEnds=null;
 
   /* R12 is drawing notation for an undersized rod's nominal diameter, so it is
      read as a size only where the message actually shows that context: an
@@ -9090,6 +9211,12 @@ function wqaParseText(text,forceProduct){
   const threadEnds=forceProduct ? null : wqaThreadEndEvidence(text,entries);
   if(!forceProduct) common.product=wqaResolveProduct(common.product,threadEnds);
   const plan=wqaSpecHeaderPlan(entries);
+  /* A message that never names a product can still SHOW what its rows are:
+     "thread one end 100" under one row and "thread both ends 80" under the next
+     is an Anchor Bolt and a Sag Rod, whatever the heading said. Where that
+     evidence exists the rows are read and each carries its own product; where
+     it does not, nothing is read without a product, exactly as before. */
+  const selfProduct=entries.some(e=>e.n && wqaLineEnds(e.n));
 
   entries.forEach((e,i)=>{
     if(e.blank) return;
@@ -9104,11 +9231,38 @@ function wqaParseText(text,forceProduct){
        diameter into the context either. */
     if(e.sizeList){ ctx.sizeList=e.sizeList; return; }
     if(e.noise){ skipped.push(e.t); if(counts) unread++; return; }
-    if(!common.product){ if(counts) unread++; return; }
+    if(!common.product && !selfProduct){ if(counts) unread++; return; }
 
     const f=e.f;
-    /* A thread end stated on a line of its own is context for the rows below. */
-    if(plan[i]==='thread'){ wqaCtxAddThread(ctx,wqaThreadOnlyValue(e),common.product); return; }
+    /* A thread end stated on a line of its own belongs to the row ABOVE it,
+       exactly as a bare quantity does — "M16 x 1000 / TL60/80 / 10pcs" is one
+       item, and the 60/80 is that item's, not the next block's. Only a thread
+       written BEFORE any row is a shared header for the rows below. Without
+       this an independent block silently inherited the previous block's
+       thread. */
+    if(plan[i]==='thread'){
+      const v=wqaThreadOnlyValue(e), ends=wqaLineEnds(e.n||'');
+      const prev=items[items.length-1];
+      if(prev){ if(!wqaRowAddThread(prev,v,ends,common.product) && counts) unread++; }
+      else {
+        wqaCtxAddThread(ctx,v,common.product);
+        if(ends) ctxEnds=ends;
+      }
+      return;
+    }
+    /* A LABELLED dimension is read before anything can mistake it for an item:
+       "body 33mm" carries an mm suffix and would otherwise be read as a 33mm
+       rod, which is how a 1000mm rod came to be quoted at 33. The label says
+       what the number is; nothing else on the line is thrown away. */
+    const bdv=wqaBodyDiaValue(e);
+    if(bdv!=null){
+      if(f.size) ctx.size=f.size;              // "M32 body 33mm" states both
+      const prev=items[items.length-1];
+      if(prev && !prev.bodyDia) prev.bodyDia=bdv; else ctx.bodyDia=bdv;
+      return;
+    }
+    const cvv=wqaCenterLengthValue(e);
+    if(cvv!=null){ ctx.center=cvv; return; }
     /* Numbers alone are not enough — "Total 6 items" is not a 6mm bolt. An item
        needs a dimensional signal: an M-size, a thread, an x separator or an mm
        suffix, or an explicit quantity. */
@@ -9135,7 +9289,21 @@ function wqaParseText(text,forceProduct){
       if(d.sizeType){ ctx.sizeType=d.sizeType; sawGroup.sizeType=true; used=true; }
       if(f.size){ ctx.size=f.size; used=true; }
       if(f.threadLen!==null){
-        ctx.threadLen=f.threadLen; ctx.threadLen2=f.threadLen2||''; ctx.tlCount=2; used=true;
+        /* "TL60/80" written under a row is that row's pair — the same rule as a
+           single value, and the reason an independent block below no longer
+           inherits it. Only a thread written before any row is shared. */
+        const prevT=(!f.size && items.length) ? items[items.length-1] : null;
+        if(prevT){
+          prevT.TL=f.threadLen2 ? f.threadLen+'/'+f.threadLen2 : f.threadLen;
+          prevT._tl=String(prevT.TL).split('/');
+          if(f.threadLen2) prevT.threadEnds=2;
+          const le=wqaLineEnds(e.n||''); if(le) prevT.threadEnds=le;
+          prevT.conf.threadLen=WQA_CONF.DETECTED;
+          used=true;
+        } else {
+          ctx.threadLen=f.threadLen; ctx.threadLen2=f.threadLen2||''; ctx.tlCount=2; used=true;
+          const le=wqaLineEnds(e.n||''); if(le) ctxEnds=le;
+        }
       } else if(plan[i]==='header'){
         /* One thread value shared by the whole list, read the way THIS product
            means it: a Sag Rod's 75 is 75/75, an Anchor Bolt's 100 stays 100. */
@@ -9148,11 +9316,8 @@ function wqaParseText(text,forceProduct){
            itself becomes neither a thread nor an item. */
         risky=true;
       } else {
-        /* Asked BEFORE the overall, because "centre length 50" contains the
-           word length and would otherwise be recorded as the rod's length. */
-        const cv=wqaCenterLengthValue(e);
-        if(cv!=null){ ctx.center=cv; used=true; }
-        const ov=cv!=null ? null : wqaOverallLengthValue(e);
+        /* The centre and the body were read above, before the item test. */
+        const ov=wqaOverallLengthValue(e);
         if(ov!=null){ ctx.length=ov; used=true; }
         /* A quantity on a line of its own belongs to the row above it, which is
            how a single-item message is written ("M12 x 1000 x TL100" / "10pcs").
@@ -9172,6 +9337,14 @@ function wqaParseText(text,forceProduct){
       return;
     }
     const r=wqaResolveLine(f,ctx,common.product);
+    /* "M20 x 1000 thread one end 100" says on the row itself how many ends it
+       has, and that is what the row IS — an Anchor Bolt beside a Sag Rod in the
+       same message is an ordinary enquiry. */
+    const lineEnds=wqaLineEnds(e.n||'');
+    if(lineEnds) r.item.threadEnds=lineEnds;
+    else if(ctxEnds && !r.item.threadEnds) r.item.threadEnds=ctxEnds;
+    if(f.bodyDia!=null) r.item.bodyDia=f.bodyDia;
+    if(!r.item.bodyDia && ctx.bodyDia) r.item.bodyDia=ctx.bodyDia;
     /* Row explicit > group > document > null, decided HERE, while the group in
        force is still known. A field some group has claimed never falls back to
        the document reading of it. */
@@ -9248,9 +9421,10 @@ function wqaParseText(text,forceProduct){
      row — with Review asking for the length — is a truer answer than no row at
      all. Nothing is invented: L stays null, and the parse still reports itself
      low-confidence, so the message goes on to the AI exactly as before. */
-  if(!items.length && common.product && ctx.size && (ctx.length || derivedL || ctx.qty)){
+  if(!items.length && common.product && (ctx.size||ctx.length||derivedL||ctx.bodyDia)
+     && (ctx.length||derivedL||ctx.qty)){
     const L = ctx.length ? ctx.length : (derivedL ? String(derivedL) : null);
-    items.push({M:ctx.size, L,
+    items.push({M:ctx.size, L, bodyDia:ctx.bodyDia||null, threadEnds:ctxEnds||null,
                 TL:ctx.threadLen?(ctx.threadLen2?ctx.threadLen+'/'+ctx.threadLen2:ctx.threadLen):null,
                 qty:ctx.qty||null, raw:lines.map(l=>l.trim()).filter(Boolean).join(' · '),
                 Bbad:lenClash,
@@ -9263,6 +9437,13 @@ function wqaParseText(text,forceProduct){
   const norm=wqaNormalizeExtraction({product:common.product,threadEnds,items},{wording:text});
   return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread};
 }
+
+/* Everything the LAST source told us that is not a row: the accessory wording
+   it mentioned, and the customer-label-vs-geometry note. It belongs to that
+   source and to nothing else, so every fresh Parse and every fresh Analyze
+   throws it away before reading the new one. Leaving it behind is how a
+   previous drawing's "5 Nuts + 2 FW" came to sit over an unrelated inquiry. */
+function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null; }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
 function wqaOpen(){
@@ -9421,6 +9602,7 @@ function wqaUpdateAiPane(){
   if(evt==='drop'){ wqa._dragDepth=0; wqaDragPaint(false); }
 }));
 async function wqaAnalyze(){
+  wqaClearSourceEvidence();          // this file's evidence only, never the last one's
   if(!wqa.aiFile || wqa.aiBusy) return;               // no double-submit
   const token=(wqa._aiReq=(wqa._aiReq||0)+1);
   wqaSetAiBusy(true);
@@ -9512,6 +9694,23 @@ function wqaNormalizeExtraction(d, opts){
        into a confident M20 off the row above — the exact substitution this
        flag exists to prevent. It stays null and Review asks. */
     const unread=!!it.unclear;
+    /* ── This row's product ──────────────────────────────────────────────
+       Row evidence first: the ends this row states are what this row IS, so an
+       Anchor Bolt sits beside a Sag Rod in one document and each is priced as
+       itself. Then whatever the row was labelled, then the document. Null when
+       nothing says — never the product of the row above. */
+    const rowEnds=(it.threadEnds===1||it.threadEnds===2) ? it.threadEnds : null;
+    const ownProd=it.product ? (wqaProductByToken(String(it.product))||wqaProductByType(String(it.product))) : null;
+    const base=ownProd ? ownProd.type : prod;
+    const rowProd = base ? wqaResolveProduct(base,rowEnds)
+                         : (rowEnds ? wqaProductFromEnds(rowEnds) : '');
+    /* A row the drawing DOES classify but Quick Add cannot price — a bent
+       L-bolt among straight rods. It is named rather than quietly turned into
+       a Sag Rod: the row asks for a product a Quick Add can price, and says
+       why. Nothing about it is guessed and nothing about it is sold. */
+    const unsupported=(!rowProd && it.product && !ownProd) ? word[String(it.product)]||String(it.product) : '';
+    const rEnds=wqaThreadEnds(rowProd);
+
     let M=wqaNormM(it.M,rodSize);
     if(M) inh.M=M;
     else if(opts.inheritGaps && inh.M && !unread){ M=inh.M; conf.size=WQA_CONF.INHERITED; }
@@ -9545,11 +9744,28 @@ function wqaNormalizeExtraction(d, opts){
     if(tl.a) inh.TL=it.TL;
     else if(opts.inheritGaps && inh.TL && !unread){ tl=wqaSplitThread(inh.TL); conf.threadLen=WQA_CONF.INHERITED; }
 
-    const row={size:M,
+    /* A single thread value read as this ROW's product means: both ends on a
+       Sag Rod, one on an Anchor Bolt, and nothing at all where the product is
+       still unknown — an unplaced number is not a thread length. */
+    if(tl.a && !tl.b && rEnds===2){ tl={a:tl.a,b:tl.a}; }
+    else if(tl.a && !rowProd && !tl.b){ tl={a:'',b:''}; }
+
+    /* Ours, not the customer's — and said so. */
+    let stDefaulted=false;
+    if(!spec.sizeType){
+      const def=wqaDefaultSizeType(spec.material,M);
+      if(def){ spec.sizeType=def; stDefaulted=true; }
+    }
+
+    const row={size:M, product:rowProd, unsupported,
+               /* Evidence, kept beside the row and used by nothing else: the
+                  weight and the price still come from the nominal size. */
+               bodyDia:(it.bodyDia==null||it.bodyDia==='')?'':String(it.bodyDia),
                length:(it.L==null||it.L==='')?'':String(it.L),
                threadLen:tl.a, threadLen2:tl.b,
                qty:(it.qty==null||it.qty==='')?'':String(it.qty),
                material:spec.material, finish:spec.finish, sizeType:spec.sizeType,
+               stDefaulted,
                matFrom: it.matFrom || ((own&&own.materialDefaulted)?own.materialDefaultedFrom:'')
                         || (spec.material===common.material ? (common.materialDefaultedFrom||'') : ''),
                matDefaulted: it.matDefaulted!==undefined ? !!it.matDefaulted
@@ -9571,8 +9787,9 @@ function wqaNormalizeExtraction(d, opts){
        note for a person, never a value: whatever it names is null, and the row
        asks for it in the ordinary way. */
     if(it.unclear) row.aiUncertain.push(String(it.unclear).slice(0,40));
-    /* Product-aware: only a product that HAS a thread can be missing one. */
-    if(ends>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
+    /* Product-aware, per ROW: only a product that HAS a thread can be missing
+       one, and which product this is was decided a few lines above. */
+    if(rEnds>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
     if(!row.size)   issues.push('size');
     if(!row.length) issues.push('length');
     return row;
@@ -9584,12 +9801,20 @@ function wqaNormalizeExtraction(d, opts){
      photograph of the same specification produce the same header. */
   WQA_ROW_SPEC.forEach(k=>{ const v=wqaRowsCommonValueOf(rows,k);
                             if(v!==WQA_MIXED) common[k]=v; });
+  /* Product is a row field now, so the header says what the rows say: the
+     shared product, or nothing at all while they differ. Mixed is read from
+     the rows themselves (wqaIsMixed), never stored as if it were a product. */
+  const cp=wqaRowsCommonValueOf(rows,'product');
+  common.product = cp===WQA_MIXED ? '' : cp;
+  common.productMixed = cp===WQA_MIXED;
 
   /* Same precedence the AI path has always had: nothing usable outranks an
      unsupported product, because the review screen can ask for a product but
      cannot invent rows. */
   if(!rows.length) return {ok:false, common, rows:[], error:{code:'no_rows'}};
-  if(prodErr)      return {ok:false, common, rows, error:prodErr};
+  /* An unsupported document word is still fatal — unless the rows themselves
+     resolved to products we can price, which is the mixed-drawing case. */
+  if(prodErr && !rows.some(r=>r.product)) return {ok:false, common, rows, error:prodErr};
   return {ok:true, common, rows};
 }
 
@@ -9929,16 +10154,31 @@ async function wqaParseAndReview(){
   const text=el('wqaInput').value||'';
   if(!text.trim()){ wqaMsg('wqaParseMsg',dcT('wqaMsgPasteFirst'),true); return; }
   wqaMsg('wqaParseMsg','',false);
+  wqaClearSourceEvidence();
   let parsed=wqaParseText(text);
   /* A message that never names its product is still readable — the review screen
      already asks for one, exactly as it does for an extracted photo. Re-read the
      dimensions under the most general shape rather than refusing outright, and
      leave product blank so nothing is invented. Picking a product in review
      re-parses the same text under that product's rules. */
-  if(!parsed.common.product){
+  /* Only when NOTHING said which product — not when the rows disagree. A mixed
+     document has no single product at the top on purpose, and re-reading it
+     under one shape would flatten exactly the distinction it was making. */
+  if(!parsed.common.product && !parsed.rows.some(r=>r.product)){
     const probe=wqaParseText(text,'sagrod');
     if(probe.rows.length){
-      parsed={...probe, common:{...probe.common, product:''}};
+      /* The shape was borrowed to read the dimensions; the product was NOT.
+         Everything the borrowed shape INVENTED is given back: the product, and
+         a thread pair that exists only because a Sag Rod has two ends. A single
+         "thread 100" under an unknown product is a number whose end nobody has
+         established, so it is left for Review to place rather than shown as
+         100/100. A pair the customer actually wrote is kept — it is in the
+         message. */
+      const wrotePair=/\d\s*\/\s*\d/.test(text);
+      parsed={...probe, common:{...probe.common, product:''},
+              rows:probe.rows.map(r=>({...r, product:'',
+                ...(r.threadLen && r.threadLen===r.threadLen2 && !wrotePair
+                    ? {threadLen:'', threadLen2:''} : {})}))};
     }
   }
   const q=wqaParseQuality(parsed,text);
@@ -9954,8 +10194,8 @@ async function wqaParseAndReview(){
    that never named one still showed a real material sitting in the box — and
    the quotation was committed in it without anyone choosing it. A value nobody
    stated is shown as missing, never as chosen. */
-function wqaMaterialOptions(sel){
-  const src=el(wqa.product+'-material');
+function wqaMaterialOptions(sel,type){
+  const src=el((type||wqa.product)+'-material');
   if(!src) return '';
   if(sel===WQA_MIXED)
     return `<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`
@@ -9965,7 +10205,12 @@ function wqaMaterialOptions(sel){
     + [...src.options].map(o=>`<option value="${escHtml(o.value)}"${o.value===sel?' selected':''}>${escHtml(o.text)}</option>`).join('');
 }
 function wqaRenderCommon(){
-  const c=wqa.common, prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
+  const c=wqa.common;
+  /* Rows can hold different products, so the header summarises them exactly as
+     it does material and finish: the shared one, or Mixed. Mixed is a fact
+     about the rows, not a product anyone can pick. */
+  const prodMixed=wqaIsMixed('product');
+  const prod=wqaProductByType(prodMixed?'':wqa.product)||WQA_NO_PRODUCT;
   /* A defined mapping, so it reads as information: "HT → 4140 QT". Not a
      warning — the warning styling belongs to a material nobody stated. */
   /* Read from the rows, so it names a substitution that actually happened —
@@ -9985,7 +10230,9 @@ function wqaRenderCommon(){
      else. Mixed stays Mixed: an HDG row beside an N/A row genuinely differs. */
   const allSS=live.length ? live.every(x=>wqaNoFinish(wqaRowSpec(x,'material')))
                           : wqaNoFinish(c.material);
-  const stNeeded=prod.needSizeType && live.some(x=>!wqaRowSpec(x,'sizeType')) && !wqaIsMixed('sizeType');
+  const stNeeded=live.some(x=>{ const p=wqaProductByType(wqaRowProduct(x));
+                                return p && p.needSizeType && !wqaRowSpec(x,'sizeType'); })
+                 && !wqaIsMixed('sizeType');
   /* Asked for only once the product is known, because the list of materials
      depends on it. Never guessed from the product, the finish or what this
      customer usually orders. */
@@ -10001,10 +10248,11 @@ function wqaRenderCommon(){
     ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(w)}</div>`).join('') : '');
   el('wqaCommon').innerHTML=`
     <div class="wqa-common-grid">
-      <div class="field"><label>Product${wqa.product?'':' <span class="wqa-req">*</span>'}</label>
-        <select id="wqaProduct" class="${wqa.product?'':'wqa-needed'}" onchange="wqaChangeProduct(this.value)">
-          ${wqa.product?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`}
-          ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===wqa.product?' selected':''}>${p.label}</option>`).join('')}
+      <div class="field"><label>Product${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</label>
+        <select id="wqaProduct" class="${(prodMixed||wqa.product)?'':'wqa-needed'}" onchange="wqaChangeProduct(this.value)">
+          ${prodMixed?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
+          ${(prodMixed||wqa.product)?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`}
+          ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${!prodMixed&&p.type===wqa.product?' selected':''}>${p.label}</option>`).join('')}
         </select></div>
       <div class="field"><label>Material${matNeeded?' <span class="wqa-req">*</span>':''}</label>
         <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)">${wqaMaterialOptions(shownMat)}</select></div>
@@ -10023,7 +10271,7 @@ function wqaRenderCommon(){
         </select></div>
     </div>
     ${matNote}
-    ${wqa.product?'':'<div class="wqa-flag wqa-flag-req">The document does not say which product this is, so it is not guessed. Choose the product to price these items.</div>'}
+    ${(prodMixed||wqa.product)?'':'<div class="wqa-flag wqa-flag-req">The document does not say which product this is, so it is not guessed. Choose the product to price these items.</div>'}
     ${stNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('sizeTypeRequired').replace('{p}',prod.label)+'</div>':''}
     ${matNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('materialRequired')+'</div>':''}
     ${skipNote}${aiNote}`;
@@ -10031,7 +10279,13 @@ function wqaRenderCommon(){
 /* Changing the product re-parses the same text under the new product's rules —
    the dimension columns differ between products. */
 function wqaChangeProduct(t){
+  /* Mixed is not a choice — it is what the rows already say. */
+  if(t===WQA_MIXED){ wqaRenderCommon(); return; }
   wqa.product=t;
+  /* Choosing a product at the top is a deliberate action by staff, so it is
+     applied to the rows in scope — exactly like Apply to All for material.
+     Nothing automatic ever overwrites a row's own product. */
+  wqaApplyTargets().forEach(r=>{ r.product=t; });
   /* Extracted rows have no source text to re-read — re-parsing "[uploaded]
      file.png" would throw the rows away. They carry their own fields, so the
      product change only needs a recompute. */
@@ -10065,6 +10319,14 @@ function wqaSetCommon(k,v){
                                 r.finish=wqaFinishFor(v,r.finish); }
   });
   wqaRenderCommon(); wqaRecomputeAll(); }
+/* A row's own product, chosen on its own card. Changing it re-reads that row
+   through that product's calculator — nothing else on the list moves. */
+function wqaEditRowProduct(i,v){
+  const r=wqa.rows[i]; if(!r) return;
+  r.product=v;
+  wqaRenderCommon();
+  wqaRecomputeAll('force');
+}
 /* One row's own specification, edited from its expanded card. */
 function wqaEditRowSpec(i,k,v){
   const r=wqa.rows[i]; if(!r) return;
@@ -10085,9 +10347,14 @@ function wqaEditRowSpec(i,k,v){
    failing: a blank field costs a question, a guessed one costs a wrong
    quotation. */
 function wqaRowMissing(r){
-  const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
+  /* THIS row's product decides what this row needs: an Anchor Bolt wants one
+     thread value, a Sag Rod a pair, a Stud none at all. A document showing
+     "Mixed" at the top validates every row by its own rules, never by the
+     summary. */
+  const t=wqaRowProduct(r);
+  const prod=wqaProductByType(t)||WQA_NO_PRODUCT;
   const miss=[];
-  if(!wqa.product)             miss.push('Product');
+  if(!t)                       miss.push('Product');
   if(!String(r.size).trim())   miss.push('Size');
   if(!String(r.length).trim()) miss.push('Length');
   /* Qty is optional in Quick Add: a customer may send lengths with no counts,
@@ -10098,7 +10365,7 @@ function wqaRowMissing(r){
   /* The customer's material or nothing. Every rod is made of something, so a
      blank one means "not stated" — never "mild steel". Asked for only once the
      product is known, since Product is already the blocker until then. */
-  if(wqa.product && !wqaRowSpec(r,'material')) miss.push('Material');
+  if(t && !wqaRowSpec(r,'material')) miss.push('Material');
   if(prod.needSizeType && !wqaRowSpec(r,'sizeType')) miss.push('Size Type');
   /* A product that HAS a thread needs one: a Sag Rod as the pair 75/75 or
      50/110, an Anchor Bolt as the single value 100. Product-specific, never one
@@ -10124,7 +10391,7 @@ function wqaIsAsymmetric(r){
 /* Write a row into the REAL form, run the REAL calc, read the result back.
    This is the whole point: no second pricing engine exists. */
 function wqaApplyRowToForm(r){
-  const t=wqa.product, c=wqa.common;
+  const t=wqaRowProduct(r), c=wqa.common;
   productEntryTouchedFields.clear();
   resetAccPanel(t);
   /* THIS row's material, finish and size type — a stainless row is priced as
@@ -10163,8 +10430,9 @@ function wqaApplyRowToForm(r){
   onPriceModeChange(t);
   recalcCurrent();
 }
-function wqaReadFormPricing(){
-  const t=wqa.product, st=priceCalcState[t]||{};
+function wqaReadFormPricing(t){
+  t=t||wqa.product;
+  const st=priceCalcState[t]||{};
   return {costRate:fv(t,'costRate'),addCost:fv(t,'addCost'),markup:fv(t,'markup'),
           finalUnitPrice:Number(st.finalUnitPrice)||0,
           weight:Number(st.weight)||0};          // straight from the calculator
@@ -10175,16 +10443,26 @@ function wqaReadFormPricing(){
          omitted = full render unless someone is typing                    */
 async function wqaRecomputeAll(mode){
   if(!wqa.rows.length) return;                   // nothing to recompute after a reset
-  if(!wqa.product){                              // product still to be chosen: show the rows as read
+  /* Nothing to price until at least one row knows what it is. */
+  if(!wqaLiveProducts().length){
     if(mode==='patch') wqaPatchRows(); else wqaRenderRows(mode==='force');
     wqaUpdateAddButton();
     return;
   }
   const token=wqa.session;
   const keepType=currentType;
-  switchType(wqa.product);
-  wqa.rows.forEach(r=>{ if(r.removed) return; wqaApplyRowToForm(r); r.calc=wqaReadFormPricing(); });
-  resetAccPanel(wqa.product);
+  /* The calculator is switched to each row's OWN product, so a Stud row is
+     weighed and priced by the Stud path and the Sag Rod beside it by the Sag
+     Rod path. Same calculators, same formulas — only the routing is per row. */
+  wqa.rows.forEach(r=>{
+    if(r.removed) return;
+    const t=wqaRowProduct(r);
+    if(!t){ r.calc=null; return; }               // still asking which product
+    switchType(t);
+    wqaApplyRowToForm(r);
+    r.calc=wqaReadFormPricing(t);
+  });
+  wqaLiveProducts().forEach(t=>resetAccPanel(t));
   switchType(keepType);
   if(token!==wqa.session) return;                // a late debounce after a reset
   if(mode==='patch') wqaPatchRows(); else wqaRenderRows(mode==='force');
@@ -10229,8 +10507,15 @@ function wqaRenderRows(force){
         <div class="field"><label>Qty</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
       </div>
       <div class="wqa-row-grid">
+        <div class="field"><label>Product</label>
+          <select onchange="wqaEditRowProduct(${i},this.value)">
+            <option value=""${wqaRowProduct(r)?'':' selected'}>${escHtml(dcT('optRequired'))}</option>
+            ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===wqaRowProduct(r)?' selected':''}>${p.label}</option>`).join('')}
+          </select></div>
+        ${r.bodyDia?`<div class="field"><label data-i18n="wqaBodyDia">${escHtml(dcT('wqaBodyDia'))}</label>
+          <input type="text" value="${escHtml(r.bodyDia)}" oninput="wqaEdit(${i},'bodyDia',this.value)"></div>`:''}
         <div class="field"><label data-i18n="fieldMaterial">Material</label>
-          <select onchange="wqaEditRowSpec(${i},'material',this.value)">${wqaMaterialOptions(wqaRowSpec(r,'material'))}</select></div>
+          <select onchange="wqaEditRowSpec(${i},'material',this.value)">${wqaMaterialOptions(wqaRowSpec(r,'material'),wqaRowProduct(r))}</select></div>
         <div class="field"><label>Finish</label>
           <select onchange="wqaEditRowSpec(${i},'finish',this.value)"${wqaNoFinish(wqaRowSpec(r,'material'))?' disabled':''}>
             ${(wqaNoFinish(wqaRowSpec(r,'material'))?['']:['','PL','ZP','HDG'])
@@ -10329,9 +10614,11 @@ async function wqaLoadHistory(){
     if(wqaHistKey()!==before) wqaRenderRows();
     return;
   }
-  const t=wqa.product, c=wqa.common;
+  const c=wqa.common;
   for(const r of live){
     try{
+      const t=wqaRowProduct(r);
+      if(!t){ r.history=null; continue; }
       const rMat=wqaRowSpec(r,'material')||c.material||'';
       const isSS=rMat==='SS304'||rMat==='SS316';
       const params=new URLSearchParams({action:'get_price_history',
@@ -10356,7 +10643,7 @@ async function wqaLoadHistory(){
    really means the same length and thread. */
 function wqaExpectedDimPreview(r){
   const len=cleanNum(r.length), tl=wqaThreadValue(r);
-  if(wqa.product==='stud') return 'L '+len+'mm';
+  if(wqaRowProduct(r)==='stud') return 'L '+len+'mm';
   return 'L '+len+(tl?' x TL '+withMm(tl):'');
 }
 
@@ -10369,14 +10656,16 @@ async function wqaAddAll(){
   const btn=el('wqaAddBtn'); const label=btn.textContent; btn.disabled=true; btn.textContent='Adding…';
   const before=quoteItems.length;
   try{
-    switchType(wqa.product);
     for(const r of live){
       if(!(parseInt(r.qty,10)>0)) continue;   // no qty: the calculator would refuse it
+      /* Each row is committed through ITS OWN product's calculator — the same
+         add path as before, chosen per row instead of once for the list. */
+      switchType(wqaRowProduct(r));
       wqaApplyRowToForm(r);
       addCurrentItem();                 // the REAL add path: validation, calc, pushItem
     }
   } finally {
-    resetAccPanel(wqa.product);
+    wqaLiveProducts().forEach(t=>resetAccPanel(t));
     wqa.busy=false; btn.disabled=false; btn.textContent=label;
   }
   const added=quoteItems.length-before;
