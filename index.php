@@ -1779,7 +1779,17 @@ input,select,textarea{
    Declared here, after the base rule, so the breakpoints actually win. */
 @media (max-width:820px){ .wqa-source-text{max-height:120px} }   /* tablet */
 @media (max-width:640px){ .wqa-source-text{max-height:38vh} }    /* phone  */
-.wqa-price-common,.wqa-acc-common{padding:0;border:0;background:transparent}
+/* Every collapsible section is a bare wrapper around the SAME head, so the
+   arrow, title, summary, counter, height and padding line up down the column.
+   Only what each one opens into differs. */
+.wqa-source-common,.wqa-item-common,.wqa-price-common,.wqa-acc-common{
+  padding:0;border:0;background:transparent}
+.wqa-scope{margin-top:9px}
+.wqa-item-grid-1{grid-template-columns:minmax(0,1fr)}
+/* The tick box lives in the number cell, so switching scope moves no column. */
+.wqa-pick{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;margin:0}
+.wqa-row.is-picked{background:var(--accent-light)}
+.wqa-row.is-picked.wqa-row-block{background:var(--amber-light)}
 
 /* Quick Add — discard confirmation (covers the modal, never the whole page) */
 .wqa-confirm{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
@@ -1977,6 +1987,10 @@ input,select,textarea{
 .wqa-file-info{font-size:12.5px;font-weight:650;color:var(--text-2);overflow-wrap:anywhere}
 .wqa-ai-preview{margin-top:10px}
 .wqa-ai-preview img{max-height:160px;max-width:100%;border:1.5px solid var(--border);border-radius:var(--r-xs)}
+/* Every author display rule below outranks the browser's own [hidden], which
+   is how a PDF badge survived onto an image and how "Analyzing document…" sat
+   under "No file selected". One rule, at ID strength, for the whole modal. */
+#wqaModal [hidden]{display:none}
 .wqa-ai-status{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;font-weight:700;color:var(--text-2)}
 .wqa-ai-status small{font-weight:600;color:var(--text-muted)}
 .wqa-spinner{width:18px;height:18px;flex:0 0 auto;border:2.5px solid var(--accent-light);
@@ -1986,6 +2000,16 @@ input,select,textarea{
 .wqa-ai-privacy{margin-top:10px;font-size:11px;font-weight:600;color:var(--text-muted)}
 
 /* Quick Add — drag & drop upload zone (AI Quick Add V2.1) */
+/* Input choice: two targets big enough for a thumb, one column on a phone. */
+.wqa-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wqa-choice-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:22px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);
+  font-family:inherit;color:var(--text);cursor:pointer;min-height:104px}
+.wqa-choice-btn:hover{border-color:var(--accent-mid);background:var(--surface)}
+.wqa-choice-ico{font-size:22px;line-height:1}
+.wqa-choice-lbl{font-size:13px;font-weight:800}
+.wqa-back-btn{margin-right:auto}
+@media (max-width:640px){ .wqa-choice{grid-template-columns:1fr} }
 .wqa-drop{border:2px dashed var(--border);border-radius:var(--r-sm);background:var(--surface2);
   padding:20px 14px;text-align:center;transition:border-color .15s ease,background-color .15s ease}
 .wqa-drop.is-drag{border-color:var(--accent);background:var(--accent-light)}
@@ -3275,9 +3299,26 @@ input,select,textarea{
 
     <!-- STEP 1 — paste text OR upload a photo / PDF -->
     <div id="wqaStep1">
-      <div class="wqa-method" role="group" data-i18n-aria="wqaAriaMethod" aria-label="Input method">
+      <div class="wqa-method" id="wqaMethodTabs" role="group" data-i18n-aria="wqaAriaMethod" aria-label="Input method">
         <button type="button" id="wqaTabPaste" class="wqa-method-btn is-on" onclick="wqaSetMethod('paste')" data-i18n="wqaTabPaste">Paste WhatsApp Text</button>
         <button type="button" id="wqaTabUpload" class="wqa-method-btn" onclick="wqaSetMethod('upload')" data-i18n="wqaTabUpload">Upload Photo / PDF</button>
+      </div>
+
+      <!-- The way back to picking an input. Quick Add still OPENS on paste, so
+           the common path costs nobody an extra tap; this is here for when the
+           customer sent a photo after all. Nothing is cleared either way. -->
+      <div id="wqaChoicePane" hidden>
+        <p class="wqa-hint" data-i18n="wqaChooseHint">How did the customer send the request?</p>
+        <div class="wqa-choice">
+          <button type="button" class="wqa-choice-btn" onclick="wqaSetMethod('paste')">
+            <span class="wqa-choice-ico" aria-hidden="true">💬</span>
+            <span class="wqa-choice-lbl" data-i18n="wqaTabPaste">Paste WhatsApp Text</span>
+          </button>
+          <button type="button" class="wqa-choice-btn" onclick="wqaSetMethod('upload')">
+            <span class="wqa-choice-ico" aria-hidden="true">🖼️</span>
+            <span class="wqa-choice-lbl" data-i18n="wqaTabUpload">Upload Photo / PDF</span>
+          </button>
+        </div>
       </div>
 
       <div id="wqaPastePane">
@@ -3316,6 +3357,8 @@ input,select,textarea{
 
       <div id="wqaParseMsg" class="wqa-msg" hidden></div>
       <div class="wqa-actions">
+        <button class="btn btn-ghost btn-sm wqa-back-btn" id="wqaChooseBtn" onclick="wqaSetMethod('choose')"
+                data-i18n="wqaChooseInput">← Choose Input</button>
         <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel">Cancel</button>
         <button class="btn btn-primary" id="wqaParseBtn" onclick="wqaParseAndReview()" data-i18n="wqaParseItems">Parse Items</button>
         <button class="btn btn-primary" id="wqaAnalyzeBtn" onclick="wqaAnalyze()" hidden disabled data-i18n="wqaAnalyze">Analyze</button>
@@ -3792,6 +3835,7 @@ const I18N={
     wqaParseItems:'Parse Items', wqaAnalyze:'Analyze',
     wqaCompact:'Compact', wqaExpanded:'Expanded', wqaEditPasted:'← Edit pasted text',
     wqaBackToUpload:'← Back to upload', wqaSourceTitle:'WhatsApp Message',
+    wqaChooseInput:'← Choose Input', wqaChooseHint:'How did the customer send the request?',
     wqaSourceLines:'{n} lines', wqaSourceEdit:'Edit message',
     wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiAssisted:'✨ AI assisted',
     notSet:'Not set', none:'None',
@@ -3802,9 +3846,15 @@ const I18N={
     wqaCannotRead:'Could not confidently read this message. Please edit the pasted text or enter the items manually.',
     errNoText:'No text was supplied.',
     errTextTooLong:'That message is too long to analyze. Trim it and try again.',
-    wqaCommonItemTitle:'Common Item Fields — Apply to All',
-    wqaCommonPriceTitle:'Pricing Entry — Apply to All',
-    wqaCommonAccTitle:'Accessories — Apply to All',
+    wqaCommonItemTitle:'Common Item Fields', wqaApplyToAll:'Apply to All',
+    wqaApplyToSelected:'Apply to Selected', wqaScopeAll:'All Items',
+    wqaScopeSelected:'Selected Items', wqaNIncomplete:'{n} incomplete',
+    wqaApplyAll:'Apply to All Items', wqaApplySelected:'Apply to {n} Selected Items',
+    wqaApplyPriceAll:'Apply Pricing to All Items', wqaApplyPriceSelected:'Apply Pricing to {n} Selected',
+    wqaApplyManualAll:'Apply Manual Unit Price to All',
+    wqaApplyManualSelected:'Apply Manual Unit Price to {n} Selected',
+    wqaToastNoneSelected:'Tick at least one item first',
+    wqaCommonPriceTitle:'Pricing Entry', wqaCommonAccTitle:'Accessories',
     wqaMsgNoRows:'No item rows could be read from this file. Try again or paste the text manually.',
     wqaMsgCannotAnalyze:'Could not analyze this file. Try again or paste the text manually.',
     wqaMsgNoProduct:'Could not read a supported product from this file. Try again or paste the text manually.',
@@ -3968,6 +4018,7 @@ const I18N={
     wqaParseItems:'解析产品', wqaAnalyze:'分析',
     wqaCompact:'精简', wqaExpanded:'展开', wqaEditPasted:'← 编辑粘贴文字',
     wqaBackToUpload:'← 返回上传', wqaSourceTitle:'客户原文',
+    wqaChooseInput:'← 选择输入方式', wqaChooseHint:'客户是以什么方式发来的？',
     wqaSourceLines:'{n} 行', wqaSourceEdit:'编辑原文',
     wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
     notSet:'未设置', none:'无',
@@ -3978,9 +4029,15 @@ const I18N={
     wqaCannotRead:'无法可靠识别这段内容。请编辑粘贴文字，或手动输入产品。',
     errNoText:'没有提供文字。',
     errTextTooLong:'这段内容太长，无法分析。请精简后再试。',
-    wqaCommonItemTitle:'通用项目参数 — 应用到全部',
-    wqaCommonPriceTitle:'价格设置 — 应用到全部',
-    wqaCommonAccTitle:'配件 — 应用到全部',
+    wqaCommonItemTitle:'通用项目参数', wqaApplyToAll:'应用到全部',
+    wqaApplyToSelected:'应用到选定', wqaScopeAll:'全部项目',
+    wqaScopeSelected:'选定项目', wqaNIncomplete:'{n} 项待补',
+    wqaApplyAll:'应用到全部项目', wqaApplySelected:'应用到 {n} 个选定项目',
+    wqaApplyPriceAll:'价格应用到全部项目', wqaApplyPriceSelected:'价格应用到 {n} 个选定项目',
+    wqaApplyManualAll:'手动单价应用到全部',
+    wqaApplyManualSelected:'手动单价应用到 {n} 个选定项目',
+    wqaToastNoneSelected:'请先勾选至少一个项目',
+    wqaCommonPriceTitle:'价格设置', wqaCommonAccTitle:'配件',
     wqaMsgNoRows:'无法从这个文件读取到产品行。请重试，或改用粘贴文字。',
     wqaMsgCannotAnalyze:'无法分析这个文件。请重试，或改用粘贴文字。',
     wqaMsgNoProduct:'无法从这个文件读出支持的产品。请重试，或改用粘贴文字。',
@@ -7593,11 +7650,17 @@ const WQA_NO_PRODUCT={type:'',token:'',label:'—',dims:['size','length'],thread
 const WQA_MATERIALS=[
   {re:/\b4140\s*(qt)?\s*\+?\s*harden\b|\bg\s*10\.?9\b/i, value:'4140_HARDEN_G10_9'},
   {re:/\bs45c\s*\+?\s*harden\b/i,                        value:'S45C_HARDEN_G8_8'},
-  /* G8.8 / GRADE 8.8 / 8.8 is a STRENGTH GRADE, not a material. Several
-     materials can meet it, so Quick Add applies the business default of
-     4140 QT and flags it. Writing "S45C + HARDEN" explicitly still selects
-     that material on the line above. */
-  {re:/\bg\s*8\.?8\b|\bgr\.?\s*8\.?8\b|\bgrade\s*8\.?8\b|\b8\.8\b(?!\s*mm)/i, value:'4140', defaulted:true, from:'G8.8'},
+  /* G8.8, HT and High Tensile are all STRENGTH descriptions, not materials.
+     Several materials can meet them, and the established business answer for
+     all of them is 4140 QT — a defined mapping, not a guess, so the row is not
+     blocked; the note simply says which wording produced it. Writing
+     "S45C + HARDEN" explicitly still selects that material on the line above.
+
+     HT is a two-letter token, so it is matched ONLY standing alone: "HT SAG
+     ROD" is high tensile, "length 1000" is not, and no word containing those
+     letters can trigger it. */
+  {re:/\bg\s*8\.?8\b|\bgr\.?\s*8\.?8\b|\bgrade\s*8\.?8\b|\b8\.8\b(?!\s*mm)|\bhigh[\s-]*tensile(?:\s*steel)?\b|\bht\b(?:\s*(?:material|rod|steel))?/i,
+   value:'4140', defaulted:true, from:'G8.8'},
   {re:/\b4140\s*qt\b/i,                                   value:'4140'},
   {re:/\b4140\s*(plain|non[\s-]*qt|not[\s-]*qt)\b|\b(plain|non[\s-]*qt)\s*4140\b/i, value:'4140_PLAIN'},
   {re:/\b4140\b/i,                                        value:'4140', defaulted:true},
@@ -7620,7 +7683,8 @@ const WQA_FINISHES=[
 ];
 
 const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPrice:null,
-           panels:{item:false,price:false,acc:false},view:'compact',rows:[],busy:false};
+           panels:{item:false,price:false,acc:false},applyScope:'all',
+           view:'compact',rows:[],busy:false};
 /* Both common sections start COLLAPSED at every width, so the parsed items are
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
@@ -7640,6 +7704,62 @@ function wqaPanelHead(which,title,summary,badge){
      </span>
      <span class="wqa-panel-badge"${badge?'':' hidden'}>${escHtml(badge||'')}</span>
    </button>`;
+}
+
+/* ── Apply scope ────────────────────────────────────────────────────────────
+   The three copy-once panels write to every live row, which is the ordinary
+   job and stays the default. Switching to Selected puts a tick box on each row,
+   and the same three panels then write only to what is ticked. ONE scope and
+   ONE selection shared by all three, so the table gains tick boxes once — and
+   only while they are being used. */
+function wqaApplyTargets(){
+  const live=wqa.rows.filter(r=>!r.removed);
+  return wqa.applyScope==='selected' ? live.filter(r=>r.sel) : live;
+}
+function wqaSelCount(){ return wqa.rows.filter(r=>!r.removed&&r.sel).length; }
+function wqaSetApplyScope(s){
+  wqa.applyScope = s==='selected' ? 'selected' : 'all';
+  /* Leaving Selected drops the ticks: a hidden selection that a later Apply
+     would silently obey is worse than starting again. */
+  if(wqa.applyScope==='all') wqa.rows.forEach(r=>{ r.sel=false; });
+  wqaRenderCommonItem(true); wqaRenderCommonPrice(true); wqaRenderCommonAcc(true);
+  wqaRenderRows(true);
+}
+function wqaToggleRowSel(i){
+  const r=wqa.rows[i]; if(!r) return;
+  r.sel=!r.sel;
+  const card=el('wqaRows')&&el('wqaRows').querySelector('[data-wqa-row="'+i+'"]');
+  if(card) card.classList.toggle('is-picked',!!r.sel);
+  wqaPatchApplyLabels();          // only the button labels move; no panel rebuild
+}
+/* What a panel's Apply button says it will do, in the language of the moment. */
+function wqaApplyLabel(allKey,selKey){
+  return wqa.applyScope==='selected'
+    ? dcT(selKey).replace('{n}',wqaSelCount())
+    : dcT(allKey);
+}
+function wqaPatchApplyLabels(){
+  const step=el('wqaStep2'); if(!step) return;
+  step.querySelectorAll('[data-wqa-apply]').forEach(btn=>{
+    const k=String(btn.getAttribute('data-wqa-apply')).split('|');
+    btn.textContent=wqaApplyLabel(k[0],k[1]);
+  });
+}
+/* Rendered identically in all three panels, from the segmented control the row
+   view toggle already uses — so it is one component, responsive already. */
+function wqaScopeSwitch(){
+  const sel=wqa.applyScope==='selected';
+  return `<div class="wqa-view-toggle wqa-scope" role="group">
+      <button type="button" class="wqa-view-btn${sel?'':' is-on'}" onclick="wqaSetApplyScope('all')"
+              data-i18n="wqaScopeAll">${escHtml(dcT('wqaScopeAll'))}</button>
+      <button type="button" class="wqa-view-btn${sel?' is-on':''}" onclick="wqaSetApplyScope('selected')"
+              data-i18n="wqaScopeSelected">${escHtml(dcT('wqaScopeSelected'))}</button>
+    </div>`;
+}
+/* The scope rides in the title, so a COLLAPSED panel still says where its Apply
+   would land. All three heads are built the same way, from the same pieces. */
+function wqaScopeTitle(key){
+  return dcT(key)+' — '+dcT(wqa.applyScope==='selected'?'wqaApplyToSelected':'wqaApplyToAll');
 }
 
 /* ── Common Size / Thread — Apply to All ───────────────────────────────────
@@ -7669,29 +7789,38 @@ function wqaItemSummary(c){
 /* Rows still missing a size or a thread — the reason this panel exists, so it
    is surfaced on the collapsed header too. */
 function wqaItemNeedCount(){
+  /* Product-specific: a Stud has no thread, so it is never counted as missing
+     one. A Sag Rod and an Anchor Bolt both need theirs. */
+  const wantsThread=wqaThreadEnds(wqa.product)>0;
   return wqa.rows.filter(r=>!r.removed &&
-    (!String(r.size||'').trim() || !wqaThreadValue(r))).length;
+    (!String(r.size||'').trim() || (wantsThread && !wqaThreadValue(r)))).length;
 }
 function wqaRenderCommonItem(force){
   const box=el('wqaCommonItem'); if(!box) return;
   if(!force && wqaTypingIn(box)){ wqaPatchItemPanel(); wqaDeferRender('item'); return; }
   const c=wqa.commonItem||(wqa.commonItem=wqaEmptyItem());
   const need=wqaItemNeedCount();
-  const head=wqaPanelHead('item',dcT('wqaCommonItemTitle'),wqaItemSummary(c),
-                          need?need+' incomplete':'');
+  /* A Stud is threaded over its whole length by definition, so there is no
+     thread for a customer to state and none to ask for here. Sag Rod wants the
+     pair, Anchor Bolt the single value — the placeholder says which. */
+  const ends=wqaThreadEnds(wqa.product);
+  const head=wqaPanelHead('item',wqaScopeTitle('wqaCommonItemTitle'),wqaItemSummary(c),
+                          need?dcT('wqaNIncomplete').replace('{n}',need):'');
   box.innerHTML = head + (!wqa.panels.item ? '' :
     `<div class="wqa-panel-body">
        <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards. A blank field is left alone — it never clears what a row already has.</div>
-       <div class="wqa-item-grid">
+       <div class="wqa-item-grid${ends?'':' wqa-item-grid-1'}">
          <label class="wqa-acc-f"><span>Size</span>
            <input type="text" id="wqaCommonSize" value="${escHtml(c.size)}" placeholder="M12"
                   oninput="wqaEditCommonItem('size',this.value)"></label>
-         <label class="wqa-acc-f"><span>Thread</span>
-           <input type="text" id="wqaCommonThread" value="${escHtml(c.thread)}" placeholder="75/75"
-                  oninput="wqaEditCommonItem('thread',this.value)"></label>
+         ${ends?`<label class="wqa-acc-f"><span>Thread</span>
+           <input type="text" id="wqaCommonThread" value="${escHtml(c.thread)}" placeholder="${ends===2?'75/75':'100'}"
+                  oninput="wqaEditCommonItem('thread',this.value)"></label>`:''}
        </div>
+       ${wqaScopeSwitch()}
        <div class="wqa-acc-actions">
-         <button type="button" class="btn btn-outline btn-sm" onclick="wqaApplyItemToAll()">Apply to All Items</button>
+         <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
+                 onclick="wqaApplyItemToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
          <span class="wqa-acc-sum">Current: ${escHtml(wqaItemSummary(c))}</span>
        </div>
      </div>`);
@@ -7702,7 +7831,7 @@ function wqaPatchItemPanel(){
   const c=wqa.commonItem||wqaEmptyItem();
   wqaPanelSum(box,wqaItemSummary(c));
   const need=wqaItemNeedCount();
-  wqaPanelBadge(box,need?need+' incomplete':'');
+  wqaPanelBadge(box,need?dcT('wqaNIncomplete').replace('{n}',need):'');
   const cur=box.querySelector('.wqa-acc-sum');
   if(cur) cur.textContent='Current: '+wqaItemSummary(c);
 }
@@ -7718,10 +7847,13 @@ function wqaEditCommonItem(field,value){
 function wqaApplyItemToAll(){
   const c=wqa.commonItem||wqaEmptyItem();
   const size=wqaNormSize(c.size);
-  const thread=String(c.thread||'').trim();
+  /* Suppressed only where we KNOW the product has no thread. An unknown product
+     still copies whatever was typed — losing it would be worse than carrying it. */
+  const prod=wqaProductByType(wqa.product);
+  const thread=(prod && prod.threadEnds===0) ? '' : String(c.thread||'').trim();
   if(!size && !thread){ showToast(dcT('wqaToastEnterSizeThread')); return; }
-  const live=wqa.rows.filter(r=>!r.removed);
-  if(!live.length){ showToast(dcT('wqaToastNoItems')); return; }
+  const live=wqaApplyTargets();
+  if(!live.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
   /* A blank field is not an instruction to clear. Only what was filled in gets
      copied, so Size-only leaves every row's thread exactly as it was — an
      asymmetric 50/110 included — and Thread-only leaves every row's size. */
@@ -7740,7 +7872,9 @@ function wqaApplyItemToAll(){
       if(r.defaulted) r.defaulted.threadMissing=false;   // the badge is no longer true
     }
   });
-  wqa.panels.item=true;                 // stay open while staff keep editing
+  /* The panel exists to fill these in. Once every item has them it gets out of
+     the way by itself — and it reopens the moment something is missing again. */
+  wqa.panels.item = wqaItemNeedCount()>0;
   wqaRenderCommonItem(true);
   wqaRecomputeAll();                    // existing validation + calculator, unchanged
   const what = size&&thread ? 'Size '+size+' and Thread '+thread
@@ -7829,7 +7963,7 @@ function wqaRenderCommonPrice(force){
   const entered=[c.costRate!==''?'Cost Rate '+c.costRate:'',c.addCost!==''?'Add Cost '+c.addCost:'',
                  c.markup!==''?'Markup '+c.markup+'%':'',wqaPriceModeLabel(c.priceMode)].filter(Boolean).join('  ·  ');
   el('wqaCommonPrice').innerHTML=
-    wqaPanelHead('price',dcT('wqaCommonPriceTitle'),wqaPriceSummary(c),'') +
+    wqaPanelHead('price',wqaScopeTitle('wqaCommonPriceTitle'),wqaPriceSummary(c),'') +
     (!wqa.panels.price ? '' : `<div class="wqa-panel-body">
        <div class="wqa-acc-note">Entry values only. Auto Round and No Round rows each recalculate their own Final Unit Price from their own dimensions.</div>
      <div class="wqa-price-line">
@@ -7841,9 +7975,12 @@ function wqaRenderCommonPrice(force){
      ${manual?`<div class="wqa-price-line wqa-price-manual">
        <label class="wqa-acc-f"><span>Manual Unit Price (RM)</span><input type="number" min="0" step="0.01" value="${escHtml(c.manualUnitPrice)}" oninput="wqaEditCommonPrice('manualUnitPrice',this.value)"></label>
      </div>`:''}
+     ${wqaScopeSwitch()}
      <div class="wqa-acc-actions">
-       <button type="button" class="btn btn-outline btn-sm" onclick="wqaApplyPriceToAll()">Apply Pricing to All Items</button>
-       ${manual?`<button type="button" class="btn btn-outline btn-sm wqa-manual-btn" onclick="wqaApplyManualPriceToAll()">Apply Manual Unit Price to All</button>`:''}
+       <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyPriceAll|wqaApplyPriceSelected"
+               onclick="wqaApplyPriceToAll()">${escHtml(wqaApplyLabel('wqaApplyPriceAll','wqaApplyPriceSelected'))}</button>
+       ${manual?`<button type="button" class="btn btn-outline btn-sm wqa-manual-btn" data-wqa-apply="wqaApplyManualAll|wqaApplyManualSelected"
+               onclick="wqaApplyManualPriceToAll()">${escHtml(wqaApplyLabel('wqaApplyManualAll','wqaApplyManualSelected'))}</button>`:''}
        <span class="wqa-acc-sum">${escHtml(entered)}</span>
      </div>
      ${manual?`<div class="wqa-price-warn">Manual Price gives every item the SAME final price. Different lengths normally cost different amounts — apply it only when the customer really quoted one flat price.</div>`:''}
@@ -7871,9 +8008,10 @@ function wqaEditCommonPrice(field,value){
 /* One-time copy. Final Unit Price is deliberately NOT part of this. */
 function wqaApplyPriceToAll(){
   const c=wqa.commonPrice||wqaEmptyPrice();
+  const targets=wqaApplyTargets();
+  if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
   let droppedLast=0;
-  wqa.rows.forEach(r=>{
-    if(r.removed) return;
+  targets.forEach(r=>{
     if(c.costRate!=='') r.priceOverride.costRate=c.costRate;
     if(c.addCost!=='')  r.priceOverride.addCost=c.addCost;
     if(c.markup!=='')   r.priceOverride.markup=c.markup;
@@ -7893,11 +8031,13 @@ function wqaApplyManualPriceToAll(){
   if(c.priceMode!=='manual'){ showToast(dcT('wqaToastSetManual')); return; }
   const v=String(c.manualUnitPrice||'').trim();
   if(v===''||!(parseFloat(v)>0)){ showToast(dcT('wqaToastEnterManual')); return; }
-  wqa.rows.forEach(r=>{ if(r.removed) return; r.priceMode='manual'; r.manualPrice=v; r.useLastPrice=false; });
+  const targets=wqaApplyTargets();
+  if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
+  targets.forEach(r=>{ r.priceMode='manual'; r.manualPrice=v; r.useLastPrice=false; });
   wqa.panels.price=true;
   wqaRenderCommonPrice();
   wqaRecomputeAll();
-  showToast('Manual unit price RM'+parseFloat(v).toFixed(2)+' applied to all items');
+  showToast('Manual unit price RM'+parseFloat(v).toFixed(2)+' applied to '+targets.length+' item'+(targets.length===1?'':'s'));
 }
 /* Per row, so one item can differ from the rest. */
 function wqaEditRowMode(i,mode){
@@ -7931,13 +8071,15 @@ function wqaRenderCommonAcc(force){
   if(!force && wqaTypingIn(el('wqaCommonAcc'))){ wqaPatchAccPanel(); wqaDeferRender('acc'); return; }
   const a=wqa.commonAcc||(wqa.commonAcc=wqaEmptyAcc());
   const n=wqaAccActiveCount(a);
-  const head=wqaPanelHead('acc',dcT('wqaCommonAccTitle'),wqaAccShortSummary(a),n?n+' active':'');
+  const head=wqaPanelHead('acc',wqaScopeTitle('wqaCommonAccTitle'),wqaAccShortSummary(a),n?n+' active':'');
   el('wqaCommonAcc').innerHTML = head + (!wqa.panels.acc ? '' :
     `<div class="wqa-panel-body">
        <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards.</div>
        ${wqaAccEditor(a,(g,f,v)=>`wqaEditCommonAcc('${g}','${f}',${v})`)}
+       ${wqaScopeSwitch()}
        <div class="wqa-acc-actions">
-         <button type="button" class="btn btn-outline btn-sm" onclick="wqaApplyAccToAll()">Apply to All Items</button>
+         <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
+                 onclick="wqaApplyAccToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
          <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()">Clear All Accessories</button>
          <span class="wqa-acc-sum">Current: ${escHtml(wqaAccSummary(a))}</span>
        </div>
@@ -7953,11 +8095,14 @@ function wqaEditCommonAcc(group,field,value){
 }
 function wqaApplyAccToAll(){
   const src=wqa.commonAcc||wqaEmptyAcc();
-  wqa.rows.forEach(r=>{ if(!r.removed) r.acc=wqaCloneAcc(src); });   // clone per row
+  const targets=wqaApplyTargets();
+  if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
+  targets.forEach(r=>{ r.acc=wqaCloneAcc(src); });                   // clone per row
   wqa.panels.acc=true;      // stay open while staff keep editing
   wqaRenderCommonAcc();
   wqaRecomputeAll();
-  showToast(wqaAccHas(src)?'Accessories applied to all items':'All items set to no accessories');
+  const n=targets.length;
+  showToast((wqaAccHas(src)?'Accessories applied to ':'No accessories set on ')+n+' item'+(n===1?'':'s'));
 }
 function wqaClearAllAcc(){
   wqa.rows.forEach(r=>{ if(!r.removed) r.acc=null; });   // dimensions and pricing entry untouched
@@ -8281,9 +8426,14 @@ function wqaDetectCommon(text){
   for(const p of WQA_PRODUCTS){
     if(p.aliases.some(a=>hay.includes(' '+a+' ')||hay.includes(' '+a+'s ')||hay.includes(a))){ out.product=p.type; break; }
   }
+  /* Matched against the text as WRITTEN, not the lower-cased copy, so the note
+     can show the customer's own wording back to them: HT, High Tensile, G8.8. */
+  const said=' '+wqaNorm(text)+' ';
   for(const m of WQA_MATERIALS){
-    if(m.re.test(hay)){ out.material=m.value; out.materialDefaulted=!!m.defaulted;
-                        out.materialDefaultedFrom=m.from||'4140'; break; }
+    const hit=m.re.exec(said);
+    if(hit){ out.material=m.value; out.materialDefaulted=!!m.defaulted;
+             out.materialDefaultedFrom=String(hit[0]).replace(/\s+/g,' ').trim()||m.from||'4140';
+             break; }
   }
   for(const f of WQA_FINISHES){ if(f.re.test(hay)){ out.finish=f.value; break; } }
   /* "undersized" is as common as "undersize" on a handwritten drawing. */
@@ -8758,21 +8908,47 @@ function wqaOpen(){
    the key server-side and deletes the temp file immediately. */
 const WQA_AI_MAX_IMG = 10*1048576, WQA_AI_MAX_PDF = 20*1048576;
 
+/* paste | upload | choose. "choose" is the input-choice view: it hides the two
+   panes without touching what is in them, so coming back finds the pasted text
+   and the selected file exactly as they were. Only Cancel and the X discard. */
 function wqaSetMethod(m){
-  wqa.method = m==='upload' ? 'upload' : 'paste';
+  const choose = m==='choose';
+  wqa.method = choose ? 'choose' : (m==='upload' ? 'upload' : 'paste');
   const up = wqa.method==='upload';
-  el('wqaPastePane').hidden = up;
-  el('wqaUploadPane').hidden = !up;
-  el('wqaParseBtn').hidden = up;
-  el('wqaAnalyzeBtn').hidden = !up;
-  el('wqaTabPaste').classList.toggle('is-on', !up);
+  el('wqaChoicePane').hidden  = !choose;
+  el('wqaMethodTabs').hidden  = choose;
+  el('wqaChooseBtn').hidden   = choose;
+  el('wqaPastePane').hidden   = choose || up;
+  el('wqaUploadPane').hidden  = choose || !up;
+  el('wqaParseBtn').hidden    = choose || up;
+  el('wqaAnalyzeBtn').hidden  = choose || !up;
+  el('wqaTabPaste').classList.toggle('is-on', !up && !choose);
   el('wqaTabUpload').classList.toggle('is-on', up);
+  wqaAbandonAi();                     // leaving the pane ends any analysing state
+  wqaUpdateAiPane();
   wqaMsg('wqaParseMsg','',false); wqaMsg('wqaAiMsg','',false);
+}
+/* ── The analysing state ────────────────────────────────────────────────────
+   It exists only while a request is actually in flight. ONE function owns the
+   spinner, the message and the button, so no path can leave a spinner spinning
+   over a pane with no file in it. Every abandonment — a replaced file, a tab
+   switch, a reset — also retires the in-flight request's token, so a late
+   response can never write over newer state. */
+function wqaSetAiBusy(on){
+  wqa.aiBusy=!!on;
+  const s=el('wqaAiStatus'); if(s) s.hidden=!on;
+  wqaUpdateAiPane();
+}
+function wqaAbandonAi(){
+  wqa._aiReq=(wqa._aiReq||0)+1;          // any answer still coming is now stale
+  wqa.aiBusy=false;
+  const s=el('wqaAiStatus'); if(s) s.hidden=true;
 }
 function wqaClearAiFile(rerender){
   if(wqa.aiPreviewUrl){ try{ URL.revokeObjectURL(wqa.aiPreviewUrl); }catch(e){} }
   wqa.aiFile=null; wqa.aiPreviewUrl=''; wqa.aiIsPdf=false;
   wqa._dragDepth=0; wqaDragPaint(false); wqaDropBad(false);
+  wqaAbandonAi();
   if(rerender!==false) wqaUpdateAiPane();
 }
 /* ── Drag & drop ───────────────────────────────────────────────────────────
@@ -8849,9 +9025,11 @@ function wqaUpdateAiPane(){
   const info=el('wqaFileInfo'), box=el('wqaAiPreviewBox'), img=el('wqaAiPreview'),
         chip=el('wqaAiPdfChip'), pname=el('wqaAiPdfName'), btn=el('wqaAnalyzeBtn');
   if(info) info.textContent = wqa.aiFile ? (wqa.aiFile.name+' · '+wqaFmtBytes(wqa.aiFile.size)) : dcT('wqaNoFile');
-  /* Images preview inline; a PDF gets a plain file indicator — rendering its
-     pages would buy nothing here, the server reads it either way. */
-  const showImg=!!wqa.aiPreviewUrl, showPdf=!!wqa.aiFile&&!!wqa.aiIsPdf;
+  /* Read from the file that is selected RIGHT NOW, never from what was shown
+     before: an image gets the preview and no badge, a PDF gets the badge and no
+     preview, and replacing one with the other swaps both in the same pass. */
+  const showImg=!!wqa.aiFile && !wqa.aiIsPdf && !!wqa.aiPreviewUrl;
+  const showPdf=!!wqa.aiFile && !!wqa.aiIsPdf;
   if(img){ img.hidden=!showImg; img.src=wqa.aiPreviewUrl||''; }
   if(chip)  chip.hidden=!showPdf;
   if(pname) pname.textContent = showPdf ? wqa.aiFile.name : '';
@@ -8871,22 +9049,24 @@ function wqaUpdateAiPane(){
 }));
 async function wqaAnalyze(){
   if(!wqa.aiFile || wqa.aiBusy) return;               // no double-submit
-  wqa.aiBusy=true;
-  const btn=el('wqaAnalyzeBtn'); btn.disabled=true;
-  el('wqaAiStatus').hidden=false; wqaMsg('wqaAiMsg','',false);
+  const token=(wqa._aiReq=(wqa._aiReq||0)+1);
+  wqaSetAiBusy(true);
+  wqaMsg('wqaAiMsg','',false);
   try{
     const fd=new FormData(); fd.append('file', wqa.aiFile, wqa.aiFile.name);
     const res=await fetch('ai_extract.php',{method:'POST',body:fd});
     let j=null; try{ j=await res.json(); }catch(e){}
+    if(token!==wqa._aiReq) return;                     // superseded while in flight
     if(!j || !j.ok){
       wqaMsg('wqaAiMsg',dcServerError(j),true);
       return;                                          // file stays selected for a retry
     }
     await wqaAiApply(j.data);
   }catch(e){
+    if(token!==wqa._aiReq) return;
     wqaMsg('wqaAiMsg',dcT('wqaMsgCannotAnalyze'),true);
   }finally{
-    wqa.aiBusy=false; el('wqaAiStatus').hidden=true; wqaUpdateAiPane();
+    if(token===wqa._aiReq) wqaSetAiBusy(false);
   }
 }
 /* ══ THE ONE SHARED NORMALISER ══════════════════════════════════════════════
@@ -9134,6 +9314,7 @@ function wqaResetState(){
   wqa.commonItem=wqaEmptyItem();
   wqa.commonAcc=wqaEmptyAcc(); wqa.commonPrice=wqaEmptyPrice();
   wqa.panels={source:false,item:false,price:false,acc:false}; wqa.view='compact';
+  wqa.applyScope='all';
   wqa.skipped=[]; wqa.busy=false;
 
   /* AI upload session state — the selected/dropped file, its name, its preview,
@@ -9322,8 +9503,10 @@ function wqaMaterialOptions(sel){
 }
 function wqaRenderCommon(){
   const c=wqa.common, prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
+  /* A defined mapping, so it reads as information: "HT → 4140 QT". Not a
+     warning — the warning styling belongs to a material nobody stated. */
   const matNote=c.materialDefaulted
-    ? `<div class="wqa-flag wqa-flag-def">Defaulted to 4140 QT from customer text “${escHtml(c.materialDefaultedFrom||'4140')}”. Change it if they meant something else.</div>` : '';
+    ? `<div class="wqa-flag wqa-flag-def">${escHtml(c.materialDefaultedFrom||'4140')} → ${escHtml(materialLabel(c.material))}</div>` : '';
   const stNeeded=prod.needSizeType && !c.sizeType;
   /* Asked for only once the product is known, because the list of materials
      depends on it. Never guessed from the product, the finish or what this
@@ -9373,12 +9556,20 @@ function wqaChangeProduct(t){
   /* Extracted rows have no source text to re-read — re-parsing "[uploaded]
      file.png" would throw the rows away. They carry their own fields, so the
      product change only needs a recompute. */
-  if(wqa.source==='ai'){ wqaRenderCommon(); wqaRecomputeAll('force'); return; }
+  /* The required common fields change with the product — a Stud loses its
+     Thread box, a Sag Rod gains a paired one — so the panel is rebuilt and its
+     open state re-decided every time. */
+  if(wqa.source==='ai'){
+    wqaRenderCommon(); wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
+    wqaRecomputeAll('force'); return;
+  }
   /* Same pipeline as the first parse, so header context and inheritance behave
      identically after a product switch. */
   wqa.rows=wqaParseText(wqa.raw,t).rows
     .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',useLastPrice:false,manualPrice:'',priceOverride:{},history:undefined,removed:false}));
-  wqaRenderCommon(); wqaRecomputeAll();
+  wqaRenderCommon();
+  wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
+  wqaRecomputeAll();
 }
 function wqaSetCommon(k,v){ wqa.common[k]=v; if(k==='material') wqa.common.materialDefaulted=false;
   wqaRenderCommon(); wqaRecomputeAll(); }
@@ -9563,10 +9754,13 @@ function wqaRenderRows(force){
       <div class="wqa-row-raw-full">${escHtml(r.raw)}</div>
     </div>`;
 
-    return `<div class="wqa-row${miss.length?' wqa-row-block':''}${open?' is-open':''}" data-wqa-row="${i}">
+    return `<div class="wqa-row${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}" data-wqa-row="${i}">
       <div class="wqa-sum${wqaHasThreadCol()?' has-thread':''}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"
            onclick="wqaToggleRow(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wqaToggleRow(${i});}">
-        <span class="wqa-sum-no">${i+1}</span>
+        <span class="wqa-sum-no">${wqa.applyScope==='selected'
+          ? `<input type="checkbox" class="wqa-pick"${r.sel?' checked':''} onclick="event.stopPropagation()"
+                    onchange="wqaToggleRowSel(${i})" aria-label="Select item ${i+1}">`
+          : (i+1)}</span>
         ${wqaCompactCells(r)}
         <span class="wqa-sum-badges">${wqaBadgeHtml(r)}</span>
         <span class="wqa-sum-act">${open?'Close':'Edit'}</span>
