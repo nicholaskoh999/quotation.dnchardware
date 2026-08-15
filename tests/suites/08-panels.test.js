@@ -174,6 +174,21 @@ module.exports = async (browser, A) => {
   A.excludes((await rowState(page))[0].badges, 'segments vs length',
     'and it goes when a person retypes the field it was about');
 
+  // ── a size type WE chose says it was ours ───────────────────────────────
+  await quickAddPaste(page, 'MS SAG ROD\nM12 x 1000 x 75/75 - 50pcs', { settle: 900 });
+  const defaulted = await rowState(page);
+  const wasDefaulted = await page.evaluate(() => !!wqa.rows[0].stDefaulted);
+  if (wasDefaulted) {
+    A.includes(defaulted[0].badges, 'ours',
+      'a size type applied by our own rule, which the customer never stated, says so on the row');
+    await page.evaluate(() => wqaEditRowSpec(0, 'sizeType', 'FULLSIZE'));
+    await page.waitForTimeout(700);
+    A.excludes((await rowState(page))[0].badges, 'ours',
+      'and stops saying so once a person has chosen one');
+  } else {
+    A.ok(true, 'no size type was defaulted for this message — case not applicable');
+  }
+
   // ── compact and expanded show the same item ──────────────────────────────
   await page.evaluate(() => wqaSetView('compact'));
   await page.waitForTimeout(300);

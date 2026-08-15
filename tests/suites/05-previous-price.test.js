@@ -193,7 +193,34 @@ module.exports = async (browser, A) => {
   A.includes(failed.hist, 'failed', 'a failed lookup is recorded as a failure');
   A.includes(failed.text, 'Could not check', 'and the row says the check did not run');
   A.excludes(failed.text, 'No previous price found', 'it does not assert that the customer has no history');
+  // ── 12. the Check Previous Prices panel says the same ───────────────────
+  const panelFail = await failPage.evaluate(async () => {
+    switchType('anchorbolt');
+    document.getElementById('anchorbolt-material').value = 'MS';
+    document.getElementById('anchorbolt-sizeType').value = 'FULLSIZE';
+    document.getElementById('anchorbolt-size').value = 'M20'; onSizeCommit('anchorbolt');
+    await checkPreviousPrice();
+    const e = document.getElementById('phEmptyMsg');
+    return { shown: e.style.display, text: e.textContent };
+  });
+  A.eq(panelFail.shown, 'block', 'the panel reports something');
+  A.includes(panelFail.text, 'Could not check', 'and it is that the check did not run');
+  A.excludes(panelFail.text, 'No matching saved quotations',
+    'not that the customer has no matching quotations');
+
   await failPage.close();
+
+  // ── 13. the panel belongs to one specification, on every product ────────
+  const panelStale = await page.evaluate(async () => {
+    switchType('stud');
+    document.getElementById('stud-material').value = 'MS';
+    document.getElementById('stud-size').value = 'M12'; onStudSizeCommit();
+    el('phResults').style.display = 'block';           // as a successful check leaves it
+    document.getElementById('stud-size').value = 'M20'; onStudSizeCommit();
+    return el('phResults').style.display;
+  });
+  A.eq(panelStale, 'none',
+    'changing a Stud\'s size clears the previous-price figures, as it does on every other product');
 
   A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
   await page.close();

@@ -35,6 +35,14 @@ whole point of this audit: a parser test can prove the parser returns `M27`;
 only a browser test can prove that typing `27` makes the row weigh what an M27
 weighs.
 
+A parallel read-only audit ran over five areas — weight, pricing, previous
+price, save/reload/output, and the correction panels — and every claim it made
+was then handed to an independent skeptic told to refute it. **56 claims were
+verified; 42 were refuted** — stale line numbers, guards the auditor had
+missed, branches that do not apply. The 14 that survived are the ones acted on
+here, each reproduced in the browser before anything was touched. Nothing in
+this report is a finding that was reported but not independently confirmed.
+
 ---
 
 ## B. Audit matrix
@@ -68,7 +76,7 @@ changed, reason given.
 | 23 | Exact-spec fields | **PARTIAL** | **FIXED** — an unstated finish/size type meant "any" to the server |
 | 24 | Customer fallback to another customer's exact spec | **FAIL** (absent) | **FIXED** |
 | 25 | Customers' pricing structures are never merged | PASS | PASS + tests |
-| 26 | No match → "No previous price found" | **PARTIAL** | **FIXED** — wording, and a failed lookup no longer reads as "none" |
+| 26 | No match → "No previous price found" | **PARTIAL** | **FIXED** — wording, and a failed lookup no longer reads as "none", in Quick Add *and* in the Check Previous Prices panel |
 | 27 | Historical auditability | **PARTIAL** | **FIXED** — the other-customer case names the customer |
 | 28 | A manual price is not overwritten by history | PASS | PASS + tests |
 | 29 | Common Fields — a blank never clears a row value | **PARTIAL** | **FIXED** (accessories, price mode) |
@@ -78,11 +86,11 @@ changed, reason given.
 | 33 | Bend/H/W/S/TL ownership | **FAIL** | **FIXED** — labelled dimensions were reading backwards |
 | 34 | Additional Info override precedence | PASS | PASS (unchanged) |
 | 35 | Accessories never added automatically | PASS | PASS — and now charged where they are promised |
-| 36 | Warning lifecycle | **FAIL** | **FIXED** (3 stale warnings) |
+| 36 | Warning lifecycle | **FAIL** | **FIXED** (5 stale warnings, plus a size type we chose that never said so) |
 | 37 | Compact vs Expanded consistency | **FAIL** | **FIXED** |
 | 38 | Manual-edit event audit — no reliance on Enter | **PARTIAL** | **FIXED** |
 | 39 | Canonical model consistency | **FAIL** | **FIXED** |
-| 40 | Save / reload / edit / save without drift | **PARTIAL** | **FIXED** (2 defects) |
+| 40 | Save / reload / edit / save without drift | **PARTIAL** | **FIXED** (3 defects) |
 | 41 | Copy quotation | **FAIL** | **FIXED** — a duplicate carried the original's date |
 | 42 | Customer-facing output | **PARTIAL** | **FIXED** (3 defects) |
 | 43 | Image/PDF failure causes distinguishable | **FAIL** | **FIXED** |
@@ -90,7 +98,7 @@ changed, reason given.
 | 45 | Metric + imperial in one document | PASS | PASS + tests |
 | 46 | Mixed products in one document | PASS | PASS + tests |
 | 47 | Regression preservation from the previous commits | — | verified, 37 assertions |
-| 48 | Tests must test user-visible reality | — | 10 browser suites, 606 assertions |
+| 48 | Tests must test user-visible reality | — | 10 browser suites, 617 assertions |
 | 49 | Mandatory regression cases | — | all present |
 | 50 | Full pricing audit | — | done, section C |
 | 51 | Previous Price naming / UI | **PARTIAL** | **FIXED** |
@@ -198,6 +206,25 @@ the **markup** was not, so typing 15 into row 2 priced rows 3, 4 and 5 at 15%
 they were never given. The same mechanism left a stranger's size and rate in the
 entry form after Quick Add closed, one Enter away from being added.
 
+### C9. The guard was defeated three lines before it ran
+
+Reopening a U-Bolt for edit re-derived its Total Length over the hand-measured
+one: a rod entered at 250mm came back as the auto-derived 168, re-saved 28%
+lighter and cheaper. The obvious fix — pass `skipAuto` on the restore path — was
+not enough, because `onPriceModeChange` and `applyDefaultPrice` each call
+`recalcCurrent()` on their own account and both run *before* the guarded call.
+The hand-entered value was already gone by the time the guard executed. It is a
+flag held for the whole restore now, so no route on that path can re-derive.
+
+### C10. A size type we chose, presented as the customer's
+
+`wqaDefaultSizeType` applies Undersize to a mild-steel M12 the customer never
+mentioned. That moves the diameter from 12mm to 10.6mm — about 22% of the
+weight and the price. The row recorded that the value was ours (`stDefaulted`)
+and the code comment reads "Ours, not the customer's — and said so"; nothing
+anywhere read the flag, so the select simply said "Undersize" with nothing to
+question. It says so now, and stops saying so once a person chooses.
+
 ---
 
 ## D. Changes made
@@ -243,6 +270,11 @@ entry form after Quick Add closed, one Enter away from being added.
 | `wqaRowSpecText` / `wqaPatchRows` | The row's spec line is refreshed with the row |
 | `wqaEdit` / `wqaEditSize` / `wqaEditRowProduct` / `wqaApplyFixToAll` | A warning goes when the thing it named is answered |
 | `wqaClearCommonPanels` | A queued correction belongs to the message it was queued for, including Back → Parse |
+| `formRestoreInProgress`, `fillItemFormFromItem`, `restoreProductEntryDraft` | No route on the restore path re-derives over a stored Total Length (C9) |
+| `onStudSizeInput` / `onStudSizeCommit` | The Stud size box clears the previous-price panel, as every other product's does |
+| `fetchPriceHistory` / `checkPreviousPrice` | A lookup that could not run says so instead of "no matching saved quotations" |
+| `wqaRowBadges`, `wqaEditRowSpec` | A size type applied by our own rule says it was ours (C10) |
+| `wqaDropNoteCredit` | "From your note: TL" stops being claimed once that value has been retyped |
 | `wqaAddAll` | Quick Add appends; it no longer replaces the item under edit |
 | `buildUnsavedDraft` / `restoreUnsavedDraft` | A recovered draft remembers it was editing an item |
 | `buildWAItemsText` | Two rods that differ only by a custom dimension are two lines, and the annotation is shown |
@@ -283,21 +315,21 @@ suite, and `tests/screenshots.js`.
 ```
   ok    size normalisation — model, screen and weight agree            (42)
   ok    imperial — the first token of a run is the size                (66)
-  ok    weight — every product, every input that moves it              (34)
+  ok    weight — every product, every input that moves it              (39)
   ok    pricing — nothing stale, nothing fabricated                    (41)
-  ok    previous price — this customer first, then a reference         (46)
+  ok    previous price — this customer first, then a reference         (50)
   ok    mixed documents — a heading speaks only for its own rows       (37)
   ok    save / reload / output — no value drift, no internal costs     (65)
-  ok    common fields and Correct Items — a blank never clears         (59)
+  ok    common fields and Correct Items — a blank never clears         (61)
   ok    dense table — 29 rows, merged cells, metric beside imperial   (168)
   ok    engineering drawing — five parts, five lengths                 (48)
 
-  10 suites, 606 assertions, 0 failed
+  10 suites, 617 assertions, 0 failed
 
   ok    ai_extract — dense tables, truncation and error causes         (64)
 ```
 
-**670 assertions, 0 failed.** Raw output in `test-results/`.
+**681 assertions, 0 failed.** Raw output in `test-results/`.
 
 Weight was audited rather than inspected: every expected value in
 `03-weight.test.js` is computed in the test from π/4 · d² · L · 7.85e-6 with the
@@ -365,7 +397,8 @@ hand, the no-previous-price case, and save → reopen → edit → save.
 4. **A row with no Size Type is weighed provisionally as Fullsize** while
    showing "Needs Size Type". The row cannot be added, so nothing reaches a
    customer, but the number beside the question is a provisional answer to it
-   and does not say so.
+   and does not say so. Where the size type was applied by *our* rule rather
+   than left blank, the row now says so — that half is fixed.
 
 5. **`get_price_history` reads the newest 300 quotations** and filters in PHP. An
    item last quoted beyond that window reports "No previous price found". Server
@@ -380,11 +413,14 @@ hand, the no-previous-price case, and save → reopen → edit → save.
    `4140_HARDEN_G10_9` in the staff Quotation Detail modal where the printed
    quotation reads `4140 QT + HARDEN = G10.9`. Staff-facing only.
 
-8. **The "Previous Quoted Prices" panel still shows an average** (Last / Low /
-   High / Avg / Records) over every dimension of the matched specification. It
-   is an explicitly-invoked statistics view, not the Last Price feature, and it
-   was not part of the reported defects — but §19 and §26 read strictly would
-   remove the Avg tile. Say the word and it goes.
+8. **The "Previous Quoted Prices" panel mixes every dimension** for the matched
+   specification and shows an average (Last / Low / High / Avg / Records). A
+   750mm rod at RM 9.80 and a 3000mm rod at RM 39.00 are reported together
+   while quoting a 500mm rod, with nothing on the panel naming the lengths. It
+   is an explicitly-invoked statistics view, not the Last Price feature — the
+   Quick Add row *does* separate exact dimensions from "same specification,
+   different dimensions" — but §19 and §26 read strictly would remove the Avg
+   tile and label the spread. Say the word.
 
 9. **The drawing-region and merged-cell rules are prompt-level.** Their presence
    is asserted; how well a given model follows them on a given sheet can only be

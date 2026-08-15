@@ -178,6 +178,41 @@ module.exports = async (browser, A) => {
   A.eq(inch['UNDERSIZE 3/4" BSW'], '17.1', 'a thread standard after the size does not change it either');
   A.eq(inch['UNDERSIZE 1-1/4'], '', 'a size with no undersize entry has NO diameter — it is not given the fullsize one');
 
+  // ── a hand-entered Total Length survives being reopened ─────────────────
+  const handTyped = await page.evaluate(() => {
+    switchType('ubolt');
+    productEntryTouchedFields.clear();
+    document.getElementById('ubolt-material').value = 'MS';
+    document.getElementById('ubolt-sizeType').value = 'FULLSIZE';
+    document.getElementById('ubolt-size').value = 'M12'; onSizeCommit('ubolt');
+    document.getElementById('ubolt-id').value = '50';
+    document.getElementById('ubolt-ih').value = '60';
+    calcUBolt('ubolt');
+    const derived = document.getElementById('ubolt-length').value;
+    /* The real bent length, typed over the derived one — the field's own
+       handler passes skipAuto, so it sticks while typing. */
+    document.getElementById('ubolt-length').value = '250';
+    calcUBolt('ubolt', true);
+    document.getElementById('ubolt-costRate').value = '4';
+    document.getElementById('ubolt-addCost').value = '0';
+    document.getElementById('ubolt-markup').value = '0';
+    document.getElementById('ubolt-qty').value = '1';
+    const before = quoteItems.length;
+    addUBolt();
+    const added = quoteItems.length - before;
+    const saved = added ? quoteItems[quoteItems.length - 1].weight : null;
+    /* Reopen it to change something else entirely. */
+    if (added) editItem(quoteItems.length - 1);
+    return { derived, saved, added,
+             lenOnReopen: document.getElementById('ubolt-length').value,
+             previewOnReopen: (priceCalcState.ubolt || {}).weight };
+  });
+  A.eq(handTyped.derived, '168', 'the derived total length is (d+ID)x1.57 + 2IH - ID, rounded up');
+  A.eq(handTyped.added, '1', 'the hand-measured 250 was accepted');
+  A.near(handTyped.saved, appW(12, 250), 1e-9, 'and the item was weighed on 250, not on 168');
+  A.eq(handTyped.lenOnReopen, '250', 'reopening it for edit does not re-derive over the stored length');
+  A.near(handTyped.previewOnReopen, appW(12, 250), 1e-9, 'so the preview is still the weight that was quoted');
+
   A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
   await page.close();
   return S;

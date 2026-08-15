@@ -4017,6 +4017,8 @@ const I18N={
     wqaDropNoFile:'That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.',
     wqaToastEnterSizeThread:'Enter a Size or a Thread first', wqaToastNoItems:'There are no items to apply to',
     wqaToastPriceApplied:'Pricing entry applied to all items',
+    phCheckFailed:'Could not check previous prices — this is not the same as there being none. Check the connection, or sign in again, and try once more.',
+    wqaStDefaulted:'Size Type is ours, not stated',
     wqaToastAccNothing:'No accessories are set in this panel — nothing was applied. Use Clear All Accessories to remove them from the rows.',
     wqaToastLastPriceOff:'Last Price switched off on {n} row(s)',
     wqaToastAccCleared:'Accessories cleared on all items',
@@ -4234,6 +4236,8 @@ const I18N={
     wqaDropNoFile:'拖进来的不是文件。请拖入 JPG、PNG、WEBP 或 PDF。',
     wqaToastEnterSizeThread:'请先填写尺寸或牙长', wqaToastNoItems:'没有可应用的项目',
     wqaToastPriceApplied:'价格设置已应用到全部项目',
+    phCheckFailed:'无法查询过往价格 —— 这不等于没有记录。请检查连线或重新登入后再试。',
+    wqaStDefaulted:'尺寸类型由系统判定，非客户注明',
     wqaToastAccNothing:'此面板未设置配件 —— 未套用任何内容。若要清除各行配件，请使用「清除全部配件」。',
     wqaToastLastPriceOff:'{n} 行的上次价格已关闭',
     wqaToastAccCleared:'已清除全部项目的配件',
@@ -4615,6 +4619,10 @@ function hasMeaningfulProductEntry(entry){
   });
 }
 function restoreProductEntryDraft(entry){
+  formRestoreInProgress=true;
+  try{ restoreProductEntryDraftInner(entry); } finally { formRestoreInProgress=false; }
+}
+function restoreProductEntryDraftInner(entry){
   if(!entry||!ITEM_TYPES[entry.currentType]) return;
   const type=entry.currentType;
   const data=entry.formData&&typeof entry.formData==='object'?entry.formData:{};
@@ -5595,12 +5603,20 @@ function switchType(type){
   scheduleDraftAutosave();
 }
 
+/* While an item or a draft is being put BACK into the form, the Total Length
+   it carries is the answer and nothing on that path may re-derive over it.
+   A flag rather than a parameter, because two functions on that path —
+   onPriceModeChange and applyDefaultPrice — call recalcCurrent() on their own
+   account, and either of them destroyed the restored value three lines before
+   the guarded call could protect it. */
+let formRestoreInProgress=false;
 /* skipAuto: do not re-derive a Total Length the caller has just restored. A
    U Bolt whose bent length was typed by hand as 250 came back from Edit as the
    auto-derived 180 — 28% lighter, re-saved at 28% less, and nothing said so.
    Auto-derivation belongs to a person typing dimensions, not to reopening an
    item that already has an answer. */
 function recalcCurrent(skipAuto){
+  if(formRestoreInProgress) skipAuto=true;
   if(currentType==='sagrod') calcSagRod();
   else if(currentType==='stud') calcStud();
   else if(currentType==='anchorbolt') calcAnchorBolt();
@@ -5892,6 +5908,10 @@ function addSagRod(){
    an M12. One lookup, and a size with no diameter clears the box. */
 function onStudSizeInput(){
   const sizeEl=el('stud-size'); if(!sizeEl) return;
+  /* Stud has its own size handlers rather than the shared ones, and so missed
+     the reset every other product gets: changing M12 to M20 left M12's Last /
+     Low / High / Avg on screen with nothing naming the size they were for. */
+  resetPriceHistoryPanel();
   const raw=sizeEl.value;
   autoFillDiameter('stud');
   if(!WQA_SIZE_SETTLED_RE.test(raw)) sizeEl.value=raw;
@@ -5900,6 +5920,7 @@ function onStudSizeInput(){
   applyDefaultPrice();
 }
 function onStudSizeCommit(){
+  resetPriceHistoryPanel();
   autoFillDiameter('stud');
   updateFinishAvailability('stud');
   calcStud();
@@ -6303,6 +6324,10 @@ function resolveItemType(item){
   return found ? found[0] : currentType;
 }
 function fillItemFormFromItem(item){
+  formRestoreInProgress=true;
+  try{ fillItemFormFromItemInner(item); } finally { formRestoreInProgress=false; }
+}
+function fillItemFormFromItemInner(item){
   const type=resolveItemType(item);
   switchType(type);
   /* Above the plate / WAS branches below, which return early: every product
@@ -7683,7 +7708,9 @@ function doWhatsApp(){ sentThisSession=true; refreshWorkflow(); openWhatsApp(); 
 function doCopyWA(){ sentThisSession=true; refreshWorkflow(); copyWhatsApp(); }
 
 /* ── Previous Quoted Prices (MySQL quotation history) ── */
+const PH_EMPTY_DEFAULT='No matching saved quotations for this Product Type, Material, Size Type, Finish and Size yet.';
 function resetPriceHistoryPanel(){
+  const empty=el('phEmptyMsg'); if(empty) empty.textContent=PH_EMPTY_DEFAULT;
   el('phResults').style.display='none';
   el('phEmptyMsg').style.display='none';
   el('phSameCustomerSection').style.display='none';
@@ -7701,8 +7728,14 @@ async function fetchPriceHistory(companyId){
     cleanSize:normalizeSizeValue(fv(currentType,'size'))
   });
   if(companyId!=null) params.set('company_id',companyId);
-  const res=await fetch('api.php?'+params.toString()).then(r=>r.json());
-  return res.ok?(res.data||[]):[];
+  /* null means the lookup did not run — a lapsed session, an unavailable
+     table. An empty array means it ran and found nothing. Collapsing the two
+     turned "we could not look" into "there is nothing", which is an assertion
+     about the customer's record that staff price repeat orders on. */
+  try{
+    const res=await fetch('api.php?'+params.toString()).then(r=>r.json());
+    return (res&&res.ok) ? (res.data||[]) : null;
+  }catch(e){ return null; }
 }
 function computeStats(matches){
   if(!matches.length) return null;
@@ -7734,8 +7767,15 @@ async function checkPreviousPrice(){
     return;
   }
   const sameMatches = selectedCompanyId!=null ? await fetchPriceHistory(selectedCompanyId) : [];
-  const sameStats = computeStats(sameMatches);
   const allMatches = await fetchPriceHistory(null);
+  if(sameMatches===null || allMatches===null){
+    el('phResults').style.display='none';
+    const empty=el('phEmptyMsg');
+    empty.style.display='block';
+    empty.textContent=dcT('phCheckFailed');
+    return;
+  }
+  const sameStats = computeStats(sameMatches);
   const allStats = computeStats(allMatches);
 
   const showSame = !!sameStats;
@@ -9459,6 +9499,7 @@ function wqaSetView(v){
 /* Thread is ONE user-facing field. Both ends live behind it as threadLen and
    threadLen2, written and read as "50/110". */
 function wqaEditThread(i,v){
+  if(wqa.rows[i]) wqaDropNoteCredit(wqa.rows[i],'threadLen');
   const r=wqa.rows[i]; if(!r) return;
   const m=wqaSplitThread(v);
   r.threadLen=m.a; r.threadLen2=m.b;
@@ -9577,6 +9618,11 @@ function wqaRowBlocked(r){ return wqaRowMissing(r).length>0 || !!r.productConfli
 function wqaRowBadges(r){
   const out=[];
   if(r.productConflict) out.push({t:dcT('wqaConflictBadge'),k:'req'});
+  /* A size type the customer never stated, applied by our own rule, changes
+     the diameter and therefore the weight and the price by about 22% at M12.
+     It was recorded as ours (stDefaulted) and shown as if the document had
+     said it — the select simply read "Undersize", with nothing to question. */
+  if(r.stDefaulted) out.push({t:dcT('wqaStDefaulted'),k:'info'});
   if(r.noteApplied&&r.noteApplied.length)
     out.push({t:dcT('wqaNoteBadge')+' '+[...new Set(r.noteApplied)].join(' · '),k:'info'});
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
@@ -12428,10 +12474,24 @@ function wqaCalcField(inp,i,k){
   wqaEdit(i,k,v);
 }
 /* One row's own specification, edited from its expanded card. */
+const WQA_NOTE_FIELD_LABEL={material:'Material',finish:'Finish',sizeType:'Size Type',
+                           threadLen:'TL',threadLen2:'TL',size:'Size',length:'L'};
+/* "From your note: TL · Size Type" is a statement about where a value came
+   from. Retype that value and it stops being true, and a provenance line that
+   outlives its value is worse than none. Only the field that was overwritten
+   is dropped; the rest of the note's attribution stands. */
+function wqaDropNoteCredit(r,k){
+  const label=WQA_NOTE_FIELD_LABEL[k];
+  if(!label || !r.noteApplied || !r.noteApplied.length) return;
+  r.noteApplied=r.noteApplied.filter(x=>x!==label);
+}
 function wqaEditRowSpec(i,k,v){
   const r=wqa.rows[i]; if(!r) return;
   if(k==='finish'   && wqaNoFinish(wqaRowSpec(r,'material'))) return;
   if(k==='sizeType' && !dcProductHasSizeType(wqaRowProduct(r))) return;
+  /* Choosing a size type by hand also answers "this one is ours". */
+  if(k==='sizeType') r.stDefaulted=false;
+  wqaDropNoteCredit(r,k);
   r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
                               r.finish=wqaFinishFor(v,r.finish); }
   wqaRenderCommon();                       // the header summary may have moved
@@ -12784,6 +12844,7 @@ function wqaEdit(i,k,v){
      corrected, and a warning that outlives its cause teaches people to ignore
      warnings. */
   wqa.rows[i].aiUncertain=[];
+  wqaDropNoteCredit(wqa.rows[i],k);
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250); }
 
 /* ── The size box says what the row IS ─────────────────────────────────────
