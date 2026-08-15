@@ -3774,6 +3774,8 @@ const I18N={
     cancel:'Cancel', nItems:'{n} items', needAttention:'{n} need attention',
     needs:'Needs {f}', fieldProduct:'Product', fieldSize:'Size', fieldLength:'Length',
     fieldSizeType:'Size Type', fieldThread:'Thread', fieldPrice:'Price',
+    fieldMaterial:'Material', optRequired:'— required —', optNone:'— none —',
+    materialRequired:'Material was not stated in the message, so it is not guessed. Choose the material to price these items.',
     badgeNoThread:'No thread', badgeParseWarning:'Parse warning', badgeCheck:'Check {f}',
     badgeAsymmetric:'Asymmetric', badgeLastPrice:'Last price',
     wqaTitle:'WhatsApp Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
@@ -3948,6 +3950,8 @@ const I18N={
     cancel:'取消', nItems:'{n} 项', needAttention:'{n} 项需检查',
     needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'长度',
     fieldSizeType:'尺寸类型', fieldThread:'牙长', fieldPrice:'价格',
+    fieldMaterial:'材料', optRequired:'— 必填 —', optNone:'— 无 —',
+    materialRequired:'信息中未说明材料，系统不会猜测。请选择材料以计算价格。',
     badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
     badgeAsymmetric:'左右不对称', badgeLastPrice:'上次价格',
     wqaTitle:'WhatsApp 快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
@@ -8119,7 +8123,7 @@ function wqaPatchRows(){
     card.classList.toggle('wqa-row-block',miss.length>0);
     card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight((r.calc||{}).weight); });
     const fin2=card.querySelector('.wqa-fin');
-    if(fin2) fin2.textContent=wqaFmtPrice((r.calc||{}).finalUnitPrice);
+    if(fin2) fin2.textContent=wqaFmtPrice(wqaShownPrice(r));
     const badges=card.querySelector('.wqa-sum-badges');
     if(badges) badges.innerHTML=wqaBadgeHtml(r);
     const cQty=card.querySelector('.wqa-c-qty');
@@ -8181,7 +8185,7 @@ function wqaCompactCells(r){
     + (wqaHasThreadCol() ? cell('wqa-c-th', th||'—') : '')
     + cell('wqa-c-qty',  r.qty||'—')
     + `<span class="wqa-c wqa-c-w wqa-uw">${escHtml(wqaFmtWeight(calc.weight))}</span>`
-    + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(calc.finalUnitPrice))}</span>`;
+    + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span>`;
 }
 function wqaHasThreadCol(){
   const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
@@ -8213,6 +8217,14 @@ function wqaRenderListHead(){
     + '<span class="wqa-h wqa-h-del"></span>';
 }
 function wqaFmtPrice(v){ const n=Number(v)||0; return n>0 ? 'RM'+n.toFixed(2) : 'RM—'; }
+/* A price worked out from a material nobody chose is not this item's price, and
+   a number on screen reads as an answer. So the money waits for the material.
+   The weight beside it does not: it comes from diameter and length alone and is
+   true whatever the rod is made of. */
+function wqaShownPrice(r){
+  if(wqa.product && !wqa.common.material) return 0;
+  return (r.calc||{}).finalUnitPrice;
+}
 /* Small pills, never alert blocks. */
 function wqaRowBadges(r){
   const out=[];
@@ -9297,16 +9309,26 @@ async function wqaParseAndReview(){
   await wqaTextFallback(text);
 }
 
+/* Without a blank option the browser selects the FIRST material, so a document
+   that never named one still showed a real material sitting in the box — and
+   the quotation was committed in it without anyone choosing it. A value nobody
+   stated is shown as missing, never as chosen. */
 function wqaMaterialOptions(sel){
   const src=el(wqa.product+'-material');
   if(!src) return '';
-  return [...src.options].map(o=>`<option value="${escHtml(o.value)}"${o.value===sel?' selected':''}>${escHtml(o.text)}</option>`).join('');
+  const known=[...src.options].some(o=>o.value===sel);
+  return (known?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`)
+    + [...src.options].map(o=>`<option value="${escHtml(o.value)}"${o.value===sel?' selected':''}>${escHtml(o.text)}</option>`).join('');
 }
 function wqaRenderCommon(){
   const c=wqa.common, prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
   const matNote=c.materialDefaulted
     ? `<div class="wqa-flag wqa-flag-def">Defaulted to 4140 QT from customer text “${escHtml(c.materialDefaultedFrom||'4140')}”. Change it if they meant something else.</div>` : '';
   const stNeeded=prod.needSizeType && !c.sizeType;
+  /* Asked for only once the product is known, because the list of materials
+     depends on it. Never guessed from the product, the finish or what this
+     customer usually orders. */
+  const matNeeded=!!wqa.product && !c.material;
   const skipNote=(wqa.skipped&&wqa.skipped.length)
     ? `<div class="wqa-flag">${wqa.skipped.length} line(s) not read as items (header/notes). They are ignored.</div>` : '';
   /* Geometry-first classification: when the customer's own wording disagrees
@@ -9319,11 +9341,11 @@ function wqaRenderCommon(){
     <div class="wqa-common-grid">
       <div class="field"><label>Product${wqa.product?'':' <span class="wqa-req">*</span>'}</label>
         <select id="wqaProduct" class="${wqa.product?'':'wqa-needed'}" onchange="wqaChangeProduct(this.value)">
-          ${wqa.product?'':'<option value="" selected>— required —</option>'}
+          ${wqa.product?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`}
           ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===wqa.product?' selected':''}>${p.label}</option>`).join('')}
         </select></div>
-      <div class="field"><label>Material</label>
-        <select id="wqaMaterial" onchange="wqaSetCommon('material',this.value)">${wqaMaterialOptions(c.material)}</select></div>
+      <div class="field"><label>Material${matNeeded?' <span class="wqa-req">*</span>':''}</label>
+        <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)">${wqaMaterialOptions(c.material)}</select></div>
       <div class="field"><label>Finish</label>
         <select id="wqaFinish" onchange="wqaSetCommon('finish',this.value)">
           <option value=""${c.finish===''?' selected':''}>N/A</option>
@@ -9333,7 +9355,7 @@ function wqaRenderCommon(){
         </select></div>
       <div class="field"><label>Size Type${prod.needSizeType?' <span class="wqa-req">*</span>':''}</label>
         <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)">
-          <option value=""${c.sizeType===''?' selected':''}>${prod.needSizeType?'— required —':'— none —'}</option>
+          <option value=""${c.sizeType===''?' selected':''}>${escHtml(dcT(prod.needSizeType?'optRequired':'optNone'))}</option>
           <option value="FULLSIZE"${c.sizeType==='FULLSIZE'?' selected':''}>Fullsize</option>
           <option value="UNDERSIZE"${c.sizeType==='UNDERSIZE'?' selected':''}>Undersize</option>
         </select></div>
@@ -9341,6 +9363,7 @@ function wqaRenderCommon(){
     ${matNote}
     ${wqa.product?'':'<div class="wqa-flag wqa-flag-req">The document does not say which product this is, so it is not guessed. Choose the product to price these items.</div>'}
     ${stNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('sizeTypeRequired').replace('{p}',prod.label)+'</div>':''}
+    ${matNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('materialRequired')+'</div>':''}
     ${skipNote}${aiNote}`;
 }
 /* Changing the product re-parses the same text under the new product's rules —
@@ -9360,6 +9383,15 @@ function wqaChangeProduct(t){
 function wqaSetCommon(k,v){ wqa.common[k]=v; if(k==='material') wqa.common.materialDefaulted=false;
   wqaRenderCommon(); wqaRecomputeAll(); }
 
+/* ── Accuracy before completeness ───────────────────────────────────────────
+   A field is never filled because it is required. It is filled when the source
+   states it, or when a defined business rule turns what the source states into
+   our vocabulary — R12 on an undersized rod is M12, one threaded end is an
+   Anchor Bolt, a Sag Rod's shared 75 is 75/75. Everything else stays null and
+   is asked for HERE, by name, on the row that needs it. Needs Size, Needs
+   Thread, Needs Material and Needs Size Type are the system working, not
+   failing: a blank field costs a question, a guessed one costs a wrong
+   quotation. */
 function wqaRowMissing(r){
   const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
   const miss=[];
@@ -9371,6 +9403,10 @@ function wqaRowMissing(r){
      existing calculator still requires a qty of its own to add an item, so a
      blank-qty row is skipped at commit and reported — never defaulted to 1,
      which the calculator does not do either. */
+  /* The customer's material or nothing. Every rod is made of something, so a
+     blank one means "not stated" — never "mild steel". Asked for only once the
+     product is known, since Product is already the blocker until then. */
+  if(wqa.product && !wqa.common.material) miss.push('Material');
   if(prod.needSizeType && !wqa.common.sizeType) miss.push('Size Type');
   /* A product that HAS a thread needs one: a Sag Rod as the pair 75/75 or
      50/110, an Anchor Bolt as the single value 100. Product-specific, never one

@@ -211,6 +211,13 @@ prose, no reasoning, no explanations, no quotes from the source. Never invent a
 value: unknown = null. Absent qty = null, never 1. Ignore greetings, logos,
 signatures, stamps, prices and unrelated text.
 
+A field being required is never a reason to fill it. Do not read a dimension
+off the drawing's scale, off how long a part looks next to another, or off what
+is normally used at that size — if it is not written, it is null. Where two
+parts of the document disagree, or a number's role cannot be established, return
+null rather than choosing. Our review screen asks a person for what is missing;
+a guessed value would be silently wrong in a quotation instead.
+
 product — classify by GEOMETRY first and customer wording LAST. Titles such as
 "Anchor Bolt", "Foundation Bolt", "Bolt", "Bolt & Nut", "Stud" and "Sag Rod"
 are used loosely and routinely disagree with what is actually drawn, so the
