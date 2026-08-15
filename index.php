@@ -394,6 +394,47 @@ input,select,textarea{font-family:inherit}
   .others-weight-row>.field>select,.others-weight-row>.field>input{min-height:48px}
 }
 
+/* Custom Dimensions — a manual annotation layer, never a calculator input.
+   Two text columns and a remove button; the block only grows once a dimension
+   exists, so the normal entry form does not get visually heavier. */
+.cdim-box{
+  margin-top:16px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--r-sm); padding:11px 12px;
+}
+.cdim-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.cdim-title{font-size:11px; font-weight:800; color:var(--text-2); text-transform:uppercase; letter-spacing:.04em}
+.cdim-add{
+  background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r-xs);
+  color:var(--accent-2); font-size:12.5px; font-weight:700; padding:7px 11px; cursor:pointer;
+}
+.cdim-add:hover{border-color:var(--accent)}
+.cdim-rows{display:flex; flex-direction:column; gap:8px}
+.cdim-rows:not(:empty){margin-top:10px}
+.cdim-row{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) auto; gap:8px; align-items:center}
+.cdim-row input{
+  border:1.5px solid var(--border); border-radius:var(--r-xs); background:var(--surface);
+  padding:9px 11px; font-size:14px; color:var(--text); font-family:inherit;
+  width:100%; min-width:0; min-height:var(--control-h);
+}
+.cdim-row input:focus{outline:none; border-color:var(--border-focus); box-shadow:0 0 0 3px var(--accent-light)}
+.cdim-del{
+  min-width:38px; min-height:var(--control-h); border:1.5px solid var(--border);
+  border-radius:var(--r-xs); background:var(--surface); color:var(--text-muted);
+  font-size:14px; line-height:1; cursor:pointer;
+}
+.cdim-del:hover{border-color:var(--red); color:var(--red)}
+.cdim-hint{margin-top:9px; font-size:11.5px; line-height:1.45; color:var(--text-muted)}
+@media (max-width:560px){
+  /* Two inputs side by side stop being readable on a phone, so the label takes
+     its own line and a hairline keeps one dimension from running into the next. */
+  .cdim-row{grid-template-columns:minmax(0,1fr) auto; gap:6px}
+  .cdim-row .cdim-label-in{grid-column:1/-1}
+  .cdim-row+.cdim-row{border-top:1px dashed var(--border); padding-top:9px}
+}
+@media (hover:none) and (pointer:coarse){
+  .cdim-row input,.cdim-del{min-height:46px}
+}
+
 /* Calc preview */
 .calc-preview{
   display:grid; grid-template-columns:1fr 1fr 1fr 1.2fr; gap:10px; margin-top:16px;
@@ -478,6 +519,7 @@ input,select,textarea{font-family:inherit}
   font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;
   color:var(--accent-2);margin-top:4px;word-break:break-word;line-height:1.4;
 }
+.qi-cdim{display:block;font-size:11.5px;color:var(--text-muted);margin-top:2px;word-break:break-word}
 .qi-item-bottom{
   display:flex;align-items:center;justify-content:space-between;
   gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);
@@ -1902,6 +1944,11 @@ input,select,textarea{
 .wqa-sum-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;
   min-width:0;max-width:100%;overflow:hidden}
 .wqa-pill{font-size:10px;font-weight:800;padding:2px 7px;border-radius:var(--pill-r);white-space:nowrap;border:1px solid transparent}
+/* Status pills are two words and stay on one line. A pill that carries a whole
+   sentence — the product-conflict reason — wraps instead, because the badge
+   column above hides its overflow and a half-shown sentence tells staff less
+   than nothing. The column still cannot widen: only this pill gets taller. */
+.wqa-pill-why{white-space:normal;overflow-wrap:anywhere;text-align:left;line-height:1.35;max-width:100%}
 .wqa-pill-req{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
 .wqa-pill-warn{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
 .wqa-pill-info{background:var(--accent-light);color:var(--accent-2)}
@@ -2898,6 +2945,18 @@ input,select,textarea{
           <div class="was-cost-note"><strong>加工费说明：</strong>焊接费、开洞费、加工费请放在 Additional Cost。</div>
         </div>
 
+        <!-- Custom Dimensions — dimensions the standard product schema does not
+             have (H2, A, OD, P, "MAX 80"). Deliberately outside every per-type
+             form: no calculator reads it, and captureItemFormData is untouched. -->
+        <div class="cdim-box" id="cdimBox">
+          <div class="cdim-head">
+            <div class="cdim-title">Custom Dimensions <span class="gl-zh">/ 自定义尺寸</span></div>
+            <button type="button" class="cdim-add" onclick="dcAddCustomDim()" data-i18n="cdimAdd">+ Add Dimension</button>
+          </div>
+          <div class="cdim-rows" id="cdimRows"></div>
+          <div class="cdim-hint" data-i18n="cdimHint">Optional. Extra dimensions from a drawing — e.g. H2 530. Never used in any weight or price.</div>
+        </div>
+
         <div class="calc-preview" id="calcPreview">
           <div class="cp-item"><label data-i18n="lblUnitWeight">Unit Weight</label><span id="cpWeight">—</span></div>
           <div class="cp-item"><label data-i18n="lblBasePrice">Base Price</label><span id="cpBase">—</span></div>
@@ -3850,6 +3909,11 @@ const I18N={
     wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia',
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
+    wqaConflictBadge:'Conflicting product',
+    wqaConflictWhy:'Conflicting product: "{p}" wording vs {g} geometry — choose the product',
+    cdimAdd:'+ Add Dimension', cdimLabelPh:'Dimension', cdimValuePh:'Value',
+    cdimRemove:'Remove this dimension', cdimPrefix:'Custom:',
+    cdimHint:'Optional. Extra dimensions from a drawing — e.g. H2 530. Never used in any weight or price.',
     wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.",
     wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
     wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
@@ -4036,6 +4100,11 @@ const I18N={
     wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径',
     wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
+    wqaConflictBadge:'产品矛盾',
+    wqaConflictWhy:'产品矛盾：文字写「{p}」，但图形显示{g} — 请选择产品',
+    cdimAdd:'+ 新增尺寸', cdimLabelPh:'尺寸名称', cdimValuePh:'数值',
+    cdimRemove:'删除此尺寸', cdimPrefix:'自定义：',
+    cdimHint:'选填。图纸上的额外尺寸，例如 H2 530。不参与任何重量或价格计算。',
     wqaPasteHint:'粘贴客户的 WhatsApp 信息。支持 Sag Rod、Stud 和 Anchor Bolt。',
     wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
     wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
@@ -4236,6 +4305,74 @@ let cachedNextRefNo='';
 
 
 let quoteItems=[];
+/* ── Custom item dimensions ────────────────────────────────────────────────
+   A manual annotation layer for dimensions the standard product schema does
+   not have: H2, A, OD, P, "MAX 80", "±2", 3/4". It is exactly that — an
+   annotation. Nothing here reaches a weight formula, a price, the size string
+   the parser builds, or the standard fields H / ID / S / W / TL, even when a
+   label happens to spell one of them. Values stay text, as typed.
+
+   One shared editor serves every product type, so the twelve entry forms and
+   their captureItemFormData lists are untouched by this feature. */
+let dcCustomDims=[];
+/* Trimmed; a row the user opened and never filled in is not an entry. This is
+   also the deep copy — every item leaves here with its own array and its own
+   objects, so editing item 2 can never reach item 1. */
+function dcNormalizeCustomDims(list){
+  if(!Array.isArray(list)) return [];
+  return list.map(e=>({label:String((e&&e.label)!=null?e.label:'').trim(),
+                       value:String((e&&e.value)!=null?e.value:'').trim()}))
+             .filter(e=>e.label!=='' || e.value!=='');
+}
+function dcReadCustomDims(){ return dcNormalizeCustomDims(dcCustomDims); }
+function dcSetCustomDims(list){ dcCustomDims=dcNormalizeCustomDims(list); dcRenderCustomDims(); }
+function dcClearCustomDims(){ dcSetCustomDims([]); }
+function dcAddCustomDim(){
+  dcCustomDims.push({label:'',value:''});
+  dcRenderCustomDims();
+  const rows=el('cdimRows'), last=rows?rows.querySelector('.cdim-row:last-child input'):null;
+  if(last) last.focus();
+}
+function dcRemoveCustomDim(i){
+  if(!(i>=0 && i<dcCustomDims.length)) return;
+  dcCustomDims.splice(i,1);
+  dcRenderCustomDims();
+  scheduleDraftAutosave();
+}
+/* Typing updates state only — re-rendering on every keystroke would move the
+   caret out from under the person typing. */
+function dcEditCustomDim(i,k,v){
+  const row=dcCustomDims[i]; if(!row||(k!=='label'&&k!=='value')) return;
+  row[k]=String(v==null?'':v);
+  scheduleDraftAutosave();
+}
+function dcRenderCustomDims(){
+  const box=el('cdimRows'); if(!box) return;
+  box.innerHTML=dcCustomDims.map((e,i)=>`
+    <div class="cdim-row">
+      <input type="text" class="cdim-label-in" maxlength="24" value="${escHtml(e.label)}"
+             placeholder="${escHtml(dcT('cdimLabelPh'))}" oninput="dcEditCustomDim(${i},'label',this.value)">
+      <input type="text" maxlength="40" value="${escHtml(e.value)}"
+             placeholder="${escHtml(dcT('cdimValuePh'))}" oninput="dcEditCustomDim(${i},'value',this.value)">
+      <button type="button" class="cdim-del" onclick="dcRemoveCustomDim(${i})"
+              title="${escHtml(dcT('cdimRemove'))}" aria-label="${escHtml(dcT('cdimRemove'))}">✕</button>
+    </div>`).join('');
+}
+dcOnRelabel(dcRenderCustomDims);
+/* Read-only views: "H2 530 · A 120", in the order staff entered them. */
+function dcCustomDimsText(list){
+  return dcNormalizeCustomDims(list).map(e=>[e.label,e.value].filter(Boolean).join(' ')).join(' · ');
+}
+function dcCustomDimsLine(item){
+  const t=dcCustomDimsText(item&&item.customDimensions);
+  return t ? dcT('cdimPrefix')+' '+t : '';
+}
+/* The print sheet is an English customer document — its headings are not
+   translated either, so its label is not read from the UI language. */
+function dcCustomDimsPrintLine(item){
+  const t=dcCustomDimsText(item&&item.customDimensions);
+  return t ? 'Custom: '+t : '';
+}
 let currentType='sagrod';
 let uboltDebugEnabled=false;
 const priceCalcState={};
@@ -4292,11 +4429,17 @@ function captureProductEntryDraft(){
   form.querySelectorAll('input[type="radio"][name]:checked').forEach(input=>{data.__draftRadioGroups[input.name]=input.value;});
   data.__draftTouched=[...productEntryTouchedFields];
   data.__accPanelOpen=!!el(type+'-accPanel')?.classList.contains('open');
+  /* The editor sits outside form-<type>, so the field sweep above cannot see
+     it — it is captured by name. */
+  data.__customDims=dcReadCustomDims();
   return {currentType:type,formData:data};
 }
 function hasMeaningfulProductEntry(entry){
   if(!entry||!entry.formData||typeof entry.formData!=='object') return false;
   const data=entry.formData;
+  /* A dimension typed by hand is work that would be lost, exactly like a typed
+     length — enough on its own to be worth offering back. */
+  if(dcNormalizeCustomDims(data.__customDims).length) return true;
   const touched=Array.isArray(data.__draftTouched)?data.__draftTouched:[];
   const fields=data.__draftFields&&typeof data.__draftFields==='object'?data.__draftFields:{};
   return touched.some(rawKey=>{
@@ -4344,6 +4487,7 @@ function restoreProductEntryDraft(entry){
   else onAccChange(type);
   setAccPanelOpen(type,!!data.__accPanelOpen);
   productEntryTouchedFields=new Set(Array.isArray(data.__draftTouched)?data.__draftTouched:[]);
+  dcSetCustomDims(data.__customDims);
   onPriceModeChange(type);
   if(type==='others') onOthersWeightModeChange();
   recalcCurrent();
@@ -4543,6 +4687,28 @@ const DIA_UNDERSIZE_INCH={'1/4':5.3,'5/16':6.8,'3/8':8.2,'1/2':10.9,'5/8':14.2,'
 
 /* ── helpers ── */
 function el(id){return document.getElementById(id)}
+/* ── Hard business rules ────────────────────────────────────────────────────
+   Not heuristics and not defaults: these two are always true of a quotation,
+   whatever the customer wrote, whatever a drawing shows and whatever an older
+   saved item happens to contain. They live here, above every screen that needs
+   them, so the calculator, Quick Add, the saved-quotation loader and the print
+   sheet all get the same answer.
+
+     · A STUD has no size type. Fullsize and Undersize describe a rod turned to
+       a diameter; a stud is bought as it is. Independent of material — a 4140
+       QT stud is not fullsize, an SS304 stud is not fullsize.
+     · STAINLESS has no finish. PL, ZP and HDG are coatings for carbon steel,
+       and we do not quote a coated SS304 or SS316. Independent of product.
+
+   Both are written as "give me the correct value" rather than as checks, so
+   there is no way to read them and then forget to apply the answer. */
+const DC_NO_SIZE_TYPE_PRODUCTS=['stud'];
+const DC_NO_FINISH_MATERIALS=['SS304','SS316'];
+function dcProductHasSizeType(product){ return DC_NO_SIZE_TYPE_PRODUCTS.indexOf(String(product||''))<0; }
+function dcMaterialHasFinish(material){ return DC_NO_FINISH_MATERIALS.indexOf(String(material||''))<0; }
+function dcSizeTypeFor(product,sizeType){ return dcProductHasSizeType(product) ? String(sizeType||'') : ''; }
+function dcFinishFor(material,finish){ return dcMaterialHasFinish(material) ? String(finish||'') : ''; }
+
 function fv(type,field){const e=el(type+'-'+field);return e?e.value:''}
 function fn(type,field){return parseFloat(fv(type,field))||0}
 function fmt(v){return 'RM '+v.toFixed(2)}
@@ -5761,6 +5927,10 @@ function resolveItemType(item){
 function fillItemFormFromItem(item){
   const type=resolveItemType(item);
   switchType(type);
+  /* Above the plate / WAS branches below, which return early: every product
+     type gets its custom dimensions back when the item is edited. An older
+     item without the field simply restores an empty editor. */
+  dcSetCustomDims(item.customDimensions);
   // Plate has its own complete restore path
   if(type==='plate'){
     fillPlateFormFromItem(item);
@@ -6100,17 +6270,17 @@ function addPlate(){
     sizeCode:'',sizeType:'',
     productType:t==='ms_plate'?'MS PLATE':'TRIANGLE PLATE',
     cleanSize:'',dimensionPreview:sizeStr,
-    accessories:acc,weight,formData,...getPriceModeSaveData('plate')
+    accessories:acc,weight,customDimensions:dcReadCustomDims(),formData,...getPriceModeSaveData('plate')
   };
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const idx=editingItemIndex;
     quoteItems[idx]=item;
     editingItemIndex=null;
-    markQuotationDirty(); setItemEditMode(null); renderQuote(idx);
+    markQuotationDirty(); setItemEditMode(null); dcClearCustomDims(); renderQuote(idx);
     showToast(dcT('tItemUpdated')); return;
   }
   quoteItems.push(item);
-  markQuotationDirty(); renderQuote(quoteItems.length-1);
+  markQuotationDirty(); dcClearCustomDims(); renderQuote(quoteItems.length-1);
   flashPreview();
   showToast('Added #'+quoteItems.length+' — '+sizeStr+'  '+fmt(finalUnitPrice));
 }
@@ -6306,7 +6476,7 @@ function addWAS(){
     material:anchorMaterial,sizeCode:'',sizeType:'',
     productType:desc,
     cleanSize:'',dimensionPreview:abLine,
-    accessories:acc,weight:calc.weights.setWeight,formData,...getPriceModeSaveData('was'),
+    accessories:acc,weight:calc.weights.setWeight,customDimensions:dcReadCustomDims(),formData,...getPriceModeSaveData('was'),
     wasData:{abLine,compLines}
   };
   if(editingItemIndex!==null&&quoteItems[editingItemIndex]){
@@ -6315,12 +6485,14 @@ function addWAS(){
     editingItemIndex=null;
     markQuotationDirty();setItemEditMode(null);
     resetAccPanel('was');                     // same rule as pushItem: no carry-over
+    dcClearCustomDims();
     renderQuote(idx);
     showToast(dcT('tItemUpdated'));return;
   }
   quoteItems.push(item);
   markQuotationDirty();
   resetAccPanel('was');                       // same rule as pushItem: no carry-over
+  dcClearCustomDims();
   renderQuote(quoteItems.length-1);flashPreview();
   showToast('Added #'+quoteItems.length+' — '+materialLabel(anchorMaterial)+' Welding Anchor Set  '+fmt(finalUnitPrice)+'/set');
 }
@@ -6409,7 +6581,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   const acc=accessories||{nut:{enabled:false,qty:2,finish:'',unitPrice:0},fw:{enabled:false,qty:1,finish:'',unitPrice:0},custom:{enabled:false,text:'',unitPrice:0}};
   const productType=type==='others'?(fv(type,'productName').trim()||ITEM_TYPES[type]):(ITEM_TYPES[type]||type);
   const priceData=getPriceModeSaveData(type);
-  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,finalUnitPrice,totalAmount,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,formData:captureItemFormData(type),...priceData};
+  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,finalUnitPrice,totalAmount,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),formData:captureItemFormData(type),...priceData};
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const updatedIndex=editingItemIndex;
     quoteItems[updatedIndex]=item;
@@ -6419,6 +6591,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
     /* The updated item has its accessories captured above — the form now returns
        to "next item" state, so its accessory panel must not leak into it. */
     resetAccPanel(type);
+    dcClearCustomDims();
     renderQuote(updatedIndex);
     showToast(dcT('tItemUpdated'));
     return true;
@@ -6430,6 +6603,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
      its own copy (captured into item.accessories above); the form resets so the
      next item always starts with zero accessories. */
   resetAccPanel(type);
+  dcClearCustomDims();
   renderQuote(quoteItems.length-1);
   showToast('Added #'+quoteItems.length+' — '+sizeStr+'  '+fmt(finalUnitPrice));
   return true;
@@ -6478,6 +6652,7 @@ function renderQuote(newIdx){
       ? '<span class="price-mode-badge">Manual Price</span>'
       : itemPriceMode==='no_round' ? '<span class="price-mode-badge">No Round</span>' : '';
     const cwLine=item.itemType==='was'?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
+    const cdLine=dcCustomDimsLine(item);
     const displaySize=item.itemType==='was'?wasDisplayData(item).size:item.size;
     const unitSuffix=item.itemType==='was'?'/set':'';
     const uboltDebugHtml=getUBoltCardDebugHtml(item);
@@ -6487,7 +6662,7 @@ function renderQuote(newIdx){
           <div class="qi-num">${i+1}</div>
           <div class="qi-body">
             <div class="qi-desc">${escHtml(displayItemDesc(item))}${chip?' '+chip:''}</div>
-            <div class="qi-dim">${escHtml(displaySize)}${cwLine?`<span style="display:block;font-size:11.5px;color:var(--text-muted);margin-top:2px;white-space:pre-line">${escHtml(cwLine)}</span>`:''}${uboltDebugHtml}</div>
+            <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${cwLine?`<span style="display:block;font-size:11.5px;color:var(--text-muted);margin-top:2px;white-space:pre-line">${escHtml(cwLine)}</span>`:''}${uboltDebugHtml}</div>
           </div>
         </div>
         ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="Edit item">Edit / 编辑</button><button class="qi-del" onclick="removeItem(${i})" title="Delete item">Delete / 删除</button></div>`}
@@ -6529,6 +6704,7 @@ function clearAllItems(){
   if(!editingQuoteId) quoteItemsSnapshotAtSave=null;
   markQuotationDirty();
   resetAllAccPanels();          // Clear All: no hidden accessory may survive
+  dcClearCustomDims();          // …and no annotation from a cleared item either
   renderQuote();
   showToast('Quotation list cleared');
 }
@@ -6539,6 +6715,7 @@ function startNewQuotation(){
   clearUnsavedDraft();
   productEntryTouchedFields.clear();
   resetAllAccPanels();          // New Quotation starts with zero accessories everywhere
+  dcClearCustomDims();
   loadedSavedQuote=false; quoteLocked=false; savedQuoteDirty=false; quoteStatusMode='draft'; savedQuoteSnapshot='';
   editingItemIndex=null; setItemEditMode(null);
   quoteItems=[]; editingQuoteId=null; loadedValidUntil=''; quoteItemsSnapshotAtSave=null; savedThisSession=false; sentThisSession=false; selectedCompanyId=null; renderQuote();
@@ -7047,7 +7224,9 @@ function getPrintItemDescription(item){
 function getPrintItemDimension(item){
   const size=item.itemType==='was'?wasDisplayData(item).size:String(item.size||'');
   const accessories=item.itemType==='was'?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
-  return [size,accessories].filter(Boolean).join('\n');
+  /* Custom dimensions print with the dimension they annotate, above the
+     accessory line. An item with none prints exactly as it did before. */
+  return [size,dcCustomDimsPrintLine(item),accessories].filter(Boolean).join('\n');
 }
 
 /* ── Step 4 wrappers — mark "Print / WhatsApp" step as done once used ── */
@@ -7222,7 +7401,19 @@ function checkHandoff(){
   el('qi-remarks').value=payload.remarks||'';
   selectedCompanyId=payload.company_id||null;
   syncQI();
-  quoteItems=(payload.items||[]).map(i=>({...i}));
+  /* The spread is shallow, so the custom dimensions are cloned explicitly:
+     two items loaded from one payload must never share an array. An item saved
+     before this feature existed normalises to an empty list and loads as it
+     always did.
+
+     The size type is normalised on the way in as well: a Stud saved before the
+     rule existed can be carrying Fullsize, and a hard rule that only applied to
+     new items would not be a hard rule. Nothing else about the item is touched
+     — its stored description, price and weight are the quotation as it was
+     sent, and those are not ours to rewrite. */
+  quoteItems=(payload.items||[]).map(i=>({...i,
+    sizeType:dcSizeTypeFor(resolveItemType(i||{}),i&&i.sizeType),
+    customDimensions:dcNormalizeCustomDims(i&&i.customDimensions)}));
   editingItemIndex=null;
   editingQuoteId=payload.id||null;
   loadedSavedQuote=!!editingQuoteId;
@@ -8264,7 +8455,8 @@ const WQA_ROW_SPEC=['material','finish','sizeType'];
    answer, not a missing one — and it OUTRANKS whatever the group above them
    said. That is what stops an HDG stated for rows 1-2 from reaching the
    stainless rows underneath, wherever the finish came from. */
-const WQA_BARE_MATERIALS=['SS304','SS316'];
+/* The same rule, under the name Quick Add already calls it by. */
+const WQA_BARE_MATERIALS=DC_NO_FINISH_MATERIALS;
 /* ── Size Type defaults ─────────────────────────────────────────────────────
    Two, both confirmed, both overridden the moment the customer says otherwise:
      · 4140, 4140 QT and 4340 QT are bought fullsize
@@ -8281,8 +8473,9 @@ function wqaDefaultSizeType(material,size){
   if(m==='MS' && WQA_UNDERSIZE_MS_SIZES.indexOf(s)>=0) return 'UNDERSIZE';
   return '';
 }
-function wqaNoFinish(material){ return WQA_BARE_MATERIALS.indexOf(String(material||''))>=0; }
-function wqaFinishFor(material,finish){ return wqaNoFinish(material) ? '' : String(finish||''); }
+function wqaNoFinish(material){ return !dcMaterialHasFinish(material); }
+function wqaFinishFor(material,finish){ return dcFinishFor(material,finish); }
+function wqaNoSizeType(product){ return !dcProductHasSizeType(product); }
 /* What the header should show for a field: the shared value, or Mixed. */
 function wqaRowsCommonValue(k){
   const live=wqa.rows.filter(r=>!r.removed);
@@ -8586,13 +8779,20 @@ function wqaShownPrice(r){
   if(wqaRowProduct(r) && !wqaRowSpec(r,'material')) return 0;
   return (r.calc||{}).finalUnitPrice;
 }
+/* A row that cannot be committed: something is missing, or the evidence about
+   what it IS disagrees with itself. Both stop the Add button; only the second
+   needs a person rather than a value. */
+function wqaRowBlocked(r){ return wqaRowMissing(r).length>0 || !!r.productConflict; }
 /* Small pills, never alert blocks. */
 function wqaRowBadges(r){
   const out=[];
+  if(r.productConflict) out.push({t:dcT('wqaConflictBadge'),k:'req'});
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
      either language instead of a translated word glued to an English one. */
   wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',dcT('field'+m.replace(/\s/g,''))),k:'req'}));
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
+  if(r.productConflict) out.push({t:dcT('wqaConflictWhy').replace('{p}',r.productConflict.said)
+                                        .replace('{g}',r.productConflict.saw),k:'warn',w:1});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
@@ -8600,11 +8800,11 @@ function wqaRowBadges(r){
   return out;
 }
 function wqaBadgeHtml(r){
-  return wqaRowBadges(r).map(b=>`<span class="wqa-pill wqa-pill-${b.k}">${escHtml(b.t)}</span>`).join('');
+  return wqaRowBadges(r).map(b=>`<span class="wqa-pill wqa-pill-${b.k}${b.w?' wqa-pill-why':''}">${escHtml(b.t)}</span>`).join('');
 }
 function wqaUpdateAddButton(){
   const live=wqa.rows.filter(r=>!r.removed);
-  const blocked=live.filter(r=>wqaRowMissing(r).length).length;
+  const blocked=live.filter(wqaRowBlocked).length;
   const btn=el('wqaAddBtn'); if(!btn) return;
   el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',live.length);
   btn.disabled = live.length===0 || blocked>0;
@@ -9436,7 +9636,7 @@ function wqaParseText(text,forceProduct){
      is an Anchor Bolt and a Sag Rod, whatever the heading said. Where that
      evidence exists the rows are read and each carries its own product; where
      it does not, nothing is read without a product, exactly as before. */
-  const selfProduct=entries.some(e=>e.n && wqaLineEnds(e.n));
+  const selfProduct=entries.some(e=>(e.n && wqaLineEnds(e.n)) || (e.d && e.d.product));
 
   entries.forEach((e,i)=>{
     if(e.blank) return;
@@ -9947,6 +10147,25 @@ function wqaNormalizeExtraction(d, opts){
        — never from the word alone. */
     if(it.ID!=null&&it.ID!==''&&it.S!=null&&it.S!==''&&rowProd!=='jbolt') rowProd='jbolt';
     else if(it.W!=null&&it.W!==''&&(rowProd==='anchorbolt'||rowProd==='sagrod'||!rowProd)) rowProd='lbolt';
+
+    /* ── Wording against geometry ─────────────────────────────────────────
+       A one-end thread under a Sag Rod title is an Anchor Bolt, and a bend
+       under an Anchor Bolt title is an L Bolt: those are DEFINED mappings and
+       they stay. This is the case with no defined answer — the customer wrote
+       STUD BOLT and the same message shows a threaded end, and a Stud has no
+       thread at all. There is no rule that turns one into the other, so
+       nothing is chosen: the row keeps the word the customer used, says the
+       two disagree, and cannot be added until a person settles it. */
+    /* The evidence may be on the row ("thread one end 100") or stated once for
+       the whole message ("one end thread stud bolts"); both contradict a Stud. */
+    const docEnds=(d.threadEnds===1||d.threadEnds===2) ? d.threadEnds : null;
+    const seenEnds=rowEnds||docEnds;
+    const sawThread=(seenEnds===1||seenEnds===2) ||
+                    (it.TL!=null && it.TL!=='' && String(it.TL)!=='0');
+    const conflict=(rowProd && wqaThreadEnds(rowProd)===0 && sawThread)
+      ? {said:(wqaProductByType(rowProd)||{label:rowProd}).label,
+         saw:(seenEnds===1?'one-end thread':(seenEnds===2?'two-end thread':'a thread length'))}
+      : null;
     /* A row the drawing DOES classify but Quick Add cannot price — a bent
        L-bolt among straight rods. It is named rather than quietly turned into
        a Sag Rod: the row asks for a product a Quick Add can price, and says
@@ -9999,8 +10218,12 @@ function wqaNormalizeExtraction(d, opts){
       const def=wqaDefaultSizeType(spec.material,M);
       if(def){ spec.sizeType=def; stDefaulted=true; }
     }
+    /* And then the hard rule, over both the customer's wording and our own
+       default: a Stud has no size type at all. A 4140 QT stud does not become
+       fullsize because 4140 usually is. */
+    if(!dcProductHasSizeType(rowProd)){ spec.sizeType=''; stDefaulted=false; }
 
-    const row={size:M, product:rowProd, unsupported,
+    const row={size:M, product:rowProd, unsupported, productConflict:conflict,
                /* Evidence, kept beside the row and used by nothing else: the
                   weight and the price still come from the nominal size. */
                bodyDia:(it.bodyDia==null||it.bodyDia==='')?'':String(it.bodyDia),
@@ -10493,8 +10716,13 @@ function wqaRenderCommon(){
      else. Mixed stays Mixed: an HDG row beside an N/A row genuinely differs. */
   const allSS=live.length ? live.every(x=>wqaNoFinish(wqaRowSpec(x,'material')))
                           : wqaNoFinish(c.material);
-  const stNeeded=live.some(x=>{ const p=wqaProductByType(wqaRowProduct(x));
-                                return p && p.needSizeType && !wqaRowSpec(x,'sizeType'); })
+  /* Every row a Stud -> the size type selector says N/A and offers nothing
+     else, exactly as the finish selector does for stainless. */
+  const allNoSt=live.length ? live.every(x=>!dcProductHasSizeType(wqaRowProduct(x)))
+                            : !dcProductHasSizeType(wqa.product);
+  const stNeeded=!allNoSt && live.some(x=>{ const p=wqaProductByType(wqaRowProduct(x));
+                                return p && p.needSizeType && dcProductHasSizeType(wqaRowProduct(x))
+                                       && !wqaRowSpec(x,'sizeType'); })
                  && !wqaIsMixed('sizeType');
   /* Asked for only once the product is known, because the list of materials
      depends on it. Never guessed from the product, the finish or what this
@@ -10525,12 +10753,12 @@ function wqaRenderCommon(){
           <option value=""${shownFin===''?' selected':''}>N/A</option>
           ${allSS?'':['PL','ZP','HDG'].map(v=>`<option value="${v}"${shownFin===v?' selected':''}>${v}</option>`).join('')}
         </select></div>
-      <div class="field"><label>Size Type${prod.needSizeType?' <span class="wqa-req">*</span>':''}</label>
-        <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)">
+      <div class="field"><label>Size Type${(prod.needSizeType&&!allNoSt)?' <span class="wqa-req">*</span>':''}</label>
+        <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)"${allNoSt?' disabled':''}>
           ${shownSt===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
-          <option value=""${shownSt===''?' selected':''}>${escHtml(dcT(prod.needSizeType?'optRequired':'optNone'))}</option>
-          <option value="FULLSIZE"${shownSt==='FULLSIZE'?' selected':''}>Fullsize</option>
-          <option value="UNDERSIZE"${shownSt==='UNDERSIZE'?' selected':''}>Undersize</option>
+          <option value=""${shownSt===''?' selected':''}>${escHtml(allNoSt?'N/A':dcT(prod.needSizeType?'optRequired':'optNone'))}</option>
+          ${allNoSt?'':`<option value="FULLSIZE"${shownSt==='FULLSIZE'?' selected':''}>Fullsize</option>
+          <option value="UNDERSIZE"${shownSt==='UNDERSIZE'?' selected':''}>Undersize</option>`}
         </select></div>
     </div>
     ${matNote}
@@ -10548,7 +10776,9 @@ function wqaChangeProduct(t){
   /* Choosing a product at the top is a deliberate action by staff, so it is
      applied to the rows in scope — exactly like Apply to All for material.
      Nothing automatic ever overwrites a row's own product. */
-  wqaApplyTargets().forEach(r=>{ r.product=t; });
+  wqaApplyTargets().forEach(r=>{ r.product=t; r.productConflict=null;
+    r.sizeType=dcSizeTypeFor(t,r.sizeType); if(!r.sizeType) r.stDefaulted=false; });
+  wqa.common.sizeType=dcSizeTypeFor(t,wqa.common.sizeType);
   /* Extracted rows have no source text to re-read — re-parsing "[uploaded]
      file.png" would throw the rows away. They carry their own fields, so the
      product change only needs a recompute. */
@@ -10576,8 +10806,10 @@ function wqaSetCommon(k,v){
   if(k==='material') wqa.common.materialDefaulted=false;
   if(WQA_ROW_SPEC.indexOf(k)>=0) wqaApplyTargets().forEach(r=>{
     /* A finish cannot be applied to a stainless row, and choosing stainless
-       clears the finish that row was carrying. */
-    if(k==='finish' && wqaNoFinish(wqaRowSpec(r,'material'))) return;
+       clears the finish that row was carrying. The same for a Stud and its
+       size type. */
+    if(k==='finish'   && wqaNoFinish(wqaRowSpec(r,'material'))) return;
+    if(k==='sizeType' && !dcProductHasSizeType(wqaRowProduct(r))) return;
     r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
                                 r.finish=wqaFinishFor(v,r.finish); }
   });
@@ -10587,6 +10819,10 @@ function wqaSetCommon(k,v){
 function wqaEditRowProduct(i,v){
   const r=wqa.rows[i]; if(!r) return;
   r.product=v;
+  /* Choosing the product by hand is the answer the conflict was waiting for. */
+  r.productConflict=null;
+  /* Anchor Bolt -> Stud takes the size type with it. */
+  r.sizeType=dcSizeTypeFor(v,r.sizeType); if(!r.sizeType) r.stDefaulted=false;
   wqaRenderCommon();
   wqaRecomputeAll('force');
 }
@@ -10649,7 +10885,8 @@ function wqaCalcField(inp,i,k){
 /* One row's own specification, edited from its expanded card. */
 function wqaEditRowSpec(i,k,v){
   const r=wqa.rows[i]; if(!r) return;
-  if(k==='finish' && wqaNoFinish(wqaRowSpec(r,'material'))) return;
+  if(k==='finish'   && wqaNoFinish(wqaRowSpec(r,'material'))) return;
+  if(k==='sizeType' && !dcProductHasSizeType(wqaRowProduct(r))) return;
   r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
                               r.finish=wqaFinishFor(v,r.finish); }
   wqaRenderCommon();                       // the header summary may have moved
@@ -10691,7 +10928,7 @@ function wqaRowMissing(r){
      blank one means "not stated" — never "mild steel". Asked for only once the
      product is known, since Product is already the blocker until then. */
   if(t && !wqaRowSpec(r,'material')) miss.push('Material');
-  if(prod.needSizeType && !wqaRowSpec(r,'sizeType')) miss.push('Size Type');
+  if(prod.needSizeType && dcProductHasSizeType(t) && !wqaRowSpec(r,'sizeType')) miss.push('Size Type');
   /* A product that HAS a thread needs one: a Sag Rod as the pair 75/75 or
      50/110, an Anchor Bolt as the single value 100. Product-specific, never one
      rule for all — a Stud has no thread and is never asked for one. */
@@ -10719,18 +10956,24 @@ function wqaApplyRowToForm(r){
   const t=wqaRowProduct(r), c=wqa.common;
   productEntryTouchedFields.clear();
   resetAccPanel(t);
+  /* Quick Add does not extract custom dimensions, and whatever is sitting in
+     the editor belongs to the person's own half-finished item — never to a row
+     read out of a customer's message. Staff add them afterwards, by editing the
+     committed item. */
+  dcClearCustomDims();
   /* THIS row's material, finish and size type — a stainless row is priced as
      stainless even when the row above it is 4140 QT. */
-  setFieldValue(t,'material',wqaRowSpec(r,'material')||c.material||'MS');
+  const rowMat=wqaRowSpec(r,'material')||c.material||'MS';
+  setFieldValue(t,'material',rowMat);
   if(fieldExists(t,'sizeType')){
     /* Assigning '' to a select with no blank option would silently leave the
        previous choice in place, so the field is cleared explicitly. */
     const stEl=el(t+'-sizeType');
-    const st=wqaRowSpec(r,'sizeType')||c.sizeType;
+    const st=dcSizeTypeFor(t,wqaRowSpec(r,'sizeType')||c.sizeType);
     if(st) setFieldValue(t,'sizeType',st);
     else if(stEl) stEl.selectedIndex=-1;
   }
-  setFinishValue(t,wqaRowSpec(r,'finish')||'');
+  setFinishValue(t,dcFinishFor(rowMat,wqaRowSpec(r,'finish')||''));
   onMaterialSizeChange(t,false,'material');
   setFieldValue(t,'size',normalizeSizeValue(r.size));
   autoFillDiameter(t);
@@ -11002,7 +11245,7 @@ function wqaExpectedDimPreview(r){
 async function wqaAddAll(){
   if(wqa.busy) return;
   const live=wqa.rows.filter(r=>!r.removed);
-  if(!live.length || live.some(r=>wqaRowMissing(r).length)) return;
+  if(!live.length || live.some(wqaRowBlocked)) return;
   wqa.busy=true;
   const btn=el('wqaAddBtn'); const label=btn.textContent; btn.disabled=true; btn.textContent='Adding…';
   const before=quoteItems.length;
@@ -11027,8 +11270,11 @@ async function wqaAddAll(){
   const blocked=live.filter(r=>parseInt(r.qty,10)>0).map(r=>{
     const miss=wqaRowMissing(r).filter(x=>x!=='Price');
     const name=(wqaProductByType(wqaRowProduct(r))||WQA_NO_PRODUCT).label;
-    const why=miss.length ? miss.map(x=>dcT('needs').replace('{f}',x)).join(' / ')
-            : (!fv(wqaRowProduct(r),'diameter') && r.size ? dcT('wqaNoCalcDia') : '');
+    const why=r.productConflict
+            ? dcT('wqaConflictWhy').replace('{p}',r.productConflict.said)
+                                   .replace('{g}',r.productConflict.saw)
+            : (miss.length ? miss.map(x=>dcT('needs').replace('{f}',x)).join(' / ')
+            : (!fv(wqaRowProduct(r),'diameter') && r.size ? dcT('wqaNoCalcDia') : ''));
     return why ? `${name} ${r.size||''} — ${why}`.trim() : '';
   }).filter(Boolean);
   wqaHardClose();          // a successful add is the other path that may clear state
