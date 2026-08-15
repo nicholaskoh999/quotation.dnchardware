@@ -221,9 +221,19 @@ function ai_output_schema() {
                         // drawing states one ("body 33mm" under an M32). Never
                         // the nominal size and never a length.
                         'bodyDia'  => ['type'=>['number','null']],
+                        // J Bolt only: overall height, the hook's inside
+                        // diameter, and the return height. A J Bolt has no L —
+                        // the customer's "length" IS its H.
+                        'H'        => ['type'=>['number','null']],
+                        'ID'       => ['type'=>['number','null']],
+                        'S'        => ['type'=>['number','null']],
+                        // Bend radius where a drawing states one. Evidence: it
+                        // is not a quotation dimension and never becomes ID,
+                        // S, W or H.
+                        'R'        => ['type'=>['number','null']],
                     ],
                     'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType','unclear',
-                                 'product','threadEnds','bodyDia'],
+                                 'product','threadEnds','bodyDia','H','ID','S','R'],
                 ],
             ],
         ],
@@ -273,6 +283,22 @@ into product. Resolve in this order: 1 geometry, 2 dimensional structure,
     wording
   - diameter + length only, no thread -> STUD
   - anything else -> OTHER
+L BOLT and J BOLT are products in their own right, and each has its own
+dimensions. Put them in the item's OWN fields and nowhere else:
+  L_BOLT   M, L, W, TL     L is the long leg, W the short leg / bend / hook /
+                           B column. A drawing showing a straight leg and a
+                           perpendicular short one IS an L_BOLT.
+  J_BOLT   M, H, ID, S, TL H is the overall height — a J Bolt's "length" or "L"
+                           on a customer drawing IS H, so report it as H and
+                           leave L null. ID is the inside diameter / inside
+                           width of the hook, S the bend or return height.
+A bend radius (R25, "bend radius 25") goes in R and nowhere else: it is not ID,
+not S, not W, not H, and not a quotation dimension.
+Where a drawing is headed "Anchor Bolt" but shows a 90-degree bend, it is an
+L_BOLT — the bend is geometry and the heading is only wording.
+Never fill W, ID, S or H because the product has that field: a number whose role
+the drawing does not establish stays null and the review screen asks.
+
 ONE DOCUMENT MAY HOLD MORE THAN ONE PRODUCT. A drawing with a bent 90-degree
 rod at the top and straight rods threaded at both ends underneath is an L_BOLT
 and several SAG_RODs, not one product repeated. Classify EACH item by its own
@@ -335,10 +361,16 @@ items — one per document row, in document order:
        diameter, so 48 across the rod means M48. Use it only where the drawing
        context makes it a metric rod diameter; an unrelated 48 somewhere else
        on the sheet is not M48.
-  L  = length in mm — see the drawing rule below
-  W  = bend/width in mm (B column on an L-bolt table), null when absent. On a
-       straight rod with no bend W is null — a dimension across the rod is M,
-       never W.
+  L  = length in mm — see the drawing rule below. On a J_BOLT there is no L:
+       its overall length is H.
+  H  = J_BOLT overall height in mm, null for every other product
+  ID = J_BOLT inside diameter of the hook, in mm
+  S  = J_BOLT bend / return height, in mm
+  R  = bend radius where the drawing states one — evidence only, never a
+       quotation dimension
+  W  = bend/width in mm — the short leg of an L_BOLT, the B column on an L-bolt
+       table — null when absent. On a straight rod with no bend W is null: a
+       dimension across the rod is M, never W.
   TL = thread length; a pair as the string "75/75" or "50/110", preserving
        asymmetry exactly; a single value as a number
   Bmid = centre unthreaded segment of a segmented sag rod drawing, else null.
@@ -366,7 +398,11 @@ items — one per document row, in document order:
        row is covered by the document-wide value or by nothing at all — null
        means "this row does not say", not "this row has none".
 Aliases: D/Dia=diameter · L/Length · TL/Thread/Thread Length · B/Bend/Width ·
-Qty/Quantity/Nos/Pcs.
+Qty/Quantity/Nos/Pcs · Inside Dia/I.D./Inner Width=ID · Bend High/Hook
+Height/Return Height=S · Height/Overall Height=H · R/Radius/Bend Radius=R.
+Every dimension is MILLIMETRES. A drawing in metres, centimetres, feet or
+inches is converted before you report it: 4m is 4000, 30cm is 300, 2ft is 609.6,
+2ft 6in is 762. The nominal SIZE is not converted — 1/2" stays 1/2".
 
 SEGMENTED SAG ROD DRAWINGS — READ THE ROLE, NOT THE LABEL
 A sag rod drawing often splits the rod into a threaded end, a plain middle and a
@@ -594,6 +630,11 @@ function ai_sanitise_extraction($text) {
                             ? $it['product'] : null,
             'threadEnds' => in_array($it['threadEnds'] ?? null, [1,2], true) ? $it['threadEnds'] : null,
             'bodyDia'  => $num($it['bodyDia'] ?? null),
+            // J Bolt dimensions and the evidence-only bend radius.
+            'H'        => $num($it['H'] ?? null),
+            'ID'       => $num($it['ID'] ?? null),
+            'S'        => $num($it['S'] ?? null),
+            'R'        => $num($it['R'] ?? null),
         ];
         /* A + B + C = L, checked HERE rather than trusting the model to have
            checked it. Only a flag: the printed numbers are never rewritten. */

@@ -3848,7 +3848,8 @@ const I18N={
     wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
     wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
     wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia',
-    wqaNotPriced:'not priced in Quick Add',
+    wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
+    wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
     wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.",
     wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
     wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
@@ -4033,7 +4034,8 @@ const I18N={
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
     wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
     wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径',
-    wqaNotPriced:'快速添加暂不支持计价',
+    wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
+    wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
     wqaPasteHint:'粘贴客户的 WhatsApp 信息。支持 Sag Rod、Stud 和 Anchor Bolt。',
     wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
     wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
@@ -4766,6 +4768,33 @@ function buildDesc(type){
 }
 
 /* ── diameter / rate auto-fill ── */
+/* ── Imperial calculation diameter ─────────────────────────────────────────
+   The quotation says 1/2" BSW because that is what the customer buys. The
+   weight formula cannot multiply by a fraction of an inch, so it needs the
+   millimetres behind it — 12.7 — and until now a size with a suffix had no
+   entry in the table, so the diameter box stayed empty and Add refused the item
+   with "Enter Diameter" and no explanation.
+
+   This resolves the NUMBER only. The Size the customer sees, and the Size
+   written on the quotation, are untouched, and no metric size is substituted:
+   1/2" never becomes M12. */
+const WQA_INCH_DIA={'1/2':12.7,'5/8':15.875,'3/4':19.05,'7/8':22.225,'1':25.4,
+                    '1-1/8':28.575,'1-1/4':31.75,'1-3/8':34.925,'1-1/2':38.1,
+                    '1/4':6.35,'5/16':7.9375,'3/8':9.525};
+function wqaImperialDia(size){
+  const s=String(size||'').trim().toUpperCase();
+  /* A fraction is unambiguous on its own — nothing metric is written 3/4 — so
+     1/2 and 1-1/4 resolve with or without the inch mark. A WHOLE number does
+     need the mark: a bare 1 could be anything, and guessing an inch there
+     would put 25.4mm behind a size nobody wrote. Any thread-standard suffix
+     (BSW, UNC, BSP) is ignored for the number and kept on the quotation. */
+  const mark='(?:\\s*(?:"|\u201d|\u2033|IN\\b|INCH(?:ES)?\\b))';
+  const m=new RegExp('^(\\d+\\s*[-\\s]\\s*\\d+\\s*\\/\\s*\\d+|\\d+\\s*\\/\\s*\\d+)'+mark+'?'
+                     +'|^(\\d+)'+mark).exec(s);
+  if(!m) return '';
+  const key=String(m[1]!==undefined?m[1]:m[2]).replace(/\s*\/\s*/,'/').replace(/\s*[-\s]\s*/,'-');
+  return WQA_INCH_DIA[key]!==undefined ? String(WQA_INCH_DIA[key]) : '';
+}
 function autoFillDiameter(type){
   const material=fv(type,'material'), sizeType=fv(type,'sizeType');
   const sizeEl=el(type+'-size'); if(!sizeEl)return;
@@ -4786,6 +4815,10 @@ function autoFillDiameter(type){
     if((material==='4140'||material==='4340')&&DIA_FULLSIZE_SPECIAL[size]!==undefined) dia=DIA_FULLSIZE_SPECIAL[size];
     else dia=DIA_FULLSIZE[size]!==undefined?DIA_FULLSIZE[size]:'';
   }
+  /* Nothing in the metric table matched. If the size is written in inches —
+     1/2", 3/4" BSW — the calculation diameter is the millimetres behind that
+     fraction. Only ever a fallback, so no size that already resolves changes. */
+  if(dia==='') dia=wqaImperialDia(size);
   const diaEl=el(type+'-diameter'); if(diaEl) diaEl.value=(dia!==''?dia:'');
 }
 
@@ -7658,9 +7691,9 @@ const WQA_PRODUCTS=[
                    Rod: 75 -> 75/75) or stays exactly as written (Anchor Bolt:
                    100 -> 100), and whether a thread is required at all. */
   {type:'anchorbolt', token:'ANCHOR_BOLT', label:'Anchor Bolt', aliases:['anchor bolt','anchorbolt','anchor-bolt'],
-   dims:['size','l','threadLen'], threadEnds:1, needSizeType:true},
+   dims:['size','length','threadLen'], map:{length:'l'}, threadEnds:1, needSizeType:true},
   {type:'sagrod', token:'SAG_ROD', label:'Sag Rod', aliases:['sag rod','sagrod','sag-rod'],
-   dims:['size','length','threadLen'], threadEnds:2, needSizeType:true},
+   dims:['size','length','threadLen'], map:{length:'length'}, threadEnds:2, needSizeType:true},
   /* std  a STANDARD number that names the product on its own. DIN 937 is a
           stud/stud-bolt standard, so a drawing headed "DIN 937" has said which
           product it is without writing the word. It says nothing about the
@@ -7668,8 +7701,25 @@ const WQA_PRODUCTS=[
           a bare 937 is a quantity or a job number, never a product. */
   {type:'stud', token:'STUD', label:'Stud', aliases:['stud bolt','studbolt','stud'],
    std:/\bdin[\s.\-]*937\b/i,
-   dims:['size','l'], threadEnds:0, needSizeType:false},
+   dims:['size','length'], map:{length:'l'}, threadEnds:0, needSizeType:false},
+  /* An L Bolt is a straight leg with a 90-degree return: M, the long leg L, the
+     short leg W, and one threaded end. A J Bolt is the curved cousin: M, the
+     overall height H, the inside diameter ID of the hook, the return height S,
+     and one threaded end. Both already have their own calculator — dimensions,
+     weight, price, accessories — so Quick Add reads them and hands each row to
+     the calculator that owns it. No second engine. */
+  {type:'lbolt', token:'L_BOLT', label:'L Bolt',
+   aliases:['l bolt','lbolt','l-bolt','hook bolt','hookbolt'],
+   dims:['size','length','w','threadLen'], map:{length:'l', w:'w'},
+   threadEnds:1, needSizeType:true},
+  {type:'jbolt', token:'J_BOLT', label:'J Bolt',
+   aliases:['j bolt','jbolt','j-bolt'],
+   dims:['size','h','id','s','threadLen'], map:{h:'h', id:'id', s:'s'},
+   threadEnds:1, needSizeType:true},
 ];
+/* Every dimension a row can carry, beyond size and thread. Named, never
+   positional: a J Bolt's ID is not an L Bolt's W wearing a different hat. */
+const WQA_DIMS=['length','w','h','id','s'];
 /* Every standard number we recognise, for stripping off a line before its
    numbers are read: "DIN 937" is not a 937 mm rod. */
 const WQA_STD_RE=new RegExp(WQA_PRODUCTS.filter(p=>p.std).map(p=>p.std.source).join('|'),'gi');
@@ -7677,7 +7727,7 @@ const WQA_STD_RE=new RegExp(WQA_PRODUCTS.filter(p=>p.std).map(p=>p.std.source).j
 /* A document may legitimately not say which product it is (a handwritten list
    of lengths and counts). The review still opens so the user can see the rows
    and choose; this stand-in keeps every renderer safe until they do. */
-const WQA_NO_PRODUCT={type:'',token:'',label:'—',dims:['size','length'],threadEnds:0,needSizeType:false};
+const WQA_NO_PRODUCT={type:'',token:'',label:'—',dims:['size','length'],map:{},threadEnds:0,needSizeType:false};
 
 /* A grade number and a measurement can be the same number. What tells them
    apart is the word in front of it, so this is tested against the text
@@ -7870,7 +7920,9 @@ function wqaRenderCommonItem(force){
   /* A Stud is threaded over its whole length by definition, so there is no
      thread for a customer to state and none to ask for here. Sag Rod wants the
      pair, Anchor Bolt the single value — the placeholder says which. */
-  /* Mixed rows: the box is offered when ANY of them has a thread. */
+  /* Mixed rows: the box is offered when ANY of them has a thread. A J Bolt's
+     ID and S are never offered to an L Bolt row, so the shared panel keeps to
+     what every row in scope actually has — Size, and the thread. */
   const ends=wqaMaxEnds();
   const head=wqaPanelHead('item',wqaScopeTitle('wqaCommonItemTitle'),wqaItemSummary(c),
                           need?dcT('wqaNIncomplete').replace('{n}',need):'');
@@ -8248,6 +8300,8 @@ function wqaRowsCommonValueOf(rows,k){
 }
 /* The one place anything downstream asks a row what it is made of. */
 function wqaRowSpec(r,k){ return String((r&&r[k])||''); }
+/* What Review calls each dimension when it is missing. */
+const WQA_DIM_LABEL={length:'Length', w:'W', h:'H', id:'ID', s:'S'};
 /* And what it IS. A row carries its own product, so an Anchor Bolt and a Sag
    Rod in one document are each validated, weighed and priced as themselves.
    Falls back to the session product only while a row has none of its own —
@@ -8684,6 +8738,30 @@ function wqaStripSpecWords(str){
   return out.replace(/\s+/g,' ').trim();   // keep the line anchored for "4 - M12 …"
 }
 
+/* ── Units ──────────────────────────────────────────────────────────────────
+   Every DIMENSION is millimetres inside this system, so a customer who writes
+   4 metres gets 4000 and not 4. Only a written unit converts: a bare 500 is
+   already millimetres and a bare 4 is a bare 4 — never "obviously metres
+   because it is small", which would turn a 4mm dimension into a four-metre rod.
+
+   The nominal SIZE is untouched by all of this. 1/2" is a size, not a length,
+   and it stays 1/2" (see the imperial section below). */
+const WQA_UNIT_MM={mm:1, millimeter:1, millimetre:1, millimeters:1, millimetres:1,
+                   cm:10, centimeter:10, centimetre:10, centimeters:10, centimetres:10,
+                   m:1000, meter:1000, metre:1000, meters:1000, metres:1000,
+                   'in':25.4, inch:25.4, inches:25.4, ft:304.8, foot:304.8, feet:304.8};
+/* Longest names first so "millimetre" is never read as "m". */
+const WQA_UNIT_WORDS=Object.keys(WQA_UNIT_MM).sort((a,b)=>b.length-a.length).join('|');
+/* A number and its unit, optionally followed by a second number and unit — the
+   feet-and-inches form: 2ft 6in, 2' 6", 1ft 3-1/2in. */
+const WQA_UNIT_RE=new RegExp(
+  '(\\d+(?:\\.\\d+)?)\\s*(?:(' + WQA_UNIT_WORDS + ')\\b|(\'))'
+  + '(?:\\s*(\\d+(?:\\.\\d+)?)(?:\\s*[-\\s]\\s*(\\d+)\\s*\\/\\s*(\\d+))?\\s*(?:(in|inch|inches)\\b|("|\u201d|\u2033)))?','ig');
+function wqaUnitMm(n,unit){
+  const f=unit==="'" ? 304.8 : (WQA_UNIT_MM[String(unit||'').toLowerCase()]||0);
+  return f ? Math.round(Number(n)*f*1000)/1000 : null;
+}
+
 /* ── Imperial ───────────────────────────────────────────────────────────────
    A customer who quotes in inches writes the nominal size in inches too, and
    our diameter table already speaks that vocabulary — 1/2, 5/8, 3/4, 1", 1-1/4.
@@ -8738,14 +8816,98 @@ function wqaInchSize(t){
 }
 function wqaInchMm(t){ return String(Math.round(t.inches*WQA_IN_MM*1000)/1000); }
 
+/* ── L Bolt / J Bolt dimensions ─────────────────────────────────────────────
+   These letters mean different things to different products, so they are read
+   ONLY inside a product that has them: W is an L Bolt's short leg, ID and S
+   belong to a J Bolt, and for a J Bolt the customer's "L"/"Length" IS the
+   overall height H. Reading them globally would turn every "x 100 W" in a sag
+   rod message into something it is not.
+
+   Both the "ID70" and the "70 ID" forms are written by customers, so both are
+   read. A radius — R25, "bend radius 25" — is kept as evidence and is not a
+   quotation dimension: it never becomes ID, S, H or W. */
+const WQA_DIM_WORDS={
+  L:  'overall\\s*length|long\\s*leg|main\\s*length|long\\s*length|length|l',
+  W:  'bend\\s*width|short\\s*leg|short\\s*length|bend|width|hook\\s*length|hook|leg|w|b',
+  H:  'overall\\s*height|overall\\s*length|height|length|h|l',
+  ID: 'inside\\s*dia(?:meter)?|internal\\s*dia(?:meter)?|inner\\s*dia(?:meter)?|inside\\s*width|inner\\s*width|i\\.?d\\.?|id',
+  S:  'bend\\s*high|bend\\s*height|hook\\s*height|return\\s*height|short\\s*height|bend|s',
+  R:  'bend\\s*radius|radius|r',
+};
+/* Which of them a product actually owns. */
+const WQA_PROD_DIMS={lbolt:['TL','L','W','R'], jbolt:['TL','ID','S','H','R']};
+const WQA_DIM_RE=(function(){
+  const out={};
+  Object.keys(WQA_DIM_WORDS).forEach(k=>{
+    const w=WQA_DIM_WORDS[k];
+    /* "ID 70mm" and "70mm ID" and "400mm L" — the label may come before or
+       after the number, and the unit may sit between them. */
+    out[k]=new RegExp('(?:\\b(?:'+w+')\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?'
+      + '|(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?\\s*(?:'+w+')\\b)','i');
+  });
+  return out;
+})();
+/* The thread, in the wording all three of these products share. */
+const WQA_TL_DIM_RE=/(?:\bt\.?l\.?|thread(?:ed)?(?:\s*length)?)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:mm\b)?|(\d+(?:\.\d+)?)\s*(?:mm\b)?\s*(?:\bt\.?l\.?|thread(?:ed)?(?:\s*length)?)\b/i;
+function wqaDimLabelled(s,key){
+  const re = key==='TL' ? WQA_TL_DIM_RE : WQA_DIM_RE[key];
+  if(!re) return null;
+  const m=re.exec(s);
+  if(!m) return null;
+  const v=m[1]!==undefined&&m[1]!==null ? m[1] : m[2];
+  return (v!=null && Number(v)>0) ? {v:String(Number(v)), at:m.index, len:m[0].length} : null;
+}
+/* Every labelled dimension THIS product owns, taken out of the line so what is
+   left is positional. Longest/most specific keys first: ID before S before H,
+   because "inside dia" contains a d and an i that a one-letter rule would eat. */
+function wqaProductDims(s,type){
+  const keys=WQA_PROD_DIMS[type];
+  if(!keys) return null;
+  const out={}; let rest=' '+String(s)+' ';
+  keys.forEach(k=>{
+    const hit=wqaDimLabelled(rest,k);
+    if(!hit) return;
+    out[k]=hit.v;
+    rest=rest.slice(0,hit.at)+' '+rest.slice(hit.at+hit.len);
+  });
+  return {dims:out, rest:rest.replace(/\s+/g,' ').trim()};
+}
+
 /* ── Field recognisers ──────────────────────────────────────────────────────
    Each one consumes what it matches, so a consumed qty token can never be
    re-read as part of a diameter ("4pcs - M12" never becomes 4PCSM12).      */
+/* opts.product lets a line be read with ITS product's vocabulary — see
+   wqaProductDims. Without one, none of those letters mean anything. */
 function wqaExtractFields(rawLine,opts){
   let s=wqaNorm(rawLine).replace(WQA_LIST_NUM_RE,'');
   const f={qty:null,size:null,threadLen:null,threadLen2:null,nums:[],mm:[],bodyDia:null,
-           hadX:/\sx\s|\dx\d/i.test(s)};
+           dims:null, hadX:/\sx\s|\dx\d/i.test(s)};
   s=wqaStripSpecWords(s);
+  /* "2k pcs" is two thousand pieces. Taken out first so the 2 never becomes a
+     dimension, and only ever where the count context is written. */
+  const qk=WQA_QTY_K_RE.exec(s);
+  if(qk){
+    f.qty=Math.round(Number(qk[1]!==undefined?qk[1]:qk[2])*1000);
+    s=s.slice(0,qk.index)+' '+s.slice(qk.index+qk[0].length);
+  }
+  /* A "2k" with no count word beside it is a number whose role nobody has
+     established: it is certainly not a 2mm dimension, and it is not a quantity
+     either until the message says so. It leaves the line unread, and Review
+     asks — which is the whole rule in one number. */
+  s=s.replace(/\b\d+(?:\.\d+)?\s*k\b/gi,' ');
+  /* Metres, centimetres and feet become millimetres here, once, so everything
+     downstream — weight, price, the printed dimension — speaks one unit. The
+     feet-and-inches pair is one measurement: 2ft 6in is 762mm, not 2 and 6. */
+  s=s.replace(WQA_UNIT_RE,(w,n1,u1,ft,n2,wh,fr,u2,mark)=>{
+    let mm=wqaUnitMm(n1, u1||ft);
+    if(mm==null) return w;
+    if(n2!=null){                        // "2ft 6in" / "1ft 3-1/2in"
+      let inch=Number(n2);
+      if(wh!=null&&fr!=null&&Number(fr)>0) inch=Number(n2)+Number(wh)/Number(fr);
+      mm=Math.round((mm+inch*WQA_IN_MM)*1000)/1000;
+    }
+    return ' '+mm+'mm ';
+  });
   /* "SS304 (body 38.1) Sag Rod M32 x 1000" states the body diameter in the
      middle of a real item line, so it is taken out here — before any number is
      read — exactly as an inch token is. Left in, the 38.1 would win the length. */
@@ -8773,7 +8935,8 @@ function wqaExtractFields(rawLine,opts){
   }
 
   /* qty — an explicit marker wins wherever it sits on the line */
-  let m=s.match(/\bqty\s*[:=]?\s*(\d+)\b/i);
+  let m=s.match(/\bqty\s*[:=]?\s*(\d+)\b|@\s*(\d+)\b/i);
+  if(m && m[2]!==undefined) m=[m[0],m[2]];
   if(m){ f.qty=parseInt(m[1],10); s=s.replace(m[0],' '); }
   if(f.qty===null){
     m=s.match(/(?:^|[\s\-])(\d+)\s*(?:pcs|pc|nos|no|units|unit|sets|set)\b/i);
@@ -8817,6 +8980,10 @@ function wqaExtractFields(rawLine,opts){
      flag: an explicitly dimensional value next to a bare one is a strong clue
      that the bare one is a count, not another dimension. Leading zeros are
      normalised, so "0487mm" is length 487. */
+  /* An L Bolt or a J Bolt names its dimensions, and they are taken out before
+     the positional read so "TL150" is a thread and not a length. */
+  const pd=wqaProductDims(s,(opts&&opts.product)||'');
+  if(pd && Object.keys(pd.dims).length){ f.dims=pd.dims; s=pd.rest; }
   const raw=(s.match(/\d+(?:\.\d+)?\s*mm\b|\d+(?:\.\d+)?/gi)||[]);
   f.nums=raw.map(t=>{ const n=Number(String(t).replace(/\s*mm$/i,'')); return isFinite(n)?String(n):String(t); });
   f.mm  =raw.map(t=>/mm\s*$/i.test(t));
@@ -8831,6 +8998,50 @@ function wqaExtractFields(rawLine,opts){
 
 /* Resolve one line's fields against the running context. Explicit values on the
    line always beat the context. */
+/* An L Bolt / J Bolt row, built from what the line actually named. It shares
+   the row shape with every other product — size, qty, thread — and adds only
+   the dimensions that product has. */
+function wqaBoltItem(f,type){
+  const item={M:f.size||null, L:null, W:null, H:null, ID:null, S:null, R:null,
+              TL:null, qty:(f.qty==null?null:String(f.qty)),
+              product:type, threadEnds:1,
+              conf:{}, issues:[], defaulted:{}};
+  if(f.threadLen!==null) item.TL=f.threadLen2 ? f.threadLen+'/'+f.threadLen2 : f.threadLen;
+  if(f.bodyDia!=null) item.bodyDia=f.bodyDia;
+  wqaPlaceProductDims(item,f,type);
+  ['M','L','W','H','ID','S','TL','qty'].forEach(k=>{ if(item[k]) item.conf[k==='M'?'size':k]=WQA_CONF.DETECTED; });
+  return item;
+}
+/* An L Bolt's and a J Bolt's dimensions, placed by name where the customer
+   labelled them and by position only where this product's grammar makes the
+   position unambiguous:
+     L Bolt   M x L x W        — two positional numbers, in that order
+     J Bolt   M x H            — ONE positional number; anything else has to be
+                                 labelled, because a bare third number could be
+                                 ID, S or the thread and guessing which would be
+                                 a quotation-sized mistake.
+   Whatever is left over is left over: unplaced numbers are not fields. */
+function wqaPlaceProductDims(item,f,type){
+  const d=(f.dims)||{};
+  const pos=(f.nums||[]).slice();
+  const take=()=>pos.length?String(Number(pos.shift())):'';
+  if(d.R) item.R=d.R;
+  if(type==='lbolt'){
+    item.L = d.L || (item.L!=null?item.L:'') || take();
+    item.W = d.W || take();
+    if(d.TL) item.TL=d.TL;
+    return true;
+  }
+  if(type==='jbolt'){
+    item.H = d.H || take();
+    item.ID = d.ID || '';
+    item.S  = d.S  || '';
+    if(d.TL) item.TL=d.TL;
+    item.L=null;                 // a J Bolt has no separate length
+    return true;
+  }
+  return false;
+}
 function wqaResolveLine(f,ctx,productType){
   /* A message whose ROWS say what they are — "thread one end 100" — reaches
      here before any product is settled, so the general shape stands in and the
@@ -8996,6 +9207,12 @@ const WQA_BODY_NUM_RE=new RegExp(WQA_BODY_RE.source+'\\s*[:=]?\\s*\\u00f8?\\s*(\
    50mm instead of 250mm, with nothing on screen to say so. */
 const WQA_CENTER_RE=/\b(?:cent(?:er|re)\s*(?:length|body|section)?|middle\s*(?:length|section)|body\s*length|unthreaded\s*(?:length|section)|plain\s*(?:section\s*)?length)\b/i;
 const WQA_COUNT_WORD_RE=/\b(?:items?|qty|quantity|pcs?|nos?|sets?|units?)\b/i;
+/* "2k pcs", "qty 1.5k", "@2k", "2.5K NOS" — the k is a thousand, but ONLY where
+   the number is plainly a count. A bare "M20 x 2k" says nothing about quantity,
+   so it stays unresolved rather than becoming two thousand of something. */
+const WQA_QTY_K_RE=new RegExp(
+  '(?:\\bqty\\b|\\bquantity\\b|@)\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)\\s*k\\b'
+  + '|(\\d+(?:\\.\\d+)?)\\s*k\\s*(?:pcs?|nos?|no\\.|sets?|units?|items?)\\b','i');
 /* The wording that makes a quantity everyone's rather than the row above it. */
 const WQA_ALL_QTY_RE=/\b(?:all|each|every|per)\b/i;
 function wqaOverallLengthValue(e){
@@ -9161,7 +9378,7 @@ function wqaParseText(text,forceProduct){
      ROW never writes back into it — a value stated on a row applies to that row
      only, and the shared context carries on unchanged for the rows after it. */
   const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:'',qty:'',center:'',
-             sizeList:null, bodyDia:'',
+             sizeList:null, bodyDia:'', product:'',
              material:'',finish:'',sizeType:'',matFrom:'',matDefaulted:false};
   /* Once a line has stated a material, finish or size type for a GROUP, the
      document-wide reading of that field stops being a fallback — it was only
@@ -9203,7 +9420,10 @@ function wqaParseText(text,forceProduct){
     if(!wqaLineHasSignal(t,common)) return {t,n,noise:true};
     /* The same whole-message rules, run over ONE line, so a line can state its
        own material or finish exactly as the document can. */
-    return {t,n,f:wqaExtractFields(t,{rodSize}),d:wqaDetectCommon(t)};
+    /* The line's own product word wins over the document's, so one L Bolt line
+       inside a Sag Rod message is read with L Bolt eyes. */
+    const dd=wqaDetectCommon(t);
+    return {t,n,f:wqaExtractFields(t,{rodSize,product:dd.product||common.product}),d:dd};
   });
   /* Thread arrangement beats the customer's product word, decided before
      anything is read as a row — the dimension columns depend on it. Resolved by
@@ -9266,11 +9486,14 @@ function wqaParseText(text,forceProduct){
     /* Numbers alone are not enough — "Total 6 items" is not a 6mm bolt. An item
        needs a dimensional signal: an M-size, a thread, an x separator or an mm
        suffix, or an explicit quantity. */
+    /* A line whose numbers were all LABELLED — "M24 x 500L x 100W x TL150" —
+       has no loose numbers left to count, and it is still an item: the labels
+       are the strongest dimensional signal there is. */
     const dimSignal = !!f.size || f.threadLen!==null || f.hadX || (f.mm||[]).some(Boolean) ||
-                      (inList && !!ctx.size);          // a length list under a header
+                      !!f.dims || (inList && !!ctx.size);   // a length list under a header
     const isItem = !plan[i] &&
                    ((f.qty!==null && (dimSignal || f.nums.length>0)) ||
-                    (dimSignal && f.nums.length>0));
+                    (dimSignal && (f.nums.length>0 || !!f.dims)));
     if(!isItem){
       /* No length and no qty: this is context, not an item. It may still carry
          a diameter and a thread for the rows below it. */
@@ -9279,6 +9502,10 @@ function wqaParseText(text,forceProduct){
          means these rows are stainless AND that the finish above it was for the
          rows above it. Whatever else the same line states is applied after. */
       const d=e.d||{};
+      /* "L BOLT" on a line of its own is the product of the rows under it —
+         the same grouping a bare material line makes, and what lets one drawing
+         hold an L Bolt block above a Sag Rod block. */
+      if(d.product){ ctx.product=d.product; used=true; }
       if(d.material){
         ctx.material=d.material; ctx.matFrom=d.materialDefaultedFrom||'';
         ctx.matDefaulted=!!d.materialDefaulted;
@@ -9336,7 +9563,16 @@ function wqaParseText(text,forceProduct){
       if(counts && !used) unread++;
       return;
     }
-    const r=wqaResolveLine(f,ctx,common.product);
+    /* Which product this LINE is, for reading its dimensions: its own word,
+       then the group it sits under, then the document. */
+    const lineProd=(e.d&&e.d.product)||ctx.product||common.product||'';
+    /* The line's fields were read before the group was known, so an L Bolt or
+       J Bolt block re-reads its rows with that product's vocabulary. */
+    const lf=((lineProd==='lbolt'||lineProd==='jbolt') && !f.dims)
+      ? wqaExtractFields(e.t,{rodSize,product:lineProd}) : f;
+    const r=(lineProd==='lbolt'||lineProd==='jbolt')
+      ? {item:wqaBoltItem(lf,lineProd)}
+      : wqaResolveLine(f,ctx,common.product);
     /* "M20 x 1000 thread one end 100" says on the row itself how many ends it
        has, and that is what the row IS — an Anchor Bolt beside a Sag Rod in the
        same message is an ordinary enquiry. */
@@ -9702,8 +9938,15 @@ function wqaNormalizeExtraction(d, opts){
     const rowEnds=(it.threadEnds===1||it.threadEnds===2) ? it.threadEnds : null;
     const ownProd=it.product ? (wqaProductByToken(String(it.product))||wqaProductByType(String(it.product))) : null;
     const base=ownProd ? ownProd.type : prod;
-    const rowProd = base ? wqaResolveProduct(base,rowEnds)
-                         : (rowEnds ? wqaProductFromEnds(rowEnds) : '');
+    let rowProd = base ? wqaResolveProduct(base,rowEnds)
+                       : (rowEnds ? wqaProductFromEnds(rowEnds) : '');
+    /* A bend is geometry, and geometry outranks the title: a drawing headed
+       "Anchor Bolt" that shows a long leg and a perpendicular short one is an
+       L Bolt, and a hook with an inside diameter and a return height is a
+       J Bolt. Only where the shape is actually stated — a W, or an ID and an S
+       — never from the word alone. */
+    if(it.ID!=null&&it.ID!==''&&it.S!=null&&it.S!==''&&rowProd!=='jbolt') rowProd='jbolt';
+    else if(it.W!=null&&it.W!==''&&(rowProd==='anchorbolt'||rowProd==='sagrod'||!rowProd)) rowProd='lbolt';
     /* A row the drawing DOES classify but Quick Add cannot price — a bent
        L-bolt among straight rods. It is named rather than quietly turned into
        a Sag Rod: the row asks for a product a Quick Add can price, and says
@@ -9761,7 +10004,14 @@ function wqaNormalizeExtraction(d, opts){
                /* Evidence, kept beside the row and used by nothing else: the
                   weight and the price still come from the nominal size. */
                bodyDia:(it.bodyDia==null||it.bodyDia==='')?'':String(it.bodyDia),
+               /* Evidence only, and never a quotation field: a bend radius is
+                  not an inside diameter and not a return height. */
+               radius:(it.R==null||it.R==='')?'':String(it.R),
                length:(it.L==null||it.L==='')?'':String(it.L),
+               w:(it.W==null||it.W==='')?'':String(it.W),
+               h:(it.H==null||it.H==='')?'':String(it.H),
+               id:(it.ID==null||it.ID==='')?'':String(it.ID),
+               s:(it.S==null||it.S==='')?'':String(it.S),
                threadLen:tl.a, threadLen2:tl.b,
                qty:(it.qty==null||it.qty==='')?'':String(it.qty),
                material:spec.material, finish:spec.finish, sizeType:spec.sizeType,
@@ -9791,7 +10041,12 @@ function wqaNormalizeExtraction(d, opts){
        one, and which product this is was decided a few lines above. */
     if(rEnds>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
     if(!row.size)   issues.push('size');
-    if(!row.length) issues.push('length');
+    /* Each product's own dimensions, by name — a J Bolt has no length to be
+       missing, and an L Bolt is short of something quite different. */
+    ((wqaProductByType(rowProd)||WQA_NO_PRODUCT).dims||['length']).forEach(d=>{
+      if(d==='size'||d==='threadLen') return;
+      if(!row[d]) issues.push(d);
+    });
     return row;
   });
 
@@ -9881,7 +10136,15 @@ async function wqaAiApply(d, msgTarget){
    while the free-form "left thread 68 / center 12 / other side 20" message
    leaves half its numeric lines unused. */
 function wqaParseQuality(parsed, text){
-  const usable = (parsed.rows||[]).filter(r=>parseFloat(r.length)>0);
+  /* A row is usable when it carries the FIRST dimension its own product needs:
+     a length for a rod, a long leg for an L Bolt, an overall height for a
+     J Bolt. Measuring every product by "length" would send every J Bolt message
+     to the AI for want of a field a J Bolt does not have. */
+  const usable = (parsed.rows||[]).filter(r=>{
+    const p=wqaProductByType(r.product||'')||null;
+    const key=(p && (p.dims||[]).filter(d=>d!=='size'&&d!=='threadLen')[0]) || 'length';
+    return parseFloat(r[key])>0;
+  });
   if(!usable.length) return {ok:false, why:'no-usable-rows'};
   /* A short spec line the structure could not separate from an item: the row we
      would show may be a thread length wearing a length's clothes. Hand the
@@ -10327,6 +10590,62 @@ function wqaEditRowProduct(i,v){
   wqaRenderCommon();
   wqaRecomputeAll('force');
 }
+/* ── Inline dimension arithmetic ────────────────────────────────────────────
+   "500+30" in a length box becomes 530 on Enter or on leaving the field. A rod
+   is often quoted as a wall plus an overhang, and doing that sum in your head
+   over twenty rows is where mistakes come from.
+
+   A hand-written recursive-descent evaluator, not eval and not new Function:
+   it understands digits, a decimal point, + - * / and brackets, and it cannot
+   express anything else. Anything it does not understand is left alone — the
+   box keeps what was typed and Review still asks. Division is deliberately
+   available here and NOT on a paired thread box, where "100/120" is two ends
+   and not a division. */
+function wqaCalc(expr){
+  const s=String(expr==null?'':expr).replace(/\s+/g,'');
+  if(!s || !/^[0-9.+\-*/()]+$/.test(s)) return null;
+  if(!/[+\-*/]/.test(s)) return null;            // a plain number needs no maths
+  let i=0;
+  const peek=()=>s[i];
+  const num=()=>{ const st=i; while(i<s.length && /[0-9.]/.test(s[i])) i++;
+                  if(i===st) return NaN; const v=Number(s.slice(st,i));
+                  return isFinite(v)?v:NaN; };
+  const factor=()=>{
+    if(peek()==='('){ i++; const v=expr2(); if(peek()!==')') return NaN; i++; return v; }
+    if(peek()==='-'){ i++; const v=factor(); return isNaN(v)?NaN:-v; }
+    if(peek()==='+'){ i++; return factor(); }
+    return num();
+  };
+  const term=()=>{
+    let v=factor();
+    while(!isNaN(v) && (peek()==='*'||peek()==='/')){
+      const op=s[i++], r=factor();
+      if(isNaN(r)) return NaN;
+      if(op==='/'&&r===0) return NaN;
+      v = op==='*' ? v*r : v/r;
+    }
+    return v;
+  };
+  const expr2=()=>{
+    let v=term();
+    while(!isNaN(v) && (peek()==='+'||peek()==='-')){
+      const op=s[i++], r=term();
+      if(isNaN(r)) return NaN;
+      v = op==='+' ? v+r : v-r;
+    }
+    return v;
+  };
+  const out=expr2();
+  if(i!==s.length || isNaN(out) || !isFinite(out)) return null;
+  return String(Math.round(out*1000)/1000);
+}
+/* Wired to a dimension input: evaluate, write the answer back, save it. */
+function wqaCalcField(inp,i,k){
+  const v=wqaCalc(inp.value);
+  if(v==null) return;
+  inp.value=v;
+  wqaEdit(i,k,v);
+}
 /* One row's own specification, edited from its expanded card. */
 function wqaEditRowSpec(i,k,v){
   const r=wqa.rows[i]; if(!r) return;
@@ -10356,7 +10675,13 @@ function wqaRowMissing(r){
   const miss=[];
   if(!t)                       miss.push('Product');
   if(!String(r.size).trim())   miss.push('Size');
-  if(!String(r.length).trim()) miss.push('Length');
+  /* Each product asks for its own dimensions, by name: an L Bolt wants L and
+     W, a J Bolt wants H, ID and S, and nothing is invented for the ones it
+     does not have. */
+  (prod.dims||[]).forEach(d=>{
+    if(d==='size'||d==='threadLen') return;
+    if(!String(r[d]==null?'':r[d]).trim()) miss.push(WQA_DIM_LABEL[d]||d);
+  });
   /* Qty is optional in Quick Add: a customer may send lengths with no counts,
      and those are still real items. It is therefore NOT a blocker here. The
      existing calculator still requires a qty of its own to add an item, so a
@@ -10409,8 +10734,14 @@ function wqaApplyRowToForm(r){
   onMaterialSizeChange(t,false,'material');
   setFieldValue(t,'size',normalizeSizeValue(r.size));
   autoFillDiameter(t);
-  if(fieldExists(t,'length')) setFieldValue(t,'length',r.length);
-  if(fieldExists(t,'l'))      setFieldValue(t,'l',r.length);
+  /* By NAME, from this product's own map: a Sag Rod's length is its overall
+     length, an Anchor Bolt's is "l", an L Bolt's long leg is "l" with the short
+     leg in "w", and a J Bolt has h/id/s. The L and J calculators compute their
+     own total length from those, so it is never written over. */
+  const map=(wqaProductByType(t)||WQA_NO_PRODUCT).map||{};
+  Object.keys(map).forEach(k=>{
+    if(fieldExists(t,map[k])) setFieldValue(t,map[k],r[k]==null?'':r[k]);
+  });
   if(fieldExists(t,'threadLen')) setFieldValue(t,'threadLen',wqaThreadValue(r));
   setFieldValue(t,'qty',r.qty||'');
   onMaterialSizeChange(t,true);
@@ -10497,13 +10828,20 @@ function wqaRenderRows(force){
     }
     /* The body — every control that existed before — is built only when this row
        is open, so a 19-item paste is a 19-line list instead of 19 tall cards. */
+    /* This row's product decides which dimensions it is asked for. */
+    const rprod=wqaProductByType(wqaRowProduct(r))||prod;
     const body = !open ? '' : `<div class="wqa-row-body">
       <div class="wqa-row-grid">
         <div class="field"><label>Size</label><input type="text" value="${escHtml(r.size)}" oninput="wqaEdit(${i},'size',this.value)"></div>
-        <div class="field"><label>Length (mm)</label><input type="number" step="0.1" value="${escHtml(r.length)}" oninput="wqaEdit(${i},'length',this.value)"></div>
-        ${prod.dims.includes('threadLen')?`<div class="field"><label>Thread (mm)</label>
-          <input type="text" value="${escHtml(wqaThreadValue(r))}" placeholder="50/110" oninput="wqaEditThread(${i},this.value)">
-          <small class="wqa-hint-sm">one value, or both ends as 50/110</small></div>`:''}
+        ${(rprod.dims||[]).filter(d=>d!=='size'&&d!=='threadLen').map(d=>`
+        <div class="field"><label>${escHtml(WQA_DIM_LABEL[d]||d)} (mm)</label>
+          <input type="text" inputmode="decimal" value="${escHtml(r[d]==null?'':r[d])}"
+                 oninput="wqaEdit(${i},'${d}',this.value)"
+                 onblur="wqaCalcField(this,${i},'${d}')"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();wqaCalcField(this,${i},'${d}');}"></div>`).join('')}
+        ${rprod.dims.includes('threadLen')?`<div class="field"><label>Thread (mm)</label>
+          <input type="text" value="${escHtml(wqaThreadValue(r))}" placeholder="${rprod.threadEnds===2?'50/110':'100'}" oninput="wqaEditThread(${i},this.value)">
+          <small class="wqa-hint-sm">${rprod.threadEnds===2?'one value, or both ends as 50/110':'one value'}</small></div>`:''}
         <div class="field"><label>Qty</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
       </div>
       <div class="wqa-row-grid">
@@ -10513,7 +10851,13 @@ function wqaRenderRows(force){
             ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===wqaRowProduct(r)?' selected':''}>${p.label}</option>`).join('')}
           </select></div>
         ${r.bodyDia?`<div class="field"><label data-i18n="wqaBodyDia">${escHtml(dcT('wqaBodyDia'))}</label>
-          <input type="text" value="${escHtml(r.bodyDia)}" oninput="wqaEdit(${i},'bodyDia',this.value)"></div>`:''}
+          <input type="text" inputmode="decimal" value="${escHtml(r.bodyDia)}"
+                 oninput="wqaEdit(${i},'bodyDia',this.value)"
+                 onblur="wqaCalcField(this,${i},'bodyDia')"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();wqaCalcField(this,${i},'bodyDia');}"></div>`:''}
+        ${r.radius?`<div class="field"><label>${escHtml(dcT('wqaRadius'))}</label>
+          <input type="text" value="${escHtml(r.radius)}" disabled>
+          <small class="wqa-hint-sm">${escHtml(dcT('wqaEvidenceOnly'))}</small></div>`:''}
         <div class="field"><label data-i18n="fieldMaterial">Material</label>
           <select onchange="wqaEditRowSpec(${i},'material',this.value)">${wqaMaterialOptions(wqaRowSpec(r,'material'),wqaRowProduct(r))}</select></div>
         <div class="field"><label>Finish</label>
@@ -10642,8 +10986,15 @@ async function wqaLoadHistory(){
 /* Mirror of the dimension string the add functions build, so an exact match
    really means the same length and thread. */
 function wqaExpectedDimPreview(r){
-  const len=cleanNum(r.length), tl=wqaThreadValue(r);
-  if(wqaRowProduct(r)==='stud') return 'L '+len+'mm';
+  const t=wqaRowProduct(r), tl=wqaThreadValue(r);
+  /* Written exactly as the calculator writes it when the item is committed, so
+     Last Price matches on the same string it saved. */
+  if(t==='lbolt')
+    return 'L '+cleanNum(r.length)+' x W '+cleanNum(r.w)+(tl?' x TL '+withMm(tl):'');
+  if(t==='jbolt')
+    return 'H '+cleanNum(r.h)+' x ID '+cleanNum(r.id)+' x S '+cleanNum(r.s)+(tl?' x TL '+withMm(tl):'');
+  const len=cleanNum(r.length);
+  if(t==='stud') return 'L '+len+'mm';
   return 'L '+len+(tl?' x TL '+withMm(tl):'');
 }
 
@@ -10670,12 +11021,22 @@ async function wqaAddAll(){
   }
   const added=quoteItems.length-before;
   const noQty=live.filter(r=>!(parseInt(r.qty,10)>0)).length;
+  /* When a row does not make it, say WHICH row and WHY — "0 of 1 added" tells
+     nobody anything. The reason comes from the row itself: what it is missing,
+     or, when nothing is missing on our side, that the calculator refused it. */
+  const blocked=live.filter(r=>parseInt(r.qty,10)>0).map(r=>{
+    const miss=wqaRowMissing(r).filter(x=>x!=='Price');
+    const name=(wqaProductByType(wqaRowProduct(r))||WQA_NO_PRODUCT).label;
+    const why=miss.length ? miss.map(x=>dcT('needs').replace('{f}',x)).join(' / ')
+            : (!fv(wqaRowProduct(r),'diameter') && r.size ? dcT('wqaNoCalcDia') : '');
+    return why ? `${name} ${r.size||''} — ${why}`.trim() : '';
+  }).filter(Boolean);
   wqaHardClose();          // a successful add is the other path that may clear state
   showToast(added===live.length
     ? `${added} item${added===1?'':'s'} added from WhatsApp`
     : (noQty && added+noQty===live.length
         ? `${added} added · ${noQty} skipped — enter a quantity for those`
-        : `${added} of ${live.length} added — check the remaining rows`));
+        : `${added} of ${live.length} added` + (blocked.length ? ' · '+blocked.slice(0,2).join(' · ') : ' — check the remaining rows')));
   goToStep(3);
 }
 
