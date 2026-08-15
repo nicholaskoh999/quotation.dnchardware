@@ -171,6 +171,10 @@ function ai_output_schema() {
             'material' => ['type'=>['string','null']],
             'finish'   => ['type'=>['string','null']],
             'sizeType' => ['type'=>['string','null']],
+            // How many ends of the rod carry a thread, when the document shows
+            // it. Evidence, NOT a product name: our own resolver turns it into
+            // Sag Rod or Anchor Bolt, the same way it does for pasted text.
+            'threadEnds' => ['type'=>['integer','null'], 'enum'=>[1,2,null]],
             // Accessory/assembly wording seen on the document, verbatim and
             // short. Displayed to staff as a note only — Quick Add never turns
             // it into accessories, quantities or prices.
@@ -196,7 +200,7 @@ function ai_output_schema() {
                 ],
             ],
         ],
-        'required'=>['product','material','finish','sizeType','note','items'],
+        'required'=>['product','material','finish','sizeType','threadEnds','note','items'],
     ];
 }
 
@@ -233,6 +237,15 @@ rod, no bend, 48 dimensioned across the rod, overall length 3850, top thread
 L is the OVERALL 3850. A shorter dimension elsewhere on the same drawing (3600)
 is a reference dimension, not L. Bmid stays null because the plain middle is
 not dimensioned — never compute it.
+
+threadEnds — how many ends of the rod carry a thread: 2, 1, or null when the
+document does not show it. This is EVIDENCE, not a product name; our own code
+turns it into the product. Count what is drawn or written, never what the title
+says. "one end thread", "threaded one end", "thread one side", "single end
+thread" -> 1. "both ends threaded", "thread both sides", a TL written as a pair
+(75/75, 50/110), or two thread lengths given for the two ends -> 2. Ends
+actually given outrank ends described: "thread one side 150 / thread other side
+100" is 2. A drawing showing thread hatching at each end of a straight rod is 2.
 
 material / finish / sizeType — copy the raw wording exactly, do not translate
 (materials: MS, S45C, 4140, 4140 QT, G8.8, GR8.8, Grade 8.8, Y BAR; finishes:
@@ -290,6 +303,17 @@ NOT invent the other side. If the roles are genuinely ambiguous, return null for
 that field rather than guessing. If the numbers cannot be reconciled, report
 exactly what is printed — never adjust them to make them add up, never drop the
 row. Semantic interpretation, not pattern matching.
+
+HANDWRITTEN NOTATION
+Read the notation, report what it means, invent nothing:
+  R12 / R16 / R 12 next to "undersize", "undersized" or "U/S", or on a rod
+    drawing -> the nominal diameter: M "M12", sizeType "undersized". The R is
+    the draughtsman's round-bar notation, not a different size. An R number in
+    an unrelated context is not a diameter — leave M null.
+  ZP, Z/P, Z(P), Z[P], "Z P", lower case, any punctuation -> finish "ZP".
+  A straight rod drawn with thread hatching at each end -> threadEnds 2.
+  Thread marks with NO dimension written against them are not a length: TL
+    stays null. Never read a thread length off the picture.
 
 PRODUCT-SPECIFIC DIMENSIONS — SEARCH THE WHOLE DOCUMENT
 Once the product is known, the fields the quotation needs are known too, so look
@@ -473,6 +497,7 @@ function ai_sanitise_extraction($text) {
         'material' => $str($d['material'] ?? null),
         'finish'   => $str($d['finish'] ?? null),
         'sizeType' => $str($d['sizeType'] ?? null),
+        'threadEnds' => in_array($d['threadEnds'] ?? null, [1, 2], true) ? $d['threadEnds'] : null,
         // Shown to staff as a note. Never applied to accessories anywhere.
         'note'     => $str($d['note'] ?? null, 80),
         'items'    => $items,

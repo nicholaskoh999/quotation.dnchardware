@@ -232,6 +232,10 @@ input,select,textarea{font-family:inherit}
   font-size:13.5px; font-weight:700; cursor:pointer; white-space:nowrap; min-height:var(--control-h);
   transition:filter .12s,background .12s;
 }
+/* display:inline-flex above outranks the browser's own [hidden] rule, so a
+   button marked hidden kept its space. Quick Add relies on it for the
+   Parse / Analyze swap and for the upload-only Back control. */
+.btn[hidden]{display:none}
 .btn:active{filter:brightness(.95)}
 .btn-primary{background:var(--accent); color:#fff}
 .btn-primary:hover{background:var(--accent-2)}
@@ -1762,6 +1766,19 @@ input,select,textarea{
 .wqa-panel-badge{flex:0 0 auto;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:var(--pill-r);
   background:var(--accent-light);color:var(--accent-2);white-space:nowrap}
 .wqa-panel-body{margin-top:9px}
+/* Quick Add — the customer's own message, kept beside the parsed rows so staff
+   can compare the two without navigating away. ONE component: the same
+   collapsible head every other section uses, over a scrolling text block. Only
+   that block's height changes between desktop, tablet and phone. */
+.wqa-source-common{background:var(--surface)}
+.wqa-source-text{margin:0;max-height:150px;overflow:auto;overflow-wrap:anywhere;white-space:pre-wrap;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;color:var(--text-2);
+  padding:9px 10px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface2)}
+.wqa-source-actions{display:flex;justify-content:flex-end;margin-top:8px}
+/* The only thing that changes between screens is how tall that block may get.
+   Declared here, after the base rule, so the breakpoints actually win. */
+@media (max-width:820px){ .wqa-source-text{max-height:120px} }   /* tablet */
+@media (max-width:640px){ .wqa-source-text{max-height:38vh} }    /* phone  */
 .wqa-price-common,.wqa-acc-common{padding:0;border:0;background:transparent}
 
 /* Quick Add — discard confirmation (covers the modal, never the whole page) */
@@ -3308,6 +3325,8 @@ input,select,textarea{
     <!-- STEP 2/3 — review + confirm -->
     <div id="wqaStep2" hidden>
       <div class="wqa-scroll">
+      <!-- The customer's own words, above everything derived from them. -->
+      <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
       <div class="wqa-common" id="wqaCommon"></div>
       <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
       <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
@@ -3320,7 +3339,10 @@ input,select,textarea{
           <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')" data-i18n="wqaCompact">Compact</button>
           <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')" data-i18n="wqaExpanded">Expanded</button>
         </span>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="wqaBackToPaste()" data-i18n="wqaEditPasted">← Edit pasted text</button>
+        <!-- Only for an upload, where there is no message panel to go back
+             through. A pasted message is edited from the panel itself. -->
+        <button type="button" class="btn btn-ghost btn-sm" id="wqaBackBtn" onclick="wqaBackToPaste()"
+                data-i18n="wqaEditPasted" hidden>← Edit pasted text</button>
       </div>
       <div class="wqa-list-head" id="wqaListHead" hidden></div>
       <div class="wqa-rows" id="wqaRows"></div>
@@ -3767,6 +3789,8 @@ const I18N={
     wqaPrivacy:'Uploaded files are used only for AI extraction and are not saved with the quotation.',
     wqaParseItems:'Parse Items', wqaAnalyze:'Analyze',
     wqaCompact:'Compact', wqaExpanded:'Expanded', wqaEditPasted:'← Edit pasted text',
+    wqaBackToUpload:'← Back to upload', wqaSourceTitle:'WhatsApp Message',
+    wqaSourceLines:'{n} lines', wqaSourceEdit:'Edit message',
     wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiAssisted:'✨ AI assisted',
     notSet:'Not set', none:'None',
     pmAutoRound:'Auto Round', pmNoRound:'No Round', pmManualPrice:'Manual Price',
@@ -3939,6 +3963,8 @@ const I18N={
     wqaPrivacy:'上传的文件只用于 AI 提取，不会随报价保存。',
     wqaParseItems:'解析产品', wqaAnalyze:'分析',
     wqaCompact:'精简', wqaExpanded:'展开', wqaEditPasted:'← 编辑粘贴文字',
+    wqaBackToUpload:'← 返回上传', wqaSourceTitle:'客户原文',
+    wqaSourceLines:'{n} 行', wqaSourceEdit:'编辑原文',
     wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
     notSet:'未设置', none:'无',
     pmAutoRound:'自动进位', pmNoRound:'不进位', pmManualPrice:'手动价格',
@@ -7582,7 +7608,10 @@ const WQA_MATERIALS=[
    NOT treated as plain-4140 material, which needs explicit non-QT wording. */
 const WQA_FINISHES=[
   {re:/\bhdg\b|\bhot\s*dip\b|\bgalvani[sz]ed\b/i, value:'HDG'},
-  {re:/\bzp\b|\bzinc\b/i,                          value:'ZP'},
+  /* Zinc plating is written a dozen ways by hand and comes back from OCR with
+     whatever punctuation was on the paper: ZP, Z/P, Z(P), Z[P], z p. They all
+     mean the one finish we quote. */
+  {re:/\bzp\b|\bz\s*[\/(\[]\s*p\s*[)\]]?|\bz\s+p\b|\bzinc\b/i, value:'ZP'},
   {re:/\bpl\b|\bplain\b/i,                         value:'PL'},
 ];
 
@@ -7592,7 +7621,8 @@ const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPr
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
 function wqaTogglePanel(which){ wqa.panels[which]=!wqa.panels[which];
-  if(which==='item')       wqaRenderCommonItem(true);
+  if(which==='source')     wqaRenderSource(true);
+  else if(which==='item')  wqaRenderCommonItem(true);
   else if(which==='price') wqaRenderCommonPrice(true);
   else                     wqaRenderCommonAcc(true); }
 function wqaPanelHead(which,title,summary,badge){
@@ -7949,6 +7979,21 @@ function wqaToggleAccOpen(i){ wqa.rows[i].accOpen=!wqa.rows[i].accOpen; wqaRende
 
 function wqaProductByType(t){ return WQA_PRODUCTS.find(p=>p.type===t)||null; }
 function wqaProductByToken(k){ return WQA_PRODUCTS.find(p=>p.token===k)||null; }
+/* ── The one product resolver ───────────────────────────────────────────────
+   Our two straight-rod products differ by ONE thing: how many ends carry a
+   thread. So where a source states the arrangement, that outranks whatever the
+   customer called it — "one end thread sag rod" is our Anchor Bolt, and "anchor
+   bolt, thread both ends" is our Sag Rod. Every source resolves here; there is
+   no second product map anywhere. A Stud has no thread and is left alone. */
+function wqaResolveProduct(product,threadEnds){
+  const p=wqaProductByToken(String(product||''))||wqaProductByType(String(product||''));
+  const type=p?p.type:'';
+  if(!type || !p.threadEnds) return type;
+  if(threadEnds!==1 && threadEnds!==2) return type;
+  if(p.threadEnds===threadEnds) return type;
+  const swap=WQA_PRODUCTS.find(x=>x.threadEnds===threadEnds);
+  return swap ? swap.type : type;
+}
 /* How many thread lengths this product has. 0 = no thread field at all. */
 function wqaThreadEnds(t){ const p=wqaProductByType(t); return p?p.threadEnds:0; }
 
@@ -7971,12 +8016,20 @@ function wqaPairThread(v,productType){
   if(s.indexOf('/')>=0) return wqaSplitThread(s);
   return wqaThreadEnds(productType)===2 ? {a:s,b:s} : {a:s,b:''};
 }
-/* "12", "m12", "M12.0" and an extracted "M12" all mean M12. ONE normaliser, so
-   a typed size, a parsed one and an extracted one land identically. */
-function wqaNormM(v){
+/* A drawing writes an undersized rod's nominal diameter as R12. The R is the
+   draughtsman's round-bar notation, not a different size, and the quotation
+   speaks in M sizes. ONE definition of the notation, read both off a pasted
+   line and out of an extraction. */
+const WQA_ROD_R_RE=/\br\s*(\d+(?:\.\d+)?)\b/i;
+/* "12", "m12", "M12.0", an extracted "M12" and — on a rod — "R12" all mean M12.
+   ONE normaliser, so a typed size, a parsed one and an extracted one land
+   identically. rodSize is the context that licences the R form; without it an
+   R number is left exactly as written rather than guessed at. */
+function wqaNormM(v,rodSize){
   const s=String(v==null?'':v).trim();
   if(!s) return '';
-  const m=s.match(/^m?\s*(\d+(?:\.\d+)?)\s*$/i) || s.match(/\bm\s*(\d+(?:\.\d+)?)\b/i);
+  let m=s.match(/^m?\s*(\d+(?:\.\d+)?)\s*$/i) || s.match(/\bm\s*(\d+(?:\.\d+)?)\b/i);
+  if(!m && rodSize) m=s.match(WQA_ROD_R_RE);
   return m ? 'M'+m[1].replace(/\.0$/,'') : s.toUpperCase();
 }
 
@@ -8221,8 +8274,9 @@ function wqaDetectCommon(text){
                         out.materialDefaultedFrom=m.from||'4140'; break; }
   }
   for(const f of WQA_FINISHES){ if(f.re.test(hay)){ out.finish=f.value; break; } }
-  if(/\bfull\s*size\b|\bf\/s\b/i.test(hay))       out.sizeType='FULLSIZE';
-  else if(/\bunder\s*size\b|\bu\/s\b/i.test(hay)) out.sizeType='UNDERSIZE';
+  /* "undersized" is as common as "undersize" on a handwritten drawing. */
+  if(/\bfull\s*sized?\b|\bf\/s\b/i.test(hay))       out.sizeType='FULLSIZE';
+  else if(/\bunder\s*sized?\b|\bu\/s\b/i.test(hay)) out.sizeType='UNDERSIZE';
   return out;
 }
 
@@ -8247,7 +8301,7 @@ function wqaStripSpecWords(str){
 /* ── Field recognisers ──────────────────────────────────────────────────────
    Each one consumes what it matches, so a consumed qty token can never be
    re-read as part of a diameter ("4pcs - M12" never becomes 4PCSM12).      */
-function wqaExtractFields(rawLine){
+function wqaExtractFields(rawLine,opts){
   let s=wqaNorm(rawLine).replace(WQA_LIST_NUM_RE,'');
   const f={qty:null,size:null,threadLen:null,threadLen2:null,nums:[],mm:[],hadX:/\sx\s|\dx\d/i.test(s)};
   s=wqaStripSpecWords(s);
@@ -8276,6 +8330,16 @@ function wqaExtractFields(rawLine){
   /* diameter — M12 / m 12 */
   m=s.match(/\bm\s*(\d+(?:\.\d+)?)\b/i);
   if(m){ f.size='M'+m[1].replace(/\.0$/,''); s=s.replace(m[0],' '); }
+  /* A drawing writes an undersized rod's nominal diameter as R12. The R is the
+     draughtsman's notation for the round bar it is cut from, not a different
+     size, and the quotation speaks in M sizes — so it is read as M12 and the
+     undersize meaning travels where it belongs, in Size Type. Read ONLY where
+     the message itself shows that context (see wqaParseText); an R12 in an
+     unrelated note is never guessed at. */
+  if(!f.size && opts && opts.rodSize){
+    m=s.match(WQA_ROD_R_RE);
+    if(m){ f.size='M'+m[1].replace(/\.0$/,''); s=s.replace(m[0],' '); }
+  }
   /* Two-side thread "50/110mm": BOTH ends are kept. The calculator's threadLen
      is a free-text field and already reads the pair form (its MS/UNDERSIZE/PL
      special price keys on "100/100"), so nothing is discarded or invented. */
@@ -8461,15 +8525,27 @@ function wqaCtxAddThread(ctx,v,productType){
     ctx.threadLen2=v; ctx.tlCount=2;
   }
 }
-/* Two thread ends stated separately for one rod is our Sag Rod shape, whatever
-   the customer titled the drawing. Same order the AI extraction already follows
-   — geometry first, wording last — so a "DETAIL OF ANCHOR BOLT" that states a
-   top thread and a bottom thread is read as a Sag Rod. */
-function wqaGeometryProduct(product,entries){
-  if(product!=='anchorbolt') return product;
-  let ends=0;
-  entries.forEach(e=>{ if(wqaThreadOnlyValue(e)!=null) ends++; });
-  return ends>=2 ? 'sagrod' : product;
+/* ── How many ends are threaded ─────────────────────────────────────────────
+   Evidence, not a product name. A customer calls the same straight rod a "sag
+   rod", an "anchor bolt" or a "bolt" interchangeably, but they are precise
+   about the threading, and the threading is what our two products actually
+   differ by. Read the arrangement and let the shared resolver decide.
+
+   Ends actually GIVEN outrank ends described: "thread one side 150 / thread
+   other side 100" states two, whatever the words "one side" suggest. */
+const WQA_ONE_END_RE=/\b(?:(?:one|1|single)\s*(?:end|side)\s*(?:only\s*)?(?:thread(?:ed)?)?|thread(?:ed)?\s*(?:on\s*)?(?:one|1|single)\s*(?:end|side)|one\s*threaded\s*end)\b/i;
+const WQA_BOTH_END_RE=/\b(?:(?:both|two|2)\s*(?:end|side)s?\s*(?:thread(?:ed)?)?|thread(?:ed)?\s*(?:on\s*)?(?:both|two|2)\s*(?:end|side)s?|two\s*threaded\s*ends?)\b/i;
+function wqaThreadEndEvidence(text,entries){
+  let stated=0, pair=false;
+  (entries||[]).forEach(e=>{
+    if(wqaThreadOnlyValue(e)!=null) stated++;
+    if(e.f && e.f.threadLen!==null && e.f.threadLen2) pair=true;
+  });
+  if(stated>=2 || pair) return 2;
+  const n=' '+wqaNorm(text).toLowerCase()+' ';
+  if(WQA_BOTH_END_RE.test(n)) return 2;
+  if(WQA_ONE_END_RE.test(n))  return 1;
+  return null;
 }
 
 /* Judged on the line alone: could this be a shared spec rather than an item? */
@@ -8519,7 +8595,7 @@ function wqaParseText(text,forceProduct){
   /* Running context: a header line updates it, later lines inherit from it. A
      ROW never writes back into it — a value stated on a row applies to that row
      only, and the shared context carries on unchanged for the rows after it. */
-  const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:''};
+  const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:'',qty:''};
   /* After a "Length:" heading, once context already carries the identity
      (product, material, finish, size type, diameter), a bare number IS a
      length. This is context-driven — no customer-specific format. */
@@ -8535,6 +8611,12 @@ function wqaParseText(text,forceProduct){
      becomes an item. */
   let numeric=0, unread=0;
 
+  /* R12 is drawing notation for an undersized rod's nominal diameter, so it is
+     read as a size only where the message actually shows that context: an
+     undersize note, or a rod product. Never a blanket rule. */
+  const rodSize = common.sizeType==='UNDERSIZE' || /\bunder\s*sized?\b|\bu\/s\b/i.test(String(text||''))
+                  || wqaThreadEnds(common.product)>0;
+
   /* Every line's fields are read first. A spec header is only recognisable from
      the rows below it, so the classification has to precede the row loop. */
   const entries=lines.map(raw=>{
@@ -8543,10 +8625,13 @@ function wqaParseText(text,forceProduct){
     const n=wqaNorm(t);
     if(WQA_SECTION_RE.test(n)) return {t,n,section:true};          // "Length:" — structural
     if(!wqaLineHasSignal(t,common)) return {t,n,noise:true};
-    return {t,n,f:wqaExtractFields(t)};
+    return {t,n,f:wqaExtractFields(t,{rodSize})};
   });
-  /* Geometry beats the customer's title, decided before anything is read. */
-  if(!forceProduct && common.product) common.product=wqaGeometryProduct(common.product,entries);
+  /* Thread arrangement beats the customer's product word, decided before
+     anything is read as a row — the dimension columns depend on it. Resolved by
+     the SAME function the AI extraction goes through. */
+  const threadEnds=forceProduct ? null : wqaThreadEndEvidence(text,entries);
+  if(!forceProduct) common.product=wqaResolveProduct(common.product,threadEnds);
   const plan=wqaSpecHeaderPlan(entries);
 
   entries.forEach((e,i)=>{
@@ -8600,7 +8685,7 @@ function wqaParseText(text,forceProduct){
           const prev=items[items.length-1];
           if(prev && (prev.qty==null||prev.qty==='')){
             prev.qty=String(f.qty); prev.conf.qty=WQA_CONF.DETECTED; used=true;
-          }
+          } else if(!prev && !ctx.qty){ ctx.qty=String(f.qty); used=true; }
         }
       }
       if(counts && !used) unread++;
@@ -8610,6 +8695,21 @@ function wqaParseText(text,forceProduct){
     items.push({...r.item,raw:e.t});
   });
 
+  /* A shared spec written UNDER the rows is still shared: "M24 x 1330 / thread
+     one side 150 / thread other side 100 / 936 pcs" states the rod once and its
+     two ends after it. Reading inherits forward, so when the message is finished
+     whatever the context ended up carrying fills the gaps it never reached.
+     ONLY gaps — a row that stated its own value keeps it, exactly as a row above
+     the context would. */
+  if(ctx.size || ctx.threadLen){
+    const wantsThread=wqaThreadEnds(common.product)>0;
+    const ctxTL=ctx.threadLen ? (ctx.threadLen2?ctx.threadLen+'/'+ctx.threadLen2:ctx.threadLen) : '';
+    items.forEach(it=>{
+      if(!it.M && ctx.size){ it.M=ctx.size; it.conf.size=WQA_CONF.INHERITED; }
+      if(!it.TL && ctxTL && wantsThread){ it.TL=ctxTL; it.conf.threadLen=WQA_CONF.INHERITED; }
+    });
+  }
+
   /* A message that describes ONE rod instead of listing several — a drawing
      written out in words — leaves the whole specification in the context with no
      row to hang it on. Only when nothing else was read at all does that context
@@ -8618,14 +8718,14 @@ function wqaParseText(text,forceProduct){
   if(!items.length && common.product && ctx.size && ctx.length){
     items.push({M:ctx.size, L:ctx.length,
                 TL:ctx.threadLen?(ctx.threadLen2?ctx.threadLen+'/'+ctx.threadLen2:ctx.threadLen):null,
-                qty:null, raw:lines.map(l=>l.trim()).filter(Boolean).join(' · '),
+                qty:ctx.qty||null, raw:lines.map(l=>l.trim()).filter(Boolean).join(' · '),
                 conf:{size:WQA_CONF.INHERITED,length:WQA_CONF.INHERITED,threadLen:WQA_CONF.INHERITED},
                 issues:[], defaulted:{}});
   }
 
   /* The SAME normaliser the photo and PDF extraction goes through. Everything
      from this line downwards is shared by every source. */
-  const norm=wqaNormalizeExtraction({product:common.product,items},{wording:text});
+  const norm=wqaNormalizeExtraction({product:common.product,threadEnds,items},{wording:text});
   return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread};
 }
 
@@ -8799,7 +8899,11 @@ async function wqaAnalyze(){
                   stated once for a whole list may arrive on the first item
                   only. A gap on a LATER item is then filled from the value
                   stated earlier — never backwards, and never over a value the
-                  item states for itself.                                    */
+                  item states for itself.
+
+   d.threadEnds (1 or 2, else null) is the source's evidence about how many ends
+   of the rod are threaded. It is read here, not by the caller, so text, photo
+   and PDF all resolve the product identically.                              */
 function wqaNormalizeExtraction(d, opts){
   d=d||{}; opts=opts||{};
   const word={SAG_ROD:'SAG ROD',STUD:'STUD',ANCHOR_BOLT:'ANCHOR BOLT',L_BOLT:'L BOLT'};
@@ -8814,6 +8918,8 @@ function wqaNormalizeExtraction(d, opts){
     else if(src==='OTHER')   prodErr={code:'no_product'};
     else                     prodErr={code:'unsupported', word:word[src]||src};
   }
+  /* Thread arrangement outranks the product word, for every source alike. */
+  prod=wqaResolveProduct(prod, d.threadEnds);
 
   /* Common fields: ONE rule set, whatever the wording came from. */
   let st=String(d.sizeType||'').trim();
@@ -8826,13 +8932,17 @@ function wqaNormalizeExtraction(d, opts){
   common.product=prod;
 
   const ends=wqaThreadEnds(prod);
+  /* The same context that licences R12 -> M12 when a line is read: a rod
+     product, or an undersize note. Owned here so a photo and a paste
+     standardise identically. */
+  const rodSize=ends>0 || common.sizeType==='UNDERSIZE';
   const inh={M:'',TL:''};
   const rows=(d.items||[]).map(it=>{
     const conf={...(it.conf||{})};
     const issues=(it.issues||[]).filter(x=>x!=='size'&&x!=='length');
     const defaulted={...(it.defaulted||{})};
 
-    let M=wqaNormM(it.M);
+    let M=wqaNormM(it.M,rodSize);
     if(M) inh.M=M;
     else if(opts.inheritGaps && inh.M){ M=inh.M; conf.size=WQA_CONF.INHERITED; }
 
@@ -9011,7 +9121,7 @@ function wqaResetState(){
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
   wqa.commonItem=wqaEmptyItem();
   wqa.commonAcc=wqaEmptyAcc(); wqa.commonPrice=wqaEmptyPrice();
-  wqa.panels={item:false,price:false,acc:false}; wqa.view='compact';
+  wqa.panels={source:false,item:false,price:false,acc:false}; wqa.view='compact';
   wqa.skipped=[]; wqa.busy=false;
 
   /* AI upload session state — the selected/dropped file, its name, its preview,
@@ -9039,8 +9149,11 @@ function wqaResetState(){
   if(el('wqaTabPaste'))    el('wqaTabPaste').classList.add('is-on');
   if(el('wqaTabUpload'))   el('wqaTabUpload').classList.remove('is-on');
 
-  ['wqaRows','wqaCommon','wqaCommonItem','wqaCommonPrice','wqaCommonAcc','wqaListHead']
+  ['wqaRows','wqaSource','wqaCommon','wqaCommonItem','wqaCommonPrice','wqaCommonAcc','wqaListHead']
     .forEach(id=>{ const n=el(id); if(n) n.innerHTML=''; });
+  /* The message panel is hidden as well as emptied, so a new session never
+     opens on an empty frame where the last customer's words were. */
+  const src=el('wqaSource');  if(src) src.hidden=true;
   const lh=el('wqaListHead'); if(lh) lh.hidden=true;
   const rows=el('wqaRows');   if(rows) rows.classList.remove('has-head');
   const vc=el('wqaViewCompact'), ve=el('wqaViewExpanded');
@@ -9085,6 +9198,8 @@ async function wqaEnterReview(common, rows, rawText, skipped, source){
                          priceOverride:{},history:undefined,removed:false}));
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
+  wqa.panels.source=wqaSourceOpenDefault();
+  wqaRenderSource(true);
   wqaRenderCommon();
   wqaRenderAiBadge();
   /* Opened by default when anything is actually missing — on a shorthand photo
@@ -9095,6 +9210,54 @@ async function wqaEnterReview(common, rows, rawText, skipped, source){
   wqaRenderCommonAcc();
   await wqaRecomputeAll();
 }
+
+/* ── The customer's message during Review ──────────────────────────────────
+   Staff read the parsed rows against what the customer actually wrote, so the
+   source stays on screen instead of hiding behind a button. It is shown only
+   where the text IS the customer's own message: a paste, or the AI text
+   fallback, which is that same paste. A photo or a PDF has no trustworthy
+   transcript — "[uploaded] drawing.png" is a filename, not what the customer
+   said — so the panel stays away and the Back button takes its place. Nothing
+   is fetched or generated to fill it. */
+function wqaSourceText(){
+  if(wqa.source==='paste') return String(wqa.raw||'');
+  return String(wqa.aiRaw||'');            // the AI text fallback: the same paste
+}
+/* A phone opens it closed: a long message would otherwise be the whole screen
+   before a single row. Everything wider opens it expanded. */
+function wqaSourceOpenDefault(){
+  try{ return !window.matchMedia('(max-width:640px)').matches; }catch(e){ return true; }
+}
+function wqaRenderSource(force){
+  const box=el('wqaSource'), back=el('wqaBackBtn');
+  if(!box) return;
+  const txt=wqaSourceText();
+  if(!txt.trim()){
+    box.hidden=true; box.innerHTML='';
+    /* No panel: the Back button is the only way back to the upload step, so it
+       stays — relabelled, because there is nothing pasted to edit. */
+    if(back){ back.hidden=!(wqa.rows&&wqa.rows.length);
+              back.setAttribute('data-i18n','wqaBackToUpload');
+              back.textContent=dcT('wqaBackToUpload'); }
+    return;
+  }
+  if(back) back.hidden=true;
+  if(!force && wqaTypingIn(box)) return;
+  const lines=txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const summary=dcT('wqaSourceLines').replace('{n}',lines.length);
+  box.hidden=false;
+  box.innerHTML = wqaPanelHead('source',dcT('wqaSourceTitle'),summary,'')
+    + (!wqa.panels.source ? '' :
+       `<div class="wqa-panel-body">
+          <pre class="wqa-source-text">${escHtml(txt)}</pre>
+          <div class="wqa-source-actions">
+            <button type="button" class="btn btn-outline btn-sm" onclick="wqaBackToPaste()"
+                    data-i18n="wqaSourceEdit">${escHtml(dcT('wqaSourceEdit'))}</button>
+          </div>
+        </div>`);
+}
+/* Language switches redraw it, so the title and the line count follow. */
+dcOnRelabel(()=>{ try{ if(el('wqaStep2')&&!el('wqaStep2').hidden) wqaRenderSource(true); }catch(e){} });
 
 /* The flag is the single source of truth, so a deterministic parse simply
    never shows it. */
