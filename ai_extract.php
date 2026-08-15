@@ -195,8 +195,16 @@ function ai_output_schema() {
                         // the server can check A + Bmid + C = L deterministically
                         // instead of trusting the model's arithmetic. ~4 tokens.
                         'Bmid' => ['type'=>['number','null']],
+                        // What THIS row is made of, when the row says so — a
+                        // drawing with a stainless block under a G8.8 block is
+                        // ordinary. Raw wording, null when the row is silent:
+                        // the document-level value then applies, and the mapping
+                        // to 4140 QT / SS304 runs in our own code either way.
+                        'material' => ['type'=>['string','null']],
+                        'finish'   => ['type'=>['string','null']],
+                        'sizeType' => ['type'=>['string','null']],
                     ],
-                    'required'=>['M','L','W','TL','qty','Bmid'],
+                    'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType'],
                 ],
             ],
         ],
@@ -255,9 +263,18 @@ actually given outrank ends described: "thread one side 150 / thread other side
 100" is 2. A drawing showing thread hatching at each end of a straight rod is 2.
 
 material / finish / sizeType — copy the raw wording exactly, do not translate
-(materials: MS, S45C, 4140, 4140 QT, G8.8, GR8.8, Grade 8.8, Y BAR; finishes:
-PL, Plain, ZP, HDG; size types: Fullsize, Undersize, F/S, U/S). Never infer a
-finish that is not written: no wording means finish = null.
+(materials: MS, S45C, 4140, 4140 QT, G8.8, GR8.8, Grade 8.8, HT, High Tensile,
+Y BAR, SS304, SUS304, S/S 316; finishes: PL, Plain, Black, ZP, HDG; size types:
+Fullsize, Undersize, F/S, U/S). Never infer a material or finish that is not
+written: no wording means null. Stainless needs its GRADE — "stainless" or "SS"
+with no 304/316 beside it is material = "stainless steel" and nothing more; do
+not choose a grade.
+
+These three are the DOCUMENT-wide values: the ones that apply to the whole
+sheet. A document that specifies each block separately has none — put each
+block's wording on its own rows instead (see the item fields), and leave the
+document-level material or finish null. Never copy one block's material up to
+document level: it would then be applied to every other block.
 
 note — accessory or assembly wording exactly as written, e.g. "C/W 5PCS NUTS &
 2FW" -> "5 Nuts + 2 FW". Keep it under 40 characters, or null when the document
@@ -280,6 +297,13 @@ items — one per document row, in document order:
   Bmid = centre unthreaded segment of a segmented sag rod drawing, else null.
        This is NOT the L-bolt bend column — a bend/B column goes to W.
   qty from pcs/pc/nos/qty — a quantity is never a dimension
+  material / finish / sizeType = what THIS row is made of, when the row or the
+       block it sits under says so — raw wording again, same vocabulary. One
+       drawing carrying "GRADE 8.8 / HDG" over the first rows and "S/S 304" over
+       the rest is normal: give rows 1-2 material "GRADE 8.8", finish "HDG" and
+       the rest material "S/S 304", finish null. Leave all three null when the
+       row is covered by the document-wide value or by nothing at all — null
+       means "this row does not say", not "this row has none".
 Aliases: D/Dia=diameter · L/Length · TL/Thread/Thread Length · B/Bend/Width ·
 Qty/Quantity/Nos/Pcs.
 
@@ -489,6 +513,11 @@ function ai_sanitise_extraction($text) {
             'TL'  => $tl($it['TL'] ?? null),
             'qty' => (is_int($it['qty'] ?? null) && $it['qty']>0 && $it['qty']<=1000000) ? $it['qty'] : null,
             'Bmid' => $num($it['Bmid'] ?? null),
+            // Row wording, passed through untranslated. Quick Add runs it
+            // through the same rules it runs the document wording through.
+            'material' => $str($it['material'] ?? null, 40),
+            'finish'   => $str($it['finish'] ?? null, 40),
+            'sizeType' => $str($it['sizeType'] ?? null, 40),
         ];
         /* A + B + C = L, checked HERE rather than trusting the model to have
            checked it. Only a flag: the printed numbers are never rewritten. */
