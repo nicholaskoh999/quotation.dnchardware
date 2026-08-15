@@ -45,6 +45,19 @@ const AI_MAX_IMAGE_BYTES = 10485760;  // 10 MB
 const AI_MAX_PDF_BYTES   = 20971520;  // 20 MB
 const AI_MAX_PDF_PAGES   = 10;
 const AI_MAX_ITEMS       = 100;
+/* Room for the answer, not a budget for it — nothing is charged for tokens the
+   model does not generate.
+
+   This was 4096, and a 29-row anchor-bolt table came back as "Could not
+   analyze this file". The schema requires all seventeen keys on every item, so
+   one row costs roughly 80 tokens of JSON and 29 rows roughly 2,400 — but this
+   ceiling covers the model's REASONING as well as its answer, and on a dense
+   merged-cell table the reasoning alone can spend the whole 4096. The response
+   then comes back status=incomplete with the JSON cut off mid-row, which
+   decodes to nothing, which was reported as if the document were unreadable.
+   AI_MAX_ITEMS rows of output plus room to think about them is what this has
+   to cover, and a document that still exceeds it now says so by name. */
+const AI_MAX_OUTPUT_TOKENS = 32000;
 /* Pasted WhatsApp text. Generous for a long customer list, small enough that a
    pasted document can never turn into a large bill. */
 const AI_MAX_TEXT_CHARS  = 6000;
@@ -326,6 +339,42 @@ L is the OVERALL 3850. A shorter dimension elsewhere on the same drawing (3600)
 is a reference dimension, not L. Bmid stays null because the plain middle is
 not dimensioned — never compute it.
 
+EACH DRAWING OWNS ITS OWN DIMENSIONS
+A sheet that shows several parts — stacked one above another, side by side, or
+repeated down a table — shows several SEPARATE drawings. Every part has its own
+region: the outline, the dimension lines that touch it, the leaders that point
+at it and the caption directly beside or beneath it. Read each part inside its
+own region and nowhere else.
+  - A dimension belonging to the part ABOVE or BELOW is not a candidate for
+    this part. Not as a value, not as an alternative, not as a doubt. If part 2
+    is 865 long and part 3 is 1000 long, part 3 is 1000: the 865 is part 2's
+    and says nothing whatever about part 3.
+  - Never write "L 1000 or 865", "check length", or any other wording that
+    offers one part's dimension as a possible reading of another's. That is not
+    an uncertainty; it is a dimension that belongs to a different part.
+  - Repeated parts that differ ONLY in one dimension are the normal case on
+    these sheets. Expect the lengths to differ and report each as drawn.
+  - "unclear" is ONLY for something you genuinely cannot READ inside this
+    part's own region — smudged handwriting, an obscured digit. It is never for
+    choosing between this part's dimension and a neighbouring part's, and never
+    for a value that the arithmetic below confirms. Where the evidence settles
+    the value, fill the field and leave "unclear" null.
+
+WHICH DIMENSION IS THE OVERALL LENGTH
+Within one part's own region, in this order:
+  1. A dimension line that SPANS the whole part end to end. That is L. Prefer
+     it over everything else.
+  2. Otherwise, the segments along the part that add up: a thread, a plain
+     middle and a thread. 200 + 600 + 200 = 1000 makes L 1000, and
+     200 + 885 + 200 = 1285 makes L 1285. When the segments add up to a value
+     the drawing also shows spanning the part, that is confirmation, not a
+     conflict — report L and leave "unclear" null.
+  3. Otherwise L is null and the review screen asks.
+A thread length is never the overall length. "200/200" written against a part
+is TL — 200 at each end — and it is not L, not half of L, and not a candidate
+for L. A part whose threads are 200/200 and whose overall dimension is 950 is
+{"L":950,"TL":"200/200"}, and the 200s are already inside the 950.
+
 threadEnds — how many ends of the rod carry a thread: 2, 1, or null when the
 document does not show it. This is EVIDENCE, not a product name; our own code
 turns it into the product. Count what is drawn or written, never what the title
@@ -458,6 +507,35 @@ of lengths underneath describe ONE specification: put that M and that TL on
 EVERY item that does not state its own. A value written on a row overrides the
 shared one for THAT row only, and the shared value still applies to the rows
 after it.
+
+A SHARED VALUE REACHES ONLY THE ROWS IT COVERS
+A table cell merged down a block of rows, or a value written once against a
+brace spanning several rows, belongs to THOSE rows and stops where the merge
+stops. Report it on the FIRST row it covers and leave that field null on the
+rest of that block; where a later block has its own value, report it again on
+the first row of the new block. Our own code carries a value forward until the
+next one replaces it, so this reproduces the merge exactly and never spreads
+one block's value over the whole sheet.
+  A TL column merged across rows 1-18 reading 150, then merged across rows
+  19-29 reading 300 -> row 1 TL 150, rows 2-18 TL null, row 19 TL 300, rows
+  20-29 TL null.
+Never take a merged value as document-wide when the document plainly gives a
+different one further down. A value written sideways in a tall merged cell is
+still that cell's value and covers exactly the rows the cell spans.
+
+STRUCTURED COLUMNS OUTRANK THE DESCRIPTION
+Where a table has its own columns — D, L, TL, B, Quantity — those columns are
+the values. A description such as "Anchor Bolts & Nuts (M20 x 300)" beside them
+restates the same specification in prose: read the columns, use the description
+only to confirm them, and never produce a second reading or a second item from
+it. Where the two genuinely disagree, report the column value and say so in
+"unclear".
+A long table is ordinary. Report EVERY row, in document order, however many
+there are. Metric and imperial rows sit in one table routinely — 3/8", 3/4",
+M8, M20, M30 — and each row keeps its own notation: an inch row stays in
+inches and never becomes an M size, and one row's unit system says nothing
+about the next row's. A row you cannot read is one row: report it with nulls
+and an "unclear", and report every other row normally.
   MS SAG ROD ZP / M12 / TL 100/100 / 1000 - 5pcs / 750 x TL75/75 - 8pcs
     -> {"M":"M12","L":1000,"W":null,"TL":"100/100","qty":5,"Bmid":null}
        {"M":"M12","L":750,"W":null,"TL":"75/75","qty":8,"Bmid":null}
@@ -554,7 +632,7 @@ function ai_build_payload($upload, $note = '') {
             'strict' => true,
             'schema' => ai_output_schema(),
         ]],
-        'max_output_tokens' => 4096,
+        'max_output_tokens' => AI_MAX_OUTPUT_TOKENS,
     ];
 }
 
@@ -581,7 +659,7 @@ function ai_build_text_payload($text) {
             'strict' => true,
             'schema' => ai_output_schema(),
         ]],
-        'max_output_tokens' => 4096,
+        'max_output_tokens' => AI_MAX_OUTPUT_TOKENS,
     ];
 }
 
@@ -599,12 +677,13 @@ function ai_call_openai($payload) {
         CURLOPT_TIMEOUT        => 120,
         CURLOPT_CONNECTTIMEOUT => 15,
     ]);
-    $raw  = curl_exec($ch);
-    $err  = curl_error($ch);
-    $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    $raw   = curl_exec($ch);
+    $err   = curl_error($ch);
+    $errNo = curl_errno($ch);
+    $code  = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
     curl_close($ch);
     $body = is_string($raw) ? json_decode($raw, true) : null;
-    return [$code, $body, $err];
+    return [$code, $body, $err, $errNo];
 }
 
 /** Pull the structured JSON text out of a Responses API body. Null on failure. */
@@ -621,9 +700,115 @@ function ai_extract_output_text($body) {
     return null;
 }
 
+/**
+ * The model declined to answer. Distinct from "answered badly": there is
+ * nothing to salvage and nothing for the operator to retry differently, so it
+ * is reported as itself rather than as an unreadable document.
+ */
+function ai_output_refusal($body) {
+    if (!is_array($body)) return '';
+    foreach (($body['output'] ?? []) as $item) {
+        foreach (($item['content'] ?? []) as $part) {
+            if (($part['type'] ?? '') === 'refusal') {
+                return is_string($part['refusal'] ?? null) ? $part['refusal'] : 'refused';
+            }
+        }
+    }
+    return '';
+}
+
+/**
+ * Why the response stopped, when it stopped early. '' means it finished.
+ * 'max_output_tokens' means the answer was cut off mid-sentence — the JSON is
+ * incomplete and the rows after the cut are simply absent.
+ */
+function ai_incomplete_reason($body) {
+    if (!is_array($body)) return '';
+    if (($body['status'] ?? '') !== 'incomplete') return '';
+    $r = $body['incomplete_details']['reason'] ?? 'unknown';
+    return is_string($r) && $r !== '' ? $r : 'unknown';
+}
+
+/**
+ * What a CUT-OFF response did manage to say.
+ *
+ * A document with more rows than one answer can hold used to be worth nothing:
+ * the JSON was truncated mid-row, json_decode returned null, and 29 anchor
+ * bolts became "Could not analyze this file". Twenty-seven readable rows and a
+ * warning that some are missing is a better answer than none — provided it is
+ * never mistaken for a complete one, which is why the caller flags it and the
+ * review screen says so.
+ *
+ * Only WHOLE item objects are taken. The one the cut landed in is discarded
+ * entirely rather than half-read, because a row missing its thread length is
+ * indistinguishable from a row whose thread length was never stated.
+ */
+function ai_salvage_extraction($text) {
+    if (!is_string($text) || $text === '') return null;
+    $pos = strpos($text, '"items"');
+    if ($pos === false) return null;
+    $open = strpos($text, '[', $pos);
+    if ($open === false) return null;
+
+    $items = [];
+    $len = strlen($text);
+    $i = $open + 1;
+    while ($i < $len) {
+        while ($i < $len && $text[$i] !== '{') {
+            if ($text[$i] === ']') break 2;
+            $i++;
+        }
+        if ($i >= $len) break;
+        $depth = 0; $inStr = false; $esc = false; $end = -1;
+        for ($j = $i; $j < $len; $j++) {
+            $c = $text[$j];
+            if ($inStr) {
+                if ($esc)               $esc = false;
+                elseif ($c === '\\')    $esc = true;
+                elseif ($c === '"')     $inStr = false;
+                continue;
+            }
+            if     ($c === '"') $inStr = true;
+            elseif ($c === '{') $depth++;
+            elseif ($c === '}') { $depth--; if ($depth === 0) { $end = $j; break; } }
+        }
+        if ($end < 0) break;                       // the cut landed inside this one
+        $obj = json_decode(substr($text, $i, $end - $i + 1), true);
+        if (is_array($obj)) $items[] = $obj;
+        $i = $end + 1;
+    }
+    if (!$items) return null;
+
+    /* The document-level fields are emitted before "items", so they survived
+       the cut. Each is read on its own, so one unreadable field cannot cost
+       the others. */
+    $head = substr($text, 0, $pos);
+    $scalar = function ($key) use ($head) {
+        if (preg_match('/"' . $key . '"\s*:\s*(?:"((?:[^"\\\\]|\\\\.)*)"|null|(\d+))/', $head, $m)) {
+            if (isset($m[1]) && $m[1] !== '') return json_decode('"' . $m[1] . '"');
+            if (isset($m[2]) && $m[2] !== '') return (int)$m[2];
+        }
+        return null;
+    };
+    return [
+        'product'    => $scalar('product'),
+        'material'   => $scalar('material'),
+        'finish'     => $scalar('finish'),
+        'sizeType'   => $scalar('sizeType'),
+        'threadEnds' => $scalar('threadEnds'),
+        'note'       => $scalar('note'),
+        'items'      => $items,
+    ];
+}
+
 /** Validate + sanitise the model's compact JSON. Null when unusable. */
 function ai_sanitise_extraction($text) {
     $d = json_decode((string)$text, true);
+    return ai_sanitise_data($d);
+}
+
+/** The same validation, for an extraction already decoded (or salvaged). */
+function ai_sanitise_data($d) {
     if (!is_array($d) || !array_key_exists('product', $d) || !isset($d['items']) || !is_array($d['items'])) {
         return null;
     }
@@ -686,7 +871,12 @@ function ai_sanitise_extraction($text) {
 }
 
 /** Map transport-level failures to safe client messages (no secrets, no dumps). */
-function ai_map_error($httpCode, $body, $curlErr) {
+function ai_map_error($httpCode, $body, $curlErr, $curlErrNo = 0) {
+    /* A timeout and an unreachable host feel the same to a person waiting, and
+       the answer to each is different: one is worth retrying as-is, the other
+       is worth splitting the document up first. */
+    if ((int)$curlErrNo === 28) return ['error'=>'timeout',
+        'message'=>'The analysis took too long and was stopped. A very dense or multi-page document may need to be split into smaller uploads.'];
     if ($curlErr !== '')  return ['error'=>'network', 'message'=>'Could not reach the analysis service. Check the connection and try again.'];
     if ($httpCode === 401) return ['error'=>'auth',    'message'=>'The analysis service rejected the server\'s credentials. Ask the administrator to check the API key.'];
     if ($httpCode === 429) return ['error'=>'rate',    'message'=>'The analysis service is busy. Wait a moment and try again.'];
@@ -754,24 +944,59 @@ if (!defined('AI_EXTRACT_TEST')) {
         : ai_build_payload($upload, ai_clean_note($_POST['note'] ?? ''));
     unset($upload['bytes'], $upload['text']);    // free the raw input from memory
 
-    list($code, $body, $curlErr) = ai_call_openai($payload);
+    list($code, $body, $curlErr, $curlErrNo) = ai_call_openai($payload);
     $ms = (int)round((microtime(true)-$t0)*1000);
 
-    if ($e = ai_map_error($code, $body, $curlErr)) {
+    if ($e = ai_map_error($code, $body, $curlErr, $curlErrNo)) {
         // minimal diagnostics: no file content, no key, no raw upstream body
         error_log("[ai_extract] fail http=$code err={$e['error']} mime={$upload['mime']} size={$upload['size']} ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
         ai_json(['ok'=>false,'error'=>$e['error'],'message'=>$e['message']], 502);
     }
 
-    $text = ai_extract_output_text($body);
-    $data = $text !== null ? ai_sanitise_extraction($text) : null;
+    /* ── Why it failed matters ──────────────────────────────────────────────
+       Every model-side failure used to arrive as one sentence — "Could not
+       analyze this file" — whether the service had declined to read it, run
+       out of room mid-answer, or returned something that was not JSON. Those
+       need three different things from the person holding the document, so
+       they are now three different answers. */
+    $refusal    = ai_output_refusal($body);
+    $incomplete = ai_incomplete_reason($body);
+    $text       = ai_extract_output_text($body);
+    $data       = $text !== null ? ai_sanitise_extraction($text) : null;
+
+    /* Cut off mid-answer: keep the rows that arrived whole, and say so. */
+    $truncated = false;
+    if ($data === null && $text !== null && $incomplete !== '') {
+        $salvaged = ai_salvage_extraction($text);
+        if ($salvaged !== null) {
+            $data = ai_sanitise_data($salvaged);
+            $truncated = $data !== null;
+        }
+    }
+    if ($data !== null && $incomplete !== '') $truncated = true;
+
     if ($data === null) {
-        error_log("[ai_extract] malformed-output mime={$upload['mime']} size={$upload['size']} ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
+        $why = $refusal !== '' ? 'refused' : ($incomplete !== '' ? 'incomplete:'.$incomplete : 'malformed');
+        error_log("[ai_extract] no-data why=$why mime={$upload['mime']} size={$upload['size']} ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
+        if ($refusal !== '') {
+            ai_json(['ok'=>false,'error'=>'ai_refused',
+                     'message'=>'The analysis service declined to read this document. Paste the text manually instead.'], 502);
+        }
+        if ($incomplete === 'max_output_tokens') {
+            ai_json(['ok'=>false,'error'=>'ai_too_long',
+                     'message'=>'This document has more rows than one analysis can return, so the answer was cut off. Split it into two uploads — or crop to part of the table — and try again.'], 502);
+        }
+        if ($incomplete !== '') {
+            ai_json(['ok'=>false,'error'=>'ai_incomplete',
+                     'message'=>'The analysis stopped before it finished. Try again, or split the document into smaller uploads.'], 502);
+        }
         ai_json(['ok'=>false,'error'=>'ai_output_invalid',
-                 'message'=>'Could not analyze this file. Try again or paste the text manually.'], 502);
+                 'message'=>'The analysis came back in a form this app could not read. Try again, or paste the text manually.'], 502);
     }
 
     error_log('[ai_extract] ok mime='.$upload['mime'].' size='.$upload['size']
-        .' items='.count($data['items'])." ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
-    ai_json(['ok'=>true,'data'=>$data]);
+        .' items='.count($data['items']).($truncated?' TRUNCATED':'')." ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
+    /* truncated says: these rows are right, and there may have been more. The
+       review screen shows it as a warning against the list, never as a row. */
+    ai_json(['ok'=>true,'data'=>$data,'truncated'=>$truncated]);
 }

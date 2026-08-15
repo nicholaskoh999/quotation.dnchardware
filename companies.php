@@ -1737,6 +1737,15 @@ async function duplicateQuote(id){
   try{nr=await api('get_next_ref');}catch(e){nr=null;}
   if(!nr || !nr.ok || !nr.ref_no){showToast(dcT('msgDupFail'));return;}
   q.ref_no=nr.ref_no;
+  /* A duplicate is a NEW quotation: new number, and therefore today's date.
+     Carrying the original's date across gave the customer a freshly numbered
+     quotation dated weeks earlier, with nothing on it saying so. Anything
+     derived from the date — a validity window — is left to be set again on
+     purpose rather than inherited from a document this one only resembles. */
+  const dt=new Date();
+  q.quote_date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  q.date=q.quote_date;
+  q.valid_until='';
   const saveRes=await api('save_quotation',q,'POST');
   if(saveRes.ok){showToast('📄 Duplicated as #'+saveRes.id);await loadAllQuotations();renderSummary();renderCompanyCards();selectCompany(selectedCompanyId);}
   else showToast(dcT('msgFailed'));

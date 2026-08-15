@@ -2338,7 +2338,7 @@ input,select,textarea{
             <select id="sagrod-sizeType" onchange="onMaterialSizeChange('sagrod')">
               <option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option>
             </select></div>
-          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="sagrod-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('sagrod')"></div>
+          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="sagrod-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('sagrod')" onchange="onSizeCommit('sagrod')"></div>
           <div class="field full"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="sagrod-finishPills">
               <label class="finish-pill selected-NA" id="sagrod-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="sagrod-finish" value="" onchange="onFinishChange('sagrod')"><span class="fp-code">N/A</span></label>
@@ -2394,7 +2394,7 @@ input,select,textarea{
               <option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option>
               <option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option>
             </select></div>
-          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="stud-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onStudSizeInput()"></div>
+          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="stud-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onStudSizeInput()" onchange="onStudSizeCommit()"></div>
           <div class="field full finish-field"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="stud-finishPills">
               <label class="finish-pill selected-NA" id="stud-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="stud-finish" value="" onchange="onFinishChange('stud')"><span class="fp-code">N/A</span></label>
@@ -2453,7 +2453,7 @@ input,select,textarea{
             <select id="anchorbolt-sizeType" onchange="onMaterialSizeChange('anchorbolt')">
               <option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option>
             </select></div>
-          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="anchorbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('anchorbolt')"></div>
+          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="anchorbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('anchorbolt')" onchange="onSizeCommit('anchorbolt')"></div>
           <div class="field full finish-field"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="anchorbolt-finishPills">
               <label class="finish-pill selected-NA" id="anchorbolt-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="anchorbolt-finish" value="" onchange="onFinishChange('anchorbolt')"><span class="fp-code">N/A</span></label>
@@ -2506,7 +2506,7 @@ input,select,textarea{
         <div class="item-form" id="form-ubolt" data-type="ubolt">
           <div class="field"><label data-i18n="lblMaterial">Material</label><select id="ubolt-material" onchange="onMaterialSizeChange('ubolt',false,'material')"><option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option></select></div>
           <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="ubolt-sizeType" onchange="onMaterialSizeChange('ubolt')"><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
-          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="ubolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('ubolt')"></div>
+          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="ubolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('ubolt')" onchange="onSizeCommit('ubolt')"></div>
           <div class="field full"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="ubolt-finishPills">
               <label class="finish-pill selected-NA" id="ubolt-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="ubolt-finish" value="" onchange="onFinishChange('ubolt')"><span class="fp-code">N/A</span></label>
@@ -2561,7 +2561,7 @@ input,select,textarea{
         <div class="item-form" id="form-squbolt" data-type="squbolt">
           <div class="field"><label data-i18n="lblMaterial">Material</label><select id="squbolt-material" onchange="onMaterialSizeChange('squbolt',false,'material')"><option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option></select></div>
           <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="squbolt-sizeType" onchange="onMaterialSizeChange('squbolt')"><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
-          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="squbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('squbolt')"></div>
+          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="squbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('squbolt')" onchange="onSizeCommit('squbolt')"></div>
           <div class="field full"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="squbolt-finishPills">
               <label class="finish-pill selected-NA" id="squbolt-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="squbolt-finish" value="" onchange="onFinishChange('squbolt')"><span class="fp-code">N/A</span></label>
@@ -2616,7 +2616,7 @@ input,select,textarea{
         <div class="item-form" id="form-lbolt" data-type="lbolt">
           <div class="field"><label data-i18n="lblMaterial">Material</label><select id="lbolt-material" onchange="onMaterialSizeChange('lbolt',false,'material')"><option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option></select></div>
           <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="lbolt-sizeType" onchange="onMaterialSizeChange('lbolt')"><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
-          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="lbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('lbolt')"></div>
+          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="lbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('lbolt')" onchange="onSizeCommit('lbolt')"></div>
           <div class="field full"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="lbolt-finishPills">
               <label class="finish-pill selected-NA" id="lbolt-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="lbolt-finish" value="" onchange="onFinishChange('lbolt')"><span class="fp-code">N/A</span></label>
@@ -2671,7 +2671,7 @@ input,select,textarea{
         <div class="item-form" id="form-jbolt" data-type="jbolt">
           <div class="field"><label data-i18n="lblMaterial">Material</label><select id="jbolt-material" onchange="onMaterialSizeChange('jbolt',false,'material')"><option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option><option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option></select></div>
           <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="jbolt-sizeType" onchange="onMaterialSizeChange('jbolt')"><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
-          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="jbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('jbolt')"></div>
+          <div class="field"><label data-i18n="lblSize">Size</label><input type="text" id="jbolt-size" list="sizeOptions" value="M12" autocomplete="off" oninput="onSizeInput('jbolt')" onchange="onSizeCommit('jbolt')"></div>
           <div class="field full"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="jbolt-finishPills">
               <label class="finish-pill selected-NA" id="jbolt-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="jbolt-finish" value="" onchange="onFinishChange('jbolt')"><span class="fp-code">N/A</span></label>
@@ -2843,18 +2843,19 @@ input,select,textarea{
           <!-- ── Anchor Bolt ── -->
           <div class="group-label full">Anchor Bolt <span class="gl-zh">/ 锚栓</span></div>
           <div class="field"><label>Material <span class="gl-zh field-zh">材料</span></label>
-            <select id="was-ab-material" onchange="calcWAS()">
+            <select id="was-ab-material" onchange="onWASAnchorSpecChange()">
               <option value="MS">MS</option><option value="S45C">S45C</option>
               <option value="4140">4140 QT</option><option value="4140_PLAIN">4140</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option>
             </select>
           </div>
           <div class="field"><label>Size Type <span class="gl-zh field-zh">尺寸类型</span></label>
-            <select id="was-ab-sizeType" onchange="calcWAS()">
+            <select id="was-ab-sizeType" onchange="onWASAnchorSpecChange()">
               <option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option>
             </select>
           </div>
           <div class="field"><label>Size <span class="gl-zh field-zh">尺寸</span></label>
-            <input type="text" id="was-ab-size" list="sizeOptions" value="M20" autocomplete="off" oninput="calcWAS()">
+            <input type="text" id="was-ab-size" list="sizeOptions" value="M20" autocomplete="off"
+                   oninput="onWASAnchorSizeInput()" onchange="onWASAnchorSpecChange()">
           </div>
           <div class="field"><label>Diameter <span class="gl-zh field-zh">直径 mm</span></label>
             <input type="number" id="was-ab-diameter" step="0.1" placeholder="18" oninput="calcWAS()">
@@ -3958,6 +3959,7 @@ const I18N={
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
     wqaNoteUsed:'Your additional info was applied to {n} item(s) — it overrides the document.',
     wqaNoteUnused:'Part of your additional info was not applied: it names no product and the document has more than one item. Write the product first, e.g. "L BOLT TL 100".',
+    wqaTruncated:'The analysis was cut off before the end of the document — the rows below are correct, but there may be more of them. Check against the original, and upload the rest separately if any are missing.',
     wqaConflictBadge:'Conflicting product',
     wqaConflictWhy:'Conflicting product: "{p}" wording vs {g} geometry — choose the product',
     wqaSpecCol:'Spec',
@@ -4015,6 +4017,7 @@ const I18N={
     wqaDropNoFile:'That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.',
     wqaToastEnterSizeThread:'Enter a Size or a Thread first', wqaToastNoItems:'There are no items to apply to',
     wqaToastPriceApplied:'Pricing entry applied to all items',
+    wqaToastAccNothing:'No accessories are set in this panel — nothing was applied. Use Clear All Accessories to remove them from the rows.',
     wqaToastLastPriceOff:'Last Price switched off on {n} row(s)',
     wqaToastAccCleared:'Accessories cleared on all items',
     wqaToastSetManual:'Set Price Mode to Manual Price first',
@@ -4173,6 +4176,7 @@ const I18N={
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
     wqaNoteUsed:'补充资料已套用到 {n} 个项目 — 以补充资料为准。',
     wqaNoteUnused:'部分补充资料未被套用：未指明产品，而文件有多个项目。请先写产品，例如「L BOLT TL 100」。',
+    wqaTruncated:'分析在文件结束前被截断 —— 以下各行是正确的，但可能还有更多。请与原件核对，若有遗漏请另行上传其余部分。',
     wqaConflictBadge:'产品矛盾',
     wqaConflictWhy:'产品矛盾：文字写「{p}」，但图形显示{g} — 请选择产品',
     wqaSpecCol:'规格',
@@ -4230,6 +4234,7 @@ const I18N={
     wqaDropNoFile:'拖进来的不是文件。请拖入 JPG、PNG、WEBP 或 PDF。',
     wqaToastEnterSizeThread:'请先填写尺寸或牙长', wqaToastNoItems:'没有可应用的项目',
     wqaToastPriceApplied:'价格设置已应用到全部项目',
+    wqaToastAccNothing:'此面板未设置配件 —— 未套用任何内容。若要清除各行配件，请使用「清除全部配件」。',
     wqaToastLastPriceOff:'{n} 行的上次价格已关闭',
     wqaToastAccCleared:'已清除全部项目的配件',
     wqaToastSetManual:'请先把价格模式设为 Manual Price',
@@ -4640,9 +4645,18 @@ function restoreProductEntryDraft(entry){
   else onAccChange(type);
   setAccPanelOpen(type,!!data.__accPanelOpen);
   productEntryTouchedFields=new Set(Array.isArray(data.__draftTouched)?data.__draftTouched:[]);
+  /* The rates that came back with the draft are the ones the rules wrote for
+     the size that was saved — the touched set says the person did not type
+     them. dpAutoFilled lives in memory only, so after a reload it knows
+     nothing, and a value with no provenance was treated as untouchable:
+     changing the restored M16 to an M20 kept M16's rate with "Default price
+     applied" showing over it. Recording the baseline here gives the identity
+     rule something to compare against. */
+  dpAutoFilled[type]={key:dpIdentityKey(type), costRate:fv(type,'costRate'),
+                      addCost:fv(type,'addCost'), markup:fv(type,'markup')};
   onPriceModeChange(type);
   if(type==='others') onOthersWeightModeChange();
-  recalcCurrent();
+  recalcCurrent(true);          // a restored draft's Total Length is its own
 }
 
 function hasMeaningfulDraft(draft){
@@ -4672,6 +4686,10 @@ function buildUnsavedDraft(){
     items:JSON.parse(JSON.stringify(quoteItems)),
     grandTotal:quoteItems.reduce((sum,item)=>sum+(parseFloat(item.totalAmount)||0),0),
     productEntry:captureProductEntryDraft(),
+    /* The form may be holding an item that is ALREADY in the list, opened for
+       edit. Recovering the form without recovering that fact turned Update
+       Item back into Add to Quotation, and the same line went out twice. */
+    editingItemIndex:(editingItemIndex===null?null:editingItemIndex),
     status:'unsaved'
   };
 }
@@ -4736,7 +4754,13 @@ function restoreUnsavedDraft(){
   const draftItems=Array.isArray(draft.items)?draft.items.filter(item=>item&&typeof item==='object'):[];
   quoteItems=JSON.parse(JSON.stringify(draftItems));
   if(draft.productEntry) restoreProductEntryDraft(draft.productEntry);
-  editingItemIndex=null;setItemEditMode(null);
+  /* The form was filled from an item that is already in the list. Recovering
+     the values and forgetting that fact turned Update Item into Add to
+     Quotation, and the same line went out twice. */
+  const wasEditing=Number.isInteger(draft.editingItemIndex)
+                && draft.editingItemIndex>=0 && draft.editingItemIndex<quoteItems.length;
+  editingItemIndex=wasEditing?draft.editingItemIndex:null;
+  setItemEditMode(editingItemIndex);
   savedQuoteDirty=true;quoteStatusMode='dirty';
   syncQI();
   renderQuote();
@@ -4933,8 +4957,18 @@ function updateFinishAvailability(type){
 }
 function evalExpr(raw){
   if(!raw||!raw.trim())return 0;
-  if(/^[\d\s.+\-*/]+$/.test(raw)){ try{return parseFloat(Function('"use strict";return('+raw+')')())||0}catch(e){} }
-  return parseFloat(raw)||0;
+  let t=String(raw).trim();
+  /* A thousands separator is a way of writing a number, not an operator:
+     1,200 is twelve hundred. */
+  if(/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(t)) t=t.replace(/,/g,'');
+  if(/^[\d\s.+\-*/]+$/.test(t)){ try{return parseFloat(Function('"use strict";return('+t+')')())||0}catch(e){} }
+  /* Otherwise it is a number only if the WHOLE of it is one. parseFloat used to
+     stop at the first character it did not like, so "1,200" became 1 and "2,80"
+     became 2 — a rate a hundredth of what was typed, past every guard, on the
+     quotation. Reading half of what somebody wrote is worse than reading none
+     of it: 0 here is what validateRateEntry reports as "not a valid number". */
+  const n=Number(t);
+  return isFinite(n) ? n : 0;
 }
 function evalRateField(type,field){
   const input=el(type+'-'+field), raw=input?input.value.trim():'';
@@ -4963,8 +4997,16 @@ function validateRateEntry(type,field,label){
   if(raw==='') return 0;
   const v=evalExpr(raw);
   if(v<0){ showToast(label+' cannot be negative / '+label+' 不能为负数'); return null; }
-  if(v===0 && !/^[0\s.+\-*/]*$/.test(raw)){ showToast(label+' is not a valid number / '+label+' 不是有效数字'); return null; }
+  if(v===0 && !/^[0\s.+\-*/,]*$/.test(raw)){ showToast(label+' is not a valid number / '+label+' 不是有效数字'); return null; }
   return v;
+}
+/* Does this text read as a number at all? Shared by the rate guard above and by
+   the manual-price guard, so an entry one of them refuses is not silently
+   accepted as zero by the other. */
+function isReadableAmount(raw){
+  const t=String(raw||'').trim();
+  if(t==='') return false;
+  return !(evalExpr(t)===0 && !/^[0\s.+\-*/,]*$/.test(t));
 }
 /* Required dimensions must be positive numbers (blocks negatives that the old
    truthy checks let through). */
@@ -5027,7 +5069,10 @@ function getPriceModeSaveData(type){
 function validatePriceMode(type){
   if(getPriceMode(type)!=='manual') return true;
   const value=fv(type,'manualUnitPrice').trim();
-  if(!value||evalExpr(value)<0){showToast('Enter Manual Unit Price');return false;}
+  /* Unreadable is refused rather than read as zero: "2,80" must not become a
+     free item any more than it should have become RM 2.00. */
+  if(!value||!isReadableAmount(value)){showToast('Enter Manual Unit Price');return false;}
+  if(evalExpr(value)<0){showToast('Enter Manual Unit Price');return false;}
   return true;
 }
 function syncCostRateWarning(type){
@@ -5069,6 +5114,14 @@ function normalizeSizeValue(raw){
      Length, TL, ID, S and W are plain millimetres and never gain an M. */
   let m=v.match(/^M?\s*(\d+(?:\.\d+)?)\s*(?:MM)?$/);
   if(m) return 'M'+String(Number(m[1])).replace(/\.0$/,'');
+  /* An inch size may be written with its mark or without it, and 1/2 and 1/2"
+     are the same rod. ONE canonical spelling — the one the diameter tables,
+     the Diameter Settings rules and every saved quotation already use — so
+     both spellings resolve to the same diameter, weigh the same and find the
+     same previous price. A WHOLE number of inches keeps its mark, because
+     without it a bare 1 is M1. */
+  m=v.match(/^(\d+\s*[-\s]\s*\d+\s*\/\s*\d+|\d+\s*\/\s*\d+)\s*(?:"|”|″|IN|INCH(?:ES)?)?$/);
+  if(m) return m[1].replace(/\s*\/\s*/,'/').replace(/\s*[-\s]\s*/,'-');
   return v;
 }
 /* Is this a size the quotation can actually be built from? Metric sizes come
@@ -5076,6 +5129,16 @@ function normalizeSizeValue(raw){
    turn it into millimetres. Everything else is a size we have READ but do not
    recognise: it is kept exactly as written, shown to a person, and never
    weighed. */
+/* ── When may the box be rewritten under the person's fingers? ──────────────
+   The metric M belongs in the size — M27 is a size, 27 is a number — so it is
+   written into the box as it is typed. But "1" is the first keystroke of 1/2,
+   of 1-1/4 and of 1" as well as of M12: prefixing it there leaves M1/2 behind
+   and an empty diameter with it, which is exactly what the size box used to
+   do. Text is SETTLED when it can no longer become anything else — an M and
+   digits, or two or more digits, since no inch size is written 27. Anything
+   shorter waits for the box to be committed (blur, Enter, or moving away) and
+   is normalised then. */
+const WQA_SIZE_SETTLED_RE=/^\s*(?:m\s*\d+(?:\.\d+)?|\d{2,}(?:\.\d+)?)\s*(?:mm)?\s*$/i;
 function isKnownSize(size){
   const s=String(size||'').trim();
   if(!s) return false;
@@ -5093,14 +5156,25 @@ function getNominalDiameter(size){
   if(m) return parseFloat(m[1]);
   return null;
 }
+/* What the CUSTOMER reads. An inch size is written with its mark — 1/2", 7/8"
+   — for the same reason a length is written 1000mm: without the unit the
+   number is ambiguous, and 1/2 next to M20 on the same quotation invites the
+   reader to supply the wrong one. The canonical size the app looks diameters,
+   Diameter Settings rules and previous prices up by is untouched: this is the
+   unit on the label, exactly as withMm() is the unit on a length. */
+function sizeDisplay(size){
+  const s=String(size||'').trim();
+  return /^\d+(?:-\d+)?\/\d+$/.test(s) ? s+'"' : s;
+}
 function formatSizeLabel(size,diameter,sizeType){
+  const shown=sizeDisplay(size);
   const d=parseFloat(diameter);
-  if(!size||!d) return size;
-  if((sizeType||'FULLSIZE')==='UNDERSIZE') return size;
+  if(!size||!d) return shown;
+  if((sizeType||'FULLSIZE')==='UNDERSIZE') return shown;
   const bar=cleanNum(Math.round(d*10)/10);
   const nominal=getNominalDiameter(size);
-  if(nominal===null) return 'Ø'+bar+'-'+size;
-  return Math.abs(d-nominal)>0.2 ? 'Ø'+bar+'-'+size : size;
+  if(nominal===null) return 'Ø'+bar+'-'+shown;
+  return Math.abs(d-nominal)>0.2 ? 'Ø'+bar+'-'+shown : shown;
 }
 function buildDesc(type){
   const mat=materialLabel(fv(type,'material'));
@@ -5124,7 +5198,11 @@ function buildDesc(type){
 const WQA_INCH_DIA={'1/2':12.7,'5/8':15.875,'3/4':19.05,'7/8':22.225,'1':25.4,
                     '1-1/8':28.575,'1-1/4':31.75,'1-3/8':34.925,'1-1/2':38.1,
                     '1/4':6.35,'5/16':7.9375,'3/8':9.525};
-function wqaImperialDia(size){
+/* The inch size on a line, reduced to the key the diameter tables are written
+   in. ONE reader, so a size typed with its mark, without it, or with a thread
+   standard after it — 3/4, 3/4", 3/4" BSW — resolves to the same 3/4, and
+   therefore to the same diameter whichever table is asked. */
+function wqaInchKey(size){
   const s=String(size||'').trim().toUpperCase();
   /* A fraction is unambiguous on its own — nothing metric is written 3/4 — so
      1/2 and 1-1/4 resolve with or without the inch mark. A WHOLE number does
@@ -5135,34 +5213,49 @@ function wqaImperialDia(size){
   const m=new RegExp('^(\\d+\\s*[-\\s]\\s*\\d+\\s*\\/\\s*\\d+|\\d+\\s*\\/\\s*\\d+)'+mark+'?'
                      +'|^(\\d+)'+mark).exec(s);
   if(!m) return '';
-  const key=String(m[1]!==undefined?m[1]:m[2]).replace(/\s*\/\s*/,'/').replace(/\s*[-\s]\s*/,'-');
-  return WQA_INCH_DIA[key]!==undefined ? String(WQA_INCH_DIA[key]) : '';
+  return String(m[1]!==undefined?m[1]:m[2]).replace(/\s*\/\s*/,'/').replace(/\s*[-\s]\s*/,'-');
+}
+/* The FULLSIZE inch diameter, and only ever that — WQA_INCH_DIA is the
+   fullsize table. There is no undersize answer in it; see autoFillDiameter. */
+function wqaImperialDia(size){
+  const key=wqaInchKey(size);
+  return (key && WQA_INCH_DIA[key]!==undefined) ? String(WQA_INCH_DIA[key]) : '';
 }
 function autoFillDiameter(type){
   const material=fv(type,'material'), sizeType=fv(type,'sizeType');
   const sizeEl=el(type+'-size'); if(!sizeEl)return;
   const size=normalizeSizeValue(sizeEl.value); sizeEl.value=size;
+  const diaEl=el(type+'-diameter');
+  const setDia=v=>{ if(diaEl) diaEl.value=(v!==''&&v!=null?String(v):''); };
 
   // Custom diameter rule takes priority
   const custom=findDSRule(type,material,sizeType,size);
-  if(custom!==null){
-    const diaEl=el(type+'-diameter'); if(diaEl) diaEl.value=custom;
-    return;
-  }
+  if(custom!==null){ setDia(custom); return; }
 
-  let dia='';
+  /* Undersize is a DIFFERENT bar, not a differently-spelled one: an undersized
+     1/2" rod is 10.9mm where a fullsize one is 12.7. The undersize inch table
+     is keyed 1/2, and a person may type 1/2" or 3/4" BSW, so the key is read
+     through the one inch reader — and where that table has no entry, the
+     answer is that there IS no undersize diameter for this size. Falling
+     through to the FULLSIZE inch table is how an undersized 1/2" rod came back
+     12.7mm: 36% too heavy, and priced on it. No diameter, no weight, no price,
+     and the row says why. */
+  const ik=wqaInchKey(size);
   // Stud always uses undersize diameter regardless of size type
   if(type==='stud' || sizeType==='UNDERSIZE'){
-    dia=DIA_UNDERSIZE_INCH[size]!==undefined?DIA_UNDERSIZE_INCH[size]:(DIA_UNDERSIZE[size]!==undefined?DIA_UNDERSIZE[size]:'');
-  }else{
-    if((material==='4140'||material==='4340')&&DIA_FULLSIZE_SPECIAL[size]!==undefined) dia=DIA_FULLSIZE_SPECIAL[size];
-    else dia=DIA_FULLSIZE[size]!==undefined?DIA_FULLSIZE[size]:'';
+    setDia(DIA_UNDERSIZE_INCH[size]!==undefined ? DIA_UNDERSIZE_INCH[size]
+         : (ik && DIA_UNDERSIZE_INCH[ik]!==undefined) ? DIA_UNDERSIZE_INCH[ik]
+         : (DIA_UNDERSIZE[size]!==undefined ? DIA_UNDERSIZE[size] : ''));
+    return;
   }
+  let dia='';
+  if((material==='4140'||material==='4340')&&DIA_FULLSIZE_SPECIAL[size]!==undefined) dia=DIA_FULLSIZE_SPECIAL[size];
+  else dia=DIA_FULLSIZE[size]!==undefined?DIA_FULLSIZE[size]:'';
   /* Nothing in the metric table matched. If the size is written in inches —
      1/2", 3/4" BSW — the calculation diameter is the millimetres behind that
      fraction. Only ever a fallback, so no size that already resolves changes. */
   if(dia==='') dia=wqaImperialDia(size);
-  const diaEl=el(type+'-diameter'); if(diaEl) diaEl.value=(dia!==''?dia:'');
+  setDia(dia);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5361,7 +5454,10 @@ function renderDSList(){
 
 function get4140Rates(desc,size,finish){
   const table=RATES_4140[desc]; if(!table) return null;
-  const key=Object.keys(table).find(k=>size.toUpperCase().includes(k));
+  /* Containment made M120 resolve to M12's rate and M12's diameter. A key is a
+     SIZE, so it has to match one — a whole token, not a prefix of one. */
+  const up=size.toUpperCase();
+  const key=Object.keys(table).find(k=>new RegExp('(^|[^A-Z0-9])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^A-Z0-9]|$)').test(up));
   if(!key) return null;
   const row=table[key];
   const surcharge=(finish==='ZP'?ZP_SURCHARGE:finish==='HDG'?HDG_SURCHARGE:0);
@@ -5374,7 +5470,9 @@ function getAddCostFromTL(s){
   if(!parts.length)return 0;
   const max=Math.max(...parts);
   if(max>=30&&max<=120)return 0.60;
-  if(max>=121&&max<=200)return 1.00;
+  /* 121 as a lower bound left 120.5 falling through to 0.00 — an interval
+     hole, not a rule. The bands meet instead of nearly meeting. */
+  if(max>120&&max<=200)return 1.00;
   return 0;
 }
 /* ── Phase 1 fix: manual Cost Rate / Additional Cost protection ──
@@ -5406,14 +5504,33 @@ function onThreadLenChange(type,force){
   if(!isUnknown && getFinish(type)!=='HDG') setAutoRate(type,'addCost',getAddCostFromTL(fv(type,'threadLen')).toFixed(2),force);
   calcSagRod();
 }
-function onSizeInput(type){ autoFillDiameter(type); onMaterialSizeChange(type,true); applyDefaultPrice(); }
+/* Typing in the entry form's SIZE box. autoFillDiameter normalises the box as
+   part of resolving the diameter, which is right for every programmatic caller
+   and wrong for a person mid-word: typing 1/2 became M1 on the first keystroke
+   and finished as M1/2 with no diameter behind it, so a half-inch rod could
+   not be entered at all. The diameter is still resolved from the normalised
+   size on every keystroke — only the visible text waits until it has settled.
+   Committing the box (blur, Enter, moving away) normalises it. */
+function onSizeInput(type){
+  const e=el(type+'-size'), raw=e?e.value:'';
+  autoFillDiameter(type);
+  if(e && !WQA_SIZE_SETTLED_RE.test(raw)) e.value=raw;
+  onMaterialSizeChange(type,true); applyDefaultPrice();
+}
+function onSizeCommit(type){ autoFillDiameter(type); onMaterialSizeChange(type,true); applyDefaultPrice(); }
 function onFinishChange(type){
+  resetPriceHistoryPanel();     // those figures were for the previous finish
   setFinishPills(type,getFinish(type));
   if(type==='sagrod') onMaterialSizeChange(type,true); else recalcCurrent();
   applyDefaultPrice();
 }
 
 function onMaterialSizeChange(type,skipDiameterRefill,trigger){
+  /* The Previous Quoted Prices panel is a statement about ONE specification.
+     It was cleared only on a product-type switch, so changing the size from
+     M20 to M24 left M20's Last / Low / High / Avg on screen with nothing
+     naming the size they belonged to. */
+  resetPriceHistoryPanel();
   if(!skipDiameterRefill) autoFillDiameter(type);
   updateFinishAvailability(type);
   const warnEl=el(type+'-warn');
@@ -5435,13 +5552,29 @@ function onMaterialSizeChange(type,skipDiameterRefill,trigger){
         if(r){ setAutoRate('sagrod','costRate',r.costRate.toFixed(2),force); setAutoRate('sagrod','addCost',r.addCost.toFixed(2),force); el('sagrod-diameter').value=r.dia; }
       }
     }
-  } else if(type==='stud'||type==='anchorbolt'){
+  } else {
+    /* Every other product. A material change is an identity change: SS304 is
+       not priced at mild steel's rate, and 4140 QT is not priced at SS304's.
+       The Sag Rod branch above has always re-derived its rate on a material
+       change and handed the field back to the automatic pricing; everywhere
+       else the previous material's rate simply stayed in the box — and
+       syncCostRateWarning then hid the manual-rate warning again, because the
+       box was not blank. An SS304 stud described as SS304 and priced at mild
+       steel is several times too cheap, with nothing on screen to say so.
+
+       There is no built-in rate table for these materials, so the honest
+       answer is to clear what the previous material's rules put there and let
+       the Default Price rules — or a person — fill it. A value the person
+       typed is still theirs and is left alone unless they changed the material
+       themselves, which is the documented exception. */
     const material=fv(type,'material');
     const isUnknown=['S45C','S45C_HARDEN_G8_8','SS304','SS316','4340','4140_HARDEN_G10_9','4140_PLAIN','Y_BAR'].includes(material);
-    if(isUnknown){
-      if(warnEl) warnEl.style.display='block';
-    } else {
-      if(warnEl) warnEl.style.display='none';
+    if(trigger==='material'){
+      setAutoRate(type,'costRate','',true);
+      setAutoRate(type,'addCost','',true);
+    }
+    if(type==='stud'||type==='anchorbolt'){
+      if(warnEl) warnEl.style.display=isUnknown?'block':'none';
     }
   }
   recalcCurrent();
@@ -5462,15 +5595,20 @@ function switchType(type){
   scheduleDraftAutosave();
 }
 
-function recalcCurrent(){
+/* skipAuto: do not re-derive a Total Length the caller has just restored. A
+   U Bolt whose bent length was typed by hand as 250 came back from Edit as the
+   auto-derived 180 — 28% lighter, re-saved at 28% less, and nothing said so.
+   Auto-derivation belongs to a person typing dimensions, not to reopening an
+   item that already has an answer. */
+function recalcCurrent(skipAuto){
   if(currentType==='sagrod') calcSagRod();
   else if(currentType==='stud') calcStud();
   else if(currentType==='anchorbolt') calcAnchorBolt();
-  else if(currentType==='ubolt') calcUBolt('ubolt');
-  else if(currentType==='squbolt') calcSQUBolt('squbolt');
-  else if(currentType==='lbolt') calcLBolt('lbolt');
-  else if(currentType==='lbolt45') calcLBolt('lbolt45');
-  else if(currentType==='jbolt') calcJBolt('jbolt');
+  else if(currentType==='ubolt') calcUBolt('ubolt',skipAuto);
+  else if(currentType==='squbolt') calcSQUBolt('squbolt',skipAuto);
+  else if(currentType==='lbolt') calcLBolt('lbolt',skipAuto);
+  else if(currentType==='lbolt45') calcLBolt('lbolt45',skipAuto);
+  else if(currentType==='jbolt') calcJBolt('jbolt',skipAuto);
   else if(currentType==='plate') calcPlate();
   else if(currentType==='was') calcWAS();
   else if(currentType==='others') calcOthers();
@@ -5484,12 +5622,18 @@ function updatePreview(weight,base,final){
   /* Publish the weight this calculation just produced so other views (the
      Quick Add review) can display it without owning a second formula. */
   if(priceCalcState[currentType]) priceCalcState[currentType].weight=weight;
-  el('cpBase').textContent = fmt(base);
   // Accessories live total
   const accTotal=accAddon(getAccessories(currentType));
   el('cpAcc').textContent = accTotal>0 ? fmt(accTotal) : '—';
   const resolved=priceCalcState[currentType];
-  el('cpFinal').textContent = fmt(resolved?resolved.finalUnitPrice:final+accTotal);
+  /* No weight, no price — on the screen as well as in the item. The card used
+     to print Unit Weight "—" beside a Final Unit Price of RM 2.50, which is
+     the Additional Cost with nothing under it: a figure an operator can read
+     off and quote over the phone long before any Add path refuses it. A price
+     that a person typed themselves is theirs and still shows. */
+  const priced = weight>0 || getPriceMode(currentType)==='manual';
+  el('cpBase').textContent  = priced ? fmt(base) : '—';
+  el('cpFinal').textContent = priced ? fmt(resolved?resolved.finalUnitPrice:final+accTotal) : '—';
   syncCostRateWarning(currentType);
   updatePriceModePreview(currentType);
 }
@@ -5556,7 +5700,13 @@ function calcSagRod(){
   const special=getMSUndersizeSagRodPLSpecialPrice(
     fv('sagrod','size'), fv('sagrod','sizeType'), fv('sagrod','material'), getFinish('sagrod'), fv('sagrod','threadLen'), length
   );
-  const raw=base*(1+markup/100);
+  /* A price-list entry is a PRICE, not a rounding of one. It was passed in
+     the auto-rounded slot only, so switching Price Mode to "No Round" — a
+     control whose whole advertised job is to skip a rounding step — threw the
+     RM 4.00 list price away and quoted the RM 2.54 formula instead. Where the
+     list has an entry it is the answer in both rounding modes; Manual Price
+     still wins, because that is a person deciding. */
+  const raw=special!==null ? special : base*(1+markup/100);
   const rounded=special!==null ? special : round05(raw);
   const final=resolvePriceMode('sagrod',raw,rounded,accAddon(getAccessories('sagrod')));
   updatePreview(weight,base,final);
@@ -5705,8 +5855,15 @@ function addSagRod(){
   if(!diameter){showToast('Enter Diameter');return}
   if(!length){showToast('Enter Length');return}
   if(!validateDims({'Diameter':diameter,'Length':length})) return;
-  const costRateVal=fv('sagrod','costRate').trim(), addCostVal=fv('sagrod','addCost').trim();
-  if(!costRateVal && !addCostVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  /* A rate and a surcharge are not interchangeable. This guard read
+     `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
+     filled went straight through: base = weight x 0 + addCost, and a 0.27 kg
+     rod was quoted at RM 2.88 with no material cost in it at all — the
+     Additional Cost standing on its own, which is exactly the shape this
+     quotation must never produce. Every bent-product add path already
+     required the rate on its own; these three now do too. */
+  const costRateVal=fv('sagrod','costRate').trim();
+  if(!costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
   if(!validatePriceMode('sagrod')) return;
   const costRate=validateRateEntry('sagrod','costRate','Cost Rate'), addCost=validateRateEntry('sagrod','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -5715,7 +5872,7 @@ function addSagRod(){
   const weight=diameter*diameter*length*0.0000061654;
   const base=weight*costRate+addCost;
   const special=getMSUndersizeSagRodPLSpecialPrice(size,fv('sagrod','sizeType'),fv('sagrod','material'),getFinish('sagrod'),threadLen,length);
-  const raw=base*(1+markup/100);
+  const raw=special!==null ? special : base*(1+markup/100);
   const rounded=special!==null ? special : round05(raw);
   const sizeLabel=formatSizeLabel(size,diameter,fv('sagrod','sizeType'))+' x L '+cleanNum(length)+(threadLen?' x TL '+withMm(threadLen):'');
   const acc=getAccessories('sagrod');
@@ -5727,16 +5884,23 @@ function addSagRod(){
   setTimeout(()=>{try{el('sagrod-length').focus()}catch(e){}},50);
 }
 
+/* Stud always uses the UNDERSIZE diameter and has no Size Type selector, which
+   is exactly what autoFillDiameter already does for it. This used to be a
+   second copy of that lookup, and it differed in one way that mattered: a size
+   with no undersize entry left the diameter box holding the PREVIOUS size's
+   number, so changing M12 to M23 kept 10.6mm and went on weighing and pricing
+   an M12. One lookup, and a size with no diameter clears the box. */
 function onStudSizeInput(){
-  // Stud always uses UNDERSIZE diameter — no Size Type selector
   const sizeEl=el('stud-size'); if(!sizeEl) return;
-  const size=normalizeSizeValue(sizeEl.value); sizeEl.value=size;
-  const material=fv('stud','material');
-  const custom=findDSRule('stud',material,'',size);
-  const dia=custom!==null ? custom
-           : DIA_UNDERSIZE_INCH[size]!==undefined ? DIA_UNDERSIZE_INCH[size]
-           : DIA_UNDERSIZE[size]!==undefined ? DIA_UNDERSIZE[size] : undefined;
-  if(dia!==undefined){ const d=el('stud-diameter'); if(d) d.value=dia; }
+  const raw=sizeEl.value;
+  autoFillDiameter('stud');
+  if(!WQA_SIZE_SETTLED_RE.test(raw)) sizeEl.value=raw;
+  updateFinishAvailability('stud');
+  calcStud();
+  applyDefaultPrice();
+}
+function onStudSizeCommit(){
+  autoFillDiameter('stud');
   updateFinishAvailability('stud');
   calcStud();
   applyDefaultPrice();
@@ -5757,8 +5921,15 @@ function addStud(){
   if(!diameter){showToast('Enter Diameter');return}
   if(!length){showToast('Enter L');return}
   if(!validateDims({'Diameter':diameter,'L':length})) return;
-  const costRateVal=fv('stud','costRate').trim(), addCostVal=fv('stud','addCost').trim();
-  if(!costRateVal && !addCostVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  /* A rate and a surcharge are not interchangeable. This guard read
+     `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
+     filled went straight through: base = weight x 0 + addCost, and a 0.27 kg
+     rod was quoted at RM 2.88 with no material cost in it at all — the
+     Additional Cost standing on its own, which is exactly the shape this
+     quotation must never produce. Every bent-product add path already
+     required the rate on its own; these three now do too. */
+  const costRateVal=fv('stud','costRate').trim();
+  if(!costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
   if(!validatePriceMode('stud')) return;
   const costRate=validateRateEntry('stud','costRate','Cost Rate'), addCost=validateRateEntry('stud','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -5767,7 +5938,10 @@ function addStud(){
   const weight=diameter*diameter*length*0.0000061654;
   const base=weight*costRate+addCost;
   const raw=base*(1+markup/100);
-  const sizeLabel=size+' x L '+cleanNum(length)+'mm';
+  /* Every other product's label goes through the size formatter; this one
+     concatenated the raw size, so a half-inch stud printed as "1/2 x L 300mm"
+     with no unit on the size — next to "M20 x L 300mm" on the same sheet. */
+  const sizeLabel=sizeDisplay(size)+' x L '+cleanNum(length)+'mm';
   const acc=getAccessories('stud');
   const final=resolvePriceMode('stud',raw,round05(raw),accAddon(acc));
   if(!pushItem('stud',sizeLabel,fv('stud','material'),qty,final,final*qty,markup,size,'',acc,weight)) return;
@@ -5795,8 +5969,15 @@ function addAnchorBolt(){
   if(!diameter){showToast('Enter Diameter');return}
   if(!length){showToast('Enter L');return}
   if(!validateDims({'Diameter':diameter,'L':length})) return;
-  const costRateVal=fv('anchorbolt','costRate').trim(), addCostVal=fv('anchorbolt','addCost').trim();
-  if(!costRateVal && !addCostVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  /* A rate and a surcharge are not interchangeable. This guard read
+     `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
+     filled went straight through: base = weight x 0 + addCost, and a 0.27 kg
+     rod was quoted at RM 2.88 with no material cost in it at all — the
+     Additional Cost standing on its own, which is exactly the shape this
+     quotation must never produce. Every bent-product add path already
+     required the rate on its own; these three now do too. */
+  const costRateVal=fv('anchorbolt','costRate').trim();
+  if(!costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
   if(!validatePriceMode('anchorbolt')) return;
   const costRate=validateRateEntry('anchorbolt','costRate','Cost Rate'), addCost=validateRateEntry('anchorbolt','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -5872,7 +6053,12 @@ function calcUBolt(type,skipAuto){
   const d=fn(type,'diameter'), id=fn(type,'id'), ih=fn(type,'ih');
   const tlEl=el(type+'-length');
   if(!skipAuto && (d>0||id>0||ih>0)){ const auto=Math.ceil((d+id)*1.57+(2*ih)-id); if(tlEl) tlEl.value=auto>0?auto:''; }
-  const tl=parseFloat(tlEl?tlEl.value:0)||0;
+  /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
+     millimetres — so the preview has to weigh the same thing. It read the box
+     raw, and a hand-typed 800.5 previewed 0.7107 kg while the item committed
+     at 801 and 0.7112 kg: the number the person read off the screen was not
+     the number that reached the quotation. */
+  const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
   const weight=d*d*tl*0.0000061654;
   const base=weight*costRate+addCost;
@@ -5914,7 +6100,12 @@ function calcSQUBolt(type,skipAuto){
   const d=fn(type,'diameter'), oh=fn(type,'oh'), w=fn(type,'w');
   const tlEl=el(type+'-length');
   if(!skipAuto && (d>0||oh>0||w>0)){ const auto=Math.ceil(((w/2+oh)-d*1.5)*2); if(tlEl) tlEl.value=auto>0?auto:''; }
-  const tl=parseFloat(tlEl?tlEl.value:0)||0;
+  /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
+     millimetres — so the preview has to weigh the same thing. It read the box
+     raw, and a hand-typed 800.5 previewed 0.7107 kg while the item committed
+     at 801 and 0.7112 kg: the number the person read off the screen was not
+     the number that reached the quotation. */
+  const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
   const weight=d*d*tl*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
   updatePreview(weight,base,final);
@@ -5951,7 +6142,12 @@ function calcLBolt(type,skipAuto){
   const d=fn(type,'diameter'), l=fn(type,'l'), w=fn(type,'w');
   const tlEl=el(type+'-length');
   if(type!=='lbolt45' && !skipAuto && (l>0||w>0||d>0)){ const auto=Math.ceil(l+w-d*1.5); if(tlEl) tlEl.value=auto>0?auto:''; }
-  const tl=parseFloat(tlEl?tlEl.value:0)||0;
+  /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
+     millimetres — so the preview has to weigh the same thing. It read the box
+     raw, and a hand-typed 800.5 previewed 0.7107 kg while the item committed
+     at 801 and 0.7112 kg: the number the person read off the screen was not
+     the number that reached the quotation. */
+  const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
   const weight=d*d*tl*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
   updatePreview(weight,base,final);
@@ -5991,7 +6187,12 @@ function calcJBolt(type,skipAuto){
     const auto=Math.ceil(upper+lower);
     if(tlEl) tlEl.value=auto>0?auto:'';
   }
-  const tl=parseFloat(tlEl?tlEl.value:0)||0;
+  /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
+     millimetres — so the preview has to weigh the same thing. It read the box
+     raw, and a hand-typed 800.5 previewed 0.7107 kg while the item committed
+     at 801 and 0.7112 kg: the number the person read off the screen was not
+     the number that reached the quotation. */
+  const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
   const weight=d*d*tl*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
   updatePreview(weight,base,final);
@@ -6168,7 +6369,7 @@ function fillItemFormFromItem(item){
     applyDefaultPrice();
     showToast(dcT('tOldNoRate'));
   }
-  recalcCurrent();
+  recalcCurrent(true);          // the saved Total Length is the answer, not a default
 }
 function setItemEditMode(index){
   editingItemIndex=Number.isInteger(index)?index:null;
@@ -6299,7 +6500,11 @@ function calcOthers(){
   const markup=fn('others','markup');
   const base=weight*costRate;
   const raw=(base+addCost)*(1+markup/100);
-  const final=resolvePriceMode('others',raw,raw,accAddon(getAccessories('others')));
+  /* Others has no rounding RULE, but it still has to store a price a
+     quotation can print. An unrounded 3.452988 printed as RM 3.45 and
+     multiplied out as 127.76 put arithmetic on the customer's page that does
+     not add up. Two decimals, the currency's own precision, in both modes. */
+  const final=resolvePriceMode('others',raw,roundMoney2(raw),accAddon(getAccessories('others')));
   updatePreview(weight,base,final);
 }
 function addOthers(){
@@ -6331,7 +6536,7 @@ function addOthers(){
   const base=weight*costRate;
   const raw=(base+addCost)*(1+markup/100);
   const accessories=getAccessories('others');
-  const final=resolvePriceMode('others',raw,raw,accAddon(accessories));
+  const final=resolvePriceMode('others',raw,roundMoney2(raw),accAddon(accessories));
   if(!pushItem('others',dimensionText,material,qty,final,final*qty,markup,'',sizeType,accessories,weight)) return;
   flashPreview();
 }
@@ -6380,7 +6585,11 @@ function calcPlate(){
   const weight=calcPlateWeight();
   const base=weight*costRate+addCost;
   const raw=base*(1+markup/100);
-  const final=resolvePriceMode('plate',raw,round05(raw),0);
+  /* The accessory panel on this form has priced inputs, the calculation
+     preview totals them, the item card shows them and the printed quotation
+     promises them — and a hard 0 was passed here, so they were never charged.
+     Every other product passes accAddon(); this one now does too. */
+  const final=resolvePriceMode('plate',raw,round05(raw),accAddon(getAccessories('plate')));
   updatePreview(weight,base,final);
 }
 function buildPlateSizeStr(){
@@ -6432,14 +6641,15 @@ function addPlate(){
   const weight=calcPlateWeight();
   const base=weight*costRate+addCost;
   const raw=base*(1+markup/100);
-  const finalUnitPrice=resolvePriceMode('plate',raw,round05(raw),0);
+  /* Read before the price, because the price now includes it. */
+  const acc=getAccessories('plate');
+  const finalUnitPrice=resolvePriceMode('plate',raw,round05(raw),accAddon(acc));
   const totalAmount=finalUnitPrice*qty;
   if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return; // Phase 1 fix
   // Build size string (English only)
   const sizeStr=buildPlateSizeStr();
   // Desc includes plate subtype for WA grouping
   const desc=t==='ms_plate'?'MS PLATE':'TRIANGLE PLATE';
-  const acc=getAccessories('plate');
   const formData=captureItemFormData('plate');
   formData.plateType=t;
   formData.holeOption=getPlateHoleOption();
@@ -6461,7 +6671,7 @@ function addPlate(){
     showToast(dcT('tItemUpdated')); return;
   }
   quoteItems.push(item);
-  markQuotationDirty(); dcClearCustomDims(); renderQuote(quoteItems.length-1);
+  markQuotationDirty(); resetPriceModeAfterAdd('plate'); dcClearCustomDims(); renderQuote(quoteItems.length-1);
   flashPreview();
   showToast('Added #'+quoteItems.length+' — '+sizeStr+'  '+fmt(finalUnitPrice));
 }
@@ -6515,6 +6725,21 @@ function wasBpFv(f){return el('was-bp-'+f)?.value||''}
 function wasTpFn(f){return parseFloat(el('was-tp-'+f)?.value||0)||0}
 function wasTpFv(f){return el('was-tp-'+f)?.value||''}
 function wasGetHoleOpt(){const r=document.querySelector('input[name="was-bp-hole"]:checked');return r?r.value:'none'}
+/* ── The Welding Anchor Set's anchor bolt ──────────────────────────────────
+   Its Size, Size Type and Material name a bar exactly as they do on every other
+   form, and its Diameter is what the set is weighed and priced on. Nothing
+   derived it: changing M20 to M24 changed the printed line and left the
+   diameter at 20, so the anchor's contribution to the set weight stayed 44%
+   short and the RM/set followed it — with no "Needs Diameter" state, because
+   the box was not empty. Same resolver as every other product, so a custom
+   Diameter Settings rule applies here too. */
+function onWASAnchorSpecChange(){ autoFillDiameter('was-ab'); calcWAS(); }
+function onWASAnchorSizeInput(){
+  const e=el('was-ab-size'), raw=e?e.value:'';
+  autoFillDiameter('was-ab');
+  if(e && !WQA_SIZE_SETTLED_RE.test(raw)) e.value=raw;
+  calcWAS();
+}
 function onWASHoleChange(){
   const opt=wasGetHoleOpt();
   const show=opt!=='none';
@@ -6619,6 +6844,15 @@ function addWAS(){
   if(wasGetHoleOpt()!=='none'&&(!wasBpFn('hd')||!wasBpFn('nh'))){showToast('⚠️ Enter Hole Dia. and Holes');return;}
   const calc=getWASCalc();
   if(calc.weights.tpQty>0&&(!wasTpFn('l')||!wasTpFn('h')||!wasTpFn('t'))){showToast('⚠️ Enter Triangle Plate Length, Height and Thickness');return;}
+  /* Every other add path runs validateDims; this one did not, and a thickness
+     typed as -12 gave the base plate a NEGATIVE weight that quietly reduced
+     the price of the whole set. */
+  if(!validateDims({'Anchor Diameter':wasAbFn('diameter'),'Anchor Length':wasAbFn('length'),
+                    'Base Plate Length':wasBpFn('l'),'Base Plate Width':wasBpFn('w'),
+                    'Base Plate Thickness':wasBpFn('t')})) return;
+  if(calc.weights.tpQty>0 && !validateDims({'Triangle Plate Length':wasTpFn('l'),
+                    'Triangle Plate Height':wasTpFn('h'),'Triangle Plate Thickness':wasTpFn('t')})) return;
+  if(!(calc.weights.setWeight>0)){showToast('⚠️ Set weight is 0 — check the dimensions');return;}
   if(!calc.anchorRate){showToast('⚠️ Enter Anchor Cost Rate');return;}
   if(!calc.basePlateRate){showToast('⚠️ Enter Base Plate Cost Rate');return;}
   if(calc.weights.tpQty>0&&!calc.trianglePlateRate){showToast('⚠️ Enter Triangle Plate Cost Rate');return;}
@@ -6673,6 +6907,7 @@ function addWAS(){
   quoteItems.push(item);
   markQuotationDirty();
   resetAccPanel('was');                       // same rule as pushItem: no carry-over
+  resetPriceModeAfterAdd('was');              // …and no manual price carried over either
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);flashPreview();
   showToast('Added #'+quoteItems.length+' — '+materialLabel(anchorMaterial)+' Welding Anchor Set  '+fmt(finalUnitPrice)+'/set');
@@ -6782,8 +7017,12 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   /* Accessories are the one part of the entry form that silently carries a CHARGE
      into the next item while the panel sits collapsed. The item just added keeps
      its own copy (captured into item.accessories above); the form resets so the
-     next item always starts with zero accessories. */
+     next item always starts with zero accessories. A manual price is the same
+     kind of thing and is reset for the same reason — the item that was added
+     keeps it (getPriceModeSaveData above), the next one starts from its own
+     calculation rather than from the last one's typed figure. */
   resetAccPanel(type);
+  resetPriceModeAfterAdd(type);
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);
   showToast('Added #'+quoteItems.length+' — '+sizeStr+'  '+fmt(finalUnitPrice));
@@ -6791,6 +7030,23 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
 }
 /* Reset every product type's accessory panel — Clear All and New Quotation must
    leave no hidden accessory anywhere, including types not currently shown. */
+/* A manual price is a decision about ONE item. It used to survive the Add, so
+   the next item — a different size, a different length — was quoted at the
+   figure typed for the last one, and it survived New Quotation into a
+   different customer's first item as well. This is the same reasoning that
+   already resets the accessory panel after every add: the one part of the form
+   that silently carries a CHARGE forward must not do so unasked. */
+function resetPriceModeAfterAdd(type){
+  const modeEl=el(type+'-priceMode'); if(modeEl) modeEl.value='auto';
+  const manEl=el(type+'-manualUnitPrice'); if(manEl) manEl.value='';
+  productEntryTouchedFields.delete(type+'-manualUnitPrice');
+  productEntryTouchedFields.delete(type+'-priceMode');
+  if(typeof onPriceModeChange==='function') onPriceModeChange(type);
+}
+function resetAllPriceModes(){
+  ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others']
+    .forEach(t=>{ if(el(t+'-priceMode')) resetPriceModeAfterAdd(t); });
+}
 function resetAllAccPanels(){
   ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others'].forEach(resetAccPanel);
 }
@@ -6850,7 +7106,7 @@ function renderQuote(newIdx){
       </div>
       <div class="qi-item-bottom">
         <div class="qi-meta">
-          ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">Weight <strong>${parseFloat(item.weight).toFixed(3)}kg</strong></span>`:''}
+          ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">Unit Weight <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>${parseInt(item.qty,10)>1?`<span class="qi-meta-pill qi-weight-pill">Total <strong>${(parseFloat(item.weight)*parseInt(item.qty,10)).toFixed(3)}kg</strong></span>`:``}`:''}
           <span class="qi-meta-pill">Qty <strong>${parseInt(item.qty,10)||0}</strong></span>
           <span class="qi-meta-pill">Unit <strong>${fmt(item.finalUnitPrice)}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
         </div>
@@ -6896,6 +7152,7 @@ function startNewQuotation(){
   clearUnsavedDraft();
   productEntryTouchedFields.clear();
   resetAllAccPanels();          // New Quotation starts with zero accessories everywhere
+  resetAllPriceModes();         // …and with no manual price carried over either
   dcClearCustomDims();
   loadedSavedQuote=false; quoteLocked=false; savedQuoteDirty=false; quoteStatusMode='draft'; savedQuoteSnapshot='';
   editingItemIndex=null; setItemEditMode(null);
@@ -7215,10 +7472,17 @@ function buildWAItemsText(emptyText='-'){
     const price=fmtWAUnitPrice(item.finalUnitPrice);
     const cw=wasItem?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
     const wasComp=wasItem?wasDisplay.compLines:'';
-    const key=size+'|'+wasComp+'|'+price+'|'+cw;
+    /* Two items are the same LINE only when everything the line shows is the
+       same. The custom dimensions are part of what the line shows — the print
+       sheet gives them a line of their own — so leaving them out of the key
+       made an M20 x L1000 annotated "H2 530" a duplicate of the identical rod
+       annotated "H2 700", and the second one vanished from the customer's
+       message while the total still counted it. */
+    const custom=dcCustomDimsLine(item)||'';
+    const key=size+'|'+wasComp+'|'+price+'|'+cw+'|'+custom;
     if(group.seen.has(key)) return;
     group.seen.add(key);
-    group.rows.push({size,price,cw,wasComp,wasItem});
+    group.rows.push({size,price,cw,wasComp,wasItem,custom});
     group.cwLabels.push(cw);
   });
   let rowNo=1;
@@ -7232,8 +7496,11 @@ function buildWAItemsText(emptyText='-'){
         return `${rowNo++}. ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
       }
       const line=`${rowNo++}. ${row.size} - ${row.price}`;
+      /* The print sheet carries the annotation on its own line; without it here
+         two rods that differ only by it read as the same rod written twice. */
+      const customPart=row.custom?'\n   '+row.custom:'';
       const cwPart=(!allRowsHaveSameCw&&row.cw)?'\n'+row.cw:'';
-      return line+cwPart;
+      return line+customPart+cwPart;
     }).join('\n');
     // Determine if all items in group share same c/w
     const hasWAS=group.rows.some(row=>row.wasItem);
@@ -7440,9 +7707,14 @@ async function fetchPriceHistory(companyId){
 function computeStats(matches){
   if(!matches.length) return null;
   const sorted=matches.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const prices=sorted.map(m=>parseFloat(m.unitPrice!==undefined?m.unitPrice:m.price)||0).filter(n=>n>0);
+  const priceOf=m=>parseFloat(m.unitPrice!==undefined?m.unitPrice:m.price)||0;
+  /* Low, High and Avg already ignored a record priced at zero; Last did not,
+     so the headline figure could read RM 0.00 with a Low of RM 9.80 beside it.
+     One rule for all four. */
+  const priced=sorted.filter(m=>priceOf(m)>0);
+  const prices=priced.map(priceOf);
   if(!prices.length) return null;
-  return {last:parseFloat(sorted[0].unitPrice!==undefined?sorted[0].unitPrice:sorted[0].price)||0, low:Math.min(...prices), high:Math.max(...prices), avg:prices.reduce((s,p)=>s+p,0)/prices.length, records:sorted.length};
+  return {last:priceOf(priced[0]), low:Math.min(...prices), high:Math.max(...prices), avg:prices.reduce((s,p)=>s+p,0)/prices.length, records:sorted.length};
 }
 function fillStats(prefix,stats){
   el('ph'+prefix+'Last').textContent=fmt(stats.last);
@@ -7453,6 +7725,14 @@ function fillStats(prefix,stats){
 }
 async function checkPreviousPrice(){
   resetPriceHistoryPanel();
+  /* An empty Size box would ask the server for "every size of this product",
+     and the answer — M8 beside M65 — is not this item's history. */
+  if(!normalizeSizeValue(fv(currentType,'size'))){
+    el('phResults').style.display='none';
+    el('phEmptyMsg').style.display='block';
+    showToast('Enter a Size first');
+    return;
+  }
   const sameMatches = selectedCompanyId!=null ? await fetchPriceHistory(selectedCompanyId) : [];
   const sameStats = computeStats(sameMatches);
   const allMatches = await fetchPriceHistory(null);
@@ -7702,7 +7982,27 @@ function findDPMatch(type,material,sizeType,size,finish){
   })||null;
 }
 
-/* ── Auto-fill when form changes ── */
+/* ── Auto-fill when form changes ───────────────────────────────────────────
+   A rate belongs to an item's IDENTITY — its product, material, size type,
+   size and finish. Change any of those and it is a different item, so the
+   previous one's rate is not its price.
+
+   This used to refill only an EMPTY box, which meant a rate the rules
+   themselves had written a keystroke earlier blocked the rule for the new
+   size. An M16 stud priced at 5.00 kept 5.00 when it became an M20 that the
+   rules price at 7.50 — and the green "Default price applied" badge stayed lit
+   while nothing had in fact been applied.
+
+   So the two kinds of value are told apart. A value the PERSON typed is
+   theirs: isUserPriced, never touched, and a deliberate blank stays blank. A
+   value the RULES wrote is ours, and it does not outlive the identity it was
+   written for — replaced by the new identity's rule, or cleared when there is
+   none, because a blank rate is a question and a stale one is a wrong price. */
+const dpAutoFilled={};
+function dpIdentityKey(type){
+  return [type, fv(type,'material'), type==='stud'?'':fv(type,'sizeType'),
+          normalizeSizeValue(fv(type,'size')), getFinish(type)].join('|');
+}
 function applyDefaultPrice(){
   const type=currentType;
   const stat=el('dpStatus');
@@ -7714,18 +8014,41 @@ function applyDefaultPrice(){
   const sizeType=type==='stud' ? '' : fv(type,'sizeType');
   const size=normalizeSizeValue(fv(type,'size'));
   const finish=getFinish(type);
+  const key=dpIdentityKey(type);
+  const prev=dpAutoFilled[type];
+  const stale=!!(prev && prev.key!==key);
+  const crEl=el(type+'-costRate'), acEl=el(type+'-addCost'), mkEl=el(type+'-markup');
   const match=findDPMatch(type,material,sizeType,size,finish);
+  /* Ours to write: not the person's, and either empty or still holding exactly
+     what we wrote for a different identity. */
+  const ours=(box,field)=>{
+    if(!box || isUserPriced(type,field)) return false;
+    if(!box.value) return true;
+    return stale && String(box.value)===String(prev[field]);
+  };
   if(match){
-    const crEl=el(type+'-costRate'), acEl=el(type+'-addCost'), mkEl=el(type+'-markup');
-    /* Phase 1 fix: never refill a field the user has manually edited —
-       even if they cleared it (deliberate blank stays blank until Add). */
-    if(crEl && !crEl.value && !isUserPriced(type,'costRate')) crEl.value=parseFloat(match.costRate||0).toFixed(2);
-    if(acEl && !acEl.value && !isUserPriced(type,'addCost')) acEl.value=parseFloat(match.addCost||0).toFixed(2);
-    if(mkEl && !mkEl.value) mkEl.value=match.markup||0;
-    if(stat) stat.classList.add('show');
+    let wrote=false;
+    if(ours(crEl,'costRate')){ crEl.value=parseFloat(match.costRate||0).toFixed(2); wrote=true; }
+    if(ours(acEl,'addCost')){  acEl.value=parseFloat(match.addCost||0).toFixed(2);  wrote=true; }
+    if(ours(mkEl,'markup')){   mkEl.value=String(match.markup||0);                  wrote=true; }
+    dpAutoFilled[type]={key, costRate:crEl?crEl.value:'', addCost:acEl?acEl.value:'', markup:mkEl?mkEl.value:''};
+    /* The badge is a statement about THIS item. It must not claim a rule was
+       applied to an item whose rates the person supplied themselves. */
+    if(stat) stat.classList.toggle('show', wrote || !!(prev&&prev.key===key));
     recalcCurrent();
   } else {
+    let cleared=false;
+    if(stale){
+      if(crEl && !isUserPriced(type,'costRate') && crEl.value===prev.costRate){ crEl.value=''; cleared=true; }
+      if(acEl && !isUserPriced(type,'addCost')  && acEl.value===prev.addCost){  acEl.value=''; cleared=true; }
+      if(mkEl && !isUserPriced(type,'markup')   && mkEl.value===prev.markup){   mkEl.value=''; cleared=true; }
+      delete dpAutoFilled[type];
+    }
+    /* Provenance is recorded even when no rule matched, so the NEXT identity
+       change can still tell a value the rules wrote from one a person typed. */
+    dpAutoFilled[type]={key, costRate:crEl?crEl.value:'', addCost:acEl?acEl.value:'', markup:mkEl?mkEl.value:''};
     if(stat) stat.classList.remove('show');
+    if(cleared) recalcCurrent();
   }
 }
 
@@ -8509,8 +8832,14 @@ function wqaApplyFixToAll(){
          answer — this mode exists to be incapable of contradicting one. */
       if(f.blanksOnly && wqaFixCurrent(r,k)) return;
       if(k==='product'){
-        if(wqaRowProduct(r)===v) return;
-        r.product=v; r.productConflict=null;
+        if(wqaRowProduct(r)===v){
+          /* Confirming the product a row already holds is still an answer:
+             the rows badged Conflict were blocked, the panel reported "no
+             change", and there was no way out of it from here. */
+          if(r.productConflict||r.unsupported){ r.productConflict=null; r.unsupported=''; did=true; }
+          return;
+        }
+        r.product=v; r.productConflict=null; r.unsupported='';
         wqaRowRestoreThread(r,v);
         r.sizeType=dcSizeTypeFor(v,r.sizeType);
         if(!r.sizeType) r.stDefaulted=false;
@@ -8669,6 +8998,10 @@ function wqaPriceSummary(c){
 function wqaEditCommonPrice(field,value){
   if(!wqa.commonPrice) wqa.commonPrice=wqaEmptyPrice();
   wqa.commonPrice[field]=value;
+  /* A price mode nobody chose is not an instruction. Recorded so Apply can
+     tell "Auto Round because that is the default" from "Auto Round because I
+     picked it". */
+  if(field==='priceMode') wqa.commonPriceModeSet=true;
   /* Only Price Mode changes the panel's structure (manual row, manual button,
      warning). Everything else is typing, so just refresh the summary text. */
   if(field==='priceMode') wqaRenderCommonPrice(true);   // manual row appears/disappears
@@ -8684,7 +9017,12 @@ function wqaApplyPriceToAll(){
     if(c.costRate!=='') r.priceOverride.costRate=c.costRate;
     if(c.addCost!=='')  r.priceOverride.addCost=c.addCost;
     if(c.markup!=='')   r.priceOverride.markup=c.markup;
-    r.priceMode=c.priceMode||'auto';
+    /* The rates are applied only where the panel states one; the price mode
+       was applied unconditionally, so opening this panel to put a cost rate on
+       the list silently took row 3 off the Manual Price of RM 50 somebody had
+       set for it and re-priced it from the formula. It follows the same rule
+       as the fields beside it: stated, or left alone. */
+    if(wqa.commonPriceModeSet) r.priceMode=c.priceMode||'auto';
     /* Leaving a row on Use Last Price while the copied mode says Auto would be
        a silent contradiction, so the flag is cleared and the count reported. */
     if(r.priceMode!=='manual'&&r.useLastPrice){ r.useLastPrice=false; r.manualPrice=''; droppedLast++; }
@@ -8766,15 +9104,28 @@ function wqaApplyAccToAll(){
   const src=wqa.commonAcc||wqaEmptyAcc();
   const targets=wqaApplyTargets();
   if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
+  /* An empty panel is not an instruction to remove anything. Opening the
+     Common Accessories panel to see what was in it and pressing Apply used to
+     strip the nut and washer somebody had set on rows 3 and 7 individually,
+     and drop those rows' prices by the accessory charge — the one panel here
+     that could quietly make a quotation cheaper than it should be. Clearing
+     accessories has its own button, which says so. */
+  if(!wqaAccHas(src)){
+    wqa.panels.acc=true; wqaRenderCommonAcc();
+    showToast(dcT('wqaToastAccNothing'));
+    return;
+  }
   targets.forEach(r=>{ r.acc=wqaCloneAcc(src); });                   // clone per row
   wqa.panels.acc=true;      // stay open while staff keep editing
   wqaRenderCommonAcc();
   wqaRecomputeAll();
   const n=targets.length;
-  showToast((wqaAccHas(src)?'Accessories applied to ':'No accessories set on ')+n+' item'+(n===1?'':'s'));
+  showToast('Accessories applied to '+n+' item'+(n===1?'':'s'));
 }
 function wqaClearAllAcc(){
-  wqa.rows.forEach(r=>{ if(!r.removed) r.acc=null; });   // dimensions and pricing entry untouched
+  /* The panel above this button says "Apply to 3 selected". This cleared all
+     nineteen. One scope for the whole panel. */
+  wqaApplyTargets().forEach(r=>{ r.acc=null; });        // dimensions and pricing entry untouched
   wqa.panels.acc=true;
   wqaRenderCommonAcc();
   wqaRecomputeAll();
@@ -8966,7 +9317,10 @@ function wqaNormM(v,rodSize){
   if(!s) return '';
   let m=s.match(/^m?\s*(\d+(?:\.\d+)?)\s*$/i) || s.match(/\bm\s*(\d+(?:\.\d+)?)\b/i);
   if(!m && rodSize) m=s.match(WQA_ROD_R_RE);
-  return m ? 'M'+m[1].replace(/\.0$/,'') : s.toUpperCase();
+  /* Anything that is not a metric size goes through the SAME canonicaliser a
+     typed size does, so an extracted 3/8" and a typed 3/8 are one size and not
+     two spellings of it — one diameter, one weight, one previous-price match. */
+  return m ? 'M'+m[1].replace(/\.0$/,'') : normalizeSizeValue(s);
 }
 
 /* Normalise separators so x / X / × / * / spaces all behave the same. */
@@ -9066,6 +9420,12 @@ function wqaPatchRows(){
     wqaListCols().forEach((c,k)=>{ if(dims[k]) dims[k].textContent=wqaRowDimCell(r,c.k)||'—'; });
     const cSize=card.querySelector('.wqa-c-size');
     if(cSize) cSize.textContent=r.size||'—';
+    /* The line under the summary states the row's material, finish and size
+       type. It was built once and never refreshed, so changing a row's
+       material to SS304 repainted the price from the stainless calculation
+       while that line still read "MS · ZP" — the row disagreeing with itself. */
+    const spec=card.querySelector('.wqa-row-spec');
+    if(spec){ const t=wqaRowSpecText(r); spec.textContent=t; spec.hidden=!t; }
     const tw=card.querySelector('.wqa-tw');
     if(tw) tw.textContent=wqaFmtTotalWeight((r.calc||{}).weight,r.qty);
     wqaPatchRowAccBar(card,r);
@@ -9110,7 +9470,7 @@ function wqaEditThread(i,v){
    up down the list. Each is its own grid cell, so every row aligns. */
 /* Only worth saying on the row when the rows disagree — otherwise the header
    above has already said it once for all of them. */
-function wqaRowSpecLine(r){
+function wqaRowSpecText(r){
   if(!(wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('product')||r.bodyDia)) return '';
   const bits=[];
   /* Named on the row only while the list holds more than one product — one
@@ -9128,7 +9488,13 @@ function wqaRowSpecLine(r){
   /* Evidence the customer gave us and we did not use for the price: shown so
      nobody wonders where it went. */
   if(r.bodyDia) bits.push(dcT('wqaBodyDia')+' '+r.bodyDia+'mm');
-  return `<div class="wqa-row-spec">${escHtml(bits.join(' · '))}</div>`;
+  return bits.join(' · ');
+}
+/* The node. Always present so a patch has something to write into — a row
+   whose spec line has nothing to say is hidden, not absent. */
+function wqaRowSpecLine(r){
+  const t=wqaRowSpecText(r);
+  return `<div class="wqa-row-spec"${t?'':' hidden'}>${escHtml(t)}</div>`;
 }
 /* The letter this dimension is known by, short enough to sit in front of its
    own value on a phone — where there is no column header to read it from. A
@@ -9490,26 +9856,47 @@ const WQA_DIM_WORDS={
 };
 /* Which of them a product actually owns. */
 const WQA_PROD_DIMS={lbolt:['TL','L','W','R'], jbolt:['TL','ID','S','H','R']};
+/* Both forms are written — "ID 70mm" and "70mm ID" — so both are read, but as
+   TWO patterns rather than one alternation, because which of them matches
+   first decides what the number means.
+
+   "OVERALL LENGTH 480 ID 100" contains both: "480 ID" reading backwards, and
+   "ID 100" reading forwards. An alternation takes whichever starts further
+   left, which was the 480 — a number the line had already given to OVERALL
+   LENGTH. Everything then shifted down the line: ID took 480, the hook height
+   took the 100 meant for ID, and the overall height took the 120 meant for the
+   hook. Three wrong dimensions, a wrong developed length, a wrong weight and a
+   wrong price, from one line that said exactly what it meant.
+
+   A label reaches FORWARD to the number written after it first, and only looks
+   backwards when nothing follows it. */
 const WQA_DIM_RE=(function(){
   const out={};
   Object.keys(WQA_DIM_WORDS).forEach(k=>{
     const w=WQA_DIM_WORDS[k];
-    /* "ID 70mm" and "70mm ID" and "400mm L" — the label may come before or
-       after the number, and the unit may sit between them. */
-    out[k]=new RegExp('(?:\\b(?:'+w+')\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?'
-      + '|(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?\\s*(?:'+w+')\\b)','i');
+    out[k]={
+      after:new RegExp('\\b(?:'+w+')\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?','i'),
+      before:new RegExp('(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?\\s*(?:'+w+')\\b','i'),
+    };
   });
   return out;
 })();
 /* The thread, in the wording all three of these products share. */
-const WQA_TL_DIM_RE=/(?:\bt\.?l\.?|thread(?:ed)?(?:\s*(?:length|portion|part|section))?)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:mm\b)?|(\d+(?:\.\d+)?)\s*(?:mm\b)?\s*(?:\bt\.?l\.?|thread(?:ed)?(?:\s*(?:length|portion|part|section))?)\b/i;
+const WQA_TL_WORDS='\\bt\\.?l\\.?|thread(?:ed)?(?:\\s*(?:length|portion|part|section))?';
+const WQA_TL_DIM_RE={
+  after:new RegExp('(?:'+WQA_TL_WORDS+')\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?','i'),
+  before:new RegExp('(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?\\s*(?:'+WQA_TL_WORDS+')\\b','i'),
+};
 function wqaDimLabelled(s,key){
   const re = key==='TL' ? WQA_TL_DIM_RE : WQA_DIM_RE[key];
   if(!re) return null;
-  const m=re.exec(s);
-  if(!m) return null;
-  const v=m[1]!==undefined&&m[1]!==null ? m[1] : m[2];
-  return (v!=null && Number(v)>0) ? {v:String(Number(v)), at:m.index, len:m[0].length} : null;
+  const hit=(rx,g)=>{
+    const m=rx.exec(s);
+    if(!m) return null;
+    const v=m[g];
+    return (v!=null && Number(v)>0) ? {v:String(Number(v)), at:m.index, len:m[0].length} : null;
+  };
+  return hit(re.after,1) || hit(re.before,1);
 }
 /* Every labelled dimension THIS product owns, taken out of the line so what is
    left is positional. Longest/most specific keys first: ID before S before H,
@@ -9665,6 +10052,45 @@ function wqaExtractFields(rawLine,opts){
   if(!f.size && opts && opts.rodSize && !/\bbend|radius|hook\b/i.test(s)){
     m=s.match(WQA_ROD_R_RE);
     if(m){ f.size='M'+m[1].replace(/\.0$/,''); s=s.replace(m[0],' '); }
+  }
+  /* ── An inch size written without its mark ─────────────────────────────────
+     "1/2 x 100 x 100/100" is a half-inch rod, 100 long, threaded 100 at each
+     end. The mark is optional in practice and was mandatory here, so the line
+     reached the thread reader with its diameter still on it — and a thread pair
+     is exactly "number slash number", so 1/2 became thread 1 and thread 2 and
+     the size box came back empty.
+
+     The run is read POSITIONALLY, in the order this trade writes it:
+     [SIZE] x [LENGTH] x [THREAD]. So the first token of a dimension run is a
+     candidate SIZE before it is anything else, and only what is left of the run
+     goes to the thread and length readers.
+
+     A fraction at the head of a run is always the size: nothing writes a thread
+     as 1/2, because a thread is a length in millimetres. It is taken whether or
+     not the diameter table knows it — an unrecognised 9/16 is shown, flagged
+     Needs Valid Size and never weighed, which is the honest answer where a
+     mis-assigned thread is not.
+
+     A WHOLE number is genuinely ambiguous — "1000 x 100" is a length and a
+     thread — so it is read as inches only for a size the diameter table
+     actually holds, and only when two further numbers follow it. Never over a
+     metric size the line already stated: "M20 x 500 x 100/100" never reaches
+     here. */
+  if(!f.size && f.hadX){
+    const hm=/^\s*(\d+\s*[-\s]\s*\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|\d+)\s*x\s/i.exec(s);
+    if(hm){
+      const key=hm[1].replace(/\s*\/\s*/,'/').replace(/\s*[-\s]\s*/,'-');
+      const isFrac=key.indexOf('/')>=0;
+      const after=(s.slice(hm[0].length).match(/\d+(?:\.\d+)?/g)||[]).length;
+      if(isFrac ? after>=1 : (WQA_INCH_DIA[key]!==undefined && after>=2)){
+        /* The vocabulary the diameter table already speaks — 1/2, 5/16, 1-1/4,
+           1" — so an inch size read off an unmarked line and one read off a
+           marked one are the same string and weigh the same. It is NEVER
+           turned into a metric size: 1/2" is not M12. */
+        f.size = isFrac ? key : key+'"';
+        s=s.slice(hm[0].length);
+      }
+    }
   }
   /* Two-side thread "50/110mm": BOTH ends are kept. The calculator's threadLen
      is a free-text field and already reads the pair form (its MS/UNDERSIZE/PL
@@ -10608,7 +11034,18 @@ function wqaParseText(text,forceProduct){
              product. */
           const hp=wqaResolveProduct(d.product,wqaLineEnds(e.n||''))||d.product;
           /* A product heading closes the section above it. */
-          if(hp!==ctx.product) secFrom=items.length;
+          if(hp!==ctx.product){
+            secFrom=items.length;
+            /* And it closes that section's THREAD too. "BOTH END THREAD 75"
+               under the Sag Rod heading was still in force three headings
+               later: every Stud under the Stud heading was stamped with a
+               two-end thread it had never been given, flagged as
+               contradicting itself, and blocked from the quotation. A thread
+               is a property of the product it was written under — 75/75 on a
+               Sag Rod says nothing about the Studs below it. */
+            ctxEnds=null;
+            ctx.threadLen=''; ctx.threadLen2=''; ctx.tlCount=0;
+          }
           ctx.product=hp;
         }
         used=true;
@@ -10838,10 +11275,56 @@ function wqaParseText(text,forceProduct){
 function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null; }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
+/* ── The entry forms are borrowed, not taken ───────────────────────────────
+   Quick Add prices every row by writing it into the REAL product form and
+   reading the REAL calculator back. That is deliberate — it is why there is no
+   second pricing engine anywhere in this file — but it means the forms are
+   left holding whatever the last row happened to be.
+
+   Somebody with a half-typed sag rod on screen who opened Quick Add, read a
+   customer's message and closed it came back to a form holding a stranger's
+   size, a stranger's length and a stranger's cost rate, one Enter away from
+   adding it to the quotation. So the forms are photographed on the way in and
+   put back on the way out, whether the session ended in Add or in Cancel. */
+let wqaFormSnapshot=null;
+function wqaSnapshotForms(){
+  if(wqaFormSnapshot) return;                       // already borrowed
+  const snap={type:currentType, touched:[...productEntryTouchedFields], fields:{}, radios:{}};
+  document.querySelectorAll('.item-form input[id],.item-form select[id],.item-form textarea[id]')
+    .forEach(i=>{ snap.fields[i.id]={v:i.value,c:!!i.checked}; });
+  document.querySelectorAll('.item-form input[type="radio"][name]:checked')
+    .forEach(i=>{ snap.radios[i.name]=i.value; });
+  wqaFormSnapshot=snap;
+}
+function wqaRestoreForms(){
+  const snap=wqaFormSnapshot; wqaFormSnapshot=null;
+  if(!snap) return;
+  /* The product type goes back FIRST, because switching it runs the handlers
+     that re-derive rates and diameters — and those would run over the restored
+     values if they went back the other way round. draftRestoreInProgress keeps
+     switchType from clearing the ownership of the rate fields, which is what
+     let the built-in MS rate overwrite a hand-typed 3.33 on the way out. */
+  draftRestoreInProgress=true;
+  try{
+    switchType(snap.type);
+    Object.keys(snap.fields).forEach(id=>{
+      const e=el(id); if(!e) return;
+      const st=snap.fields[id];
+      if(e.type==='checkbox'||e.type==='radio') e.checked=st.c; else e.value=st.v;
+    });
+    document.querySelectorAll('.item-form input[type="radio"][name]').forEach(i=>{
+      if(Object.prototype.hasOwnProperty.call(snap.radios,i.name)) i.checked=(i.value===snap.radios[i.name]);
+    });
+    productEntryTouchedFields=new Set(snap.touched);
+    Object.keys(ITEM_TYPES).forEach(t=>{ if(el('form-'+t)) setFinishPills(t,getFinish(t)); });
+    recalcCurrent(true);
+  } finally { draftRestoreInProgress=false; }
+}
 function wqaOpen(){
   /* Every session starts from the same clean slate — product, material, finish
      and size type come from the pasted text or from the user inside this modal,
      never from the calculator form and never from a previous session. */
+  wqaSnapshotForms();
   wqaResetState();
   openModal('wqaModal');
   setTimeout(()=>{try{el('wqaInput').focus()}catch(e){}},80);
@@ -11013,6 +11496,7 @@ function wqaUpdateAiPane(){
   if(evt==='drop'){ wqa._dragDepth=0; wqaDragPaint(false); }
 }));
 async function wqaAnalyze(){
+  wqaClearCommonPanels();            // and this file's corrections only
   wqaClearSourceEvidence();          // this file's evidence only, never the last one's
   if(!wqa.aiFile || wqa.aiBusy) return;               // no double-submit
   const token=(wqa._aiReq=(wqa._aiReq||0)+1);
@@ -11033,7 +11517,7 @@ async function wqaAnalyze(){
       wqaMsg('wqaAiMsg',dcServerError(j),true);
       return;                                          // file stays selected for a retry
     }
-    await wqaAiApply(j.data);
+    await wqaAiApply(j.data, undefined, {truncated:!!j.truncated});
   }catch(e){
     if(token!==wqa._aiReq) return;
     wqaMsg('wqaAiMsg',dcT('wqaMsgCannotAnalyze'),true);
@@ -11300,7 +11784,7 @@ function wqaNormalizeExtraction(d, opts){
    aliases resolve, thread representation follows the product, and nothing
    bypasses the business rules. Pricing, weight and accessories all run in the
    existing calculator, never in the model. */
-async function wqaAiApply(d, msgTarget){
+async function wqaAiApply(d, msgTarget, meta){
   /* The photo/PDF path writes into the upload pane; the paste fallback writes
      into the paste pane. Default keeps the image path byte-identical. */
   const MT = msgTarget || 'wqaAiMsg';
@@ -11326,6 +11810,11 @@ async function wqaAiApply(d, msgTarget){
   wqa.aiWarnings = d.note
     ? ['Document mentions: '+d.note+' — accessories are never added automatically. Add them yourself if this quotation includes them.']
     : [];
+  /* The answer stopped before the document did. The rows that arrived are
+     whole — the one the cut landed in was discarded rather than half-read —
+     but the list may be short, and a short list looks exactly like a complete
+     one. So it is said first, above everything else this document produced. */
+  if(meta && meta.truncated) wqa.aiWarnings.unshift(dcT('wqaTruncated'));
   /* ── Manual wins ────────────────────────────────────────────────────────
      Deterministic, and deliberately AFTER the model has answered: the person
      typing "H 530" has looked at the drawing and decided. No confidence is
@@ -11421,7 +11910,7 @@ async function wqaTextFallback(text){
       return;
     }
     wqa.aiRaw = text;                           // review keeps the original message
-    const applied = await wqaAiApply(j.data, 'wqaParseMsg');
+    const applied = await wqaAiApply(j.data, 'wqaParseMsg', {truncated:!!j.truncated});
     if(applied) wqaMsg('wqaParseMsg','',false);
   }catch(e){
     wqaMsg('wqaParseMsg', dcT('wqaCannotRead'), true);
@@ -11457,6 +11946,7 @@ function wqaIsDirty(){
      · what was already rendered   the row list, the common panels, the column
                                    header, the counters and the Add button   */
 function wqaResetState(){
+  wqa.commonPriceModeSet=false;
   wqa.session=(wqa.session||0)+1;          // invalidates any in-flight async work
   clearTimeout(wqa._t); clearTimeout(wqa._ta); clearTimeout(wqa._tm);
   wqa._t=wqa._ta=wqa._tm=null;
@@ -11529,7 +12019,7 @@ function wqaRequestClose(){
 function wqaCancelClose(){ el('wqaConfirm').hidden=true; }
 function wqaConfirmDiscard(){ el('wqaConfirm').hidden=true; wqaHardClose(); }
 /* The ONLY path that clears state: confirmed discard, or a successful add. */
-function wqaHardClose(){ wqaResetState(); closeModal('wqaModal'); }
+function wqaHardClose(){ wqaResetState(); closeModal('wqaModal'); wqaRestoreForms(); }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
   const m=el('wqaModal');
@@ -11655,10 +12145,23 @@ function wqaMsg(id,text,warn){
   b.classList.toggle('wqa-msg-warn',!!warn);
 }
 
+/* Everything the COMMON panels were holding for the previous message. Back
+   then Parse skipped wqaResetState entirely, so a Correct Items queued for
+   message A — Product Sag Rod, Material SS316 — opened over message B's rows
+   one click from being written across a different customer's list. */
+function wqaClearCommonPanels(){
+  wqa.commonFix=wqaEmptyFix();
+  wqa.commonItem=wqaEmptyItem();
+  wqa.commonPrice=wqaEmptyPrice();
+  wqa.commonPriceModeSet=false;
+  wqa.commonAcc=wqaEmptyAcc();
+  wqa.applyScope='all';
+}
 async function wqaParseAndReview(){
   const text=el('wqaInput').value||'';
   if(!text.trim()){ wqaMsg('wqaParseMsg',dcT('wqaMsgPasteFirst'),true); return; }
   wqaMsg('wqaParseMsg','',false);
+  wqaClearCommonPanels();
   wqaClearSourceEvidence();
   let parsed=wqaParseText(text);
   /* A message that never names its product is still readable — the review screen
@@ -11822,7 +12325,13 @@ function wqaChangeProduct(t){
    choice, so selecting it does nothing. */
 function wqaSetCommon(k,v){
   if(v===WQA_MIXED){ wqaRenderCommon(); return; }
-  wqa.common[k]=v;
+  /* wqa.common is the DOCUMENT's value, and a row with nothing of its own
+     falls back to it when it is priced. So writing it while the scope says
+     "Selected Items" reached the rows nobody selected: ten M12 anchor bolts,
+     five ticked, Undersize chosen in the header — and all ten changed
+     diameter, weight and price. In selected scope the header writes to the
+     selected rows and to nothing else. */
+  if(wqa.applyScope!=='selected') wqa.common[k]=v;
   if(k==='material') wqa.common.materialDefaulted=false;
   if(WQA_ROW_SPEC.indexOf(k)>=0) wqaApplyTargets().forEach(r=>{
     /* A finish cannot be applied to a stainless row, and choosing stainless
@@ -11845,11 +12354,17 @@ function wqaRowRestoreThread(r,product){
   r.threadLen=t.a;
   r.threadLen2=t.b || (ends===2 ? t.a : '');
 }
+/* Choosing a product for a row answers the two things that were said ABOUT
+   its product: that the drawing showed something Quick Add cannot price, and
+   that the word and the geometry disagreed. Both used to survive the answer —
+   a fully priced row still carrying "U BOLT — not priced in Quick Add". */
 function wqaEditRowProduct(i,v){
   const r=wqa.rows[i]; if(!r) return;
   r.product=v;
-  /* Choosing the product by hand is the answer the conflict was waiting for. */
+  /* Choosing the product by hand is the answer the conflict was waiting for —
+     and the answer to "the drawing showed something we cannot price" too. */
   r.productConflict=null;
+  if(v) r.unsupported='';
   wqaRowRestoreThread(r,v);
   /* Anchor Bolt -> Stud takes the size type with it. */
   r.sizeType=dcSizeTypeFor(v,r.sizeType); if(!r.sizeType) r.stDefaulted=false;
@@ -11955,9 +12470,15 @@ function wqaRowMissing(r){
   /* Each product asks for its own dimensions, by name: an L Bolt wants L and
      W, a J Bolt wants H, ID and S, and nothing is invented for the ones it
      does not have. */
+  /* Present and positive. A length of 0 is not a length: it weighs nothing, so
+     the row's price becomes the Additional Cost standing alone — RM 0.60 for a
+     rod with no steel in it — and the row was not blocked because the box was
+     not empty. Blank and zero are the same answer here: the drawing has not
+     said how long it is. */
   (prod.dims||[]).forEach(d=>{
     if(d==='size'||d==='threadLen') return;
-    if(!String(r[d]==null?'':r[d]).trim()) miss.push(WQA_DIM_LABEL[d]||d);
+    const v=String(r[d]==null?'':r[d]).trim();
+    if(!v || !(parseFloat(v)>0)) miss.push(WQA_DIM_LABEL[d]||d);
   });
   /* Qty is optional in Quick Add: a customer may send lengths with no counts,
      and those are still real items. It is therefore NOT a blocker here. The
@@ -12028,6 +12549,14 @@ function wqaApplyRowToForm(r){
   if(fieldExists(t,'threadLen')) setFieldValue(t,'threadLen',wqaThreadValue(r));
   setFieldValue(t,'qty',r.qty||'');
   onMaterialSizeChange(t,true);
+  /* Every row is priced through the ONE form for its product, so anything the
+     previous row left in a box is this row's starting point. The cost rate and
+     the additional cost are already re-derived or cleared by the material
+     change above; the markup was not, so typing 15 into row 2's markup priced
+     rows 3, 4 and 5 at 15% as well — a markup they were never given, on the
+     quotation. A row's own override is applied below; a row without one starts
+     empty and lets the Default Price rules answer. */
+  if(r.priceOverride.markup===undefined) setFieldValue(t,'markup','');
   applyDefaultPrice();
   /* Staff overrides win over whatever default pricing filled in. */
   if(r.priceOverride.costRate!==undefined){ setFieldValue(t,'costRate',r.priceOverride.costRate); markUserPriced(t,'costRate'); }
@@ -12057,8 +12586,13 @@ function wqaReadFormPricing(t){
          omitted = full render unless someone is typing                    */
 async function wqaRecomputeAll(mode){
   if(!wqa.rows.length) return;                   // nothing to recompute after a reset
-  /* Nothing to price until at least one row knows what it is. */
+  /* Nothing to price until at least one row knows what it is. Whatever a row
+     was weighed and priced as BEFORE its product was taken away belongs to the
+     product it no longer has: clearing the Product select used to leave the
+     Sag Rod's 0.8878 kg and RM 3.10 sitting on the row, which is a number for
+     an item that no longer exists. */
   if(!wqaLiveProducts().length){
+    wqa.rows.forEach(r=>{ if(!r.removed && !wqaRowProduct(r)){ r.calc=null; r.noDia=false; } });
     if(mode==='patch') wqaPatchRows(); else wqaRenderRows(mode==='force');
     wqaUpdateAddButton();
     return;
@@ -12076,6 +12610,15 @@ async function wqaRecomputeAll(mode){
        calculator is not even asked: a weight of zero with an Additional Cost on
        top still produces a number, and a number is what a person would trust. */
     if(!isKnownSize(r.size)){ r.calc=null; r.noDia=false; return; }
+    /* And no dimension, no weight, for the same reason. A length that is blank
+       or zero weighs nothing, and the calculator would still answer: weight 0
+       with the Additional Cost on top is RM 0.60, which is a number, and a
+       number beside a dash for the weight is the kind of thing that reaches a
+       customer. The row asks for its length instead. */
+    const prodDims=(wqaProductByType(t)||WQA_NO_PRODUCT).dims||[];
+    const dimsOk=prodDims.every(d=>(d==='size'||d==='threadLen')
+      ? true : parseFloat(String(r[d]==null?'':r[d]))>0);
+    if(!dimsOk){ r.calc=null; r.noDia=false; return; }
     switchType(t);
     wqaApplyRowToForm(r);
     /* And then the question the calculator actually answers: is there a
@@ -12111,15 +12654,23 @@ function wqaRenderRows(force){
     const miss=wqaRowMissing(r);
     const calc=r.calc||{};
     const hist=r.history;
-    let histHtml='<div class="wqa-hist wqa-hist-none">No previous matching price for this customer</div>';
+    /* Where the number came from is part of the number. This customer's own
+       previous price is a Last Price; somebody else's is a Reference Price and
+       is named as theirs, so nobody quotes one customer's rate to another
+       believing it was their own. */
+    let histHtml='<div class="wqa-hist wqa-hist-none">No previous price found</div>';
     if(hist===undefined) histHtml='<div class="wqa-hist">Checking previous prices…</div>';
+    else if(hist&&hist.failed) histHtml='<div class="wqa-hist wqa-hist-similar">Could not check previous prices — this is not the same as there being none.</div>';
     else if(hist&&hist.rec){
-      const exact=hist.exact;
-      histHtml=`<div class="wqa-hist ${exact?'wqa-hist-exact':'wqa-hist-similar'}">
-        <div class="wqa-hist-tag">${exact?'Exact previous match':'Similar previous item — not exact same size'}</div>
-        <div class="wqa-hist-line">${escHtml(hist.rec.dimensionPreview||'')} · ${escHtml(hist.rec.refNo||'')} · ${escHtml(fmtDateShort(hist.rec.date))} · Qty ${parseInt(hist.rec.qty,10)||0}</div>
-        <div class="wqa-hist-foot"><span class="wqa-hist-price">Last Price RM ${(parseFloat(hist.rec.unitPrice)||0).toFixed(2)}</span>
-        <button type="button" class="btn btn-outline btn-sm" onclick="wqaUseLastPrice(${i})">${r.useLastPrice?'✓ Using Last Price':'Use Last Price'}</button></div>
+      const exact=hist.exact, own=hist.own;
+      const tag = (own?'Same customer':'Other customer')+' · '
+                + (exact?'exact specification':'same specification, different dimensions');
+      const label = own ? 'Last Price' : 'Reference Price';
+      histHtml=`<div class="wqa-hist ${own&&exact?'wqa-hist-exact':'wqa-hist-similar'}">
+        <div class="wqa-hist-tag">${escHtml(tag)}</div>
+        <div class="wqa-hist-line">${escHtml(hist.rec.dimensionPreview||'')} · ${escHtml(hist.rec.refNo||'')} · ${escHtml(fmtDateShort(hist.rec.date))} · Qty ${parseInt(hist.rec.qty,10)||0}${own?'':' · '+escHtml(hist.rec.customer||'other customer')}</div>
+        <div class="wqa-hist-foot"><span class="wqa-hist-price">${label} RM ${(parseFloat(hist.rec.unitPrice)||0).toFixed(2)}</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="wqaUseLastPrice(${i})">${r.useLastPrice?'✓ Using '+label:'Use '+label}</button></div>
       </div>`;
     }
     /* The body — every control that existed before — is built only when this row
@@ -12128,7 +12679,9 @@ function wqaRenderRows(force){
     const rprod=wqaProductByType(wqaRowProduct(r))||prod;
     const body = !open ? '' : `<div class="wqa-row-body">
       <div class="wqa-row-grid">
-        <div class="field"><label>Size</label><input type="text" value="${escHtml(r.size)}" oninput="wqaEdit(${i},'size',this.value)"></div>
+        <div class="field"><label>Size</label><input type="text" value="${escHtml(r.size)}"
+                 oninput="wqaEditSize(${i},this,false)"
+                 onchange="wqaEditSize(${i},this,true)"></div>
         ${(rprod.dims||[]).filter(d=>d!=='size'&&d!=='threadLen').map(d=>`
         <div class="field"><label>${escHtml(wqaDimLabel(rprod.type,d))} (mm)</label>
           <input type="text" inputmode="decimal" value="${escHtml(r[d]==null?'':r[d])}"
@@ -12225,7 +12778,57 @@ function wqaEdit(i,k,v){
      W are plain millimetres and never gain an M. */
   wqa.rows[i][k] = (k==='size') ? normalizeSizeValue(v) : v;
   wqa.rows[i].issues=wqa.rows[i].issues.filter(x=>x!==k);
+  /* An extractor's doubt is about what it read. Once a person has retyped the
+     field, the doubt is answered: "Check segments vs length" used to sit on a
+     row for the rest of the session after the length that caused it had been
+     corrected, and a warning that outlives its cause teaches people to ignore
+     warnings. */
+  wqa.rows[i].aiUncertain=[];
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250); }
+
+/* ── The size box says what the row IS ─────────────────────────────────────
+   The metric M is part of the size, not a decoration on it: M27 is a size and
+   27 is a number. The row object has always held M27 — the box the person
+   typed into did not, and nothing ever put it back, so the compact line read
+   M27 while the field under it still read 27 and the two disagreed for the
+   rest of the session.
+
+   The M is written into the box AS IT IS TYPED, but only where the text can no
+   longer become anything else. "27" is a metric size and nothing else. "1" is
+   the first keystroke of 1/2, of 1-1/4 and of 1", so prefixing it would fight
+   the person mid-word and leave M1/2 behind; a single digit therefore waits
+   for the box to be committed — blur, Enter, or moving to another field — and
+   is normalised then. Committing is not the same as pressing Enter: every way
+   of leaving the box commits it.                                            */
+function wqaSizeWriteBack(inp,norm){
+  if(!inp || inp.value===norm) return;
+  /* The caret keeps its distance from the END of the text, so gaining an M in
+     front of what has been typed leaves the cursor where the next keystroke
+     belongs. */
+  const sel=(inp.selectionStart==null)?inp.value.length:inp.selectionStart;
+  const fromEnd=Math.max(0,inp.value.length-sel);
+  inp.value=norm;
+  if(document.activeElement===inp){
+    const p=Math.max(0,norm.length-fromEnd);
+    try{ inp.setSelectionRange(p,p); }catch(e){}
+  }
+}
+function wqaEditSize(i,inp,commit){
+  const r=wqa.rows[i]; if(!r||!inp) return;
+  const raw=inp.value;
+  const norm=normalizeSizeValue(raw);
+  r.size=norm;
+  r.issues=r.issues.filter(x=>x!=='size');
+  r.aiUncertain=[];                 // the size was the doubt; it has been answered
+  if(commit || WQA_SIZE_SETTLED_RE.test(raw)) wqaSizeWriteBack(inp,norm);
+  clearTimeout(wqa._t);
+  /* Committed: render, so every derived cell on the row is rebuilt from the
+     size that is now settled. Still typing: patch, so the caret survives —
+     the weight, the total weight, the price and the badges are all read-only
+     nodes and are refreshed either way. */
+  if(commit) wqaRecomputeAll('force');
+  else       wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250);
+}
 function wqaEditPrice(i,k,v){ wqa.rows[i].priceOverride[k]=v;
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250); }
 function wqaRemoveRow(i){ wqa.rows[i].removed=true; wqaRenderRows(true); }
@@ -12237,51 +12840,124 @@ function wqaUseLastPrice(i){
   wqaRecomputeAll();
 }
 
-/* ── Same-customer last price ──────────────────────────────────────────────
-   Reuses get_price_history with company_id, so only the CURRENT customer's
-   quotations are ever consulted and only the saved FINAL unit price is read.
-   Exact = same dimensions; otherwise the newest same-spec item is offered as a
-   clearly-labelled similar match. No cross-customer fallback.            */
+/* ── Previous price ────────────────────────────────────────────────────────
+   A LOOKUP, not a suggestion. It answers one question — "what did we charge
+   for this exact item before?" — by reading the FINAL unit price off a saved
+   quotation. Nothing here averages, interpolates, or reaches for a nearby
+   size: get_price_history matches product, material, finish, size type and
+   size exactly, and quantity is not part of the match at all, because a
+   historical Qty of 1 says nothing about what the item cost.
+
+   Two sources, in this order, and the row always says which one it got:
+     1. THIS customer. Their own previous price is the answer.
+     2. Only when this customer has none: any other customer, same exact
+        specification, shown as a REFERENCE and named as somebody else's.
+   The two are never merged and never averaged — different customers have
+   different rates, and one customer's price is not evidence about another's.
+
+   Within a source, a record whose dimensions also match is the exact answer;
+   a same-specification record with different dimensions is offered under a
+   label that says so, so nobody reads a 500mm rod's price as a 1500mm rod's.  */
 /* Price history lands asynchronously, so it must never rebuild the rows out from
    under someone mid-edit. It re-renders only when a row's result actually
    changed — toggling an accessory or retyping a rate leaves it identical, so
    nothing is replaced. */
 function wqaHistKey(){
-  return wqa.rows.map(r=>r.removed?'x':(r.history===undefined?'?':(r.history&&r.history.rec
-    ? (r.history.exact?'E':'S')+':'+r.history.rec.refNo+':'+r.history.rec.unitPrice : '-'))).join('|');
+  return wqa.rows.map(r=>r.removed?'x':(r.history===undefined?'?':(r.history&&r.history.failed?'!':
+    (r.history&&r.history.rec
+    ? (r.history.own?'O':'X')+(r.history.exact?'E':'S')+':'+r.history.rec.refNo+':'+r.history.rec.unitPrice
+    : '-')))).join('|');
+}
+/* The exact specification this row would be saved under. Built once per row so
+   the two lookups below cannot drift apart, and used as a cache key: a list of
+   twenty rows of the same specification asks the server once, not twenty
+   times, which is also what keeps this off the critical path while somebody is
+   typing. */
+function wqaHistSpec(r){
+  const t=wqaRowProduct(r), c=wqa.common;
+  if(!t) return null;
+  const rMat=wqaRowSpec(r,'material')||c.material||'';
+  const rSt =t==='stud'?'':(wqaRowSpec(r,'sizeType')||c.sizeType||'');
+  const rFin=dcMaterialHasFinish(rMat)?(wqaRowSpec(r,'finish')||c.finish||''):'';
+  /* An empty field is "any" to the server, not "none" — so a row that has not
+     yet been told its finish would match the customer's HDG record and print
+     RM 44.00 as this PL rod's own exact previous price, galvanising and all.
+     A specification with a hole in it is not a specification: there is nothing
+     to look up until the row says what it is. */
+  if(!rMat) return null;
+  if(!normalizeSizeValue(r.size)) return null;
+  if(dcProductHasSizeType(t) && !rSt) return null;
+  if(dcMaterialHasFinish(rMat) && !rFin) return null;
+  return {productType:ITEM_TYPES[t]||t, material:rMat,
+          sizeType:rSt, finish:rFin,
+          cleanSize:normalizeSizeValue(r.size)};
+}
+async function wqaHistFetch(spec, companyId, cache){
+  const key=JSON.stringify(spec)+'|'+(companyId==null?'*':companyId);
+  if(cache.has(key)) return cache.get(key);
+  const params=new URLSearchParams({action:'get_price_history', ...spec});
+  if(companyId!=null) params.set('company_id',String(companyId));
+  /* A signed-out session and an empty history look identical from here, and
+     they are not the same answer: "no previous price" is an assertion about
+     the customer's record, and staff price repeat orders from scratch on the
+     strength of it. A lookup that could not run says so instead. */
+  const p=fetch('api.php?'+params.toString()).then(x=>x.json())
+    .then(res=>(res&&res.ok&&res.data)||null).catch(()=>null);
+  cache.set(key,p);
+  return p;
 }
 async function wqaLoadHistory(){
   const token=wqa.session;                 // abandon results from a discarded session
   const live=wqa.rows.filter(r=>!r.removed);
   const before=wqaHistKey();
-  if(selectedCompanyId==null){
-    live.forEach(r=>{ if(r.history===undefined) r.history=null; });
-    if(wqaHistKey()!==before) wqaRenderRows();
-    return;
-  }
-  const c=wqa.common;
+  const cache=new Map();
+  let repriced=false;
+  const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
+  const newest=recs=>recs.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   for(const r of live){
     try{
-      const t=wqaRowProduct(r);
-      if(!t){ r.history=null; continue; }
-      const rMat=wqaRowSpec(r,'material')||c.material||'';
-      const isSS=rMat==='SS304'||rMat==='SS316';
-      const params=new URLSearchParams({action:'get_price_history',
-        productType:ITEM_TYPES[t]||t, material:rMat,
-        sizeType:t==='stud'?'':(wqaRowSpec(r,'sizeType')||c.sizeType||''),
-        finish:isSS?'':(wqaRowSpec(r,'finish')||c.finish||''),
-        cleanSize:normalizeSizeValue(r.size), company_id:String(selectedCompanyId)});
-      const res=await fetch('api.php?'+params.toString()).then(x=>x.json());
-      const recs=(res&&res.ok&&res.data)||[];
+      const spec=wqaHistSpec(r);
+      if(!spec || !spec.cleanSize){ r.history=null; continue; }
       const want=wqaExpectedDimPreview(r);
-      const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
-      const sorted=recs.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-      const exact=sorted.find(x=>norm(x.dimensionPreview)===norm(want));
+      const pick=(recs,own)=>{
+        const sorted=newest(recs);
+        const hit=sorted.find(x=>norm(x.dimensionPreview)===norm(want));
+        return hit ? {rec:hit,exact:true,own} : (sorted[0]?{rec:sorted[0],exact:false,own}:null);
+      };
+      let found=null, failed=false;
+      if(selectedCompanyId!=null){
+        const own=await wqaHistFetch(spec,selectedCompanyId,cache);
+        if(own===null) failed=true; else found=pick(own,true);
+      }
+      /* Only when this customer has nothing at all. Their own non-exact record
+         still outranks a stranger's exact one: it is THEIR price. */
+      if(!found && !failed){
+        const any=await wqaHistFetch(spec,null,cache);
+        if(any===null) failed=true; else found=pick(any,false);
+      }
       if(token!==wqa.session) return;     // the session was discarded mid-fetch
-      r.history = exact ? {rec:exact,exact:true} : (sorted[0]?{rec:sorted[0],exact:false}:null);
-    }catch(e){ if(token!==wqa.session) return; r.history=null; }
+      r.history=failed?{failed:true}:found;
+      /* "Use Last Price" copies the figure the card is SHOWING. Edit the row
+         afterwards — a different length finds a different record — and the
+         card repainted with the new price while the row stayed priced at the
+         old one, under a button reading "✓ Using Last Price". It follows the
+         record it names, and lets go when there is no record to follow. */
+      if(r.useLastPrice){
+        const was=r.manualPrice;
+        if(found&&found.rec) r.manualPrice=String(parseFloat(found.rec.unitPrice)||0);
+        else { r.useLastPrice=false; r.manualPrice=''; }
+        /* The row is priced from manualPrice, and the recompute that produced
+           the current price ran BEFORE this lookup landed. Changing the figure
+           without re-pricing left the card reading RM 60 while the row — and
+           the item it would add — was still RM 45. */
+        if(r.manualPrice!==was) repriced=true;
+      }
+    }catch(e){ if(token!==wqa.session) return; r.history={failed:true}; }
   }
   if(token!==wqa.session) return;
+  /* One pass only: wqaRecomputeAll calls back into this function, and the flag
+     is false the second time round because the prices now agree. */
+  if(repriced){ await wqaRecomputeAll('patch'); return; }
   if(wqaHistKey()!==before) wqaRenderRows();
 }
 /* Mirror of the dimension string the add functions build, so an exact match
@@ -12304,6 +12980,13 @@ async function wqaAddAll(){
   if(wqa.busy) return;
   const live=wqa.rows.filter(r=>!r.removed);
   if(!live.length || live.some(wqaRowBlocked)) return;
+  /* Quick Add ADDS. Someone who pressed Edit on item 3 and then went to read a
+     customer's message left editingItemIndex pointing at item 3, and the first
+     row committed through the real add path took the edit branch of pushItem
+     and REPLACED it — a quoted line, its price and its accessories gone, with
+     the toast reporting a successful add. The edit is abandoned, which is what
+     walking away from it meant; the item itself is untouched. */
+  if(editingItemIndex!==null){ editingItemIndex=null; setItemEditMode(null); }
   wqa.busy=true;
   const btn=el('wqaAddBtn'); const label=btn.textContent; btn.disabled=true; btn.textContent='Adding…';
   const before=quoteItems.length;
@@ -12362,6 +13045,9 @@ async function wqaAddAll(){
   onMaterialSizeChange('sagrod');
   ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','was','others'].forEach(onAccChange);
   onOthersWeightModeChange();
+  /* onOthersWeightModeChange runs calcOthers, which writes the SHARED preview
+     and priceCalcState[currentType] — put the active product's figures back. */
+  recalcCurrent();
   renderQuote();
   const handoffLoaded=checkHandoff();
   draftRecoveryChecked=true;

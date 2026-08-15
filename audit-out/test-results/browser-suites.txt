@@ -1,0 +1,14 @@
+  ok    size normalisation — model, screen and weight agree  (42 assertions)
+  ok    imperial — the first token of a run is the size  (66 assertions)
+  ok    weight — every product, every input that moves it  (34 assertions)
+  ok    pricing — nothing stale, nothing fabricated  (41 assertions)
+  ok    previous price — this customer first, and only then a reference  (46 assertions)
+  ok    mixed documents — a heading speaks only for its own rows  (37 assertions)
+  ok    save / reload / output — no value drift, no internal costs on the page  (65 assertions)
+  ok    common fields and Correct Items — a blank never clears an answer  (59 assertions)
+  ok    dense table — 29 rows, merged cells, metric beside imperial  (168 assertions)
+  ok    engineering drawing — five parts, five lengths, no borrowed dimensions  (48 assertions)
+
+  10 suites, 606 assertions, 0 failed
+
+  69.8s
