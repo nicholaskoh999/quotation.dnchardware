@@ -3751,7 +3751,7 @@ const I18N={
     /* ── WhatsApp Quick Add ── */
     cancel:'Cancel', nItems:'{n} items', needAttention:'{n} need attention',
     needs:'Needs {f}', fieldProduct:'Product', fieldSize:'Size', fieldLength:'Length',
-    fieldSizeType:'Size Type', fieldPrice:'Price',
+    fieldSizeType:'Size Type', fieldThread:'Thread', fieldPrice:'Price',
     badgeNoThread:'No thread', badgeParseWarning:'Parse warning', badgeCheck:'Check {f}',
     badgeAsymmetric:'Asymmetric', badgeLastPrice:'Last price',
     wqaTitle:'WhatsApp Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
@@ -3923,7 +3923,7 @@ const I18N={
     /* ── WhatsApp Quick Add ── */
     cancel:'取消', nItems:'{n} 项', needAttention:'{n} 项需检查',
     needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'长度',
-    fieldSizeType:'尺寸类型', fieldPrice:'价格',
+    fieldSizeType:'尺寸类型', fieldThread:'牙长', fieldPrice:'价格',
     badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
     badgeAsymmetric:'左右不对称', badgeLastPrice:'上次价格',
     wqaTitle:'WhatsApp 快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
@@ -7537,19 +7537,26 @@ function ensurePriceModeControls(){
    No AI, no API for parsing — pure deterministic string work.            */
 
 const WQA_PRODUCTS=[
-  /* longest aliases first so "anchor bolt" wins before "bolt" style prefixes */
-  {type:'anchorbolt', label:'Anchor Bolt', aliases:['anchor bolt','anchorbolt','anchor-bolt'],
-   dims:['size','l','threadLen'], needSizeType:true},
-  {type:'sagrod', label:'Sag Rod', aliases:['sag rod','sagrod','sag-rod'],
-   dims:['size','length','threadLen'], needSizeType:true},
-  {type:'stud', label:'Stud', aliases:['stud bolt','studbolt','stud'],
-   dims:['size','l'], needSizeType:false},
+  /* longest aliases first so "anchor bolt" wins before "bolt" style prefixes.
+       token       the name this product carries in the shared extraction
+                   schema — the ONE place the AI's SAG_ROD and our sagrod are
+                   tied together
+       threadEnds  how many thread lengths the product HAS. This is what decides
+                   whether a single value shared by a list means both ends (Sag
+                   Rod: 75 -> 75/75) or stays exactly as written (Anchor Bolt:
+                   100 -> 100), and whether a thread is required at all. */
+  {type:'anchorbolt', token:'ANCHOR_BOLT', label:'Anchor Bolt', aliases:['anchor bolt','anchorbolt','anchor-bolt'],
+   dims:['size','l','threadLen'], threadEnds:1, needSizeType:true},
+  {type:'sagrod', token:'SAG_ROD', label:'Sag Rod', aliases:['sag rod','sagrod','sag-rod'],
+   dims:['size','length','threadLen'], threadEnds:2, needSizeType:true},
+  {type:'stud', token:'STUD', label:'Stud', aliases:['stud bolt','studbolt','stud'],
+   dims:['size','l'], threadEnds:0, needSizeType:false},
 ];
 
 /* A document may legitimately not say which product it is (a handwritten list
    of lengths and counts). The review still opens so the user can see the rows
    and choose; this stand-in keeps every renderer safe until they do. */
-const WQA_NO_PRODUCT={type:'',label:'—',dims:['size','length'],needSizeType:false};
+const WQA_NO_PRODUCT={type:'',token:'',label:'—',dims:['size','length'],threadEnds:0,needSizeType:false};
 
 /* Material aliases -> the system's EXISTING internal values. Order matters:
    the more specific spellings must be tested before the bare "4140". */
@@ -7618,12 +7625,7 @@ function wqaEmptyItem(){ return {size:'',thread:''}; }
 
 /* "12", "m12" and "M12.0" all mean M12. Same shape an extracted M value is
    normalised into, so a typed size and a read one land identically. */
-function wqaNormSize(v){
-  const s=String(v||'').trim();
-  if(!s) return '';
-  const m=s.match(/^m?\s*(\d+(?:\.\d+)?)$/i);
-  return m ? 'M'+m[1].replace(/\.0$/,'') : s.toUpperCase();
-}
+function wqaNormSize(v){ return wqaNormM(v); }
 function wqaItemSummary(c){
   const bits=[];
   if(String(c.size||'').trim())   bits.push('Size '+wqaNormSize(c.size));
@@ -7696,11 +7698,10 @@ function wqaApplyItemToAll(){
     }
     if(thread){
       /* Thread stays ONE field. Both ends live behind it as threadLen and
-         threadLen2, split on "/" exactly as wqaEditThread does, so 75/75,
+         threadLen2, split by the same helper wqaEditThread uses, so 75/75,
          50/110 and 68/20 all keep their asymmetry. */
-      const p=thread.split('/');
-      r.threadLen=String(p[0]||'').trim();
-      r.threadLen2=p.length>1?String(p[1]||'').trim():'';
+      const p=wqaSplitThread(thread);
+      r.threadLen=p.a; r.threadLen2=p.b;
       r.issues=r.issues.filter(x=>x!=='threadLen');
       if(r.defaulted) r.defaulted.threadMissing=false;   // the badge is no longer true
     }
@@ -7947,6 +7948,37 @@ function wqaEditAcc(i,group,field,value){
 function wqaToggleAccOpen(i){ wqa.rows[i].accOpen=!wqa.rows[i].accOpen; wqaRenderRows(true); }
 
 function wqaProductByType(t){ return WQA_PRODUCTS.find(p=>p.type===t)||null; }
+function wqaProductByToken(k){ return WQA_PRODUCTS.find(p=>p.token===k)||null; }
+/* How many thread lengths this product has. 0 = no thread field at all. */
+function wqaThreadEnds(t){ const p=wqaProductByType(t); return p?p.threadEnds:0; }
+
+/* ── Thread representation ──────────────────────────────────────────────────
+   Thread lives in ONE field, written "75", "75/75" or "50/110". These are the
+   only two places that field is taken apart or put together. */
+function wqaSplitThread(tl){
+  const s=String(tl==null?'':tl).trim();
+  if(!s) return {a:'',b:''};
+  const p=s.split('/');
+  return {a:String(p[0]||'').trim(), b:p.length>1?String(p[1]||'').trim():''};
+}
+/* A single value stated ONCE for a whole list. Only a product that HAS two
+   thread ends can mean "the same at each end", so only that product doubles it:
+   a Sag Rod's shared 75 is 75/75, an Anchor Bolt's 100 stays 100. Never applied
+   to a value a row states for itself — that is already written as it is meant. */
+function wqaPairThread(v,productType){
+  const s=String(v==null?'':v).trim();
+  if(!s) return {a:'',b:''};
+  if(s.indexOf('/')>=0) return wqaSplitThread(s);
+  return wqaThreadEnds(productType)===2 ? {a:s,b:s} : {a:s,b:''};
+}
+/* "12", "m12", "M12.0" and an extracted "M12" all mean M12. ONE normaliser, so
+   a typed size, a parsed one and an extracted one land identically. */
+function wqaNormM(v){
+  const s=String(v==null?'':v).trim();
+  if(!s) return '';
+  const m=s.match(/^m?\s*(\d+(?:\.\d+)?)\s*$/i) || s.match(/\bm\s*(\d+(?:\.\d+)?)\b/i);
+  return m ? 'M'+m[1].replace(/\.0$/,'') : s.toUpperCase();
+}
 
 /* Normalise separators so x / X / × / * / spaces all behave the same. */
 function wqaNorm(s){
@@ -8079,9 +8111,8 @@ function wqaSetView(v){
    threadLen2, written and read as "50/110". */
 function wqaEditThread(i,v){
   const r=wqa.rows[i]; if(!r) return;
-  const m=String(v||'').split('/');
-  r.threadLen=String(m[0]||'').trim();
-  r.threadLen2=m.length>1?String(m[1]||'').trim():'';
+  const m=wqaSplitThread(v);
+  r.threadLen=m.a; r.threadLen2=m.b;
   r.issues=r.issues.filter(x=>x!=='threadLen');
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250);
 }
@@ -8135,7 +8166,6 @@ function wqaRowBadges(r){
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
      either language instead of a translated word glued to an English one. */
   wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',dcT('field'+m.replace(/\s/g,''))),k:'req'}));
-  if(r.defaulted && r.defaulted.threadMissing) out.push({t:dcT('badgeNoThread'),k:'warn'});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
@@ -8330,19 +8360,25 @@ function wqaResolveLine(f,ctx,productType){
     row.threadLen=ctx.threadLen; conf.threadLen=WQA_CONF.INHERITED;
     if(ctx.threadLen2) row.threadLen2=ctx.threadLen2;
   }
-  if(wantsThread && !row.threadLen && row.length) defaulted.threadMissing=true;
-
-  if(!row.size)   issues.push('size');
-  if(!row.length) issues.push('length');
   if(row.qty==='') conf.qty=WQA_CONF.UNCERTAIN;   // optional: recorded, not an issue
-  return {row,issues,defaulted,conf};
+
+  /* Out as ONE extracted item, in the same shape a photo or a PDF produces.
+     What each number MEANS was this function's job; how it is represented,
+     validated and flagged is wqaNormalizeExtraction's — for every source. */
+  return {item:{M:row.size, L:row.length,
+                TL:row.threadLen ? (row.threadLen2?row.threadLen+'/'+row.threadLen2:row.threadLen) : null,
+                qty:row.qty===''?null:row.qty,
+                conf, issues, defaulted}};
 }
 
 /* Kept as the single-line entry point (used by the parser and by tests). */
 function wqaParseLine(rawLine,productType,ctx){
   const f=wqaExtractFields(rawLine);
   const r=wqaResolveLine(f,ctx||{},productType);
-  return {...r.row,issues:r.issues,defaulted:r.defaulted,conf:r.conf,raw:String(rawLine).trim()};
+  const n=wqaNormalizeExtraction({product:productType||'',
+                                  items:[{...r.item,raw:String(rawLine).trim()}]},
+                                 {wording:String(rawLine||'')});
+  return n.rows[0];
 }
 
 /* True when a line carries nothing we recognise — greetings, thanks, notes. */
@@ -8373,11 +8409,68 @@ function wqaLineHasSignal(line,common){
    Where the evidence sits between the two, nothing is guessed: the row is kept
    but the parse is reported as low confidence, which sends the message to the
    existing AI fallback rather than showing a thread length as an item.      */
-const WQA_THREAD_WORD_RE=/\b(?:thread|threaded|thd|tl|t\s*\/\s*l)\b/i;
+const WQA_THREAD_WORD_RE=/\b(?:thread|threaded|thd|tl\d?|t\s*\/\s*l)\b/i;
 const WQA_THREAD_MAX=200;    /* beyond this a bare number is a length, not a
                                 thread — the catalogue's longest is 150 */
 const WQA_HEADER_RATIO=3;    // "much larger": the list is at least 3x the spec
 const WQA_AMBIG_RATIO=1.5;   // between the two the structure cannot decide
+
+/* A thread value stated on a line of its OWN — "thread 60", "TL1 60", "left
+   thread 60", "top thread 250", "60 thread". Two of these in one block are the
+   two ENDS of one rod, in the order written; they are never a repeat of the same
+   end, so "thread 60 / thread 70" is 60/70 and never 60/60. */
+const WQA_END_LABEL_RE=/\b(?:tl|t)[12]\b/ig;
+function wqaThreadOnlyValue(e){
+  if(!e || !e.f) return null;
+  const f=e.f;
+  if(f.size || f.qty!==null || f.threadLen!==null) return null;
+  const n=e.n||'';
+  if(!WQA_THREAD_WORD_RE.test(n)) return null;
+  /* In "TL1 60" the 1 names the END, not a measurement, so the label is taken
+     off before the line's numbers are counted. Only the attached form is a
+     label: "thread 12" really is a 12mm thread and is left alone. */
+  const nums=(n.replace(WQA_END_LABEL_RE,' ').match(/\d+(?:\.\d+)?/g)||[]);
+  if(nums.length!==1) return null;
+  const v=Number(nums[0]);
+  return v>0 ? String(v) : null;
+}
+/* The rod's own length stated on a line of its own — "overall 3850", "total
+   length 3850", "OAL 3850" — the way a drawing gets written out in words. A
+   counting line ("Total 6 items") is not a dimension, so it is excluded. */
+const WQA_OVERALL_RE=/\b(?:overall|over\s*all|o\s*\/\s*a|oal|total\s*length|full\s*length|length|long)\b/i;
+const WQA_COUNT_WORD_RE=/\b(?:items?|qty|quantity|pcs?|nos?|sets?|units?)\b/i;
+function wqaOverallLengthValue(e){
+  if(!e || !e.f) return null;
+  const f=e.f;
+  if(f.size || f.qty!==null || f.threadLen!==null || f.nums.length!==1) return null;
+  const n=e.n||'';
+  if(!WQA_OVERALL_RE.test(n) || WQA_COUNT_WORD_RE.test(n)) return null;
+  if(WQA_THREAD_WORD_RE.test(n)) return null;        // "thread length 60" is a thread
+  const v=Number(f.nums[0]);
+  return v>0 ? String(v) : null;
+}
+/* Thread ends arrive one line at a time. The first value fills the pair the way
+   the PRODUCT means it; a second value replaces the second end, in the order it
+   was written. A pair written on one line is already complete. */
+function wqaCtxAddThread(ctx,v,productType){
+  if(v==null) return;
+  if(!ctx.tlCount){
+    const p=wqaPairThread(v,productType);
+    ctx.threadLen=p.a; ctx.threadLen2=p.b; ctx.tlCount=1;
+  } else if(ctx.tlCount===1 && wqaThreadEnds(productType)===2){
+    ctx.threadLen2=v; ctx.tlCount=2;
+  }
+}
+/* Two thread ends stated separately for one rod is our Sag Rod shape, whatever
+   the customer titled the drawing. Same order the AI extraction already follows
+   — geometry first, wording last — so a "DETAIL OF ANCHOR BOLT" that states a
+   top thread and a bottom thread is read as a Sag Rod. */
+function wqaGeometryProduct(product,entries){
+  if(product!=='anchorbolt') return product;
+  let ends=0;
+  entries.forEach(e=>{ if(wqaThreadOnlyValue(e)!=null) ends++; });
+  return ends>=2 ? 'sagrod' : product;
+}
 
 /* Judged on the line alone: could this be a shared spec rather than an item? */
 function wqaSpecCandidate(f){
@@ -8391,6 +8484,7 @@ function wqaSpecCandidate(f){
 function wqaSpecHeaderPlan(entries){
   const plan={};
   entries.forEach((e,i)=>{
+    if(wqaThreadOnlyValue(e)!=null){ plan[i]='thread'; return; }
     if(!wqaSpecCandidate(e.f)) return;
     const n=Number(e.f.nums[0]);
     if(!(n>0)) return;
@@ -8421,17 +8515,25 @@ function wqaParseText(text,forceProduct){
   const common=wqaDetectCommon(text);
   if(forceProduct) common.product=forceProduct;   // "change product" re-parse
   const lines=String(text||'').split(/\r?\n/);
-  const rows=[], skipped=[];
-  /* Running context: a header line updates it, later lines inherit from it. */
-  const ctx={size:'',threadLen:'',threadLen2:''};
+  const items=[], skipped=[];
+  /* Running context: a header line updates it, later lines inherit from it. A
+     ROW never writes back into it — a value stated on a row applies to that row
+     only, and the shared context carries on unchanged for the rows after it. */
+  const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:''};
   /* After a "Length:" heading, once context already carries the identity
      (product, material, finish, size type, diameter), a bare number IS a
      length. This is context-driven — no customer-specific format. */
   let inList=false;
-  /* Set when a short spec line could not be told apart from an item. The row is
-     still produced — nothing is dropped silently — but the parse is reported as
-     low confidence so the message goes to the AI fallback. */
+  /* Set when a short spec line could not be told apart from an item. Nothing
+     wrong is produced from it — the diameter it states is kept as context and no
+     item is invented from the number — but the parse is reported as low
+     confidence, so the message goes to the AI fallback. */
   let risky=false;
+  /* How much of the message the parser actually used. Counted per line rather
+     than per row, because a line that becomes shared context — a diameter, a
+     thread end, an overall length — has been read just as truly as one that
+     becomes an item. */
+  let numeric=0, unread=0;
 
   /* Every line's fields are read first. A spec header is only recognisable from
      the rows below it, so the classification has to precede the row loop. */
@@ -8443,42 +8545,88 @@ function wqaParseText(text,forceProduct){
     if(!wqaLineHasSignal(t,common)) return {t,n,noise:true};
     return {t,n,f:wqaExtractFields(t)};
   });
+  /* Geometry beats the customer's title, decided before anything is read. */
+  if(!forceProduct && common.product) common.product=wqaGeometryProduct(common.product,entries);
   const plan=wqaSpecHeaderPlan(entries);
 
   entries.forEach((e,i)=>{
     if(e.blank) return;
+    /* A digit that belongs to a material or a finish — 4140, GR8.8, SS304 — is
+       not dimensional content, and the line carrying it was read the moment the
+       whole-message scan picked the material up. Only digits that survive the
+       spec-word strip count as something the parser still owes an answer for. */
+    const counts=/\d/.test(wqaStripSpecWords(e.n||''));
+    if(counts) numeric++;
     if(e.section){ inList=true; return; }
-    if(e.noise){ skipped.push(e.t); return; }
-    if(!common.product) return;
+    if(e.noise){ skipped.push(e.t); if(counts) unread++; return; }
+    if(!common.product){ if(counts) unread++; return; }
 
     const f=e.f;
+    /* A thread end stated on a line of its own is context for the rows below. */
+    if(plan[i]==='thread'){ wqaCtxAddThread(ctx,wqaThreadOnlyValue(e),common.product); return; }
     /* Numbers alone are not enough — "Total 6 items" is not a 6mm bolt. An item
        needs a dimensional signal: an M-size, a thread, an x separator or an mm
        suffix, or an explicit quantity. */
     const dimSignal = !!f.size || f.threadLen!==null || f.hadX || (f.mm||[]).some(Boolean) ||
                       (inList && !!ctx.size);          // a length list under a header
-    const isItem = plan[i]!=='header' &&
+    const isItem = !plan[i] &&
                    ((f.qty!==null && (dimSignal || f.nums.length>0)) ||
                     (dimSignal && f.nums.length>0));
     if(!isItem){
       /* No length and no qty: this is context, not an item. It may still carry
          a diameter and a thread for the rows below it. */
-      if(f.size) ctx.size=f.size;
-      if(f.threadLen!==null){ ctx.threadLen=f.threadLen; ctx.threadLen2=f.threadLen2||''; }
-      else if(plan[i]==='header'){
-        /* One thread value shared by the whole list. Both ends are the same
-           until a row says otherwise, so 75 becomes the 75/75 pair the
-           calculator already stores rather than a half-filled thread. */
-        ctx.threadLen=f.nums[0]; ctx.threadLen2=f.nums[0];
+      let used=false;
+      if(f.size){ ctx.size=f.size; used=true; }
+      if(f.threadLen!==null){
+        ctx.threadLen=f.threadLen; ctx.threadLen2=f.threadLen2||''; ctx.tlCount=2; used=true;
+      } else if(plan[i]==='header'){
+        /* One thread value shared by the whole list, read the way THIS product
+           means it: a Sag Rod's 75 is 75/75, an Anchor Bolt's 100 stays 100. */
+        const p=wqaPairThread(f.nums[0],common.product);
+        ctx.threadLen=p.a; ctx.threadLen2=p.b; ctx.tlCount=2; used=true;
+      } else if(plan[i]==='risky'){
+        /* The short number could not be told apart from a length. The diameter
+           beside it is plainly stated, so it is kept as context — throwing away
+           what the message clearly shows would be worse — while the number
+           itself becomes neither a thread nor an item. */
+        risky=true;
+      } else {
+        const ov=wqaOverallLengthValue(e);
+        if(ov!=null){ ctx.length=ov; used=true; }
+        /* A quantity on a line of its own belongs to the row above it, which is
+           how a single-item message is written ("M12 x 1000 x TL100" / "10pcs").
+           It only ever fills a row that has none; it never overwrites one. */
+        if(f.qty!==null && !f.size && f.threadLen===null && !f.nums.length){
+          const prev=items[items.length-1];
+          if(prev && (prev.qty==null||prev.qty==='')){
+            prev.qty=String(f.qty); prev.conf.qty=WQA_CONF.DETECTED; used=true;
+          }
+        }
       }
+      if(counts && !used) unread++;
       return;
     }
-    if(plan[i]==='risky') risky=true;
     const r=wqaResolveLine(f,ctx,common.product);
-    rows.push({...r.row,issues:r.issues,defaulted:r.defaulted,conf:r.conf,raw:e.t});
+    items.push({...r.item,raw:e.t});
   });
 
-  return {common,rows,skipped,risky};
+  /* A message that describes ONE rod instead of listing several — a drawing
+     written out in words — leaves the whole specification in the context with no
+     row to hang it on. Only when nothing else was read at all does that context
+     become the single item it describes. Nothing is invented: every field here
+     came from a line the customer actually wrote. */
+  if(!items.length && common.product && ctx.size && ctx.length){
+    items.push({M:ctx.size, L:ctx.length,
+                TL:ctx.threadLen?(ctx.threadLen2?ctx.threadLen+'/'+ctx.threadLen2:ctx.threadLen):null,
+                qty:null, raw:lines.map(l=>l.trim()).filter(Boolean).join(' · '),
+                conf:{size:WQA_CONF.INHERITED,length:WQA_CONF.INHERITED,threadLen:WQA_CONF.INHERITED},
+                issues:[], defaulted:{}});
+  }
+
+  /* The SAME normaliser the photo and PDF extraction goes through. Everything
+     from this line downwards is shared by every source. */
+  const norm=wqaNormalizeExtraction({product:common.product,items},{wording:text});
+  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread};
 }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
@@ -8629,72 +8777,122 @@ async function wqaAnalyze(){
     wqa.aiBusy=false; el('wqaAiStatus').hidden=true; wqaUpdateAiPane();
   }
 }
+/* ══ THE ONE SHARED NORMALISER ══════════════════════════════════════════════
+   Every input source — the deterministic text parser, the AI text fallback and
+   the AI photo / PDF extraction — produces the SAME compact extraction:
+
+     {product, material, finish, sizeType, note,
+      items:[{M, L, TL, qty, W, Bmid, Bbad}]}
+
+   and hands it to this function. Product mapping, the material / finish / size
+   type rules, diameter and thread representation, the required-field flags and
+   the Quick Add row shape all live here, once. Nothing downstream of it knows
+   or cares which source a quotation came from, so the source cannot change the
+   business outcome.
+
+   The two options describe what the EXTRACTOR already did — never which source
+   it was:
+     wording      raw text the common fields are read from. The text parser
+                  passes the whole message; without it the wording is rebuilt
+                  from material / finish / sizeType, the way a photo's is.
+     inheritGaps  the extractor has no running context of its own, so a value
+                  stated once for a whole list may arrive on the first item
+                  only. A gap on a LATER item is then filled from the value
+                  stated earlier — never backwards, and never over a value the
+                  item states for itself.                                    */
+function wqaNormalizeExtraction(d, opts){
+  d=d||{}; opts=opts||{};
+  const word={SAG_ROD:'SAG ROD',STUD:'STUD',ANCHOR_BOLT:'ANCHOR BOLT',L_BOLT:'L BOLT'};
+
+  /* Product: an extraction token (SAG_ROD) or an internal type (sagrod). Both
+     resolve through the same table, so there is no second mapping to drift. */
+  let prod='', prodErr=null;
+  const src=String(d.product||'');
+  if(src){
+    const p=wqaProductByToken(src)||wqaProductByType(src);
+    if(p)                    prod=p.type;
+    else if(src==='OTHER')   prodErr={code:'no_product'};
+    else                     prodErr={code:'unsupported', word:word[src]||src};
+  }
+
+  /* Common fields: ONE rule set, whatever the wording came from. */
+  let st=String(d.sizeType||'').trim();
+  if(/^und(er)?\.?$/i.test(st))   st='under size';     // "under" on a scribbled note
+  else if(/^full?\.?$/i.test(st)) st='full size';
+  const wording=(opts.wording!=null)
+    ? opts.wording
+    : [d.material,d.finish,st,word[src]||''].filter(Boolean).join(' ');
+  const common=wqaDetectCommon(wording);
+  common.product=prod;
+
+  const ends=wqaThreadEnds(prod);
+  const inh={M:'',TL:''};
+  const rows=(d.items||[]).map(it=>{
+    const conf={...(it.conf||{})};
+    const issues=(it.issues||[]).filter(x=>x!=='size'&&x!=='length');
+    const defaulted={...(it.defaulted||{})};
+
+    let M=wqaNormM(it.M);
+    if(M) inh.M=M;
+    else if(opts.inheritGaps && inh.M){ M=inh.M; conf.size=WQA_CONF.INHERITED; }
+
+    let tl=wqaSplitThread(it.TL);
+    if(tl.a) inh.TL=it.TL;
+    else if(opts.inheritGaps && inh.TL){ tl=wqaSplitThread(inh.TL); conf.threadLen=WQA_CONF.INHERITED; }
+
+    const row={size:M,
+               length:(it.L==null||it.L==='')?'':String(it.L),
+               threadLen:tl.a, threadLen2:tl.b,
+               qty:(it.qty==null||it.qty==='')?'':String(it.qty),
+               issues, defaulted, conf, aiUncertain:[],
+               raw: it.raw!=null ? String(it.raw)
+                    : [it.M,it.L,it.TL,(it.qty!=null?it.qty+'pcs':null)].filter(v=>v!=null).join(' x ')};
+
+    if(row.size   && conf.size===undefined)      conf.size=WQA_CONF.DETECTED;
+    if(row.length && conf.length===undefined)    conf.length=WQA_CONF.DETECTED;
+    if(row.threadLen && conf.threadLen===undefined) conf.threadLen=WQA_CONF.DETECTED;
+    if(row.qty)   { if(conf.qty===undefined) conf.qty=WQA_CONF.DETECTED; }
+    else          conf.qty=WQA_CONF.UNCERTAIN;   // optional: recorded, not an issue
+
+    /* A + B + C did not reconcile with the overall length: surfaced for a human
+       look, never silently corrected and never dropped. */
+    if(it.Bbad) row.aiUncertain.push('segments vs length');
+    /* Product-aware: only a product that HAS a thread can be missing one. */
+    if(ends>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
+    if(!row.size)   issues.push('size');
+    if(!row.length) issues.push('length');
+    return row;
+  });
+
+  /* Same precedence the AI path has always had: nothing usable outranks an
+     unsupported product, because the review screen can ask for a product but
+     cannot invent rows. */
+  if(!rows.length) return {ok:false, common, rows:[], error:{code:'no_rows'}};
+  if(prodErr)      return {ok:false, common, rows, error:prodErr};
+  return {ok:true, common, rows};
+}
+
 /* Turn the compact extraction into Quick Add state. AI output is NOT final
-   truth: the raw wording goes through wqaDetectCommon, the same rule set the
-   text path uses, so bare 4140 / G8.8 default to 4140 QT, aliases resolve, and
-   nothing bypasses the business rules. Pricing, weight and accessories all run
-   in the existing calculator, never in the model. */
+   truth: it goes through wqaNormalizeExtraction, the very same normaliser the
+   deterministic text parser feeds, so bare 4140 / G8.8 default to 4140 QT,
+   aliases resolve, thread representation follows the product, and nothing
+   bypasses the business rules. Pricing, weight and accessories all run in the
+   existing calculator, never in the model. */
 async function wqaAiApply(d, msgTarget){
   /* The photo/PDF path writes into the upload pane; the paste fallback writes
      into the paste pane. Default keeps the image path byte-identical. */
   const MT = msgTarget || 'wqaAiMsg';
-  const map={'SAG_ROD':'sagrod','STUD':'stud','ANCHOR_BOLT':'anchorbolt'};
-  const word={'SAG_ROD':'SAG ROD','STUD':'STUD','ANCHOR_BOLT':'ANCHOR BOLT','L_BOLT':'L BOLT'};
-
-  /* Rows are built first: a length/qty list is usable even when the note never
-     says what the product is. */
-  const rows=(d.items||[]).map(it=>{
-    const row={size:'',length:'',threadLen:'',threadLen2:'',qty:'',issues:[],defaulted:{},conf:{},
-               aiUncertain:[],
-               raw:[it.M,it.L,it.TL,(it.qty!=null?it.qty+'pcs':null)].filter(v=>v!=null).join(' x ')};
-    if(it.M){
-      const m=String(it.M).match(/m?\s*(\d+(?:\.\d+)?)/i);
-      row.size=m?('M'+m[1].replace(/\.0$/,'')):String(it.M).toUpperCase();
-      row.conf.size='detected';
-    }
-    /* L is the overall rod length, including on a segmented A|B|C drawing; the
-       centre segment travels as Bmid and is only a validation clue. */
-    if(it.L!=null){ row.length=String(it.L); row.conf.length='detected'; }
-    if(it.TL!=null){
-      const parts=String(it.TL).split('/');           // "68/20" or a bare number
-      row.threadLen=String(parts[0]).trim();
-      if(parts.length>1) row.threadLen2=String(parts[1]).trim();
-      row.conf.threadLen='detected';
-    } else if(row.length) row.defaulted.threadMissing=true;
-    if(it.qty!=null){ row.qty=String(it.qty); row.conf.qty='detected'; }
-    /* A + B + C did not reconcile with the overall length: surfaced for a human
-       look, never silently corrected and never dropped. */
-    if(it.Bbad) row.aiUncertain.push('segments vs length');
-    if(!row.size)   row.issues.push('size');
-    if(!row.length) row.issues.push('length');
-    return row;
-  });
-  if(!rows.length){
-    wqaMsg(MT,dcT('wqaMsgNoRows'),true);
-    return false;
-  }
-
-  /* Product: geometry-classified by the model, then held to what Quick Add can
-     actually price. null means the document genuinely does not say — the review
+  /* Geometry-classified by the model, then held to what Quick Add can actually
+     price. A null product means the document genuinely does not say — the review
      opens and asks, which is safer than assuming Sag Rod. */
-  let prod='';
-  if(d.product && map[d.product]) prod=map[d.product];
-  else if(d.product && d.product!=='OTHER'){
-    wqaMsg(MT,dcT('wqaMsgUnsupported').replace('{p}',word[d.product]||d.product),true);
-    return false;
-  } else if(d.product==='OTHER'){
-    wqaMsg(MT,dcT('wqaMsgNoProduct'),true);
+  const norm = wqaNormalizeExtraction(d, {inheritGaps:true});
+  if(!norm.ok){
+    const e=norm.error||{};
+    if(e.code==='unsupported')     wqaMsg(MT,dcT('wqaMsgUnsupported').replace('{p}',e.word||''),true);
+    else if(e.code==='no_product') wqaMsg(MT,dcT('wqaMsgNoProduct'),true);
+    else                           wqaMsg(MT,dcT('wqaMsgNoRows'),true);
     return false;
   }
-
-  /* SAME business rules as the text path. Only wording the document actually
-     showed is fed in, so nothing is invented on the way through. */
-  let st=String(d.sizeType||'').trim();
-  if(/^und(er)?\.?$/i.test(st))      st='under size';   // "under" on a scribbled note
-  else if(/^full?\.?$/i.test(st))    st='full size';
-  const hdr=[d.material,d.finish,st,word[d.product]||''].filter(Boolean).join(' ');
-  const common=wqaDetectCommon(hdr);
-  common.product=prod;
   /* Drawings routinely show standard assembly hardware that the quotation may
      not include, so the wording is reported and nothing is enabled: no nut, no
      washer, no quantity, no price. Accessories stay entirely manual. */
@@ -8706,7 +8904,7 @@ async function wqaAiApply(d, msgTarget){
   wqa.aiWarnings = d.note
     ? ['Document mentions: '+d.note+' — accessories are never added automatically. Add them yourself if this quotation includes them.']
     : [];
-  await wqaEnterReview(common, rows, wqa.aiRaw || ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')), [], 'ai');
+  await wqaEnterReview(norm.common, norm.rows, wqa.aiRaw || ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')), [], 'ai');
   return true;
 }
 
@@ -8719,12 +8917,16 @@ async function wqaAiApply(d, msgTarget){
      * no row carries a usable length at all,
      * a shared spec header could not be told apart from an item row, so a
        thread length may be sitting in the list as a 75mm rod, or
-     * far fewer rows came out than the message has numeric lines — the shape of
-       a free-form sentence the parser skimmed rather than read.
+     * too much of the message went unread — the shape of a free-form sentence
+       the parser skimmed rather than read.
 
-   Measured against the real parser: a normal list scores 0.67, a qty-first list
-   and a shorthand length list both score 1.0, while the free-form
-   "left thread 68 / center 12 / other side 20" message scores 0.17. */
+   "Unread" is per line and counts only lines the parser did nothing with. A
+   line that became shared context — a diameter, a thread end, an overall length
+   — was read just as truly as one that became an item, so a message that is
+   mostly context still scores as fully read. Measured against the real parser:
+   every list shape and every context-and-rows shape leaves nothing unread,
+   while the free-form "left thread 68 / center 12 / other side 20" message
+   leaves half its numeric lines unused. */
 function wqaParseQuality(parsed, text){
   const usable = (parsed.rows||[]).filter(r=>parseFloat(r.length)>0);
   if(!usable.length) return {ok:false, why:'no-usable-rows'};
@@ -8732,10 +8934,13 @@ function wqaParseQuality(parsed, text){
      would show may be a thread length wearing a length's clothes. Hand the
      message to the AI rather than accept it. */
   if(parsed.risky) return {ok:false, why:'spec-header-ambiguous'};
-  const contentLines = String(text||'').split(/\r?\n/)
-    .map(l=>l.trim()).filter(l=>l && /\d/.test(l)).length;
-  if(contentLines>0 && (usable.length/contentLines) < 0.5){
-    return {ok:false, why:'low-coverage', rows:usable.length, lines:contentLines};
+  const lines = parsed.numeric!=null ? parsed.numeric
+              : String(text||'').split(/\r?\n/).map(l=>l.trim()).filter(l=>l && /\d/.test(l)).length;
+  const unread = parsed.unread!=null ? parsed.unread : Math.max(0, lines-usable.length);
+  /* More than a third of the numeric lines meaning nothing to the parser is the
+     signature of prose, not of a list with a header. */
+  if(unread*3 > lines){
+    return {ok:false, why:'low-coverage', rows:usable.length, lines, unread};
   }
   return {ok:true, rows:usable.length};
 }
@@ -9004,6 +9209,10 @@ function wqaRowMissing(r){
      blank-qty row is skipped at commit and reported — never defaulted to 1,
      which the calculator does not do either. */
   if(prod.needSizeType && !wqa.common.sizeType) miss.push('Size Type');
+  /* A product that HAS a thread needs one: a Sag Rod as the pair 75/75 or
+     50/110, an Anchor Bolt as the single value 100. Product-specific, never one
+     rule for all — a Stud has no thread and is never asked for one. */
+  if(prod.threadEnds>0 && !wqaThreadValue(r)) miss.push('Thread');
   if(!(parseFloat(r.calc&&r.calc.finalUnitPrice)>0)) miss.push('Price');
   return miss;
 }

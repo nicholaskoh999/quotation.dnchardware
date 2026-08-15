@@ -291,6 +291,29 @@ that field rather than guessing. If the numbers cannot be reconciled, report
 exactly what is printed — never adjust them to make them add up, never drop the
 row. Semantic interpretation, not pattern matching.
 
+PRODUCT-SPECIFIC DIMENSIONS — SEARCH THE WHOLE DOCUMENT
+Once the product is known, the fields the quotation needs are known too, so look
+for them EVERYWHERE, not only on the item's own row:
+  SAG_ROD      M, L, TL   TL is BOTH ends: "75/75", "50/110"   qty optional
+  ANCHOR_BOLT  M, L, TL   TL is ONE value: 100                 qty optional
+  STUD         M, L                                            qty optional
+A diameter written once in a heading, a thread stated once beside it and a list
+of lengths underneath describe ONE specification: put that M and that TL on
+EVERY item that does not state its own. A value written on a row overrides the
+shared one for THAT row only, and the shared value still applies to the rows
+after it.
+  MS SAG ROD ZP / M12 / TL 100/100 / 1000 - 5pcs / 750 x TL75/75 - 8pcs
+    -> {"M":"M12","L":1000,"W":null,"TL":"100/100","qty":5,"Bmid":null}
+       {"M":"M12","L":750,"W":null,"TL":"75/75","qty":8,"Bmid":null}
+A SAG_ROD's single shared thread means both ends: "M12 TL 75" over a list is
+"75/75". An ANCHOR_BOLT has ONE thread: its TL 100 is 100 and never "100/100".
+Two thread values stated separately — "thread 60" and "thread 70", "TL1 60" and
+"TL2 70", "top thread 250" and "bottom thread 100" — are the TWO ENDS of one
+rod, in the order written: "60/70", "250/100". Never collapse them to "60/60",
+and never assume they are the same end written twice.
+None of this fills anything in. If M or TL is genuinely absent from the whole
+document, return null for it and let the review screen ask.
+
 HANDWRITTEN SHORTHAND LISTS
 Rows shaped "<number> - <number>pcs" or "<number> - <number> nos" in what is
 plainly a fastener length/quantity list are LENGTH first, QUANTITY second:
