@@ -7647,20 +7647,49 @@ const WQA_PRODUCTS=[
    dims:['size','l','threadLen'], threadEnds:1, needSizeType:true},
   {type:'sagrod', token:'SAG_ROD', label:'Sag Rod', aliases:['sag rod','sagrod','sag-rod'],
    dims:['size','length','threadLen'], threadEnds:2, needSizeType:true},
+  /* std  a STANDARD number that names the product on its own. DIN 937 is a
+          stud/stud-bolt standard, so a drawing headed "DIN 937" has said which
+          product it is without writing the word. It says nothing about the
+          MATERIAL — that still has to be stated. The DIN wording is required:
+          a bare 937 is a quantity or a job number, never a product. */
   {type:'stud', token:'STUD', label:'Stud', aliases:['stud bolt','studbolt','stud'],
+   std:/\bdin[\s.\-]*937\b/i,
    dims:['size','l'], threadEnds:0, needSizeType:false},
 ];
+/* Every standard number we recognise, for stripping off a line before its
+   numbers are read: "DIN 937" is not a 937 mm rod. */
+const WQA_STD_RE=new RegExp(WQA_PRODUCTS.filter(p=>p.std).map(p=>p.std.source).join('|'),'gi');
 
 /* A document may legitimately not say which product it is (a handwritten list
    of lengths and counts). The review still opens so the user can see the rows
    and choose; this stand-in keeps every renderer safe until they do. */
 const WQA_NO_PRODUCT={type:'',token:'',label:'—',dims:['size','length'],threadEnds:0,needSizeType:false};
 
+/* A grade number and a measurement can be the same number. What tells them
+   apart is the word in front of it, so this is tested against the text
+   IMMEDIATELY BEFORE a candidate match — "length 10.9" is a length, "grade
+   10.9" is a grade, and both can appear in the same message. A vetoed
+   occurrence is skipped; the rule itself keeps looking. */
+const WQA_MEASURED_RE=/\b(?:qty|quantity|length|width|height|weight|thick(?:ness)?|dia|diameter|size|overall)\s*[:=]?\s*$/i;
+
 /* Material aliases -> the system's EXISTING internal values. Order matters:
    the more specific spellings must be tested before the bare "4140". */
 const WQA_MATERIALS=[
-  {re:/\b4140\s*(qt)?\s*\+?\s*harden\b|\bg\s*10\.?9\b/i, value:'4140_HARDEN_G10_9'},
+  /* Written as our own material name, so it is that material and not a grade
+     reading of it: "4140 QT + HARDEN = G10.9" selects exactly that. */
+  {re:/\b4140\s*(qt)?\s*\+?\s*harden\b/i,                value:'4140_HARDEN_G10_9'},
   {re:/\bs45c\s*\+?\s*harden\b/i,                        value:'S45C_HARDEN_G8_8'},
+  /* 10.9 is the other established strength mapping, and it is 4340 QT — never
+     a harder 4140. It has to be tested BEFORE the 8.8/HT family below, because
+     "HT 10.9" contains the generic HT and must not be answered by it: the more
+     specific grade always wins. 10.9 is uncommon and customers state it, often
+     as "gr10.9 or near material" — the "or near material" says they would
+     accept an equivalent, it does not name a second material, so it maps to
+     4340 QT exactly as a bare grade 10.9 does.
+     notAfter keeps a grade apart from a measurement that happens to read the
+     same: "qty 10.9" and "length 10.9" are numbers, not materials. */
+  {re:/\bgrade[\s-]*10\.?9\b|\bgr\.?[\s-]*10\.?9\b|\bg[\s-]*10\.?9\b|\bht[\s-]*10\.?9\b|\bhigh[\s-]*tensile[\s-]*10\.?9\b|\b10\.9\b(?!\s*(?:mm|cm|kg|m\b))/i,
+   notAfter:WQA_MEASURED_RE, value:'4340', defaulted:true, from:'G10.9'},
   /* G8.8, HT and High Tensile are all STRENGTH descriptions, not materials.
      Several materials can meet them, and the established business answer for
      all of them is 4140 QT — a defined mapping, not a guess, so the row is not
@@ -7674,8 +7703,8 @@ const WQA_MATERIALS=[
      the wording shown back to the customer: "GRADE 8.8 → 4140 QT", not
      "8.8 → 4140 QT". HT stays two letters and is matched only as a whole token,
      so "height 200" and "length 1000" can never reach it. */
-  {re:/\bgrade[\s-]*8\.?8\b|\bgr\.?[\s-]*8\.?8\b|\bg[\s-]*8\.?8\b|\bht[\s-]*8\.?8\b|\bhigh[\s-]*tensile[\s-]*8\.?8\b|\bhigh[\s-]*tensile(?:\s*steel)?\b|\bht\b(?:\s*(?:material|rod|steel))?|\b8\.8\b(?!\s*mm)/i,
-   value:'4140', defaulted:true, from:'G8.8'},
+  {re:/\bgrade[\s-]*8\.?8\b|\bgr\.?[\s-]*8\.?8\b|\bg[\s-]*8\.?8\b|\bht[\s-]*8\.?8\b|\bhigh[\s-]*tensile[\s-]*8\.?8\b|\bhigh[\s-]*tensile(?:\s*steel)?\b|\bht\b(?:\s*(?:material|rod|steel|stud|bolt))?|\b8\.8\b(?!\s*mm)/i,
+   notAfter:WQA_MEASURED_RE, value:'4140', defaulted:true, from:'G8.8'},
   {re:/\b4140\s*qt\b/i,                                   value:'4140'},
   {re:/\b4140\s*(plain|non[\s-]*qt|not[\s-]*qt)\b|\b(plain|non[\s-]*qt)\s*4140\b/i, value:'4140_PLAIN'},
   {re:/\b4140\b/i,                                        value:'4140', defaulted:true},
@@ -8164,6 +8193,14 @@ function wqaToggleAccOpen(i){ wqa.rows[i].accOpen=!wqa.rows[i].accOpen; wqaRende
    the product once, by name. */
 const WQA_MIXED='\u2014mixed\u2014';
 const WQA_ROW_SPEC=['material','finish','sizeType'];
+/* Stainless is quoted bare: PL, ZP and HDG are coatings for carbon steel and
+   we do not quote a coated SS304 or SS316. So their finish is N/A — a definite
+   answer, not a missing one — and it OUTRANKS whatever the group above them
+   said. That is what stops an HDG stated for rows 1-2 from reaching the
+   stainless rows underneath, wherever the finish came from. */
+const WQA_BARE_MATERIALS=['SS304','SS316'];
+function wqaNoFinish(material){ return WQA_BARE_MATERIALS.indexOf(String(material||''))>=0; }
+function wqaFinishFor(material,finish){ return wqaNoFinish(material) ? '' : String(finish||''); }
 /* What the header should show for a field: the shared value, or Mixed. */
 function wqaRowsCommonValue(k){
   const live=wqa.rows.filter(r=>!r.removed);
@@ -8384,7 +8421,10 @@ function wqaRowSpecLine(r){
   const bits=[];
   const m=wqaRowSpec(r,'material'); if(m) bits.push(materialLabel(m));
   else bits.push(dcT('needs').replace('{f}',dcT('fieldMaterial')));
-  const f=wqaRowSpec(r,'finish');   if(f) bits.push(f);
+  const f=wqaRowSpec(r,'finish');
+  /* N/A is the stainless answer and is worth printing: a blank would read as a
+     finish nobody has got round to yet. */
+  if(f) bits.push(f); else if(wqaNoFinish(m)) bits.push('N/A');
   return `<div class="wqa-row-spec">${escHtml(bits.join(' · '))}</div>`;
 }
 function wqaCompactCells(r){
@@ -8486,17 +8526,35 @@ function wqaDeferRender(kind){
 /* Layer 1 — whole-message scan for the fields that are stated once and apply to
    every row. Aliases resolve to the SAME value, so "MS UNDERSIZE SAG ROD (ZP)"
    and "m/s zp sag rod (undersize)" produce one consistent set, not a conflict. */
+/* The first occurrence of a material's wording that is NOT a measurement of the
+   same number. Skipping the occurrence rather than the rule matters: a message
+   can say "length 10.9mm" in one line and "grade 10.9" in another, and only the
+   second one is the material. */
+function wqaMatchMaterial(m,said){
+  if(!m.notAfter) return m.re.exec(said);
+  const re=new RegExp(m.re.source,'gi');
+  let x;
+  while((x=re.exec(said))!==null){
+    if(!m.notAfter.test(said.slice(0,x.index))) return x;
+    if(re.lastIndex<=x.index) re.lastIndex=x.index+1;
+  }
+  return null;
+}
 function wqaDetectCommon(text){
   const hay=' '+wqaNorm(text).toLowerCase()+' ';
   const out={product:null,material:'',materialDefaulted:false,finish:'',sizeType:''};
   for(const p of WQA_PRODUCTS){
-    if(p.aliases.some(a=>hay.includes(' '+a+' ')||hay.includes(' '+a+'s ')||hay.includes(a))){ out.product=p.type; break; }
+    /* A standard number counts as naming the product, exactly as its name does:
+       "DIN 937 M16 x 100" is a stud enquiry. */
+    if((p.std && p.std.test(hay)) ||
+       p.aliases.some(a=>hay.includes(' '+a+' ')||hay.includes(' '+a+'s ')||hay.includes(a))){
+      out.product=p.type; break; }
   }
   /* Matched against the text as WRITTEN, not the lower-cased copy, so the note
      can show the customer's own wording back to them: HT, High Tensile, G8.8. */
   const said=' '+wqaNorm(text)+' ';
   for(const m of WQA_MATERIALS){
-    const hit=m.re.exec(said);
+    const hit=wqaMatchMaterial(m,said);
     if(hit){ out.material=m.value; out.materialDefaulted=!!m.defaulted;
              out.materialDefaultedFrom=String(hit[0]).replace(/\s+/g,' ').trim()||m.from||'4140';
              break; }
@@ -8531,9 +8589,20 @@ function wqaIsNominal(n){ return DIA_FULLSIZE['M'+String(n).replace(/\.0$/,'')]!
 const WQA_END_COUNT_RE=/\b(?:1|2|one|two|both|single)\s*[\s-]*ends?\b/i;
 function wqaStripSpecWords(str){
   let out=' '+String(str)+' ';
-  WQA_MATERIALS.forEach(m=>{ out=out.replace(new RegExp(m.re.source,'gi'),' '); });
+  /* Same veto as the detector: a number that was MEASURED stays on the line as
+     a number. Removing it would delete a dimension the review can never ask
+     back, which is worse than any grade we might miss. */
+  WQA_MATERIALS.forEach(m=>{
+    const re=new RegExp(m.re.source,'gi');
+    out=out.replace(re,(w,...a)=>{
+      const at=a[a.length-2];
+      return (m.notAfter && m.notAfter.test(out.slice(0,at))) ? w : ' ';
+    });
+  });
   WQA_FINISHES.forEach(f=>{ out=out.replace(new RegExp(f.re.source,'gi'),' '); });
   out=out.replace(new RegExp(WQA_END_COUNT_RE.source,'gi'),' ');
+  /* "DIN 937" is a standard, not a 937 mm length. */
+  WQA_STD_RE.lastIndex=0; out=out.replace(WQA_STD_RE,' ');
   return out.replace(/\s+/g,' ').trim();   // keep the line anchored for "4 - M12 …"
 }
 
@@ -9365,6 +9434,10 @@ function wqaNormalizeExtraction(d, opts){
       finish:   (own&&own.finish)   || common.finish   || '',
       sizeType: (own&&own.sizeType) || common.sizeType || '',
     };
+    /* Whatever the finish resolved to, stainless has none. Applied HERE, in the
+       normaliser every source runs through, so a pasted message, a photo and a
+       PDF all agree. */
+    spec.finish=wqaFinishFor(spec.material,spec.finish);
     let tl=wqaSplitThread(it.TL);
     if(tl.a) inh.TL=it.TL;
     else if(opts.inheritGaps && inh.TL){ tl=wqaSplitThread(inh.TL); conf.threadLen=WQA_CONF.INHERITED; }
@@ -9760,6 +9833,10 @@ function wqaRenderCommon(){
   const shownMat=wqaRowsCommonValue('material'), shownFin=wqaRowsCommonValue('finish'),
         shownSt=wqaRowsCommonValue('sizeType');
   const live=wqa.rows.filter(x=>!x.removed);
+  /* Every row stainless -> the finish selector says N/A and offers nothing
+     else. Mixed stays Mixed: an HDG row beside an N/A row genuinely differs. */
+  const allSS=live.length ? live.every(x=>wqaNoFinish(wqaRowSpec(x,'material')))
+                          : wqaNoFinish(c.material);
   const stNeeded=prod.needSizeType && live.some(x=>!wqaRowSpec(x,'sizeType')) && !wqaIsMixed('sizeType');
   /* Asked for only once the product is known, because the list of materials
      depends on it. Never guessed from the product, the finish or what this
@@ -9784,12 +9861,10 @@ function wqaRenderCommon(){
       <div class="field"><label>Material${matNeeded?' <span class="wqa-req">*</span>':''}</label>
         <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)">${wqaMaterialOptions(shownMat)}</select></div>
       <div class="field"><label>Finish</label>
-        <select id="wqaFinish" onchange="wqaSetCommon('finish',this.value)">
+        <select id="wqaFinish" onchange="wqaSetCommon('finish',this.value)"${allSS?' disabled':''}>
           ${shownFin===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownFin===''?' selected':''}>N/A</option>
-          <option value="PL"${shownFin==='PL'?' selected':''}>PL</option>
-          <option value="ZP"${shownFin==='ZP'?' selected':''}>ZP</option>
-          <option value="HDG"${shownFin==='HDG'?' selected':''}>HDG</option>
+          ${allSS?'':['PL','ZP','HDG'].map(v=>`<option value="${v}"${shownFin===v?' selected':''}>${v}</option>`).join('')}
         </select></div>
       <div class="field"><label>Size Type${prod.needSizeType?' <span class="wqa-req">*</span>':''}</label>
         <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)">
@@ -9835,13 +9910,19 @@ function wqaSetCommon(k,v){
   wqa.common[k]=v;
   if(k==='material') wqa.common.materialDefaulted=false;
   if(WQA_ROW_SPEC.indexOf(k)>=0) wqaApplyTargets().forEach(r=>{
-    r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom=''; }
+    /* A finish cannot be applied to a stainless row, and choosing stainless
+       clears the finish that row was carrying. */
+    if(k==='finish' && wqaNoFinish(wqaRowSpec(r,'material'))) return;
+    r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
+                                r.finish=wqaFinishFor(v,r.finish); }
   });
   wqaRenderCommon(); wqaRecomputeAll(); }
 /* One row's own specification, edited from its expanded card. */
 function wqaEditRowSpec(i,k,v){
   const r=wqa.rows[i]; if(!r) return;
-  r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom=''; }
+  if(k==='finish' && wqaNoFinish(wqaRowSpec(r,'material'))) return;
+  r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
+                              r.finish=wqaFinishFor(v,r.finish); }
   wqaRenderCommon();                       // the header summary may have moved
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250);
 }
@@ -10003,8 +10084,9 @@ function wqaRenderRows(force){
         <div class="field"><label data-i18n="fieldMaterial">Material</label>
           <select onchange="wqaEditRowSpec(${i},'material',this.value)">${wqaMaterialOptions(wqaRowSpec(r,'material'))}</select></div>
         <div class="field"><label>Finish</label>
-          <select onchange="wqaEditRowSpec(${i},'finish',this.value)">
-            ${['','PL','ZP','HDG'].map(v=>`<option value="${v}"${wqaRowSpec(r,'finish')===v?' selected':''}>${v||'N/A'}</option>`).join('')}
+          <select onchange="wqaEditRowSpec(${i},'finish',this.value)"${wqaNoFinish(wqaRowSpec(r,'material'))?' disabled':''}>
+            ${(wqaNoFinish(wqaRowSpec(r,'material'))?['']:['','PL','ZP','HDG'])
+               .map(v=>`<option value="${v}"${wqaRowSpec(r,'finish')===v?' selected':''}>${v||'N/A'}</option>`).join('')}
           </select></div>
         ${prod.needSizeType?`<div class="field"><label data-i18n="fieldSizeType">Size Type</label>
           <select onchange="wqaEditRowSpec(${i},'sizeType',this.value)">

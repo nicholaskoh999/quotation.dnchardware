@@ -240,6 +240,10 @@ into product. Resolve in this order: 1 geometry, 2 dimensional structure,
     wording
   - diameter + length only, no thread -> STUD
   - anything else -> OTHER
+A STANDARD number names the product where geometry is absent: DIN 937, DIN937
+or DIN-937 is a stud/stud-bolt standard -> STUD. The DIN wording must be there;
+a bare "937" is a quantity or a job number and says nothing. A standard number
+never implies a material.
 Geometry has to be VISIBLE to be used. A bare list of lengths and quantities
 shows no geometry at all, so none of the above fires — see DO NOT FILL IN WHAT
 IS NOT THERE.
@@ -264,8 +268,12 @@ actually given outrank ends described: "thread one side 150 / thread other side
 
 material / finish / sizeType — copy the raw wording exactly, do not translate
 (materials: MS, S45C, 4140, 4140 QT, G8.8, GR8.8, Grade 8.8, HT, High Tensile,
-Y BAR, SS304, SUS304, S/S 316; finishes: PL, Plain, Black, ZP, HDG; size types:
-Fullsize, Undersize, F/S, U/S). Never infer a material or finish that is not
+HT10.9, Grade 10.9, GR10.9, 10.9, Y BAR, SS304, SUS304, S/S 316; finishes: PL,
+Plain, Black, ZP, HDG; size types: Fullsize, Undersize, F/S, U/S). A grade is
+only a grade when it is written as one: "length 10.9mm" and "qty 10.9" are
+measurements, not materials. "gr10.9 or near material" is still grade 10.9 —
+the "or near material" says the customer would accept an equivalent, it does
+not name a second material, so copy the grade and nothing else. Never infer a material or finish that is not
 written: no wording means null. Stainless needs its GRADE — "stainless" or "SS"
 with no 304/316 beside it is material = "stainless steel" and nothing more; do
 not choose a grade.
