@@ -48,6 +48,10 @@ const AI_MAX_ITEMS       = 100;
 /* Pasted WhatsApp text. Generous for a long customer list, small enough that a
    pasted document can never turn into a large bill. */
 const AI_MAX_TEXT_CHARS  = 6000;
+// One line typed beside an upload ("H 530, ID 100"). Short by design: it is a
+// correction, not a second document, and the override it describes is applied
+// by the caller afterwards whatever the model does with it.
+const AI_MAX_NOTE_CHARS  = 300;
 
 const AI_ALLOWED_MIME = [
     'image/jpeg' => 'image',
@@ -500,8 +504,23 @@ TXT;
 
 // ── OpenAI request ───────────────────────────────────────────────────────────
 
+/**
+ * Optional operator note sent alongside an upload. Trimmed, length-capped and
+ * stripped of control characters; anything else is a legitimate part of what a
+ * person may write about a drawing. An unusable note is simply dropped — it can
+ * never fail the analysis, because the deterministic override in the browser
+ * does not depend on the model having seen it.
+ */
+function ai_clean_note($raw) {
+    if (!is_string($raw)) return '';
+    $t = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', ' ', $raw);
+    $t = trim(preg_replace('/\s+/u', ' ', $t));
+    if ($t === '') return '';
+    return mb_substr($t, 0, AI_MAX_NOTE_CHARS);
+}
+
 /** Build the Responses API payload for one validated upload. */
-function ai_build_payload($upload) {
+function ai_build_payload($upload, $note = '') {
     $dataUrl = 'data:' . $upload['mime'] . ';base64,' . base64_encode($upload['bytes']);
     if ($upload['kind'] === 'pdf') {
         $filePart = ['type'=>'input_file','filename'=>$upload['name'],'file_data'=>$dataUrl];
@@ -509,14 +528,23 @@ function ai_build_payload($upload) {
         // high detail: engineering text on screenshots and photos is small
         $filePart = ['type'=>'input_image','image_url'=>$dataUrl,'detail'=>'high'];
     }
+    // The person who uploaded the drawing is looking at it. Where their note
+    // gives a value, that value is the answer — said here so the model reads the
+    // rest of the drawing in the same terms, and enforced independently by the
+    // caller so a model that ignores this line changes nothing.
+    $lead = 'Extract the quotation specification from this document.';
+    if ($note !== '') {
+        $lead .= "\n\nThe person who sent this document added the following note about it. "
+               . "Where the note gives a value for a field, that value is correct and "
+               . "replaces what the document shows for that field:\n" . $note;
+    }
     return [
         'model' => AI_EXTRACT_MODEL_PRIMARY,
         'instructions' => ai_instructions(),
         'input' => [[
             'role' => 'user',
             'content' => [
-                ['type'=>'input_text',
-                 'text'=>'Extract the quotation specification from this document.'],
+                ['type'=>'input_text', 'text'=>$lead],
                 $filePart,
             ],
         ]],
@@ -723,7 +751,7 @@ if (!defined('AI_EXTRACT_TEST')) {
 
     $payload = $upload['kind'] === 'text'
         ? ai_build_text_payload($upload['text'])
-        : ai_build_payload($upload);
+        : ai_build_payload($upload, ai_clean_note($_POST['note'] ?? ''));
     unset($upload['bytes'], $upload['text']);    // free the raw input from memory
 
     list($code, $body, $curlErr) = ai_call_openai($payload);

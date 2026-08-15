@@ -2058,6 +2058,21 @@ input,select,textarea{
   .wqa-foot-count{flex:1 1 100%;margin-bottom:6px}
 }
 
+/* Additional info for analysis — deliberately light: one label, one line, one
+   read-back. The upload card must not start looking like a form. */
+.wqa-note{margin-top:11px}
+.wqa-note-lbl{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  font-size:12px;font-weight:800;color:var(--text-2);margin-bottom:5px}
+.wqa-note-opt{font-size:11px;font-weight:650;color:var(--text-muted)}
+.wqa-note-in{
+  width:100%;border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--surface);
+  padding:10px 11px;font-size:14px;font-family:inherit;color:var(--text);min-height:var(--control-h);
+}
+.wqa-note-in:focus{outline:none;border-color:var(--border-focus);box-shadow:0 0 0 3px var(--accent-light)}
+.wqa-note-read{margin-top:6px;font-size:11.5px;font-weight:700;color:var(--accent-2);
+  overflow-wrap:anywhere}
+@media (hover:none) and (pointer:coarse){ .wqa-note-in{min-height:46px} }
+
 /* Quick Add — AI photo / PDF upload (step 1) */
 .wqa-method{display:flex;border:1.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden;margin-bottom:11px}
 .wqa-method-btn{flex:1;border:0;background:var(--surface2);font-family:inherit;font-size:12.5px;font-weight:800;
@@ -3437,6 +3452,19 @@ input,select,textarea{
             <span class="wqa-pdf-badge">PDF</span><span id="wqaAiPdfName"></span>
           </div>
         </div>
+        <!-- One line of free text, analysed WITH the file. It is not a custom
+             dimension and never becomes one: a value it names for a field the
+             product already owns goes into that field. -->
+        <div class="wqa-note">
+          <label class="wqa-note-lbl" for="wqaAiNote">
+            <span data-i18n="wqaNoteLabel">Additional info for analysis</span>
+            <span class="wqa-note-opt" data-i18n="wqaNoteOpt">Optional / 可选</span>
+          </label>
+          <input type="text" id="wqaAiNote" class="wqa-note-in" maxlength="200" autocomplete="off"
+                 spellcheck="false" data-i18n-ph="wqaNotePh" placeholder="H 530, ID 100, TL 75, W 80"
+                 oninput="wqaNoteInput()">
+          <div class="wqa-note-read" id="wqaAiNoteRead" hidden></div>
+        </div>
         <div class="wqa-ai-status" id="wqaAiStatus" hidden>
           <span class="wqa-spinner"></span>
           <span><span data-i18n="wqaAnalyzing">Analyzing document…</span><br><small data-i18n="wqaExtracting">Extracting product, dimensions and quantities…</small></span>
@@ -3919,6 +3947,11 @@ const I18N={
     wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia',
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
+    wqaNoteLabel:'Additional info for analysis', wqaNoteOpt:'Optional / 可选',
+    wqaNotePh:'H 530, ID 100, TL 75, W 80',
+    wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
+    wqaNoteUsed:'Your additional info was applied to {n} item(s) — it overrides the document.',
+    wqaNoteUnused:'Part of your additional info was not applied: it names no product and the document has more than one item. Write the product first, e.g. "L BOLT TL 100".',
     wqaConflictBadge:'Conflicting product',
     wqaConflictWhy:'Conflicting product: "{p}" wording vs {g} geometry — choose the product',
     wqaSpecCol:'Spec',
@@ -4116,6 +4149,11 @@ const I18N={
     wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径',
     wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
+    wqaNoteLabel:'补充分析资料', wqaNoteOpt:'选填 / Optional',
+    wqaNotePh:'H 530, ID 100, TL 75, W 80',
+    wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
+    wqaNoteUsed:'补充资料已套用到 {n} 个项目 — 以补充资料为准。',
+    wqaNoteUnused:'部分补充资料未被套用：未指明产品，而文件有多个项目。请先写产品，例如「L BOLT TL 100」。',
     wqaConflictBadge:'产品矛盾',
     wqaConflictWhy:'产品矛盾：文字写「{p}」，但图形显示{g} — 请选择产品',
     wqaSpecCol:'规格',
@@ -8941,6 +8979,8 @@ function wqaRowBlocked(r){ return wqaRowMissing(r).length>0 || !!r.productConfli
 function wqaRowBadges(r){
   const out=[];
   if(r.productConflict) out.push({t:dcT('wqaConflictBadge'),k:'req'});
+  if(r.noteApplied&&r.noteApplied.length)
+    out.push({t:dcT('wqaNoteBadge')+' '+[...new Set(r.noteApplied)].join(' · '),k:'info'});
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
      either language instead of a translated word glued to an English one. */
   wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',
@@ -9663,6 +9703,154 @@ function wqaCtxAddThread(ctx,v,productType){
     ctx.threadLen2=v; ctx.tlCount=2;
   }
 }
+/* ── Additional info for analysis ───────────────────────────────────────────
+   A line of free text typed by the person who is looking at the drawing. It is
+   sent to the model as context AND applied over the model's answer afterwards,
+   here, in our own code: a value a person typed deliberately outranks a value
+   read off a photograph, and that decision is not the model's to make.
+
+   Only labels a PRODUCT ACTUALLY OWNS are filled. OD, A, B, C, T, P and R are
+   recognised so they cannot be misread as one of ours — and then left alone.
+   This feature never invents a custom dimension: customDimensions is a manual
+   annotation layer with its own editor, and turning notes into annotations
+   would put a J Bolt's H somewhere no calculator can see it. */
+const WQA_NOTE_FIELDS={H:'h', ID:'id', S:'s', W:'w', L:'length', TL:'threadLen'};
+const WQA_NOTE_OTHER=['OD','A','B','C','T','P','R'];
+/* "H should be 530", "ID use 100", "TL change to 75" — the few words a person
+   puts between a label and its value. Anything else breaks the match, which is
+   the conservative half of the bargain. */
+const WQA_NOTE_RE=(function(){
+  const labels=Object.keys(WQA_NOTE_FIELDS).concat(WQA_NOTE_OTHER)
+                 .sort((a,b)=>b.length-a.length).join('|');
+  /* Plain space first — "H 530" is by far the common form — then the few words
+     a person puts between a label and its value. */
+  const fill='\\s*(?:(?:should\\s+be|shall\\s+be|must\\s+be|change(?:d)?\\s+to|set\\s+to|'
+            +'use|using|is|are|to|be|as|=|:|-)\\s*)*';
+  return new RegExp('\\b('+labels+')'+fill+'(\\d+(?:\\.\\d+)?)'
+                    +'(?:\\s*/\\s*(\\d+(?:\\.\\d+)?))?\\s*(?:mm)?\\b','gi');
+})();
+/* "ALL TL 75" — said of every row, and the only way unscoped values reach more
+   than one row. */
+const WQA_NOTE_ALL_RE=/\b(?:all|every|each)(?:\s+(?:rows?|items?|sizes?|of\s+them))?\b/i;
+
+/* One segment's facts. Material, finish and size type are read by the SAME
+   function every document goes through, so the note has no second vocabulary. */
+function wqaNoteSegFacts(t){
+  const s=String(t||''), f={};
+  const re=new RegExp(WQA_NOTE_RE.source,'gi');
+  let m;
+  while((m=re.exec(s))!==null){
+    const field=WQA_NOTE_FIELDS[m[1].toUpperCase()];
+    if(!field) continue;                       // recognised, and not ours to fill
+    f[field]=String(Number(m[2]));
+    if(field==='threadLen' && m[3]!=null) f.threadLen2=String(Number(m[3]));
+  }
+  let k=s.match(/\bm\s*(\d+(?:\.\d+)?)\b/i);
+  if(k) f.size='M'+k[1].replace(/\.0$/,'');
+  k=s.match(/\bqty\s*[:=]?\s*(\d+)\b/i) ||
+    s.match(/\b(\d+)\s*(?:pcs|pc|nos|no|sets|set|units|unit)\b/i);
+  if(k) f.qty=String(parseInt(k[1],10));
+  const d=wqaDetectCommon(s);
+  if(d.material) f.material=d.material;
+  if(d.finish)   f.finish=d.finish;
+  if(d.sizeType) f.sizeType=d.sizeType;
+  return f;
+}
+/* The note, cut at the products it names. "L BOLT TL 100" is about the L Bolt
+   and must not reach the Anchor Bolt in the same drawing. */
+function wqaNoteFacts(text){
+  const s=String(text||'').trim();
+  if(!s) return [];
+  const marks=[];
+  WQA_PRODUCTS.forEach(p=>(p.aliases||[]).forEach(a=>{
+    const re=new RegExp('\\b'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+'\\b','gi');
+    let m; while((m=re.exec(s))!==null) marks.push({at:m.index, len:m[0].length, type:p.type});
+  }));
+  marks.sort((a,b)=>a.at-b.at || b.len-a.len);
+  const cuts=[]; let end=-1;
+  marks.forEach(m=>{ if(m.at<end) return; cuts.push(m); end=m.at+m.len; });
+  const segs=[];
+  const head=cuts.length ? s.slice(0,cuts[0].at) : s;
+  if(head.trim()) segs.push({scope:WQA_NOTE_ALL_RE.test(head)?'all':null, text:head});
+  cuts.forEach((c,i)=>{
+    const to=(i+1<cuts.length) ? cuts[i+1].at : s.length;
+    segs.push({scope:c.type, text:s.slice(c.at+c.len,to)});
+  });
+  return segs.map(g=>({scope:g.scope, facts:wqaNoteSegFacts(g.text)}))
+             .filter(g=>Object.keys(g.facts).length>0);
+}
+/* Everything the note says, for the read-back under the input. */
+function wqaNoteSummary(text){
+  const out=[];
+  wqaNoteFacts(text).forEach(g=>{
+    const p=g.scope&&g.scope!=='all' ? (wqaProductByType(g.scope)||{}).label : '';
+    Object.keys(g.facts).forEach(k=>{
+      if(k==='threadLen2') return;
+      const lbl = k==='threadLen' ? 'TL'
+                : k==='size' ? 'Size' : k==='qty' ? 'Qty'
+                : k==='material' ? 'Material' : k==='finish' ? 'Finish'
+                : k==='sizeType' ? 'Size Type' : (WQA_DIM_LABEL[k]||k);
+      const val = k==='threadLen' && g.facts.threadLen2
+                ? g.facts.threadLen+'/'+g.facts.threadLen2 : g.facts[k];
+      out.push((p?p+' ':'')+(g.scope==='all'?'all ':'')+lbl+' '+val);
+    });
+  });
+  return out;
+}
+/* Apply one segment's facts to one row. A field is only written where the row's
+   own product HAS it — a Stud gains no thread, a Sag Rod gains no ID — and the
+   two hard rules still hold over anything typed here. */
+function wqaApplyNoteToRow(r,f){
+  const t=wqaRowProduct(r);
+  const prod=wqaProductByType(t)||WQA_NO_PRODUCT;
+  const dims=prod.dims||[];
+  const done=[];
+  const put=(k,v,label)=>{ r[k]=String(v); r.issues=(r.issues||[]).filter(x=>x!==k);
+                           done.push(label); };
+  ['h','id','s','w','length'].forEach(k=>{
+    if(f[k]!=null && dims.indexOf(k)>=0) put(k,f[k],wqaDimLabel(t,k));
+  });
+  if(f.threadLen!=null && dims.indexOf('threadLen')>=0){
+    put('threadLen',f.threadLen,wqaDimLabel(t,'threadLen'));
+    r.threadLen2 = f.threadLen2!=null ? String(f.threadLen2)
+                 : (prod.threadEnds===2 ? String(f.threadLen) : '');
+  }
+  if(f.size!=null){ put('size',wqaNormM(f.size)||f.size,'Size'); }
+  if(f.qty!=null)  put('qty',f.qty,'Qty');
+  if(f.material!=null){
+    r.material=f.material; r.matDefaulted=false; r.matFrom='';
+    r.finish=wqaFinishFor(r.material,r.finish);
+    done.push('Material');
+  }
+  if(f.finish!=null && dcMaterialHasFinish(r.material)){ r.finish=f.finish; done.push('Finish'); }
+  if(f.sizeType!=null && dcProductHasSizeType(t)){
+    r.sizeType=f.sizeType; r.stDefaulted=false; done.push('Size Type');
+  }
+  if(!done.length) return 0;
+  r.conf=r.conf||{};
+  ['size','length','qty','threadLen'].forEach(k=>{ if(f[k]!=null) r.conf[k]=WQA_CONF.DETECTED; });
+  r.noteApplied=(r.noteApplied||[]).concat(done);
+  return done.length;
+}
+/* The merge itself. Scoped facts go to the rows of that product; "all" goes to
+   every row; unscoped facts go to the single row when there IS a single row,
+   and nowhere at all when there are several — spraying a value across a mixed
+   drawing is exactly the guess this system does not make. */
+function wqaApplyNoteFacts(rows,text){
+  const groups=wqaNoteFacts(text);
+  const live=(rows||[]).filter(r=>!r.removed);
+  const out={facts:groups.length, applied:0, skipped:[]};
+  groups.forEach(g=>{
+    let targets;
+    if(g.scope==='all')      targets=live;
+    else if(g.scope)         targets=live.filter(r=>wqaRowProduct(r)===g.scope);
+    else                     targets=(live.length===1?live:[]);
+    if(!targets.length){ out.skipped.push(g); return; }
+    targets.forEach(r=>{ out.applied+=wqaApplyNoteToRow(r,g.facts)?1:0; });
+  });
+  return out;
+}
+
 /* ── How many ends are threaded ─────────────────────────────────────────────
    Evidence, not a product name. A customer calls the same straight rod a "sag
    rod", an "anchor bolt" or a "bolt" interchangeably, but they are precise
@@ -10320,6 +10508,9 @@ function wqaRejectFile(msg){
    the same client rules as before; the server re-validates from content and
    remains the authority. */
 function wqaAcceptFile(f){
+  /* A note describes the drawing it was typed against. Swapping the file makes
+     it a note about something else, so it goes with the file it belonged to. */
+  if(wqa.aiFile) wqaClearNote();
   wqaClearAiFile(false);              // revokes the previous object URL
   wqaMsg('wqaAiMsg','',false);
   if(!f){ wqaUpdateAiPane(); return; }
@@ -10338,6 +10529,22 @@ function wqaAcceptFile(f){
 }
 function wqaFileChosen(input){
   wqaAcceptFile(input.files && input.files[0]);
+}
+/* The note belongs to THIS analysis: it describes the file on screen. */
+function wqaNoteInput(){
+  const e=el('wqaAiNote');
+  wqa.aiNote = e ? String(e.value||'') : '';
+  const read=el('wqaAiNoteRead');
+  if(read){
+    const bits=wqaNoteSummary(wqa.aiNote);
+    read.hidden=!bits.length;
+    read.textContent=bits.length ? dcT('wqaNoteRead')+' '+bits.join(' · ') : '';
+  }
+}
+function wqaClearNote(){
+  wqa.aiNote='';
+  if(el('wqaAiNote'))     el('wqaAiNote').value='';
+  if(el('wqaAiNoteRead')){ el('wqaAiNoteRead').hidden=true; el('wqaAiNoteRead').textContent=''; }
 }
 function wqaFmtBytes(n){ return n>=1048576 ? (n/1048576).toFixed(1)+' MB' : Math.max(1,Math.round(n/1024))+' KB'; }
 function wqaUpdateAiPane(){
@@ -10374,6 +10581,12 @@ async function wqaAnalyze(){
   wqaMsg('wqaAiMsg','',false);
   try{
     const fd=new FormData(); fd.append('file', wqa.aiFile, wqa.aiFile.name);
+    /* Supplemental context for the model — it may genuinely help it read the
+       drawing. It is NOT how the override is enforced: that happens in our own
+       code, after the answer comes back. Sent only when there is one, so a
+       blank note leaves the request byte-identical to before. */
+    const note=String(wqa.aiNote||'').trim();
+    if(note) fd.append('note', note);
     const res=await fetch('ai_extract.php',{method:'POST',body:fd});
     let j=null; try{ j=await res.json(); }catch(e){}
     if(token!==wqa._aiReq) return;                     // superseded while in flight
@@ -10661,6 +10874,23 @@ async function wqaAiApply(d, msgTarget){
   wqa.aiWarnings = d.note
     ? ['Document mentions: '+d.note+' — accessories are never added automatically. Add them yourself if this quotation includes them.']
     : [];
+  /* ── Manual wins ────────────────────────────────────────────────────────
+     Deterministic, and deliberately AFTER the model has answered: the person
+     typing "H 530" has looked at the drawing and decided. No confidence is
+     compared and the model is not asked to arbitrate — a field the note names
+     is simply the note's value. A blank note does nothing at all. */
+  const noteText=String((msgTarget==='wqaParseMsg') ? '' : (wqa.aiNote||'')).trim();
+  if(noteText){
+    const res=wqaApplyNoteFacts(norm.rows,noteText);
+    /* The header says what the rows say — re-read after the merge, exactly as
+       the normaliser does at the end of its own pass. */
+    WQA_ROW_SPEC.forEach(k=>{ const v=wqaRowsCommonValueOf(norm.rows,k);
+                              if(v!==WQA_MIXED) norm.common[k]=v; });
+    if(res.applied) wqa.aiWarnings.push(dcT('wqaNoteUsed').replace('{n}',res.applied));
+    /* Typed and used by nothing: said once, plainly, rather than left to be
+       discovered when the quotation is already out. */
+    if(res.skipped.length) wqa.aiWarnings.push(dcT('wqaNoteUnused'));
+  }
   /* A pasted message that the parser handed to the AI is still the customer's
      own words, so it stays a TEXT source. An upload has no trustworthy
      transcript — a filename is not what the customer said — so it is a FILE
@@ -10794,6 +11024,7 @@ function wqaResetState(){
      error all belong to the session and go with it. */
   wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
+  wqaClearNote();
   /* A new Quick Add session is never AI-assisted until it earns it again. */
   wqa.aiAssisted=false; wqa.aiRaw='';
   if(el('wqaAiBadge')) el('wqaAiBadge').hidden=true;
