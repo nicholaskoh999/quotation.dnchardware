@@ -1,11 +1,11 @@
 QUOTATION.DNC — full audit and repair
 
 Baseline commit   : b5493089057277c6f7742931da26bc6f35553abd
-Code commit       : 2e2bbd94cd793bc01ad9c09af8f5bde258e79b88
+Code commit       : 744ad4084167bf3e0638535779b798b5023c0030
 Branch            : claude/quotation-dnc-audit-repair-ashi82
 Deployment status : NOT DEPLOYED
 
-DEPLOY THIS COMMIT: 2e2bbd94cd793bc01ad9c09af8f5bde258e79b88
+DEPLOY THIS COMMIT: 744ad4084167bf3e0638535779b798b5023c0030
 
 cPanel -> Git Version Control -> Manage:
   1. Update from Remote
@@ -20,7 +20,7 @@ NOT deployed (absent from the allowlist): tests/, audit-out/
 Untouched on the server: ai_config.php, db.php, error_log, php.ini
 
 --- code commit ---
-2e2bbd94cd793bc01ad9c09af8f5bde258e79b88
+744ad4084167bf3e0638535779b798b5023c0030
 Claude <noreply@anthropic.com>
 Sat Aug 15 19:57:10 2026 +0000
 

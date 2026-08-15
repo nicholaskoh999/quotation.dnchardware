@@ -13,7 +13,7 @@ reload → customer output.
 |---|---|
 | Starting commit | `b5493089057277c6f7742931da26bc6f35553abd` |
 | Branch | `claude/quotation-dnc-audit-repair-ashi82` |
-| Ending commit | see `commit-info.txt` in this package |
+| Ending commit | `744ad4084167bf3e0638535779b798b5023c0030` |
 | Files changed | `index.php`, `ai_extract.php`, `companies.php`, plus a new `tests/` tree |
 | Deployment status | **NOT DEPLOYED** — see section H |
 
@@ -444,7 +444,7 @@ Deployment is manual: cPanel → Git Version Control → *Update from Remote*, t
 *Deploy HEAD Commit*. Nothing in this environment can press those buttons, and
 no post-receive hook exists.
 
-**Deploy the commit recorded in `commit-info.txt`** on branch
+**Deploy `744ad4084167bf3e0638535779b798b5023c0030`** on branch
 `claude/quotation-dnc-audit-repair-ashi82`.
 
 The `.cpanel.yml` allowlist copies only `index.php api.php companies.php
