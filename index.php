@@ -397,10 +397,8 @@ input,select,textarea{font-family:inherit}
 /* Custom Dimensions — a manual annotation layer, never a calculator input.
    Two text columns and a remove button; the block only grows once a dimension
    exists, so the normal entry form does not get visually heavier. */
-.cdim-box{
-  margin-top:16px; background:var(--surface2); border:1px solid var(--border);
-  border-radius:var(--r-sm); padding:11px 12px;
-}
+.cdim-box{margin-top:16px}
+.cdim-panel{margin-top:9px}
 .cdim-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
 .cdim-title{font-size:11px; font-weight:800; color:var(--text-2); text-transform:uppercase; letter-spacing:.04em}
 .cdim-add{
@@ -1682,7 +1680,12 @@ input,select,textarea{
 .wqa-common{padding:12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);margin-bottom:12px}
 .wqa-common-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .wqa-rows-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;
-  font-size:12.5px;font-weight:800;color:var(--text-2)}
+  font-size:12.5px;font-weight:800;color:var(--text-2);flex-wrap:wrap}
+/* On a phone the same bar can carry four things — the count, the AI badge, the
+   view toggle and Back to upload — and the toggle was the one being squeezed to
+   "Com". They wrap onto a second line instead; nothing is ever half-shown. */
+.wqa-rows-head>*{flex:0 0 auto}
+.wqa-rows-head>span:first-child{flex:1 1 auto;min-width:0}
 /* the table surface itself */
 .wqa-rows{display:flex;flex-direction:column;gap:0;min-width:0;
   border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);overflow:hidden}
@@ -1901,18 +1904,24 @@ input,select,textarea{
    ellipsis still works) and the text is centred inside them, which means a
    label and its values share one centre line no matter how long the word or
    how heavy the weight — nothing can drift. */
-/* THE column geometry lives in two custom properties and nowhere else. The
-   header and every row read the SAME variable, so they cannot diverge; a
-   breakpoint changes the variable, never the rule. */
+/* THE column geometry lives in custom properties and nowhere else. The header
+   and every row read the SAME variable, so they cannot diverge; a breakpoint
+   changes the variable, never the rule.
+
+   It is written in three parts because the middle one repeats: a Stud list has
+   one dimension column, a Sag Rod two, a J Bolt four. The breakpoint owns the
+   three WIDTHS; wqaSetListGrid composes --wqa-cols from them once the column
+   count is known, because CSS repeat() cannot take that count from a variable. */
 .wqa-modal{
-  --wqa-cols:    32px 62px 78px 56px 104px 86px minmax(0,1fr) 46px 26px;
-  --wqa-cols-th: 32px 62px 78px 86px 56px 104px 86px minmax(0,1fr) 46px 26px;
+  --wqa-lead: 32px 62px;                                    /* #  Size        */
+  --wqa-dim:  78px;                                         /* each dimension */
+  --wqa-dim-spec: minmax(150px,1.4fr);   /* a mixed list's one whole-spec cell */
+  --wqa-tail: 56px 104px 86px minmax(0,1fr) 46px 26px;      /* Qty W Price … */
+  --wqa-cols: var(--wqa-lead) var(--wqa-dim) var(--wqa-tail);
 }
 .wqa-list-head,.wqa-sum{
   display:grid;align-items:center;gap:0 8px;padding:0 12px;
   grid-template-columns:var(--wqa-cols)}
-.wqa-list-head.has-thread,.wqa-sum.has-thread{
-  grid-template-columns:var(--wqa-cols-th)}
 .wqa-list-head{position:sticky;top:0;z-index:3;background:var(--surface2);
   padding-top:7px;padding-bottom:7px;margin-bottom:0;
   border:1.5px solid var(--border);border-radius:var(--r-sm) var(--r-sm) 0 0}
@@ -1933,9 +1942,12 @@ input,select,textarea{
 .wqa-c{font-weight:600;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums;
   overflow:hidden;text-overflow:ellipsis;text-align:center}
 .wqa-c-size {font-weight:700;color:var(--text)}
-.wqa-c-len  {font-weight:800;color:var(--text)}      /* the two values staff scan */
+.wqa-c-dim  {font-weight:800;color:var(--text)}      /* the values staff scan */
 .wqa-c-qty  {font-weight:800;color:var(--text)}
-.wqa-c-th   {font-weight:600;color:var(--text-muted)}
+.wqa-c-threadLen{font-weight:600;color:var(--text-muted)}
+/* A mixed list carries a whole spec in one cell, so that one may be narrower
+   than its text and shows what it can. */
+.wqa-c-spec {font-weight:650;color:var(--text-2)}
 .wqa-c-w    {font-weight:600;color:var(--text-muted)}
 .wqa-c-price{font-weight:800;color:var(--accent-2)}
 /* The badge column is a pure slack column: min-width 0, hidden overflow and no
@@ -1943,6 +1955,12 @@ input,select,textarea{
    track or shift Price / Edit / ×. */
 .wqa-sum-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;
   min-width:0;max-width:100%;overflow:hidden}
+/* A J Bolt names four dimensions and an L Bolt three, and by then the slack
+   left over for the pills is a few characters wide — which shows a warning
+   badly enough to be worse than not showing it. On those lists the badges take
+   a line of their own under the row; the columns above them do not move. */
+.wqa-sum-wide{row-gap:3px}
+.wqa-sum-wide .wqa-sum-badges{grid-column:2/-3;justify-content:flex-start;overflow:visible}
 .wqa-pill{font-size:10px;font-weight:800;padding:2px 7px;border-radius:var(--pill-r);white-space:nowrap;border:1px solid transparent}
 /* Status pills are two words and stay on one line. A pill that carries a whole
    sentence — the product-conflict reason — wraps instead, because the badge
@@ -1987,27 +2005,25 @@ input,select,textarea{
    fall into the same ten tracks in DOM order that desktop uses, which is also
    why the header and the rows can never disagree. */
 @media (max-width:1023px){
-  /*             #     Size          Length        Thread        Qty
+  /*             #     Size          each dimension     Qty
                  Weight          Price         badges      Edit  ×          */
   .wqa-modal{
-    --wqa-cols:    22px minmax(40px,52px) minmax(48px,62px) minmax(30px,42px)
-                   minmax(80px,100px) minmax(56px,72px) minmax(0,1fr) 38px 20px;
-    --wqa-cols-th: 22px minmax(40px,52px) minmax(48px,62px) minmax(52px,70px)
-                   minmax(30px,42px) minmax(80px,100px) minmax(56px,72px)
-                   minmax(0,1fr) 38px 20px;
+    --wqa-lead: 22px minmax(40px,52px);
+    --wqa-dim:  minmax(46px,62px);
+    --wqa-dim-spec: minmax(96px,1.4fr);
+    --wqa-tail: minmax(30px,42px) minmax(80px,100px) minmax(56px,72px)
+                minmax(0,1fr) 38px 20px;
     width:min(96vw,900px);          /* wide enough for one line, never overflowing */
   }
-  .wqa-list-head,.wqa-sum,
-  .wqa-list-head.has-thread,.wqa-sum.has-thread{
+  .wqa-list-head,.wqa-sum{
     gap:0 6px;padding-left:8px;padding-right:8px;
     padding-top:5px;padding-bottom:5px;min-height:44px}
   .wqa-sum{font-size:12px}
   /* bare values — the header carries the meaning, and a variable-width label
      would break the alignment the columns exist to provide */
-  .wqa-sum .wqa-c-len::before,.wqa-sum .wqa-c-th::before,
+  .wqa-sum .wqa-c-dim::before,
   .wqa-sum .wqa-c-qty::before{content:none}
-  .wqa-list-head,.wqa-list-head.has-thread{
-    padding-top:6px;padding-bottom:6px;min-height:0}
+  .wqa-list-head{padding-top:6px;padding-bottom:6px;min-height:0}
   .wqa-list-head .wqa-h{line-height:1.35}
   /* the two empty header cells stay in the layout: hiding them would pull
      ACTIONS back a track and break alignment with the rows */
@@ -2015,31 +2031,27 @@ input,select,textarea{
 }
 /* ── Phone <600: tighter still ────────────────────────────────────────────── */
 @media (max-width:599px){
-  /* Fixed column widths, not auto — "340" and "1000" must still start at the
-     same x so the list reads as a column on a phone too. */
-  .wqa-modal{
-    --wqa-cols:    20px 44px 50px 58px minmax(0,1fr) 40px 22px;
-    --wqa-cols-th: var(--wqa-cols);
-    width:100%;
-  }
-  /* No column header on a phone — the stacked summary is its own shape, and an
-     unplaced header would spill into implicit grid tracks and sit off its
-     values. Weight and price carry their own units, so they still read. */
+  .wqa-modal{width:100%}
+  /* No column header on a phone — the summary is its own shape there. */
   .wqa-list-head{display:none}
   .wqa-rows.has-head{border-top:1.5px solid var(--border);border-radius:var(--r-sm)}
-  .wqa-list-head,.wqa-sum,
-  .wqa-list-head.has-thread,.wqa-sum.has-thread{
-    gap:3px 7px;font-size:12px;min-height:44px}
-  .wqa-sum .wqa-c-size {grid-column:2;grid-row:1}
-  .wqa-sum .wqa-c-len  {grid-column:3;grid-row:1}
-  .wqa-sum .wqa-c-th   {grid-column:4;grid-row:1}
-  .wqa-sum .wqa-c-qty  {grid-column:5;grid-row:1}
-  .wqa-sum .wqa-c-w    {grid-column:2/4;grid-row:2}
-  .wqa-sum .wqa-c-price{grid-column:4/6;grid-row:2}
-  .wqa-sum-act         {grid-column:6;grid-row:2;text-align:center}
-  .wqa-sum .wqa-row-del{grid-column:7;grid-row:2}
-  .wqa-sum-badges      {grid-column:2/8;grid-row:3}
-  .wqa-sum .wqa-c-len::before,.wqa-sum .wqa-c-th::before{content:none}
+  /* And no fixed tracks: a J Bolt has four dimensions where a Stud has one, and
+     a layout that names its cells by column number can only be right for one of
+     them. The summary wraps instead — number, size and dimensions on the first
+     line, weight and price under them — which reads the same whatever the
+     product turns out to be and cannot push the row sideways. */
+  .wqa-sum{display:flex;flex-wrap:wrap;align-items:center;gap:3px 8px;
+    font-size:12px;min-height:44px;padding-left:9px;padding-right:9px}
+  .wqa-sum-no{flex:0 0 auto;min-width:16px;text-align:left}
+  .wqa-sum .wqa-c{flex:0 1 auto;max-width:100%}
+  .wqa-sum .wqa-c-w,.wqa-sum .wqa-c-price{flex:0 0 auto}
+  .wqa-sum .wqa-c-price{margin-left:auto}
+  .wqa-sum-act{flex:0 0 auto;order:8}
+  .wqa-sum .wqa-row-del{flex:0 0 auto;order:9}
+  .wqa-sum-badges{flex:1 1 100%;justify-content:flex-start;order:10}
+  /* No header on a phone, so each dimension carries its own letter. */
+  .wqa-sum .wqa-c-dim[data-lbl]::before{content:attr(data-lbl) ' ';
+    font-weight:700;color:var(--text-muted)}
   .wqa-sum .wqa-c-qty::before{content:'×';font-weight:800;color:var(--text-muted)}
   .wqa-foot-count{flex:1 1 100%;margin-bottom:6px}
 }
@@ -2945,16 +2957,25 @@ input,select,textarea{
           <div class="was-cost-note"><strong>加工费说明：</strong>焊接费、开洞费、加工费请放在 Additional Cost。</div>
         </div>
 
-        <!-- Custom Dimensions — dimensions the standard product schema does not
-             have (H2, A, OD, P, "MAX 80"). Deliberately outside every per-type
-             form: no calculator reads it, and captureItemFormData is untouched. -->
+        <!-- Extra Drawing Dimensions — for dimensions the product's own schema
+             does NOT have (A, C, OD, P, "MAX 80"). A dimension the schema DOES
+             have belongs in its own field above, where the calculator can see
+             it. Closed by default: most items never need this, and an empty
+             Dimension | Value row on every quotation would only invite staff to
+             put a real H or W in the wrong place. -->
         <div class="cdim-box" id="cdimBox">
-          <div class="cdim-head">
-            <div class="cdim-title">Custom Dimensions <span class="gl-zh">/ 自定义尺寸</span></div>
-            <button type="button" class="cdim-add" onclick="dcAddCustomDim()" data-i18n="cdimAdd">+ Add Dimension</button>
+          <button type="button" class="acc-toggle-btn full" id="cdimToggle" onclick="dcToggleCustomDims()">
+            <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="cdimTitle">Extra Drawing Dimensions</span><span class="acc-toggle-sub" data-i18n="cdimSub">Not part of the product's own dimensions · Optional</span></span>
+            <span class="acc-active-badge" id="cdimBadge" hidden></span>
+          </button>
+          <div class="acc-panel cdim-panel" id="cdimPanel">
+            <div class="cdim-head">
+              <div class="cdim-title">Custom Dimensions <span class="gl-zh">/ 自定义尺寸</span></div>
+              <button type="button" class="cdim-add" onclick="dcAddCustomDim()" data-i18n="cdimAdd">+ Add Dimension</button>
+            </div>
+            <div class="cdim-rows" id="cdimRows"></div>
+            <div class="cdim-hint" data-i18n="cdimHint">Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.</div>
           </div>
-          <div class="cdim-rows" id="cdimRows"></div>
-          <div class="cdim-hint" data-i18n="cdimHint">Optional. Extra dimensions from a drawing — e.g. H2 530. Never used in any weight or price.</div>
         </div>
 
         <div class="calc-preview" id="calcPreview">
@@ -3911,9 +3932,13 @@ const I18N={
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
     wqaConflictBadge:'Conflicting product',
     wqaConflictWhy:'Conflicting product: "{p}" wording vs {g} geometry — choose the product',
+    wqaSpecCol:'Spec',
+    cdimTitle:'Extra Drawing Dimensions',
+    cdimSub:"Not part of the product's own dimensions · Optional",
+    cdimOne:'extra', cdimMany:'extra',
     cdimAdd:'+ Add Dimension', cdimLabelPh:'Dimension', cdimValuePh:'Value',
     cdimRemove:'Remove this dimension', cdimPrefix:'Custom:',
-    cdimHint:'Optional. Extra dimensions from a drawing — e.g. H2 530. Never used in any weight or price.',
+    cdimHint:"Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.",
     wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.",
     wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
     wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
@@ -4102,9 +4127,13 @@ const I18N={
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
     wqaConflictBadge:'产品矛盾',
     wqaConflictWhy:'产品矛盾：文字写「{p}」，但图形显示{g} — 请选择产品',
+    wqaSpecCol:'规格',
+    cdimTitle:'额外图纸尺寸',
+    cdimSub:'不属于该产品本身的尺寸 · 选填',
+    cdimOne:'项', cdimMany:'项',
     cdimAdd:'+ 新增尺寸', cdimLabelPh:'尺寸名称', cdimValuePh:'数值',
     cdimRemove:'删除此尺寸', cdimPrefix:'自定义：',
-    cdimHint:'选填。图纸上的额外尺寸，例如 H2 530。不参与任何重量或价格计算。',
+    cdimHint:'选填。图纸上的额外尺寸，例如 A 120。不参与任何重量或价格计算，也不能代替产品本身的尺寸字段。',
     wqaPasteHint:'粘贴客户的 WhatsApp 信息。支持 Sag Rod、Stud 和 Anchor Bolt。',
     wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
     wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
@@ -4325,11 +4354,34 @@ function dcNormalizeCustomDims(list){
              .filter(e=>e.label!=='' || e.value!=='');
 }
 function dcReadCustomDims(){ return dcNormalizeCustomDims(dcCustomDims); }
-function dcSetCustomDims(list){ dcCustomDims=dcNormalizeCustomDims(list); dcRenderCustomDims(); }
+function dcSetCustomDims(list){
+  dcCustomDims=dcNormalizeCustomDims(list);
+  dcRenderCustomDims();
+  /* An item that HAS extra dimensions shows them: a collapsed section that
+     silently carries data is how data gets forgotten. An item with none stays
+     shut. */
+  dcOpenCustomDims(dcCustomDims.length>0);
+}
+/* Open state lives on the two elements, exactly as the accessory panel's does. */
+function dcOpenCustomDims(on){
+  const btn=el('cdimToggle'), panel=el('cdimPanel');
+  if(btn)   btn.classList.toggle('open',!!on);
+  if(panel) panel.classList.toggle('open',!!on);
+}
+function dcToggleCustomDims(){
+  const panel=el('cdimPanel');
+  const open=!(panel && panel.classList.contains('open'));
+  dcOpenCustomDims(open);
+  /* Opening an empty section offers the first row rather than an empty box. */
+  if(open && !dcCustomDims.length) dcAddCustomDim();
+}
 function dcClearCustomDims(){ dcSetCustomDims([]); }
 function dcAddCustomDim(){
   dcCustomDims.push({label:'',value:''});
   dcRenderCustomDims();
+  /* Adding a dimension always shows it: a row added into a section that is
+     still shut is a row nobody can fill in. */
+  dcOpenCustomDims(true);
   const rows=el('cdimRows'), last=rows?rows.querySelector('.cdim-row:last-child input'):null;
   if(last) last.focus();
 }
@@ -4347,6 +4399,12 @@ function dcEditCustomDim(i,k,v){
   scheduleDraftAutosave();
 }
 function dcRenderCustomDims(){
+  const badge=el('cdimBadge');
+  if(badge){
+    const n=dcReadCustomDims().length;
+    badge.hidden=!n;
+    badge.textContent=n?(n+' '+dcT(n===1?'cdimOne':'cdimMany')):'';
+  }
   const box=el('cdimRows'); if(!box) return;
   box.innerHTML=dcCustomDims.map((e,i)=>`
     <div class="cdim-row">
@@ -8495,6 +8553,49 @@ function wqaRowsCommonValueOf(rows,k){
 function wqaRowSpec(r,k){ return String((r&&r[k])||''); }
 /* What Review calls each dimension when it is missing. */
 const WQA_DIM_LABEL={length:'Length', w:'W', h:'H', id:'ID', s:'S'};
+/* What THIS product calls that dimension. A bent bolt's long leg is its L, not
+   its "Length", and its threaded end is TL — that is how the drawing is
+   labelled and how the calculator's own form is labelled, so the review says
+   the same. A J Bolt has no length at all: its overall size is H, and asking
+   for a Length would be asking for a dimension the product does not have. */
+function wqaDimLabel(product,d){
+  const bent=(product==='lbolt'||product==='lbolt45'||product==='jbolt');
+  if(d==='threadLen') return bent?'TL':'Thread';
+  if(d==='length')    return bent?'L':'Length';
+  return WQA_DIM_LABEL[d]||d;
+}
+/* The columns the compact list actually has. Every live row is asked what its
+   product's dimensions are called, and where they all answer the same the list
+   is headed with exactly those. A mixed drawing has no shared answer, so it
+   gets one Spec column per row instead of a column per dimension of a product
+   half the rows are not — and Edit still shows each row its own fields. */
+function wqaListCols(){
+  const live=wqa.rows.filter(r=>!r.removed);
+  const types=[...new Set(live.map(r=>wqaRowProduct(r)))];
+  if(types.length===1){
+    const p=wqaProductByType(types[0]);
+    if(p) return p.dims.filter(d=>d!=='size')
+                       .map(d=>({k:d, lbl:wqaDimLabel(p.type,d)}));
+  }
+  return [{k:'spec', lbl:dcT('wqaSpecCol')}];
+}
+/* One row's value for one of those columns. */
+function wqaRowDimCell(r,k){
+  if(k==='threadLen') return wqaThreadValue(r)||'';
+  if(k==='spec')      return wqaRowDimSummary(r);
+  return String(r[k]==null?'':r[k]);
+}
+/* A mixed list's one-cell summary: this row's own dimensions, in its own
+   product's order, labelled the way that product labels them. */
+function wqaRowDimSummary(r){
+  const t=wqaRowProduct(r);
+  const p=wqaProductByType(t)||WQA_NO_PRODUCT;
+  return (p.dims||[]).filter(d=>d!=='size').map(d=>{
+    const v=wqaRowDimCell(r,d);
+    if(!v) return '';
+    return d==='length' ? v : wqaDimLabel(t,d)+' '+v;
+  }).filter(Boolean).join(' · ');
+}
 /* And what it IS. A row carries its own product, so an Anchor Bolt and a Sag
    Rod in one document are each validated, weighed and priced as themselves.
    Falls back to the session product only while a row has none of its own —
@@ -8658,10 +8759,10 @@ function wqaPatchRows(){
     if(badges) badges.innerHTML=wqaBadgeHtml(r);
     const cQty=card.querySelector('.wqa-c-qty');
     if(cQty) cQty.textContent=r.qty||'—';
-    const cLen=card.querySelector('.wqa-c-len');
-    if(cLen) cLen.textContent=r.length||'—';
-    const cTh=card.querySelector('.wqa-c-th');
-    if(cTh) cTh.textContent=wqaThreadValue(r)||'—';
+    /* The dimension cells are whatever this list's columns turned out to be,
+       so they are refreshed from that same list rather than by name. */
+    const dims=card.querySelectorAll('.wqa-sum .wqa-c-dim');
+    wqaListCols().forEach((c,k)=>{ if(dims[k]) dims[k].textContent=wqaRowDimCell(r,c.k)||'—'; });
     const cSize=card.querySelector('.wqa-c-size');
     if(cSize) cSize.textContent=r.size||'—';
     const tw=card.querySelector('.wqa-tw');
@@ -8728,22 +8829,44 @@ function wqaRowSpecLine(r){
   if(r.bodyDia) bits.push(dcT('wqaBodyDia')+' '+r.bodyDia+'mm');
   return `<div class="wqa-row-spec">${escHtml(bits.join(' · '))}</div>`;
 }
-function wqaCompactCells(r){
+/* The letter this dimension is known by, short enough to sit in front of its
+   own value on a phone — where there is no column header to read it from. A
+   length needs none: the number after the size is the length on every product
+   that has one. */
+function wqaDimShort(product,k){
+  if(k==='length'||k==='spec') return '';
+  return k==='threadLen' ? 'TL' : wqaDimLabel(product,k);
+}
+function wqaCompactCells(r,cols){
   const calc=r.calc||{};
-  const th=wqaThreadValue(r);
-  const cell=(cls,txt)=>`<span class="wqa-c ${cls}">${escHtml(txt)}</span>`;
+  const cell=(cls,txt,lbl)=>`<span class="wqa-c ${cls}"${lbl?` data-lbl="${escHtml(lbl)}"`:''}>${escHtml(txt)}</span>`;
   return cell('wqa-c-size', r.size||'—')
-    + cell('wqa-c-len',  r.length||'—')
-    + (wqaHasThreadCol() ? cell('wqa-c-th', th||'—') : '')
+    + (cols||wqaListCols()).map(c=>cell('wqa-c-dim wqa-c-'+c.k, wqaRowDimCell(r,c.k)||'—',
+                                        wqaDimShort(wqaRowProduct(r),c.k))).join('')
     + cell('wqa-c-qty',  r.qty||'—')
     + `<span class="wqa-c wqa-c-w wqa-uw">${escHtml(wqaFmtWeight(calc.weight))}</span>`
     + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span>`;
 }
-function wqaHasThreadCol(){
-  /* One column layout for the list, so the column appears when ANY row has a
-     thread — a Stud row simply leaves its cell empty. */
-  return wqaLiveProducts().some(t=>{ const p=wqaProductByType(t);
-    return !!(p && p.dims.includes('threadLen')); });
+/* The column widths live in CSS, one set per breakpoint. The only thing that
+   cannot be written there is how MANY dimension columns this list has — CSS
+   repeat() will not take a custom property as its count — so that number, and
+   only that number, is composed here from the three widths the breakpoint in
+   force has already chosen. */
+function wqaSetListGrid(){
+  /* The panel, not the overlay: the widths are declared on .wqa-modal, and a
+     value set on its parent would be overridden by its own rule. */
+  const m=document.querySelector('#wqaModal .wqa-modal'); if(!m) return;
+  const cs=getComputedStyle(m);
+  const cols=wqaListCols();
+  const lead=(cs.getPropertyValue('--wqa-lead')||'32px 62px').trim();
+  /* A mixed list has ONE column carrying a whole specification, so it gets a
+     track sized for a sentence rather than for a number. */
+  const spec=cols.length===1 && cols[0].k==='spec';
+  const dim =((spec ? cs.getPropertyValue('--wqa-dim-spec') : cs.getPropertyValue('--wqa-dim'))
+              ||'78px').trim();
+  const tail=(cs.getPropertyValue('--wqa-tail')||'56px 104px 86px minmax(0,1fr) 46px 26px').trim();
+  m.style.setProperty('--wqa-cols',
+    [lead].concat(new Array(cols.length).fill(dim)).concat([tail]).join(' '));
 }
 /* The header uses the same grid, so labels sit exactly over their column. */
 function wqaRenderListHead(){
@@ -8753,16 +8876,16 @@ function wqaRenderListHead(){
   head.hidden=!show;
   const list=el('wqaRows');
   if(list) list.classList.toggle('has-head',show);
+  wqaSetListGrid();
   if(!show) return;
-  head.className='wqa-list-head'+(wqaHasThreadCol()?' has-thread':'');
-  /* One header, two layouts. Desktop lets these fall into its ten columns in
-     order; the tablet rules place them explicitly onto the same two grid rows
-     the item uses, so each label sits directly over its own value. */
+  head.className='wqa-list-head';
+  /* One header, two layouts. Desktop lets these fall into its columns in order;
+     the tablet rules narrow them. Each label sits directly over its own value
+     because both are built from the SAME column list. */
   head.innerHTML=
       '<span class="wqa-h wqa-h-no">#</span>'
     + '<span class="wqa-h wqa-h-size">Size</span>'
-    + '<span class="wqa-h wqa-h-num wqa-h-len">Length</span>'
-    + (wqaHasThreadCol()?'<span class="wqa-h wqa-h-num wqa-h-th">Thread</span>':'')
+    + wqaListCols().map(c=>`<span class="wqa-h wqa-h-num wqa-h-dim">${escHtml(c.lbl)}</span>`).join('')
     + '<span class="wqa-h wqa-h-num wqa-h-qty">Qty</span>'
     + '<span class="wqa-h wqa-h-num wqa-h-w">Weight</span>'
     + '<span class="wqa-h wqa-h-num wqa-h-price">Price</span>'
@@ -8789,7 +8912,8 @@ function wqaRowBadges(r){
   if(r.productConflict) out.push({t:dcT('wqaConflictBadge'),k:'req'});
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
      either language instead of a translated word glued to an English one. */
-  wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',dcT('field'+m.replace(/\s/g,''))),k:'req'}));
+  wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',
+    dcT('field'+m.replace(/\s/g,''),m)),k:'req'}));
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
   if(r.productConflict) out.push({t:dcT('wqaConflictWhy').replace('{p}',r.productConflict.said)
                                         .replace('{g}',r.productConflict.saw),k:'warn',w:1});
@@ -9081,7 +9205,12 @@ function wqaProductDims(s,type){
 function wqaExtractFields(rawLine,opts){
   let s=wqaNorm(rawLine).replace(WQA_LIST_NUM_RE,'');
   const f={qty:null,size:null,threadLen:null,threadLen2:null,nums:[],mm:[],bodyDia:null,
-           dims:null, hadX:/\sx\s|\dx\d/i.test(s)};
+           dims:null, hadX:/\sx\s|\dx\d/i.test(s), threadEnds:null, fullyThreaded:false};
+  /* Read the threading off the line AS WRITTEN — the spec-word strip below
+     removes the very words that say how many ends there are. */
+  const ev=wqaThreadEvidence(s);
+  f.threadEnds=ev.explicitEndCount;
+  f.fullyThreaded=ev.fullyThreaded;
   s=wqaStripSpecWords(s);
   /* "2k pcs" is two thousand pieces. Taken out first so the 2 never becomes a
      dimension, and only ever where the count context is written. */
@@ -9174,6 +9303,27 @@ function wqaExtractFields(rawLine,opts){
      special price keys on "100/100"), so nothing is discarded or invented. */
   m=s.match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)\s*(?:mm)?/);
   if(m){ f.threadLen=String(Number(m[1])); f.threadLen2=String(Number(m[2])); s=s.replace(m[0],' '); }
+  /* ── The thread this line stated in words ───────────────────────────────
+     "both end thread 80mm" and "thread 80 one side, thread 120 other side"
+     name their values as plainly as "80/120" does; without this they were left
+     in the pile of loose numbers and read as a length, or dropped as extra.
+     Applied only where the line is a full item that has not already written a
+     pair, and only when every value claimed can be taken back out of the line
+     — a number that cannot be found is a number that was already read as
+     something else, and a half-applied reading is worse than none.
+
+     A line carrying inch measurements contributes its END COUNT only: its
+     numbers are converted further down and must not be read twice. */
+  if(f.threadLen===null && ev.cut.length && !inch.length && f.size){
+    let t=s, ok=true;
+    ev.cut.forEach(v=>{ const c=ok?wqaCutNum(t,v):null; if(c===null) ok=false; else t=c; });
+    if(ok){
+      s=t;
+      f.threadLen=ev.firstEnd;
+      f.threadLen2=(ev.secondEnd!=null && ev.secondEnd!==ev.firstEnd) ? ev.secondEnd
+                 : (ev.explicitEndCount===2 ? ev.firstEnd : null);
+    }
+  }
   /* qty as a bare trailing "- 4" once the markers above found nothing */
   if(f.qty===null){ m=s.match(/-\s*(\d+)\s*$/); if(m){ f.qty=parseInt(m[1],10); s=s.slice(0,m.index); } }
   /* Whatever numbers remain, in the order written. "mm" is kept as a per-number
@@ -9249,6 +9399,7 @@ function wqaResolveLine(f,ctx,productType){
   const prod=wqaProductByType(productType)||WQA_NO_PRODUCT;
   const wantsThread=prod.dims.includes('threadLen');
   const issues=[], defaulted={}, conf={};
+  let seen=null;                       // thread evidence this product cannot hold
   const row={size:'',length:'',threadLen:'',threadLen2:'',qty:''};
   const nums=f.nums.slice();
 
@@ -9256,7 +9407,15 @@ function wqaResolveLine(f,ctx,productType){
   if(f.threadLen!==null && wantsThread){
     row.threadLen=f.threadLen; conf.threadLen=WQA_CONF.DETECTED;
     if(f.threadLen2!==null) row.threadLen2=f.threadLen2;
-  } else if(f.threadLen!==null && !wantsThread){ issues.push('extra'); }
+  } else if(f.threadLen!==null && !wantsThread){
+    /* The product this line names has no thread — a Stud with "one end thread
+       75mm" on it. The 75 is not written into the row (a Stud has no such
+       field) and it is not thrown away either: it is kept beside the row, so
+       that when a person settles the product the system does not ask them to
+       retype something it had already read. */
+    seen=f.threadLen2!==null ? f.threadLen+'/'+f.threadLen2 : f.threadLen;
+    issues.push('extra');
+  }
 
   if(f.qty!==null){ row.qty=String(f.qty); conf.qty=WQA_CONF.DETECTED; }
 
@@ -9315,8 +9474,15 @@ function wqaResolveLine(f,ctx,productType){
   /* Out as ONE extracted item, in the same shape a photo or a PDF produces.
      What each number MEANS was this function's job; how it is represented,
      validated and flagged is wqaNormalizeExtraction's — for every source. */
+  /* Two values written on one row are two ends — the same reading a "both
+     ends" phrase gets, and the reason "M24 x 1500 x thread 100/120" is a Sag
+     Rod without anyone having written the words. A repeat of the same number
+     from the positional read is not evidence of anything and stays out of it. */
+  const statedPair=!!(row.threadLen && row.threadLen2 && !defaulted.threadLen2);
   return {item:{M:row.size, L:row.length,
                 TL:row.threadLen ? (row.threadLen2?row.threadLen+'/'+row.threadLen2:row.threadLen) : null,
+                TLseen:seen,
+                threadEnds: statedPair ? 2 : undefined,
                 qty:row.qty===''?null:row.qty,
                 conf, issues, defaulted}};
 }
@@ -9474,18 +9640,133 @@ function wqaCtxAddThread(ctx,v,productType){
 
    Ends actually GIVEN outrank ends described: "thread one side 150 / thread
    other side 100" states two, whatever the words "one side" suggest. */
-const WQA_ONE_END_RE=/\b(?:(?:one|1|single)\s*(?:end|side)\s*(?:only\s*)?(?:thread(?:ed)?)?|thread(?:ed)?\s*(?:on\s*)?(?:one|1|single)\s*(?:end|side)|one\s*threaded\s*end)\b/i;
-const WQA_BOTH_END_RE=/\b(?:(?:both|two|2)\s*(?:end|side)s?\s*(?:thread(?:ed)?)?|thread(?:ed)?\s*(?:on\s*)?(?:both|two|2)\s*(?:end|side)s?|two\s*threaded\s*ends?)\b/i;
+/* The words a customer uses for threading, as fragments, so every reading of
+   them below is built from the SAME vocabulary and there is no second list to
+   drift. "each"/"ea"/"every" are here with "both": one value for every end is
+   the same statement as one value for both ends. */
+const WQA_TH_W    ='(?:thread(?:ed|ing|s)?|thd|tl)';
+const WQA_BOTH_W  ='(?:both|two|2|each|ea|every)\\s*(?:end|side)s?';
+const WQA_ONE_W   ='(?:one|1|single)\\s*(?:end|side)s?';
+const WQA_OTHER_W ='(?:other|opposite|2nd|second)\\s*(?:end|side)s?';
+const WQA_LEFT_W  ='(?:left|top|first|1st)\\s*(?:end|side)?';
+const WQA_RIGHT_W ='(?:right|bottom)\\s*(?:end|side)?';
+const WQA_ONE_END_RE=new RegExp('\\b(?:'+WQA_ONE_W+'\\s*(?:only\\s*)?(?:'+WQA_TH_W+')?|'
+  +WQA_TH_W+'\\s*(?:on\\s*)?'+WQA_ONE_W+'|one\\s*threaded\\s*end)\\b','i');
+const WQA_BOTH_END_RE=new RegExp('\\b(?:'+WQA_BOTH_W+'\\s*(?:'+WQA_TH_W+')?|'
+  +WQA_TH_W+'\\s*(?:on\\s*)?'+WQA_BOTH_W+'|two\\s*threaded\\s*ends?)\\b','i');
 /* "other side 20" after "left thread 68" is the SECOND end, said the way a
    person says it. On a rod, an end that carries a measurement is a thread. */
-const WQA_OTHER_END_RE=/\b(?:other|opposite)\s*(?:side|end)\b/i;
+const WQA_OTHER_END_RE=new RegExp('\\b(?:other|opposite)\\s*(?:side|end)\\b','i');
+/* "fully threaded" is a Stud: the thread is the whole rod, so there is no end
+   length to state and none must ever be manufactured from the length. */
+const WQA_FULL_THREAD_RE=/\b(?:fully|full)\s*[-\s]*thread(?:ed)?\b/i;
+
+/* ── Thread evidence ────────────────────────────────────────────────────────
+   Everything ONE line says about threading, collected before anything decides
+   what the line is. This layer exists because the parser used to decide as it
+   read: it saw "thread 80 one side", concluded Anchor Bolt, and never reached
+   the "thread 80 other side" three words later. Nothing here chooses a product.
+   It reads the line to the end, records what it found, and hands that over.
+
+     firstEnd / secondEnd  the values, in the order the customer wrote them
+     symmetric             one value the wording gives to both ends
+     explicitEndCount      how many ends the line actually shows
+     fullyThreaded         "fully threaded" — a Stud, and no thread length
+     cut                   the number tokens this reading has claimed
+
+   Each form is tried in order and claims its span, so a later, looser form can
+   never re-read a number an earlier one already explained: in "M16 x 900mm,
+   thread both side 75" the form that reads "thread both side 75" runs first,
+   which is what stops the 900 being read as the thread. */
+const WQA_TH_FORMS=(function(){
+  const T='(?:'+WQA_TH_W+')';
+  /* A number, with any unit it was written with. It is not an end length when a
+     counting word follows it — "both ends, 48pcs" states a quantity. */
+  const N='(\\d+(?:\\.\\d+)?)\\s*(?:mm|cm|m|in|inch(?:es)?|"|\'\')?'
+         +'(?!\\s*(?:pcs?|nos?|no\\.|sets?|units?|items?)\\b)';
+  const S1='[\\s,;:=\\-]{0,3}';   // a thread word anchors it, so a comma is fine
+  const S2='[\\s:=\\-]{0,2}';     // no thread word: the number must sit right there
+  const out=[];
+  const add=(kind,body)=>out.push({kind, re:new RegExp(body,'ig')});
+  [['both',WQA_BOTH_W],['other',WQA_OTHER_W],['one',WQA_ONE_W]].forEach(function(p){
+    const kind=p[0], W=p[1];
+    add(kind,'\\b'+W +S1+T +S1+N);      // both end thread 80 / one end thread 75
+    add(kind,'\\b'+T +S1+W +S1+N);      // thread both side 75 / thread one end 75
+    add(kind,'\\b'+W +S2+N);            // both ends 80
+    add(kind,'\\b'+T +S1+N +S1+W);      // thread 80 each end / TL75 one end
+    add(kind,'\\b'+N +S1+T +S1+W);      // 80 thd ea end / 80mm thread each side
+  });
+  [['first',WQA_LEFT_W],['second',WQA_RIGHT_W]].forEach(function(p){
+    add(p[0],'\\b'+p[1]+S1+T+S1+N);     // left thread 80
+    add(p[0],'\\b'+T+S1+N+S1+p[1]);     // thread 80 right
+  });
+  return out;
+})();
+function wqaThreadEvidence(text){
+  const s=' '+String(text||'')+' ';
+  const ev={firstEnd:null, secondEnd:null, symmetric:null, explicitEndCount:null,
+            fullyThreaded:WQA_FULL_THREAD_RE.test(s), found:[], cut:[]};
+  const taken=[];
+  WQA_TH_FORMS.forEach(function(form){
+    form.re.lastIndex=0;
+    let m;
+    while((m=form.re.exec(s))!==null){
+      if(m[1]==null) continue;
+      const a=m.index, b=a+m[0].length;
+      if(taken.some(r=>a<r[1] && b>r[0])) continue;   // already explained
+      taken.push([a,b]);
+      ev.found.push({kind:form.kind, value:String(Number(m[1])), index:a});
+    }
+  });
+  ev.found.sort((x,y)=>x.index-y.index);
+  const both=ev.found.find(x=>x.kind==='both');
+  const firsts=ev.found.filter(x=>x.kind==='one'||x.kind==='first');
+  const seconds=ev.found.filter(x=>x.kind==='other'||x.kind==='second');
+  if(both){
+    ev.firstEnd=ev.secondEnd=both.value; ev.symmetric=true;
+    ev.explicitEndCount=2; ev.cut=[both.value];
+  } else {
+    if(firsts.length){  ev.firstEnd=firsts[0].value;  ev.cut.push(firsts[0].value); }
+    if(seconds.length){ ev.secondEnd=seconds[0].value; ev.cut.push(seconds[0].value); }
+    /* One value for this end and one for that end is TWO ends, whatever either
+       phrase said on its own. This is the reading the old parser never reached.
+
+       "top thread 250" on a line of its own is the exception: left / top /
+       right / bottom say WHICH end, not how many there are. The value is read,
+       the count is not claimed — the two lines together are what states it, and
+       that pairing is the caller's job, not this line's. */
+    if(ev.firstEnd!=null && ev.secondEnd!=null)      ev.explicitEndCount=2;
+    else if(firsts.length>1){ ev.secondEnd=firsts[1].value; ev.cut.push(firsts[1].value);
+                              ev.explicitEndCount=2; }
+    else if(ev.found.some(x=>x.kind==='one'))        ev.explicitEndCount=1;
+    else if(ev.found.some(x=>x.kind==='other'))      ev.explicitEndCount=2;
+    ev.symmetric=(ev.firstEnd!=null && ev.firstEnd===ev.secondEnd);
+  }
+  /* Wording with no number of its own still says how many ends there are. */
+  if(ev.explicitEndCount===null){
+    if(WQA_BOTH_END_RE.test(s))      ev.explicitEndCount=2;
+    else if(WQA_ONE_END_RE.test(s))  ev.explicitEndCount=WQA_OTHER_END_RE.test(s)?2:1;
+    else if(WQA_OTHER_END_RE.test(s))ev.explicitEndCount=2;
+  } else if(ev.explicitEndCount===1 && WQA_OTHER_END_RE.test(s)){
+    ev.explicitEndCount=2;                      // the other end was named, unmeasured
+  }
+  return ev;
+}
+/* Take one number token back out of the line, so a value already explained as a
+   thread cannot also be counted as a length. Written without a lookbehind: an
+   older phone browser has to run this too. */
+function wqaCutNum(s,v){
+  const esc=String(v).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const re=new RegExp('(^|[^\\d.])'+esc+'(?![\\d.])\\s*(?:mm\\b)?','i');
+  return re.test(s) ? s.replace(re,'$1 ') : null;
+}
+/* Ends alone name a product when the document did not: one threaded end is an
+   Anchor Bolt, two are a Sag Rod. The same mapping the whole app already uses,
+   read off the row instead of off the message. */
 /* How many ends one LINE names, if it says. Row evidence: it decides what that
    row is, whatever the document called itself. */
 function wqaLineEnds(n){
-  const s=String(n||'');
-  if(WQA_BOTH_END_RE.test(s)) return 2;
-  if(WQA_ONE_END_RE.test(s))  return 1;
-  return null;
+  return wqaThreadEvidence(String(n||'')).explicitEndCount;
 }
 /* Ends alone name a product when the document did not: one threaded end is an
    Anchor Bolt, two are a Sag Rod. The same mapping the whole app already uses,
@@ -9520,10 +9801,7 @@ function wqaThreadEndEvidence(text,entries){
     if(e.f && e.f.threadLen!==null && e.f.threadLen2) pair=true;
   });
   if(stated>=2 || pair) return 2;
-  const n=' '+wqaNorm(text).toLowerCase()+' ';
-  if(WQA_BOTH_END_RE.test(n)) return 2;
-  if(WQA_ONE_END_RE.test(n))  return 1;
-  return null;
+  return wqaThreadEvidence(' '+wqaNorm(text).toLowerCase()+' ').explicitEndCount;
 }
 
 /* Judged on the line alone: could this be a shared spec rather than an item?
@@ -9636,7 +9914,12 @@ function wqaParseText(text,forceProduct){
      is an Anchor Bolt and a Sag Rod, whatever the heading said. Where that
      evidence exists the rows are read and each carries its own product; where
      it does not, nothing is read without a product, exactly as before. */
-  const selfProduct=entries.some(e=>(e.n && wqaLineEnds(e.n)) || (e.d && e.d.product));
+  /* A row can show what it is without naming it: the ends it threads, a thread
+     written for each end ("100/120" is two), or the words "fully threaded". */
+  const selfProduct=entries.some(e=>(e.n && wqaLineEnds(e.n))
+                                 || (e.f && e.f.fullyThreaded)
+                                 || (e.f && e.f.threadLen!==null && e.f.threadLen2!==null)
+                                 || (e.d && e.d.product));
 
   entries.forEach((e,i)=>{
     if(e.blank) return;
@@ -9729,7 +10012,10 @@ function wqaParseText(text,forceProduct){
           used=true;
         } else {
           ctx.threadLen=f.threadLen; ctx.threadLen2=f.threadLen2||''; ctx.tlCount=2; used=true;
-          const le=wqaLineEnds(e.n||''); if(le) ctxEnds=le;
+          /* "M12 TL100/100" over a list states two ends for every row under it,
+             the same as writing the words — so the rows can be read as the rods
+             they are even though nothing names a product. */
+          const le=wqaLineEnds(e.n||'') || (f.threadLen2?2:null); if(le) ctxEnds=le;
         }
       } else if(plan[i]==='header'){
         /* One thread value shared by the whole list, read the way THIS product
@@ -9770,15 +10056,27 @@ function wqaParseText(text,forceProduct){
        J Bolt block re-reads its rows with that product's vocabulary. */
     const lf=((lineProd==='lbolt'||lineProd==='jbolt') && !f.dims)
       ? wqaExtractFields(e.t,{rodSize,product:lineProd}) : f;
-    const r=(lineProd==='lbolt'||lineProd==='jbolt')
-      ? {item:wqaBoltItem(lf,lineProd)}
-      : wqaResolveLine(f,ctx,common.product);
     /* "M20 x 1000 thread one end 100" says on the row itself how many ends it
        has, and that is what the row IS — an Anchor Bolt beside a Sag Rod in the
-       same message is an ordinary enquiry. */
-    const lineEnds=wqaLineEnds(e.n||'');
+       same message is an ordinary enquiry. Read BEFORE the line's numbers are
+       placed into columns, because which columns exist depends on it: a line
+       whose threading says Sag Rod has a thread column to put 80 into, and the
+       same line read as "no product yet" has nowhere to put it and drops it. */
+    const pairEnds=(lineProd!=='lbolt' && lineProd!=='jbolt' &&
+                    f.threadLen!==null && f.threadLen2!==null) ? 2 : null;
+    const lineEnds=wqaLineEnds(e.n||'') || pairEnds;
+    const useEnds=lineEnds || ctxEnds || null;
+    const readProd=wqaResolveProduct(lineProd,useEnds)
+                   || (useEnds ? wqaProductFromEnds(useEnds) : '')
+                   || lineProd;
+    const r=(lineProd==='lbolt'||lineProd==='jbolt')
+      ? {item:wqaBoltItem(lf,lineProd)}
+      : wqaResolveLine(f,ctx,readProd);
     if(lineEnds) r.item.threadEnds=lineEnds;
     else if(ctxEnds && !r.item.threadEnds) r.item.threadEnds=ctxEnds;
+    /* "Fully threaded" is the whole rod: it names a Stud, and it names it
+       without any thread length — nothing is manufactured from the length. */
+    if(f.fullyThreaded && !useEnds && !lineProd) r.item.product='stud';
     if(f.bodyDia!=null) r.item.bodyDia=f.bodyDia;
     if(!r.item.bodyDia && ctx.bodyDia) r.item.bodyDia=ctx.bodyDia;
     /* Row explicit > group > document > null, decided HERE, while the group in
@@ -10161,7 +10459,8 @@ function wqaNormalizeExtraction(d, opts){
     const docEnds=(d.threadEnds===1||d.threadEnds===2) ? d.threadEnds : null;
     const seenEnds=rowEnds||docEnds;
     const sawThread=(seenEnds===1||seenEnds===2) ||
-                    (it.TL!=null && it.TL!=='' && String(it.TL)!=='0');
+                    (it.TL!=null && it.TL!=='' && String(it.TL)!=='0') ||
+                    (it.TLseen!=null && it.TLseen!=='');
     const conflict=(rowProd && wqaThreadEnds(rowProd)===0 && sawThread)
       ? {said:(wqaProductByType(rowProd)||{label:rowProd}).label,
          saw:(seenEnds===1?'one-end thread':(seenEnds===2?'two-end thread':'a thread length'))}
@@ -10223,7 +10522,10 @@ function wqaNormalizeExtraction(d, opts){
        fullsize because 4140 usually is. */
     if(!dcProductHasSizeType(rowProd)){ spec.sizeType=''; stDefaulted=false; }
 
-    const row={size:M, product:rowProd, unsupported, productConflict:conflict,
+    /* Kept beside the row and used by nothing else until a person picks the
+       product this thread belongs to. */
+    const threadSeen=(it.TLseen==null||it.TLseen==='')?'':String(it.TLseen);
+    const row={size:M, product:rowProd, unsupported, productConflict:conflict, threadSeen,
                /* Evidence, kept beside the row and used by nothing else: the
                   weight and the price still come from the nominal size. */
                bodyDia:(it.bodyDia==null||it.bodyDia==='')?'':String(it.bodyDia),
@@ -10777,6 +11079,7 @@ function wqaChangeProduct(t){
      applied to the rows in scope — exactly like Apply to All for material.
      Nothing automatic ever overwrites a row's own product. */
   wqaApplyTargets().forEach(r=>{ r.product=t; r.productConflict=null;
+    wqaRowRestoreThread(r,t);
     r.sizeType=dcSizeTypeFor(t,r.sizeType); if(!r.sizeType) r.stDefaulted=false; });
   wqa.common.sizeType=dcSizeTypeFor(t,wqa.common.sizeType);
   /* Extracted rows have no source text to re-read — re-parsing "[uploaded]
@@ -10816,11 +11119,21 @@ function wqaSetCommon(k,v){
   wqaRenderCommon(); wqaRecomputeAll(); }
 /* A row's own product, chosen on its own card. Changing it re-reads that row
    through that product's calculator — nothing else on the list moves. */
+/* A thread the message stated, put into the row once the row has somewhere to
+   put it. Only ever fills an empty field, and only for a product that has one. */
+function wqaRowRestoreThread(r,product){
+  const ends=wqaThreadEnds(product);
+  if(ends<1 || !r || !r.threadSeen || r.threadLen) return;
+  const t=wqaSplitThread(r.threadSeen);
+  r.threadLen=t.a;
+  r.threadLen2=t.b || (ends===2 ? t.a : '');
+}
 function wqaEditRowProduct(i,v){
   const r=wqa.rows[i]; if(!r) return;
   r.product=v;
   /* Choosing the product by hand is the answer the conflict was waiting for. */
   r.productConflict=null;
+  wqaRowRestoreThread(r,v);
   /* Anchor Bolt -> Stud takes the size type with it. */
   r.sizeType=dcSizeTypeFor(v,r.sizeType); if(!r.sizeType) r.stDefaulted=false;
   wqaRenderCommon();
@@ -11052,6 +11365,7 @@ function wqaRenderRows(force){
   const live=wqa.rows.filter(r=>!r.removed);
   el('wqaRowsCount').textContent=live.length+(live.length===1?' item':' items');
   const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
+  const cols=wqaListCols();
   el('wqaRows').innerHTML=wqa.rows.map((r,i)=>{
     if(r.removed) return '';
     const open=wqaRowIsOpen(r);
@@ -11077,12 +11391,12 @@ function wqaRenderRows(force){
       <div class="wqa-row-grid">
         <div class="field"><label>Size</label><input type="text" value="${escHtml(r.size)}" oninput="wqaEdit(${i},'size',this.value)"></div>
         ${(rprod.dims||[]).filter(d=>d!=='size'&&d!=='threadLen').map(d=>`
-        <div class="field"><label>${escHtml(WQA_DIM_LABEL[d]||d)} (mm)</label>
+        <div class="field"><label>${escHtml(wqaDimLabel(rprod.type,d))} (mm)</label>
           <input type="text" inputmode="decimal" value="${escHtml(r[d]==null?'':r[d])}"
                  oninput="wqaEdit(${i},'${d}',this.value)"
                  onblur="wqaCalcField(this,${i},'${d}')"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();wqaCalcField(this,${i},'${d}');}"></div>`).join('')}
-        ${rprod.dims.includes('threadLen')?`<div class="field"><label>Thread (mm)</label>
+        ${rprod.dims.includes('threadLen')?`<div class="field"><label>${escHtml(wqaDimLabel(rprod.type,'threadLen'))} (mm)</label>
           <input type="text" value="${escHtml(wqaThreadValue(r))}" placeholder="${rprod.threadEnds===2?'50/110':'100'}" oninput="wqaEditThread(${i},this.value)">
           <small class="wqa-hint-sm">${rprod.threadEnds===2?'one value, or both ends as 50/110':'one value'}</small></div>`:''}
         <div class="field"><label>Qty</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
@@ -11108,7 +11422,7 @@ function wqaRenderRows(force){
             ${(wqaNoFinish(wqaRowSpec(r,'material'))?['']:['','PL','ZP','HDG'])
                .map(v=>`<option value="${v}"${wqaRowSpec(r,'finish')===v?' selected':''}>${v||'N/A'}</option>`).join('')}
           </select></div>
-        ${prod.needSizeType?`<div class="field"><label data-i18n="fieldSizeType">Size Type</label>
+        ${(rprod.needSizeType && dcProductHasSizeType(wqaRowProduct(r)))?`<div class="field"><label data-i18n="fieldSizeType">Size Type</label>
           <select onchange="wqaEditRowSpec(${i},'sizeType',this.value)">
             ${[['','—'],['FULLSIZE','Fullsize'],['UNDERSIZE','Undersize']].map(o=>`<option value="${o[0]}"${wqaRowSpec(r,'sizeType')===o[0]?' selected':''}>${escHtml(o[1])}</option>`).join('')}
           </select></div>`:''}
@@ -11144,13 +11458,13 @@ function wqaRenderRows(force){
     </div>`;
 
     return `<div class="wqa-row${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}" data-wqa-row="${i}">
-      <div class="wqa-sum${wqaHasThreadCol()?' has-thread':''}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"
+      <div class="wqa-sum${cols.length>2?' wqa-sum-wide':''}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"
            onclick="wqaToggleRow(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wqaToggleRow(${i});}">
         <span class="wqa-sum-no">${wqa.applyScope==='selected'
           ? `<input type="checkbox" class="wqa-pick"${r.sel?' checked':''} onclick="event.stopPropagation()"
                     onchange="wqaToggleRowSel(${i})" aria-label="Select item ${i+1}">`
           : (i+1)}</span>
-        ${wqaCompactCells(r)}
+        ${wqaCompactCells(r,cols)}
         <span class="wqa-sum-badges">${wqaBadgeHtml(r)}</span>
         <span class="wqa-sum-act">${open?'Close':'Edit'}</span>
         <button type="button" class="wqa-row-del" title="Remove"
