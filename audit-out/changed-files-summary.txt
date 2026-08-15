@@ -1,0 +1,79 @@
+CHANGED FILES vs b5493089057277c6f7742931da26bc6f35553abd
+
+ ai_extract.php                                     | 255 +++++-
+ audit-out/final-report.md                          | 425 +++++++++
+ .../screenshots/1-metric-manual-size-edit.png      | Bin 0 -> 81723 bytes
+ audit-out/screenshots/2-imperial-parsing.png       | Bin 0 -> 88541 bytes
+ audit-out/screenshots/3-engineering-drawing.png    | Bin 0 -> 93178 bytes
+ audit-out/screenshots/4-dense-table.png            | Bin 0 -> 167286 bytes
+ audit-out/screenshots/5-previous-price.png         | Bin 0 -> 85306 bytes
+ audit-out/screenshots/6-save-reload-output.png     | Bin 0 -> 256682 bytes
+ audit-out/test-results/browser-suites.json         |   6 +
+ audit-out/test-results/browser-suites.txt          |  14 +
+ audit-out/test-results/php-ai-extract.txt          |   1 +
+ audit-out/test-results/php-lint.txt                |   6 +
+ companies.php                                      |   9 +
+ index.php                                          | 998 +++++++++++++++++----
+ tests/lib/assert.js                                |  64 ++
+ tests/lib/harness.js                               | 176 ++++
+ tests/php/ai_extract.test.php                      | 165 ++++
+ tests/run.js                                       |  42 +
+ tests/screenshots.js                               | 170 ++++
+ tests/suites/01-size-normalisation.test.js         | 121 +++
+ tests/suites/02-imperial.test.js                   | 124 +++
+ tests/suites/03-weight.test.js                     | 184 ++++
+ tests/suites/04-pricing.test.js                    | 250 ++++++
+ tests/suites/05-previous-price.test.js             | 201 +++++
+ tests/suites/06-mixed-documents.test.js            | 133 +++
+ tests/suites/07-save-reload-output.test.js         | 160 ++++
+ tests/suites/08-panels.test.js                     | 218 +++++
+ tests/suites/09-dense-table.test.js                | 113 +++
+ tests/suites/10-drawing.test.js                    | 109 +++
+ 29 files changed, 3773 insertions(+), 171 deletions(-)
+
+================================================================
+APPLICATION FILES (deployed)
+================================================================
+  ai_extract.php       +240    -15    
+  companies.php        +9      -0     
+  index.php            +842    -156   
+
+  index.php       parser, size normalisation, weight, pricing, previous
+                  price, panels, warnings, save/reload, customer output
+  ai_extract.php  output-token ceiling, truncation salvage, distinct
+                  error causes, drawing-region and merged-cell rules
+  companies.php   a duplicated quotation is dated today
+
+================================================================
+TEST FILES (never deployed — absent from the .cpanel.yml allowlist)
+================================================================
+  tests/lib/assert.js                           +64
+  tests/lib/harness.js                          +176
+  tests/php/ai_extract.test.php                 +165
+  tests/run.js                                  +42
+  tests/screenshots.js                          +170
+  tests/suites/01-size-normalisation.test.js    +121
+  tests/suites/02-imperial.test.js              +124
+  tests/suites/03-weight.test.js                +184
+  tests/suites/04-pricing.test.js               +250
+  tests/suites/05-previous-price.test.js        +201
+  tests/suites/06-mixed-documents.test.js       +133
+  tests/suites/07-save-reload-output.test.js    +160
+  tests/suites/08-panels.test.js                +218
+  tests/suites/09-dense-table.test.js           +113
+  tests/suites/10-drawing.test.js               +109
+
+================================================================
+AUDIT PACKAGE (never deployed)
+================================================================
+  audit-out/final-report.md
+  audit-out/screenshots/1-metric-manual-size-edit.png
+  audit-out/screenshots/2-imperial-parsing.png
+  audit-out/screenshots/3-engineering-drawing.png
+  audit-out/screenshots/4-dense-table.png
+  audit-out/screenshots/5-previous-price.png
+  audit-out/screenshots/6-save-reload-output.png
+  audit-out/test-results/browser-suites.json
+  audit-out/test-results/browser-suites.txt
+  audit-out/test-results/php-ai-extract.txt
+  audit-out/test-results/php-lint.txt

@@ -1,0 +1,41 @@
+QUOTATION.DNC — full audit and repair
+
+Baseline commit   : b5493089057277c6f7742931da26bc6f35553abd
+Code commit       : 2e2bbd94cd793bc01ad9c09af8f5bde258e79b88
+Branch            : claude/quotation-dnc-audit-repair-ashi82
+Deployment status : NOT DEPLOYED
+
+DEPLOY THIS COMMIT: 2e2bbd94cd793bc01ad9c09af8f5bde258e79b88
+
+cPanel -> Git Version Control -> Manage:
+  1. Update from Remote
+  2. Deploy HEAD Commit
+
+Deployed by .cpanel.yml's APPFILES allowlist, of which this pass changed:
+  index.php
+  ai_extract.php
+  companies.php
+
+NOT deployed (absent from the allowlist): tests/, audit-out/
+Untouched on the server: ai_config.php, db.php, error_log, php.ini
+
+--- code commit ---
+2e2bbd94cd793bc01ad9c09af8f5bde258e79b88
+Claude <noreply@anthropic.com>
+Sat Aug 15 19:57:10 2026 +0000
+
+Nothing on the screen may disagree with the number under it
+
+ ai_extract.php | 255 ++++++++++++++-
+ companies.php  |   9 +
+ index.php      | 998 ++++++++++++++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 1091 insertions(+), 171 deletions(-)
+
+--- baseline commit ---
+b5493089057277c6f7742931da26bc6f35553abd
+Sat Aug 15 18:28:49 2026 +0000
+
+A heading speaks for the rows under it, and only for them
+
+ index.php | 397 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 372 insertions(+), 25 deletions(-)
