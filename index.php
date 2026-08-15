@@ -397,7 +397,9 @@ input,select,textarea{font-family:inherit}
 /* Custom Dimensions — a manual annotation layer, never a calculator input.
    Two text columns and a remove button; the block only grows once a dimension
    exists, so the normal entry form does not get visually heavier. */
-.cdim-box{margin-top:16px}
+.cdim-adv{margin-top:16px}
+.cdim-adv .group-label{margin-bottom:8px}
+.cdim-box{margin-top:0}
 .cdim-panel{margin-top:9px}
 .cdim-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
 .cdim-title{font-size:11px; font-weight:800; color:var(--text-2); text-transform:uppercase; letter-spacing:.04em}
@@ -2957,27 +2959,6 @@ input,select,textarea{
           <div class="was-cost-note"><strong>加工费说明：</strong>焊接费、开洞费、加工费请放在 Additional Cost。</div>
         </div>
 
-        <!-- Extra Drawing Dimensions — for dimensions the product's own schema
-             does NOT have (A, C, OD, P, "MAX 80"). A dimension the schema DOES
-             have belongs in its own field above, where the calculator can see
-             it. Closed by default: most items never need this, and an empty
-             Dimension | Value row on every quotation would only invite staff to
-             put a real H or W in the wrong place. -->
-        <div class="cdim-box" id="cdimBox">
-          <button type="button" class="acc-toggle-btn full" id="cdimToggle" onclick="dcToggleCustomDims()">
-            <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="cdimTitle">Extra Drawing Dimensions</span><span class="acc-toggle-sub" data-i18n="cdimSub">Not part of the product's own dimensions · Optional</span></span>
-            <span class="acc-active-badge" id="cdimBadge" hidden></span>
-          </button>
-          <div class="acc-panel cdim-panel" id="cdimPanel">
-            <div class="cdim-head">
-              <div class="cdim-title">Custom Dimensions <span class="gl-zh">/ 自定义尺寸</span></div>
-              <button type="button" class="cdim-add" onclick="dcAddCustomDim()" data-i18n="cdimAdd">+ Add Dimension</button>
-            </div>
-            <div class="cdim-rows" id="cdimRows"></div>
-            <div class="cdim-hint" data-i18n="cdimHint">Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.</div>
-          </div>
-        </div>
-
         <div class="calc-preview" id="calcPreview">
           <div class="cp-item"><label data-i18n="lblUnitWeight">Unit Weight</label><span id="cpWeight">—</span></div>
           <div class="cp-item"><label data-i18n="lblBasePrice">Base Price</label><span id="cpBase">—</span></div>
@@ -3053,6 +3034,14 @@ input,select,textarea{
           </div>
           <div class="ph-empty-msg" id="phEmptyMsg" style="display:none">No matching saved quotations for this Product Type, Material, Size Type, Finish and Size yet.</div>
         </div>
+
+        <!-- Extra Drawing Dimensions lives HERE and only here, and only while an
+             item already in the quotation is open for editing. Entering a new
+             item never builds it: there is no bar, no panel and no markup for it
+             anywhere in the entry flow, because a dimension the product's own
+             schema owns must be typed into that schema's field, where the
+             calculator can see it. setItemEditMode() fills and empties this. -->
+        <div id="cdimHost" hidden></div>
 
         <div class="entry-actions">
           <div class="qi-edit-mode-note" id="itemEditNote">Editing item #1 / 正在编辑第 1 项</div>
@@ -3933,6 +3922,8 @@ const I18N={
     wqaConflictBadge:'Conflicting product',
     wqaConflictWhy:'Conflicting product: "{p}" wording vs {g} geometry — choose the product',
     wqaSpecCol:'Spec',
+    cdimAdvTitle:'Advanced / Additional Drawing Information', cdimAdvTitleZh:'额外图纸资料',
+    cdimHeading:'Custom Dimensions', cdimHeadingZh:'自定义尺寸',
     cdimTitle:'Extra Drawing Dimensions',
     cdimSub:"Not part of the product's own dimensions · Optional",
     cdimOne:'extra', cdimMany:'extra',
@@ -4128,6 +4119,8 @@ const I18N={
     wqaConflictBadge:'产品矛盾',
     wqaConflictWhy:'产品矛盾：文字写「{p}」，但图形显示{g} — 请选择产品',
     wqaSpecCol:'规格',
+    cdimAdvTitle:'进阶 / 额外图纸资料', cdimAdvTitleZh:'额外图纸资料',
+    cdimHeading:'自定义尺寸', cdimHeadingZh:'自定义尺寸',
     cdimTitle:'额外图纸尺寸',
     cdimSub:'不属于该产品本身的尺寸 · 选填',
     cdimOne:'项', cdimMany:'项',
@@ -4362,6 +4355,47 @@ function dcSetCustomDims(list){
      shut. */
   dcOpenCustomDims(dcCustomDims.length>0);
 }
+/* ── Where the editor is allowed to exist ──────────────────────────────────
+   Only while an item that is ALREADY in the quotation is being edited. Adding
+   a new item is a different job with a different question in front of it, and
+   an "extra dimensions" box sitting in that flow invites a J Bolt's H or an
+   L Bolt's W to be typed somewhere the calculator cannot see it. So this is not
+   hidden or collapsed for a new item — it is not built at all. */
+function dcCustomDimsAllowed(){
+  return typeof editingItemIndex!=='undefined' && editingItemIndex!==null;
+}
+function dcRenderCustomDimsHost(){
+  const host=el('cdimHost'); if(!host) return;
+  if(!dcCustomDimsAllowed()){
+    /* Leaving Edit takes the markup with it, and the working copy too: the item
+       kept its own array when it was committed. */
+    host.hidden=true; host.innerHTML=''; dcCustomDims=[];
+    return;
+  }
+  host.hidden=false;
+  host.innerHTML=`
+    <div class="cdim-adv">
+      <div class="group-label">${escHtml(dcT('cdimAdvTitle'))} <span class="gl-zh">/ ${escHtml(dcT('cdimAdvTitleZh'))}</span></div>
+      <div class="cdim-box" id="cdimBox">
+        <button type="button" class="acc-toggle-btn full" id="cdimToggle" onclick="dcToggleCustomDims()">
+          <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title">${escHtml(dcT('cdimTitle'))}</span><span class="acc-toggle-sub">${escHtml(dcT('cdimSub'))}</span></span>
+          <span class="acc-active-badge" id="cdimBadge" hidden></span>
+        </button>
+        <div class="acc-panel cdim-panel" id="cdimPanel">
+          <div class="cdim-head">
+            <div class="cdim-title">${escHtml(dcT('cdimHeading'))} <span class="gl-zh">/ ${escHtml(dcT('cdimHeadingZh'))}</span></div>
+            <button type="button" class="cdim-add" onclick="dcAddCustomDim()">${escHtml(dcT('cdimAdd'))}</button>
+          </div>
+          <div class="cdim-rows" id="cdimRows"></div>
+          <div class="cdim-hint">${escHtml(dcT('cdimHint'))}</div>
+        </div>
+      </div>
+    </div>`;
+  dcRenderCustomDims();
+  /* An item that already carries some shows them, so a person editing it cannot
+     miss data that is already saved against it. */
+  dcOpenCustomDims(dcCustomDims.length>0);
+}
 /* Open state lives on the two elements, exactly as the accessory panel's does. */
 function dcOpenCustomDims(on){
   const btn=el('cdimToggle'), panel=el('cdimPanel');
@@ -4377,6 +4411,7 @@ function dcToggleCustomDims(){
 }
 function dcClearCustomDims(){ dcSetCustomDims([]); }
 function dcAddCustomDim(){
+  if(!dcCustomDimsAllowed()) return;      // no editor, no rows
   dcCustomDims.push({label:'',value:''});
   dcRenderCustomDims();
   /* Adding a dimension always shows it: a row added into a section that is
@@ -4416,7 +4451,7 @@ function dcRenderCustomDims(){
               title="${escHtml(dcT('cdimRemove'))}" aria-label="${escHtml(dcT('cdimRemove'))}">✕</button>
     </div>`).join('');
 }
-dcOnRelabel(dcRenderCustomDims);
+dcOnRelabel(dcRenderCustomDimsHost);
 /* Read-only views: "H2 530 · A 120", in the order staff entered them. */
 function dcCustomDimsText(list){
   return dcNormalizeCustomDims(list).map(e=>[e.label,e.value].filter(Boolean).join(' ')).join(' · ');
@@ -4487,17 +4522,11 @@ function captureProductEntryDraft(){
   form.querySelectorAll('input[type="radio"][name]:checked').forEach(input=>{data.__draftRadioGroups[input.name]=input.value;});
   data.__draftTouched=[...productEntryTouchedFields];
   data.__accPanelOpen=!!el(type+'-accPanel')?.classList.contains('open');
-  /* The editor sits outside form-<type>, so the field sweep above cannot see
-     it — it is captured by name. */
-  data.__customDims=dcReadCustomDims();
   return {currentType:type,formData:data};
 }
 function hasMeaningfulProductEntry(entry){
   if(!entry||!entry.formData||typeof entry.formData!=='object') return false;
   const data=entry.formData;
-  /* A dimension typed by hand is work that would be lost, exactly like a typed
-     length — enough on its own to be worth offering back. */
-  if(dcNormalizeCustomDims(data.__customDims).length) return true;
   const touched=Array.isArray(data.__draftTouched)?data.__draftTouched:[];
   const fields=data.__draftFields&&typeof data.__draftFields==='object'?data.__draftFields:{};
   return touched.some(rawKey=>{
@@ -4545,7 +4574,6 @@ function restoreProductEntryDraft(entry){
   else onAccChange(type);
   setAccPanelOpen(type,!!data.__accPanelOpen);
   productEntryTouchedFields=new Set(Array.isArray(data.__draftTouched)?data.__draftTouched:[]);
-  dcSetCustomDims(data.__customDims);
   onPriceModeChange(type);
   if(type==='others') onOthersWeightModeChange();
   recalcCurrent();
@@ -6066,6 +6094,9 @@ function setItemEditMode(index){
               addBtn.setAttribute('data-i18n',k); addBtn.textContent=dcT(k); }
   const cancelBtn=el('cancelItemEditBtn');
   if(cancelBtn) cancelBtn.style.display=editing?'inline-flex':'none';
+  /* The one place the extra-dimensions editor is built, and the one place it is
+     taken away again. */
+  dcRenderCustomDimsHost();
   renderQuote();
 }
 /* "Editing item #3" interpolates a number, so the attribute scan cannot rebuild
