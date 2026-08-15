@@ -1850,7 +1850,7 @@ input,select,textarea{
 /* Every collapsible section is a bare wrapper around the SAME head, so the
    arrow, title, summary, counter, height and padding line up down the column.
    Only what each one opens into differs. */
-.wqa-source-common,.wqa-item-common,.wqa-price-common,.wqa-acc-common{
+.wqa-source-common,.wqa-fix-common,.wqa-item-common,.wqa-price-common,.wqa-acc-common{
   padding:0;border:0;background:transparent}
 .wqa-scope{margin-top:9px}
 .wqa-item-grid-1{grid-template-columns:minmax(0,1fr)}
@@ -3489,6 +3489,8 @@ input,select,textarea{
       <!-- The customer's own words, above everything derived from them. -->
       <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
       <div class="wqa-common" id="wqaCommon"></div>
+      <!-- Correcting what was read, before anything is copied into it. -->
+      <div class="wqa-common wqa-fix-common" id="wqaCommonFix"></div>
       <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
       <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
       <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
@@ -3936,7 +3938,10 @@ const I18N={
     needs:'Needs {f}', fieldProduct:'Product', fieldSize:'Size', fieldLength:'Length',
     fieldSizeType:'Size Type', fieldThread:'Thread', fieldPrice:'Price',
     fieldValidSize:'Valid Size', wqaUnknownSize:'Size not in Diameter Settings — no weight is calculated',
-    fieldMaterial:'Material', optRequired:'— required —', optNone:'— none —', wqaMixed:'Mixed',
+    wqaUndersizeWord:'undersize',
+    wqaNoDia:'no diameter in Diameter Settings — no weight, so no price',
+    fieldMaterial:'Material', fieldFinish:'Finish',
+    optRequired:'— required —', optNone:'— none —', wqaMixed:'Mixed',
     materialRequired:'Material was not stated in the message, so it is not guessed. Choose the material to price these items.',
     badgeNoThread:'No thread', badgeParseWarning:'Parse warning', badgeCheck:'Check {f}',
     badgeAsymmetric:'Asymmetric', badgeLastPrice:'Last price',
@@ -3992,6 +3997,15 @@ const I18N={
     wqaApplyManualAll:'Apply Manual Unit Price to All',
     wqaApplyManualSelected:'Apply Manual Unit Price to {n} Selected',
     wqaToastNoneSelected:'Tick at least one item first',
+    wqaCommonFixTitle:'Correct Items', wqaFixKeep:'— Keep existing —',
+    wqaFixNone:'Keep existing',
+    wqaFixNothingYet:'Nothing chosen yet — Apply would change nothing',
+    wqaFixWillSet:'Will set: {f}', wqaFixWillFill:'Will fill where blank: {f}',
+    wqaFixBlanksOnly:'Fill blanks only',
+    wqaFixNote:'Nothing changes until Apply. Each field is independent — a field left on “Keep existing” is not touched. Fill blanks only fills what is empty and never replaces a value.',
+    wqaToastFixNothing:'Choose at least one field to change first',
+    wqaToastFixApplied:'{n} item(s) corrected',
+    wqaToastFixNoChange:'Nothing changed — those items already say that',
     wqaCommonPriceTitle:'Pricing Entry', wqaCommonAccTitle:'Accessories',
     wqaMsgNoRows:'No item rows could be read from this file. Try again or paste the text manually.',
     wqaMsgCannotAnalyze:'Could not analyze this file. Try again or paste the text manually.',
@@ -4139,7 +4153,10 @@ const I18N={
     needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'长度',
     fieldSizeType:'尺寸类型', fieldThread:'牙长', fieldPrice:'价格',
     fieldValidSize:'有效尺寸', wqaUnknownSize:'此尺寸不在直径设定中 — 不计算重量',
-    fieldMaterial:'材料', optRequired:'— 必填 —', optNone:'— 无 —', wqaMixed:'多种',
+    wqaUndersizeWord:'小牙',
+    wqaNoDia:'直径设定中没有对应直径 — 不计算重量，也不出价',
+    fieldMaterial:'材料', fieldFinish:'表面处理',
+    optRequired:'— 必填 —', optNone:'— 无 —', wqaMixed:'多种',
     materialRequired:'信息中未说明材料，系统不会猜测。请选择材料以计算价格。',
     badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
     badgeAsymmetric:'左右不对称', badgeLastPrice:'上次价格',
@@ -4195,6 +4212,15 @@ const I18N={
     wqaApplyManualAll:'手动单价应用到全部',
     wqaApplyManualSelected:'手动单价应用到 {n} 个选定项目',
     wqaToastNoneSelected:'请先勾选至少一个项目',
+    wqaCommonFixTitle:'批量修正', wqaFixKeep:'— 保持不变 —',
+    wqaFixNone:'保持不变',
+    wqaFixNothingYet:'尚未选择——按下应用不会有任何改动',
+    wqaFixWillSet:'将设为：{f}', wqaFixWillFill:'仅填补空白：{f}',
+    wqaFixBlanksOnly:'只填空白',
+    wqaFixNote:'按下应用之前不会改动任何项目。每个字段各自独立——保持“保持不变”的字段不会被修改。勾选“只填空白”后只填补空白，不会覆盖已有的值。',
+    wqaToastFixNothing:'请先选择至少一个要修改的字段',
+    wqaToastFixApplied:'已修正 {n} 个项目',
+    wqaToastFixNoChange:'没有改动——这些项目已经是这个值',
     wqaCommonPriceTitle:'价格设置', wqaCommonAccTitle:'配件',
     wqaMsgNoRows:'无法从这个文件读取到产品行。请重试，或改用粘贴文字。',
     wqaMsgCannotAnalyze:'无法分析这个文件。请重试，或改用粘贴文字。',
@@ -6183,6 +6209,7 @@ dcOnRelabel(()=>{
   try{ wqaRenderAiBadge(); }catch(e){}
   if(wqa.rows && wqa.rows.length){
     try{ wqaRenderCommon(); }catch(e){}
+    try{ wqaRenderCommonFix(true); }catch(e){}
     try{ wqaRenderCommonItem(true); }catch(e){}
     try{ wqaRenderCommonPrice(true); }catch(e){}
     try{ wqaRenderCommonAcc(true); }catch(e){}
@@ -8054,11 +8081,15 @@ const WQA_PRODUCTS=[
      weight, price, accessories — so Quick Add reads them and hands each row to
      the calculator that owns it. No second engine. */
   {type:'lbolt', token:'L_BOLT', label:'L Bolt',
-   aliases:['l bolt','lbolt','l-bolt','hook bolt','hookbolt'],
+   /* A foundation bolt with a 90-degree bend IS an L Bolt, whatever the
+      customer called the family it belongs to. */
+   aliases:['l bolt','lbolt','l-bolt','hook bolt','hookbolt',
+            'l type foundation bolt','l-type foundation bolt','l type bolt'],
    dims:['size','length','w','threadLen'], map:{length:'l', w:'w'},
    threadEnds:1, needSizeType:true},
   {type:'jbolt', token:'J_BOLT', label:'J Bolt',
-   aliases:['j bolt','jbolt','j-bolt'],
+   aliases:['j bolt','jbolt','j-bolt',
+            'j type foundation bolt','j-type foundation bolt','j type bolt','j type'],
    dims:['size','h','id','s','threadLen'], map:{h:'h', id:'id', s:'s'},
    threadEnds:1, needSizeType:true},
 ];
@@ -8145,13 +8176,15 @@ const WQA_FINISHES=[
 ];
 
 const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPrice:null,
-           panels:{item:false,price:false,acc:false},applyScope:'all',
+           commonFix:null,
+           panels:{fix:false,item:false,price:false,acc:false},applyScope:'all',
            view:'compact',rows:[],busy:false};
 /* Both common sections start COLLAPSED at every width, so the parsed items are
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
 function wqaTogglePanel(which){ wqa.panels[which]=!wqa.panels[which];
   if(which==='source')     wqaRenderSource(true);
+  else if(which==='fix')   wqaRenderCommonFix(true);
   else if(which==='item')  wqaRenderCommonItem(true);
   else if(which==='price') wqaRenderCommonPrice(true);
   else                     wqaRenderCommonAcc(true); }
@@ -8184,6 +8217,7 @@ function wqaSetApplyScope(s){
   /* Leaving Selected drops the ticks: a hidden selection that a later Apply
      would silently obey is worse than starting again. */
   if(wqa.applyScope==='all') wqa.rows.forEach(r=>{ r.sel=false; });
+  wqaRenderCommonFix(true);
   wqaRenderCommonItem(true); wqaRenderCommonPrice(true); wqaRenderCommonAcc(true);
   wqaRenderRows(true);
 }
@@ -8344,6 +8378,177 @@ function wqaApplyItemToAll(){
   const what = size&&thread ? 'Size '+size+' and Thread '+thread
              : (size ? 'Size '+size : 'Thread '+thread);
   showToast(what+' applied to '+live.length+' item'+(live.length===1?'':'s'));
+}
+
+/* ── Bulk correction ────────────────────────────────────────────────────────
+   What the message SAID is read once; what it MEANT is sometimes corrected by
+   the person reading it — a whole section quoted under the wrong finish, a
+   stainless block that came back as MS. Doing that row by row down thirty rows
+   is where mistakes come from, so it is done once here.
+
+   Three rules make it safe to use on a list somebody has already checked:
+
+     · every field starts at KEEP EXISTING and a field left there is not read,
+       so this panel can be opened, looked at and closed without effect;
+     · nothing is written until Apply — typing here changes no row;
+     · Fill blanks only fills what is empty and refuses to change what is not.
+
+   It is deliberately separate from the header selects above, which are the
+   quick path for a document that is one product throughout. This is the path
+   for a document that is not.                                              */
+const WQA_KEEP='__KEEP__';
+const WQA_FIX_FIELDS=['product','material','finish','sizeType'];
+function wqaEmptyFix(){
+  return {product:WQA_KEEP,material:WQA_KEEP,finish:WQA_KEEP,sizeType:WQA_KEEP,blanksOnly:false};
+}
+/* What a row would SHOW for this field today — the test "is this blank?" has to
+   ask the same question the list answers, or Fill blanks only would fill a
+   field the person can plainly see a value in. */
+function wqaFixCurrent(r,k){
+  return k==='product' ? wqaRowProduct(r) : wqaRowSpec(r,k);
+}
+function wqaFixLabel(k,v){
+  if(k==='product'){ const p=wqaProductByType(v); return p?p.label:v; }
+  if(k==='material') return materialLabel(v);
+  if(k==='finish')   return v||'N/A';
+  if(k==='sizeType') return v==='FULLSIZE'?'Fullsize':(v==='UNDERSIZE'?'Undersize':dcT('optNone'));
+  return v;
+}
+/* What pressing Apply would do, said in one line under the button. */
+function wqaFixIntent(f){
+  const set=WQA_FIX_FIELDS.filter(k=>f[k]!==WQA_KEEP);
+  if(!set.length) return dcT('wqaFixNothingYet');
+  return dcT(f.blanksOnly?'wqaFixWillFill':'wqaFixWillSet')
+         .replace('{f}',set.map(k=>wqaFixLabel(k,f[k])).join(', '));
+}
+function wqaFixSummary(f){
+  const set=WQA_FIX_FIELDS.filter(k=>f[k]!==WQA_KEEP);
+  if(!set.length) return dcT('wqaFixNone');
+  return set.map(k=>wqaFixLabel(k,f[k])).join('  ·  ')
+       + (f.blanksOnly ? '  ·  '+dcT('wqaFixBlanksOnly') : '');
+}
+/* The material list belongs to a product, so it is taken from the product this
+   correction is FOR — the one being chosen here, else the document's, else the
+   first one the rows actually use. */
+function wqaFixMatType(f){
+  return (f.product!==WQA_KEEP && f.product) || wqa.product || wqaLiveProducts()[0] || '';
+}
+function wqaRenderCommonFix(force){
+  const box=el('wqaCommonFix'); if(!box) return;
+  const f=wqa.commonFix||(wqa.commonFix=wqaEmptyFix());
+  const keep=escHtml(dcT('wqaFixKeep'));
+  const opt=(k,v,label)=>`<option value="${escHtml(v)}"${f[k]===v?' selected':''}>${escHtml(label)}</option>`;
+  const keepOpt=k=>`<option value="${WQA_KEEP}"${f[k]===WQA_KEEP?' selected':''}>${keep}</option>`;
+  const matSrc=el(wqaFixMatType(f)+'-material');
+  const matOpts=keepOpt('material')+(matSrc
+    ? [...matSrc.options].filter(o=>o.value)
+        .map(o=>`<option value="${escHtml(o.value)}"${f.material===o.value?' selected':''}>${escHtml(o.text)}</option>`).join('')
+    : '');
+  const head=wqaPanelHead('fix',wqaScopeTitle('wqaCommonFixTitle'),wqaFixSummary(f),'');
+  box.innerHTML = head + (!wqa.panels.fix ? '' :
+    `<div class="wqa-panel-body">
+       <div class="wqa-acc-note">${escHtml(dcT('wqaFixNote'))}</div>
+       <div class="wqa-common-grid">
+         <div class="field"><label>${escHtml(dcT('fieldProduct'))}</label>
+           <select id="wqaFixProduct" onchange="wqaEditFix('product',this.value)">
+             ${keepOpt('product')}
+             ${WQA_PRODUCTS.map(p=>opt('product',p.type,p.label)).join('')}
+           </select></div>
+         <div class="field"><label>${escHtml(dcT('fieldMaterial'))}</label>
+           <select id="wqaFixMaterial" onchange="wqaEditFix('material',this.value)">${matOpts}</select></div>
+         <div class="field"><label>${escHtml(dcT('fieldFinish'))}</label>
+           <select id="wqaFixFinish" onchange="wqaEditFix('finish',this.value)">
+             ${keepOpt('finish')}${opt('finish','','N/A')}
+             ${['PL','ZP','HDG'].map(v=>opt('finish',v,v)).join('')}
+           </select></div>
+         <div class="field"><label>${escHtml(dcT('fieldSizeType'))}</label>
+           <select id="wqaFixSizeType" onchange="wqaEditFix('sizeType',this.value)">
+             ${keepOpt('sizeType')}${opt('sizeType','',dcT('optNone'))}
+             ${opt('sizeType','FULLSIZE','Fullsize')}${opt('sizeType','UNDERSIZE','Undersize')}
+           </select></div>
+       </div>
+       <label class="wqa-acc-en"><input type="checkbox" id="wqaFixBlanks"${f.blanksOnly?' checked':''}
+              onchange="wqaEditFix('blanksOnly',this.checked)"> ${escHtml(dcT('wqaFixBlanksOnly'))}</label>
+       ${wqaScopeSwitch()}
+       <div class="wqa-acc-actions">
+         <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
+                 onclick="wqaApplyFixToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
+         <span class="wqa-acc-sum">${escHtml(wqaFixIntent(f))}</span>
+       </div>
+     </div>`);
+}
+function wqaEditFix(k,v){
+  if(!wqa.commonFix) wqa.commonFix=wqaEmptyFix();
+  wqa.commonFix[k]=(k==='blanksOnly')?!!v:v;
+  /* Choosing a product changes which materials exist, so the panel is rebuilt;
+     everything else only moves the summary. Either way NO row is touched. */
+  if(k==='product'){ if(wqa.commonFix.material!==WQA_KEEP) wqa.commonFix.material=WQA_KEEP;
+                     wqaRenderCommonFix(true); return; }
+  const box=el('wqaCommonFix');
+  wqaPanelSum(box,wqaFixSummary(wqa.commonFix));
+  const cur=box&&box.querySelector('.wqa-acc-sum');
+  if(cur) cur.textContent=wqaFixIntent(wqa.commonFix);
+}
+/* The one place these four fields are written in bulk. Order matters: the
+   product decides whether a size type exists at all, and the material decides
+   whether a finish does, so each is applied before the field that depends on
+   it and the existing per-field rules do the refusing. */
+function wqaApplyFixToAll(){
+  const f=wqa.commonFix||wqaEmptyFix();
+  const set=WQA_FIX_FIELDS.filter(k=>f[k]!==WQA_KEEP);
+  if(!set.length){ showToast(dcT('wqaToastFixNothing')); return; }
+  const live=wqaApplyTargets();
+  if(!live.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
+  let changed=0;
+  live.forEach(r=>{
+    let did=false;
+    set.forEach(k=>{
+      const v=f[k];
+      /* Fill blanks only: a field that already says something is left saying
+         it. Asked of what the row SHOWS, so an inherited value counts as an
+         answer — this mode exists to be incapable of contradicting one. */
+      if(f.blanksOnly && wqaFixCurrent(r,k)) return;
+      if(k==='product'){
+        if(wqaRowProduct(r)===v) return;
+        r.product=v; r.productConflict=null;
+        wqaRowRestoreThread(r,v);
+        r.sizeType=dcSizeTypeFor(v,r.sizeType);
+        if(!r.sizeType) r.stDefaulted=false;
+        did=true; return;
+      }
+      if(k==='material'){
+        if(r.material===v) return;
+        r.material=v; r.matDefaulted=false; r.matFrom='';
+        r.finish=wqaFinishFor(v,r.finish);
+        did=true; return;
+      }
+      /* A stainless row has no finish to set, and a Stud no size type — the
+         same refusals the single-field path makes, made here too. */
+      if(k==='finish'){
+        if(wqaNoFinish(wqaRowSpec(r,'material')) || r.finish===v) return;
+        r.finish=v; did=true; return;
+      }
+      if(k==='sizeType'){
+        if(!dcProductHasSizeType(wqaRowProduct(r)) || r.sizeType===v) return;
+        r.sizeType=v; r.stDefaulted=false; did=true; return;
+      }
+    });
+    if(did) changed++;
+  });
+  /* The header is a summary of the rows, so it follows them. */
+  const p=wqaRowsCommonValue('product');
+  if(p && p!==WQA_MIXED) wqa.product=p;
+  WQA_FIX_FIELDS.filter(k=>k!=='product').forEach(k=>{
+    const v=wqaRowsCommonValue(k);
+    if(v!==WQA_MIXED) wqa.common[k]=v;
+  });
+  if(wqa.common.material) wqa.common.materialDefaulted=false;
+  wqaRenderCommon(); wqaRenderCommonFix(true);
+  wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
+  wqaRecomputeAll('force');
+  showToast(changed
+    ? dcT('wqaToastFixApplied').replace('{n}',changed)
+    : dcT('wqaToastFixNoChange'));
 }
 
 /* Accessory shape is the EXISTING one used by getAccessories() /
@@ -9015,6 +9220,9 @@ function wqaRowBadges(r){
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
   if(String(r.size).trim() && !isKnownSize(r.size))
     out.push({t:String(r.size)+': '+dcT('wqaUnknownSize'),k:'warn',w:1});
+  else if(r.noDia && wqaRowSpec(r,'sizeType'))
+    out.push({t:String(r.size)+(wqaRowSpec(r,'sizeType')==='UNDERSIZE'?' '+dcT('wqaUndersizeWord'):'')
+                +': '+dcT('wqaNoDia'),k:'warn',w:1});
   if(r.productConflict) out.push({t:dcT('wqaConflictWhy').replace('{p}',r.productConflict.said)
                                         .replace('{g}',r.productConflict.saw),k:'warn',w:1});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
@@ -9091,6 +9299,15 @@ function wqaDetectCommon(text){
   }
   out.product = named.length===1 ? named[0] : null;
   out.productAmbiguous = named.length>1;
+  /* A stated 90-degree bend is geometry, and geometry outranks the family the
+     customer filed it under: "ANCHOR BOLT 90 DEG BEND" is an L Bolt. The same
+     doctrine the parser already applies when a W or an ID and an S appear.
+
+     Only where this wording is about ONE product. Read over a whole mixed
+     message the bend belongs to one section of it, and claiming the document
+     is an L Bolt because section 4 mentions a bend is exactly the confident
+     wrong answer the ambiguity test above exists to refuse. */
+  if(named.length<=1 && WQA_BEND90_RE.test(hay)){ out.product='lbolt'; out.productAmbiguous=false; }
   /* Matched against the text as WRITTEN, not the lower-cased copy, so the note
      can show the customer's own wording back to them: HT, High Tensile, G8.8. */
   const said=' '+wqaNorm(text)+' ';
@@ -9119,6 +9336,16 @@ function wqaSizeList(n){
   const s=String(n||'').trim();
   if(!WQA_SIZE_LIST_RE.test(s)) return null;
   const out=(s.match(/m\s*\d+(?:\.\d+)?/ig)||[]).map(x=>'M'+x.replace(/[^\d.]/g,''));
+  return out.length>1 ? out : null;
+}
+
+/* The sizes a NOTE names, read from a line that says other things too:
+   "M20 / M24 UNDER SIZE". One size is not a list — "M12 UNDER SIZE" written
+   over a block of M12 rows is an ordinary heading and scoping it would change
+   nothing — so two is the smallest thing this answers. */
+function wqaSizeScope(n){
+  const out=(String(n||'').match(/\bm\s*\d+(?:\.\d+)?\b/ig)||[])
+              .map(x=>'M'+x.replace(/[^\d.]/g,''));
   return out.length>1 ? out : null;
 }
 
@@ -9275,7 +9502,7 @@ const WQA_DIM_RE=(function(){
   return out;
 })();
 /* The thread, in the wording all three of these products share. */
-const WQA_TL_DIM_RE=/(?:\bt\.?l\.?|thread(?:ed)?(?:\s*length)?)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:mm\b)?|(\d+(?:\.\d+)?)\s*(?:mm\b)?\s*(?:\bt\.?l\.?|thread(?:ed)?(?:\s*length)?)\b/i;
+const WQA_TL_DIM_RE=/(?:\bt\.?l\.?|thread(?:ed)?(?:\s*(?:length|portion|part|section))?)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:mm\b)?|(\d+(?:\.\d+)?)\s*(?:mm\b)?\s*(?:\bt\.?l\.?|thread(?:ed)?(?:\s*(?:length|portion|part|section))?)\b/i;
 function wqaDimLabelled(s,key){
   const re = key==='TL' ? WQA_TL_DIM_RE : WQA_DIM_RE[key];
   if(!re) return null;
@@ -9291,7 +9518,20 @@ function wqaProductDims(s,type){
   const keys=WQA_PROD_DIMS[type];
   if(!keys) return null;
   const out={}; let rest=' '+String(s)+' ';
+  /* A radius in drawing notation — "R25 BEND" — is read before anything else.
+     BEND on its own is also how a bend width and a bend height are written, and
+     whichever of those the product asks for first would otherwise take the
+     radius's number and quote it as a measurement of the bolt. */
+  if(keys.indexOf('R')>=0){
+    const rm=/(^|[\s(,])r\s*(\d+(?:\.\d+)?)\s*(?:mm)?(?=[\s),]|$)/i.exec(rest);
+    if(rm){
+      out.R=rm[2];
+      const at=rm.index+rm[1].length;
+      rest=rest.slice(0,at)+' '+rest.slice(rm.index+rm[0].length);
+    }
+  }
   keys.forEach(k=>{
+    if(k==='R' && out.R!==undefined) return;
     const hit=wqaDimLabelled(rest,k);
     if(!hit) return;
     out[k]=hit.v;
@@ -9408,7 +9648,10 @@ function wqaExtractFields(rawLine,opts){
     }
   }
   /* diameter — M12 / m 12 */
-  m=s.match(/\bm\s*(\d+(?:\.\d+)?)\b/i);
+  /* The size ends at a separator as well as at a word boundary: in the compact
+     shorthand "M20x500x100x100" there is no space after the 20, and a size that
+     failed to match here left its M behind and its 20 in the number pile. */
+  m=s.match(/\bm\s*(\d+(?:\.\d+)?)(?=\s*[x*×]|\b)/i);
   if(m){ f.size='M'+m[1].replace(/\.0$/,''); s=s.replace(m[0],' '); }
   /* A drawing writes an undersized rod's nominal diameter as R12. The R is the
      draughtsman's notation for the round bar it is cut from, not a different
@@ -9416,7 +9659,10 @@ function wqaExtractFields(rawLine,opts){
      undersize meaning travels where it belongs, in Size Type. Read ONLY where
      the message itself shows that context (see wqaParseText); an R12 in an
      unrelated note is never guessed at. */
-  if(!f.size && opts && opts.rodSize){
+  /* R12 is draughtsman's notation for an undersized rod — but R25 next to the
+     word BEND is a bend radius, and reading it as a nominal size would change
+     the diameter, the weight and the price. */
+  if(!f.size && opts && opts.rodSize && !/\bbend|radius|hook\b/i.test(s)){
     m=s.match(WQA_ROD_R_RE);
     if(m){ f.size='M'+m[1].replace(/\.0$/,''); s=s.replace(m[0],' '); }
   }
@@ -9503,7 +9749,12 @@ function wqaPlaceProductDims(item,f,type){
   if(type==='lbolt'){
     item.L = d.L || (item.L!=null?item.L:'') || take();
     item.W = d.W || take();
+    /* "M20x500x100x100" is the compact shorthand a customer types on a phone:
+       size, long leg, short leg, thread — in that order, and only in that
+       order. A third positional number is the thread ONLY when the first two
+       filled L and W from the same line; anything less certain is left over. */
     if(d.TL) item.TL=d.TL;
+    else if(!item.TL && item.L && item.W && pos.length===1) item.TL=take();
     return true;
   }
   if(type==='jbolt'){
@@ -9926,6 +10177,8 @@ function wqaApplyNoteFacts(rows,text){
   return out;
 }
 
+/* A right-angle bend, however it is written. */
+const WQA_BEND90_RE=/\b90\s*(?:deg(?:ree)?s?)?\.?\s*(?:bend|bent|hook)\b|\bbend\s*90\b|\b90\s*deg(?:ree)?s?\b/i;
 /* ── How many ends are threaded ─────────────────────────────────────────────
    Evidence, not a product name. A customer calls the same straight rod a "sag
    rod", an "anchor bolt" or a "bolt" interchangeably, but they are precise
@@ -10173,6 +10426,18 @@ function wqaParseText(text,forceProduct){
   let numeric=0, unread=0;
   /* End-count evidence stated ABOVE the rows: shared, like a header thread. */
   let ctxEnds=null;
+  /* A size type written against a NAMED list of sizes, and the sizes it names.
+     Null while no such line has been read — the ordinary case, where a size
+     type stated anywhere is about the whole message. */
+  let stScope=null;
+  /* ── Section boundary ─────────────────────────────────────────────────────
+     Where the CURRENT section's rows begin. A numbered heading that names a
+     product — "5) J TYPE FOUNDATION BOLT" — starts a new one, and nothing
+     written under it may attach to a row belonging to the section above: the
+     J Bolt's "threaded portion 120" was landing on the L Bolt two sections
+     earlier and taking that section's last row with it. */
+  let secFrom=0;
+  const lastItem=()=>items.length>secFrom ? items[items.length-1] : null;
 
   /* R12 is drawing notation for an undersized rod's nominal diameter, so it is
      read as a size only where the message actually shows that context: an
@@ -10182,6 +10447,13 @@ function wqaParseText(text,forceProduct){
 
   /* Every line's fields are read first. A spec header is only recognisable from
      the rows below it, so the classification has to precede the row loop. */
+  /* ── The section's product is the reading context for the lines under it ──
+     A heading names the product once and the measurements follow underneath in
+     words, so the schema has to survive from the heading down to them. Only a
+     HEADING may set it: a line that names a product and states no measurement
+     of its own. One L Bolt line inside a Sag Rod message therefore still speaks
+     for itself and for nothing after it. */
+  let secProd='';
   const entries=lines.map(raw=>{
     const t=raw.trim();
     if(!t) return {blank:true};
@@ -10195,7 +10467,10 @@ function wqaParseText(text,forceProduct){
     /* The line's own product word wins over the document's, so one L Bolt line
        inside a Sag Rod message is read with L Bolt eyes. */
     const dd=wqaDetectCommon(t);
-    return {t,n,f:wqaExtractFields(t,{rodSize,product:dd.product||common.product}),d:dd};
+    const ef=wqaExtractFields(t,{rodSize,product:forceProduct||dd.product||secProd||common.product});
+    if(!forceProduct && dd.product && !ef.size && ef.qty==null && !(ef.dims&&Object.keys(ef.dims).length))
+      secProd=dd.product;
+    return {t,n,f:ef,d:dd};
   });
   /* Thread arrangement beats the customer's product word, decided before
      anything is read as a row — the dimension columns depend on it. Resolved by
@@ -10230,7 +10505,7 @@ function wqaParseText(text,forceProduct){
     /* "UNC" on a line of its own is the thread series of the item above it —
        read, attached, and no longer reported as something we could not read. */
     if(e.noise && WQA_SERIES_RE.test(' '+(e.n||'')+' ')){
-      const prevS=items.length ? items[items.length-1] : null;
+      const prevS=lastItem();
       if(prevS && !prevS.series) prevS.series=wqaSeriesValue(e.n);
       else if(!ctx.series) ctx.series=wqaSeriesValue(e.n);
       return;
@@ -10247,7 +10522,7 @@ function wqaParseText(text,forceProduct){
        thread. */
     if(plan[i]==='thread'){
       const v=wqaThreadOnlyValue(e), ends=wqaLineEnds(e.n||'');
-      const prev=items[items.length-1];
+      const prev=lastItem();
       if(prev){ if(!wqaRowAddThread(prev,v,ends,common.product) && counts) unread++; }
       else {
         wqaCtxAddThread(ctx,v,common.product);
@@ -10262,7 +10537,7 @@ function wqaParseText(text,forceProduct){
        Without this, the second line of a J Bolt drawing started a second row
        and took its first measurement with it as that row's bolt size. */
     const contProd=(e.d&&e.d.product)||ctx.product||common.product||'';
-    const prevItem=items.length ? items[items.length-1] : null;
+    const prevItem=lastItem();
     if(prevItem && !f.size && f.dims && Object.keys(f.dims).length &&
        (contProd==='lbolt'||contProd==='jbolt') && prevItem.product===contProd){
       Object.entries(f.dims).forEach(([k,v])=>{
@@ -10284,7 +10559,7 @@ function wqaParseText(text,forceProduct){
     const bdv=wqaBodyDiaValue(e);
     if(bdv!=null){
       if(f.size) ctx.size=f.size;              // "M32 body 33mm" states both
-      const prev=items[items.length-1];
+      const prev=lastItem();
       if(prev && !prev.bodyDia) prev.bodyDia=bdv; else ctx.bodyDia=bdv;
       return;
     }
@@ -10310,7 +10585,7 @@ function wqaParseText(text,forceProduct){
          Before any row exists it is the series for the rows that follow. */
       if(e.n && WQA_SERIES_RE.test(' '+e.n+' ')){
         const sv=wqaSeriesValue(e.n);
-        const prevS=items.length ? items[items.length-1] : null;
+        const prevS=lastItem();
         if(prevS && !prevS.series) prevS.series=sv; else if(!ctx.series) ctx.series=sv;
         used=true;
       }
@@ -10321,7 +10596,23 @@ function wqaParseText(text,forceProduct){
       /* "L BOLT" on a line of its own is the product of the rows under it —
          the same grouping a bare material line makes, and what lets one drawing
          hold an L Bolt block above a Sag Rod block. */
-      if(d.product){ ctx.product=d.product; used=true; }
+      if(d.product){
+        /* "Change product" is a person overruling the whole message, so while
+           it is in force a heading inside the message no longer speaks for its
+           rows — it is still READ, it just does not decide anything. */
+        if(!forceProduct){
+          /* Thread arrangement outranks the product word for a heading exactly
+             as it does for the whole message: "SAG ROD ONE END THREAD" is a
+             heading for Anchor Bolts, and the rows under it are Anchor Bolts.
+             Resolved here, once, because from here the heading IS the row's
+             product. */
+          const hp=wqaResolveProduct(d.product,wqaLineEnds(e.n||''))||d.product;
+          /* A product heading closes the section above it. */
+          if(hp!==ctx.product) secFrom=items.length;
+          ctx.product=hp;
+        }
+        used=true;
+      }
       if(d.material){
         ctx.material=d.material; ctx.matFrom=d.materialDefaultedFrom||'';
         ctx.matDefaulted=!!d.materialDefaulted;
@@ -10329,13 +10620,22 @@ function wqaParseText(text,forceProduct){
         sawGroup.material=true; used=true;
       }
       if(d.finish){   ctx.finish=d.finish;     sawGroup.finish=true;   used=true; }
-      if(d.sizeType){ ctx.sizeType=d.sizeType; sawGroup.sizeType=true; used=true; }
+      if(d.sizeType){
+        /* A size type written against NAMED sizes is a note about those sizes,
+           not a heading for everything under it. Left out of the group so the
+           rows it names still reach it through the document reading, and the
+           rows it does not name are left alone. */
+        const scope=wqaSizeScope(e.n||'');
+        if(scope) stScope={st:d.sizeType,sizes:scope};
+        else { ctx.sizeType=d.sizeType; sawGroup.sizeType=true; }
+        used=true;
+      }
       if(f.size){ ctx.size=f.size; used=true; }
       if(f.threadLen!==null){
         /* "TL60/80" written under a row is that row's pair — the same rule as a
            single value, and the reason an independent block below no longer
            inherits it. Only a thread written before any row is shared. */
-        const prevT=(!f.size && items.length) ? items[items.length-1] : null;
+        const prevT=f.size ? null : lastItem();
         if(prevT){
           prevT.TL=f.threadLen2 ? f.threadLen+'/'+f.threadLen2 : f.threadLen;
           prevT._tl=String(prevT.TL).split('/');
@@ -10373,7 +10673,7 @@ function wqaParseText(text,forceProduct){
            list or under it — so it becomes shared context and the end of the
            message hands it to every row that has none. */
         if(f.qty!==null && !f.size && f.threadLen===null && !f.nums.length){
-          const prev=items[items.length-1];
+          const prev=lastItem();
           if(!WQA_ALL_QTY_RE.test(e.t) && prev && (prev.qty==null||prev.qty==='')){
             prev.qty=String(f.qty); prev.conf.qty=WQA_CONF.DETECTED; used=true;
           } else if(!ctx.qty){ ctx.qty=String(f.qty); used=true; }
@@ -10384,7 +10684,7 @@ function wqaParseText(text,forceProduct){
     }
     /* Which product this LINE is, for reading its dimensions: its own word,
        then the group it sits under, then the document. */
-    const lineProd=(e.d&&e.d.product)||ctx.product||common.product||'';
+    const lineProd=forceProduct||(e.d&&e.d.product)||ctx.product||common.product||'';
     /* The line's fields were read before the group was known, so an L Bolt or
        J Bolt block re-reads its rows with that product's vocabulary. */
     const lf=((lineProd==='lbolt'||lineProd==='jbolt') && !f.dims)
@@ -10420,9 +10720,31 @@ function wqaParseText(text,forceProduct){
        the document reading of it. */
     const d=e.d||{};
     const pick=(k)=> d[k] || ctx[k] || (sawGroup[k] ? '' : (common[k]||''));
+    /* ── The section this row is in ───────────────────────────────────────
+       A numbered heading — "3) ANCHOR BOLT" — is the product of the rows under
+       it. Without this the row arrived at the normaliser with no product of its
+       own, and in a mixed document there is no document-wide product to fall
+       back on: the rows came out unclassified AND lost their thread, because a
+       thread on a row that does not know what it is cannot be placed at an end.
+       A row that names its own product still wins; nothing here overwrites one. */
+    if(!r.item.product && readProd) r.item.product=readProd;
+    /* An L or J Bolt whose size was stated on its own line above it — "M16"
+       over "overall length 480" — takes that size. wqaBoltItem reads only its
+       own line, so the inheritance the rod path gets in wqaResolveLine has to
+       be applied here for the bent products too. */
+    if(!r.item.M && ctx.size) r.item.M=ctx.size;
+    /* Scoped only where the row itself and its group are silent: a size type
+       this row or its block stated is that row's own answer and outranks any
+       note written above it. */
+    const stPick=(()=>{
+      const v=pick('sizeType');
+      if(!v || d.sizeType || ctx.sizeType || !stScope || stScope.st!==v) return v;
+      const m=String(r.item.M||'').trim().toUpperCase();
+      return (m && stScope.sizes.indexOf(m)<0) ? '' : v;
+    })();
     items.push({...r.item, raw:e.t, specResolved:true,
                 materialValue:pick('material'), finishValue:pick('finish'),
-                sizeTypeValue:pick('sizeType'),
+                sizeTypeValue:stPick,
                 matFrom: d.material ? (d.materialDefaultedFrom||'') : (ctx.material?ctx.matFrom:common.materialDefaultedFrom||''),
                 matDefaulted: d.material ? !!d.materialDefaulted
                             : (ctx.material ? ctx.matDefaulted : !!common.materialDefaulted)});
@@ -10816,8 +11138,16 @@ function wqaNormalizeExtraction(d, opts){
        nothing is chosen: the row keeps the word the customer used, says the
        two disagree, and cannot be added until a person settles it. */
     /* The evidence may be on the row ("thread one end 100") or stated once for
-       the whole message ("one end thread stud bolts"); both contradict a Stud. */
-    const docEnds=(d.threadEnds===1||d.threadEnds===2) ? d.threadEnds : null;
+       the whole message ("one end thread stud bolts"); both contradict a Stud.
+
+       The whole-message reading counts only while the whole message is about
+       ONE product. A five-part enquiry that says "both end" under its Sag Rod
+       heading has said nothing about the Studs three headings later, and
+       holding it against them flagged every one of them as contradicting
+       itself. Where the document names no single product, a row is judged on
+       what its own section stated. */
+    const mixedDoc=!prod && !!it.product;
+    const docEnds=(!mixedDoc && (d.threadEnds===1||d.threadEnds===2)) ? d.threadEnds : null;
     const seenEnds=rowEnds||docEnds;
     const sawThread=(seenEnds===1||seenEnds===2) ||
                     (it.TL!=null && it.TL!=='' && String(it.TL)!=='0') ||
@@ -11136,8 +11466,10 @@ function wqaResetState(){
   /* Both source states, and which of them the Review is showing. */
   wqa.textSource=''; wqa.fileSource=null; wqa.srcKind='text';
   wqa.commonItem=wqaEmptyItem();
+  /* A queued correction belongs to the message it was queued for. */
+  wqa.commonFix=wqaEmptyFix();
   wqa.commonAcc=wqaEmptyAcc(); wqa.commonPrice=wqaEmptyPrice();
-  wqa.panels={source:false,item:false,price:false,acc:false}; wqa.view='compact';
+  wqa.panels={source:false,fix:false,item:false,price:false,acc:false}; wqa.view='compact';
   wqa.applyScope='all';
   wqa.skipped=[]; wqa.busy=false;
 
@@ -11230,6 +11562,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   wqa.panels.source=wqaSourceOpenDefault();
   wqaRenderSource(true);
   wqaRenderCommon();
+  wqaRenderCommonFix(true);
   wqaRenderAiBadge();
   /* Opened by default when anything is actually missing — on a shorthand photo
      that is every row, and this panel is the one-action fix. */
@@ -11613,6 +11946,12 @@ function wqaRowMissing(r){
      typo on the customer's order or a misread digit on a photograph; either way
      it has no diameter, so it has no weight, so it must not reach a price. */
   else if(!isKnownSize(r.size))miss.push('Valid Size');
+  /* Read, recognised — and no diameter AS ASKED FOR. There is no undersize M24,
+     so an undersized M24 rod cannot be weighed and must not be priced. Skipped
+     while the size type itself is still an open question, because THAT is the
+     question and a row should only ever be asked one thing at a time. */
+  else if(r.noDia && !(prod.needSizeType && dcProductHasSizeType(t) && !wqaRowSpec(r,'sizeType')))
+                               miss.push('Valid Size');
   /* Each product asks for its own dimensions, by name: an L Bolt wants L and
      W, a J Bolt wants H, ID and S, and nothing is invented for the ones it
      does not have. */
@@ -11736,9 +12075,17 @@ async function wqaRecomputeAll(mode){
     /* No recognised size, no diameter, no weight — and therefore no price. The
        calculator is not even asked: a weight of zero with an Additional Cost on
        top still produces a number, and a number is what a person would trust. */
-    if(!isKnownSize(r.size)){ r.calc=null; return; }
+    if(!isKnownSize(r.size)){ r.calc=null; r.noDia=false; return; }
     switchType(t);
     wqaApplyRowToForm(r);
+    /* And then the question the calculator actually answers: is there a
+       diameter for this size AT this size type? M24 is a size we stock and
+       there is no undersize M24 — the form comes back with an empty diameter,
+       the weight is zero, and the price would be the Additional Cost standing
+       on its own. Read from the form so this is the SAME rule the calculator
+       used, custom Diameter Settings rules included. */
+    r.noDia = !(fn(t,'diameter') > 0);
+    if(r.noDia){ r.calc=null; return; }
     r.calc=wqaReadFormPricing(t);
   });
   wqaLiveProducts().forEach(t=>resetAccPanel(t));
