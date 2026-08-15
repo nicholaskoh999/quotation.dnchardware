@@ -3935,6 +3935,7 @@ const I18N={
     cancel:'Cancel', nItems:'{n} items', needAttention:'{n} need attention',
     needs:'Needs {f}', fieldProduct:'Product', fieldSize:'Size', fieldLength:'Length',
     fieldSizeType:'Size Type', fieldThread:'Thread', fieldPrice:'Price',
+    fieldValidSize:'Valid Size', wqaUnknownSize:'Size not in Diameter Settings — no weight is calculated',
     fieldMaterial:'Material', optRequired:'— required —', optNone:'— none —', wqaMixed:'Mixed',
     materialRequired:'Material was not stated in the message, so it is not guessed. Choose the material to price these items.',
     badgeNoThread:'No thread', badgeParseWarning:'Parse warning', badgeCheck:'Check {f}',
@@ -4137,6 +4138,7 @@ const I18N={
     cancel:'取消', nItems:'{n} 项', needAttention:'{n} 项需检查',
     needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'长度',
     fieldSizeType:'尺寸类型', fieldThread:'牙长', fieldPrice:'价格',
+    fieldValidSize:'有效尺寸', wqaUnknownSize:'此尺寸不在直径设定中 — 不计算重量',
     fieldMaterial:'材料', optRequired:'— 必填 —', optNone:'— 无 —', wqaMixed:'多种',
     materialRequired:'信息中未说明材料，系统不会猜测。请选择材料以计算价格。',
     badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
@@ -5028,11 +5030,36 @@ function onPriceModeChange(type){
   if(type===currentType) recalcCurrent();
   scheduleDraftAutosave();
 }
+/* ── Reading a size, and approving one ──────────────────────────────────────
+   Two different jobs, deliberately separated. Normalising says what the person
+   WROTE — 22, m22, M 22 and 22mm are all M22, and 23 is M23 whether or not we
+   stock it. Validating says whether we recognise it. A parser that quietly
+   turned an unrecognised M23 back into the raw string, or into the nearest size
+   it did know, would be answering a question nobody asked. */
 function normalizeSizeValue(raw){
   const v=String(raw||'').trim().toUpperCase();
-  if(!v)return '';
-  if(/^\d+$/.test(v)){const m='M'+parseInt(v,10);return DIA_FULLSIZE[m]!==undefined?m:v}
+  if(!v) return '';
+  /* A bare number in a SIZE box is a metric nominal size. Applied only here —
+     Length, TL, ID, S and W are plain millimetres and never gain an M. */
+  let m=v.match(/^M?\s*(\d+(?:\.\d+)?)\s*(?:MM)?$/);
+  if(m) return 'M'+String(Number(m[1])).replace(/\.0$/,'');
   return v;
+}
+/* Is this a size the quotation can actually be built from? Metric sizes come
+   from the diameter table; an imperial size is valid when the inch reader can
+   turn it into millimetres. Everything else is a size we have READ but do not
+   recognise: it is kept exactly as written, shown to a person, and never
+   weighed. */
+function isKnownSize(size){
+  const s=String(size||'').trim();
+  if(!s) return false;
+  if(DIA_FULLSIZE[s]!==undefined || DIA_UNDERSIZE[s]!==undefined) return true;
+  if(DIA_UNDERSIZE_INCH[s]!==undefined) return true;
+  const up=s.toUpperCase();
+  if(DIA_FULLSIZE[up]!==undefined || DIA_UNDERSIZE[up]!==undefined) return true;
+  /* An inch notation the imperial reader understands — 3/4, 1-1/4", 7/8". */
+  if(/[\/"']/.test(s) && wqaImperialDia(s)) return true;
+  return false;
 }
 function getNominalDiameter(size){
   if(DIA_FULLSIZE[size]!==undefined) return DIA_FULLSIZE[size];
@@ -8986,6 +9013,8 @@ function wqaRowBadges(r){
   wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',
     dcT('field'+m.replace(/\s/g,''),m)),k:'req'}));
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
+  if(String(r.size).trim() && !isKnownSize(r.size))
+    out.push({t:String(r.size)+': '+dcT('wqaUnknownSize'),k:'warn',w:1});
   if(r.productConflict) out.push({t:dcT('wqaConflictWhy').replace('{p}',r.productConflict.said)
                                         .replace('{g}',r.productConflict.saw),k:'warn',w:1});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
@@ -9221,6 +9250,9 @@ function wqaInchMm(t){ return String(Math.round(t.inches*WQA_IN_MM*1000)/1000); 
    Both the "ID70" and the "70 ID" forms are written by customers, so both are
    read. A radius — R25, "bend radius 25" — is kept as evidence and is not a
    quotation dimension: it never becomes ID, S, H or W. */
+/* The words that mark an inch measurement as a DIMENSION rather than as the
+   bolt's nominal size. DIA is deliberately absent: DIA marks the size. */
+const WQA_INCH_DIM_AFTER=/^\s*(?:i\.?d\.?|o\.?d\.?|tl|thd|thread|bend|hook|long|lg|[lwhsr])\b/i;
 const WQA_DIM_WORDS={
   L:  'overall\\s*length|long\\s*leg|main\\s*length|long\\s*length|length|l',
   W:  'bend\\s*width|short\\s*leg|short\\s*length|bend|width|hook\\s*length|hook|leg|w|b',
@@ -9316,22 +9348,41 @@ function wqaExtractFields(rawLine,opts){
 
   /* Inch tokens are read and REMOVED before anything else looks at the line, so
      the fraction in 3/4" can never be mistaken for a 3/4 thread pair. */
+  /* A pitch is taken out before any dimension reader sees it: "M12 x 1.75P" is
+     a size and a pitch, and the 1.75 is neither a length nor a thread nor an
+     inside diameter. */
+  f.pitch=wqaPitchValue(s);
+  if(f.pitch!==null) s=s.replace(WQA_PITCH_RE,' ');
+  f.series=wqaSeriesValue(s);
   const inch=wqaInchScan(s);
   let inchNums=null;
   if(inch.length){
-    for(let k=inch.length-1;k>=0;k--) s=s.slice(0,inch[k].index)+' '+s.slice(inch[k].index+inch[k].len);
-    s=s.replace(/\s+/g,' ').trim();
     const threadLine=WQA_THREAD_WORD_RE.test(wqaNorm(rawLine));
     if(threadLine && inch.length<=2){
+      for(let k=inch.length-1;k>=0;k--) s=s.slice(0,inch[k].index)+' '+s.slice(inch[k].index+inch[k].len);
       /* "TL 3/4\" / 1\"" — both ends, in inches, in the order written. */
       f.threadLen=wqaInchMm(inch[0]);
       if(inch.length>1) f.threadLen2=wqaInchMm(inch[1]);
       inchNums=[];
     } else {
-      /* First is the nominal size and keeps its notation; the rest measure. */
-      f.size=wqaInchSize(inch[0]);
-      inchNums=inch.slice(1).map(wqaInchMm);
+      /* The first inch token is the nominal size — UNLESS the word beside it
+         says it is a dimension. A one-inch bolt is written DIA; an inside
+         diameter of three inches is written ID, on a bolt whose size was stated
+         a line earlier. Reading the second as a size is how one J Bolt became
+         two rows, the second of them an invented M3. */
+      const sizeFirst=!WQA_INCH_DIM_AFTER.test(s.slice(inch[0].index+inch[0].len));
+      /* Measurements are written BACK where they stood, in millimetres, because
+         the word beside them is what says which dimension they are. Deleting
+         them first is what left BEND with nothing to attach to. */
+      for(let k=inch.length-1;k>=(sizeFirst?1:0);k--)
+        s=s.slice(0,inch[k].index)+' '+wqaInchMm(inch[k])+'mm '+s.slice(inch[k].index+inch[k].len);
+      if(sizeFirst){
+        f.size=wqaInchSize(inch[0]);
+        s=s.slice(0,inch[0].index)+' '+s.slice(inch[0].index+inch[0].len);
+      }
+      inchNums=[];                     // they are in the line now, in order
     }
+    s=s.replace(/\s+/g,' ').trim();
   }
 
   /* qty — an explicit marker wins wherever it sits on the line */
@@ -9429,6 +9480,8 @@ function wqaBoltItem(f,type){
               conf:{}, issues:[], defaulted:{}};
   if(f.threadLen!==null) item.TL=f.threadLen2 ? f.threadLen+'/'+f.threadLen2 : f.threadLen;
   if(f.bodyDia!=null) item.bodyDia=f.bodyDia;
+  if(f.pitch) item.pitch=f.pitch;
+  if(f.series) item.series=f.series;
   wqaPlaceProductDims(item,f,type);
   ['M','L','W','H','ID','S','TL','qty'].forEach(k=>{ if(item[k]) item.conf[k==='M'?'size':k]=WQA_CONF.DETECTED; });
   return item;
@@ -9569,7 +9622,29 @@ function wqaParseLine(rawLine,productType,ctx){
 }
 
 /* True when a line carries nothing we recognise — greetings, thanks, notes. */
+/* ── Thread series and pitch ────────────────────────────────────────────────
+   UNC, UNF and BSW name a thread SERIES; "M12 x 1.75P" names a pitch. The
+   quotation schema has a field for neither, so neither is turned into one — a
+   pitch that became a length or an ID would be a quotation-sized mistake. They
+   are read so the line is not counted as unread noise, kept beside the row as
+   evidence the way a body diameter and a bend radius are, and shown in Review.
+   Nothing downstream prices from them. */
+const WQA_SERIES_RE=/\b(unc|unf|unef|bsw|bsf|bspt?|npt)\b/i;
+/* "1.75P", "P1.75", "pitch 1.75" — a pitch always carries its own marker. A
+   bare second number never becomes one: "M12 x 280" is a length. */
+const WQA_PITCH_RE=/\b(?:p\s*[:=]?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*p|pitch\s*[:=]?\s*(\d+(?:\.\d+)?))\b/i;
+function wqaPitchValue(s){
+  const m=WQA_PITCH_RE.exec(String(s||''));
+  if(!m) return null;
+  const v=m[1]!==undefined?m[1]:(m[2]!==undefined?m[2]:m[3]);
+  const n=Number(v);
+  /* A thread pitch is a fraction of a millimetre to a few millimetres. Anything
+     else wearing a P is not a pitch and is left alone. */
+  return (isFinite(n) && n>0 && n<=12) ? String(n) : null;
+}
+function wqaSeriesValue(s){ const m=WQA_SERIES_RE.exec(String(s||'')); return m?m[1].toUpperCase():''; }
 function wqaLineHasSignal(line,common){
+  if(WQA_SERIES_RE.test(' '+wqaNorm(line)+' ')) return true;
   const n=' '+wqaNorm(line).toLowerCase()+' ';
   if(/\d/.test(n)) return true;
   if(WQA_PRODUCTS.some(p=>p.aliases.some(a=>n.includes(a)))) return true;
@@ -10075,7 +10150,7 @@ function wqaParseText(text,forceProduct){
      ROW never writes back into it — a value stated on a row applies to that row
      only, and the shared context carries on unchanged for the rows after it. */
   const ctx={size:'',threadLen:'',threadLen2:'',tlCount:0,length:'',qty:'',center:'',
-             sizeList:null, bodyDia:'', product:'',
+             sizeList:null, bodyDia:'', product:'', series:'',
              material:'',finish:'',sizeType:'',matFrom:'',matDefaulted:false};
   /* Once a line has stated a material, finish or size type for a GROUP, the
      document-wide reading of that field stops being a fallback — it was only
@@ -10152,6 +10227,14 @@ function wqaParseText(text,forceProduct){
     /* Read and understood — it just does not produce a row, and does not put a
        diameter into the context either. */
     if(e.sizeList){ ctx.sizeList=e.sizeList; return; }
+    /* "UNC" on a line of its own is the thread series of the item above it —
+       read, attached, and no longer reported as something we could not read. */
+    if(e.noise && WQA_SERIES_RE.test(' '+(e.n||'')+' ')){
+      const prevS=items.length ? items[items.length-1] : null;
+      if(prevS && !prevS.series) prevS.series=wqaSeriesValue(e.n);
+      else if(!ctx.series) ctx.series=wqaSeriesValue(e.n);
+      return;
+    }
     if(e.noise){ skipped.push(e.t); if(counts) unread++; return; }
     if(!common.product && !selfProduct){ if(counts) unread++; return; }
 
@@ -10169,6 +10252,28 @@ function wqaParseText(text,forceProduct){
       else {
         wqaCtxAddThread(ctx,v,common.product);
         if(ends) ctxEnds=ends;
+      }
+      return;
+    }
+    /* ── Continuation, not a new item ─────────────────────────────────────
+       A line whose every number is bound to a label of the ACTIVE product's own
+       schema, and which states no nominal size, is more of the item above it.
+       A number at the start of a line is not evidence of a new item; a size is.
+       Without this, the second line of a J Bolt drawing started a second row
+       and took its first measurement with it as that row's bolt size. */
+    const contProd=(e.d&&e.d.product)||ctx.product||common.product||'';
+    const prevItem=items.length ? items[items.length-1] : null;
+    if(prevItem && !f.size && f.dims && Object.keys(f.dims).length &&
+       (contProd==='lbolt'||contProd==='jbolt') && prevItem.product===contProd){
+      Object.entries(f.dims).forEach(([k,v])=>{
+        if(prevItem[k]==null || prevItem[k]===''){ prevItem[k]=v; prevItem.conf[k]=WQA_CONF.DETECTED; }
+      });
+      if(f.threadLen!==null && !prevItem.TL){
+        prevItem.TL = f.threadLen2 ? f.threadLen+'/'+f.threadLen2 : f.threadLen;
+        prevItem.conf.TL=WQA_CONF.DETECTED;
+      }
+      if(f.qty!=null && (prevItem.qty==null||prevItem.qty==='')){
+        prevItem.qty=String(f.qty); prevItem.conf.qty=WQA_CONF.DETECTED;
       }
       return;
     }
@@ -10200,6 +10305,15 @@ function wqaParseText(text,forceProduct){
       /* No length and no qty: this is context, not an item. It may still carry
          a diameter and a thread for the rows below it. */
       let used=false;
+      /* "UNC" on a line of its own is the thread series of the item above it —
+         read and attached rather than reported as something we could not read.
+         Before any row exists it is the series for the rows that follow. */
+      if(e.n && WQA_SERIES_RE.test(' '+e.n+' ')){
+        const sv=wqaSeriesValue(e.n);
+        const prevS=items.length ? items[items.length-1] : null;
+        if(prevS && !prevS.series) prevS.series=sv; else if(!ctx.series) ctx.series=sv;
+        used=true;
+      }
       /* A bare material line opens a new block: "SS304" under a finished group
          means these rows are stainless AND that the finish above it was for the
          rows above it. Whatever else the same line states is applied after. */
@@ -10298,6 +10412,9 @@ function wqaParseText(text,forceProduct){
     if(f.fullyThreaded && !useEnds && !lineProd) r.item.product='stud';
     if(f.bodyDia!=null) r.item.bodyDia=f.bodyDia;
     if(!r.item.bodyDia && ctx.bodyDia) r.item.bodyDia=ctx.bodyDia;
+    if(f.pitch)  r.item.pitch=f.pitch;
+    if(f.series) r.item.series=f.series;
+    else if(ctx.series) r.item.series=ctx.series;
     /* Row explicit > group > document > null, decided HERE, while the group in
        force is still known. A field some group has claimed never falls back to
        the document reading of it. */
@@ -10776,6 +10893,11 @@ function wqaNormalizeExtraction(d, opts){
                /* Evidence only, and never a quotation field: a bend radius is
                   not an inside diameter and not a return height. */
                radius:(it.R==null||it.R==='')?'':String(it.R),
+               /* Read from the customer, priced from by nothing: the schema has
+                  no pitch and no thread-series field, and inventing one from
+                  these would be worse than showing them as what they are. */
+               pitch:(it.pitch==null||it.pitch==='')?'':String(it.pitch),
+               series:(it.series==null||it.series==='')?'':String(it.series),
                length:(it.L==null||it.L==='')?'':String(it.L),
                w:(it.W==null||it.W==='')?'':String(it.W),
                h:(it.H==null||it.H==='')?'':String(it.H),
@@ -11487,6 +11609,10 @@ function wqaRowMissing(r){
   const miss=[];
   if(!t)                       miss.push('Product');
   if(!String(r.size).trim())   miss.push('Size');
+  /* Read, kept, shown — and not accepted. A size we do not recognise may be a
+     typo on the customer's order or a misread digit on a photograph; either way
+     it has no diameter, so it has no weight, so it must not reach a price. */
+  else if(!isKnownSize(r.size))miss.push('Valid Size');
   /* Each product asks for its own dimensions, by name: an L Bolt wants L and
      W, a J Bolt wants H, ID and S, and nothing is invented for the ones it
      does not have. */
@@ -11607,6 +11733,10 @@ async function wqaRecomputeAll(mode){
     if(r.removed) return;
     const t=wqaRowProduct(r);
     if(!t){ r.calc=null; return; }               // still asking which product
+    /* No recognised size, no diameter, no weight — and therefore no price. The
+       calculator is not even asked: a weight of zero with an Additional Cost on
+       top still produces a number, and a number is what a person would trust. */
+    if(!isKnownSize(r.size)){ r.calc=null; return; }
     switchType(t);
     wqaApplyRowToForm(r);
     r.calc=wqaReadFormPricing(t);
@@ -11741,7 +11871,12 @@ function wqaRenderRows(force){
 }
 function fmtDateShort(d){ return formatPrintDate(d); }
 
-function wqaEdit(i,k,v){ wqa.rows[i][k]=v;
+function wqaEdit(i,k,v){
+  /* A size typed by hand is normalised as it is typed — 22, m22, M 22 and 22mm
+     are all M22 — so the row is validated and weighed against what the person
+     meant, not against the keystrokes. Only the SIZE box: Length, TL, ID, S and
+     W are plain millimetres and never gain an M. */
+  wqa.rows[i][k] = (k==='size') ? normalizeSizeValue(v) : v;
   wqa.rows[i].issues=wqa.rows[i].issues.filter(x=>x!==k);
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250); }
 function wqaEditPrice(i,k,v){ wqa.rows[i].priceOverride[k]=v;
