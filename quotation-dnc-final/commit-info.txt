@@ -16,8 +16,11 @@ MINI-DELTA BASELINE (pass 3)
 LIVE-ACCEPTANCE BASELINE (pass 4)
   f250426346c1a256350fca2b12c54f1f5de034b4
 
-DEPLOY COMMIT  <-- deploy this one
+QUICK ADD HISTORY BASELINE (pass 5)
   8c43da75e2110772ad9a4d7d744c9491c0181c5e
+
+DEPLOY COMMIT  <-- deploy this one
+  5c2c78cbc3cdf61a776f8786c50d5300f7077262
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -70,14 +73,16 @@ COMMITS ON THIS BRANCH
   f250426  A bolt's price is the bolt's
   7c87951  Audit package: stamp the commit to deploy
   8c43da7  The drawing's own words, and whose dimension is whose
+  17550f1  Audit package: stamp the commit to deploy
+  5c2c78c  This row's history, on this row
 
-REGRESSION AT 8c43da7
-  15 browser suites          952 assertions   0 failed
+REGRESSION AT 5c2c78c
+  16 browser suites         1029 assertions   0 failed
   ai_extract (PHP)            64 assertions   0 failed
   pricing history (PHP)       72 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     1150 assertions   0 failed
+  TOTAL                     1227 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the one check I cannot perform
