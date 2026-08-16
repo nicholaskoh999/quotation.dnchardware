@@ -1711,6 +1711,16 @@ input,select,textarea{
 .wqa-flag-req{background:var(--amber-light);color:var(--amber);border-color:var(--amber-mid)}
 .wqa-req{color:var(--red)}
 .wqa-needed{border-color:var(--amber-mid)!important;background:var(--amber-light)}
+/* Partial extraction. Deliberately not a pill: the rows below it look complete,
+   and only the size of this banner says otherwise. */
+.wqa-partial{margin:0 0 12px;padding:12px 14px;border:2px solid var(--amber);
+  border-left-width:5px;border-radius:var(--r-xs);background:var(--amber-light)}
+.wqa-partial-title{display:block;font-size:12.5px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:5px}
+.wqa-partial-body{margin:0;font-size:12.5px;font-weight:600;line-height:1.55;color:var(--text-2)}
+.wqa-partial-ack{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding-top:9px;
+  border-top:1px solid var(--amber-mid);font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer}
+.wqa-partial-ack input{width:16px;height:16px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--amber);cursor:pointer}
 .wqa-hist{margin-top:9px;padding:9px 10px;border-radius:var(--r-xs);font-size:12px;line-height:1.45;
   background:var(--surface2);border:1px solid var(--border);color:var(--text-muted)}
 .wqa-hist-exact{background:var(--green-light);border-color:var(--green)}
@@ -3507,6 +3517,9 @@ input,select,textarea{
     <!-- STEP 2/3 — review + confirm -->
     <div id="wqaStep2" hidden>
       <div class="wqa-scroll">
+      <!-- An analysis that stopped early says so before anything else on the
+           screen, because a short list looks exactly like a complete one. -->
+      <div class="wqa-partial" id="wqaPartial" hidden></div>
       <!-- The customer's own words, above everything derived from them. -->
       <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
       <div class="wqa-common" id="wqaCommon"></div>
@@ -3979,7 +3992,10 @@ const I18N={
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
     wqaNoteUsed:'Your additional info was applied to {n} item(s) — it overrides the document.',
     wqaNoteUnused:'Part of your additional info was not applied: it names no product and the document has more than one item. Write the product first, e.g. "L BOLT TL 100".',
-    wqaTruncated:'The analysis was cut off before the end of the document — the rows below are correct, but there may be more of them. Check against the original, and upload the rest separately if any are missing.',
+    wqaPartialTitle:'Partial extraction',
+    wqaPartialBody:'The analysis stopped before the end of the document. Only {n} item(s) were recovered — they are correct, but the source may contain more. Check them against the original, and re-analyse or add the rest separately before this quotation goes out.',
+    wqaPartialAck:'I have checked the source. These {n} item(s) are the ones to add.',
+    wqaPartialBlocked:'Confirm the partial extraction first',
     wqaConflictBadge:'Conflicting product',
     wqaConflictWhy:'Conflicting product: "{p}" wording vs {g} geometry — choose the product',
     wqaSpecCol:'Spec',
@@ -4037,6 +4053,7 @@ const I18N={
     wqaDropNoFile:'That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.',
     wqaToastEnterSizeThread:'Enter a Size or a Thread first', wqaToastNoItems:'There are no items to apply to',
     wqaToastPriceApplied:'Pricing entry applied to all items',
+    wqaProductKept:'Product changed on {n} item(s). Your corrections were kept — the message was not re-read.',
     phCheckFailed:'Could not check previous prices — this is not the same as there being none. Check the connection, or sign in again, and try once more.',
     wqaStCompany:'Size Type: company default',
     wqaStConfigured:'Size Type: from Diameter Settings',
@@ -4199,7 +4216,10 @@ const I18N={
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
     wqaNoteUsed:'补充资料已套用到 {n} 个项目 — 以补充资料为准。',
     wqaNoteUnused:'部分补充资料未被套用：未指明产品，而文件有多个项目。请先写产品，例如「L BOLT TL 100」。',
-    wqaTruncated:'分析在文件结束前被截断 —— 以下各行是正确的，但可能还有更多。请与原件核对，若有遗漏请另行上传其余部分。',
+    wqaPartialTitle:'部分提取',
+    wqaPartialBody:'分析在文件结束前中断。仅提取到 {n} 个项目 —— 这些是正确的，但原件可能还有更多。请与原件核对，报价发出前请重新分析或另行补上其余项目。',
+    wqaPartialAck:'我已核对原件，确认要加入这 {n} 个项目。',
+    wqaPartialBlocked:'请先确认部分提取的结果',
     wqaConflictBadge:'产品矛盾',
     wqaConflictWhy:'产品矛盾：文字写「{p}」，但图形显示{g} — 请选择产品',
     wqaSpecCol:'规格',
@@ -4257,6 +4277,7 @@ const I18N={
     wqaDropNoFile:'拖进来的不是文件。请拖入 JPG、PNG、WEBP 或 PDF。',
     wqaToastEnterSizeThread:'请先填写尺寸或牙长', wqaToastNoItems:'没有可应用的项目',
     wqaToastPriceApplied:'价格设置已应用到全部项目',
+    wqaProductKept:'已更改 {n} 个项目的产品。您的修改已保留 —— 未重新解析原文。',
     phCheckFailed:'无法查询过往价格 —— 这不等于没有记录。请检查连线或重新登入后再试。',
     wqaStCompany:'尺寸类型：公司预设',
     wqaStConfigured:'尺寸类型：取自直径设置',
@@ -7549,11 +7570,11 @@ function buildWAItemsText(emptyText='-'){
   if(!quoteItems.length) return emptyText;
   const groups=[];
   const groupIndex=new Map();
-  quoteItems.forEach(item=>{
+  quoteItems.forEach((item,itemIndex)=>{
     const title=getWAGroupTitle(item);
     if(!groupIndex.has(title)){
       groupIndex.set(title,groups.length);
-      groups.push({title,rows:[],seen:new Set(),cwLabels:[]});
+      groups.push({title,rows:[],seen:new Map(),cwLabels:[]});
     }
     const group=groups[groupIndex.get(title)];
     // WAS: use abLine as size key; component lines appended after price line
@@ -7571,22 +7592,38 @@ function buildWAItemsText(emptyText='-'){
        message while the total still counted it. */
     const custom=dcCustomDimsLine(item)||'';
     const key=size+'|'+wasComp+'|'+price+'|'+cw+'|'+custom;
-    if(group.seen.has(key)) return;
-    group.seen.add(key);
-    group.rows.push({size,price,cw,wasComp,wasItem,custom});
+    /* ── The number the customer quotes back at us ─────────────────────────
+       The message groups by material and finish, so its rows come out in a
+       different order from the screen and the print sheet, which number by
+       position in the quotation. A customer saying "increase item 2" and the
+       member of staff looking at item 2 were talking about different products.
+
+       So a row carries the quotation item's OWN number, not its position in
+       the message. Where two identical items merge into one line — same size,
+       same price, same accessories, same annotation, so there is nothing to
+       tell them apart on the page — the line carries BOTH numbers rather than
+       silently dropping one: "1, 4." is traceable, and a gap in the numbering
+       is not. */
+    if(group.seen.has(key)){
+      const existing=group.rows[group.seen.get(key)];
+      if(existing) existing.nos.push(itemIndex+1);
+      return;
+    }
+    group.seen.set(key,group.rows.length);
+    group.rows.push({size,price,cw,wasComp,wasItem,custom,nos:[itemIndex+1]});
     group.cwLabels.push(cw);
   });
-  let rowNo=1;
   return groups.map(group=>{
     const cwSet=new Set(group.cwLabels.filter(Boolean));
     const allRowsHaveSameCw=group.rows.length>0 && group.rows.every(row=>row.cw) && cwSet.size===1;
     const rows=group.rows.map(row=>{
+      const no=row.nos.join(', ');
       if(row.wasItem){
         const compPart=row.wasComp?'\n'+row.wasComp:'';
         const cwPart=row.cw?'\n   '+row.cw:'';
-        return `${rowNo++}. ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
+        return `${no}. ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
       }
-      const line=`${rowNo++}. ${row.size} - ${row.price}`;
+      const line=`${no}. ${row.size} - ${row.price}`;
       /* The print sheet carries the annotation on its own line; without it here
          two rods that differ only by it read as the same rod written twice. */
       const customPart=row.custom?'\n   '+row.custom:'';
@@ -8644,7 +8681,10 @@ const WQA_FINISHES=[
 const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPrice:null,
            commonFix:null,
            panels:{fix:false,item:false,price:false,acc:false},applyScope:'all',
-           view:'compact',rows:[],busy:false};
+           view:'compact',rows:[],busy:false,
+           /* The extraction stopped early, and whether somebody has said out
+              loud that they checked the source anyway. */
+           truncated:false,truncAck:false};
 /* Both common sections start COLLAPSED at every width, so the parsed items are
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
@@ -9667,6 +9707,7 @@ function wqaSetView(v){
 /* Thread is ONE user-facing field. Both ends live behind it as threadLen and
    threadLen2, written and read as "50/110". */
 function wqaEditThread(i,v){
+  wqaMarkEdited(wqa.rows[i],'threadLen');
   if(wqa.rows[i]) wqaDropNoteCredit(wqa.rows[i],'threadLen');
   const r=wqa.rows[i]; if(!r) return;
   const m=wqaSplitThread(v);
@@ -9814,16 +9855,45 @@ function wqaRowBadges(r){
 function wqaBadgeHtml(r){
   return wqaRowBadges(r).map(b=>`<span class="wqa-pill wqa-pill-${b.k}${b.w?' wqa-pill-why':''}">${escHtml(b.t)}</span>`).join('');
 }
+/* ── Partial extraction ─────────────────────────────────────────────────────
+   Said in a banner at the top of Review, with the number of rows that actually
+   arrived, because the danger is not that the rows are wrong — they are right —
+   but that a list of 12 from a document of 30 looks exactly like a list of 12
+   from a document of 12. Redrawn only when the count changes, so a click on the
+   checkbox is not answered by rewriting the checkbox under the pointer. */
+function wqaRenderPartial(){
+  const box=el('wqaPartial'); if(!box) return;
+  if(!wqa.truncated){ box.hidden=true; box.innerHTML=''; box.dataset.n=''; return; }
+  const n=wqa.rows.filter(r=>!r.removed).length;
+  box.hidden=false;
+  if(box.dataset.n===String(n)){
+    const cb=box.querySelector('input'); if(cb) cb.checked=!!wqa.truncAck;
+    return;
+  }
+  box.dataset.n=String(n);
+  box.innerHTML=`<span class="wqa-partial-title">${escHtml(dcT('wqaPartialTitle'))}</span>
+    <p class="wqa-partial-body">${escHtml(dcT('wqaPartialBody').replace('{n}',n))}</p>
+    <label class="wqa-partial-ack"><input type="checkbox" id="wqaPartialAckBox"${wqa.truncAck?' checked':''}
+      onchange="wqaAckPartial(this.checked)"><span>${escHtml(dcT('wqaPartialAck').replace('{n}',n))}</span></label>`;
+}
+/* Deliberate, and revocable: unticking it disables Add again. */
+function wqaAckPartial(on){ wqa.truncAck=!!on; wqaUpdateAddButton(); }
 function wqaUpdateAddButton(){
   const live=wqa.rows.filter(r=>!r.removed);
   const blocked=live.filter(wqaRowBlocked).length;
   const btn=el('wqaAddBtn'); if(!btn) return;
+  wqaRenderPartial();
+  /* A known-incomplete extraction is not a successful one. The rows stay, the
+     screen says why, and Add waits for an explicit acknowledgement. */
+  const needAck = !!(wqa.truncated && !wqa.truncAck);
   el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',live.length);
-  btn.disabled = live.length===0 || blocked>0;
+  btn.disabled = live.length===0 || blocked>0 || needAck;
   btn.textContent = live.length? dcT('wqaAddNItems').replace('{n}',live.length) : dcT('wqaAddItems');
   const ft=el('wqaFootTotal'), fn=el('wqaFootNeed');
   if(ft) ft.textContent=dcT('nItems').replace('{n}',live.length);
-  if(fn){ fn.textContent=blocked?dcT('needAttention').replace('{n}',blocked):''; fn.hidden=!blocked; }
+  if(fn){ const why = blocked ? dcT('needAttention').replace('{n}',blocked)
+                    : (needAck ? dcT('wqaPartialBlocked') : '');
+          fn.textContent=why; fn.hidden=!why; }
   /* Keeps the "N incomplete" badge live as rows are edited, without ever
      re-rendering the panel out from under a caret. */
   wqaPatchItemPanel();
@@ -11486,7 +11556,8 @@ function wqaParseText(text,forceProduct){
    source and to nothing else, so every fresh Parse and every fresh Analyze
    throws it away before reading the new one. Leaving it behind is how a
    previous drawing's "5 Nuts + 2 FW" came to sit over an unrelated inquiry. */
-function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null; }
+function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null;
+  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
 /* ── The entry forms are borrowed, not taken ───────────────────────────────
@@ -12027,8 +12098,11 @@ async function wqaAiApply(d, msgTarget, meta){
   /* The answer stopped before the document did. The rows that arrived are
      whole — the one the cut landed in was discarded rather than half-read —
      but the list may be short, and a short list looks exactly like a complete
-     one. So it is said first, above everything else this document produced. */
-  if(meta && meta.truncated) wqa.aiWarnings.unshift(dcT('wqaTruncated'));
+     one. So it is said first, above everything else this document produced,
+     in a banner rather than a pill, and adding the items waits until somebody
+     says they have checked the source. Nothing that WAS recovered is dropped:
+     the rows go to Review exactly as a complete extraction's would. */
+  wqa._truncPending = !!(meta && meta.truncated);
   /* ── Manual wins ────────────────────────────────────────────────────────
      Deterministic, and deliberately AFTER the model has answered: the person
      typing "H 530" has looked at the drawing and decided. No confidence is
@@ -12182,6 +12256,8 @@ function wqaResetState(){
      error all belong to the session and go with it. */
   wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
+  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false;
+  if(el('wqaPartial')){ el('wqaPartial').hidden=true; el('wqaPartial').innerHTML=''; el('wqaPartial').dataset.n=''; }
   wqaClearNote();
   /* A new Quick Add session is never AI-assisted until it earns it again. */
   wqa.aiAssisted=false; wqa.aiRaw='';
@@ -12247,6 +12323,9 @@ document.addEventListener('keydown',e=>{
 async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   wqa.raw=rawText; wqa.product=common.product||'';
   wqa.source=source||'paste';
+  /* Belongs to THESE rows: a second analysis that completed clears the warning
+     the first one raised, and a plain parse never inherits it. */
+  wqa.truncated=!!wqa._truncPending; wqa._truncPending=false; wqa.truncAck=false;
   /* Text unless the caller says otherwise, and the file is captured HERE, from
      the file that produced these very rows — so replacing image A with image B
      replaces what Review names, and a PDF followed by an image leaves no PDF
@@ -12260,7 +12339,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   }
   wqa.common={...common};
   wqa.rows=rows.map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
-                         priceOverride:{},hist:undefined,histOpen:false,removed:false}));
+                         priceOverride:{},hist:undefined,histOpen:false,removed:false,edited:{}}));
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
   wqa.panels.source=wqaSourceOpenDefault();
@@ -12505,33 +12584,61 @@ function wqaRenderCommon(){
 }
 /* Changing the product re-parses the same text under the new product's rules —
    the dimension columns differ between products. */
+/* Has anybody corrected anything on these rows? Re-reading the customer's
+   message under a different product is a better reading of it — until somebody
+   has done work the message does not contain, at which point re-reading it
+   throws that work away. */
+function wqaAnyRowEdited(){
+  return wqa.rows.some(r=>r&&r.edited&&Object.keys(r.edited).length>0);
+}
 function wqaChangeProduct(t){
   /* Mixed is not a choice — it is what the rows already say. */
   if(t===WQA_MIXED){ wqaRenderCommon(); return; }
+  const prev=wqa.product;
   wqa.product=t;
   /* Choosing a product at the top is a deliberate action by staff, so it is
      applied to the rows in scope — exactly like Apply to All for material.
      Nothing automatic ever overwrites a row's own product. */
-  wqaApplyTargets().forEach(r=>{ r.product=t; r.productConflict=null;
+  const targets=wqaApplyTargets();
+  targets.forEach(r=>{ r.product=t; r.productConflict=null; r.unsupported='';
     wqaRowRestoreThread(r,t);
     r.sizeType=dcSizeTypeFor(t,r.sizeType); if(!r.sizeType) r.stDefaulted=false; });
-  wqa.common.sizeType=dcSizeTypeFor(t,wqa.common.sizeType);
-  /* Extracted rows have no source text to re-read — re-parsing "[uploaded]
-     file.png" would throw the rows away. They carry their own fields, so the
-     product change only needs a recompute. */
+  if(wqa.applyScope!=='selected') wqa.common.sizeType=dcSizeTypeFor(t,wqa.common.sizeType);
   /* The required common fields change with the product — a Stud loses its
      Thread box, a Sag Rod gains a paired one — so the panel is rebuilt and its
      open state re-decided every time. */
-  if(wqa.source==='ai'){
-    wqaRenderCommon(); wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
-    wqaRecomputeAll('force'); return;
+  const rebuild=()=>{ wqaRenderCommon(); wqa.panels.item=wqaItemNeedCount()>0;
+                      wqaRenderCommonItem(true); };
+  /* ── When the message may be re-read, and when it may not ────────────────
+     Re-parsing under the new product reads the dimensions in that product's
+     own vocabulary — an L Bolt's short leg, a J Bolt's hook — and that is
+     worth having straight after a parse. It is worth nothing at all once
+     somebody has spent five minutes on the list: it replaces every row, so a
+     corrected material, a retyped length, a manual price and two deleted rows
+     all vanish, silently. And it ignores the scope entirely, rewriting rows
+     nobody ticked.
+
+     So it re-reads only when there is nothing to lose: an untouched list, the
+     whole list in scope, and a pasted source to re-read (an extraction has no
+     transcript — re-parsing "[uploaded] file.png" would leave no rows at all).
+     Otherwise the product is applied to the rows in scope and every other
+     value stays exactly as it is. A field the new product has no use for is
+     not shown and not asked for, and is kept in case the product changes
+     back. */
+  const mayReparse = wqa.source!=='ai' && wqa.applyScope!=='selected'
+                  && !wqaAnyRowEdited() && String(wqa.raw||'').trim()!=='';
+  if(!mayReparse){
+    rebuild();
+    wqaRecomputeAll('force');
+    if(wqaAnyRowEdited() && prev && prev!==t)
+      showToast(dcT('wqaProductKept').replace('{n}',targets.length));
+    return;
   }
   /* Same pipeline as the first parse, so header context and inheritance behave
      identically after a product switch. */
   wqa.rows=wqaParseText(wqa.raw,t).rows
-    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histOpen:false,removed:false}));
-  wqaRenderCommon();
-  wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
+    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histOpen:false,removed:false,edited:{}}));
+  rebuild();
   wqaRecomputeAll();
 }
 /* Choosing at the top is a staff decision, so it writes THROUGH to the rows —
@@ -12574,6 +12681,7 @@ function wqaRowRestoreThread(r,product){
    a fully priced row still carrying "U BOLT — not priced in Quick Add". */
 function wqaEditRowProduct(i,v){
   const r=wqa.rows[i]; if(!r) return;
+  wqaMarkEdited(r,'product');
   r.product=v;
   /* Choosing the product by hand is the answer the conflict was waiting for —
      and the answer to "the drawing showed something we cannot price" too. */
@@ -12659,6 +12767,7 @@ function wqaEditRowSpec(i,k,v){
   if(k==='sizeType' && !dcProductHasSizeType(wqaRowProduct(r))) return;
   /* Choosing a size type by hand also answers "this one is ours". */
   if(k==='sizeType') r.stDefaulted=false;
+  wqaMarkEdited(r,k);
   wqaDropNoteCredit(r,k);
   r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
                               r.finish=wqaFinishFor(v,r.finish); }
@@ -13005,7 +13114,12 @@ function wqaRenderRows(force){
 }
 function fmtDateShort(d){ return formatPrintDate(d); }
 
+/* What a person has corrected on this row, so nothing later throws it away
+   without knowing it is there. Field names, not values: the values are on the
+   row itself. */
+function wqaMarkEdited(r,k){ if(r){ (r.edited||(r.edited={}))[k]=true; } }
 function wqaEdit(i,k,v){
+  wqaMarkEdited(wqa.rows[i],k);
   /* A size typed by hand is normalised as it is typed — 22, m22, M 22 and 22mm
      are all M22 — so the row is validated and weighed against what the person
      meant, not against the keystrokes. Only the SIZE box: Length, TL, ID, S and
@@ -13050,6 +13164,7 @@ function wqaSizeWriteBack(inp,norm){
 }
 function wqaEditSize(i,inp,commit){
   const r=wqa.rows[i]; if(!r||!inp) return;
+  wqaMarkEdited(r,'size');
   const raw=inp.value;
   const norm=normalizeSizeValue(raw);
   r.size=norm;
@@ -13064,9 +13179,9 @@ function wqaEditSize(i,inp,commit){
   if(commit) wqaRecomputeAll('force');
   else       wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250);
 }
-function wqaEditPrice(i,k,v){ wqa.rows[i].priceOverride[k]=v;
+function wqaEditPrice(i,k,v){ wqaMarkEdited(wqa.rows[i],'price'); wqa.rows[i].priceOverride[k]=v;
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250); }
-function wqaRemoveRow(i){ wqa.rows[i].removed=true; wqaRenderRows(true); }
+function wqaRemoveRow(i){ wqaMarkEdited(wqa.rows[i],'removed'); wqa.rows[i].removed=true; wqaRenderRows(true); }
 /* Reusing a historical price is a DECISION, taken by a person, on one record.
    Nothing copies a price on its own: the row prices itself from its own weight
    and rates until somebody presses this, and a price already typed by hand is
@@ -13188,6 +13303,9 @@ async function wqaAddAll(){
   if(wqa.busy) return;
   const live=wqa.rows.filter(r=>!r.removed);
   if(!live.length || live.some(wqaRowBlocked)) return;
+  /* The button is disabled for this, but the function is also reachable from a
+     keyboard shortcut and from a stale click, so the rule lives here too. */
+  if(wqa.truncated && !wqa.truncAck){ wqaRenderPartial(); return; }
   /* Quick Add ADDS. Someone who pressed Edit on item 3 and then went to read a
      customer's message left editingItemIndex pointing at item 3, and the first
      row committed through the real add path took the edit branch of pushItem

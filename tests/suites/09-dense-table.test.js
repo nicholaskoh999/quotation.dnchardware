@@ -82,8 +82,15 @@ module.exports = async (browser, A) => {
   await page.evaluate(async d => { wqaHardClose(); wqaOpen(); await wqaAiApply(d, undefined, { truncated: true }); },
     EXTRACTION);
   await page.waitForTimeout(900);
-  const warned = await page.evaluate(() => (wqa.aiWarnings || []).join(' | '));
-  A.includes(warned, 'cut off', 'a cut-off analysis warns that rows may be missing');
+  const warned = await page.evaluate(() => {
+    const b = document.getElementById('wqaPartial');
+    return { shown: !!b && !b.hidden, text: b ? b.textContent.replace(/\s+/g, ' ').trim() : '',
+             addDisabled: !!(document.getElementById('wqaAddBtn') || {}).disabled };
+  });
+  A.eq(warned.shown, true, 'a cut-off analysis warns that rows may be missing');
+  A.includes(warned.text, 'Only 29 item(s) were recovered',
+    'and says how many of them there were, so a short list cannot pass for a whole one');
+  A.eq(warned.addDisabled, true, 'with Add Items held until somebody acknowledges it');
   A.ok((await rowState(page)).length === 29, 'while still showing every row that did arrive');
 
   // ── a table column outranks the description beside it ───────────────────

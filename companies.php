@@ -1064,7 +1064,7 @@ function renderRecentQuotations(){
   const cardsHtml = recent.map(q=>{
     const items = q.items||[];
     const previewText = items.length
-      ? items.slice(0,1).map(it=>it.desc||it.size||'').join('') + (items.length>1?` +${items.length-1} more`:'')
+      ? items.slice(0,1).map(it=>displayItemDesc(it)||it.size||'').join('') + (items.length>1?` +${items.length-1} more`:'')
       : dcT('msgNoItems');
     return `
       <div class="rq-card">
@@ -1343,7 +1343,7 @@ function renderCpItemHits(hits,term,meta){
     const finish=h.finish?` <span class="ih-finish">${esc(h.finish)}</span>`:'';
     const prev=h.previous_ref_no?`<span class="ih-prev">Formerly ${esc(h.previous_ref_no)}</span>`:'';
     return `<div class="ih-card">
-      <div class="ih-desc">${esc(h.desc||'—')}${finish}</div>
+      <div class="ih-desc">${esc(displayItemDesc(h)||'—')}${finish}</div>
       <div class="ih-size">${esc(h.size||'')}</div>
       <div class="ih-meta">${esc(h.customer||'—')} · ${esc(when)} · <strong>${esc(h.ref_no)}</strong>${prev}</div>
       <div class="ih-foot">
@@ -1502,7 +1502,7 @@ function renderCompanyQuoteCard(q){
   const previewItems = items.slice(0,2);
   const moreCount = items.length - previewItems.length;
   const previewHtml = previewItems.map(it=>`
-    <div class="item-line"><span>${esc(it.desc||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}</span></div>
+    <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}</span></div>
   `).join('') + (moreCount>0 ? `<div class="item-more">+${moreCount} more item${moreCount===1?'':'s'}</div>` : '');
 
   return `
@@ -1555,7 +1555,7 @@ async function selectCompany(id){
   if(!c) return;
 
   const lastDate = quotes.length ? (quotes[0].quote_date||quotes[0].created_at) : null;
-  const latestProduct = (quotes.length && quotes[0].items && quotes[0].items[0]) ? quotes[0].items[0].desc : '—';
+  const latestProduct = (quotes.length && quotes[0].items && quotes[0].items[0]) ? displayItemDesc(quotes[0].items[0]) : '—';
   const remarksList = quotes.filter(q=>q.remarks && q.remarks.trim().length>0).map(q=>q.remarks);
   const remarksHtml = remarksList.length ? `<div class="sp-remarks"><b>Remarks:</b> ${esc(remarksList[0])}${remarksList.length>1?` <span style="opacity:.7">(+${remarksList.length-1} more quote${remarksList.length-1===1?'':'s'} with remarks)</span>`:''}</div>` : '';
 
@@ -1564,7 +1564,7 @@ async function selectCompany(id){
     const previewItems = items.slice(0,2);
     const moreCount = items.length - previewItems.length;
     const previewHtml = previewItems.map(it=>`
-      <div class="item-line"><span>${esc(it.desc||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}</span></div>
+      <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}</span></div>
     `).join('') + (moreCount>0 ? `<div class="item-more">+${moreCount} more item${moreCount===1?'':'s'}</div>` : '');
 
     return `
@@ -1691,7 +1691,7 @@ async function viewQuote(id){
   const items=q.items||[];
   let rows=items.map(i=>`
     <div class="q-detail-item">
-      <span>${esc(i.desc)} <span class="q-detail-chip chip-${safeClassToken(i.finish)}">${esc(i.finish)}</span></span>
+      <span>${esc(displayItemDesc(i))} <span class="q-detail-chip chip-${safeClassToken(i.finish)}">${esc(i.finish)}</span></span>
       <span>${esc(i.size)}</span>
     </div>
     <div class="q-detail-item" style="background:var(--surface2);padding:4px 8px;border-radius:var(--r-xs);font-size:12px">
@@ -1770,6 +1770,29 @@ function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function safeClassToken(s){return String(s||'').replace(/[^a-zA-Z0-9_-]/g,'')}
+
+/* ── Descriptions written before the material list had labels ───────────────
+   A quotation item stores its description as it was built, so items saved
+   under the older material vocabulary read back as "4140_HARDEN_G10_9 FULLSIZE
+   L BOLT" — a database value on a screen staff use to answer a customer. This
+   is the same normalisation index.php applies when it shows a saved item, kept
+   deliberately identical so one item cannot read two ways in two places.
+
+   It is a DISPLAY rewrite only: nothing is saved, no stored value is changed,
+   and no price, size or weight is touched. */
+function displayItemDesc(item){
+  const desc=String(item&&item.desc?item.desc:'');
+  if(desc.includes('4140_HARDEN_G10_9')) return desc.replace(/4140_HARDEN_G10_9/g,'4140 QT + HARDEN = G10.9');
+  if(desc.includes('S45C_HARDEN_G8_8')) return desc.replace(/S45C_HARDEN_G8_8/g,'S45C + HARDEN = G8.8');
+  /* "4140" and "Y BAR" are their own materials, separate from 4140 QT. An item
+     on one of them already reads correctly and must never gain a QT it does
+     not have. Only a desc that stored the raw internal value is repaired. */
+  const mat=String(item&&item.material?item.material:'');
+  if(mat==='4140_PLAIN'||mat==='Y_BAR') return desc;
+  return desc
+    .replace(/\b4140\b(?!\s+QT)/g,'4140 QT')
+    .replace(/\b4340\b(?!\s+QT)/g,'4340 QT');
+}
 
 /* ── Init ── */
 /* Quick Open hand-off: companies.php?open=Q-2026-0001 resolves the number and

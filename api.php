@@ -530,6 +530,9 @@ if ($action === 'get_next_ref') {
                 'customer'        => $row['customer_name'] ?: $row['company_name'],
                 'quotation_total' => $row['total_amount'],
                 'desc'            => (string)($it['desc'] ?? ''),
+                // Carried so the page can read a legacy desc the way the
+                // quotation screen does — "4140_PLAIN" is not "4140 QT".
+                'material'        => (string)($it['material'] ?? ''),
                 'size'            => (string)($it['size'] ?? ''),
                 'finish'          => (string)($it['finish'] ?? ''),
                 'qty'             => (int)($it['qty'] ?? 0),
