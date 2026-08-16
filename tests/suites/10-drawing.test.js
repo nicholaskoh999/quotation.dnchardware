@@ -70,12 +70,28 @@ module.exports = async (browser, A) => {
       `part ${i + 2}: 200 + centre + 200 adds up to its stated length, so nothing is flagged`);
   });
 
-  // ── every part is weighed on its own length ──────────────────────────────
-  const K = 0.0000061654;
-  [950, 865, 1000, 1200, 1285].forEach((len, i) => {
-    A.near(rows[i].weight, 30 * 30 * len * K, 1e-6, `part ${i + 1} weighs 30mm x ${len}mm of bar`);
+  // ── the sheet states no size type, so nothing is weighed yet ─────────────
+  /* Neither the sheet nor any part says fullsize or undersize, and no company
+     rule covers mild steel at M30. An unanswered size type is not a fullsize
+     one: there is no diameter, so there is no weight and no price, and the row
+     asks for the one thing it needs. */
+  rows.forEach((r, i) => {
+    A.eq(r.sizeType, '', `part ${i + 1}: the drawing states no size type`);
+    A.ok(r.missing.includes('Size Type'), `part ${i + 1}: so the row asks for one`);
+    A.ok(!(Number(r.weight) > 0), `part ${i + 1}: and is not weighed on a guess`);
+    A.ok(!(Number(r.price) > 0), `part ${i + 1}: nor priced on one`);
   });
-  A.ok(Number(rows[2].weight) !== Number(rows[1].weight),
+
+  // ── answered, every part is weighed on its OWN length ────────────────────
+  const K = 0.0000061654;
+  await page.evaluate(() => wqa.rows.forEach((r, i) => wqaEditRowSpec(i, 'sizeType', 'FULLSIZE')));
+  await page.waitForTimeout(1400);
+  const weighed = await rowState(page);
+  [950, 865, 1000, 1200, 1285].forEach((len, i) => {
+    A.eq(weighed[i].length, String(len), `part ${i + 1} still states L${len}`);
+    A.near(weighed[i].weight, 30 * 30 * len * K, 1e-6, `part ${i + 1} weighs 30mm x ${len}mm of bar`);
+  });
+  A.ok(Number(weighed[2].weight) !== Number(weighed[1].weight),
     'part 3 does not weigh what part 2 weighs — which is what a borrowed 865 would have cost');
 
   // ── arithmetic that genuinely disagrees IS flagged ───────────────────────

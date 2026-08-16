@@ -234,5 +234,85 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
+  // ══ 1/2" is not M12, and never asks as one ═══════════════════════════════
+  /* The live report was a half-inch rod with two half-inch records behind it,
+     answered "no pricing history". The cause was on the server, and is proved
+     there; this is the other half of the same question — what the ROW asks for.
+     A half inch asks for a half inch, verbatim, and a metric rod of nearly the
+     same diameter is a different rod: 1/2" is 12.7mm and M12 is 12, and quoting
+     one from the other's price is quoting the wrong bar. */
+  {
+    const asked = [];
+    const HALF = REC({ productType: 'SAG ROD', material: 'MS', sizeType: 'UNDERSIZE',
+      finish: 'ZP', cleanSize: '1/2', refNo: 'Q-2026-0470',
+      dimensionPreview: 'L 980 x TL 100/100mm', costRate: 5.00, addCost: 2.00, markup: 6 });
+    const METRIC = REC({ productType: 'SAG ROD', material: 'MS', sizeType: 'UNDERSIZE',
+      finish: 'ZP', cleanSize: 'M12', refNo: 'Q-2026-0490',
+      dimensionPreview: 'L 980 x TL 100/100mm', costRate: 5.00, addCost: 2.00, markup: 6 });
+    const api = database([HALF, METRIC]);
+    const spy = { get_pricing_history: (url, req) => {
+      asked.push(String(new URL(url).searchParams.get('cleanSize') || ''));
+      return api.get_pricing_history(url, req);
+    } };
+    const page = await openApp(browser, { api: spy });
+    await page.evaluate(() => { selectedCompanyId = 7; });
+
+    await quickAddPaste(page, 'MS SAG ROD ZP UNDERSIZE\n1/2 x 1020 x 100/100 - 20pcs',
+      { expanded: false, settle: 1000 });
+    await openHistory(page);
+    const half = await panel(page);
+    A.eq(asked[0], '1/2', 'a half-inch rod asks for a half inch, written as it is stored');
+    A.eq(half.cards.length, 1, 'and is shown one record');
+    A.eq(half.cards[0].ref, 'Q-2026-0470', 'its own — not the M12 one');
+    A.excludes(half.text, 'M12', 'no metric size appears anywhere on the panel');
+
+    /* The same rod written metric: the half-inch record must not surface. */
+    await page.evaluate(() => wqaEdit(0, 'size', 'M12'));
+    await page.waitForTimeout(1400);
+    const metric = await panel(page);
+    A.eq(asked[asked.length - 1], 'M12', 'an M12 rod asks for M12');
+    A.eq(metric.cards.length, 1, 'and is shown one record');
+    A.eq(metric.cards[0].ref, 'Q-2026-0490', 'its own — not the half-inch one');
+    A.excludes(metric.text, '1/2', 'no imperial size appears anywhere on the panel');
+    await page.close();
+  }
+
+  // ══ no size type, no lookup — history is never asked a guessed question ═══
+  {
+    /* The same rule as the weight: an unanswered size type is not FULLSIZE.
+       Asking the endpoint for a fullsize history would return real records
+       belonging to a rod this may not be. */
+    const asked = [];
+    const api = database([REC({ productType: 'SAG ROD', material: 'MS',
+      sizeType: 'FULLSIZE', finish: 'ZP', cleanSize: 'M16', refNo: 'Q-2026-0499' })]);
+    const spy = { get_pricing_history: (url, req) => {
+      asked.push(String(new URL(url).searchParams.get('sizeType') || ''));
+      return api.get_pricing_history(url, req);
+    } };
+    const page = await openApp(browser, { api: spy });
+    await page.evaluate(() => { selectedCompanyId = 7; });
+    /* MS at M16 has no company rule, so the size type is genuinely open. */
+    await quickAddPaste(page, 'MS SAG ROD ZP\nM16 x 1020 x 100/100 - 20pcs',
+      { expanded: false, settle: 1000 });
+    const row = (await rowState(page))[0];
+    A.eq(row.sizeType, '', 'the size type is unanswered');
+    const spec = await page.evaluate(() => wqaHistSpec(wqa.rows[0]));
+    A.eq(String(spec), 'null', 'so the row has no history identity to ask with');
+    await openHistory(page);
+    A.eq(asked.join(','), '', 'and no lookup is made at all');
+    const p = await panel(page);
+    A.eq(p.cards.length, 0, 'no fullsize record is offered to it');
+    A.excludes(p.text, 'Q-2026-0499', 'not even by name');
+
+    /* Answer the question and the lookup happens, with the answer given. */
+    await page.evaluate(() => wqaEditRowSpec(0, 'sizeType', 'FULLSIZE'));
+    await page.waitForTimeout(1400);
+    A.eq(asked.join(','), 'FULLSIZE', 'once answered, the lookup carries that answer');
+    const after = await panel(page);
+    A.eq(after.cards.length, 1, 'and the record appears');
+    A.eq(after.cards[0].ref, 'Q-2026-0499', 'the fullsize one it really is');
+    await page.close();
+  }
+
   return S;
 };

@@ -5451,12 +5451,29 @@ function dcEffectiveDiameter(type,material,sizeType,size){
   if(custom!==null) return custom;
   return dcBuiltInDiameter(type,material,sizeType,size);
 }
+/* An UNANSWERED size type is not a fullsize one. dcBuiltInDiameter reads
+   anything that is not the literal string UNDERSIZE as fullsize, which is the
+   right reading of an ANSWER and the wrong reading of a SILENCE: a half inch
+   rod nobody has said is undersize came back 12.7mm and weighed 1.0143 kg/pc,
+   where the undersize bar it may well be weighs 0.7472 — 36% lighter, and the
+   price with it. The review screen said "Needs Size Type" and quoted a figure
+   in the same breath.
+
+   So the question is asked ONCE, here, at the only place a diameter is read
+   into the form: on a product that HAS a size type, no size type means no
+   diameter, which the rest of the app already understands as no weight and no
+   price. A Stud is not asked (DC_NO_SIZE_TYPE_PRODUCTS) and keeps the undersize
+   bar it has always used; a form with no size type control at all — Others,
+   whose diameter is typed by hand — never reaches this line. Nothing is
+   guessed, and the moment a person chooses, everything computes. */
 function autoFillDiameter(type){
   const material=fv(type,'material'), sizeType=fv(type,'sizeType');
   const sizeEl=el(type+'-size'); if(!sizeEl)return;
   const size=normalizeSizeValue(sizeEl.value); sizeEl.value=size;
   const diaEl=el(type+'-diameter');
-  const dia=dcEffectiveDiameter(type,material,sizeType,size);
+  const asks=fieldExists(type,'sizeType') && dcProductHasSizeType(type);
+  const dia=(asks && !String(sizeType||'').trim())
+    ? '' : dcEffectiveDiameter(type,material,sizeType,size);
   if(diaEl) diaEl.value=(dia!==''&&dia!=null?String(dia):'');
 }
 
@@ -13482,6 +13499,15 @@ function wqaEditRowSpec(i,k,v){
    Thread, Needs Material and Needs Size Type are the system working, not
    failing: a blank field costs a question, a guessed one costs a wrong
    quotation. */
+/* The one question a row cannot answer anything else without. A product that
+   has a size type and has not been given one has no diameter, so it has no
+   weight, no rate and no price — and every one of those would otherwise be
+   reported as a separate thing to fix. */
+function wqaSizeTypeOpen(r){
+  const t=wqaRowProduct(r);
+  const prod=wqaProductByType(t)||WQA_NO_PRODUCT;
+  return !!(prod.needSizeType && dcProductHasSizeType(t) && !wqaRowSpec(r,'sizeType'));
+}
 function wqaRowMissing(r){
   /* THIS row's product decides what this row needs: an Anchor Bolt wants one
      thread value, a Sag Rod a pair, a Stud none at all. A document showing
@@ -13500,7 +13526,7 @@ function wqaRowMissing(r){
      so an undersized M24 rod cannot be weighed and must not be priced. Skipped
      while the size type itself is still an open question, because THAT is the
      question and a row should only ever be asked one thing at a time. */
-  else if(r.noDia && !(prod.needSizeType && dcProductHasSizeType(t) && !wqaRowSpec(r,'sizeType')))
+  else if(r.noDia && !wqaSizeTypeOpen(r))
                                miss.push('Valid Size');
   /* Each product asks for its own dimensions, by name: an L Bolt wants L and
      W, a J Bolt wants H, ID and S, and nothing is invented for the ones it
@@ -13524,7 +13550,7 @@ function wqaRowMissing(r){
      blank one means "not stated" — never "mild steel". Asked for only once the
      product is known, since Product is already the blocker until then. */
   if(t && !wqaRowSpec(r,'material')) miss.push('Material');
-  if(prod.needSizeType && dcProductHasSizeType(t) && !wqaRowSpec(r,'sizeType')) miss.push('Size Type');
+  if(wqaSizeTypeOpen(r)) miss.push('Size Type');
   /* A product that HAS a thread needs one: a Sag Rod as the pair 75/75 or
      50/110, an Anchor Bolt as the single value 100. Product-specific, never one
      rule for all — a Stud has no thread and is never asked for one. */
@@ -13543,7 +13569,12 @@ function wqaRowMissing(r){
      STATED (Manual Price, and the price reused from a previous quotation):
      the figure IS the price. Nothing is computed from a rate, so neither box
      is required — asking for them was the other half of the blocker. */
+  /* And not while THE question is still open. With no size type there is no
+     diameter, so there is no rate to look up and no price to compute: asking
+     for either would put two more questions on a row whose single real answer
+     is the one above, and hide it. Same rule as Valid Size, three lines up. */
   let rateMissing=false;
+  if(wqaSizeTypeOpen(r)) return miss;
   if(t && (r.priceMode||'auto')!=='manual'){
     if(!String((r.calc&&r.calc.costRate)||'').trim()){ miss.push('Cost Rate'); rateMissing=true; }
     if(dcNeedsTypedAddCost(t) && !String((r.calc&&r.calc.addCost)||'').trim()){

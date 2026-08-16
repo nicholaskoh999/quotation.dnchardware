@@ -401,16 +401,57 @@ function dc_history_size_text_needle($cleanSize) {
 function dc_history_sql_where($want) {
     return [
         '(q.items LIKE ? OR q.items LIKE ?)',
-        ['%' . dc_history_needle($want['cleanSize'] ?? '') . '%',
-         '%' . dc_history_size_text_needle($want['cleanSize'] ?? '') . '%'],
+        ['%' . dc_history_like_escape(dc_history_needle($want['cleanSize'] ?? '')) . '%',
+         '%' . dc_history_like_escape(dc_history_size_text_needle($want['cleanSize'] ?? '')) . '%'],
     ];
 }
 
-/** The same predicate in PHP, so what the database is asked for is testable. */
+/**
+ * Text to look for, made safe to put in a LIKE pattern.
+ *
+ * This is the whole of the live imperial failure. json_encode escapes a forward
+ * slash, so a half-inch rod is stored as "cleanSize":"1\/2" — and a BACKSLASH
+ * is MySQL's LIKE escape character. Handed over raw, LIKE read the backslash as
+ * an escape, dropped it, and went looking for "cleanSize":"1/2", which is not
+ * what is in the blob. Every imperial size was invisible to pricing history and
+ * the screen said there was none.
+ *
+ * The wildcards are escaped for the same reason: a size is text to find, never
+ * a pattern. Backslash first, or it would escape the escapes.
+ */
+function dc_history_like_escape($s) {
+    return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string)$s);
+}
+
+/**
+ * MySQL's own LIKE, modelled. `%` is any run, `_` is any character, and a
+ * BACKSLASH is the escape character — `\/` is a literal `/` with the backslash
+ * consumed, which is exactly the trap an inch size falls into.
+ */
+function dc_like_matches($subject, $pattern) {
+    $re = '';
+    $len = strlen($pattern);
+    for ($i = 0; $i < $len; $i++) {
+        $ch = $pattern[$i];
+        if ($ch === '\\' && $i + 1 < $len) { $re .= preg_quote($pattern[++$i], '/'); }
+        elseif ($ch === '%')                 { $re .= '.*'; }
+        elseif ($ch === '_')                 { $re .= '.'; }
+        else                                 { $re .= preg_quote($ch, '/'); }
+    }
+    return (bool)preg_match('/^' . $re . '$/s', (string)$subject);
+}
+
+/**
+ * The same predicate the database applies, in PHP, so what is asked for is
+ * testable without one — through MySQL's LIKE semantics, not through strpos,
+ * because those two disagree on precisely the character that broke this.
+ */
 function dc_history_blob_matches($itemsJson, $want) {
-    $blob = (string)$itemsJson;
-    return strpos($blob, dc_history_needle($want['cleanSize'] ?? '')) !== false
-        || strpos($blob, dc_history_size_text_needle($want['cleanSize'] ?? '')) !== false;
+    list($sql, $params) = dc_history_sql_where($want);
+    foreach ($params as $pattern) {
+        if (dc_like_matches((string)$itemsJson, $pattern)) return true;
+    }
+    return false;
 }
 
 /**

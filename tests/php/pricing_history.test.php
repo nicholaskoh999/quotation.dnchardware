@@ -437,6 +437,72 @@ eq(dc_history_record(halfItem(980,'PL'), array_merge($HALF_WANT, ['productType'=
    'nor the product');
 
 
+// ── an inch size is not a metric one, and the database is asked in SQL ─────
+/* THE LIVE FAILURE. json_encode escapes a forward slash, so a half-inch rod is
+   stored "cleanSize":"1\/2" — and that backslash is MySQL's LIKE escape
+   character. The prefilter asked for %"cleanSize":"1\/2"%, LIKE read the
+   backslash as an escape, dropped it, and looked for "cleanSize":"1/2" — which
+   is not what is in the blob. Every imperial size was invisible to pricing
+   history, and the screen said "No pricing history for this exact
+   specification" for a rod that had been quoted twice.
+
+   dc_history_blob_matches models MySQL's LIKE, not strpos, because those two
+   disagree on exactly that character. */
+$halfBlob = json_encode([['productType'=>'SAG ROD','material'=>'MS','sizeType'=>'UNDERSIZE',
+                          'finish'=>'PL','cleanSize'=>'1/2',
+                          'size'=>'1/2" x L 980 x TL 100/100mm',
+                          'dimensionPreview'=>'L 980 x TL 100/100mm']]);
+ok(dc_history_blob_matches($halfBlob, ['cleanSize'=>'1/2']),
+   'a half-inch quotation is asked for by a half-inch specification');
+foreach (['3/4', '7/8', '1-1/4', '1-1/2', '5/8', '3/8'] as $inch) {
+    $blob = json_encode([['productType'=>'SAG ROD','material'=>'MS','sizeType'=>'UNDERSIZE',
+                          'finish'=>'PL','cleanSize'=>$inch,'size'=>$inch.'" x L 980mm']]);
+    ok(dc_history_blob_matches($blob, ['cleanSize'=>$inch]), "and so is a $inch one");
+}
+$metric = json_encode([['productType'=>'SAG ROD','material'=>'MS','sizeType'=>'FULLSIZE',
+                        'finish'=>'PL','cleanSize'=>'M16','size'=>'M16 x L 300mm']]);
+ok(dc_history_blob_matches($metric, ['cleanSize'=>'M16']), 'a metric one still is');
+
+/* And an inch size never reaches for a metric one, or the wrong inch. */
+ok(!dc_history_blob_matches($halfBlob, ['cleanSize'=>'M12']),
+   'a half-inch quotation is NOT asked for by an M12 — imperial is not metric');
+ok(!dc_history_blob_matches($halfBlob, ['cleanSize'=>'M16']), 'nor by an M16');
+ok(!dc_history_blob_matches($metric,   ['cleanSize'=>'1/2']), 'nor a metric one by a half inch');
+ok(!dc_history_blob_matches($halfBlob, ['cleanSize'=>'3/4']), 'nor a half inch by a three-quarter');
+
+/* A wildcard in a size can never turn the prefilter into "everything". */
+ok(!dc_history_blob_matches($metric, ['cleanSize'=>'%']),
+   'a percent sign is a character to look for, not a wildcard to match all');
+ok(!dc_history_blob_matches($metric, ['cleanSize'=>'M_6']),
+   'and an underscore is a character too');
+
+// ── the live case end to end, through dc_history_record ────────────────────
+$LIVE_WANT = ['productType'=>'SAG ROD','material'=>'MS','sizeType'=>'UNDERSIZE','finish'=>'ZP',
+              'cleanSize'=>'1/2','dimensionPreview'=>'L 1020 x TL 100/100mm','companyId'=>7];
+function liveItem($len, $finish = 'PL') {
+    return item(['itemType'=>'sagrod','productType'=>'SAG ROD','material'=>'MS',
+                 'sizeType'=>'UNDERSIZE','finish'=>$finish,'cleanSize'=>'1/2','sizeCode'=>'1/2',
+                 'size'=>'1/2" x L '.$len.' x TL 100/100mm',
+                 'dimensionPreview'=>'L '.$len.' x TL 100/100mm',
+                 'desc'=>'MS UNDERSIZE SAG ROD']);
+}
+$live980  = dc_history_record(liveItem(980),  $LIVE_WANT, meta(1,'Q-2026-0470','2026-01-20','Alpha',7));
+$live1080 = dc_history_record(liveItem(1080), $LIVE_WANT, meta(1,'Q-2026-0470','2026-01-20','Alpha',7));
+ok($live980  !== null, 'LIVE: the L980 half-inch PL record is returned for a ZP L1020 row');
+ok($live1080 !== null, 'LIVE: and the L1080 one');
+if ($live980 !== null && $live1080 !== null) {
+    eq($live980['finishMatch'],  false, 'LIVE: flagged as a different finish');
+    eq($live1080['finishMatch'], false, 'LIVE: both of them');
+    eq($live980['cleanSize'],  '1/2', 'LIVE: reported as a half inch');
+    eq($live980['dimDistance'],  40.0, 'LIVE: L980 is 40mm from L1020');
+    eq($live1080['dimDistance'], 60.0, 'LIVE: L1080 is 60mm');
+    $order = [$live1080, $live980];
+    dc_history_sort($order);
+    eq(implode(',', array_column($order, 'dimDistance')), '40,60',
+       'LIVE: and the nearer length ranks first');
+}
+
+
 // ── report ──────────────────────────────────────────────────────────────────
 echo "  " . (count($failures) ? 'FAIL' : 'ok  ')
    . "  pricing history — identity, accessories, ranking  ($asserts assertions"
