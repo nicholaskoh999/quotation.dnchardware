@@ -1,0 +1,18 @@
+  FAIL  pricing history — whose price is this  (45 assertions, 5 failed)
+
+  1 suites, 45 assertions, 5 failed
+
+  FAILURES
+   - [pricing history — whose price is this] and claims no record
+      expected: ""
+      actual:   "Q-2026-0366"
+   - [pricing history — whose price is this] and none of another material's pricing reaches it
+      expected: "{}"
+      actual:   "{\"costRate\":\"6.50\",\"addCost\":\"3.50\",\"markup\":\"4\"}"
+   - [pricing history — whose price is this] and it says the record no longer describes this item
+      expected to contain: "no longer"
+      actual: "using q-2026-0366 pricing — rate 6.50 · add 3.50 · 4% · auto round. this item is priced from its own weight."
+   - [pricing history — whose price is this] each is labelled as a different finish (Differs by 40mm)
+   - [pricing history — whose price is this] and neither offers to be reused as a recipe, because a coating changes the rate
+
+  32.6s

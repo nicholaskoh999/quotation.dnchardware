@@ -353,3 +353,38 @@ tests/
   · suites/05 and 16 — the two reuse assertions updated to the new contract,
     asserting more than they did before
   · history-shots.js — new, the seven before/after frames
+
+PASS 7 PART 5 — history identity acceptance check
+-------------------------------------------------
+Baseline 2345502ed5d324ca97ed3a6fe71353ff097b1085
+
+index.php
+  · wqaHistMatches / wqaHistUse: a record is re-checked against the row's
+    identity at the moment it is used, asked with the same wqaHistSpec the
+    lookup was made with. The panel already cleared stale cards on an identity
+    change, but the edit is debounced and a card is clickable while it is on
+    screen — changing the material and pressing Use in the same breath applied
+    a 4140 QT recipe to a mild steel row.
+  · a record in another coating is labelled "Different finish — quoted PL ·
+    reference only" and offers no reuse button
+  · phSortRecords ranks the exact coating first, then the references, nearest
+    length within each — mirroring dc_history_sort
+
+pricing_history.php
+  · finish is the one identity field that admits a REFERENCE: the record is
+    kept and flagged finishMatch:false instead of being discarded. A 1/2" MS
+    UNDERSIZE rod quoted at L980 and L1080 in PL was reported as having no
+    previous price at all when asked for in ZP.
+  · dc_history_sort puts exact-coating records ahead of references
+
+tests/
+  · suites/24-history-identity.test.js — new, 45 assertions through the real
+    path: the identity a row sends, the five material transitions, the
+    same-tick race, and the half-inch reference case with its ranking, its
+    label and its boundaries
+  · php/pricing_history.test.php — +13: the finish assertions moved from
+    "never matched" to "kept as a reference and flagged", the half-inch case
+    end to end, and five boundary assertions
+  · suites/20 and 23, and history-shots.js — the fixed-answer stubs replaced
+    with ones that apply the server's identity rules, and the production
+    frames photographed on the 4140 QT row the record belongs to

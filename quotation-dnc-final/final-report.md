@@ -11,7 +11,8 @@ Round 7 has three parts, each with its own report:
 | 1 · AI extraction | `final-report-extraction.md` | `f074b5b` |
 | 2 · Quick Add insertion blocker (this one) | `final-report.md` | `581d502` |
 | 3 · Material identity | `final-report-materials.md` | `ddc2c87` |
-| 4 · Previous price: reuse and retrieval | `final-report-previous-price.md` | **`2345502` — deploy this** |
+| 4 · Previous price: reuse and retrieval | `final-report-previous-price.md` | `2345502` |
+| 5 · History identity acceptance check | `final-report-history-identity.md` | **`0f4f184` — deploy this** |
 
 Earlier rounds are in `final-report-rounds-1-6.md`.
 

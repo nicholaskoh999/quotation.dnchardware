@@ -21,7 +21,8 @@
   ok    stainless — SS304 and SS316 carry no finish, on every screen  (119 assertions)
   ok    materials — four identities, one vocabulary, one answer  (236 assertions)
   ok    previous price — a recipe, not a number  (68 assertions)
+  ok    pricing history — whose price is this  (45 assertions)
 
-  23 suites, 2076 assertions, 0 failed
+  24 suites, 2121 assertions, 0 failed
 
-  363.6s
+  386.6s
