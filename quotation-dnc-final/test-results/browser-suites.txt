@@ -2,7 +2,7 @@
   ok    imperial — the first token of a run is the size  (66 assertions)
   ok    weight — every product, every input that moves it  (39 assertions)
   ok    pricing — nothing stale, nothing fabricated  (47 assertions)
-  ok    pricing history — the rows we sent, and why they differed  (98 assertions)
+  ok    pricing history — the rows we sent, and why they differed  (102 assertions)
   ok    mixed documents — a heading speaks only for its own rows  (37 assertions)
   ok    save / reload / output — no value drift, no internal costs on the page  (65 assertions)
   ok    common fields and Correct Items — a blank never clears an answer  (61 assertions)
@@ -13,14 +13,15 @@
   ok    company history — a legacy description reads as words, not as a stored value  (40 assertions)
   ok    accessories — charged beside the bolt, never inside it  (41 assertions)
   ok    dimension schema and drawing association  (71 assertions)
-  ok    quick add — each row's own pricing history, on the row  (76 assertions)
+  ok    quick add — each row's own pricing history, on the row  (80 assertions)
   ok    quick add layout — every product reachable at every width  (280 assertions)
   ok    quick add — twenty items, which is the ordinary case  (28 assertions)
   ok    engineering documents — geometry, merged cells and specification scope  (148 assertions)
   ok    add to quotation — the button at the end of the review  (160 assertions)
   ok    stainless — SS304 and SS316 carry no finish, on every screen  (119 assertions)
   ok    materials — four identities, one vocabulary, one answer  (236 assertions)
+  ok    previous price — a recipe, not a number  (68 assertions)
 
-  22 suites, 2000 assertions, 0 failed
+  23 suites, 2076 assertions, 0 failed
 
-  322.5s
+  363.6s

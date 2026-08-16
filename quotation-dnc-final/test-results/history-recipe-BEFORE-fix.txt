@@ -1,0 +1,107 @@
+  FAIL  previous price — a recipe, not a number  (68 assertions, 34 failed)
+
+  1 suites, 68 assertions, 34 failed
+
+  FAILURES
+   - [previous price — a recipe, not a number] using Q-2026-0366 puts its cost rate on the row
+      expected: "6.50"
+      actual:   "4"
+   - [previous price — a recipe, not a number] and its additional cost
+      expected: "3.50"
+      actual:   "4"
+   - [previous price — a recipe, not a number] and its markup
+      expected: "4"
+      actual:   "0"
+   - [previous price — a recipe, not a number] and its price mode, which was a calculated one
+      expected: "auto"
+      actual:   "manual"
+   - [previous price — a recipe, not a number] Manual Price is not used and is left empty
+      expected: ""
+      actual:   "6.84"
+   - [previous price — a recipe, not a number] the quotation item is a calculated item, not a manual one
+      expected: "auto"
+      actual:   "manual"
+   - [previous price — a recipe, not a number] carrying the cost rate
+      expected: "6.50"
+      actual:   "4"
+   - [previous price — a recipe, not a number] the additional cost
+      expected: "3.50"
+      actual:   "4"
+   - [previous price — a recipe, not a number] and the markup
+      expected: "4"
+      actual:   "0"
+   - [previous price — a recipe, not a number] with no manual price hidden behind it
+      expected: ""
+      actual:   "6.84"
+   - [previous price — a recipe, not a number] the first record is in force
+      expected: "3.50"
+      actual:   "0.60"
+   - [previous price — a recipe, not a number] the second record replaces the rate
+      expected: "6.50"
+      actual:   "2.80"
+   - [previous price — a recipe, not a number] and the surcharge — 3.50 does not survive
+      expected: "4.00"
+      actual:   "0.60"
+   - [previous price — a recipe, not a number] and the markup
+      expected: "4"
+      actual:   "0"
+   - [previous price — a recipe, not a number] still a calculated mode
+      expected: "auto"
+      actual:   "manual"
+   - [previous price — a recipe, not a number] and no manual price left from anywhere
+      expected: ""
+      actual:   "7.36"
+   - [previous price — a recipe, not a number] the historical rate is in force
+      expected: "6.50"
+      actual:   "2.80"
+   - [previous price — a recipe, not a number] the historical surcharge
+      expected: "3.50"
+      actual:   "0.60"
+   - [previous price — a recipe, not a number] the historical markup
+      expected: "4"
+      actual:   "0"
+   - [previous price — a recipe, not a number] and the historical mode
+      expected: "auto"
+      actual:   "manual"
+   - [previous price — a recipe, not a number] and it is this row's own, not the historical 6.84 (6.84)
+   - [previous price — a recipe, not a number] the figure is the calculator run on this row at the historical rates
+      expected: "20.3"
+      actual:   "6.84"
+   - [previous price — a recipe, not a number] the recipe is in force
+      expected: "3.50"
+      actual:   "0.60"
+   - [previous price — a recipe, not a number] at its figure
+      expected: "9.9"
+      actual:   "6.84"
+   - [previous price — a recipe, not a number] and the message says the breakdown was never recorded
+      expected to contain: "breakdown"
+      actual: "using q-2023-0044 — rm 5.20"
+   - [previous price — a recipe, not a number] the saved item is a calculated one
+      expected: "auto"
+      actual:   "manual"
+   - [previous price — a recipe, not a number] with the rate it was priced at
+      expected: "6.50"
+      actual:   "2.80"
+   - [previous price — a recipe, not a number] the surcharge
+      expected: "3.50"
+      actual:   "0.60"
+   - [previous price — a recipe, not a number] and the markup
+      expected: "4"
+      actual:   "0"
+   - [previous price — a recipe, not a number] reopening and editing it restores a calculated mode
+      expected: "auto"
+      actual:   "manual"
+   - [previous price — a recipe, not a number] with the cost rate
+      expected: "6.50"
+      actual:   "2.80"
+   - [previous price — a recipe, not a number] the additional cost
+      expected: "3.50"
+      actual:   "0.60"
+   - [previous price — a recipe, not a number] and the markup
+      expected: "4"
+      actual:   "0"
+   - [previous price — a recipe, not a number] and no manual price crept in
+      expected: ""
+      actual:   "6.84"
+
+  37.2s

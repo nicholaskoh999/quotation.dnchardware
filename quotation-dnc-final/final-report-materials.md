@@ -227,6 +227,10 @@ seen with a key.
 **The non-stainless `PL` default from part 2 is unchanged**, still pinned, still
 awaiting your decision.
 
+> **Superseded in part 4 for the deploy commit only.** The material work here
+> is unchanged; the commit to deploy is now part 4's. See
+> `final-report-previous-price.md`.
+
 ## 10. Final application commit to deploy
 
 ```

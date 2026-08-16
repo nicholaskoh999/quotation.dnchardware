@@ -304,3 +304,52 @@ tests/
   · php/ai_extract.test.php — prompt assertions updated, +5
   · lib/harness.js — exposes matFrom / matDefaulted
   · extraction-shots.js, extraction-evidence.js — the two live formats added
+
+PASS 7 PART 4 — previous price: reuse and retrieval
+---------------------------------------------------
+Baseline ddc2c87666244aad786ee4a3add14f8e1897847c
+
+index.php
+  · wqaHistUse restores the record's PRICING RECIPE — cost rate, additional
+    cost, markup and the calculated mode it was rounded in — and the row then
+    prices itself from its own weight. It used to write the historical FINAL
+    figure into Manual Price and leave the row's unrelated rate behind it, so
+    the same basis applied to a different rod quoted the old rod's price.
+  · WQA_CALC_MODES: auto and no_round are restored as themselves; nothing is
+    forced to Auto Round and an unknown mode is not guessed
+  · r.histApplied records which components a reuse installed, so a second
+    record replaces exactly those — and nothing a person typed
+  · a manual-priced record is still reused as a manual price; one saved with
+    only a final figure says so; neither manufactures a rate
+  · wqaApplyPriceToAll drops the history provenance only where it actually
+    supersedes the recipe. "Not manual" was the old test, and a reused recipe
+    leaves the row on Auto Round.
+  · the row badge says which was reused — "pricing" or "price"
+
+pricing_history.php
+  · dc_legacy_item reads the material as everything before the size type. The
+    old single-token pattern could not read "4140 QT" or "4340 QT", so every
+    legacy record for two of the four canonical materials was invisible.
+  · dc_material_code maps a printed label back to the canonical code
+  · dc_history_sql_where / dc_history_blob_matches — one definition of which
+    quotations to decode, narrowing on the SIZE only, in either representation.
+    The old prefilter also demanded the material, and sent a quotation down the
+    legacy branch only when the whole blob contained no cleanSize anywhere — so
+    a legacy line inside an otherwise modern quotation was unreachable.
+  · dc_history_material_needle deleted
+
+api.php
+  · get_pricing_history builds its WHERE from dc_history_sql_where. There is no
+    recency window and there never should be.
+
+tests/
+  · suites/23-history-recipe.test.js — new, 68 assertions, clicking the real
+    Use this price button: the two production records, a different geometry, a
+    manual record, a legacy record, an unseparable one, the save/reload round
+    trip, and the Calculator asserted to offer no reuse button
+  · php/pricing_history.test.php — +30: legacy multi-word materials, thirteen
+    negative material pairs, the prefilter predicate, and three hundred newer
+    unrelated quotations that are not asked for while the older match is
+  · suites/05 and 16 — the two reuse assertions updated to the new contract,
+    asserting more than they did before
+  · history-shots.js — new, the seven before/after frames

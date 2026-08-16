@@ -31,8 +31,11 @@ EXTRACTION COMMIT (pass 7, part 1)
 QUICK ADD REPAIR (pass 7, part 2)
   581d5024e0e68426de27016d742ed28139919934
 
-DEPLOY COMMIT  <-- deploy this one
+MATERIAL IDENTITY (pass 7, part 3)
   ddc2c87666244aad786ee4a3add14f8e1897847c
+
+DEPLOY COMMIT  <-- deploy this one
+  2345502ed5d324ca97ed3a6fe71353ff097b1085
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -96,14 +99,16 @@ COMMITS ON THIS BRANCH
   581d502  The screen said the row was ready and the button disagreed
   b1ef3d5  Audit package: the click that did nothing
   ddc2c87  Four materials, one vocabulary, and the same answer whatever the source
+  89c5f13  Audit package: four materials, and the evidence for both live formats
+  2345502  A previous price is a recipe, and an old one must still be findable
 
-REGRESSION AT ddc2c87
-  22 browser suites         2000 assertions   0 failed
+REGRESSION AT 2345502
+  23 browser suites         2076 assertions   0 failed
   ai_extract (PHP)           107 assertions   0 failed
-  pricing history (PHP)       90 assertions   0 failed
+  pricing history (PHP)      120 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     2259 assertions   0 failed
+  TOTAL                     2365 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the checks I cannot perform
@@ -135,3 +140,8 @@ AFTER DEPLOYMENT — the checks I cannot perform
   and HAB-TA-01 through the live Analyze path and confirm 4140 QT / ZP and
   4140 QT / PL respectively, with no Needs Material, and Case B's rows 3-6 as
   4140 QT / HDG carrying GRADE 8.8 as evidence.
+
+  Pass 7 part 4 adds the Previous Price repair. Confirm against real data that
+  a 4140 QT quotation older than the newest few hundred now appears in
+  Previous Prices, and that reusing Q-2026-0366 puts 6.50 / 3.50 / 4% / Auto
+  Round on the row rather than a Manual Price of RM 6.84.
