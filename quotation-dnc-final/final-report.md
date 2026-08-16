@@ -27,7 +27,7 @@ reason is acceptable. A silently wrong size, dimension, weight or price is not.
 | **Starting commit (pass 1)** | `b5493089057277c6f7742931da26bc6f35553abd` |
 | **Delta baseline (pass 2)** | `744ad4084167bf3e0638535779b798b5023c0030` |
 | **Mini-delta baseline (pass 3)** | `7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a` |
-| **Ending commit** | `fba453a80f89af08ee0d14190f6e3a5ccdce288b` (the commit to deploy; see `commit-info.txt`) |
+| **Ending commit** | `f250426346c1a256350fca2b12c54f1f5de034b4` (the commit to deploy; see `commit-info.txt`) |
 | **Deployment status** | **NOT DEPLOYED** |
 
 Nothing has been deployed. `.cpanel.yml` is a manual two-click deploy

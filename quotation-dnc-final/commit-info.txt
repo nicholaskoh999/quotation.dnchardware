@@ -10,8 +10,11 @@ STARTING COMMIT (pass 1 baseline)
 DELTA BASELINE (pass 2 baseline, as given in the brief)
   744ad4084167bf3e0638535779b798b5023c0030
 
+MINI-DELTA BASELINE (pass 3)
+  7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a
+
 DEPLOY COMMIT  <-- deploy this one
-  fba453a80f89af08ee0d14190f6e3a5ccdce288b
+  f250426346c1a256350fca2b12c54f1f5de034b4
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -38,7 +41,7 @@ FILES THE DEPLOY WILL COPY (changed by this work)
 
 FILES THE DEPLOY WILL NOT COPY (outside the allowlist, by construction)
   tests/                       the regression suite and its tools
-  quotation-dnc-final-audit/   this package
+  quotation-dnc-final/         this package
   everything else not named in APPFILES
 
 DATABASE
@@ -60,14 +63,16 @@ COMMITS ON THIS BRANCH
   511a697  Restore CRLF line endings in index.php and api.php
   0cba90b  Audit package: stamp the commit to deploy
   fba453a  The same defect, through a second door
+  7d0981f  Audit package: stamp the commit to deploy
+  f250426  A bolt's price is the bolt's
 
-REGRESSION AT fba453a
-  13 browser suites          787 assertions   0 failed
+REGRESSION AT f250426
+  14 browser suites          881 assertions   0 failed
   ai_extract (PHP)            64 assertions   0 failed
-  pricing history (PHP)       50 assertions   0 failed
+  pricing history (PHP)       72 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                      963 assertions   0 failed
+  TOTAL                     1079 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the one check I cannot perform
