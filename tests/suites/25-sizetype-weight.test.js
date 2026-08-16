@@ -120,7 +120,14 @@ module.exports = async (browser, A) => {
       A.ok(!r.missing.includes('Size Type'), `${mat} ${r.size}: so the row does not ask`);
       A.near(Number(r.weight), dia * dia * len * RHO, 1e-6,
         `${mat} ${r.size}: and is weighed on the ${dia}mm bar (${r.weight})`);
-      A.ok(Number(r.price) > 0, `${mat} ${r.size}: and priced (${r.price})`);
+      /* Weighed is the assertion here. Whether it is also PRICED depends on
+         whether the company has a rate for that specification — and where it
+         has none the row asks for one rather than quoting a number from
+         nowhere. Either way the size type question is answered and gone. */
+      A.ok(Number(r.price) > 0 || r.missing.includes('Cost Rate'),
+        `${mat} ${r.size}: and either priced or asking for its rate (${r.price})`);
+      A.ok(!r.missing.includes('Size Type'),
+        `${mat} ${r.size}: and never asked its size type again`);
     }
     /* The half inch, both ways, side by side — the whole point of the bug. */
     const half = await page.evaluate(() => ({

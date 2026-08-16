@@ -93,7 +93,7 @@ module.exports = async (browser, A) => {
                                   return n ? Math.round(n.getBoundingClientRect().height) : 0; });
     const list = document.querySelector('.wqa-rows').getBoundingClientRect();
     const actionsOk = cards.every(c => {
-      const lb = list, sel = ['.wqa-sum-act', '.wqa-row-hist', '.wqa-row-del'];
+      const lb = list, sel = ['.wqa-row-edit', '.wqa-row-hist', '.wqa-row-del'];
       return sel.every(s => { const n = c.querySelector(s); if (!n) return false;
         const r = n.getBoundingClientRect();
         return r.width > 8 && r.left >= lb.left - 0.5 && r.right <= lb.right + 0.5; });
@@ -113,12 +113,21 @@ module.exports = async (browser, A) => {
   A.eq(shape.status, shape.n, 'a mixed enquiry names the product of every row');
   A.ok(Math.max(...shape.subs) <= 26,
     `on one thin strip apiece (tallest ${Math.max(...shape.subs)}px)`);
-  A.ok(Math.max(...shape.heights) <= 68,
+  /* One data line, one thin strip, and the row's controls — which are now
+     32px, because a control a finger cannot land on is not a control. That is
+     what took the ceiling from 68 to 72; the shape it protects is unchanged
+     and every other measurement above is unmoved. A card would be over 100. */
+  A.ok(Math.max(...shape.heights) <= 72,
     `so no item is two full rows tall (tallest ${Math.max(...shape.heights)}px)`);
-  /* The whole point: twenty rows must stay scannable — a data line and at most
-     one thin strip each, not twenty cards. */
-  A.ok(shape.total <= shape.n * 68,
+  A.ok(shape.total <= shape.n * 72,
     `twenty rows stay compact overall: ${shape.total}px for ${shape.n} rows`);
+  /* And the controls really are the size they are meant to be. */
+  const targets = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-wqa-row="0"] .wqa-row-act')]
+      .map(n => Math.round(n.getBoundingClientRect().height)));
+  A.eq(targets.length, 3, 'the row has its three controls');
+  A.ok(targets.every(h => h >= 32 && h <= 40),
+    `each between 32 and 40px tall (${targets.join('/')})`);
 
   // ── one row's history is one row's ───────────────────────────────────────
   await page.evaluate(() => {

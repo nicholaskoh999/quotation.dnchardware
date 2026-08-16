@@ -91,12 +91,19 @@ module.exports = async (browser, A) => {
   // ── 1 · the action is on the row ─────────────────────────────────────────
   const actions = await page.evaluate(() => {
     const card = document.querySelector('[data-wqa-row="0"]');
-    return { labels: [...card.querySelectorAll('.wqa-sum-act,.wqa-row-hist,.wqa-row-del')]
-                        .map(n => n.textContent.trim()),
+    const btns = [...card.querySelectorAll('.wqa-sum-actions .wqa-row-act')];
+    return { labels: btns.map(n => n.textContent.replace(/\s+/g, ' ').trim().replace(/\d+$/, '')),
+             tags: btns.map(n => n.tagName),
+             tall: btns.map(n => Math.round(n.getBoundingClientRect().height)),
              collapsed: !card.classList.contains('is-open'),
              editorOpen: !!card.querySelector('.wqa-row-body') };
   });
   A.eq(actions.labels.join(' | '), 'Edit | History | ✕', 'the row offers Edit, History and remove');
+  /* Controls that look and behave like controls: Edit was a bare span, which
+     no keyboard could reach and no finger could aim at. */
+  A.eq(actions.tags.join(' '), 'BUTTON BUTTON BUTTON', 'and all three are buttons');
+  A.ok(actions.tall.every(h => h >= 32),
+    `each with a real click target (${actions.tall.join('/')}px)`);
   A.eq(actions.collapsed, 'true', 'while the row is collapsed');
   A.eq(actions.editorOpen, 'false', 'and its editor is not open');
 
@@ -153,9 +160,26 @@ module.exports = async (browser, A) => {
     'the rods at this row\'s own length rank first');
   A.includes(ranked.join(' '), 'M20-500:500', 'then the 500 shorter one');
   A.includes(ranked.join(' '), 'M20-1200:200', 'and the 1200 is 200 away');
-  const order = await page.evaluate(() =>
-    [...document.querySelectorAll('[data-wqa-row="0"] .ph-rec-ref')].map(n => n.textContent));
-  A.eq(order[order.length - 1], 'M20-500', 'so the furthest rod is last on the screen');
+  /* On screen the records are filed under what can be DONE with them —
+     Reusable, then References — and ranked as above inside each. */
+  const shown = await page.evaluate(() => {
+    const root = document.querySelector('[data-wqa-row="0"] .ph-scroll');
+    const out = []; let sect = '';
+    [...root.children].forEach(n => {
+      if (n.classList.contains('ph-sect')) { sect = (n.querySelector('.ph-sect-lbl') || {}).textContent || ''; return; }
+      const ref = (n.querySelector('.ph-rec-ref') || {}).textContent || '';
+      out.push({ sect, ref, canUse: !!n.querySelector('.ph-rec-use') });
+    });
+    return out;
+  });
+  const reusable = shown.filter(x => x.sect === 'Reusable').map(x => x.ref);
+  A.ok(reusable.length > 0, 'the reusable records are under a heading of their own');
+  A.eq(reusable[reusable.length - 1], 'M20-500',
+    'and the furthest rod is last among them');
+  A.ok(shown.filter(x => x.sect === 'Reusable').every(x => x.canUse),
+    'every record filed as reusable offers to be reused');
+  A.ok(shown.filter(x => x.sect === 'References').every(x => !x.canUse),
+    'and no record filed as a reference does');
 
   // ── 7 · the bolt price is the bolt's, accessories beside it ──────────────
   const panelText = await page.evaluate(() =>

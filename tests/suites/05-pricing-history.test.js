@@ -101,6 +101,20 @@ module.exports = async (browser, A) => {
              count: card.querySelectorAll('.ph-rec').length,
              refs: [...card.querySelectorAll('.ph-rec-ref')].map(n => n.textContent),
              own: [...card.querySelectorAll('.ph-rec')].map(n => n.className.includes('ph-rec-own')),
+             /* Filed under what can be DONE with each — reusable first, then
+                the ones that are a reference to read. The ranking is each
+                section's own. */
+             sections: (() => {
+               const out = []; let cur = null;
+               [...card.querySelectorAll('.ph-scroll > *')].forEach(n => {
+                 if (n.classList.contains('ph-sect')) {
+                   cur = { name: (n.querySelector('.ph-sect-lbl') || {}).textContent || '', own: [] };
+                   out.push(cur); return;
+                 }
+                 if (cur) cur.own.push(n.className.includes('ph-rec-own'));
+               });
+               return out;
+             })(),
              countLine: (card.querySelector('.ph-count') || {}).textContent || '' };
   });
   A.eq(panel.count, '6', 'opening it shows every record');
@@ -134,8 +148,16 @@ module.exports = async (browser, A) => {
   A.includes(panel.text, 'Legacy / Unknown', 'and said to be unknown for one that never recorded it');
 
   // ── same customer first, others named ────────────────────────────────────
-  A.eq(panel.own.slice(0, 5).every(Boolean), 'true', 'this customer\'s five records come first');
-  A.eq(panel.own[5], 'false', 'and the other customer\'s comes after them');
+  /* Own-first, inside each section: the grouping files a record by what can be
+     done with it, and the ranking then orders it exactly as before. */
+  A.ok(panel.sections.length >= 1, 'the records are filed under headings');
+  panel.sections.forEach(sec => {
+    const firstOther = sec.own.indexOf(false);
+    A.ok(firstOther < 0 || !sec.own.slice(firstOther).some(Boolean),
+      `${sec.name}: this customer's records come before any other customer's`);
+  });
+  A.eq(panel.own.filter(Boolean).length, 5, 'five of the six are this customer\'s');
+  A.eq(panel.own.filter(x => !x).length, 1, 'and one is not');
   A.includes(panel.text, 'Gamma Steel', 'who is named');
   A.includes(panel.text, 'Other customer reference', 'and labelled as a reference, not as this customer\'s price');
 
@@ -192,7 +214,10 @@ module.exports = async (browser, A) => {
   A.ok(Number(rows[0].price) > 0, `and charges a price of its own (${rows[0].price})`);
   A.ok(Math.abs(Number(rows[0].price) - 30) > 0.001,
     'which is not the historical RM 30.00 copied across');
-  A.includes(rows[0].badges, 'Q2026-0001', 'and says so on the row');
+  /* And says so on the row — its own control now, not a pill among pills. */
+  A.includes(await page.evaluate(() =>
+    (document.querySelector('[data-wqa-row="0"] .wqa-prov') || {}).textContent || ''),
+    'Q2026-0001', 'and says so on the row');
 
   // a record that cannot be separated from its accessories is not reusable
   const before = await page.evaluate(() => JSON.stringify({

@@ -146,7 +146,24 @@ module.exports = async (browser, A) => {
        historical line, so the calculator lands on the same figure. */
     A.eq(String(after.price), '6.84',
       'and the row prices itself from the recipe, reaching the same figure');
-    A.includes(after.badges, 'Q-2026-0366', 'the provenance is on the row');
+    /* Provenance is its own control now, not one grey pill among several: it
+       names the record, says which of the two came across, and opens it. */
+    const prov = await page.evaluate(() => {
+      const b = document.querySelector('[data-wqa-row="0"] .wqa-prov');
+      if (!b) return null;
+      return { text: b.textContent.replace(/\s+/g, ' ').trim(),
+               tag: (b.querySelector('.wqa-prov-tag') || {}).textContent || '',
+               tall: b.getBoundingClientRect().height };
+    });
+    A.ok(!!prov, 'the row carries a Previous Price control');
+    A.includes(prov.text, 'Q-2026-0366', 'naming the record the price came from');
+    A.includes(prov.text, 'Previous Price', 'and saying what it is');
+    A.eq(prov.tag, '', 'with no "stated price" caveat, because a recipe came across');
+    A.ok(prov.tall >= 24, `and it is a target, not a word (${Math.round(prov.tall)}px)`);
+    await page.evaluate(() => document.querySelector('[data-wqa-row="0"] .wqa-prov').click());
+    await page.waitForTimeout(900);
+    A.ok(await page.evaluate(() => !!wqa.rows[0].histOpen),
+      'pressing it opens the history it names');
 
     // ── and it is the recipe that is committed, not a manual number ────────
     await page.evaluate(() => wqaAddAll());

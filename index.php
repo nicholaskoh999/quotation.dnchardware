@@ -1977,6 +1977,12 @@ input,select,textarea{
 .wqa-c{font-weight:600;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums;
   overflow:hidden;text-overflow:ellipsis;text-align:center}
 .wqa-c-size {font-weight:700;color:var(--text)}
+/* A thread reference is a note about the thread, so it reads as one: under the
+   size, smaller, quieter, and never wide enough to move a column. */
+.wqa-c-size.has-tref{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.15}
+.wqa-tref{font-size:9.5px;font-weight:700;letter-spacing:.03em;color:var(--text-muted);
+  text-transform:uppercase;white-space:nowrap}
+.wqa-f-tref input{font-variant-numeric:tabular-nums}
 .wqa-c-dim  {font-weight:800;color:var(--text)}      /* the values staff scan */
 .wqa-c-qty  {font-weight:800;color:var(--text)}
 .wqa-c-threadLen{font-weight:600;color:var(--text-muted)}
@@ -2266,6 +2272,110 @@ input,select,textarea{
   cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
 .wqa-row-hist:hover{background:var(--surface2);border-color:var(--accent-mid)}
 .wqa-row-hist.is-on{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent-2)}
+/* ── Row actions ───────────────────────────────────────────────────────────
+   One class for all three, so Edit, History and Remove are the same control at
+   the same size with the same states — 32px tall, which is a target a finger
+   lands on, and every state a person needs: hover, pressed, keyboard focus,
+   and open. */
+.wqa-row-act{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;
+  min-height:32px;padding:0 11px;border:1px solid var(--border);border-radius:var(--pill-r);
+  background:var(--surface);font-family:inherit;font-size:11.5px;font-weight:750;
+  color:var(--text-2);cursor:pointer;white-space:nowrap;
+  transition:background .15s ease,border-color .15s ease,color .15s ease}
+.wqa-row-act:hover{background:var(--surface2);border-color:var(--accent-mid);color:var(--accent-2)}
+.wqa-row-act:active{background:var(--accent-light);transform:translateY(.5px)}
+.wqa-row-act:focus-visible{outline:2px solid var(--accent-mid);outline-offset:2px}
+.wqa-row-act.is-on{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent-2)}
+.wqa-row-edit{font-weight:800}
+.wqa-row-actn{display:inline-block;min-width:16px;padding:0 4px;border-radius:var(--pill-r);
+  background:var(--accent-light);color:var(--accent-2);font-size:10.5px;font-weight:800;text-align:center}
+.wqa-row-act.is-on .wqa-row-actn{background:var(--surface)}
+.wqa-row-caret{font-size:8px;line-height:1}
+.wqa-row-act.wqa-row-del{min-width:32px;justify-content:center;padding:0 8px;font-size:12px}
+.wqa-row-act.wqa-row-del:hover{background:var(--red-light,#fee2e2);border-color:var(--red,#dc2626);color:var(--red,#dc2626)}
+
+/* ── Where this price came from ────────────────────────────────────────────
+   Secondary to the item and to its price, and still impossible to miss. */
+.wqa-prov-line{padding:0 12px 7px 46px}
+.wqa-prov{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:2px 10px;
+  border:1px dashed var(--accent-mid);border-radius:var(--pill-r);background:var(--accent-light);
+  font-family:inherit;font-size:11px;font-weight:750;color:var(--accent-2);cursor:pointer;
+  transition:background .15s ease,border-color .15s ease}
+.wqa-prov:hover{background:var(--surface);border-style:solid}
+.wqa-prov:focus-visible{outline:2px solid var(--accent-mid);outline-offset:2px}
+.wqa-prov-arrow{opacity:.75;font-weight:800}
+.wqa-prov-ref{font-weight:900;font-variant-numeric:tabular-nums}
+.wqa-prov-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;opacity:.8}
+
+/* ── Bulk edit, as one group ───────────────────────────────────────────────*/
+.wqa-bulk-bar{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+.wqa-bulk-btn{flex:1 1 240px}
+.wqa-bulk-body{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;
+  padding:9px 9px 1px;border:1px solid var(--border);border-left:3px solid var(--accent-mid);
+  border-radius:var(--r-xs);background:var(--surface2)}
+.wqa-bulk-body>.wqa-common{margin-bottom:8px;background:var(--surface)}
+.wqa-selbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;
+  padding:7px 11px;border:1px solid var(--accent-mid);border-radius:var(--r-xs);
+  background:var(--accent-light)}
+.wqa-selbar-n{font-size:12px;font-weight:900;color:var(--accent-2);margin-right:auto}
+
+/* ── History: reusable, and reference ──────────────────────────────────────*/
+.ph-sect{display:flex;align-items:center;gap:8px;margin:10px 0 5px;
+  font-size:10.5px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted)}
+.ph-sect::after{content:'';flex:1;height:1px;background:var(--border);order:3}
+.ph-sect-lbl{order:1}
+.ph-sect-n{order:2;padding:1px 7px;border-radius:var(--pill-r);background:var(--surface2);
+  color:var(--text-2);font-size:10px}
+.ph-rec-more{position:relative;display:inline-flex}
+.ph-rec-menu{padding:0 8px;min-height:30px;font-weight:800}
+.ph-menu{position:absolute;top:calc(100% + 4px);right:0;z-index:40;min-width:230px;
+  display:flex;flex-direction:column;padding:4px;border:1px solid var(--border);
+  border-radius:var(--r-xs);background:var(--surface);box-shadow:0 8px 22px rgba(15,23,42,.14)}
+.ph-menu-i{padding:8px 10px;min-height:34px;border:0;border-radius:var(--r-xs);background:none;
+  font-family:inherit;font-size:12px;font-weight:700;color:var(--text-2);text-align:left;cursor:pointer}
+.ph-menu-i:hover{background:var(--accent-light);color:var(--accent-2)}
+.ph-menu-i:focus-visible{outline:2px solid var(--accent-mid);outline-offset:-2px}
+.ph-pick{flex:1 1 100%;margin-top:8px;border:1px solid var(--accent-mid);border-radius:var(--r-xs);
+  background:var(--surface);overflow:hidden}
+.ph-pick-head{padding:8px 11px;font-size:12px;font-weight:900;color:var(--accent-2);
+  background:var(--accent-light);border-bottom:1px solid var(--border)}
+.ph-pick-list{max-height:230px;overflow-y:auto}
+.ph-pick-row{display:flex;align-items:center;gap:9px;padding:7px 11px;min-height:34px;
+  border-bottom:1px solid var(--border);font-size:12px;cursor:pointer}
+.ph-pick-row:last-child{border-bottom:0}
+.ph-pick-row:hover{background:var(--surface2)}
+.ph-pick-row.is-off{opacity:.55;cursor:not-allowed}
+.ph-pick-row.is-off:hover{background:none}
+.ph-pick-what{font-weight:750;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-pick-why{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.ph-pick-row.is-off .ph-pick-why{color:var(--red,#b91c1c)}
+.ph-pick-foot{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--surface2);
+  border-top:1px solid var(--border)}
+.ph-pick-n{font-size:11.5px;font-weight:800;color:var(--text-2);margin-right:auto}
+
+/* ── Motion ────────────────────────────────────────────────────────────────
+   Functional only: a price that moved is marked for a second so a person can
+   see WHICH number changed, and a panel that opens does so quickly enough to
+   read as one movement rather than as a jump. Nothing decorative, nothing that
+   delays a click, and nothing at all for somebody who has asked their system
+   for less of it. */
+@keyframes wqaFlash{
+  0%  {background:var(--accent-light);box-shadow:0 0 0 3px var(--accent-light)}
+  70% {background:var(--accent-light);box-shadow:0 0 0 3px var(--accent-light)}
+  100%{background:transparent;box-shadow:0 0 0 3px transparent}
+}
+.wqa-flash{animation:wqaFlash .9s ease-out;border-radius:var(--r-xs)}
+@keyframes wqaFadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.wqa-bulk-body:not([hidden]),.ph-menu,.ph-pick,.wqa-selbar:not([hidden]){animation:wqaFadeIn .17s ease-out}
+.wqa-row-body,.wqa-hist-panel{animation:wqaFadeIn .18s ease-out}
+@media (prefers-reduced-motion:reduce){
+  .wqa-flash,.wqa-bulk-body:not([hidden]),.ph-menu,.ph-pick,.wqa-selbar:not([hidden]),
+  .wqa-row-body,.wqa-hist-panel{animation:none}
+  .wqa-flash{background:var(--accent-light)}
+  .wqa-row-act,.wqa-prov{transition:none}
+  .wqa-row-act:active{transform:none}
+}
 </style>
 </head>
 <body>
@@ -3587,10 +3697,19 @@ input,select,textarea{
       <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
       <div class="wqa-common" id="wqaCommon"></div>
       <!-- Correcting what was read, before anything is copied into it. -->
-      <div class="wqa-common wqa-fix-common" id="wqaCommonFix"></div>
-      <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
-      <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
-      <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
+      <!-- ── Bulk edit ────────────────────────────────────────────────────
+           Four bulk-edit forms, standing open, used to fill the screen before
+           a single parsed item appeared. They are one group now, shut by
+           default, with ONE scope for all four: the ordinary flow is read the
+           items, check the prices, correct something only if it needs it. -->
+      <div class="wqa-bulk-head" id="wqaBulkHead"></div>
+      <div class="wqa-bulk-body" id="wqaBulkBody" hidden>
+        <div class="wqa-common wqa-fix-common" id="wqaCommonFix"></div>
+        <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
+        <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
+        <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
+      </div>
+      <div class="wqa-selbar" id="wqaSelBar" hidden></div>
       <div class="wqa-rows-head">
         <span id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
         <!-- Shown only when an AI call actually produced the rows below. -->
@@ -4059,6 +4178,23 @@ const I18N={
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
     wqaAddRefused:'the calculator refused this row', fieldQty:'Qty',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
+    wqaThreadRef:'Thread Reference', wqaThreadRefHint:'1.75P · UNC · BSW',
+    phUseOnThis:'Use on this item', phMoreWays:'More ways to apply this price',
+    phApplyCompatible:'Apply to compatible items ({n})…', phSelectItems:'Select items…',
+    phSelectItemsTitle:'Apply Previous Price', phApplyPrevious:'Apply Previous Price',
+    phReusable:'Reusable', phReference:'References',
+    wqaCompatible:'compatible', wqaNSelected:'{n} selected',
+    wqaIncompatProduct:'different product', wqaIncompatMaterial:'different material',
+    wqaIncompatSizeType:'different size type', wqaIncompatSize:'different size',
+    wqaIncompatFinish:'different finish', wqaIncompatUnknown:'item not complete yet',
+    wqaBulkApplied:'{r} applied to {n} items — each repriced from its own weight',
+    wqaBulkSkipped:'{n} skipped', wqaBulkNone:'Nothing to apply — no compatible item was selected',
+    wqaBulkEdit:'Bulk Edit', wqaBulkEditSum:'Correct · Fields · Pricing · Accessories',
+    wqaPrevPriceFrom:'Previous Price', wqaClearSel:'Clear Selection',
+    wqaProvOpen:'Show the quotation this price came from',
+    wqaProvStated:'stated price',
+    wqaApplyPrevPrice:'Apply Previous Price', wqaSelectRows:'Select items',
+    wqaThreadRefNote:'reference only — not used in any calculation',
     wqaNoteLabel:'Additional info for analysis', wqaNoteOpt:'Optional / 可选',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
@@ -4298,6 +4434,23 @@ const I18N={
     wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
     wqaAddRefused:'计算器拒绝了此项目', fieldQty:'数量',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
+    wqaThreadRef:'螺纹参考', wqaThreadRefHint:'1.75P · UNC · BSW',
+    phUseOnThis:'用于此项目', phMoreWays:'更多应用方式',
+    phApplyCompatible:'应用到相符项目 ({n})…', phSelectItems:'选择项目…',
+    phSelectItemsTitle:'应用历史价格', phApplyPrevious:'应用历史价格',
+    phReusable:'可重用', phReference:'参考',
+    wqaCompatible:'相符', wqaNSelected:'已选 {n} 项',
+    wqaIncompatProduct:'产品不同', wqaIncompatMaterial:'材质不同',
+    wqaIncompatSizeType:'尺寸类型不同', wqaIncompatSize:'尺寸不同',
+    wqaIncompatFinish:'表面处理不同', wqaIncompatUnknown:'项目资料尚未齐全',
+    wqaBulkApplied:'{r} 已应用到 {n} 项 — 每项按本身重量重新计算',
+    wqaBulkSkipped:'跳过 {n} 项', wqaBulkNone:'没有可应用的项目 — 未选择相符项目',
+    wqaBulkEdit:'批量编辑', wqaBulkEditSum:'批量修正 · 通用参数 · 价格 · 配件',
+    wqaPrevPriceFrom:'历史价格', wqaClearSel:'清除选择',
+    wqaProvOpen:'显示价格来源的报价单',
+    wqaProvStated:'固定价格',
+    wqaApplyPrevPrice:'应用历史价格', wqaSelectRows:'选择项目',
+    wqaThreadRefNote:'仅供参考 — 不参与任何计算',
     wqaNoteLabel:'补充分析资料', wqaNoteOpt:'选填 / Optional',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
@@ -4620,7 +4773,21 @@ function dcToggleCustomDims(){
   /* Opening an empty section offers the first row rather than an empty box. */
   if(open && !dcCustomDims.length) dcAddCustomDim();
 }
-function dcClearCustomDims(){ dcSetCustomDims([]); }
+/* Every annotation the form carries beside an item, cleared together. They
+   share one lifecycle — put in when an item is edited, read out when one is
+   pushed, gone when the form moves on — and clearing one without the other is
+   how a value from the last item ends up on the next one. */
+function dcClearCustomDims(){ dcSetCustomDims([]); dcClearItemThreadRef(); }
+/* ── The thread reference of whatever item is in the form ──────────────────
+   Reference metadata travels the same way an item's custom dimensions do: a
+   value beside the form, written when an item is put INTO the form and read
+   when one is pushed OUT of it. It is deliberately not a form field — a field
+   is something the calculators read, and nothing may read this. An item saved
+   before the field existed restores as empty, which is what it is. */
+let dcItemThreadRef='';
+function dcSetItemThreadRef(v){ dcItemThreadRef=dcNormThreadRef(v); }
+function dcReadItemThreadRef(){ return dcItemThreadRef; }
+function dcClearItemThreadRef(){ dcItemThreadRef=''; }
 function dcAddCustomDim(){
   if(!dcCustomDimsAllowed()) return;      // no editor, no rows
   dcCustomDims.push({label:'',value:''});
@@ -5309,6 +5476,58 @@ function normalizeSizeValue(raw){
   m=v.match(/^(\d+\s*[-\s]\s*\d+\s*\/\s*\d+|\d+\s*\/\s*\d+)\s*(?:"|”|″|IN|INCH(?:ES)?)?$/);
   if(m) return m[1].replace(/\s*\/\s*/,'/').replace(/\s*[-\s]\s*/,'-');
   return v;
+}
+/* ── Thread Reference — reference metadata, and nothing else ────────────────
+   A pitch and a thread series describe the THREAD. They do not describe the
+   bar: an M12 x 1.75P is an M12, and a 1/2" UNC and a 1/2" BSW are cut from
+   the same 12.7mm rod and weigh the same. So a thread reference is carried
+   beside the item as a note and read by nothing that computes:
+
+     size / cleanSize · diameter · weight · price · price mode · product ·
+     material · finish · size type · previous-price identity · history ranking
+
+   all stay exactly what they were. The one thing that must never happen is a
+   pitch reaching the size box — "M12 x 1.75P" as a SIZE is not a size we
+   recognise, so it has no diameter, so the row cannot be weighed. It is split
+   the moment it is read, and the size that comes out is plain M12.
+
+   Only 1/2" carries an approved UNC/BSW distinction, so only 1/2" gets one
+   READ for it. Nothing is inferred for 3/8, 5/8, 3/4 or 7/8 — a person may
+   still type one, because typing is not inferring. */
+const DC_THREAD_SERIES=['UNC','BSW'];
+const DC_THREAD_SERIES_SIZES=['1/2'];
+/* Does a size the parser READ get a series attached to it? Only the one the
+   business has approved. */
+function dcSizeTakesSeries(size){
+  return DC_THREAD_SERIES_SIZES.indexOf(normalizeSizeValue(size))>=0;
+}
+/* One spelling for what is shown and stored: a pitch always ends in P, a series
+   is upper case. Anything else a person types is kept as they typed it, trimmed
+   — it is a note, and a note nobody can write is not a note. */
+function dcNormThreadRef(raw){
+  const v=String(raw==null?'':raw).trim();
+  if(!v) return '';
+  const up=v.toUpperCase();
+  if(DC_THREAD_SERIES.indexOf(up)>=0) return up;
+  /* 1.75, 1.75P, P1.75, PITCH 1.75 — all the one pitch. */
+  const m=up.match(/^(?:P\s*[:=]?\s*)?(\d+(?:\.\d+)?)\s*(?:P|PITCH)?$/)
+        || up.match(/^PITCH\s*[:=]?\s*(\d+(?:\.\d+)?)$/);
+  if(m){
+    const n=Number(m[1]);
+    if(isFinite(n) && n>0 && n<=12) return String(n)+'P';
+    return v;                      /* not a pitch; kept as written, not coerced */
+  }
+  return up;
+}
+/* What the parser read, turned into the one reference the row carries. The raw
+   evidence (r.pitch, r.series) is left exactly as it was — this only decides
+   what is SHOWN, and a series is shown only where one is approved. */
+function dcThreadRefFrom(pitch,series,size){
+  const p=String(pitch==null?'':pitch).trim();
+  if(p) return dcNormThreadRef(p);
+  const sv=String(series==null?'':series).trim().toUpperCase();
+  if(sv && DC_THREAD_SERIES.indexOf(sv)>=0 && dcSizeTakesSeries(size)) return sv;
+  return '';
 }
 /* Is this a size the quotation can actually be built from? Metric sizes come
    from the diameter table; an imperial size is valid when the inch reader can
@@ -6634,6 +6853,7 @@ function fillItemFormFromItemInner(item){
      type gets its custom dimensions back when the item is edited. An older
      item without the field simply restores an empty editor. */
   dcSetCustomDims(item.customDimensions);
+  dcSetItemThreadRef(item.threadRef);
   // Plate has its own complete restore path
   if(type==='plate'){
     fillPlateFormFromItem(item);
@@ -6740,6 +6960,7 @@ dcOnRelabel(()=>{
     try{ wqaRenderCommonItem(true); }catch(e){}
     try{ wqaRenderCommonPrice(true); }catch(e){}
     try{ wqaRenderCommonAcc(true); }catch(e){}
+    try{ wqaRenderBulk(); }catch(e){}
     try{ wqaRenderRows(true); }catch(e){}
     try{ wqaUpdateAddButton(); }catch(e){}
   }
@@ -7347,7 +7568,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return false; // Phase 1 fix: final safety net
   const productType=type==='others'?(fv(type,'productName').trim()||ITEM_TYPES[type]):(ITEM_TYPES[type]||type);
   const priceData=getPriceModeSaveData(type);
-  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),formData:captureItemFormData(type),...priceData,...money};
+  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),threadRef:dcReadItemThreadRef(),formData:captureItemFormData(type),...priceData,...money};
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const updatedIndex=editingItemIndex;
     quoteItems[updatedIndex]=item;
@@ -7358,6 +7579,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
        to "next item" state, so its accessory panel must not leak into it. */
     resetAccPanel(type);
     dcClearCustomDims();
+    dcClearItemThreadRef();
     renderQuote(updatedIndex);
     showToast(dcT('tItemUpdated'));
     return true;
@@ -8155,7 +8377,7 @@ const PH_MODE_LABELS={auto:'Auto Round',no_round:'No Round',manual:'Manual'};
 function phPriceMode(rec){
   return rec.priceModeLabel || PH_MODE_LABELS[String(rec.priceMode||'')] || 'Legacy / Unknown';
 }
-function phRecordHtml(rec,onUse){
+function phRecordHtml(rec,onUse,extra){
   const own=!!rec.own;
   /* The bolt's own price is what a bolt costs. Where the saved row cannot
      prove how accessories were treated, no separated figure is invented — the
@@ -8183,8 +8405,8 @@ function phRecordHtml(rec,onUse){
      a recipe to reuse. */
   const otherFinish = rec.finishMatch===false;
   if(otherFinish) tags.push(`<span class="ph-rec-tag ph-rec-warn">Different finish — quoted ${escHtml(rec.finish||'—')} · reference only</span>`);
-  const useBtn = onUse && bolt!==null && !otherFinish
-    ? `<button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="${onUse}">Use this price</button>` : '';
+  const useBtn = onUse && phRecordReusable(rec)
+    ? `<button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="${onUse}">${escHtml(dcT('phUseOnThis'))}</button>` : '';
   return `<div class="ph-rec${own?' ph-rec-own':''}">
     <div class="ph-rec-head">
       <span class="ph-rec-ref">${escHtml(rec.refNo||'—')}</span>
@@ -8202,7 +8424,7 @@ function phRecordHtml(rec,onUse){
       <span class="ph-rec-unit"><label>${bolt===null?'Unit Price':'Bolt Unit Price'}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
     </div>
     ${acc>0?`<div class="ph-rec-acc">Accessories, separately: ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)+')'}</div>`:''}
-    <div class="ph-rec-foot">${tags.join('')}${useBtn}</div>
+    <div class="ph-rec-foot">${tags.join('')}${useBtn}${extra||''}</div>
   </div>`;
 }
 /* One page of history for one specification. null means the lookup could not
@@ -8217,18 +8439,41 @@ async function phFetch(spec,companyId,offset,limit){
     return (res&&res.ok&&res.data) ? res.data : null;
   }catch(e){ return null; }
 }
-function phListHtml(state,onUse,onMore){
+function phListHtml(state,onUse,onMore,extraFor){
   if(!state) return '<div class="ph-empty-msg">Could not load pricing history — this is not the same as there being none.</div>';
   if(!state.records || !state.records.length)
     return '<div class="ph-empty-msg">No pricing history for this exact specification.</div>';
   const shown=state.records.length, total=state.total||shown;
   const more = shown<total && onMore
     ? `<button type="button" class="btn btn-outline btn-sm ph-more" onclick="${onMore}">Load more</button>` : '';
+  /* ── Reusable, and reference ───────────────────────────────────────────
+     Two different things, so two headed sections rather than one list a person
+     has to read every tag of. A REUSABLE record's recipe can be applied to
+     this item; a REFERENCE is a quotation to look at — another coating, or a
+     line whose accessories cannot be told apart from its bolt — and it offers
+     no reuse of any kind, here or in bulk. That boundary is the safety rule,
+     and this is what it looks like.
+
+     Split only where reuse is on offer at all: the entry form's panel reuses
+     nothing, so it keeps the single list it has always had. Order inside each
+     section is untouched — phSortRecords already ranks exact before reference
+     and nearest length first. */
+  const cell=(rec,n)=>phRecordHtml(rec, onUse?onUse.replace('{n}',n):'',
+                                   extraFor?extraFor(rec,n):'');
+  let body;
+  if(onUse){
+    const use=[], ref=[];
+    state.records.forEach((rec,n)=>{ (phRecordReusable(rec)?use:ref).push(cell(rec,n)); });
+    const sect=(key,list)=>list.length
+      ? `<div class="ph-sect"><span class="ph-sect-lbl">${escHtml(dcT(key))}</span>
+           <span class="ph-sect-n">${list.length}</span></div>${list.join('')}` : '';
+    body=sect('phReusable',use)+sect('phReference',ref);
+  } else {
+    body=state.records.map(cell).join('');
+  }
   return `<div class="ph-count">Showing ${shown} of ${total} matching records`
        + (state.ownTotal!==undefined?` · ${state.ownTotal} this customer, ${state.otherTotal} other`:'')
-       + `</div><div class="ph-scroll">`
-       + state.records.map((rec,n)=>phRecordHtml(rec,onUse?onUse.replace('{n}',n):'')).join('')
-       + `</div>${more}`;
+       + `</div><div class="ph-scroll">` + body + `</div>${more}`;
 }
 
 /* ── The entry form's panel ───────────────────────────────────────────────── */
@@ -9081,6 +9326,9 @@ const WQA_FINISHES=[
 const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPrice:null,
            commonFix:null,
            panels:{fix:false,item:false,price:false,acc:false},applyScope:'all',
+           /* Which record's menu is open, and which record's picker — one of
+              each at a time, and neither of them changes a row by existing. */
+           histMenu:'',histPick:null,bulkOpen:false,
            view:'compact',rows:[],busy:false,
            /* The extraction stopped early, and whether somebody has said out
               loud that they checked the source anyway. */
@@ -9123,6 +9371,7 @@ function wqaSetApplyScope(s){
   /* Leaving Selected drops the ticks: a hidden selection that a later Apply
      would silently obey is worse than starting again. */
   if(wqa.applyScope==='all') wqa.rows.forEach(r=>{ r.sel=false; });
+  wqaRenderBulk();
   wqaRenderCommonFix(true);
   wqaRenderCommonItem(true); wqaRenderCommonPrice(true); wqaRenderCommonAcc(true);
   wqaRenderRows(true);
@@ -9133,6 +9382,7 @@ function wqaToggleRowSel(i){
   const card=el('wqaRows')&&el('wqaRows').querySelector('[data-wqa-row="'+i+'"]');
   if(card) card.classList.toggle('is-picked',!!r.sel);
   wqaPatchApplyLabels();          // only the button labels move; no panel rebuild
+  wqaRenderSelBar();
 }
 /* What a panel's Apply button says it will do, in the language of the moment. */
 function wqaApplyLabel(allKey,selKey){
@@ -9147,6 +9397,77 @@ function wqaPatchApplyLabels(){
     btn.textContent=wqaApplyLabel(k[0],k[1]);
   });
 }
+/* ── The bulk-edit group ───────────────────────────────────────────────────
+   One heading, one scope, four panels underneath it — and shut unless
+   something inside is actually asking to be looked at. Nothing about the four
+   panels themselves changed: their values live where they always did, and a
+   closed group renders them untouched, exactly as a closed panel always has.
+
+   "Unless attention is required" is a question the panels already answer:
+   wqaItemNeedCount counts rows with no size or no thread. That is the one
+   thing a bulk edit exists to fix in a hurry, so that is what opens it. */
+function wqaBulkNeeds(){
+  try{ return wqaItemNeedCount(); }catch(e){ return 0; }
+}
+function wqaToggleBulk(){
+  wqa.bulkOpen=!wqa.bulkOpen;
+  wqaRenderBulk();
+}
+function wqaRenderBulk(){
+  const head=el('wqaBulkHead'), body=el('wqaBulkBody');
+  if(!head||!body) return;
+  const need=wqaBulkNeeds();
+  const open=!!wqa.bulkOpen;
+  body.hidden=!open;
+  head.innerHTML=`<div class="wqa-bulk-bar${open?' open':''}">
+    <button type="button" class="wqa-panel-head wqa-bulk-btn${open?' open':''}"
+            aria-expanded="${open?'true':'false'}" aria-controls="wqaBulkBody"
+            onclick="wqaToggleBulk()">
+      <span class="wqa-panel-arrow">${open?'▾':'▸'}</span>
+      <span class="wqa-panel-text">
+        <span class="wqa-panel-title">${escHtml(dcT('wqaBulkEdit'))}</span>
+        <span class="wqa-panel-sum">${escHtml(dcT('wqaBulkEditSum'))}</span>
+      </span>
+      <span class="wqa-panel-badge"${need?'':' hidden'}>${need?escHtml(dcT('wqaNIncomplete').replace('{n}',need)):''}</span>
+    </button>
+    ${wqaScopeSwitch()}
+  </div>`;
+  wqaRenderSelBar();
+}
+/* ── The selection bar ─────────────────────────────────────────────────────
+   Only while a selection exists, and only saying what can be done with one.
+   Rows carry no tick boxes and the list carries no bar when nothing is
+   selected, which is the ordinary case. */
+function wqaRenderSelBar(){
+  const bar=el('wqaSelBar'); if(!bar) return;
+  const n=wqaSelCount();
+  const on=wqa.applyScope==='selected';
+  bar.hidden=!on;
+  if(!on){ bar.innerHTML=''; return; }
+  bar.innerHTML=`<span class="wqa-selbar-n">${escHtml(dcT('wqaNSelected').replace('{n}',n))}</span>
+    <button type="button" class="btn btn-outline btn-sm" ${n?'':'disabled'}
+            onclick="wqaOpenBulkFor()">${escHtml(dcT('wqaBulkEdit'))}</button>
+    <button type="button" class="btn btn-outline btn-sm" ${n?'':'disabled'}
+            onclick="wqaSelPrevPrice()">${escHtml(dcT('wqaApplyPrevPrice'))}</button>
+    <button type="button" class="btn btn-ghost btn-sm" ${n?'':'disabled'}
+            onclick="wqaClearSel()">${escHtml(dcT('wqaClearSel'))}</button>`;
+}
+function wqaOpenBulkFor(){ wqa.bulkOpen=true; wqaRenderBulk(); }
+function wqaClearSel(){
+  wqa.rows.forEach(r=>{ r.sel=false; });
+  wqaRenderRows(true); wqaRenderSelBar();
+}
+/* Previous Price for a selection is still chosen from a RECORD, so this opens
+   the history of the first selected row and leaves the choosing to a person.
+   Nothing is applied by pressing it — the record has not been picked yet. */
+function wqaSelPrevPrice(){
+  const k=wqa.rows.findIndex(r=>!r.removed&&r.sel);
+  if(k<0) return;
+  const r=wqa.rows[k];
+  if(!r.histOpen) wqaHistToggle(k); else wqaRenderRows(true);
+  const card=el('wqaRows')&&el('wqaRows').querySelector('[data-wqa-row="'+k+'"]');
+  if(card&&card.scrollIntoView) try{ card.scrollIntoView({block:'nearest'}); }catch(e){}
+}
 /* Rendered identically in all three panels, from the segmented control the row
    view toggle already uses — so it is one component, responsive already. */
 function wqaScopeSwitch(){
@@ -9160,9 +9481,12 @@ function wqaScopeSwitch(){
 }
 /* The scope rides in the title, so a COLLAPSED panel still says where its Apply
    would land. All three heads are built the same way, from the same pieces. */
-function wqaScopeTitle(key){
-  return dcT(key)+' — '+dcT(wqa.applyScope==='selected'?'wqaApplyToSelected':'wqaApplyToAll');
-}
+/* The scope is stated ONCE now, on the group these four panels live in, so a
+   title is a title again: four headings that each repeated "— Apply to All"
+   said the same thing four times and made a review screen read as a settings
+   page. Kept as a function because that is where the scope would go back if
+   the group is ever split up again. */
+function wqaScopeTitle(key){ return dcT(key); }
 
 /* ── Common Size / Thread — Apply to All ───────────────────────────────────
    Shorthand photos routinely carry only lengths and quantities:
@@ -9223,7 +9547,6 @@ function wqaRenderCommonItem(force){
            <input type="text" id="wqaCommonThread" value="${escHtml(c.thread)}" placeholder="${ends===2?'75/75':'100'}"
                   oninput="wqaEditCommonItem('thread',this.value)"></label>`:''}
        </div>
-       ${wqaScopeSwitch()}
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyItemToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
@@ -9376,7 +9699,6 @@ function wqaRenderCommonFix(force){
        </div>
        <label class="wqa-acc-en"><input type="checkbox" id="wqaFixBlanks"${f.blanksOnly?' checked':''}
               onchange="wqaEditFix('blanksOnly',this.checked)"> ${escHtml(dcT('wqaFixBlanksOnly'))}</label>
-       ${wqaScopeSwitch()}
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyFixToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
@@ -9557,7 +9879,6 @@ function wqaRenderCommonPrice(force){
      ${manual?`<div class="wqa-price-line wqa-price-manual">
        <label class="wqa-acc-f"><span>Manual Unit Price (RM)</span><input type="number" min="0" step="0.01" value="${escHtml(c.manualUnitPrice)}" oninput="wqaEditCommonPrice('manualUnitPrice',this.value)"></label>
      </div>`:''}
-     ${wqaScopeSwitch()}
      <div class="wqa-acc-actions">
        <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyPriceAll|wqaApplyPriceSelected"
                onclick="wqaApplyPriceToAll()">${escHtml(wqaApplyLabel('wqaApplyPriceAll','wqaApplyPriceSelected'))}</button>
@@ -9681,7 +10002,6 @@ function wqaRenderCommonAcc(force){
     `<div class="wqa-panel-body">
        <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards.</div>
        ${wqaAccEditor(a,(g,f,v)=>`wqaEditCommonAcc('${g}','${f}',${v})`)}
-       ${wqaScopeSwitch()}
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyAccToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
@@ -10095,8 +10415,16 @@ function wqaPatchRows(){
        so they are refreshed from that same list rather than by name. */
     const dims=card.querySelectorAll('.wqa-sum .wqa-c-dim');
     wqaListCols().forEach((c,k)=>{ if(dims[k]) dims[k].textContent=wqaRowDimCell(r,c.k)||'—'; });
+    /* The size cell carries the thread reference under it, so it is rebuilt
+       rather than have its text replaced — textContent alone would delete the
+       note every time a row was patched. */
     const cSize=card.querySelector('.wqa-c-size');
-    if(cSize) cSize.textContent=r.size||'—';
+    if(cSize){
+      const tref=String(r.threadRef||'').trim();
+      cSize.classList.toggle('has-tref',!!tref);
+      cSize.innerHTML=escHtml(r.size||'—')
+        +(tref?`<span class="wqa-tref" title="Thread reference — not used in any calculation">${escHtml(tref)}</span>`:'');
+    }
     /* The line under the summary states the row's material, finish and size
        type. It was built once and never refreshed, so changing a row's
        material to SS304 repainted the price from the stainless calculation
@@ -10111,6 +10439,7 @@ function wqaPatchRows(){
     if(tw) tw.textContent=wqaFmtTotalWeight((r.calc||{}).weight,r.qty);
     wqaPatchRowAccBar(card,r);
   });
+  wqaApplyFlash();
   wqaUpdateAddButton();
 }
 /* Both read the weight the calculator produced — no second formula anywhere. */
@@ -10139,6 +10468,17 @@ function wqaSetView(v){
 }
 /* Thread is ONE user-facing field. Both ends live behind it as threadLen and
    threadLen2, written and read as "50/110". */
+/* Committed: spelled the one way — 1.75 and 1.75P are the same note — and
+   cleared without touching the size. Nothing is recomputed, because nothing
+   downstream reads it. */
+function wqaEditThreadRef(i,inputEl){
+  const r=wqa.rows[i]; if(!r) return;
+  const v=dcNormThreadRef(inputEl?inputEl.value:r.threadRef);
+  r.threadRef=v;
+  wqaMarkEdited(r,'threadRef');
+  if(inputEl) inputEl.value=v;
+  wqaPatchRows();
+}
 function wqaEditThread(i,v){
   wqaMarkEdited(wqa.rows[i],'threadLen');
   if(wqa.rows[i]) wqaDropNoteCredit(wqa.rows[i],'threadLen');
@@ -10211,7 +10551,13 @@ function wqaDimShort(product,k){
 function wqaCompactCells(r,cols){
   const calc=r.calc||{};
   const cell=(cls,txt,lbl)=>`<span class="wqa-c ${cls}"${lbl?` data-lbl="${escHtml(lbl)}"`:''}>${escHtml(txt)}</span>`;
-  return cell('wqa-c-size', r.size||'—')
+  /* The thread reference sits UNDER the size, in smaller secondary text, so
+     the table gains no column and no width. It is a note about the thread; the
+     size above it is what everything is calculated from. */
+  const tref=String(r.threadRef||'').trim();
+  const sizeCell=`<span class="wqa-c wqa-c-size${tref?' has-tref':''}">${escHtml(r.size||'—')}${
+    tref?`<span class="wqa-tref" title="Thread reference — not used in any calculation">${escHtml(tref)}</span>`:''}</span>`;
+  return sizeCell
     + (cols||wqaListCols()).map(c=>cell('wqa-c-dim wqa-c-'+c.k, wqaRowDimCell(r,c.k)||'—',
                                         wqaDimShort(wqaRowProduct(r),c.k))).join('')
     + cell('wqa-c-qty',  r.qty||'—')
@@ -10223,6 +10569,23 @@ function wqaCompactCells(r,cols){
    repeat() will not take a custom property as its count — so that number, and
    only that number, is composed here from the three widths the breakpoint in
    force has already chosen. */
+/* ── …and again when the window changes shape ──────────────────────────────
+   The tracks are composed from the custom properties the breakpoint in force
+   has chosen, which means they are only right for the width they were composed
+   at. Composed once at render and never again, the desktop tracks stayed on a
+   window dragged narrower — 708px of columns inside a 651px panel — and the
+   item table scrolled sideways, which is the one thing a table of items must
+   never do. Recomposed on resize, and only that: nothing re-renders, no value
+   moves, the ten tracks are simply measured again.
+
+   Debounced, because a drag is a hundred resize events and this reads computed
+   style. */
+let wqaGridResizeTimer=null;
+function wqaOnResizeGrid(){
+  clearTimeout(wqaGridResizeTimer);
+  wqaGridResizeTimer=setTimeout(()=>{ try{ wqaSetListGrid(); }catch(e){} },80);
+}
+if(typeof window!=='undefined') window.addEventListener('resize',wqaOnResizeGrid);
 function wqaSetListGrid(){
   /* The panel, not the overlay: the widths are declared on .wqa-modal, and a
      value set on its parent would be overridden by its own rule. */
@@ -10332,10 +10695,11 @@ function wqaRowBadges(r){
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
-  /* Which of the two was reused, so "Reusing Q-2026-0366" cannot be read as
-     "RM 6.84 copied unchanged" when the row worked out its own figure. */
-  if(r.usedHistoryRef) out.push({t:dcT('badgeLastPrice')+' '+r.usedHistoryRef+' '
-    +dcT(r.usedHistoryRecipe?'badgeHistRecipe':'badgeHistPrice'),k:'info'});
+  /* Where the price came from used to be one more grey pill in a row of them,
+     which is where it got lost. It has its own line under the row now — see
+     wqaProvenanceHtml — saying the same two things (which record, and whether
+     the recipe or the stated figure came across) with room to be read and a
+     press that opens the record. Not repeated here. */
   return out;
 }
 function wqaBadgeHtml(r){
@@ -10775,7 +11139,27 @@ function wqaExtractFields(rawLine,opts){
      inside diameter. */
   f.pitch=wqaPitchValue(s);
   if(f.pitch!==null) s=s.replace(WQA_PITCH_RE,' ');
+  /* And the form that carries no marker at all: "M12 x 1.75". It is read ONLY
+     in the one shape that cannot be anything else — directly after a metric
+     size, written as a fraction of a millimetre, in the range a pitch actually
+     occupies. "M12 x 300" is a length and stays one; "M12 x 30.5" is not a
+     pitch either. Where it does fire, the number is taken out of the line, so
+     "M12 x 1.75 x 300" keeps its 300 as the length it is. */
+  if(f.pitch===null){
+    const bare=WQA_BARE_PITCH_RE.exec(s);
+    if(bare && Number(bare[1])>0 && Number(bare[1])<=WQA_BARE_PITCH_MAX){
+      f.pitch=String(Number(bare[1]));
+      s=s.slice(0,bare.index)+bare[0].replace(bare[1],' ')+s.slice(bare.index+bare[0].length);
+    }
+  }
+  /* And the series word comes out for the same reason the pitch does. It is a
+     WORD, so no dimension reader was ever going to misread it — but it stood
+     BETWEEN the size and the separator, and the unmarked-inch reader below
+     needs the size to be followed by its x. "1/2 UNC x 1020 x 100/100" left
+     the 1/2 on the line for the thread reader, which read it as the pair 1 and
+     2 and returned an empty size box. Read here, removed here. */
   f.series=wqaSeriesValue(s);
+  if(f.series) s=s.replace(WQA_SERIES_RE,' ').replace(/\s+/g,' ').trim();
   const inch=wqaInchScan(s);
   let inchNums=null;
   if(inch.length){
@@ -11105,6 +11489,12 @@ const WQA_SERIES_RE=/\b(unc|unf|unef|bsw|bsf|bspt?|npt)\b/i;
 /* "1.75P", "P1.75", "pitch 1.75" — a pitch always carries its own marker. A
    bare second number never becomes one: "M12 x 280" is a length. */
 const WQA_PITCH_RE=/\b(?:p\s*[:=]?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*p|pitch\s*[:=]?\s*(\d+(?:\.\d+)?))\b/i;
+/* An UNMARKED pitch, and only where the shape settles it: a metric size, the
+   separator, and a number with a decimal fraction no larger than a real coarse
+   pitch. A length is written in whole millimetres and is two or three digits;
+   the two shapes do not overlap, which is the only reason this is safe. */
+const WQA_BARE_PITCH_RE=/\bM\s*\d+(?:\.\d+)?\s*[x\u00d7*]\s*(\d+\.\d+)(?![\d.])/i;
+const WQA_BARE_PITCH_MAX=6;      /* the coarsest metric pitch in the tables */
 function wqaPitchValue(s){
   const m=WQA_PITCH_RE.exec(String(s||''));
   if(!m) return null;
@@ -12612,6 +13002,10 @@ function wqaNormalizeExtraction(d, opts){
                   these would be worse than showing them as what they are. */
                pitch:(it.pitch==null||it.pitch==='')?'':String(it.pitch),
                series:(it.series==null||it.series==='')?'':String(it.series),
+               /* The same two, as the one note the row shows and carries. The
+                  size beside it is untouched: M12 stays M12, 1/2" stays 1/2".
+                  Nothing downstream reads this. */
+               threadRef:dcThreadRefFrom(it.pitch,it.series,M),
                length:srcL,
                w:(it.W==null||it.W==='')?'':String(it.W),
                /* The value the drawing wrote, and the name it wrote it under,
@@ -13062,9 +13456,14 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   /* Opened by default when anything is actually missing — on a shorthand photo
      that is every row, and this panel is the one-action fix. */
   wqa.panels.item = wqaItemNeedCount() > 0;
+  /* And the group they live in opens only for the same reason — otherwise the
+     items are the first thing on screen, which is the whole point. */
+  wqa.bulkOpen = wqa.panels.item;
+  wqa.histMenu=''; wqa.histPick=null;
   wqaRenderCommonItem(true);
   wqaRenderCommonPrice();
   wqaRenderCommonAcc();
+  wqaRenderBulk();
   await wqaRecomputeAll();
 }
 
@@ -13605,11 +14004,34 @@ function wqaApplyRowToForm(r){
   const t=wqaRowProduct(r), c=wqa.common;
   productEntryTouchedFields.clear();
   resetAccPanel(t);
+  /* ── This row starts from an empty form ────────────────────────────────
+     Every row is priced through the ONE form for its product, so whatever the
+     row before it left in a box is this row's starting point. The material
+     change below clears the rate and the surcharge for every product EXCEPT
+     Sag Rod, and applyDefaultPrice writes only where a rule matches — so a Sag
+     Rod row whose specification has no rule (4140 QT, zinc plated, undersize
+     M12) kept the rate the row above it was priced on and showed that rate,
+     and that price, as its own.
+
+     Emptied HERE, before anything of this row's is written, so that everything
+     which legitimately fills these boxes still does: the thread-length
+     surcharge onThreadLenChange derives, the Default Price rules, and the
+     row's own override last of all. Emptying them after that wiped the
+     surcharge and made Quick Add disagree with the Calculator by exactly its
+     amount — the same two screens the whole function exists to keep identical.
+
+     Not the markup: it is cleared further down, after the dimensions, for the
+     same reason in the other direction. */
+  if(r.priceOverride.costRate===undefined) setFieldValue(t,'costRate','');
+  if(r.priceOverride.addCost===undefined)  setFieldValue(t,'addCost','');
   /* Quick Add does not extract custom dimensions, and whatever is sitting in
      the editor belongs to the person's own half-finished item — never to a row
      read out of a customer's message. Staff add them afterwards, by editing the
      committed item. */
   dcClearCustomDims();
+  /* The row's thread reference rides with it, so it reaches the item that is
+     pushed. Nothing on the pricing path reads it. */
+  dcSetItemThreadRef(r.threadRef);
   /* THIS row's material, finish and size type — a stainless row is priced as
      stainless even when the row above it is 4140 QT. */
   const rowMat=wqaRowSpec(r,'material')||c.material||'MS';
@@ -13672,6 +14094,34 @@ function wqaReadFormPricing(t){
 /* mode: 'force' = always full render (structural, user-initiated)
          'patch' = never re-render, just refresh the derived read-only values
          omitted = full render unless someone is typing                    */
+/* ── What just changed ─────────────────────────────────────────────────────
+   A price that moves is the thing a person most needs to see move: applying a
+   previous price to nine rows changes nine numbers scattered down a list, and
+   without a mark on them the screen looks identical to the one before it. So
+   the figures that CHANGED are highlighted for about a second and then are
+   ordinary again — a signal, never a permanent colour, and never a change to
+   the number itself.
+
+   Collected here and applied after the render, because the render replaces the
+   markup the class would have been sitting on. */
+let wqaFlashPending=[];
+function wqaFlashRows(list){
+  (list||[]).forEach(k=>{ if(wqaFlashPending.indexOf(k)<0) wqaFlashPending.push(k); });
+}
+function wqaApplyFlash(){
+  if(!wqaFlashPending.length) return;
+  const list=wqaFlashPending; wqaFlashPending=[];
+  const root=el('wqaRows'); if(!root) return;
+  list.forEach(k=>{
+    const card=root.querySelector('[data-wqa-row="'+k+'"]');
+    const cell=card&&card.querySelector('.wqa-fin');
+    if(!cell) return;
+    cell.classList.remove('wqa-flash');
+    void cell.offsetWidth;                       // restart it if it is already running
+    cell.classList.add('wqa-flash');
+    setTimeout(()=>{ try{ cell.classList.remove('wqa-flash'); }catch(e){} },1000);
+  });
+}
 async function wqaRecomputeAll(mode){
   if(!wqa.rows.length) return;                   // nothing to recompute after a reset
   /* Nothing to price until at least one row knows what it is. Whatever a row
@@ -13687,6 +14137,9 @@ async function wqaRecomputeAll(mode){
   }
   const token=wqa.session;
   const keepType=currentType;
+  /* What every row's price was a moment ago, so what moved can be said. */
+  const before=wqa.rows.map(r=>(r.calc&&r.calc.finalUnitPrice!==undefined&&r.calc.finalUnitPrice!==null)
+                                ? String(r.calc.finalUnitPrice) : '');
   /* The calculator is switched to each row's OWN product, so a Stud row is
      weighed and priced by the Stud path and the Sag Rod beside it by the Sag
      Rod path. Same calculators, same formulas — only the routing is per row. */
@@ -13719,6 +14172,14 @@ async function wqaRecomputeAll(mode){
     if(r.noDia){ r.calc=null; return; }
     r.calc=wqaReadFormPricing(t);
   });
+  /* A row that had a price and now has a different one. A row seeing its FIRST
+     price is not a change — that is every row on the first parse, and twenty
+     figures lighting up at once says nothing. */
+  wqaFlashRows(wqa.rows.map((r,k)=>{
+    const now=(r.calc&&r.calc.finalUnitPrice!==undefined&&r.calc.finalUnitPrice!==null)
+             ? String(r.calc.finalUnitPrice) : '';
+    return (before[k]!=='' && now!=='' && before[k]!==now) ? k : -1;
+  }).filter(k=>k>=0));
   wqaLiveProducts().forEach(t=>resetAccPanel(t));
   switchType(keepType);
   if(token!==wqa.session) return;                // a late debounce after a reset
@@ -13768,7 +14229,8 @@ function wqaRenderRows(force){
           <span class="wqa-hist-lbl">Pricing History</span>
           <span class="wqa-hist-count">${hist.total||hist.records.length} record${(hist.total||1)===1?'':'s'}${own?' · '+own+' this customer':''}${other?' · '+other+' other':''}</span>
         </button>
-        ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`)}
+        ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,
+                     (rec,n)=>wqaHistRecExtra(i,n,rec))}
       </div>`;
     }
     /* The body — every control that existed before — is built only when this row
@@ -13780,6 +14242,14 @@ function wqaRenderRows(force){
         <div class="field"><label>Size</label><input type="text" value="${escHtml(r.size)}"
                  oninput="wqaEditSize(${i},this,false)"
                  onchange="wqaEditSize(${i},this,true)"></div>
+        <!-- Beside the size, never inside it. Optional, clearable, and read by
+             nothing that computes. -->
+        <div class="field wqa-f-tref"><label data-i18n="wqaThreadRef">${escHtml(dcT('wqaThreadRef'))}</label>
+          <input type="text" class="wqa-tref-in" value="${escHtml(r.threadRef||'')}"
+                 placeholder="${escHtml(dcT('wqaThreadRefHint'))}"
+                 oninput="wqaEdit(${i},'threadRef',this.value)"
+                 onchange="wqaEditThreadRef(${i},this)">
+          <small class="wqa-hint-sm" data-i18n="wqaThreadRefNote">${escHtml(dcT('wqaThreadRefNote'))}</small></div>
         ${(rprod.dims||[]).filter(d=>d!=='size'&&d!=='threadLen').map(d=>`
         <div class="field"><label>${escHtml(wqaDimLabel(rprod.type,d))} (mm)</label>
           <input type="text" inputmode="decimal" value="${escHtml(r[d]==null?'':r[d])}"
@@ -13862,22 +14332,66 @@ function wqaRenderRows(force){
              of their own, which made the layout depend on how many actions
              there are: adding History pushed the delete off the end of a J Bolt
              row entirely. A single track cannot do that. -->
+        <!-- Controls that look like controls. Edit was a span with no border
+             and no hit area of its own; History gave no sign of being open;
+             neither could be reached from a keyboard without going through the
+             row underneath. All three are buttons now, at a size a finger can
+             actually land on, with hover, pressed, focus and open states. -->
         <span class="wqa-sum-actions">
-          <span class="wqa-sum-act">${open?'Close':'Edit'}</span>
-          <button type="button" class="wqa-row-hist${r.histOpen?' is-on':''}"
+          <button type="button" class="wqa-row-act wqa-row-edit${open?' is-on':''}"
+                  aria-expanded="${open?'true':'false'}"
+                  onclick="event.stopPropagation();wqaToggleRow(${i})">${open?'Close':'Edit'}</button>
+          <button type="button" class="wqa-row-act wqa-row-hist${r.histOpen?' is-on':''}"
                   title="Pricing history for this item" aria-expanded="${r.histOpen?'true':'false'}"
-                  onclick="event.stopPropagation();wqaHistToggle(${i})">History</button>
-          <button type="button" class="wqa-row-del" title="Remove"
+                  onclick="event.stopPropagation();wqaHistToggle(${i})">History${
+                    wqaHistCountLabel(r)}<span class="wqa-row-caret">${r.histOpen?'▲':''}</span></button>
+          <button type="button" class="wqa-row-act wqa-row-del" title="Remove" aria-label="Remove item ${i+1}"
                   onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>
         </span>
       </div>
       ${wqaRowStatusLine(r)}
+      ${wqaProvenanceHtml(r,i)}
       ${body}
       ${histHtml}
     </div>`;
   }).join('');
   wqaRenderListHead();
+  wqaApplyFlash();
   wqaUpdateAddButton();
+}
+/* How many records this row has, once it knows — a count on a closed control
+   is the reason to open it. Silent until the row has actually asked. */
+function wqaHistCountLabel(r){
+  const h=r&&r.hist;
+  if(!h||h.failed||!h.records||!h.records.length) return '';
+  return ' <span class="wqa-row-actn">'+(h.total||h.records.length)+'</span>';
+}
+/* ── Where this price came from ────────────────────────────────────────────
+   "Reusing Q-2026-0403 pricing" was a line of small grey text among several,
+   and the one thing on a row a person cannot work out for themselves is which
+   earlier quotation its price is standing on. So it is a pill under the row,
+   quieter than the price and impossible to miss — and pressing it opens the
+   history it names.
+
+   It says PREVIOUS PRICE, never a quotation number of its own: the reference
+   on it belongs to the record, not to the item and not to the document being
+   built. */
+function wqaProvenanceHtml(r,i){
+  const ref=String(r.usedHistoryRef||'').trim();
+  if(!ref) return '';
+  return `<div class="wqa-prov-line"><button type="button" class="wqa-prov"
+      title="${escHtml(dcT('wqaProvOpen'))}"
+      onclick="event.stopPropagation();wqaProvOpen(${i})">
+      <span class="wqa-prov-arrow">↳</span>
+      <span class="wqa-prov-lbl">${escHtml(dcT('wqaPrevPriceFrom'))}</span>
+      <span class="wqa-prov-ref">${escHtml(ref)}</span>
+      ${r.usedHistoryRecipe?'':`<span class="wqa-prov-tag">${escHtml(dcT('wqaProvStated'))}</span>`}
+    </button></div>`;
+}
+function wqaProvOpen(i){
+  const r=wqa.rows[i]; if(!r) return;
+  if(!r.histOpen) wqaHistToggle(i);
+  else wqaRenderRows(true);
 }
 function fmtDateShort(d){ return formatPrintDate(d); }
 
@@ -13971,47 +14485,80 @@ const WQA_CALC_MODES=['auto','no_round'];
    FINISH is deliberately not part of this. A record in another coating is
    shown as a reference and has no reuse button at all — see phRecordHtml — so
    it can never arrive here. */
-function wqaHistMatches(r,rec){
-  const spec=wqaHistSpec(r);
-  if(!spec||!rec) return false;
-  const same=(a,b)=>String(a||'').trim().toUpperCase()===String(b||'').trim().toUpperCase();
-  return same(spec.productType,rec.productType) && same(spec.material,rec.material)
-      && same(spec.sizeType,rec.sizeType)       && same(spec.cleanSize,rec.cleanSize);
-}
-function wqaHistUse(i,n){
-  const r=wqa.rows[i]; if(!r||!r.hist||!r.hist.records) return;
-  const rec=r.hist.records[n]; if(!rec) return;
-  if(!wqaHistMatches(r,rec)){ showToast(dcT('wqaHistMoved')); return; }
-  if(rec.finishMatch===false){ showToast(dcT('wqaHistOtherFinish')); return; }
-  const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?null:Number(rec.boltUnitPrice);
-  if(bolt===null){ showToast(dcT('wqaHistUnseparable')); return; }
+/* ── One compatibility rule, asked in one place ────────────────────────────
+   Whether a record describes a row is asked by three things now — the guard at
+   the moment Use is pressed, "apply to compatible items", and the picker that
+   lists which rows those are — and all three ask HERE, with wqaHistSpec, the
+   same identity the lookup itself was made with. A second matcher beside this
+   one would drift, and the thing it would drift into is a wrong price.
 
-  /* Whatever the LAST reused record put on this row comes back off first, so a
-     second record REPLACES the pricing rather than merging with it — choosing
-     Q-2026-0357 after Q-2026-0366 must not leave 0366's surcharge behind. Only
-     the components a record installed are removed; a rate a person typed is
-     theirs and is not touched by this. */
+   Five fields, and the FIRST disagreement is the reason a person is shown, so
+   a disabled row says what is wrong with it rather than merely being grey.
+
+   Geometry is deliberately absent: reusing a recipe across lengths is the whole
+   point of the feature, and every row is repriced from its OWN weight. So is
+   the thread reference — a pitch is a note about the thread and identifies
+   nothing. */
+const WQA_COMPAT_FIELDS=[
+  ['productType','wqaIncompatProduct'],
+  ['material',   'wqaIncompatMaterial'],
+  ['sizeType',   'wqaIncompatSizeType'],
+  ['cleanSize',  'wqaIncompatSize'],
+  ['finish',     'wqaIncompatFinish'],
+];
+function wqaHistCompat(r,rec,opts){
+  const spec=r?wqaHistSpec(r):null;
+  if(!spec||!rec) return {ok:false,reason:'wqaIncompatUnknown'};
+  const skipFinish=!!(opts&&opts.ignoreFinish);
+  const same=(a,b)=>String(a||'').trim().toUpperCase()===String(b||'').trim().toUpperCase();
+  for(let k=0;k<WQA_COMPAT_FIELDS.length;k++){
+    const f=WQA_COMPAT_FIELDS[k][0];
+    if(skipFinish && f==='finish') continue;
+    if(!same(spec[f],rec[f])) return {ok:false,reason:WQA_COMPAT_FIELDS[k][1]};
+  }
+  return {ok:true,reason:''};
+}
+/* The use-time identity guard. FINISH is deliberately not part of it: a record
+   in another coating is shown as a reference and has no reuse button at all —
+   see phRecordHtml — so it can never arrive here, and asking about it again
+   would report the wrong reason for a record that moved for another one. */
+function wqaHistMatches(r,rec){ return wqaHistCompat(r,rec,{ignoreFinish:true}).ok; }
+/* Is this record a RECIPE somebody can reuse, or a reference to read? The one
+   answer, used by the button, by the section it is filed under, and by the
+   bulk apply. */
+function phRecordReusable(rec){
+  if(!rec) return false;
+  if(rec.finishMatch===false) return false;                  /* another coating */
+  return !(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined);
+}
+/* ── Applying one record to one row ────────────────────────────────────────
+   Pulled out of wqaHistUse so that "use on this item" and "apply to compatible
+   items" are the SAME operation performed once or several times, rather than
+   two implementations of it. Returns what it did, so the caller can say so;
+   recomputing and toasting are the caller's job, because doing them per row
+   would recompute a twenty-row list twenty times.
+
+   Every guard the single-row path had is here, so a bulk apply cannot reach a
+   row the single one would have refused. */
+function wqaHistApplyToRow(r,rec){
+  if(!r||!rec) return {ok:false,why:'wqaHistMoved'};
+  if(!wqaHistMatches(r,rec))       return {ok:false,why:'wqaHistMoved'};
+  if(rec.finishMatch===false)      return {ok:false,why:'wqaHistOtherFinish'};
+  const compat=wqaHistCompat(r,rec);
+  if(!compat.ok)                   return {ok:false,why:'wqaHistMoved'};
+  const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?null:Number(rec.boltUnitPrice);
+  if(bolt===null)                  return {ok:false,why:'wqaHistUnseparable'};
+
+  /* Whatever the LAST reused record put on this row comes back off first. */
   (r.histApplied||[]).forEach(k=>{ delete r.priceOverride[k]; });
   r.histApplied=[];
 
   const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
   const rate=num(rec.costRate), add=num(rec.addCost), mk=num(rec.markup);
   const mode=String(rec.priceMode||'');
-  /* ── A previous price is a RECIPE, not a number ───────────────────────────
-     A quotation line that was WORKED OUT records how: a cost rate, a
-     surcharge, a markup and the mode its total was rounded in. Reusing it means
-     reusing those, and then running THIS row's own weight and geometry through
-     them — so the same basis applied to a longer rod gives that rod's own
-     price. Copying the historical final figure into Manual Price, which is what
-     this did, quoted last quarter's number for a different bolt and left the
-     row's unrelated rate sitting behind it contradicting the total on screen.
-
-     Every component has to be there for it to be a recipe. A record missing
-     any of them is not completed with a number nobody recorded. */
   const recipe = WQA_CALC_MODES.indexOf(mode)>=0
               && rate!==null && add!==null && mk!==null
               && isFinite(rate) && isFinite(add) && isFinite(mk);
-
   if(recipe){
     r.priceMode=mode;
     r.manualPrice='';
@@ -14021,23 +14568,164 @@ function wqaHistUse(i,n){
     r.histApplied=['costRate','addCost','markup'];
     r.usedHistoryRef=rec.refNo||'';
     r.usedHistoryRecipe=true;
-    wqaRecomputeAll('force');
-    showToast(dcT('wqaHistRecipe').replace('{r}',rec.refNo||'—')
-      .replace('{rate}',rate.toFixed(2)).replace('{add}',add.toFixed(2))
-      .replace('{mk}',String(mk)).replace('{mode}',wqaPriceModeLabel(mode)));
-    return;
+    return {ok:true,recipe:true,rate,add,mk,mode};
   }
-
   /* Priced by hand when it was quoted, or saved before the breakdown was
-     recorded. Either way the figure IS the answer and there is nothing to
-     recalculate — and nothing is manufactured to pretend otherwise. */
+     recorded. The figure IS the answer and there is nothing to recalculate. */
   r.priceMode='manual';
   r.manualPrice=String(bolt);
   r.usedHistoryRef=rec.refNo||'';
   r.usedHistoryRecipe=false;
+  return {ok:true,recipe:false,bolt,mode};
+}
+/* One record onto the row it belongs to — the button the whole feature is
+   named after. The work is wqaHistApplyToRow's; this reports it. */
+function wqaHistUse(i,n){
+  const r=wqa.rows[i]; if(!r||!r.hist||!r.hist.records) return;
+  const rec=r.hist.records[n]; if(!rec) return;
+  const out=wqaHistApplyToRow(r,rec);
+  if(!out.ok){ showToast(dcT(out.why)); return; }
+  wqaFlashRows([i]);
   wqaRecomputeAll('force');
-  showToast((mode==='manual' ? dcT('wqaHistManual') : dcT('wqaHistFinalOnly'))
-    .replace('{r}',rec.refNo||'—').replace('{v}',bolt.toFixed(2)));
+  if(out.recipe){
+    showToast(dcT('wqaHistRecipe').replace('{r}',rec.refNo||'—')
+      .replace('{rate}',out.rate.toFixed(2)).replace('{add}',out.add.toFixed(2))
+      .replace('{mk}',String(out.mk)).replace('{mode}',wqaPriceModeLabel(out.mode)));
+  } else {
+    showToast((out.mode==='manual' ? dcT('wqaHistManual') : dcT('wqaHistFinalOnly'))
+      .replace('{r}',rec.refNo||'—').replace('{v}',out.bolt.toFixed(2)));
+  }
+}
+/* ── The same record onto every row it also describes ──────────────────────
+   Which rows those are is wqaHistCompat's answer, not a second opinion: same
+   product, material, finish, size type and size. Geometry may differ, and that
+   is the point — each row is then repriced from its OWN weight, so an 853 and
+   a 943 on the same recipe come out at their own prices and neither inherits
+   the other's, or the record's.
+
+   A record that is a REFERENCE never gets here: it has no menu to open. */
+function wqaHistCompatRows(i,n){
+  const src=wqa.rows[i]; if(!src||!src.hist||!src.hist.records) return [];
+  const rec=src.hist.records[n];
+  if(!rec||!phRecordReusable(rec)) return [];
+  const out=[];
+  wqa.rows.forEach((r,k)=>{
+    if(r.removed) return;
+    const c=wqaHistCompat(r,rec);
+    out.push({i:k,row:r,ok:c.ok,reason:c.reason});
+  });
+  return out;
+}
+/* Apply to a named set of rows. The set is re-checked here, every row of it,
+   because the list a person is looking at was built a moment ago and this is
+   the moment that matters. */
+function wqaHistApplyRows(i,n,indices){
+  const src=wqa.rows[i]; if(!src||!src.hist||!src.hist.records) return;
+  const rec=src.hist.records[n]; if(!rec) return;
+  const done=[], refused=[];
+  (indices||[]).forEach(k=>{
+    const r=wqa.rows[k];
+    if(!r||r.removed) return;
+    if(!wqaHistCompat(r,rec).ok){ refused.push(k); return; }
+    if(wqaHistApplyToRow(r,rec).ok) done.push(k); else refused.push(k);
+  });
+  wqa.histPick=null; wqa.histMenu='';
+  if(!done.length){ showToast(dcT('wqaBulkNone')); wqaRenderRows(true); return; }
+  wqaFlashRows(done);
+  wqaRecomputeAll('force');
+  showToast(dcT('wqaBulkApplied').replace('{n}',done.length).replace('{r}',rec.refNo||'—')
+    + (refused.length?' · '+dcT('wqaBulkSkipped').replace('{n}',refused.length):''));
+}
+/* "Apply to compatible items" — every row the record describes, at once. */
+function wqaHistApplyCompatible(i,n){
+  wqaHistApplyRows(i,n,wqaHistCompatRows(i,n).filter(x=>x.ok).map(x=>x.i));
+}
+/* The menu behind the caret. One open at a time, and closing it changes
+   nothing — it is a menu. */
+function wqaHistMenuToggle(i,n){
+  const key=i+':'+n;
+  wqa.histMenu = wqa.histMenu===key ? '' : key;
+  wqa.histPick = null;
+  wqaRenderRows(true);
+}
+/* "Select items…" — the picker, with every compatible row already ticked and
+   every incompatible one disabled and saying why. */
+function wqaHistPickOpen(i,n){
+  const rows=wqaHistCompatRows(i,n);
+  const sel={};
+  rows.forEach(x=>{ if(x.ok) sel[x.i]=true; });
+  wqa.histPick={i,n,sel};
+  wqa.histMenu='';
+  wqaRenderRows(true);
+}
+function wqaHistPickClose(){ wqa.histPick=null; wqaRenderRows(true); }
+function wqaHistPickToggle(k){
+  const p=wqa.histPick; if(!p) return;
+  /* Only a row the rule allows can be ticked. A disabled row is disabled in
+     the model too, not merely in the markup. */
+  const row=wqa.rows[k], src=wqa.rows[p.i];
+  const rec=src&&src.hist&&src.hist.records?src.hist.records[p.n]:null;
+  if(!row||!rec||!wqaHistCompat(row,rec).ok) return;
+  if(p.sel[k]) delete p.sel[k]; else p.sel[k]=true;
+  wqaRenderRows(true);
+}
+/* The caret beside "Use on this item", its menu, and the picker the menu
+   opens — all of it built only for a record that is REUSABLE, so a reference
+   card has nothing to press. */
+function wqaHistRecExtra(i,n,rec){
+  if(!phRecordReusable(rec)) return '';
+  const key=i+':'+n, open=wqa.histMenu===key;
+  const compat=wqaHistCompatRows(i,n);
+  const nOk=compat.filter(x=>x.ok).length;
+  const menu = !open ? '' : `<div class="ph-menu" role="menu">
+      <button type="button" role="menuitem" class="ph-menu-i" onclick="wqaHistApplyCompatible(${i},${n})">
+        ${escHtml(dcT('phApplyCompatible').replace('{n}',nOk))}</button>
+      <button type="button" role="menuitem" class="ph-menu-i" onclick="wqaHistPickOpen(${i},${n})">
+        ${escHtml(dcT('phSelectItems'))}</button>
+    </div>`;
+  const pick = (wqa.histPick && wqa.histPick.i===i && wqa.histPick.n===n)
+    ? wqaHistPickHtml(compat) : '';
+  return `<span class="ph-rec-more">
+      <button type="button" class="btn btn-outline btn-sm ph-rec-menu${open?' is-on':''}"
+              aria-haspopup="true" aria-expanded="${open?'true':'false'}"
+              title="${escHtml(dcT('phMoreWays'))}"
+              onclick="wqaHistMenuToggle(${i},${n})">▾</button>
+      ${menu}
+    </span>${pick}`;
+}
+/* Every live row, ticked or disabled, and a disabled one says why. */
+function wqaHistPickHtml(compat){
+  const p=wqa.histPick;
+  const n=Object.keys(p.sel).length;
+  const line=x=>{
+    const r=x.row, on=!!p.sel[x.i];
+    /* Enough to tell one row from another AND to make a refusal legible: the
+       reason says "different finish", so the finish has to be on the line. */
+    const mat=wqaRowSpec(r,'material'), fin=wqaRowSpec(r,'finish');
+    const what=[r.size||'—', r.length?'L'+r.length:'',
+                materialLabel(mat)||'', fin||(wqaNoFinish(mat)?'N/A':'')]
+               .filter(Boolean).join(' · ');
+    return `<label class="ph-pick-row${x.ok?'':' is-off'}">
+      <input type="checkbox" ${on?'checked':''}${x.ok?'':' disabled'}
+             onchange="wqaHistPickToggle(${x.i})">
+      <span class="ph-pick-what">${escHtml(what)}</span>
+      <span class="ph-pick-why">${escHtml(x.ok?dcT('wqaCompatible'):dcT(x.reason))}</span>
+    </label>`;
+  };
+  return `<div class="ph-pick">
+    <div class="ph-pick-head">${escHtml(dcT('phSelectItemsTitle'))}</div>
+    <div class="ph-pick-list">${compat.map(line).join('')}</div>
+    <div class="ph-pick-foot">
+      <span class="ph-pick-n">${escHtml(dcT('wqaNSelected').replace('{n}',n))}</span>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="wqaHistPickClose()">${escHtml(dcT('cancel'))}</button>
+      <button type="button" class="btn btn-primary btn-sm" ${n?'':'disabled'}
+              onclick="wqaHistPickApply()">${escHtml(dcT('phApplyPrevious'))}</button>
+    </div>
+  </div>`;
+}
+function wqaHistPickApply(){
+  const p=wqa.histPick; if(!p) return;
+  wqaHistApplyRows(p.i,p.n,Object.keys(p.sel).map(Number));
 }
 /* Opening one row's history says nothing about any other row's, and asks for
    nothing until it is asked for. */
