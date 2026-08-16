@@ -262,3 +262,45 @@ tests/
   · php/pricing_history.test.php — +18 assertions on the server-side rule
   · suites/17-quickadd-layout.test.js — a J Bolt now asks for the surcharge too
   · add-shots.js — new, the twelve before/after Add frames
+
+PASS 7 PART 3 — material identity
+---------------------------------
+Baseline 581d5024e0e68426de27016d742ed28139919934
+
+index.php
+  · the stainless rules moved AHEAD of the strength families in WQA_MATERIALS.
+    The loop stops at the first match, so their position IS the precedence
+    rule: SUS304 written beside GRADE 8.8 is stainless, and A2-70's 70 is a
+    property class rather than a grade.
+  · both grade patterns extended — Class/CL, H.T. with its stops, High Tensile
+    Grade, DIN 975 in every spelling, AISI 4140/4340, Q&T — and the bare HT and
+    HIGH TENSILE alternatives REMOVED. Both 8.8 and 10.9 are high tensile, so
+    the wording alone does not say which of two different steels the company
+    buys; it stays null and Review asks.
+  · AISI 304 / AISI 316 added to the stainless spellings; hot-dip with a hyphen
+    and self colour added to the finishes
+  · opts.noStrengthAlloy removed from wqaDetectCommon and from both call sites
+    in wqaNormalizeExtraction. A grade means the same thing on a drawing as in
+    a typed message: 8.8 is 4140 QT, 10.9 is 4340 QT, one mapping for every
+    source. The class is kept beside the answer as evidence, not in place of it.
+  · the material's provenance (matFrom, matDefaulted) now travels with it down a
+    merged specification block, so row four of a cell says its 4140 QT came from
+    the block's GRADE 8.8
+
+ai_extract.php
+  · the instruction block rewritten: copy the specification, do NOT translate it
+    into an alloy — that mapping is the company's and runs in our own code.
+    HT8.8, AISI 304/316 and A4-70 named in the vocabulary it lists.
+
+tests/
+  · suites/22-material-identity.test.js — new, 236 assertions: all 76 spellings
+    one at a time, the four identities held distinct, the ambiguous wordings and
+    paper traps left unresolved, precedence, grade-vs-finish pairs, entity
+    scoping, both live production formats, and a door-to-door comparison proving
+    a document and a message reach the same answer
+  · suites/19-drawing-interpretation.test.js — Case B rows 3-6 are now 4140 QT
+    with the class as evidence, and the assembly-cell test expects the stud's
+    own 8.8 to name its material
+  · php/ai_extract.test.php — prompt assertions updated, +5
+  · lib/harness.js — exposes matFrom / matDefaulted
+  · extraction-shots.js, extraction-evidence.js — the two live formats added

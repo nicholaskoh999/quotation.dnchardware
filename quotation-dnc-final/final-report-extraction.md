@@ -335,6 +335,13 @@ the version-controlled copy and the archive is rebuilt from it with
 
 ## 14. Remaining risk
 
+> **SUPERSEDED IN PART 3.** Everything in this report about `Grade 8.8`
+> remaining a strength class with `Material = null` is no longer the rule. The
+> company's ruling is that the 8.8 family maps to **4140 QT** and the 10.9
+> family to **4340 QT**, on an engineering document exactly as in a typed
+> message. See `final-report-materials.md`. The geometry, rotated-table,
+> merged-cell, radius and A2/A4 work in this report all still stand.
+
 **The stainless finish question raised here has been answered and is closed.**
 This report originally flagged a conflict between requirement 11 (rows 1–2
 `SS304 / PL`) and the approved rule `DC_NO_FINISH_MATERIALS`. The ruling is

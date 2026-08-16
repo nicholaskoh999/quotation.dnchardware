@@ -33,10 +33,10 @@ IN  [{"M":"M12","L":145,"W":null,"TL":null,"qty":9,"Bmid":null,"material":"A2-70
 OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
     stud        M12    145    —      —     —     —       9     SS304     —       —           
     stud        M20    240    —      —     —     —       5     SS304     —       —           
-    stud        M10    120    —      —     —     —       27    —         HDG     GRADE 8.8   
-    stud        M10    125    —      —     —     —       21    —         HDG     GRADE 8.8   
-    stud        M10    130    —      —     —     —       21    —         HDG     GRADE 8.8   
-    stud        M16    170    —      —     —     —       9     —         HDG     GRADE 8.8   
+    stud        M10    120    —      —     —     —       27    4140      HDG     GRADE 8.8   
+    stud        M10    125    —      —     —     —       21    4140      HDG     GRADE 8.8   
+    stud        M10    130    —      —     —     —       21    4140      HDG     GRADE 8.8   
+    stud        M16    170    —      —     —     —       9     4140      HDG     GRADE 8.8   
 
     row 1: needs Cost Rate
             read from: material "A2-70 SUS304" · finish "PLAIN"
@@ -44,18 +44,22 @@ OUT product     size   L      H      ID    S     TL      qty   material  finish 
     row 2: needs Cost Rate
             read from: material "A2-70 SUS304" · finish "PLAIN"
             Needs Cost Rate | PL stated — SS304 is quoted without a finish
-    row 3: needs Material, Cost Rate
+    row 3: needs Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
-    row 4: needs Material, Cost Rate
+            material from: "GRADE 8.8"
+            Needs Cost Rate
+    row 4: needs Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
-    row 5: needs Material, Cost Rate
+            material from: "GRADE 8.8"
+            Needs Cost Rate
+    row 5: needs Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
-    row 6: needs Material, Cost Rate
+            material from: "GRADE 8.8"
+            Needs Cost Rate
+    row 6: needs Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
+            material from: "GRADE 8.8"
+            Needs Cost Rate
 
 ══════════════════════════════════════════════════════════════════════════════
 A sheet-wide "ISO 898 CLASS 5.8" under a block that states DIN 975 GRADE 8.8
@@ -64,12 +68,75 @@ IN  [{"M":"M10","L":120,"W":null,"TL":null,"qty":27,"Bmid":null,"material":"DIN 
 IN  document material: "ISO 898 CLASS 5.8"
 
 OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
-    stud        M10    120    —      —     —     —       27    —         HDG     GRADE 8.8   
-    stud        M10    125    —      —     —     —       21    —         HDG     GRADE 8.8   
+    stud        M10    120    —      —     —     —       27    4140      HDG     GRADE 8.8   
+    stud        M10    125    —      —     —     —       21    4140      HDG     GRADE 8.8   
 
-    row 1: needs Material, Cost Rate
+    row 1: needs Cost Rate
             read from: material "DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
-    row 2: needs Material, Cost Rate
+            material from: "GRADE 8.8"
+            Needs Cost Rate
+    row 2: needs Cost Rate
             read from: material "DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
+            material from: "GRADE 8.8"
+            Needs Cost Rate
+
+══════════════════════════════════════════════════════════════════════════════
+LIVE — HT8.8 two-end studs, zinc (photographed order list)
+──────────────────────────────────────────────────────────────────────────────
+IN  [{"M":"M12","L":1582,"W":null,"TL":"200/200","qty":37,"Bmid":null,"material":"HT8.8","finish":"ZINC","sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M12","L":1406,"W":null,"TL":"200/200","qty":382,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M12","L":1104,"W":null,"TL":"200/200","qty":44,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M12","L":986,"W":null,"TL":"200/200","qty":28,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null}]
+
+OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
+    sagrod      M12    1582   —      —     —     200/200 37    4140      ZP      HT8.8       
+    sagrod      M12    1406   —      —     —     200/200 382   4140      ZP      HT8.8       
+    sagrod      M12    1104   —      —     —     200/200 44    4140      ZP      HT8.8       
+    sagrod      M12    986    —      —     —     200/200 28    4140      ZP      HT8.8       
+
+    row 1: needs —
+            read from: material "HT8.8" · finish "ZINC"
+            material from: "HT8.8"
+            Size Type: from Diameter Settings
+    row 2: needs —
+            read from: material "HT8.8" · finish "ZINC"
+            material from: "HT8.8"
+            Size Type: from Diameter Settings
+    row 3: needs —
+            read from: material "HT8.8" · finish "ZINC"
+            material from: "HT8.8"
+            Size Type: from Diameter Settings
+    row 4: needs —
+            read from: material "HT8.8" · finish "ZINC"
+            material from: "HT8.8"
+            Size Type: from Diameter Settings
+
+══════════════════════════════════════════════════════════════════════════════
+LIVE — HAB-TA-01, five parts captioned PLAIN G8.8 M30 x their own length
+──────────────────────────────────────────────────────────────────────────────
+IN  [{"M":"M30","L":950,"W":null,"TL":null,"qty":null,"Bmid":null,"material":"PLAIN G8.8","finish":"PLAIN","sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M30","L":865,"W":null,"TL":"200/200","qty":null,"Bmid":465,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M30","L":1000,"W":null,"TL":"200/200","qty":null,"Bmid":600,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M30","L":1200,"W":null,"TL":"200/200","qty":null,"Bmid":800,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M30","L":1285,"W":null,"TL":"200/200","qty":null,"Bmid":885,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"SAG_ROD","threadEnds":2,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null}]
+
+OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
+    sagrod      M30    950    —      —     —     —       —     4140      PL      G8.8        
+    sagrod      M30    865    —      —     —     200/200 —     4140      PL      G8.8        
+    sagrod      M30    1000   —      —     —     200/200 —     4140      PL      G8.8        
+    sagrod      M30    1200   —      —     —     200/200 —     4140      PL      G8.8        
+    sagrod      M30    1285   —      —     —     200/200 —     4140      PL      G8.8        
+
+    row 1: needs Thread
+            read from: material "PLAIN G8.8" · finish "PLAIN"
+            material from: "G8.8"
+            Size Type: company default | Needs Thread
+    row 2: needs —
+            read from: material "PLAIN G8.8" · finish "PLAIN"
+            material from: "G8.8"
+            Size Type: company default
+    row 3: needs —
+            read from: material "PLAIN G8.8" · finish "PLAIN"
+            material from: "G8.8"
+            Size Type: company default
+    row 4: needs —
+            read from: material "PLAIN G8.8" · finish "PLAIN"
+            material from: "G8.8"
+            Size Type: company default
+    row 5: needs —
+            read from: material "PLAIN G8.8" · finish "PLAIN"
+            material from: "G8.8"
+            Size Type: company default

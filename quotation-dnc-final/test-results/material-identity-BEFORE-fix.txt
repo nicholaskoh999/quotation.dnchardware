@@ -1,0 +1,96 @@
+  FAIL  materials — four identities, one vocabulary, one answer  (224 assertions, 33 failed)
+
+  1 suites, 224 assertions, 33 failed
+
+  FAILURES
+   - [materials — four identities, one vocabulary, one answer] AISI 304 → SS304
+      expected: "SS304"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] AISI 316 → SS316
+      expected: "SS316"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] Class8.8 → 4140 QT
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] Class10.9 → 4340 QT
+      expected: "4340"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] "HT" does not say which — it stays unanswered
+      expected: ""
+      actual:   "4140"
+   - [materials — four identities, one vocabulary, one answer] "HIGH TENSILE" does not say which — it stays unanswered
+      expected: ""
+      actual:   "4140"
+   - [materials — four identities, one vocabulary, one answer] "HIGH-TENSILE" does not say which — it stays unanswered
+      expected: ""
+      actual:   "4140"
+   - [materials — four identities, one vocabulary, one answer] an explicit stainless is not overwritten by a grade written beside it
+      expected: "SS304"
+      actual:   "4140"
+   - [materials — four identities, one vocabulary, one answer] GRADE 8.8 SELF COLOUR → finish PL
+      expected: "PL"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] A4-70 HDG → finish N/A
+      expected: ""
+      actual:   "HDG"
+   - [materials — four identities, one vocabulary, one answer] SS304 PLAIN → finish N/A
+      expected: ""
+      actual:   "PL"
+   - [materials — four identities, one vocabulary, one answer] the wording that produced 4140 QT is remembered
+      expected to contain: "8.8"
+      actual: ""
+   - [materials — four identities, one vocabulary, one answer] and so is 10.9
+      expected to contain: "10.9"
+      actual: ""
+   - [materials — four identities, one vocabulary, one answer] each with its own length and quantity, and the thread as written
+      expected: "M12/1582/200/200/37 · M12/1406/200/200/382 · M12/1104/200/200/44 · M12/986/200/200/28"
+      actual:   "M12/1582//37 · M12/1406//382 · M12/1104//44 · M12/986//28"
+   - [materials — four identities, one vocabulary, one answer] part 1 is 4140 QT, from the caption's G8.8
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] part 1 does not ask for a material
+   - [materials — four identities, one vocabulary, one answer] nor does its badge say so
+      expected NOT to contain: "Needs Material"
+      actual: "Needs MaterialNeeds Size TypeNeeds ThreadG8.8 stated — a strength class, not a material"
+   - [materials — four identities, one vocabulary, one answer] part 2 is 4140 QT, from the caption's G8.8
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] part 2 does not ask for a material
+   - [materials — four identities, one vocabulary, one answer] nor does its badge say so
+      expected NOT to contain: "Needs Material"
+      actual: "Needs MaterialNeeds Size TypeG8.8 stated — a strength class, not a material"
+   - [materials — four identities, one vocabulary, one answer] part 3 is 4140 QT, from the caption's G8.8
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] part 3 does not ask for a material
+   - [materials — four identities, one vocabulary, one answer] nor does its badge say so
+      expected NOT to contain: "Needs Material"
+      actual: "Needs MaterialNeeds Size TypeG8.8 stated — a strength class, not a material"
+   - [materials — four identities, one vocabulary, one answer] part 4 is 4140 QT, from the caption's G8.8
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] part 4 does not ask for a material
+   - [materials — four identities, one vocabulary, one answer] nor does its badge say so
+      expected NOT to contain: "Needs Material"
+      actual: "Needs MaterialNeeds Size TypeG8.8 stated — a strength class, not a material"
+   - [materials — four identities, one vocabulary, one answer] part 5 is 4140 QT, from the caption's G8.8
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] part 5 does not ask for a material
+   - [materials — four identities, one vocabulary, one answer] nor does its badge say so
+      expected NOT to contain: "Needs Material"
+      actual: "Needs MaterialNeeds Size TypeG8.8 stated — a strength class, not a material"
+   - [materials — four identities, one vocabulary, one answer] extracted "DIN 975 GRADE 8.8" → 4140
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] and a document is read exactly as a message is: DIN 975 GRADE 8.8
+      expected: "4140"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] extracted "GRADE 10.9" → 4340
+      expected: "4340"
+      actual:   ""
+   - [materials — four identities, one vocabulary, one answer] and a document is read exactly as a message is: GRADE 10.9
+      expected: "4340"
+      actual:   ""
+
+  13.3s

@@ -28,8 +28,11 @@ EXTRACTION BASELINE (pass 7)
 EXTRACTION COMMIT (pass 7, part 1)
   f074b5b111fc93698968ae704fc1b3443cab6ac2
 
-DEPLOY COMMIT  <-- deploy this one
+QUICK ADD REPAIR (pass 7, part 2)
   581d5024e0e68426de27016d742ed28139919934
+
+DEPLOY COMMIT  <-- deploy this one
+  ddc2c87666244aad786ee4a3add14f8e1897847c
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -91,14 +94,16 @@ COMMITS ON THIS BRANCH
   4e2ed7e  Audit package: the hook, the sideways table, and the evidence
   ef3d191  The scratch the evidence is made in is not the evidence
   581d502  The screen said the row was ready and the button disagreed
+  b1ef3d5  Audit package: the click that did nothing
+  ddc2c87  Four materials, one vocabulary, and the same answer whatever the source
 
-REGRESSION AT 581d502
-  21 browser suites         1762 assertions   0 failed
-  ai_extract (PHP)           102 assertions   0 failed
+REGRESSION AT ddc2c87
+  22 browser suites         2000 assertions   0 failed
+  ai_extract (PHP)           107 assertions   0 failed
   pricing history (PHP)       90 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     2016 assertions   0 failed
+  TOTAL                     2259 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the checks I cannot perform
@@ -125,3 +130,8 @@ AFTER DEPLOYMENT — the checks I cannot perform
   the Quotation List, with no generic "0 of 1 added" on a valid row. Confirm a
   stainless item carries no finish on the quotation, on the print sheet and in
   the WhatsApp text.
+
+  Pass 7 part 3 adds the material ruling. Run the photographed HT8.8 order list
+  and HAB-TA-01 through the live Analyze path and confirm 4140 QT / ZP and
+  4140 QT / PL respectively, with no Needs Material, and Case B's rows 3-6 as
+  4140 QT / HDG carrying GRADE 8.8 as evidence.

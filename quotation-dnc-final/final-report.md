@@ -4,8 +4,20 @@ Round 7 covers two things: the AI extraction work accepted earlier in the round
 (`f074b5b`), and the Quick Add insertion blocker found in live acceptance after
 it. Baseline `6bba600191a306af2e70c3d37f37f1b052099cf4`.
 
-The extraction half is reported in `final-report-extraction.md` and is
-unchanged by this work. Earlier rounds are in `final-report-rounds-1-6.md`.
+Round 7 has three parts, each with its own report:
+
+| Part | Report | Commit |
+|---|---|---|
+| 1 · AI extraction | `final-report-extraction.md` | `f074b5b` |
+| 2 · Quick Add insertion blocker (this one) | `final-report.md` | `581d502` |
+| 3 · Material identity | `final-report-materials.md` | **`ddc2c87` — deploy this** |
+
+Earlier rounds are in `final-report-rounds-1-6.md`.
+
+> **Superseded in part 3.** Part 1 held an engineering document's `Grade 8.8`
+> open as a strength class with no material. The company's ruling is that 8.8
+> **is** 4140 QT and 10.9 **is** 4340 QT, on every path alike. Where this report
+> or part 1's says a grade names no steel, read part 3.
 
 **The stainless rule is taken as final and authoritative, exactly as stated:
 `SS304 → N/A`, `SS316 → N/A`, no PL, no HDG, no ZP, whatever the source
