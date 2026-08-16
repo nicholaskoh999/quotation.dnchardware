@@ -182,4 +182,70 @@ async function typeRowSize(page, index, text, opts = {}) {
   if (opts.blur) { await page.$eval(sel, el => el.blur()); await page.waitForTimeout(400); }
 }
 
-module.exports = { launch, openApp, buildPage, typeInto, quickAddPaste, rowState, typeRowSize, ORIGIN, ROOT };
+/* ── The Companies page, served the same way ────────────────────────────────
+   companies.php has the same shape as index.php — one auth require on line 1
+   and then the real page — so it is served by the same rule, from the same
+   origin, so the language choice stored in localStorage by one is already in
+   force when the other paints. That is the behaviour under test. */
+const COMPANIES_PHP = path.join(ROOT, 'companies.php');
+
+function buildCompaniesPage() {
+  let html = fs.readFileSync(COMPANIES_PHP, 'utf8');
+  html = html.replace(/^<\?php[\s\S]*?\?>\s*/, '');
+  html = html.replace(/<link[^>]+fonts\.(googleapis|gstatic)\.com[^>]*>/g, '');
+  return html;
+}
+
+/* Companies answers its own small set of actions. Defaults are one company
+   with one saved quotation, which is enough for the page to have something to
+   draw; a test that wants more overrides the key it cares about. */
+function defaultCompaniesApi() {
+  const company = { id: 7, name: 'Alpha Steel Sdn Bhd', short_code: 'ALPHA',
+                    phone: '03-1234 5678', address: '12 Jalan Perindustrian, Klang',
+                    quotation_count: 2, latest_quotation_date: '2026-02-14',
+                    latest_quotation_created_at: '2026-02-14 09:15:00' };
+  const quote = { id: 41, ref_no: 'Q-2026-0041', previous_ref_no: null,
+                  quote_date: '2026-02-14', created_at: '2026-02-14 09:15:00',
+                  customer_name: 'Alpha Steel Sdn Bhd', company_id: 7,
+                  company_name: 'Alpha Steel Sdn Bhd', prepared_by: 'Nicholas',
+                  total_amount: 18450.75, remarks: '', items: '[]' };
+  return {
+    get_companies:   { ok: true, data: [company] },
+    get_quotations:  { ok: true, data: [quote] },
+    get_quotation:   { ok: true, data: quote },
+    search_items:    { ok: true, data: [] },
+  };
+}
+
+async function openCompanies(browser, opts = {}) {
+  const api = Object.assign(defaultCompaniesApi(), opts.api || {});
+  const page = await browser.newPage({ viewport: opts.viewport || { width: 1440, height: 1000 } });
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e && e.message || e)));
+  page.on('dialog', d => d.accept().catch(() => {}));
+  if (opts.lang) {
+    await page.addInitScript(l => { try { localStorage.setItem('dc_lang', l); } catch (e) {} }, opts.lang);
+  }
+  const html = buildCompaniesPage();
+  await page.route('**/*', route => {
+    const url = route.request().url();
+    if (url.includes('api.php')) {
+      const m = /[?&]action=([a-z_]+)/.exec(url);
+      let body = api[m ? m[1] : ''];
+      if (typeof body === 'function') body = body(url, route.request());
+      if (body === undefined) body = { ok: true, data: [] };
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    }
+    if (/\/companies\.html$/.test(url)) {
+      return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
+    }
+    return route.fulfill({ status: 200, contentType: 'text/plain', body: '' });
+  });
+  await page.goto(ORIGIN + '/companies.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(600);
+  page._dcErrors = errors;
+  return page;
+}
+
+module.exports = { launch, openApp, buildPage, typeInto, quickAddPaste, rowState, typeRowSize,
+                   openCompanies, buildCompaniesPage, ORIGIN, ROOT };

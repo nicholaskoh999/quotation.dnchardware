@@ -1,0 +1,58 @@
+{
+  "files": {
+    "index.php": {
+      "enKeys": 564,
+      "zhKeys": 564,
+      "coverage": 100,
+      "missingZh": [],
+      "missingKey": [],
+      "identical": [],
+      "unused": [
+        "quotationNoDash",
+        "dateDash",
+        "badgeNoThread",
+        "badgeLastPrice",
+        "badgeHistRecipe",
+        "badgeHistPrice",
+        "wqaNoCalcDia",
+        "wqaSelectRows",
+        "wqaApplyToAll",
+        "wqaApplyToSelected",
+        "wqaMsgNoLines",
+        "phCheckFailed",
+        "costRateSub",
+        "lblCutLength",
+        "lblCutHeight"
+      ],
+      "hardCoded": []
+    },
+    "companies.php": {
+      "enKeys": 83,
+      "zhKeys": 83,
+      "coverage": 100,
+      "missingZh": [],
+      "missingKey": [],
+      "identical": [],
+      "unused": [
+        "language",
+        "secSavedQuotations"
+      ],
+      "hardCoded": []
+    },
+    "login.php": {
+      "enKeys": 11,
+      "zhKeys": 11,
+      "coverage": 100,
+      "missingZh": [],
+      "missingKey": [],
+      "identical": [],
+      "unused": [],
+      "hardCoded": []
+    }
+  },
+  "totals": {
+    "keys": 658,
+    "missingZh": 0,
+    "hardCoded": 0
+  }
+}

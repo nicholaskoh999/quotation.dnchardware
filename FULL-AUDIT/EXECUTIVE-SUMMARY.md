@@ -1,0 +1,116 @@
+# EXECUTIVE SUMMARY
+
+**Overnight full-system audit · QUOTATION.DNC**
+Baseline `f96714e` → final. **NOT DEPLOYED.**
+
+---
+
+## The short version
+
+Three commits. **Six P1 findings, eleven P2, two P3, no P0.** Every one was
+reproduced, given a failing regression, repaired, and re-proved. The full test
+matrix is green and 428 assertions larger than it was.
+
+The two that matter most were both **silent** — the screen showed a complete,
+ordinary-looking, priceable row and the number in it was wrong:
+
+**A comma in a dimension.** `M24 x 1,000` was read as a rod **1 mm long**, with
+a quantity of 0, a unit weight of 0.0036 kg and a price of **RM 0.60**. The row
+was complete, unflagged, and the button said "Add 1 Items to Quotation". A
+metre-long M24 rod weighs 3.55 kg. Nothing anywhere said anything was wrong.
+
+**A comma in a quantity.** `qty - 15,000 pcs` was quoted as **15 pieces** — a
+thousand-fold error on the order size, on the exact message that prompted this
+audit.
+
+Both came from the same missing rule, and it was not a new one: the calculator's
+own number boxes have always read `1,200` as twelve hundred, and a test has
+asserted that since before this audit began. The message parser simply disagreed
+with the calculator. It now agrees.
+
+---
+
+## What was found
+
+| | Count | Repaired |
+|---|---:|---:|
+| **P0** critical | 0 | — |
+| **P1** high | 6 | 6 |
+| **P2** medium | 11 | 11 |
+| **P3** low | 2 | 2 |
+| Recorded, not repaired (with reasons) | 6 | — |
+| Needs a business decision | 6 | — |
+
+### The six P1s
+
+1. A comma-grouped **quantity** read as its first group — 15,000 → 15.
+2. A comma-grouped **dimension** read as its first group — 1,000 mm → 1 mm,
+   priced, and addable.
+3. A **spec header carrying a material grade** became a phantom second item —
+   the `4140` was counted as a stray number by a reader that had drifted from
+   the one that gets it right.
+4. **"L BOLT 45DEG" priced as a plain L Bolt.** The two products differ in
+   exactly the way that matters: a plain L Bolt's total length is computed from
+   its legs with a 90-degree bend deduction, and a 45DEG one's is not.
+5. **"SPECIAL BOLT" read as an L Bolt** — `specia|l bolt` contains the alias.
+   So did "STEEL BOLT".
+6. **One inch size, three spellings, three answers.** `1"` was worth 25.4 mm
+   fullsize and 23 mm undersize; `1 INCH` was worth 25.4 mm fullsize and
+   *nothing* undersize.
+
+### The translation work
+
+The dictionary already read **100% translated** at baseline. That number was
+true and it was not the whole picture: a string with no key is not a missing
+translation, it is not a translation at all — and **129 of those were on
+screen**. Almost every validation message in the application, the entire Pricing
+Guide page, both the Plate and Welding Anchor Set forms (still using the
+pre-switch "Material 材料" style the language switch replaced), every empty
+state, and a guide box that was Chinese only, so an English reader was handed a
+paragraph they could not read.
+
+**658 keys, 100% translated, nothing bypassing the translator.** Proved by
+reading the rendered screen, not the dictionary.
+
+The new Chinese strings are first-pass and should be read by a native speaker
+before release. That is a smaller claim than "translated", and it is the honest
+one.
+
+### One data-safety finding
+
+The Companies page wrote a quotation reference straight into markup unescaped —
+the comment above the line said so — while the company name beside it was
+escaped. References are typed by hand, and that page lists every customer. Now
+escaped like everything else.
+
+---
+
+## What this audit did NOT establish
+
+* **The Chinese wording has not been reviewed by a native speaker.**
+* **Nothing was tested against production data.** Every test runs the shipped
+  code against a controlled API, which is how the suite has always worked. No
+  live database was read or written.
+* **Sections 9–19 were audited through the existing suites and targeted probes,
+  not re-derived from scratch.** Bulk apply, the pricing engine, accessories,
+  the quotation flow, companies, default prices, diameter settings and the
+  calculator are covered by 1,300+ existing assertions which all pass; this run
+  added breadth where it found gaps, not a second implementation of them.
+* **Six of the eleven products are not read by Quick Add.** That is a scope
+  limit, now pinned by a test so a future alias cannot quietly capture one.
+
+---
+
+## Recommendation
+
+**READY FOR REVIEW — NOT READY TO DEPLOY.**
+
+Ready for review because every finding is reproduced, repaired and re-proved,
+the working tree is clean, and the evidence is complete.
+
+Not ready to deploy because two things need a person first: the new Chinese
+strings need a native speaker, and six questions need a business answer — chief
+among them whether the printed quotation a CUSTOMER receives should follow the
+operator's language. That one was deliberately not decided inside an audit.
+
+**ROUND STATUS: WAITING FOR NICHOLAS / CHATGPT REVIEW — NOT DEPLOYED**

@@ -1,0 +1,71 @@
+QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT
+===========================================
+
+BRANCH          claude/new-session-ofny46
+BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
+                "Audit package: the polish, and what it must not have moved"
+FINAL SHA       87248945a9a21e9cbd846054680f5abdf75b9ed9
+DEPLOYED        NO — nothing was deployed, and nothing was run against
+                production data. Every test drives the shipped code against a
+                controlled API in a local browser.
+
+WORKING TREE    clean at the final commit
+
+AUDIT COMMITS
+-------------
+  1cea497  Fifteen thousand is not fifteen, and one is not none
+  5591772  One rod, one diameter, and a product word that is a word
+  8724894  The screens the language switch never reached, and a reference that was markup
+
+  1cea497  Fifteen thousand is not fifteen, and one is not none
+           The three Priority Zero items, plus the two comma defects behind
+           them. Thousands separators in wqaNorm; the spec-header reader made
+           to use the same helper wqaExtractFields already uses; the approved
+           absent-Qty rule in the one normaliser every source passes through,
+           with absent told apart from unreadable; the context-sensitive
+           Thread Reference hint. And 127 user-visible strings moved out of
+           showToast and title attributes into the dictionary.
+
+  5591772  One rod, one diameter, and a product word that is a word
+           Inch spellings canonicalised so 1", 1 IN and 1 INCH are one size
+           with one fullsize and one undersize bar; the product alias matcher
+           made word-bounded so SPECIAL BOLT is not an L Bolt; L BOLT 45DEG no
+           longer priced with the 90-degree bend deduction. Suite 31 holds the
+           two fullsize inch tables against each other and recomputes eighteen
+           weights independently.
+
+  8724894  The screens the language switch never reached, and a reference
+           that was markup
+           The Pricing Guide, the Plate and Welding Anchor Set forms, the
+           empty states and the short labels. The deliberate exclusions
+           written into the checker so they stay visible. And the quotation
+           reference on the Companies page, which reached innerHTML unescaped.
+
+FILES CHANGED
+-------------
+   companies.php                            |  3767 ++--
+   index.php                                | 30354 +++++++++++++++--------------
+   tests/suites/26-thread-reference.test.js |    60 +
+   tests/suites/29-quantity.test.js         |   229 +
+   tests/suites/30-language.test.js         |   230 +
+   tests/suites/31-size-system.test.js      |   246 +
+   tests/tools/check-translations.js        |   367 +
+   7 files changed, 18419 insertions(+), 16834 deletions(-)
+
+TEST MATRIX AT FINAL SHA
+------------------------
+  Browser suites            32 suites, 2,858 assertions, 0 failed
+  Pricing-history PHP                    161 assertions, 0 failed
+  AI extraction PHP                      107 assertions, 0 failed
+  Pricing workbook                        62 assertions, 0 failed
+  Translation coverage                    12 assertions, 0 failed
+  ----------------------------------------------------------------
+  TOTAL ASSERTIONS                      3,200
+  TOTAL FAILED                              0
+
+  php -l over 13 files      clean
+  Browser console errors    none, asserted per page at every viewport
+
+BASELINE FOR COMPARISON
+-----------------------
+  2,810 assertions, 0 failed.  +390 assertions this run.
