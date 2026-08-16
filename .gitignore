@@ -8,6 +8,13 @@ db.php
 error_log
 *.log
 
+# ── Regenerable test output ─────────────────────────────────────────────────
+# Where tests/screenshots.js, tests/layout-shots.js and tests/extraction-shots.js
+# write while they run. The copies that are evidence live in
+# quotation-dnc-final/ and ARE committed; this is the scratch they are made in,
+# and it is rebuilt from the suite whenever it is wanted.
+audit-out/
+
 # ── Release / backup archives ────────────────────────────────────────────────
 # Git history is the source of truth for previous states; snapshot ZIPs of the
 # whole app must not be committed back into it.
