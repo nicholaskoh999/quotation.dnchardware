@@ -145,6 +145,55 @@ module.exports = async (browser, A) => {
     await configured.close();
   }
 
+  /* ── The 4140 QT rate table, and which route it travels ──────────────────
+     RATES_4140 is read twice: once by get4140Rates(), keyed on the built
+     description, and once by getSystemDPRules(), keyed on the item's identity.
+     The description gained its label ("4140 QT ...") while the table's keys did
+     not, so the first route has been returning null; the rates still reach the
+     boxes through the second. Pinned here because it is the numbers that
+     matter, not the route — and because a later tidy-up of either route must
+     not change what a 4140 QT sag rod costs. */
+  const rates4140 = await page.evaluate(() => {
+    const set = (mat, st, size, finish) => {
+      switchType('sagrod');
+      const cr = document.getElementById('sagrod-costRate'), ac = document.getElementById('sagrod-addCost');
+      cr.value = ''; ac.value = '';
+      document.getElementById('sagrod-material').value = mat;
+      document.getElementById('sagrod-sizeType').value = st;
+      document.getElementById('sagrod-size').value = size;
+      /* The finish is a radio group, chosen the way the pill does it. */
+      const radio = document.querySelector(`input[name="sagrod-finish"][value="${finish}"]`);
+      radio.checked = true; onFinishChange('sagrod');
+      cr.value = ''; ac.value = '';
+      onMaterialSizeChange('sagrod', false, 'material');
+      return { rate: cr.value, add: ac.value };
+    };
+    return {
+      full16PL:  set('4140', 'FULLSIZE',  'M16', 'PL'),
+      full12PL:  set('4140', 'FULLSIZE',  'M12', 'PL'),
+      under12PL: set('4140', 'UNDERSIZE', 'M12', 'PL'),
+      under16ZP: set('4140', 'UNDERSIZE', 'M16', 'ZP'),
+      full16HDG: set('4140', 'FULLSIZE',  'M16', 'HDG'),
+      noRule:    set('4140', 'FULLSIZE',  'M30', 'PL'),
+      /* The description-keyed lookup, asked directly. */
+      viaDesc:   get4140Rates(buildDesc('sagrod'), 'M16', 'PL'),
+      keys:      Object.keys(RATES_4140).join(' | '),
+      desc:      buildDesc('sagrod'),
+    };
+  });
+  A.eq(rates4140.full16PL.rate, '6.50', 'a fullsize 4140 QT M16 is rated at 6.50');
+  A.eq(rates4140.full16PL.add,  '3.50', 'with 3.50 additional');
+  A.eq(rates4140.full12PL.rate, '8.50', 'a fullsize M12 at 8.50');
+  A.eq(rates4140.under12PL.rate, '9.50', 'an undersize M12 at 9.50 — the size type changes the rate');
+  A.eq(rates4140.under16ZP.rate, '9.50', 'zinc plating adds its 1.50 to the undersize M16 rate of 8.00');
+  A.eq(rates4140.full16HDG.rate, '9.70', 'and galvanising adds 3.20');
+  A.eq(rates4140.full16HDG.add,  '4.50', 'with 1.00 of thread brushing on the additional cost');
+  A.eq(rates4140.noRule.rate, '', 'a size the table does not hold gets no rate — nothing is interpolated');
+  A.eq(rates4140.viaDesc, 'null',
+    'the description-keyed lookup finds nothing, because the label and the keys disagree');
+  A.eq(rates4140.desc, '4140 QT FULLSIZE SAG ROD', 'the description carries the material label');
+  A.eq(rates4140.keys, '4140 FULLSIZE SAG ROD | 4140 UNDERSIZE SAG ROD', 'while the keys carry the code');
+
   A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
   await page.close();
   return S;

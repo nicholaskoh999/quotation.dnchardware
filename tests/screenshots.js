@@ -83,27 +83,43 @@ const item = (M, L, TL, qty, extra = {}) => Object.assign({
     await page.close();
   }
 
-  // ── 5. previous price: this customer, and another customer's reference ──
+  // ── 5. pricing history: our own rows first, then anybody else's ─────────
   {
-    const HIST = [
-      { productType: 'SAG ROD', material: 'MS', sizeType: 'FULLSIZE', finish: 'PL', cleanSize: 'M20',
-        dimensionPreview: 'L 1000 x TL 100/100mm', qty: 1, unitPrice: 12.5, date: '2026-05-01',
-        customer: 'Alpha Sdn Bhd', refNo: 'DC-A-100' },
-      { productType: 'SAG ROD', material: 'MS', sizeType: 'FULLSIZE', finish: 'PL', cleanSize: 'M24',
-        dimensionPreview: 'L 1000 x TL 100/100mm', qty: 3, unitPrice: 21.0, date: '2026-06-14',
-        customer: 'Gamma Steel', refNo: 'DC-G-400' },
+    const rec = o => Object.assign({
+      quotationId: 1, refNo: 'Q2026-0001', date: '2026-01-05', customer: 'Alpha Sdn Bhd', companyId: 7,
+      own: true, productType: 'SAG ROD', material: 'MS', sizeType: 'FULLSIZE', finish: 'PL',
+      cleanSize: 'M20', dimensionPreview: 'L 1000 x TL 100/100mm', exactDims: true,
+      qty: 40, unitPrice: 12.50, boltUnitPrice: 12.50, accessoryCost: 0, accessorySummary: '',
+      accessoryAmbiguous: false, priceMode: 'auto', costRate: 2.80, addCost: 0.60, markup: 8,
+      weight: 2.4662, legacy: false,
+    }, o);
+    const ALL = [
+      rec({}),
+      rec({ quotationId: 2, refNo: 'Q2025-0831', date: '2025-08-31', qty: 12, unitPrice: 13.60,
+            boltUnitPrice: 12.90, accessoryCost: 0.70, accessorySummary: '2 Nut PL + 1 FW PL' }),
+      rec({ quotationId: 3, refNo: 'Q2025-0417', date: '2025-04-17', qty: 8, unitPrice: 10.20,
+            boltUnitPrice: 10.20, dimensionPreview: 'L 600 x TL 100/100mm', exactDims: false,
+            addCost: 0.00, markup: 6 }),
+      rec({ quotationId: 4, refNo: 'Q2025-0102', date: '2025-01-02', customer: 'Gamma Steel',
+            companyId: 9, own: false, qty: 60, unitPrice: 11.80, boltUnitPrice: 11.80,
+            costRate: 2.70, markup: 5 }),
+      rec({ quotationId: 5, refNo: 'Q2023-0044', date: '2023-04-04', customer: 'Gamma Steel',
+            companyId: 9, own: false, qty: 4, unitPrice: 14.00, boltUnitPrice: null,
+            accessoryCost: 0.70, accessorySummary: '2 Nut PL', accessoryAmbiguous: true,
+            priceMode: '', costRate: null, addCost: null, legacy: true }),
     ];
     const page = await openApp(browser, {
-      viewport: V,
+      viewport: { width: 1500, height: 1500 },
       api: {
-        get_price_history: url => {
+        get_pricing_history: url => {
           const p = new URL(url).searchParams;
-          const cid = p.get('company_id');
-          const eq = (a, b) => String(a || '').toUpperCase() === String(b || '').toUpperCase();
-          return { ok: true, data: HIST.filter(h =>
-            eq(h.cleanSize, p.get('cleanSize')) && eq(h.finish, p.get('finish'))
-            && eq(h.sizeType, p.get('sizeType')) && eq(h.material, p.get('material'))
-            && (cid == null || h.customer === 'Alpha Sdn Bhd')) };
+          const lim = parseInt(p.get('limit') || '20', 10);
+          const off = parseInt(p.get('offset') || '0', 10);
+          const hit = String(p.get('cleanSize') || '').toUpperCase() === 'M20';
+          const rows = hit ? ALL : [];
+          return { ok: true, data: { records: rows.slice(off, off + lim), total: rows.length,
+            ownTotal: rows.filter(r => r.own).length, otherTotal: rows.filter(r => !r.own).length,
+            offset: off, limit: lim } };
         },
       },
     });
@@ -113,8 +129,31 @@ const item = (M, L, TL, qty, extra = {}) => Object.assign({
       'M20 x 1000 x 100/100 - 250pcs',
       'M24 x 1000 x 100/100 - 10pcs',
     ].join('\n'), { settle: 1200 });
+    await page.evaluate(() => wqaHistToggle(0));
     await page.waitForTimeout(1200);
-    await shot(page, '5-previous-price', '#wqaStep2');
+    /* The list opens inside the review's own scroller, so bring it into the
+       frame — the point of the picture is the records, not the header. */
+    await page.evaluate(() => {
+      const b = document.querySelector('.wqa-hist-bar');
+      if (b) b.scrollIntoView({ block: 'center' });
+    });
+    await page.waitForTimeout(400);
+    await shot(page, '5-pricing-history', '#wqaStep2');
+    await page.close();
+  }
+
+  // ── 7. an analysis that stopped early says so, and waits ────────────────
+  {
+    const page = await openApp(browser, { viewport: V });
+    await page.evaluate(async d => { wqaOpen(); await wqaAiApply(d, undefined, { truncated: true }); }, {
+      product: 'ANCHOR_BOLT', material: 'MS', finish: 'HDG', sizeType: 'Fullsize',
+      threadEnds: 1, note: null,
+      items: [item('M20', 300, 150, 4), item('M24', 400, 150, 2), item('M16', 250, 100, 6)],
+    });
+    await page.waitForTimeout(1200);
+    await page.evaluate(() => wqa.rows.forEach((r, i) => { wqaEditPrice(i, 'costRate', '5'); wqaEditPrice(i, 'addCost', '1'); }));
+    await page.waitForTimeout(900);
+    await shot(page, '7-partial-extraction', '#wqaStep2');
     await page.close();
   }
 

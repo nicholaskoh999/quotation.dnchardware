@@ -2,13 +2,16 @@
   ok    imperial — the first token of a run is the size  (66 assertions)
   ok    weight — every product, every input that moves it  (39 assertions)
   ok    pricing — nothing stale, nothing fabricated  (41 assertions)
-  ok    previous price — this customer first, and only then a reference  (50 assertions)
+  ok    pricing history — the rows we sent, and why they differed  (79 assertions)
   ok    mixed documents — a heading speaks only for its own rows  (37 assertions)
   ok    save / reload / output — no value drift, no internal costs on the page  (65 assertions)
   ok    common fields and Correct Items — a blank never clears an answer  (61 assertions)
-  ok    dense table — 29 rows, merged cells, metric beside imperial  (168 assertions)
+  ok    dense table — 29 rows, merged cells, metric beside imperial  (170 assertions)
   ok    engineering drawing — five parts, five lengths, no borrowed dimensions  (48 assertions)
+  ok    company rules — a size type with a reason, a diameter with one source  (44 assertions)
+  ok    quick add safety — corrections, item numbers, partial extraction  (54 assertions)
+  ok    company history — a legacy description reads as words, not as a stored value  (35 assertions)
 
-  10 suites, 617 assertions, 0 failed
+  13 suites, 781 assertions, 0 failed
 
-  71.3s
+  86.2s

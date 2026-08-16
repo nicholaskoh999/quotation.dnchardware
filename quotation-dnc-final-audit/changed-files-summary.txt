@@ -1,0 +1,89 @@
+CHANGED FILES — both audit passes
+=================================
+Branch: claude/quotation-dnc-audit-repair-ashi82
+Pass 1 baseline: b5493089057277c6f7742931da26bc6f35553abd
+Pass 2 baseline: 744ad4084167bf3e0638535779b798b5023c0030
+
+APPLICATION FILES (deployed by .cpanel.yml)
+-------------------------------------------
+index.php
+  Pass 1  · imperial positional parsing: the first token of a run is the size,
+            and a thread standard (UNC/BSW/BSP) never steals the diameter
+          · the size box shows the value the row holds, live, mid-typing
+          · labelled dimensions (H/W/S/TL/ID) read in the right direction
+          · thread evidence stops at the end of its own section
+          · a default price no longer outlives the item it was fetched for
+          · undersize inch sizes stopped falling through to the fullsize table
+          · four value leaks between rows of one Quick Add session closed
+          · five stale warnings cleared when their cause is corrected
+          · accessories are charged where they are promised
+          · copy-quotation no longer carries the original's date
+
+  Pass 2  · DC_SIZE_TYPE_RULES: one central source for the company's size-type
+            defaults, with a badge naming where each applied default came from
+          · dcEffectiveDiameter / dcBuiltInDiameter: one resolver for the
+            diameter; the rate table's competing `dia` field deleted; the
+            Diameter Settings screen rendered from the same resolver
+          · Pricing History replaces Last Price: fetch, ranking, pagination,
+            per-record cost rate / additional cost / markup / bolt unit price,
+            accessory cost stated separately, no averages anywhere
+          · wqaChangeProduct: corrections and deletions survive choosing a
+            product; the Selected-Items scope is obeyed
+          · buildWAItemsText: message lines carry the quotation's own item
+            numbers; merged twins carry both
+          · partial extraction: a banner with the recovered count, and Add Items
+            gated on an explicit acknowledgement
+          · displayItemDesc unchanged, now shared with companies.php
+
+api.php
+  Pass 1  · the previous-price lookup respects an unstated finish or size type
+            instead of treating it as "any"
+  Pass 2  · requires pricing_history.php and uses its shared rules
+          · new action get_pricing_history: whole-database search with a SQL
+            LIKE prefilter, paginated, ownTotal/otherTotal reported
+          · search_items now returns the item's material, so a legacy
+            description can be normalised the way the quotation screen does
+
+companies.php
+  Pass 1  · one display fix carried over from the quotation screen
+  Pass 2  · displayItemDesc added; every staff-facing description on the company
+            screens goes through it. Display only — nothing stored is rewritten,
+            and 4140_PLAIN / Y_BAR never gain a "QT" they do not have
+
+ai_extract.php
+  Pass 1  · dense tables no longer fail as "could not analyze": the response
+            ceiling was the cause, not the table
+          · a truncated response keeps the rows that arrived whole and reports
+            that it was cut off
+          · failure causes are distinguishable from one another
+
+pricing_history.php                                              NEW
+  Pass 2  · the identity, accessory-separation and ranking rules, with no
+            database, session or HTTP dependency, so api.php and the tests share
+            one implementation
+
+.cpanel.yml
+  Pass 2  · one line: pricing_history.php added to the APPFILES allowlist.
+            The safety model — allowlist, protected names, two-phase copy,
+            post-copy verification — is unchanged
+
+NOT DEPLOYED (outside the .cpanel.yml allowlist by construction)
+---------------------------------------------------------------
+tests/lib/harness.js            serves the real index.php in Chromium
+tests/lib/assert.js             assertion + suite bookkeeping
+tests/run.js                    runner
+tests/screenshots.js            the seven evidence frames
+tests/suites/01 … 13            13 browser suites, 781 assertions
+tests/php/ai_extract.test.php   64 assertions
+tests/php/pricing_history.test.php  50 assertions
+tests/tools/build-pricing-workbook.py   builds the blank V2 workbook
+tests/tools/check-pricing-workbook.py   asserts it holds no business value
+quotation-dnc-final-audit/      this package
+audit-out/                      pass 1's package, superseded by this one
+
+UNTOUCHED
+---------
+auth.php · login.php · logout.php · db.sample.php · ai_config.sample.php
+php.ini · manifest.webmanifest · assets/
+
+NO DATABASE SCHEMA CHANGE. NO SECRET IN THE REPOSITORY OR IN THIS PACKAGE.
