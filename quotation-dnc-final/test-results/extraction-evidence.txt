@@ -10,8 +10,8 @@ IN  document product: ANCHOR_BOLT
 OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
     jbolt       M12    —      280    —     80    50      40    —         —       —           
 
-    row 1: needs ID, Material, Size Type, Cost Rate, Additional Cost
-            Needs ID | Needs Material | Needs Size Type | Needs Cost Rate | Needs Additional Cost | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
+    row 1: needs ID, Material, Size Type
+            Needs ID | Needs Material | Needs Size Type | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
 
 ══════════════════════════════════════════════════════════════════════════════
 CASE A variant — the same drawing with an inside width written on it
@@ -22,8 +22,8 @@ IN  document product: ANCHOR_BOLT
 OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
     jbolt       M12    —      280    50    80    50      40    —         —       —           
 
-    row 1: needs Material, Size Type, Cost Rate, Additional Cost
-            Needs Material | Needs Size Type | Needs Cost Rate | Needs Additional Cost | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
+    row 1: needs Material, Size Type
+            Needs Material | Needs Size Type | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
 
 ══════════════════════════════════════════════════════════════════════════════
 CASE B — six stud rows, two merged specification cells

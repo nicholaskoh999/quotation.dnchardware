@@ -7,7 +7,7 @@
   ok    save / reload / output — no value drift, no internal costs on the page  (65 assertions)
   ok    common fields and Correct Items — a blank never clears an answer  (61 assertions)
   ok    dense table — 29 rows, merged cells, metric beside imperial  (170 assertions)
-  ok    engineering drawing — five parts, five lengths, no borrowed dimensions  (48 assertions)
+  ok    engineering drawing — five parts, five lengths, no borrowed dimensions  (73 assertions)
   ok    company rules — a size type with a reason, a diameter with one source  (68 assertions)
   ok    quick add safety — corrections, item numbers, partial extraction  (60 assertions)
   ok    company history — a legacy description reads as words, not as a stored value  (40 assertions)
@@ -21,8 +21,9 @@
   ok    stainless — SS304 and SS316 carry no finish, on every screen  (119 assertions)
   ok    materials — four identities, one vocabulary, one answer  (236 assertions)
   ok    previous price — a recipe, not a number  (68 assertions)
-  ok    pricing history — whose price is this  (45 assertions)
+  ok    pricing history — whose price is this  (61 assertions)
+  ok    size type — unknown is not fullsize  (68 assertions)
 
-  24 suites, 2121 assertions, 0 failed
+  25 suites, 2230 assertions, 0 failed
 
-  386.6s
+  428.3s

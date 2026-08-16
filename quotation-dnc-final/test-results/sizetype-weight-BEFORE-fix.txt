@@ -1,0 +1,29 @@
+  FAIL  size type — unknown is not fullsize  (68 assertions, 12 failed)
+
+  1 suites, 68 assertions, 12 failed
+
+  FAILURES
+   - [size type — unknown is not fullsize] and the row now has no weight at all
+      expected: ""
+      actual:   "1.01430571332"
+   - [size type — unknown is not fullsize] and no price
+      expected: ""
+      actual:   "4.86"
+   - [size type — unknown is not fullsize] the screen shows no weight either ("1.0143 kg/pc")
+   - [size type — unknown is not fullsize] and it is not weighed on the 16mm bar (1.6099 kg/pc, as it used to be)
+      expected: ""
+      actual:   "1.6099092480000001"
+   - [size type — unknown is not fullsize] and not priced at RM 7.36, as it used to be
+      expected: ""
+      actual:   "7.36"
+   - [size type — unknown is not fullsize] anchorbolt: and is not weighed until it is answered
+   - [size type — unknown is not fullsize] anchorbolt: and asks that one thing only
+   - [size type — unknown is not fullsize] lbolt: and is not weighed until it is answered
+   - [size type — unknown is not fullsize] lbolt: and asks that one thing only
+   - [size type — unknown is not fullsize] jbolt: and is not weighed until it is answered
+   - [size type — unknown is not fullsize] jbolt: and asks that one thing only
+   - [size type — unknown is not fullsize] with no size type chosen the calculator has no diameter
+      expected: ""
+      actual:   "12.7"
+
+  14.0s

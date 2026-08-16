@@ -388,3 +388,55 @@ tests/
   · suites/20 and 23, and history-shots.js — the fixed-answer stubs replaced
     with ones that apply the server's identity rules, and the production
     frames photographed on the 4140 QT row the record belongs to
+
+PASS 7 PART 6 — live failure audit + repair
+-------------------------------------------
+Baseline 0f4f184b8487e73803e0506b475ba2465c711a9d
+
+pricing_history.php
+  · dc_history_like_escape — new. json_encode escapes a forward slash, so a
+    half-inch rod is stored "cleanSize":"1\/2", and a BACKSLASH is MySQL's LIKE
+    escape character: handed over raw the backslash was consumed and the query
+    looked for "cleanSize":"1/2", which is not in the blob. Every imperial size
+    was invisible to pricing history. The wildcards are escaped for the same
+    reason — a cleanSize of "%" would have matched every quotation ever saved.
+  · dc_like_matches — new. MySQL's LIKE, modelled, so the prefilter is testable
+    without a database.
+  · dc_history_blob_matches now runs the SAME params dc_history_sql_where
+    returns through dc_like_matches. It used strpos, and strpos and LIKE
+    disagree on exactly the character that broke this — which is why the
+    existing tests passed.
+
+index.php
+  · autoFillDiameter — an unanswered size type is not a fullsize one.
+    dcBuiltInDiameter reads anything that is not the literal string UNDERSIZE
+    as fullsize, which is the right reading of an ANSWER and the wrong reading
+    of a SILENCE: 1/2 x L1020 with nothing stated showed 1.0143 kg/pc, the
+    fullsize figure, where the undersize bar weighs 0.7472. On a product that
+    HAS a size type, no size type now means no diameter — which the rest of the
+    app already understands as no weight and no price. A Stud is never asked
+    and keeps its undersize bar; Others, whose diameter is typed by hand, has
+    no size box and never reaches the line.
+  · wqaSizeTypeOpen — new, and used in three places in wqaRowMissing, so such a
+    row asks for its size type and for nothing else: not for a Cost Rate it
+    could not have, and not for a Price it could not compute. The Valid Size
+    question already worked this way.
+  · DC_SIZE_TYPE_RULES untouched — a company rule is an answer, not a guess.
+
+tests/
+  · suites/25-sizetype-weight.test.js — new, 68 assertions: the live figure
+    spelled out, one question at a time, both choices computing, every product
+    with a size type, the three established company rules still weighing, the
+    Stud untouched, and the Calculator
+  · suites/24-history-identity.test.js — +16: 1/2" is not M12 at the request
+    layer and in the panel, both directions; and a row with no size type has no
+    history identity, makes no lookup, and is offered no fullsize record
+  · suites/10-drawing.test.js — +25, updated to the new contract and stronger:
+    the drawing states no size type, so the five parts ask and are not weighed
+    on a guess; answered, each is weighed on its own length as before
+  · php/pricing_history.test.php — +22: all seven imperial sizes through the
+    real SQL params, imperial/metric negative controls, wildcard-leak controls,
+    and the live case end to end
+  · php/imperial-like-evidence.php — new; builds the blob with json_encode
+    itself, prints the actual SQL params, and applies MySQL's LIKE semantics
+  · sizetype-shots.js — new, the five size-type frames

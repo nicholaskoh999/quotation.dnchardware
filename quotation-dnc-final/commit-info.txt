@@ -37,12 +37,19 @@ MATERIAL IDENTITY (pass 7, part 3)
 PREVIOUS PRICE (pass 7, part 4)
   2345502ed5d324ca97ed3a6fe71353ff097b1085
 
-DEPLOY COMMIT  <-- deploy this one
+HISTORY IDENTITY (pass 7, part 5)
   0f4f184b8487e73803e0506b475ba2465c711a9d
+
+DEPLOY COMMIT  <-- deploy this one
+  16b5f3c  Imperial pricing history, and an unanswered size type
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
   outside .cpanel.yml's allowlist and are never copied to the server.
+
+  It carries 0f4f184 with it, and both are needed for the reported live case:
+  0f4f184 is what makes a differently-coated record appear as a labelled
+  reference, and 16b5f3c is what makes an imperial record reachable at all.
 
 DEPLOYMENT STATUS
   NOT DEPLOYED
@@ -106,14 +113,16 @@ COMMITS ON THIS BRANCH
   2345502  A previous price is a recipe, and an old one must still be findable
   b4eb724  Audit package: the recipe, and the record that could not be found
   0f4f184  The record has to still be this item's when the button is pressed
+  f84ada8  Audit package: whose price is this
+  16b5f3c  Imperial pricing history, and an unanswered size type
 
-REGRESSION AT 0f4f184
-  24 browser suites         2121 assertions   0 failed
+REGRESSION AT 16b5f3c
+  25 browser suites         2230 assertions   0 failed
   ai_extract (PHP)           107 assertions   0 failed
-  pricing history (PHP)      139 assertions   0 failed
+  pricing history (PHP)      161 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     2429 assertions   0 failed
+  TOTAL                     2560 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the checks I cannot perform
@@ -155,3 +164,15 @@ AFTER DEPLOYMENT — the checks I cannot perform
   1/2" MS UNDERSIZE ZP rod shows its earlier PL quotations as references,
   labelled and not reusable, nearest length first — and that changing a row's
   material takes any open history card away with it.
+
+  Pass 7 part 6 adds the two live failures. Against real data, confirm that
+  1/2" MS UNDERSIZE ZP L1020 now returns Q-2026-0470's two PL records rather
+  than "No pricing history for this exact specification", and that the other
+  imperial sizes — 3/8, 5/8, 3/4, 7/8, 1-1/4, 1-1/2 — return their own history
+  too. This is the one check that cannot be made without the database: the
+  fault was in the SQL the endpoint sends, and the suite proves the query is
+  now correct through MySQL's own LIKE semantics, not that your rows match it.
+
+  And confirm on screen that a row whose Size Type nobody has stated shows a
+  dash for the weight and a dash for the price, and that choosing Undersize or
+  Fullsize computes immediately.

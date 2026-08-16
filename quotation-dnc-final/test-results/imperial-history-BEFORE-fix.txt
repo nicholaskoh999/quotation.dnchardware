@@ -1,0 +1,32 @@
+── what the database actually stores ─────────────────────────────────────
+  the size, as stored:  "cleanSize":"1\/2","de
+
+── what the endpoint asks it for (HEAD) ──────────────────────────────────
+  WHERE (q.items LIKE ? OR q.items LIKE ?)
+    $1 = %"cleanSize":"1\/2"%
+    $2 = %1\/2%
+
+── could that query ever return this row? (MySQL LIKE semantics) ─────────
+    pattern 1 -> no match
+    pattern 2 -> no match
+  FAIL  the half-inch row is reachable at all
+  ok    a metric row is reachable
+
+── every imperial size the business quotes ───────────────────────────────
+  FAIL  1/2    is reachable
+  FAIL  3/8    is reachable
+  FAIL  5/8    is reachable
+  FAIL  3/4    is reachable
+  FAIL  7/8    is reachable
+  FAIL  1-1/4  is reachable
+  FAIL  1-1/2  is reachable
+
+── a size is text to find, never a pattern ───────────────────────────────
+  FAIL  a bare % must not match every quotation ever saved
+  FAIL  an underscore must not stand in for a digit
+
+── and what the row is then given ────────────────────────────────────────
+  the query returned no rows, so dc_history_record is never reached:
+  the screen says "No pricing history for this exact specification".
+
+  10 FAILED

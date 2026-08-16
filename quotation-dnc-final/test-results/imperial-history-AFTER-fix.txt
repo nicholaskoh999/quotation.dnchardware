@@ -1,0 +1,40 @@
+── what the database actually stores ─────────────────────────────────────
+  [{"type":"sagrod","productType":"SAG ROD","material":"MS","sizeType":"UNDERSIZE","finish":"PL","size":"M 1\/2 x L 980  …
+  the size, as stored:  "cleanSize":"1\/2","de
+
+── what the endpoint asks it for ─────────────────────────────────────────
+  WHERE (q.items LIKE ? OR q.items LIKE ?)
+    $1 = %"cleanSize":"1\\/2"%
+    $2 = %1\\/2%
+
+── could that query ever return this row? (MySQL LIKE semantics) ─────────
+    pattern 1 -> MATCHES
+    pattern 2 -> MATCHES
+  ok    the half-inch row is reachable at all
+
+── the metric control, which never failed ────────────────────────────────
+  ok    a metric row is reachable
+  ok    and an M16 enquiry does not reach the half-inch row
+  ok    nor a half-inch enquiry the M16 row
+
+── every imperial size the business quotes ───────────────────────────────
+  ok    1/2    is reachable
+  ok    3/8    is reachable
+  ok    5/8    is reachable
+  ok    3/4    is reachable
+  ok    7/8    is reachable
+  ok    1-1/4  is reachable
+  ok    1-1/2  is reachable
+
+── a size is text to find, never a pattern ───────────────────────────────
+  ok    a bare %% must not match every quotation ever saved
+  ok    an underscore must not stand in for a digit
+
+── and what the row is then given ────────────────────────────────────────
+  ok    both earlier quotations of the same rod are returned
+    Q-2026-0470  1/2  L 980 x TL 100/100mm  finishMatch=false  dimDistance=40  RM 11.2
+    Q-2026-0470  1/2  L 1080 x TL 100/100mm  finishMatch=false  dimDistance=60  RM 12.3
+  ok    the nearer length ranks first: L980 is 40 from L1020, L1080 is 60
+  ok    both are flagged as a different finish — quoted PL, asked for in ZP
+
+  all checks passed
