@@ -905,6 +905,15 @@ const I18N={
     btnEdit:'Edit', btnDelete:'Delete',
     tDuplicated:'📄 Duplicated as #{n}', tQuoteNotFound:'Quotation {r} not found',
     ariaHome:'Der-Cheng Quotation — home',
+    /* The helper lines and empty states, which are most of what this page
+       says before a company is chosen. */
+    cpSelectCompany:'ℹ️ Select a company on the left to view all saved quotations for that company.',
+    cpPastPriceHint:'Looking for a past price instead? Use the item search under Recent Quotations.',
+    cpNoItemsMatch:'No past items match “{t}”',
+    cpBackRecent:'← Back to Recent Quotations',
+    cpGrandTotalNote:'ℹ️ Grand total is for quotation reference only. Actual order quantity may change.',
+    cpReferenceTotal:'Reference Total', cpViewQuotation:'View Quotation',
+    cpLastUpdated:'Last Updated', cpLatestProduct:'Latest Product',
   },
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
@@ -949,6 +958,13 @@ const I18N={
     btnEdit:'编辑', btnDelete:'删除',
     tDuplicated:'📄 已复制为 #{n}', tQuoteNotFound:'找不到报价单 {r}',
     ariaHome:'Der-Cheng 报价系统 — 首页',
+    cpSelectCompany:'ℹ️ 请在左侧选择公司，以查看该公司所有已保存的报价单。',
+    cpPastPriceHint:'想查询历史价格？请使用「最新报价」下方的产品搜索。',
+    cpNoItemsMatch:'没有符合「{t}」的历史项目',
+    cpBackRecent:'← 返回最新报价',
+    cpGrandTotalNote:'ℹ️ 报价总额仅供参考，实际订购数量可能不同。',
+    cpReferenceTotal:'参考总额', cpViewQuotation:'查看报价单',
+    cpLastUpdated:'最后更新', cpLatestProduct:'最新产品',
   },
 };
 function dcLang(){
@@ -1088,7 +1104,7 @@ function renderRecentQuotations(){
           <div class="rq-preview">${esc(previewText)}</div>
         </div>
         <div class="rq-card-bot">
-          <div class="rq-total"><span class="ref-total-label">Reference Total</span> <b>${fmtMoneyCP(q.total_amount)}</b></div>
+          <div class="rq-total"><span class="ref-total-label" data-i18n="cpReferenceTotal">Reference Total</span> <b>${fmtMoneyCP(q.total_amount)}</b></div>
           <div class="rq-actions">
             <button class="btn btn-primary" onclick="viewQuote(${q.id})">👁️ View</button>
             <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">📂 Load</button>
@@ -1101,7 +1117,7 @@ function renderRecentQuotations(){
     <div class="card" style="margin-bottom:12px">
       <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>${dcT('secRecentQuotations')}</div>
     </div>
-    <div class="q-helper">ℹ️ Select a company on the left to view all saved quotations for that company.</div>
+    <div class="q-helper" data-i18n="cpSelectCompany">ℹ️ Select a company on the left to view all saved quotations for that company.</div>
     ${cardsHtml}
     <div id="recentQuotesMoreWrap" style="display:${recentQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">
       <button class="btn btn-ghost" id="recentQuotesMoreBtn" onclick="loadMoreRecentQuotations()">Load More Quotations / 加载更多报价</button>
@@ -1180,8 +1196,14 @@ function renderSummary(){
     { cls:"", label:dcT('cardTotalCompanies'), value:totalCompanies, sub:dcT('cardTotalCompaniesSub') },
     { cls:"sc-green", label:dcT('cardSavedQuotations'), value:totalQuotes, sub:dcT('cardSavedQuotationsSub') },
     { cls:"sc-amber", label:dcT('cardRecentQuotes'), value:recentQuotes, sub:dcT('cardRecentQuotesSub') },
-    /* ref_no, date and company_name are stored data and pass through as-is. */
-    { cls:"sc-purple", label:dcT('cardLatestSavedQuote'), value: latest?(latest.ref_no||'(No Ref)'):'—',
+    /* ref_no, date and company_name are STORED data, so they are escaped like
+       every other stored value on this page. The reference is typed by hand
+       when a quotation is saved, and this card writes it into innerHTML: a
+       reference containing a tag used to be markup here, on a page that lists
+       every customer. The company name beside it was already escaped; the
+       reference was the one that was not. */
+    { cls:"sc-purple", label:dcT('cardLatestSavedQuote'),
+      value: latest ? esc(latest.ref_no || '(No Ref)') : '—',
       sub: latest ? (fmtDate(latest.quote_date||latest.created_at)+' — '+esc(latest.company_name||'')) : dcT('cardNoQuotationsYet') }
   ];
   document.getElementById('summaryGrid').innerHTML = cards.map(c=>`
@@ -1249,7 +1271,7 @@ function cpNotFoundPanel(term){
   const b=document.getElementById('cpSearchResult');
   b.innerHTML='<div class="cp-empty"><div class="cp-empty-icon">🔍</div>'
     +'<p class="cp-empty-main">No quotation “'+esc(term)+'”</p>'
-    +'<p class="cp-empty-sub">Looking for a past price instead? Use the item search under Recent Quotations.</p></div>';
+    +'<p class="cp-empty-sub">'+esc(dcT('cpPastPriceHint'))+'</p></div>';
   b.hidden=false;
 }
 
@@ -1298,7 +1320,7 @@ function itemBusyPanel(){
 function itemEmptyPanel(term){
   const b=document.getElementById('itemSearchResult');
   b.innerHTML='<div class="cp-empty"><div class="cp-empty-icon">🔍</div>'
-    +'<p class="cp-empty-main">No past items match “'+esc(term)+'”</p>'
+    +'<p class="cp-empty-main">'+esc(dcT('cpNoItemsMatch').replace('{t}',term))+'</p>'
     +'<p class="cp-empty-sub"><span data-i18n="msgTryFewer">Try fewer words, or a size and product like “M16 J BOLT”.</span></p></div>';
   b.hidden=false;
 }
@@ -1359,7 +1381,7 @@ function renderCpItemHits(hits,term,meta){
         <span class="ih-qty">Qty ${qty}</span>
         <span class="ih-price">Unit Price <strong>RM ${unit}</strong></span>
       </div>
-      <button type="button" class="btn btn-primary ih-view" onclick="itemSearchClear();viewQuote(${parseInt(h.quotation_id,10)})">View Quotation</button>
+      <button type="button" class="btn btn-primary ih-view" onclick="itemSearchClear();viewQuote(${parseInt(h.quotation_id,10)})" data-i18n="cpViewQuotation">View Quotation</button>
     </div>`;
   }).join('');
   const more=meta&&meta.truncated?` (showing the newest ${hits.length})`:'';
@@ -1532,7 +1554,7 @@ function renderCompanyQuoteCard(q){
       </div>
       <div class="q-card-bottom">
         <div class="ref-total">
-          <span class="ref-total-label">Reference Total</span><br>
+          <span class="ref-total-label" data-i18n="cpReferenceTotal">Reference Total</span><br>
           <b>${fmtMoneyCP(q.total_amount)}</b>
         </div>
         <div class="quote-actions">
@@ -1590,7 +1612,7 @@ async function selectCompany(id){
         </div>
         <div class="q-preview">${previewHtml || '<span style="opacity:.6">No items</span>'}</div>
         <div class="ref-total">
-          <span class="ref-total-label">Reference Total</span><br>
+          <span class="ref-total-label" data-i18n="cpReferenceTotal">Reference Total</span><br>
           <b>${fmtMoneyCP(q.total_amount)}</b>
         </div>
         ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
@@ -1612,13 +1634,13 @@ async function selectCompany(id){
           <div class="sp-name">${esc(c.name)}${c.short_code?` <span class="company-code">${esc(c.short_code)}</span>`:''}</div>
           <div class="sp-phone">${c.phone?esc(c.phone):'No phone on file'}</div>
         </div>
-        <button class="cp-back-btn" onclick="clearCompanySelection()">← Back to Recent Quotations</button>
+        <button class="cp-back-btn" onclick="clearCompanySelection()" data-i18n="cpBackRecent">← Back to Recent Quotations</button>
       </div>
       <div class="sp-stats">
-        <div class="sp-stat"><div class="sp-stat-label">Saved Quotations</div><div class="sp-stat-value">${totalQuotesForCompany}</div></div>
-        <div class="sp-stat"><div class="sp-stat-label">Last Updated</div><div class="sp-stat-value">${lastDate?fmtDate(lastDate):'—'}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label" data-i18n="cardSavedQuotations">Saved Quotations</div><div class="sp-stat-value">${totalQuotesForCompany}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label" data-i18n="cpLastUpdated">Last Updated</div><div class="sp-stat-value">${lastDate?fmtDate(lastDate):'—'}</div></div>
         <div class="sp-stat"><div class="sp-stat-label">Contact</div><div class="sp-stat-value" style="font-size:12.5px">${c.phone?esc(c.phone):'—'}</div></div>
-        <div class="sp-stat"><div class="sp-stat-label">Latest Product</div><div class="sp-stat-value" style="font-size:11px;line-height:1.4">${esc(latestProduct)}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label" data-i18n="cpLatestProduct">Latest Product</div><div class="sp-stat-value" style="font-size:11px;line-height:1.4">${esc(latestProduct)}</div></div>
       </div>
       ${remarksHtml}
     </div>
@@ -1627,7 +1649,7 @@ async function selectCompany(id){
       <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>Saved Quotations <span class="sub">报价记录</span></div>
       <span class="list-count">${totalQuotesForCompany}</span>
     </div>
-    <div class="q-helper">ℹ️ Grand total is for quotation reference only. Actual order quantity may change.</div>
+    <div class="q-helper" data-i18n="cpGrandTotalNote">ℹ️ Grand total is for quotation reference only. Actual order quantity may change.</div>
     <div id="companyQuotesList">${quotesHtml}</div>
     <div id="companyQuotesMoreWrap" style="display:${quotes.length&&companyQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">
       <button class="btn btn-ghost" id="companyQuotesMoreBtn" onclick="loadMoreCompanyQuotations()">Load More Quotations / 加载更多报价</button>

@@ -20,8 +20,13 @@
 'use strict';
 const { openApp, quickAddPaste } = require('../lib/harness');
 
-/* Everything a person can read on the page right now. */
-const visibleText = page => page.evaluate(() => {
+/* Everything a person can read right now — the whole page, or one part of it.
+   Scoping matters for the product forms: the Version Updates page keeps its
+   release notes in the document, and those are a record of what shipped, in
+   the language it was written in. They are deliberately not translated (see
+   check-translations.js), so a whole-page scan would report the changelog
+   rather than the form under test. */
+const visibleText = (page, sel) => page.evaluate(root => {
   const seen = [];
   const walk = n => {
     if (n.nodeType === 3) { const t = n.textContent.trim(); if (t) seen.push(t); return; }
@@ -35,9 +40,9 @@ const visibleText = page => page.evaluate(() => {
     if (n.tagName === 'INPUT' && n.value) seen.push(n.value);
     n.childNodes.forEach(walk);
   };
-  walk(document.body);
+  walk((root && document.querySelector(root)) || document.body);
   return seen.join(' • ');
-});
+}, sel || null);
 
 const setLang = async (page, l) => {
   await page.evaluate(x => dcSetLang(x), l);
@@ -147,7 +152,64 @@ module.exports = async (browser, A) => {
     await setLang(page, 'en');
   }
 
-  // ══ 5 · NOTHING LEAKS A KEY NAME ═══════════════════════════════════════
+  // ══ 5 · THE SCREENS THAT WERE NEVER SWITCHED AT ALL ════════════════════
+  /* Three of them, each in its own way:
+
+       · the Pricing Guide, written entirely in English in the markup, so it
+         was the one page that did not change when the language did;
+       · Plate and Welding Anchor Set, written before the switch existed and
+         still carrying the old side-by-side style — "Material 材料", both at
+         once, in either mode;
+       · the Welding Anchor Set guide box, which held Chinese and only
+         Chinese, so an English reader was handed a paragraph they could not
+         read. */
+  {
+    /* Pricing Guide — opened the way the sidebar entry opens it. */
+    await page.evaluate(() => openRefModal());
+    await page.waitForTimeout(400);
+    await setLang(page, 'en');
+    const guideEn = await visibleText(page, '#refModal');
+    A.includes(guideEn, 'Cost Rate', 'English: the Pricing Guide explains the Cost Rate');
+    await setLang(page, 'zh');
+    const guideZh = await visibleText(page, '#refModal');
+    A.excludes(guideZh, 'Cost Rate = material cost per kg', '中文: the Pricing Guide is translated');
+    A.excludes(guideZh, 'Staff enters the final customer selling price', '中文: including the price modes');
+    A.excludes(guideZh, 'Used for extra work', '中文: and the Additional Cost explanation');
+    A.includes(guideZh, 'RM', '中文: and the worked examples keep their RM figures');
+
+    await page.evaluate(() => { const m = document.getElementById('refModal'); if (m) m.classList.remove('open'); });
+    await page.waitForTimeout(200);
+
+    /* Plate and Welding Anchor Set. */
+    for (const [type, why] of [['plate', 'Plate'], ['was', 'Welding Anchor Set']]) {
+      await page.evaluate(t => switchType(t), type);
+      await page.waitForTimeout(300);
+      await setLang(page, 'zh');
+      const zh = await visibleText(page, '#form-' + type);
+      A.excludes(zh, 'Cut Length', `中文: ${why} — the dimension labels are translated`);
+      A.excludes(zh, 'Additional Cost', `中文: ${why} — and the pricing labels`);
+      await setLang(page, 'en');
+      const en = await visibleText(page, '#form-' + type);
+      A.includes(en, 'Additional Cost', `English: ${why} — and they read English in English`);
+      A.excludes(en, '额外加工费', `English: ${why} — with no Chinese beside them`);
+    }
+
+    /* The guide box: readable in BOTH, which it was not. */
+    await page.evaluate(() => switchType('was'));
+    await page.waitForTimeout(300);
+    await setLang(page, 'en');
+    const wasEn = await visibleText(page, '#form-was');
+    A.includes(wasEn, 'welded into one set', 'English: the Welding Anchor Set guide is in English');
+    await setLang(page, 'zh');
+    const wasZh = await visibleText(page, '#form-was');
+    A.includes(wasZh, '焊接成一套', '中文: and in Chinese');
+    A.excludes(wasZh, 'welded into one set', '中文: and not both at once');
+    await setLang(page, 'en');
+    await page.evaluate(() => switchType('sagrod'));
+    await page.waitForTimeout(300);
+  }
+
+  // ══ 6 · NOTHING LEAKS A KEY NAME ═══════════════════════════════════════
   /* dcT falls back to the key itself when nothing defines it, so a key name on
      screen is a missing dictionary entry showing through. */
   {

@@ -40,10 +40,16 @@ const CODE_WORDS = [
   '4140', '4340', 'QT', 'S45C', 'MS', 'Y\\s*BAR', 'HT',
   'PL', 'ZP', 'HDG', 'GI', 'UNC', 'UNF', 'UNEF', 'BSW', 'BSF', 'BSP', 'NPT',
   'TL', 'TL1', 'TL2', 'ID', 'OD', 'OAL', 'RM', 'kg', 'mm', 'cm', 'pcs?', 'nos?',
-  'DNC', 'PDF', 'CSV', 'PNG', 'JPG', 'WhatsApp', 'EN', 'ZH', 'AI', 'URL', 'PDPA',
+  'DNC', 'PDF', 'CSV', 'PNG', 'JPG', 'WEBP', 'WhatsApp', 'EN', 'ZH', 'AI', 'URL', 'PDPA',
   /* the dimension letters a drawing uses */
   'H', 'W', 'S', 'R', 'L', 'P', 'A', 'B', 'C', 'T', 'X+',
   '\\d+(?:\\.\\d+)?P', 'G?\\d+\\.\\d+', 'DIN', 'ISO', 'ASTM',
+  /* Product and part names. The trade calls a Base Plate a Base Plate in
+     either language, exactly as it calls a Sag Rod a Sag Rod — so an en/zh
+     pair that matches here is finished, not missed. */
+  'Sag\\s*Rod', 'Stud', 'Anchor\\s*Bolt', 'U-?Bolt', 'SQ\\s*U-?Bolt',
+  'L\\s*Bolt(?:\\s*45DEG)?', 'J\\s*Bolt', 'Base\\s*Plate', 'Triangle\\s*Plate',
+  'Welding\\s*Anchor(?:\\s*Set)?', 'Plate', 'Nut', 'FW',
 ];
 const CODE_RE = new RegExp(
   '^(?:' + CODE_WORDS.join('|') + '|[-+*/×·|,.:;()\\[\\]{}%#@&=<>~^"\'\\s\\d]+)+$', 'i');
@@ -89,13 +95,26 @@ function dictOf(src, file) {
    deleted so every reported line number still points at the real line. */
 function stripComments(src) {
   const out = src.split('');
-  let inStr = null, esc = false, inLine = false, inBlock = false;
+  let inStr = null, esc = false, inLine = false, inBlock = false, inRe = false;
+  let prev = '', prev2 = '';           // the last two significant characters
   for (let i = 0; i < src.length; i++) {
     const c = src[i], n = src[i + 1];
     if (inLine) { if (c === '\n') inLine = false; else out[i] = ' '; continue; }
     if (inBlock) {
       if (c === '*' && n === '/') { out[i] = ' '; out[i + 1] = ' '; i++; inBlock = false; }
       else if (c !== '\n') out[i] = ' ';
+      continue;
+    }
+    /* A REGEX LITERAL is not a string, and it may contain quotes. Without this,
+       `.replace(/"/g, '&quot;')` opened a string that never closed and every
+       comment after it read as code — which is how a block comment three
+       hundred lines further down was reported as untranslated markup. */
+    if (inRe) {
+      if (esc) { esc = false; continue; }
+      if (c === '\\') { esc = true; continue; }
+      if (c === '[') inRe = 'class';
+      else if (c === ']' && inRe === 'class') inRe = true;
+      else if (c === '/' && inRe !== 'class') { inRe = false; prev2 = prev; prev = '/'; }
       continue;
     }
     if (inStr) {
@@ -106,7 +125,21 @@ function stripComments(src) {
     }
     if (c === '/' && n === '/') { inLine = true; out[i] = ' '; continue; }
     if (c === '/' && n === '*') { inBlock = true; out[i] = ' '; continue; }
-    if (c === "'" || c === '"' || c === '`') inStr = c;
+    if (c === '/') {
+      /* Regex or division, decided by what came before it. After a value, `/`
+         divides; after an operator, a comma, an opening bracket or nothing at
+         all, it opens a pattern.
+
+         `<` and a bare `>` are deliberately NOT openers, because this file is
+         mostly markup: every `</p>` in a template literal would otherwise open
+         a pattern that ran to the next slash, swallowing the block comments
+         after it. An ARROW is an opener — `x => /re/.test(y)` is ordinary —
+         so `>` counts only when an `=` is in front of it. */
+      const arrow = prev === '>' && prev2 === '=';
+      if (!prev || arrow || '(,=:[!&|?{};'.includes(prev)) { inRe = true; continue; }
+    }
+    if (c === "'" || c === '"' || c === '`') { inStr = c; prev2 = prev; prev = c; continue; }
+    if (!/\s/.test(c)) { prev2 = prev; prev = c; }
   }
   return out.join('');
 }
@@ -160,6 +193,38 @@ const SKIP_TEXT = [
   /* Product names are the trade's vocabulary in either language, exactly as
      the dictionary's own header says. */
   /^(?:L Bolt(?: 45DEG)?|J Bolt|U-Bolt|SQ U-Bolt|Sag Rod|Stud|Anchor Bolt|Plate|Welding Anchor(?: Set)?)$/i,
+  /^(?:Sag Rod|Stud|Anchor Bolt|U-Bolt|SQ U-Bolt|L Bolt|J Bolt)(?:\s*\/\s*(?:Sag Rod|Stud|Anchor Bolt|U-Bolt|SQ U-Bolt|L Bolt|J Bolt))+$/i,
+
+  /* ── Deliberately out of scope, and here so it stays visible ─────────────
+     Three kinds of text are NOT translated, on purpose:
+
+     · The registered company names and the postal address on the letterhead.
+       A legal entity is not a phrase, and an address that is translated is an
+       address the post office cannot read.
+     · The Version Updates page. It is a record of what shipped and when,
+       written at the time; rewriting it in another language would be
+       rewriting history rather than translating an interface.
+     · The page <title>, which carries the brand.
+
+     Each is a decision, not an oversight. If any of them should be
+     translated, the rule to delete is this one. */
+  /^(?:DER-CHENG|DNC)\b.*\b(?:SDN\.?\s*BHD\.?)$/i,
+  /^EVERTOP HARDWARE TRADING$/i,
+  /* Material names. The brief names these outright as values never to be
+     machine-translated, and this is the longest of them. */
+  /^(?:4140 QT \+ HARDEN = G10\.9|S45C \+ HARDEN = G8\.8|Others \/ Special Bolt)$/i,
+  /* ── The printed quotation ───────────────────────────────────────────────
+     Quotation No., Prepared By, Size / Dimension, Unit Price, Grand Total and
+     the letterhead are the customer's document, not the operator's screen.
+     Which language a CUSTOMER receives is a business decision and not one to
+     take inside an audit, so the print template is left exactly as it is and
+     the question is recorded instead. See BUSINESS-DECISIONS-NEEDED.md. */
+  /^(?:Quotation No\.|Prepared By|Size \/ Dimension|Unit Price|Grand Total|Description|Qty|Amount)$/i,
+  /^(?:NO\.?\s*\d|LOT\s|OFF\s+JALAN|JALAN\s|TAMAN\s|\d{5}\s)/i,
+  /^This is a computer-generated quotation/i,
+  /^-\s/,                                        // a changelog bullet
+  /^v\d+\.\d+/,                                  // a changelog version heading
+  /^Sign In\s*·/i,                               // the page title
 ];
 /* An attribute written as a literal is fine when the SAME element also carries
    the matching data-i18n-* hook: the literal is the English default that ships
@@ -201,6 +266,41 @@ function hardCoded(src, code) {
     const reText = /\.textContent\s*=\s*['"]([^'"]+)['"]/g;
     while ((m = reText.exec(ln)) !== null) push(i + 1, 'textContent', m[1]);
   });
+
+  /* ── prose sitting BETWEEN tags in generated markup ──────────────────────
+     The attribute scan above cannot see this, and neither can a dictionary
+     count: a sentence written straight into a template literal has no key, so
+     nothing reports it missing. It is where the longest strings live — the
+     warning under Manual Price, the empty-state messages, the count lines.
+
+     Only real sentences are reported. Four or more words of English between a
+     > and a <, with no interpolation of its own, is prose somebody wrote;
+     anything shorter is a label, a code or a unit and is left to the eye. */
+  /* The OPENING tag is captured with the text, because an element carrying
+     data-i18n has its textContent replaced on every switch — the literal in
+     the markup is the English default, not a leak. Same rule as the attribute
+     scan above. */
+  /* An element whose whole job is to name something is a label however short
+     it is: "Additional Cost" on a Pricing Guide tab and on a cost breakdown
+     row are two words each, and both stayed English through the switch. So
+     these tags are held to two words, and everything else to four — below
+     which a run of English is usually a code, a unit or a product name. */
+  const LABEL_TAG = /^(?:label|h[1-6]|button|option|legend|caption|th)$/i;
+  const LABEL_CLASS = /\b(?:[\w-]*-label|ref-tab|group-label|acc-title-txt|t-name)\b/;
+
+  const between = /<([a-zA-Z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>([^<>{}$]{4,})</g;
+  let t;
+  while ((t = between.exec(code)) !== null) {
+    const tag = t[1], attrs = t[2] || '';
+    if (/\bdata-i18n\b/.test(attrs)) continue;          // the switch rewrites it
+    const text = t[3].replace(/\s+/g, ' ').trim();
+    /* Arrow functions and statements also sit between a > and a <. */
+    if (/[;{}]|=>|\(\)/.test(text)) continue;
+    const words = text.split(' ').filter(x => /[A-Za-z]{2,}/.test(x)).length;
+    const isLabel = LABEL_TAG.test(tag) || LABEL_CLASS.test(attrs);
+    if (words < (isLabel ? 2 : 4)) continue;
+    push(lineAt(code, t.index), isLabel ? 'label' : 'markup text', text);
+  }
   return hits;
 }
 

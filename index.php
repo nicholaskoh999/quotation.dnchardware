@@ -2587,7 +2587,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="sagrod-customEnabled"><input type="checkbox" id="sagrod-customEnabled" onchange="onAccChange('sagrod')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="sagrod-customEnabled"><input type="checkbox" id="sagrod-customEnabled" onchange="onAccChange('sagrod')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="sagrod-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('sagrod')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="sagrod-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('sagrod')"></div>
@@ -2599,7 +2599,7 @@ input,select,textarea{
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0.00" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="sagrod-markup" placeholder="0" min="0" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="sagrod-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="sagrod-warn" style="display:none">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
+          <div class="warn-note full" id="sagrod-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
 
         <!-- STUD -->
@@ -2642,7 +2642,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="stud-customEnabled"><input type="checkbox" id="stud-customEnabled" onchange="onAccChange('stud')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="stud-customEnabled"><input type="checkbox" id="stud-customEnabled" onchange="onAccChange('stud')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="stud-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('stud')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="stud-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('stud')"></div>
@@ -2654,7 +2654,7 @@ input,select,textarea{
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0.00" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="stud-markup" placeholder="0" min="0" oninput="calcStud()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="stud-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="stud-warn" style="display:none">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
+          <div class="warn-note full" id="stud-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
 
         <!-- ANCHOR BOLT -->
@@ -2702,7 +2702,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="anchorbolt-customEnabled"><input type="checkbox" id="anchorbolt-customEnabled" onchange="onAccChange('anchorbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="anchorbolt-customEnabled"><input type="checkbox" id="anchorbolt-customEnabled" onchange="onAccChange('anchorbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="anchorbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('anchorbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="anchorbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('anchorbolt')"></div>
@@ -2714,7 +2714,7 @@ input,select,textarea{
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0.00" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="anchorbolt-markup" placeholder="0" min="0" oninput="calcAnchorBolt()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="anchorbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="anchorbolt-warn" style="display:none">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
+          <div class="warn-note full" id="anchorbolt-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
 
         <!-- U-BOLT -->
@@ -2757,7 +2757,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="ubolt-customEnabled"><input type="checkbox" id="ubolt-customEnabled" onchange="onAccChange('ubolt')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="ubolt-customEnabled"><input type="checkbox" id="ubolt-customEnabled" onchange="onAccChange('ubolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="ubolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('ubolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="ubolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('ubolt')"></div>
@@ -2769,7 +2769,7 @@ input,select,textarea{
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0.00" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="ubolt-markup" placeholder="0" min="0" oninput="calcUBolt('ubolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="ubolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="ubolt-warn">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note full" id="ubolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
 
         <!-- SQ U-BOLT -->
@@ -2812,7 +2812,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="squbolt-customEnabled"><input type="checkbox" id="squbolt-customEnabled" onchange="onAccChange('squbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="squbolt-customEnabled"><input type="checkbox" id="squbolt-customEnabled" onchange="onAccChange('squbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="squbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('squbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="squbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('squbolt')"></div>
@@ -2824,7 +2824,7 @@ input,select,textarea{
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0.00" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="squbolt-markup" placeholder="0" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="squbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="squbolt-warn">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note full" id="squbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
 
         <!-- L BOLT -->
@@ -2867,7 +2867,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="lbolt-customEnabled"><input type="checkbox" id="lbolt-customEnabled" onchange="onAccChange('lbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="lbolt-customEnabled"><input type="checkbox" id="lbolt-customEnabled" onchange="onAccChange('lbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="lbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('lbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="lbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('lbolt')"></div>
@@ -2879,7 +2879,7 @@ input,select,textarea{
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0.00" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="lbolt-markup" placeholder="0" min="0" oninput="calcLBolt('lbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="lbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="lbolt-warn">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note full" id="lbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
 
         <!-- J BOLT -->
@@ -2923,7 +2923,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="jbolt-customEnabled"><input type="checkbox" id="jbolt-customEnabled" onchange="onAccChange('jbolt')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="jbolt-customEnabled"><input type="checkbox" id="jbolt-customEnabled" onchange="onAccChange('jbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="jbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('jbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="jbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('jbolt')"></div>
@@ -2935,16 +2935,16 @@ input,select,textarea{
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0.00" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="jbolt-markup" placeholder="0" min="0" oninput="calcJBolt('jbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="jbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="jbolt-warn">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note full" id="jbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
 
         <!-- ══ PLATE FORM ══ -->
         <div class="item-form" id="form-plate" data-type="plate">
 
           <!-- Product Setup -->
-          <div class="group-label full">Product Setup <span class="gl-zh">/ 产品类型</span></div>
+          <div class="group-label full" data-i18n="lblProductSetup">Product Setup</div>
           <div class="field full">
-            <label>Plate Type <span class="gl-zh" style="font-weight:500">/ 板型</span></label>
+            <label data-i18n="lblPlateType">Plate Type</label>
             <div class="hole-pills">
               <label class="hole-pill hole-pill-card" id="plate-type-ms-label">
                 <input type="radio" name="plate-plateType" value="ms_plate" checked onchange="onPlateTypeChange()">
@@ -2970,7 +2970,7 @@ input,select,textarea{
           </div>
 
           <!-- MS Plate Dimension Entry -->
-          <div class="group-label full" id="plate-dim-group-ms">Dimension Entry <span class="gl-zh">/ 尺寸资料</span></div>
+          <div class="group-label full" id="plate-dim-group-ms" data-i18n="dimensionEntry">Dimension Entry</div>
           <div class="field" id="plate-f-l"><label data-i18n="lblLength">Length</label><input type="number" id="plate-l" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-w"><label data-i18n="lblWidth">Width</label><input type="number" id="plate-w" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-t"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-t" placeholder="mm, e.g. 10" step="0.1" min="0.1" oninput="calcPlate()"></div>
@@ -2988,11 +2988,11 @@ input,select,textarea{
           <div class="field" id="plate-f-nh" style="display:none"><label data-i18n="lblHoles">Holes</label><input type="number" id="plate-nh" placeholder="e.g. 1" step="1" min="1" oninput="calcPlate()"></div>
 
           <!-- Triangle Plate Dimension Entry — hidden by default -->
-          <div class="group-label full" id="plate-dim-group-tri" style="display:none">Dimension Entry <span class="gl-zh">/ 尺寸资料</span></div>
+          <div class="group-label full" id="plate-dim-group-tri" style="display:none" data-i18n="dimensionEntry">Dimension Entry</div>
           <div class="field" id="plate-f-tri-l" style="display:none"><label data-i18n="lblLength">Length</label><input type="number" id="plate-tri-l" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-h" style="display:none"><label data-i18n="lblHeight">Height</label><input type="number" id="plate-tri-h" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-cl" style="display:none"><label>Cut Length <span class="gl-zh field-zh">切边长度（可选）</span></label><input type="number" id="plate-tri-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-ch" style="display:none"><label>Cut Height <span class="gl-zh field-zh">切边高度（可选）</span></label><input type="number" id="plate-tri-ch" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-cl" style="display:none"><label data-i18n="lblCutLengthOpt">Cut Length (optional)</label><input type="number" id="plate-tri-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-ch" style="display:none"><label data-i18n="lblCutHeightOpt">Cut Height (optional)</label><input type="number" id="plate-tri-ch" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-t" style="display:none"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-tri-t" placeholder="mm, e.g. 8" step="0.1" min="0.1" oninput="calcPlate()"></div>
 
           <!-- Accessories -->
@@ -3018,7 +3018,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="plate-customEnabled"><input type="checkbox" id="plate-customEnabled" onchange="onAccChange('plate')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="plate-customEnabled"><input type="checkbox" id="plate-customEnabled" onchange="onAccChange('plate')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="plate-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('plate')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="plate-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('plate')"></div>
@@ -3028,25 +3028,23 @@ input,select,textarea{
 
           <!-- Pricing Entry -->
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label>Cost Rate <span class="gl-zh field-zh" data-i18n="costRateSub">Cost per kg</span></label><input type="text" class="hl" id="plate-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','costRate');}"></div>
-          <div class="field"><label>Additional Cost <span class="gl-zh field-zh">额外加工费</span></label><input type="text" class="hl" id="plate-addCost" placeholder="0.00" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','addCost');}"></div>
-          <div class="field"><label>Markup <span class="gl-zh field-zh">加价</span></label><input type="number" id="plate-markup" placeholder="0" min="0" oninput="calcPlate()"></div>
-          <div class="field"><label>Qty <span class="gl-zh field-zh">数量</span></label><input type="number" id="plate-qty" value="1" min="1" step="1" oninput="calcPlate()"></div>
-          <div class="info-note full">Hole drilling / laser / punching cost: include in Additional Cost. <span class="gl-zh">开洞加工费请放在额外加工费。</span></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="plate-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="plate-addCost" placeholder="0.00" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="plate-markup" placeholder="0" min="0" oninput="calcPlate()"></div>
+          <div class="field"><label data-i18n="lblQty">Qty</label><input type="number" id="plate-qty" value="1" min="1" step="1" oninput="calcPlate()"></div>
+          <div class="info-note full" data-i18n="noteHoleCost">Hole drilling / laser / punching cost: include in Additional Cost.</div>
         </div>
 
         <!-- ══ WELDING ANCHOR SET FORM ══ -->
         <div class="item-form" id="form-was" data-type="was">
 
           <!-- Guide box -->
-          <div class="was-guide full">
-            这是 Anchor Bolt + Base Plate + Triangle Plate 焊接成一套的报价。<br>
-            焊接费、开洞费、加工费请放在 Additional Cost。<br>
-            Nut / FW 请在 Accessories 里面选择。
-          </div>
+          <!-- This box held Chinese and only Chinese, so an English reader was
+               given a paragraph they could not read. Both languages now. -->
+          <div class="was-guide full" data-i18n="wasGuide">This prices an Anchor Bolt + Base Plate + Triangle Plate welded into one set. Welding, hole drilling and other processing go in Additional Cost. Nut / FW are chosen under Accessories.</div>
 
           <!-- Finish (applies to whole set) -->
-          <div class="field full finish-field"><label>Finish <span class="gl-zh field-zh">表面处理</span></label>
+          <div class="field full finish-field"><label data-i18n="lblFinish">Finish</label>
             <div class="finish-pills" id="was-finishPills">
               <label class="finish-pill selected-NA" id="was-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="was-finish" value="" onchange="onFinishChange('was')"><span class="fp-code">N/A</span></label>
               <label class="finish-pill selected-PL" id="was-pill-PL" data-i18n-title="ttPlain" title="Plain"><input type="radio" name="was-finish" value="PL" checked onchange="onFinishChange('was')"><span class="fp-code">PL</span></label>
@@ -3056,29 +3054,29 @@ input,select,textarea{
           </div>
 
           <!-- ── Anchor Bolt ── -->
-          <div class="group-label full">Anchor Bolt <span class="gl-zh">/ 锚栓</span></div>
-          <div class="field"><label>Material <span class="gl-zh field-zh">材料</span></label>
+          <div class="group-label full">Anchor Bolt</div>
+          <div class="field"><label data-i18n="lblMaterial">Material</label>
             <select id="was-ab-material" onchange="onWASAnchorSpecChange()">
               <option value="MS">MS</option><option value="S45C">S45C</option>
               <option value="4140">4140 QT</option><option value="4140_PLAIN">4140</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option>
             </select>
           </div>
-          <div class="field"><label>Size Type <span class="gl-zh field-zh">尺寸类型</span></label>
+          <div class="field"><label data-i18n="lblSizeType">Size Type</label>
             <select id="was-ab-sizeType" onchange="onWASAnchorSpecChange()">
               <option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option>
             </select>
           </div>
-          <div class="field"><label>Size <span class="gl-zh field-zh">尺寸</span></label>
+          <div class="field"><label data-i18n="lblSize">Size</label>
             <input type="text" id="was-ab-size" list="sizeOptions" value="M20" autocomplete="off"
                    oninput="onWASAnchorSizeInput()" onchange="onWASAnchorSpecChange()">
           </div>
-          <div class="field"><label>Diameter <span class="gl-zh field-zh">直径 mm</span></label>
+          <div class="field"><label data-i18n="lblDiameterMmShort">Diameter mm</label>
             <input type="number" id="was-ab-diameter" step="0.1" placeholder="18" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblLengthMm">Length</label>
             <input type="number" id="was-ab-length" placeholder="600" step="1" min="1" oninput="calcWAS()">
           </div>
-          <div class="field"><label>Thread Length <span class="gl-zh field-zh">牙长</span></label>
+          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label>
             <input type="text" id="was-ab-threadLen" placeholder="e.g. 150">
           </div>
           <div class="field"><label data-i18n="lblQtyPerSet">Qty per Set</label>
@@ -3086,7 +3084,7 @@ input,select,textarea{
           </div>
 
           <!-- ── Base Plate ── -->
-          <div class="group-label full">Base Plate <span class="gl-zh">/ 底板</span></div>
+          <div class="group-label full" data-i18n="lblBasePlate">Base Plate</div>
           <div class="field"><label data-i18n="lblLengthMm">Length</label>
             <input type="number" id="was-bp-l" placeholder="250" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
@@ -3116,17 +3114,17 @@ input,select,textarea{
           </div>
 
           <!-- ── Triangle Plate ── -->
-          <div class="group-label full">Triangle Plate <span class="gl-zh">/ 三角加强板</span></div>
+          <div class="group-label full" data-i18n="lblTrianglePlate">Triangle Plate</div>
           <div class="field"><label data-i18n="lblLengthMm">Length</label>
             <input type="number" id="was-tp-l" placeholder="180" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblHeightMm">Height</label>
             <input type="number" id="was-tp-h" placeholder="180" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
-          <div class="field"><label>Cut Length <span class="gl-zh field-zh">切边长度 mm（可选）</span></label>
+          <div class="field"><label data-i18n="lblCutLengthMmOpt">Cut Length mm (optional)</label>
             <input type="number" id="was-tp-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
-          <div class="field"><label>Cut Height <span class="gl-zh field-zh">切边高度 mm（可选）</span></label>
+          <div class="field"><label data-i18n="lblCutHeightMmOpt">Cut Height mm (optional)</label>
             <input type="number" id="was-tp-ch" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblThicknessMm">Thickness</label>
@@ -3159,7 +3157,7 @@ input,select,textarea{
               </div>
             </div>
             <div class="acc-item">
-              <div class="acc-item-head"><label class="acc-enable" for="was-customEnabled"><input type="checkbox" id="was-customEnabled" onchange="onAccChange('was')"><span class="acc-title-txt">Add Custom</span></label></div>
+              <div class="acc-item-head"><label class="acc-enable" for="was-customEnabled"><input type="checkbox" id="was-customEnabled" onchange="onAccChange('was')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
                 <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="was-customText" data-i18n-ph="phEgWelding" placeholder="e.g. welding" disabled oninput="onAccChange('was')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="was-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('was')"></div>
@@ -3169,25 +3167,27 @@ input,select,textarea{
 
           <!-- ── Pricing ── -->
           <div class="group-label full" data-i18n="pricing">Pricing</div>
-          <div class="field"><label>Anchor Cost Rate <span class="gl-zh field-zh">锚栓每公斤成本</span></label>
+          <div class="field"><label data-i18n="lblAnchorRate">Anchor Cost Rate</label>
             <input type="text" class="hl" id="was-anchorCostRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcWAS()">
           </div>
-          <div class="field"><label>Base Plate Cost Rate <span class="gl-zh field-zh">底板每公斤成本</span></label>
+          <div class="field"><label data-i18n="lblBasePlateRate">Base Plate Cost Rate</label>
             <input type="text" class="hl" id="was-basePlateCostRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcWAS()">
           </div>
-          <div class="field"><label>Triangle Plate Cost Rate <span class="gl-zh field-zh">三角板每公斤成本</span></label>
+          <div class="field"><label data-i18n="lblTriPlateRate">Triangle Plate Cost Rate</label>
             <input type="text" class="hl" id="was-trianglePlateCostRate" data-i18n-ph="phOptionalQty0" placeholder="Optional when Qty is 0" oninput="calcWAS()">
           </div>
-          <div class="field"><label>Additional Cost <span class="gl-zh field-zh">额外加工费</span></label>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label>
             <input type="text" class="hl" id="was-addCost" placeholder="0.00" oninput="calcWAS()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('was','addCost');}">
           </div>
-          <div class="field"><label>Markup <span class="gl-zh field-zh">加价</span></label>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label>
             <input type="number" id="was-markup" placeholder="0" min="0" oninput="calcWAS()">
           </div>
-          <div class="field"><label>Set Qty <span class="gl-zh field-zh">套数</span></label>
+          <div class="field"><label data-i18n="lblSetQty">Set Qty</label>
             <input type="number" id="was-qty" value="1" min="1" step="1" oninput="calcWAS()">
           </div>
-          <div class="was-cost-note"><strong>加工费说明：</strong>焊接费、开洞费、加工费请放在 Additional Cost。</div>
+          <!-- Chinese with an English term inside it, so it read as neither
+               language cleanly. One language at a time now, like the rest. -->
+          <div class="was-cost-note"><strong data-i18n="wasCostNoteTitle">Processing costs</strong><span data-i18n="wasCostNote">Welding, hole drilling and other processing go in Additional Cost.</span></div>
         </div>
 
         <div class="calc-preview" id="calcPreview">
@@ -3204,9 +3204,9 @@ input,select,textarea{
         <div class="was-breakdown" id="wasBreakdown" aria-live="polite">
           <div class="was-breakdown-title">Cost Breakdown <span class="zh">/ 成本拆分</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label">Anchor Bolt</span><span class="was-breakdown-value" id="wasBreakdownAnchor">—</span></div>
-          <div class="was-breakdown-row"><span class="was-breakdown-label">Base Plate</span><span class="was-breakdown-value" id="wasBreakdownBasePlate">—</span></div>
-          <div class="was-breakdown-row" id="wasBreakdownTriangleRow"><span class="was-breakdown-label">Triangle Plate</span><span class="was-breakdown-value" id="wasBreakdownTriangle">—</span></div>
-          <div class="was-breakdown-row"><span class="was-breakdown-label">Additional Cost</span><span class="was-breakdown-value" id="wasBreakdownAdditional">—</span></div>
+          <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblBasePlate">Base Plate</span><span class="was-breakdown-value" id="wasBreakdownBasePlate">—</span></div>
+          <div class="was-breakdown-row" id="wasBreakdownTriangleRow"><span class="was-breakdown-label" data-i18n="lblTrianglePlate">Triangle Plate</span><span class="was-breakdown-value" id="wasBreakdownTriangle">—</span></div>
+          <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblAdditionalCost">Additional Cost</span><span class="was-breakdown-value" id="wasBreakdownAdditional">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label">Accessories</span><span class="was-breakdown-value" id="wasBreakdownAccessories">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblBasePrice">Base Price</span><span class="was-breakdown-value was-breakdown-total" id="wasBreakdownBasePrice">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblFinalUnitPrice">Final Unit Price</span><span class="was-breakdown-value was-breakdown-total" id="wasBreakdownFinal">—</span></div>
@@ -3214,7 +3214,7 @@ input,select,textarea{
         <div class="ubolt-debug-wrap" id="uboltDebugWrap">
           <div class="ubolt-debug-head">
             <div class="ubolt-debug-title">U-Bolt Price Debug <span>Internal only</span></div>
-            <button type="button" class="ubolt-debug-toggle" id="uboltDebugToggle" onclick="toggleUBoltDebug()">Show Debug</button>
+            <button type="button" class="ubolt-debug-toggle" id="uboltDebugToggle" onclick="toggleUBoltDebug()" data-i18n="lblShowDebug">Show Debug</button>
           </div>
           <div class="ubolt-debug-panel" id="uboltDebugPanel">
             <div class="ubolt-debug-cell">Diameter<strong id="ubDebugDiameter">—</strong></div>
@@ -3251,7 +3251,7 @@ input,select,textarea{
           <div id="phResults" style="display:none">
             <div id="phList" class="ph-list"></div>
           </div>
-          <div class="ph-empty-msg" id="phEmptyMsg" style="display:none">No pricing history for this exact specification yet.</div>
+          <div class="ph-empty-msg" id="phEmptyMsg" style="display:none" data-i18n="phNoHistoryYet">No pricing history for this exact specification yet.</div>
         </div>
 
         <!-- Extra Drawing Dimensions lives HERE and only here, and only while an
@@ -3741,49 +3741,49 @@ input,select,textarea{
     <div class="modal-title"><span data-i18n="sidePricingGuide">Pricing Guide</span> <span class="zh" data-i18n="pricingGuideSub">Pricing guide</span> <button class="modal-close" onclick="closeModal('refModal')">✕</button></div>
     <div class="ref-tabs">
       <button class="ref-tab active" onclick="switchRefTab('cost')">Cost Rate</button>
-      <button class="ref-tab" onclick="switchRefTab('addcost')">Additional Cost</button>
+      <button class="ref-tab" onclick="switchRefTab('addcost')" data-i18n="lblAdditionalCost">Additional Cost</button>
       <button class="ref-tab" onclick="switchRefTab('pricemode')" data-i18n="lblPriceMode">Price Mode</button>
       <button class="ref-tab" onclick="switchRefTab('examples')" data-i18n="mProductExamples">Product Examples</button>
     </div>
     <div class="ref-panel active" id="ref-cost">
-      <div class="ref-note"><h4>Cost Rate <span class="zh" data-i18n="costRateSub">Cost per kg</span></h4>
-        <p>Cost Rate = material cost per kg.</p>
+      <div class="ref-note"><h4 data-i18n="lblCostRate">Cost Rate</h4>
+        <p data-i18n="pgCostRateIs">Cost Rate = material cost per kg.</p>
         <p class="cn" data-i18n="mCostRateExplain">Cost Rate = the material cost per kilogram.</p></div>
       <div class="ref-note"><h4 data-i18n="mExample">Example</h4>
         <div class="ref-mini"><span data-i18n="mWeight2kg">Weight 2 kg</span><span>Cost Rate RM3.50/kg</span></div>
         <p><strong><span data-i18n="mMatCostEg">Material Cost = 2 × 3.50 = RM7.00</span></strong></p></div>
     </div>
     <div class="ref-panel" id="ref-addcost">
-      <div class="ref-note"><h4>Additional Cost <span class="zh">额外加工费</span></h4>
-        <p>Used for extra work, such as:</p>
+      <div class="ref-note"><h4 data-i18n="lblAdditionalCost">Additional Cost</h4>
+        <p data-i18n="pgUsedForExtra">Used for extra work, such as:</p>
         <div class="ref-mini"><span>Thread processing</span><span>Drilling</span><span>Welding</span><span>Special process</span><span>Extra customer requirement</span></div></div>
       <div class="ref-note"><h4 data-i18n="mExample">Example</h4>
         <div class="ref-mini"><span>Material Cost RM7.00</span><span>Additional Cost RM2.00</span></div>
-        <p><strong>Base Price = RM7.00 + RM2.00 = RM9.00</strong></p></div>
+        <p><strong data-i18n="pgBasePriceEg">Base Price = RM7.00 + RM2.00 = RM9.00</strong></p></div>
     </div>
     <div class="ref-panel" id="ref-pricemode">
-      <div class="ref-note"><h4>Auto Round</h4>
-        <p>The system applies the product's existing rounding rule automatically.</p>
-        <div class="ref-mini"><span>Calculated RM3.47</span><span>→ Final Price by rounding rule</span></div></div>
-      <div class="ref-note"><h4>No Round</h4>
-        <p>Keep the calculated price exactly as it is — no rounding applied.</p>
+      <div class="ref-note"><h4 data-i18n="pmAutoRound">Auto Round</h4>
+        <p data-i18n="pgRoundAuto">The system applies the product's existing rounding rule automatically.</p>
+        <div class="ref-mini"><span data-i18n="pgCalculated">Calculated RM3.47</span><span data-i18n="pgFinalByRule">→ Final Price by rounding rule</span></div></div>
+      <div class="ref-note"><h4 data-i18n="pmNoRound">No Round</h4>
+        <p data-i18n="pgNoRound">Keep the calculated price exactly as it is — no rounding applied.</p>
         <div class="ref-mini"><span>Calculated RM3.47</span><span>Final RM3.47</span></div></div>
-      <div class="ref-note"><h4>Manual Price</h4>
-        <p>Staff enters the final customer selling price directly.</p>
+      <div class="ref-note"><h4 data-i18n="pmManualPrice">Manual Price</h4>
+        <p data-i18n="pgManualPrice">Staff enters the final customer selling price directly.</p>
         <div class="ref-mini"><span>Calculated RM3.47</span><span>Customer Price RM4.00</span></div>
         <p><strong>System uses: RM4.00</strong></p></div>
     </div>
     <div class="ref-panel" id="ref-examples">
       <div class="ref-note"><h4>Sag Rod / Stud / Anchor Bolt</h4>
         <p>Material: MS &nbsp;·&nbsp; Cost Rate: RM/kg</p>
-        <p class="cn">Thread Length may automatically affect Additional Cost.</p></div>
+        <p class="cn" data-i18n="pgThreadAffects">Thread Length may automatically affect Additional Cost.</p></div>
       <div class="ref-note"><h4>U-Bolt / SQ U-Bolt / L Bolt / J Bolt</h4>
-        <p>Cost Rate is usually entered manually.</p>
-        <p>Additional Cost is used for: Nut, FW, extra processing.</p></div>
+        <p data-i18n="pgRateManual">Cost Rate is usually entered manually.</p>
+        <p data-i18n="pgAddCostUses">Additional Cost is used for: Nut, FW, extra processing.</p></div>
       <div class="ref-note"><h4>Plate</h4>
-        <p>Hole drilling / punching / laser cutting cost goes into Additional Cost.</p>
+        <p data-i18n="pgHoleCost">Hole drilling / punching / laser cutting cost goes into Additional Cost.</p>
         <div class="ref-mini"><span>Plate RM10.00</span><span>Drilling RM2.00</span></div>
-        <p><strong>Base = RM10.00 + RM2.00 = RM12.00</strong></p></div>
+        <p><strong data-i18n="pgBaseEg2">Base = RM10.00 + RM2.00 = RM12.00</strong></p></div>
     </div>
   </div>
 </div>
@@ -3876,7 +3876,7 @@ input,select,textarea{
             <option value="">N/A</option><option value="PL">PL</option><option value="ZP">ZP</option><option value="HDG">HDG</option>
           </select></div>
         <div class="dp-section-label" data-i18n="mDefaultPricing">Default Pricing</div>
-        <div class="field"><label>Cost Rate <small style="color:var(--text-muted);font-weight:500">RM/kg</small></label><input type="number" id="dp-costRate" step="0.01" placeholder="0.00" min="0"></div>
+        <div class="field"><label><span data-i18n="lblCostRate">Cost Rate</span> <small style="color:var(--text-muted);font-weight:500">RM/kg</small></label><input type="number" id="dp-costRate" step="0.01" placeholder="0.00" min="0"></div>
         <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="number" id="dp-addCost" step="0.01" placeholder="0.00" min="0"></div>
         <div class="field"><label><span data-i18n="lblMarkup">Markup</span> <small style="color:var(--text-muted);font-weight:500">%</small></label><input type="number" id="dp-markup" step="1" placeholder="0" min="0"></div>
         <div class="dp-section-label" data-i18n="mStatus">Status</div>
@@ -3910,13 +3910,13 @@ input,select,textarea{
     <div class="dp-table-wrap">
       <table class="dp-table">
         <thead><tr>
-          <th data-i18n="mThType">Type</th><th data-i18n="lblMaterial">Material</th><th>Size Type</th><th data-i18n="lblSize">Size</th><th data-i18n="lblFinish">Finish</th>
-          <th>Cost Rate</th><th data-i18n="mAddCost">Add. Cost</th><th data-i18n="lblMarkup">Markup</th><th data-i18n="mSource">Source</th><th data-i18n="mStatus">Status</th><th></th>
+          <th data-i18n="mThType">Type</th><th data-i18n="lblMaterial">Material</th><th data-i18n="lblSizeType">Size Type</th><th data-i18n="lblSize">Size</th><th data-i18n="lblFinish">Finish</th>
+          <th data-i18n="lblCostRate">Cost Rate</th><th data-i18n="mAddCost">Add. Cost</th><th data-i18n="lblMarkup">Markup</th><th data-i18n="mSource">Source</th><th data-i18n="mStatus">Status</th><th></th>
         </tr></thead>
         <tbody id="dpListBody"></tbody>
       </table>
     </div>
-    <div class="dp-empty" id="dpEmpty" style="display:none">No rules saved yet. Add a rule above to auto-fill pricing fields when an item matches.</div>
+    <div class="dp-empty" id="dpEmpty" style="display:none" data-i18n="dpEmptyNone">No rules saved yet. Add a rule above to auto-fill pricing fields when an item matches.</div>
   </div>
 </div>
 
@@ -4041,12 +4041,12 @@ input,select,textarea{
     <div class="dp-table-wrap">
       <table class="dp-table">
         <thead><tr>
-          <th data-i18n="mThType">Type</th><th data-i18n="lblMaterial">Material</th><th>Size Type</th><th data-i18n="lblSize">Size</th><th data-i18n="lblDiameterMm">Diameter (mm)</th><th data-i18n="mStatus">Status</th><th></th>
+          <th data-i18n="mThType">Type</th><th data-i18n="lblMaterial">Material</th><th data-i18n="lblSizeType">Size Type</th><th data-i18n="lblSize">Size</th><th data-i18n="lblDiameterMm">Diameter (mm)</th><th data-i18n="mStatus">Status</th><th></th>
         </tr></thead>
         <tbody id="dsListBody"></tbody>
       </table>
     </div>
-    <div class="dp-empty" id="dsEmpty" style="display:none">No custom diameter rules yet. Add a rule above to override built-in defaults.</div>
+    <div class="dp-empty" id="dsEmpty" style="display:none" data-i18n="dsEmptyNone">No custom diameter rules yet. Add a rule above to override built-in defaults.</div>
     <div style="margin-top:10px">
       <button class="btn btn-ghost btn-sm" onclick="if(confirm('Delete all custom diameter rules?')){clearAllDSRules();}" data-i18n="mResetAllRules">Reset All Rules</button>
     </div>
@@ -4414,6 +4414,69 @@ const I18N={
     tipItemHistory:'Pricing history for this item',
     ariaHome:'Der-Cheng Quotation — home', altPreview:'preview',
     ariaSelectItem:'Select item {n}', ariaRemoveItem:'Remove item {n}',
+    /* ── Plate and Welding Anchor Set ──────────────────────────────────────
+       These two forms were written before the language switch and kept the
+       older side-by-side style — "Material 材料", both at once, in either
+       mode — which is the mixed labelling the switch replaced everywhere
+       else. The Chinese here is that form's own wording, moved into the
+       dictionary rather than reinvented; the section names that ARE product
+       names (Anchor Bolt, Base Plate, Triangle Plate) stay as they are. */
+    lblProductSetup:'Product Setup', lblProductDetails:'Product Details',
+    lblPlateType:'Plate Type', lblCutLength:'Cut Length', lblCutHeight:'Cut Height',
+    lblCutLengthOpt:'Cut Length (optional)', lblCutHeightOpt:'Cut Height (optional)',
+    lblCutLengthMmOpt:'Cut Length mm (optional)', lblCutHeightMmOpt:'Cut Height mm (optional)',
+    lblSetQty:'Set Qty', lblAnchorRate:'Anchor Cost Rate',
+    lblBasePlateRate:'Base Plate Cost Rate', lblTriPlateRate:'Triangle Plate Cost Rate',
+    lblDiameterMmShort:'Diameter mm',
+    noteHoleCost:'Hole drilling / laser / punching cost: include in Additional Cost.',
+    wasGuide:'This prices an Anchor Bolt + Base Plate + Triangle Plate welded into one set. '
+            +'Welding, hole drilling and other processing go in Additional Cost. '
+            +'Nut / FW are chosen under Accessories.',
+    warnRateNotSet:'Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.',
+    phNoHistoryYet:'No pricing history for this exact specification yet.',
+    /* ── Pricing Guide ─────────────────────────────────────────────────────
+       The whole page was written in English straight into the markup, so it
+       was the one screen that never changed at all when the language did.
+       The worked examples keep their RM figures: a number is a number. */
+    pgCostRateIs:'Cost Rate = material cost per kg.',
+    pgUsedForExtra:'Used for extra work, such as:',
+    pgBasePriceEg:'Base Price = RM7.00 + RM2.00 = RM9.00',
+    pgRoundAuto:"The system applies the product's existing rounding rule automatically.",
+    pgCalculated:'Calculated RM3.47', pgFinalByRule:'→ Final Price by rounding rule',
+    pgNoRound:'Keep the calculated price exactly as it is — no rounding applied.',
+    pgManualPrice:'Staff enters the final customer selling price directly.',
+    pgThreadAffects:'Thread Length may automatically affect Additional Cost.',
+    pgRateManual:'Cost Rate is usually entered manually.',
+    pgAddCostUses:'Additional Cost is used for: Nut, FW, extra processing.',
+    pgHoleCost:'Hole drilling / punching / laser cutting cost goes into Additional Cost.',
+    pgBaseEg2:'Base = RM10.00 + RM2.00 = RM12.00',
+    /* ── Empty states, which are the screens a new install spends most of
+           its first week showing ─────────────────────────────────────────── */
+    dpEmptyNone:'No rules saved yet. Add a rule above to auto-fill pricing fields when an item matches.',
+    dsEmptyNone:'No custom diameter rules yet. Add a rule above to override built-in defaults.',
+    dsEmptyShort:'No custom diameter rules yet.',
+    dpEmptyShort:'No custom default price rules yet.',
+    useStatusFilter:'Use Status filter to view System Defaults.',
+    /* ── Quick Open, history and import ──────────────────────────────────── */
+    qoLookupFailed:'Lookup failed. Please try again.',
+    qoNotFound:'Quotation {r} not found.',
+    phLoadFailed:'Could not load pricing history — this is not the same as there being none.',
+    phNoneExact:'No pricing history for this exact specification.',
+    impWarnings:'Warnings: {n} duplicate rule(s)', impErrors:'Errors: {n} invalid row(s)',
+    impNone:'No warnings or errors.',
+    /* ── Quick Add panel notes ───────────────────────────────────────────── */
+    wqaCopyNoteBlank:'Copied into every item once. Each item stays independently editable afterwards. A blank field is left alone — it never clears what a row already has.',
+    wqaCopyNote:'Copied into every item once. Each item stays independently editable afterwards.',
+    wqaEntryOnly:'Entry values only. Auto Round and No Round rows each recalculate their own Final Unit Price from their own dimensions.',
+    wqaManualWarn:'Manual Price gives every item the SAME final price. Different lengths normally cost different amounts — apply it only when the customer really quoted one flat price.',
+    wqaChooseProduct:'The document does not say which product this is, so it is not guessed. Choose the product to price these items.',
+    /* Short labels on generated controls. Two words each, which is why a scan
+       looking for sentences walked past every one of them. */
+    lblAddCustom:'Add Custom', lblAddCostShort:'Add Cost', lblProductName:'Product Name',
+    lblDimensionText:'Dimension Text', lblWeightMode:'Weight Mode',
+    lblClearAllAcc:'Clear All Accessories', lblLoadMore:'Load more', lblShowDebug:'Show Debug',
+    lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
+    wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
   },
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
@@ -4725,6 +4788,54 @@ const I18N={
     tipItemHistory:'此项目的历史价格',
     ariaHome:'Der-Cheng 报价系统 — 首页', altPreview:'预览',
     ariaSelectItem:'选择第 {n} 项', ariaRemoveItem:'移除第 {n} 项',
+    /* The wording these two forms already carried, kept as it was written. */
+    lblProductSetup:'产品类型', lblProductDetails:'产品资料',
+    lblPlateType:'板型', lblCutLength:'切边长度', lblCutHeight:'切边高度',
+    lblCutLengthOpt:'切边长度（可选）', lblCutHeightOpt:'切边高度（可选）',
+    lblCutLengthMmOpt:'切边长度 mm（可选）', lblCutHeightMmOpt:'切边高度 mm（可选）',
+    lblSetQty:'套数', lblAnchorRate:'锚栓每公斤成本',
+    lblBasePlateRate:'底板每公斤成本', lblTriPlateRate:'三角板每公斤成本',
+    lblDiameterMmShort:'直径 mm',
+    noteHoleCost:'开洞加工费请放在额外加工费。',
+    wasGuide:'这是 Anchor Bolt + Base Plate + Triangle Plate 焊接成一套的报价。'
+            +'焊接费、开洞费、加工费请放在额外加工费。'
+            +'Nut / FW 请在配件里面选择。',
+    warnRateNotSet:'此材料未设定每公斤成本，请手动输入，不可当作 RM0 计算。',
+    phNoHistoryYet:'此规格暂无历史报价记录。',
+    /* 计价说明。RM 金额与产品名称保持原样。 */
+    pgCostRateIs:'每公斤成本 = 每公斤材料成本。',
+    pgUsedForExtra:'用于额外加工，例如：',
+    pgBasePriceEg:'基本价格 = RM7.00 + RM2.00 = RM9.00',
+    pgRoundAuto:'系统会自动套用该产品现有的进位规则。',
+    pgCalculated:'计算结果 RM3.47', pgFinalByRule:'→ 依进位规则得出最终价格',
+    pgNoRound:'保留计算所得的价格 — 不做任何进位。',
+    pgManualPrice:'由员工直接输入最终客户售价。',
+    pgThreadAffects:'牙长可能会自动影响额外加工费。',
+    pgRateManual:'每公斤成本通常需要手动输入。',
+    pgAddCostUses:'额外加工费用于：Nut、FW、其他加工。',
+    pgHoleCost:'开洞、冲孔、激光切割的费用请放在额外加工费。',
+    pgBaseEg2:'基本价格 = RM10.00 + RM2.00 = RM12.00',
+    dpEmptyNone:'尚未保存任何规则。在上方新增规则，项目相符时即可自动填入价格字段。',
+    dsEmptyNone:'尚未有自定义直径规则。在上方新增规则可覆盖内置默认值。',
+    dsEmptyShort:'还没有自定义直径规则。',
+    dpEmptyShort:'还没有自定义默认价格规则。',
+    useStatusFilter:'可切换「状态」筛选查看系统默认值。',
+    qoLookupFailed:'查询失败，请重试。',
+    qoNotFound:'找不到报价单 {r}。',
+    phLoadFailed:'无法载入历史价格 — 这与「没有记录」并不相同。',
+    phNoneExact:'此规格没有历史报价记录。',
+    impWarnings:'警告：{n} 条重复规则', impErrors:'错误：{n} 行无效',
+    impNone:'没有警告或错误。',
+    wqaCopyNoteBlank:'只会复制到每个项目一次，之后各项目仍可独立修改。留空的字段不会被套用 — 不会清除项目原有的内容。',
+    wqaCopyNote:'只会复制到每个项目一次，之后各项目仍可独立修改。',
+    wqaEntryOnly:'仅为输入值。Auto Round 与 No Round 的项目会各自依本身尺寸重新计算最终单价。',
+    wqaManualWarn:'Manual Price 会让每个项目使用相同的最终价格。长度不同通常价格也不同 — 只有在客户确实报一个统一价格时才使用。',
+    wqaChooseProduct:'文件没有说明这是什么产品，系统不会自行猜测。请选择产品以便计价。',
+    lblAddCustom:'新增自定义', lblAddCostShort:'额外费用', lblProductName:'产品名称',
+    lblDimensionText:'尺寸说明', lblWeightMode:'重量模式',
+    lblClearAllAcc:'清除所有配件', lblLoadMore:'载入更多', lblShowDebug:'显示调试信息',
+    lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
+    wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
   },
 };
 /* Current language. Anything other than a known code reads as 'en', so a
@@ -6044,7 +6155,7 @@ function renderDSList(){
   const tbody=el('dsListBody'); tbody.innerHTML='';
   const empty=el('dsEmpty');
   empty.innerHTML=fSource==='custom'
-    ? 'No custom diameter rules yet.<br>还没有自定义直径规则。<div style="font-size:11.5px;margin-top:6px">Use Status filter to view System Defaults.<br>可切换状态筛选查看系统默认值。</div>'
+    ? escHtml(dcT('dsEmptyShort'))+'<div style="font-size:11.5px;margin-top:6px">'+escHtml(dcT('useStatusFilter'))+'</div>'
     : 'No diameter rules match these filters.';
   empty.style.display=rules.length?'none':'block';
   rules.forEach(r=>{
@@ -7984,10 +8095,10 @@ async function quickOpen(){
   qoShow('<div class="qo-msg info">Searching… / 搜索中…</div>');
   try{
     const res=await api('find_quotation&ref='+encodeURIComponent(raw));
-    if(!res||!res.ok){ qoShow('<div class="qo-msg err">Lookup failed. Please try again. / 查询失败，请重试。</div>'); return; }
+    if(!res||!res.ok){ qoShow('<div class="qo-msg err">'+escHtml(dcT('qoLookupFailed'))+'</div>'); return; }
     const hits=res.data||[];
     if(hits.length===0){
-      qoShow('<div class="qo-msg err">Quotation '+qoEsc(res.normalized||raw)+' not found. / 找不到此报价。</div>');
+      qoShow('<div class="qo-msg err">'+escHtml(dcT('qoNotFound').replace('{r}',res.normalized||raw))+'</div>');
       return;
     }
     /* One hit on its CURRENT number → open it. A lone hit found only by its
@@ -8012,7 +8123,7 @@ async function quickOpen(){
       : hits.length+' quotations match “'+qoEsc(raw)+'”. Choose one: / 多个结果，请选择：';
     qoShow('<div class="qo-msg info">'+head+'</div><div class="qo-list">'+rows+'</div>');
   }catch(e){
-    qoShow('<div class="qo-msg err">Lookup failed. Please try again. / 查询失败，请重试。</div>');
+    qoShow('<div class="qo-msg err">'+escHtml(dcT('qoLookupFailed'))+'</div>');
   }finally{
     qoBusy=false; btn.textContent=label; btn.disabled=false;
   }
@@ -8571,11 +8682,11 @@ function phRecordHtml(rec,onUse,extra){
     <div class="ph-rec-spec">${escHtml(spec)}</div>
     <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · Qty ${parseInt(rec.qty,10)||0}</div>
     <div class="ph-rec-nums">
-      <span><label>Unit Weight</label>${phWeight(rec.weight)}</span>
-      <span><label>Cost Rate</label>${phMoney(rec.costRate)}</span>
-      <span><label>Add Cost</label>${phMoney(rec.addCost)}</span>
+      <span><label data-i18n="lblUnitWeight">Unit Weight</label>${phWeight(rec.weight)}</span>
+      <span><label data-i18n="lblCostRate">Cost Rate</label>${phMoney(rec.costRate)}</span>
+      <span><label>${escHtml(dcT('lblAddCostShort'))}</label>${phMoney(rec.addCost)}</span>
       <span><label>Markup</label>${phPct(rec.markup)}</span>
-      <span><label>Price Mode</label>${escHtml(phPriceMode(rec))}</span>
+      <span><label data-i18n="lblPriceMode">Price Mode</label>${escHtml(phPriceMode(rec))}</span>
       <span class="ph-rec-unit"><label>${bolt===null?'Unit Price':'Bolt Unit Price'}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
     </div>
     ${acc>0?`<div class="ph-rec-acc">Accessories, separately: ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)+')'}</div>`:''}
@@ -8595,12 +8706,12 @@ async function phFetch(spec,companyId,offset,limit){
   }catch(e){ return null; }
 }
 function phListHtml(state,onUse,onMore,extraFor){
-  if(!state) return '<div class="ph-empty-msg">Could not load pricing history — this is not the same as there being none.</div>';
+  if(!state) return '<div class="ph-empty-msg">'+escHtml(dcT('phLoadFailed'))+'</div>';
   if(!state.records || !state.records.length)
-    return '<div class="ph-empty-msg">No pricing history for this exact specification.</div>';
+    return '<div class="ph-empty-msg">'+escHtml(dcT('phNoneExact'))+'</div>';
   const shown=state.records.length, total=state.total||shown;
   const more = shown<total && onMore
-    ? `<button type="button" class="btn btn-outline btn-sm ph-more" onclick="${onMore}">Load more</button>` : '';
+    ? `<button type="button" class="btn btn-outline btn-sm ph-more" onclick="${onMore}">${escHtml(dcT('lblLoadMore'))}</button>` : '';
   /* ── Reusable, and reference ───────────────────────────────────────────
      Two different things, so two headed sections rather than one list a person
      has to read every tag of. A REUSABLE record's recipe can be applied to
@@ -9130,7 +9241,7 @@ function renderDPList(){
   const tbody=el('dpListBody'); tbody.innerHTML='';
   const empty=el('dpEmpty');
   empty.innerHTML=fSource==='custom'
-    ? 'No custom default price rules yet.<br>还没有自定义默认价格规则。<div style="font-size:11.5px;margin-top:6px">Use Status filter to view System Defaults.<br>可切换状态筛选查看系统默认值。</div>'
+    ? escHtml(dcT('dpEmptyShort'))+'<div style="font-size:11.5px;margin-top:6px">'+escHtml(dcT('useStatusFilter'))+'</div>'
     : 'No default price rules match these filters.';
   empty.style.display=rules.length?'none':'block';
   const pct=n=>(n||0)+'%';
@@ -9176,13 +9287,13 @@ function mdtRenderPreview(kind,res){
   const cfg=MDT_CONFIG[kind];
   el(cfg.previewId).style.display='block';
   const parts=['Imported: <strong>'+res.validCount+' rows</strong>'];
-  if(res.duplicateCount) parts.push('<span class="warn">Warnings: '+res.duplicateCount+' duplicate rule(s)</span>');
-  if(res.errorCount) parts.push('<span class="err">Errors: '+res.errorCount+' invalid row(s)</span>');
+  if(res.duplicateCount) parts.push('<span class="warn">'+escHtml(dcT('impWarnings').replace('{n}',res.duplicateCount))+'</span>');
+  if(res.errorCount) parts.push('<span class="err">'+escHtml(dcT('impErrors').replace('{n}',res.errorCount))+'</span>');
   el(cfg.summaryId).innerHTML=parts.join(' &nbsp;·&nbsp; ');
   const lines=[];
   (res.errors||[]).forEach(e=>lines.push('Row '+e.row+': '+e.reason));
   (res.duplicates||[]).forEach(d=>lines.push('Row '+d.row+': Duplicate Rule Found — '+d.key));
-  el(cfg.detailsId).innerHTML=lines.length?lines.map(l=>'<div>'+escHtml(l)+'</div>').join(''):'<div>No warnings or errors.</div>';
+  el(cfg.detailsId).innerHTML=lines.length?lines.map(l=>'<div>'+escHtml(l)+'</div>').join(''):'<div>'+escHtml(dcT('impNone'))+'</div>';
 }
 async function mdtImportFileSelected(kind,input){
   const cfg=MDT_CONFIG[kind];
@@ -9264,8 +9375,8 @@ function ensureOthersForm(){
   form.id='form-others';
   form.dataset.type='others';
   form.innerHTML=`
-    <div class="group-label full">Product Details <span class="gl-zh">/ 产品资料</span></div>
-    <div class="field"><label>Product Name <span class="field-zh">产品名称</span></label><input type="text" id="others-productName" data-i18n-ph="phEgEyeBolt" placeholder="e.g. EYE BOLT" style="text-transform:uppercase" oninput="upperOthersProductName();calcOthers()" onblur="upperOthersProductName()"></div>
+    <div class="group-label full" data-i18n="lblProductDetails">Product Details</div>
+    <div class="field"><label data-i18n="lblProductName">Product Name</label><input type="text" id="others-productName" data-i18n-ph="phEgEyeBolt" placeholder="e.g. EYE BOLT" style="text-transform:uppercase" oninput="upperOthersProductName();calcOthers()" onblur="upperOthersProductName()"></div>
     <div class="field"><label>Material <span class="field-zh">材料</span></label>
       <select id="others-material" onchange="onMaterialSizeChange('others')">
         <option value="" selected data-i18n="optNone">— none —</option>
@@ -9273,8 +9384,8 @@ function ensureOthersForm(){
         <option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option>
       </select>
     </div>
-    <div class="field"><label>Size Type <span class="field-zh">尺寸类型</span></label><select id="others-sizeType" onchange="calcOthers()"><option value="" selected data-i18n="optNone">— none —</option><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
-    <div class="field full finish-field"><label>Finish <span class="field-zh">表面处理</span></label>
+    <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="others-sizeType" onchange="calcOthers()"><option value="" selected data-i18n="optNone">— none —</option><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
+    <div class="field full finish-field"><label data-i18n="lblFinish">Finish</label>
       <div class="finish-pills" id="others-finishPills">
         <label class="finish-pill" id="others-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="others-finish" value="" onchange="onFinishChange('others')"><span class="fp-code">N/A</span></label>
         <label class="finish-pill" id="others-pill-PL" data-i18n-title="ttPlain" title="Plain"><input type="radio" name="others-finish" value="PL" onchange="onFinishChange('others')"><span class="fp-code">PL</span></label>
@@ -9282,20 +9393,20 @@ function ensureOthersForm(){
         <label class="finish-pill" id="others-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="others-finish" value="HDG" onchange="onFinishChange('others')"><span class="fp-code">HDG</span></label>
       </div>
     </div>
-    <div class="field full"><label>Dimension Text <span class="field-zh">尺寸说明</span></label><textarea id="others-dimensionText" rows="2" placeholder="e.g. M16 x L 120 x ID 35" oninput="calcOthers()"></textarea></div>
+    <div class="field full"><label data-i18n="lblDimensionText">Dimension Text</label><textarea id="others-dimensionText" rows="2" placeholder="e.g. M16 x L 120 x ID 35" oninput="calcOthers()"></textarea></div>
     <div class="others-weight-row">
       <!-- A fresh form defaults to Diameter x Length. The inline styles below match
            that default so the first paint is already correct; init() then calls
            onOthersWeightModeChange() which keeps them in sync from then on.
            Load & Edit and draft restore both override the mode from saved data. -->
-      <div class="field"><label>Weight Mode <span class="field-zh">重量模式</span></label><select id="others-weightMode" onchange="onOthersWeightModeChange(true)"><option value="manual" data-i18n="lblManualWeight">Manual Weight</option><option value="length" selected data-i18n="lblDiaXLength">Diameter × Length</option></select></div>
-      <div class="field" id="others-unitWeightField" style="display:none"><label>Unit Weight <span class="hint">(kg)</span><span class="field-zh">单件重量</span></label><input type="number" id="others-unitWeight" min="0" step="0.0001" placeholder="kg" oninput="calcOthers()"></div>
+      <div class="field"><label data-i18n="lblWeightMode">Weight Mode</label><select id="others-weightMode" onchange="onOthersWeightModeChange(true)"><option value="manual" data-i18n="lblManualWeight">Manual Weight</option><option value="length" selected data-i18n="lblDiaXLength">Diameter × Length</option></select></div>
+      <div class="field" id="others-unitWeightField" style="display:none"><label><span data-i18n="lblUnitWeight">Unit Weight</span> <span class="hint">(kg)</span><span class="field-zh">单件重量</span></label><input type="number" id="others-unitWeight" min="0" step="0.0001" placeholder="kg" oninput="calcOthers()"></div>
       <div class="field" id="others-diameterField"><label>Diameter <span class="hint">(mm)</span><span class="field-zh">直径</span></label><input type="number" id="others-diameter" min="0" step="0.01" placeholder="mm" oninput="calcOthers()"></div>
       <div class="field" id="others-lengthField"><label>Length <span class="hint">(mm)</span><span class="field-zh">长度</span></label><input type="number" id="others-length" min="0" step="0.1" placeholder="mm" oninput="calcOthers()"></div>
     </div>
     ${accessoriesHtml}
     <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-    <div class="field"><label>Cost Rate <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
+    <div class="field"><label><span data-i18n="lblCostRate">Cost Rate</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
     <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="others-addCost" placeholder="0.00" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
     <div class="field"><label>Markup <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
     <div class="field"><label data-i18n="lblQty">Qty</label><input type="number" id="others-qty" value="1" min="1" step="1" oninput="calcOthers()"></div>`;
@@ -9310,7 +9421,7 @@ function ensurePriceModeControls(){
     if(!pricingLabel) return;
     const modeField=document.createElement('div');
     modeField.className='field price-mode-field';
-    modeField.innerHTML=`<label data-i18n="lblPriceMode">Price Mode</label><select id="${type}-priceMode" onchange="onPriceModeChange('${type}')"><option value="auto">Auto Round</option><option value="no_round">No Round</option><option value="manual">Manual Price</option></select>`;
+    modeField.innerHTML=`<label data-i18n="lblPriceMode">Price Mode</label><select id="${type}-priceMode" onchange="onPriceModeChange('${type}')"><option value="auto" data-i18n="pmAutoRound">Auto Round</option><option value="no_round" data-i18n="pmNoRound">No Round</option><option value="manual" data-i18n="pmManualPrice">Manual Price</option></select>`;
     const manualField=document.createElement('div');
     manualField.className='field manual-price-field';
     manualField.id=type+'-manualUnitPriceField';
@@ -9693,7 +9804,7 @@ function wqaRenderCommonItem(force){
                           need?dcT('wqaNIncomplete').replace('{n}',need):'');
   box.innerHTML = head + (!wqa.panels.item ? '' :
     `<div class="wqa-panel-body">
-       <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards. A blank field is left alone — it never clears what a row already has.</div>
+       <div class="wqa-acc-note">${escHtml(dcT('wqaCopyNoteBlank'))}</div>
        <div class="wqa-item-grid${ends?'':' wqa-item-grid-1'}">
          <label class="wqa-acc-f"><span>Size</span>
            <input type="text" id="wqaCommonSize" value="${escHtml(c.size)}" placeholder="M12"
@@ -10024,7 +10135,7 @@ function wqaRenderCommonPrice(force){
   el('wqaCommonPrice').innerHTML=
     wqaPanelHead('price',wqaScopeTitle('wqaCommonPriceTitle'),wqaPriceSummary(c),'') +
     (!wqa.panels.price ? '' : `<div class="wqa-panel-body">
-       <div class="wqa-acc-note">Entry values only. Auto Round and No Round rows each recalculate their own Final Unit Price from their own dimensions.</div>
+       <div class="wqa-acc-note">${escHtml(dcT('wqaEntryOnly'))}</div>
      <div class="wqa-price-line">
        <label class="wqa-acc-f"><span>Cost Rate</span><input type="number" min="0" step="0.01" value="${escHtml(c.costRate)}" oninput="wqaEditCommonPrice('costRate',this.value)"></label>
        <label class="wqa-acc-f"><span>Additional Cost</span><input type="number" min="0" step="0.01" value="${escHtml(c.addCost)}" oninput="wqaEditCommonPrice('addCost',this.value)"></label>
@@ -10032,7 +10143,7 @@ function wqaRenderCommonPrice(force){
        <label class="wqa-acc-f"><span data-i18n="lblPriceMode">Price Mode</span><select onchange="wqaEditCommonPrice('priceMode',this.value)">${opts}</select></label>
      </div>
      ${manual?`<div class="wqa-price-line wqa-price-manual">
-       <label class="wqa-acc-f"><span>Manual Unit Price (RM)</span><input type="number" min="0" step="0.01" value="${escHtml(c.manualUnitPrice)}" oninput="wqaEditCommonPrice('manualUnitPrice',this.value)"></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblManualUnitPrice'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.manualUnitPrice)}" oninput="wqaEditCommonPrice('manualUnitPrice',this.value)"></label>
      </div>`:''}
      <div class="wqa-acc-actions">
        <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyPriceAll|wqaApplyPriceSelected"
@@ -10041,7 +10152,7 @@ function wqaRenderCommonPrice(force){
                onclick="wqaApplyManualPriceToAll()">${escHtml(wqaApplyLabel('wqaApplyManualAll','wqaApplyManualSelected'))}</button>`:''}
        <span class="wqa-acc-sum">${escHtml(entered)}</span>
      </div>
-     ${manual?`<div class="wqa-price-warn">Manual Price gives every item the SAME final price. Different lengths normally cost different amounts — apply it only when the customer really quoted one flat price.</div>`:''}
+     ${manual?`<div class="wqa-price-warn">${escHtml(dcT('wqaManualWarn'))}</div>`:''}
      </div>`);
 }
 /* Collapsed header line: "Cost 6.00 · Add 1.60 · Markup 4% · Auto Round". */
@@ -10155,12 +10266,12 @@ function wqaRenderCommonAcc(force){
   const head=wqaPanelHead('acc',wqaScopeTitle('wqaCommonAccTitle'),wqaAccShortSummary(a),n?n+' active':'');
   el('wqaCommonAcc').innerHTML = head + (!wqa.panels.acc ? '' :
     `<div class="wqa-panel-body">
-       <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards.</div>
+       <div class="wqa-acc-note">${escHtml(dcT('wqaCopyNote'))}</div>
        ${wqaAccEditor(a,(g,f,v)=>`wqaEditCommonAcc('${g}','${f}',${v})`)}
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyAccToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
-         <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()">Clear All Accessories</button>
+         <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()" data-i18n="lblClearAllAcc">Clear All Accessories</button>
          <span class="wqa-acc-sum">Current: ${escHtml(wqaAccSummary(a))}</span>
        </div>
      </div>`);
@@ -13995,7 +14106,7 @@ function wqaRenderCommon(){
         </select></div>
     </div>
     ${matNote}
-    ${(prodMixed||wqa.product)?'':'<div class="wqa-flag wqa-flag-req">The document does not say which product this is, so it is not guessed. Choose the product to price these items.</div>'}
+    ${(prodMixed||wqa.product)?'':'<div class="wqa-flag wqa-flag-req">'+escHtml(dcT('wqaChooseProduct'))+'</div>'}
     ${stNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('sizeTypeRequired').replace('{p}',prod.label)+'</div>':''}
     ${matNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('materialRequired')+'</div>':''}
     ${skipNote}${aiNote}`;
@@ -14529,9 +14640,9 @@ function wqaRenderRows(force){
     } else if(hist===undefined){
       histHtml='<div class="wqa-hist">Loading pricing history…</div>';
     } else if(hist && hist.failed){
-      histHtml='<div class="wqa-hist wqa-hist-similar">Could not load pricing history — this is not the same as there being none.</div>';
+      histHtml='<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
     } else if(!hist || !hist.records || !hist.records.length){
-      histHtml='<div class="wqa-hist wqa-hist-none">No pricing history for this exact specification</div>';
+      histHtml='<div class="wqa-hist wqa-hist-none">'+escHtml(dcT('phNoneExact'))+'</div>';
     } else {
       const own=hist.ownTotal||0, other=hist.otherTotal||0;
       histHtml=`<div class="wqa-hist wqa-hist-panel">
@@ -14599,14 +14710,14 @@ function wqaRenderRows(force){
           </select></div>`:''}
       </div>
       <div class="wqa-row-grid wqa-price-grid">
-        <div class="field"><label>Cost Rate</label><input type="text" value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></div>
-        <div class="field"><label>Additional Cost</label><input type="text" value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></div>
+        <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></div>
+        <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></div>
         <div class="field"><label>Markup (%)</label><input type="number" value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></div>
         <div class="field"><label data-i18n="lblPriceMode">Price Mode</label>
           <select onchange="wqaEditRowMode(${i},this.value)">${
             WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${m.label}</option>`).join('')
           }</select></div>
-        ${(r.priceMode||'auto')==='manual'?`<div class="field"><label>Manual Unit Price (RM)</label>
+        ${(r.priceMode||'auto')==='manual'?`<div class="field"><label>${escHtml(dcT('lblManualUnitPrice'))}</label>
           <input type="number" min="0" step="0.01" value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></div>`:''}
       </div>
       <div class="wqa-weight-line">
