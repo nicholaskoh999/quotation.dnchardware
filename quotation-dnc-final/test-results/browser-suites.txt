@@ -14,7 +14,9 @@
   ok    accessories — charged beside the bolt, never inside it  (41 assertions)
   ok    dimension schema and drawing association  (71 assertions)
   ok    quick add — each row's own pricing history, on the row  (76 assertions)
+  ok    quick add layout — every product reachable at every width  (279 assertions)
+  ok    quick add — twenty items, which is the ordinary case  (28 assertions)
 
-  16 suites, 1029 assertions, 0 failed
+  18 suites, 1336 assertions, 0 failed
 
-  110.1s
+  151.8s

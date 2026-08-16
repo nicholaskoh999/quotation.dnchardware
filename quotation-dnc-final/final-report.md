@@ -14,9 +14,10 @@ records are ranked by how close their dimensions actually are, every record says
 what it weighed and how it was priced, and the last capped history query is gone.
 **Pass 4** repairs what live acceptance testing found: the review screen now
 names every dimension the way the drawing does, and an overall dimension that
-can only belong to one part is no longer left as a question. **Pass 5 — this
-one — puts each Quick Add row's pricing history on the row itself**, and stops
-looking up rows nobody asked about.
+can only belong to one part is no longer left as a question. **Pass 5** puts each Quick Add row's
+pricing history on the row itself and stops looking up rows nobody asked about.
+**Pass 6 — this one — is the Quick Add layout audit**: why a J Bolt row lost
+its History button, and what a twenty-item enquiry should look like.
 
 **Guiding principle, unchanged throughout:** a missing value with a visible
 reason is acceptable. A silently wrong size, dimension, weight or price is not.
@@ -33,6 +34,7 @@ reason is acceptable. A silently wrong size, dimension, weight or price is not.
 | **Mini-delta baseline (pass 3)** | `7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a` |
 | **Live-acceptance baseline (pass 4)** | `f250426346c1a256350fca2b12c54f1f5de034b4` |
 | **Quick Add history baseline (pass 5)** | `8c43da75e2110772ad9a4d7d744c9491c0181c5e` |
+| **Quick Add layout baseline (pass 6)** | `5c2c78cbc3cdf61a776f8786c50d5300f7077262` |
 | **Ending commit** | `5c2c78cbc3cdf61a776f8786c50d5300f7077262` (the commit to deploy; see `commit-info.txt`) |
 | **Deployment status** | **NOT DEPLOYED** |
 
@@ -83,7 +85,7 @@ job was to leave it that way.
   overwritten by any automatic source.
 
 The regression suite that protects all of it did not exist before pass 1. It is
-now 16 browser suites and three non-browser suites — **1,227 assertions, 0
+now 18 browser suites and three non-browser suites — **1,534 assertions, 0
 failing** — every one of them running against the shipped code path, not against
 a re-implementation of it.
 
@@ -404,6 +406,65 @@ copies anything is *Use this price*, the same explicit action the entry form
 offers, and it still refuses a record whose bolt price cannot be separated from
 its accessories.
 
+### Pass 6 (`5c2c78c` → HEAD) — the Quick Add layout audit
+
+**The root cause was a span counted from the end of the track list.** The
+summary row is a CSS grid: `lead + N dimension tracks + tail`. On any product
+with more than two dimension columns — an L Bolt (3) and a J Bolt (4) — the
+badge cell was spanned with `grid-column: 2 / -3`, which meant "stop just
+before the actions" when the tail had six tracks. Pass 5 appended a seventh
+track for History. Measured on a J Bolt at 1500px:
+
+```
+  wqa-sum-badges   row 2, columns 2/-3, 738px wide
+  wqa-sum-act      row 2, 64px   ← sitting in the History track
+  wqa-row-hist     row 2, 26px   ← sitting in the delete track, clipped
+  wqa-row-del      row 3, x=15   ← no track left; wrapped out of sight
+```
+
+Not a missing button: a button rendered 26px wide in the wrong track, with the
+delete pushed onto a third implicit line and `.wqa-rows{overflow:hidden}`
+cutting it off. **L Bolt was affected too and had not been reported.**
+
+The same measurement found two more faults: `.wqa-sum-wide` gave those products
+a badge line whether or not they had anything to warn about, so a clean J Bolt
+row was 82px against a Sag Rod's 38px; and `.wqa-modal{max-width:900px}` applied
+at every desktop width, so 1500px and 1366px were identical and a J Bolt's
+fixed tracks already exceeded the 856px content box.
+
+**What replaced it.** The three actions are now **one grid cell** containing a
+flex row, with a guaranteed width at each breakpoint. How many actions there
+are is invisible to the layout, and how many dimensions a product has is
+invisible to the actions. Nothing in the row is positioned by counting from the
+end of anything.
+
+Warnings moved to **one thin secondary strip** under the data line, shared with
+the row's identity text, and present only when there is something to say. A
+clean row is one line; a row that needs a rate is one line plus a 22px strip;
+answering the warning takes the strip away again.
+
+The modal now asks for the width its own columns need — the base for a
+two-dimension list, plus a track for each column beyond that, inside
+`min(96vw, …)` so it can never exceed the viewport. A Stud list is exactly as
+wide as it was; a J Bolt list is allowed the room its four dimensions need.
+
+**A dimension that was disappearing.** In a mixed enquiry the one specification
+column was 150px, and a J Bolt's `H 1200 · ID 125 · S 180 · TL 200` was cut off
+behind an ellipsis — a dimension vanishing from a quotation review. The column
+is sized for the longest product now, and every specification cell is asserted
+unclipped.
+
+**The history panel** was styled against three CSS variables this application
+does not declare (`--surface-2`, `--surface-3`, `--brand`), so record cards had
+no fill, this customer's own records had no accent, and the neutral tags were
+transparent — most of why it read as a wall of text. Repaired, the pricing
+fields put in aligned columns, and the panel indented under its row with a left
+rule so it cannot be read as belonging to the item below.
+
+**Measured after the change**, at 1500 / 1366 / 1024 / 768 / 390, for all five
+products: every action has a real box inside the list, none overlaps another,
+no summary grid overflows its own box, and no row causes sideways scrolling.
+
 ---
 
 ## What was intentionally left alone
@@ -489,8 +550,10 @@ Run from the repository root immediately before packaging.
   ok    accessories — charged beside the bolt, never inside it              (41)
   ok    dimension schema and drawing association                            (71)
   ok    quick add — each row's own pricing history, on the row               (76)
+  ok    quick add layout — every product reachable at every width           (279)
+  ok    quick add — twenty items, which is the ordinary case                 (28)
 
-  16 suites, 1029 assertions, 0 failed        110.1s
+  18 suites, 1336 assertions, 0 failed        151.8s
 
   ok    ai_extract — dense tables, truncation and error causes              (64)
   ok    pricing history — identity, accessories, ranking                    (72)
@@ -499,7 +562,7 @@ Run from the repository root immediately before packaging.
   PHP lint: 10 files, no syntax errors
 ```
 
-**1,227 assertions, 0 failed.** Raw output in `test-results/`.
+**1,534 assertions, 0 failed.** Raw output in `test-results/`.
 
 Fixes were verified the only way that means anything: the fix was reverted, the
 suite was run, and the assertions failed for the right reason. Pass 2 —
@@ -525,6 +588,8 @@ the two suites failing.
 | HAB-TA-01 as production returned it: rows 3 and 5 resolve to 1000 and 1285 | PASS (71 assertions, no manual confirmation) |
 | Product dimension schema and label spacing, all five products | PASS |
 | Quick Add: per-row History action, lazy lookup, independent state | PASS (76 assertions) |
+| Quick Add layout: 5 products × 5 widths, actions reachable, nothing clipped | PASS (279 assertions) |
+| Twenty-item enquiry: density, no eager lookups, one row opens at a time | PASS (28 assertions) |
 | 29-row anchor-bolt table, metric beside imperial | PASS (170 assertions, simulated extraction) |
 | Pricing history: same customer, different dimensions, other customer, pagination | PASS (97 + 72 assertions) |
 | Core identity never crosses: M20 never uses M18 / M22 / M24 history | PASS |
@@ -550,6 +615,12 @@ Eight categories, not one per assertion:
 | `7-partial-extraction.png` | A cut-off analysis: the banner, the recovered count, the acknowledgement, and Add Items disabled |
 | `8-accessory-separation.png` | A bolt at RM13.33 with RM0.70 of nuts beside it — the two printed rows, the WhatsApp lines, and the saved item's own figures |
 | `9-quickadd-row-history.png` | A Quick Add row's own history, opened from the row in Compact view, with the row beneath it untouched |
+
+And `layout/`, fourteen frames produced for the layout audit and inspected by
+eye: each product in Compact at 1500px, Sag Rod and J Bolt with history open,
+mixed enquiries of ten and twenty items, 1366px, 1024px, 390px for a J Bolt and
+for a mixed enquiry, and Expanded mode. `quickadd-layout-root-cause.txt` holds
+the measurements the diagnosis was made from.
 
 ---
 
@@ -752,7 +823,12 @@ checklist I cannot do for you.
 
 ## Known limitations
 
-0. **The entry form's own history panel is not ranked by dimension.** It sends
+0. **The entry form's own history panel is not ranked by dimension.** Still
+   true after this pass — confirmed by assertion, not by assumption, and not
+   made worse: the layout work did not touch `phFormSpec`, the endpoint, or any
+   matching rule.
+
+0b. **The entry form's own history panel is not ranked by dimension.** It sends
    no `dimensionPreview` (`phFormSpec` leaves it empty), so neither the server
    nor the screen can tell which historical rod is nearest, and its list stays
    in the order the server returned — this customer first, newest first. A Quick

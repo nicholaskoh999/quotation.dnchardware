@@ -1733,7 +1733,7 @@ input,select,textarea{
 .wqa-partial-ack{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding-top:9px;
   border-top:1px solid var(--amber-mid);font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer}
 .wqa-partial-ack input{width:16px;height:16px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--amber);cursor:pointer}
-.wqa-hist{margin-top:9px;padding:9px 10px;border-radius:var(--r-xs);font-size:12px;line-height:1.45;
+.wqa-hist{margin:0 12px 10px 46px;padding:9px 10px;border-radius:var(--r-xs);font-size:12px;line-height:1.45;
   background:var(--surface2);border:1px solid var(--border);color:var(--text-muted)}
 .wqa-hist-exact{background:var(--green-light);border-color:var(--green)}
 .wqa-hist-similar{background:var(--amber-light);border-color:var(--amber-mid)}
@@ -1939,9 +1939,20 @@ input,select,textarea{
 .wqa-modal{
   --wqa-lead: 32px 62px;                                    /* #  Size        */
   --wqa-dim:  78px;                                         /* each dimension */
-  --wqa-dim-spec: minmax(150px,1.4fr);   /* a mixed list's one whole-spec cell */
-  --wqa-tail: 56px 104px 86px minmax(0,1fr) 46px 64px 26px; /* Qty W Price … */
+  /* A mixed list's one whole-spec cell has to hold a J Bolt's four dimensions
+     — "H 1200 · ID 125 · S 180 · TL 200" — so it is sized for the longest
+     product, not the shortest. At 150px the TL was quietly cut off behind an
+     ellipsis, which is a dimension disappearing from a quotation review. */
+  --wqa-dim-spec: minmax(250px,1.6fr);
+  /* Qty · Weight · Price · slack · ACTIONS. The actions are ONE track with a
+     guaranteed width, so how many of them there are can never change the
+     layout, and how many dimensions a product has can never squeeze them. */
+  --wqa-tail: 56px 104px 90px minmax(0,1fr) 152px;
   --wqa-cols: var(--wqa-lead) var(--wqa-dim) var(--wqa-tail);
+  /* Composed by wqaSetListGrid from the column count: a Stud list stays the
+     size it was, a J Bolt list is allowed the width its four dimensions need,
+     and neither ever exceeds the viewport. */
+  max-width:min(96vw, var(--wqa-maxw, 900px));
 }
 .wqa-list-head,.wqa-sum{
   display:grid;align-items:center;gap:0 8px;padding:0 12px;
@@ -1980,11 +1991,22 @@ input,select,textarea{
 .wqa-sum-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;
   min-width:0;max-width:100%;overflow:hidden}
 /* A J Bolt names four dimensions and an L Bolt three, and by then the slack
-   left over for the pills is a few characters wide — which shows a warning
-   badly enough to be worse than not showing it. On those lists the badges take
-   a line of their own under the row; the columns above them do not move. */
-.wqa-sum-wide{row-gap:3px}
-.wqa-sum-wide .wqa-sum-badges{grid-column:2/-3;justify-content:flex-start;overflow:visible}
+   left over for pills inside the row was a few characters wide. They live on
+   their own thin line under the row now — see .wqa-row-status — so the
+   engineering columns are never squeezed by a warning, and a row with nothing
+   to warn about has no second line at all.
+
+   The rule this replaces spanned the badges with `grid-column:2/-3`, counted
+   from the END of the track list. Adding the History track moved that end, and
+   every action on an L Bolt or J Bolt row shifted one track right until the
+   delete button fell off the row completely. Nothing here counts from the end
+   any more. */
+.wqa-row-sub{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;
+  padding:0 12px 5px 46px;background:transparent}
+.wqa-row-sub[hidden]{display:none}
+.wqa-row.is-open>.wqa-row-sub{background:var(--surface2)}
+.wqa-row-sub .wqa-sum-badges{justify-content:flex-start;overflow:visible;max-width:100%}
+.wqa-row-sub .wqa-row-spec{padding:0;margin:0}
 .wqa-pill{font-size:10px;font-weight:800;padding:2px 7px;border-radius:var(--pill-r);white-space:nowrap;border:1px solid transparent}
 /* Status pills are two words and stay on one line. A pill that carries a whole
    sentence — the product-conflict reason — wraps instead, because the badge
@@ -1994,9 +2016,14 @@ input,select,textarea{
 .wqa-pill-req{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
 .wqa-pill-warn{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
 .wqa-pill-info{background:var(--accent-light);color:var(--accent-2)}
-/* the two action cells are fixed width and centred, so they cannot push
-   anything to their left */
-.wqa-sum-act{font-size:11px;font-weight:800;color:var(--accent-2);text-align:center}
+/* ── The actions ───────────────────────────────────────────────────────────
+   ONE grid cell holding all three, with a guaranteed width. Their number is
+   now invisible to the layout, and the layout is invisible to them: a Stud
+   with one dimension and a J Bolt with four get the same actions in the same
+   place. */
+.wqa-sum-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;
+  min-width:0;white-space:nowrap}
+.wqa-sum-act{font-size:11px;font-weight:800;color:var(--accent-2);text-align:center;flex:0 0 auto}
 .wqa-row-del{background:transparent;border:0;color:var(--text-muted);cursor:pointer;
   font-size:12px;width:26px;height:26px;border-radius:var(--r-xs);justify-self:center}
 .wqa-row-del:hover{background:var(--surface);color:var(--danger,#b91c1c)}
@@ -2034,9 +2061,9 @@ input,select,textarea{
   .wqa-modal{
     --wqa-lead: 22px minmax(40px,52px);
     --wqa-dim:  minmax(46px,62px);
-    --wqa-dim-spec: minmax(96px,1.4fr);
+    --wqa-dim-spec: minmax(190px,1.6fr);
     --wqa-tail: minmax(30px,42px) minmax(80px,100px) minmax(56px,72px)
-                minmax(0,1fr) 38px 56px 20px;
+                minmax(0,1fr) 136px;
     width:min(96vw,900px);          /* wide enough for one line, never overflowing */
   }
   .wqa-list-head,.wqa-sum{
@@ -2188,31 +2215,48 @@ input,select,textarea{
 /* ── Pricing history ─────────────────────────────────────────────────────── */
 .ph-list{max-height:none}
 .ph-count{font-size:11px;font-weight:700;color:var(--text-muted);margin:6px 0 8px;letter-spacing:.02em}
-.ph-scroll{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
-.ph-rec{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface-2)}
-.ph-rec-own{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
+/* ── The records ───────────────────────────────────────────────────────────
+   These were written against a palette this application does not have:
+   --surface-2, --surface-3 and --brand are not declared anywhere, so every one
+   of them fell back to nothing. The cards had no fill, this customer's own
+   records had no accent, and the neutral tags were transparent — which is most
+   of why the panel read as a wall of text. */
+.ph-scroll{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px}
+.ph-rec{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface)}
+/* This customer's own price is the answer; anybody else's is a reference. */
+.ph-rec-own{border-color:var(--accent-mid);box-shadow:inset 3px 0 0 var(--accent)}
 .ph-rec-head{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:12px}
 .ph-rec-ref{font-weight:800}
 .ph-rec-cust{font-weight:600;color:var(--text)}
 .ph-rec-date{color:var(--text-muted);margin-left:auto}
 .ph-rec-spec{font-size:11px;color:var(--text-muted);margin-top:3px}
 .ph-rec-dims{font-size:12px;font-weight:600;margin-top:2px}
-.ph-rec-nums{display:flex;flex-wrap:wrap;gap:14px;margin-top:7px;font-size:12px}
-.ph-rec-nums span{display:flex;flex-direction:column}
+/* The numbers that explain the price, in fixed columns so the eye can run down
+   Cost Rate or Markup across several records instead of hunting for them. */
+.ph-rec-nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(94px,1fr));
+  gap:7px 12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
+.ph-rec-nums span{display:flex;flex-direction:column;min-width:0}
 .ph-rec-nums label{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:700}
-.ph-rec-unit{font-weight:800}
-.ph-rec-acc{margin-top:6px;font-size:11px;color:var(--text-muted)}
+.ph-rec-unit{font-weight:800;color:var(--green)}
+.ph-rec-acc{margin-top:7px;font-size:11px;line-height:1.5;color:var(--text-muted);
+  background:var(--surface2);border-radius:var(--r-xs);padding:5px 8px}
 .ph-rec-foot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .ph-rec-tag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  padding:2px 7px;border-radius:99px;background:var(--surface-3);color:var(--text-muted)}
+  padding:2px 7px;border-radius:99px;background:var(--surface2);color:var(--text-muted);
+  border:1px solid var(--border)}
 .ph-rec-exact{background:rgba(52,168,110,.16);color:#1f7a4d}
 .ph-rec-other{background:rgba(120,120,140,.18)}
 .ph-rec-warn{background:rgba(214,158,46,.18);color:#8a5a00}
 .ph-rec-use{margin-left:auto}
 .ph-more{margin-top:8px;width:100%}
-.wqa-hist-panel{padding:0;background:none;border:none}
+/* ── The panel belongs to the row above it ─────────────────────────────────
+   Indented under the row's own number and ruled down its left edge, so in a
+   list of twenty it is never read as belonging to the item below. */
+.wqa-hist-panel{padding:0 12px 10px 46px;background:var(--surface2);border:none;
+  border-left:3px solid var(--accent-mid)}
+.wqa-row.is-open .wqa-hist-panel{background:var(--surface2)}
 .wqa-hist-bar{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;cursor:pointer;
-  background:var(--surface-2);border:1px solid var(--border);border-radius:8px;text-align:left}
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:left}
 .wqa-hist-arrow{font-size:10px;color:var(--text-muted)}
 .wqa-hist-lbl{font-weight:700;font-size:12px}
 .wqa-hist-count{margin-left:auto;font-size:11px;color:var(--text-muted)}
@@ -9880,6 +9924,10 @@ function wqaPatchRows(){
        while that line still read "MS · ZP" — the row disagreeing with itself. */
     const spec=card.querySelector('.wqa-row-spec');
     if(spec){ const t=wqaRowSpecText(r); spec.textContent=t; spec.hidden=!t; }
+    /* A row that has just been answered loses its strip; one that has just lost
+       a value gains it. Neither may leave an empty band behind. */
+    const sub=card.querySelector('.wqa-row-sub');
+    if(sub) sub.hidden=!((badges&&badges.innerHTML)||(spec&&spec.textContent));
     const tw=card.querySelector('.wqa-tw');
     if(tw) tw.textContent=wqaFmtTotalWeight((r.calc||{}).weight,r.qty);
     wqaPatchRowAccBar(card,r);
@@ -9946,6 +9994,28 @@ function wqaRowSpecText(r){
   if(r.bodyDia) bits.push(dcT('wqaBodyDia')+' '+r.bodyDia+'mm');
   return bits.join(' · ');
 }
+/* ── Warnings, on a line of their own, only when there are warnings ────────
+   A pill belongs to the row, not in the middle of its numbers: crowded into a
+   grid track it squeezed the engineering columns, and given a track of its own
+   it made every L Bolt and J Bolt permanently two rows tall whether or not it
+   had anything to say. It is a thin line under the row now, present only when
+   the row is carrying something — so a clean item is one line and a
+   twenty-item enquiry of clean items is twenty lines.
+
+   The node is always in the DOM so wqaPatchRows has something to write into;
+   it is the WRAPPER that hides. */
+function wqaRowStatusLine(r){
+  const badges=wqaBadgeHtml(r);
+  const spec=wqaRowSpecText(r);
+  /* ONE secondary strip, shared. A mixed enquiry needs to say what each row IS
+     — its product and material — and a row that is missing something needs to
+     say that too; on separate lines a mixed twenty-item enquiry became three
+     lines per item. They sit side by side on one thin line instead, and when
+     neither has anything to say there is no line at all. */
+  return `<div class="wqa-row-sub"${(badges||spec)?'':' hidden'}>`
+       + `<span class="wqa-row-spec"${spec?'':' hidden'}>${escHtml(spec)}</span>`
+       + `<span class="wqa-sum-badges">${badges}</span></div>`;
+}
 /* The node. Always present so a patch has something to write into — a row
    whose spec line has nothing to say is hidden, not absent. */
 function wqaRowSpecLine(r){
@@ -9986,9 +10056,23 @@ function wqaSetListGrid(){
   const spec=cols.length===1 && cols[0].k==='spec';
   const dim =((spec ? cs.getPropertyValue('--wqa-dim-spec') : cs.getPropertyValue('--wqa-dim'))
               ||'78px').trim();
-  const tail=(cs.getPropertyValue('--wqa-tail')||'56px 104px 86px minmax(0,1fr) 46px 64px 26px').trim();
+  const tail=(cs.getPropertyValue('--wqa-tail')||'56px 104px 90px minmax(0,1fr) 152px').trim();
   m.style.setProperty('--wqa-cols',
     [lead].concat(new Array(cols.length).fill(dim)).concat([tail]).join(' '));
+  /* ── And the width those columns actually need ─────────────────────────
+     A Stud list is two columns of numbers and has no business being as wide
+     as a J Bolt list, which is five. So the panel asks for the width its own
+     columns come to and nothing more: the base for a two-dimension list, plus
+     one dimension track for each column beyond that. `min(96vw, …)` in the CSS
+     keeps it inside the viewport at every size, so this can never cause a
+     sideways scroll. */
+  const px=v=>{ const n=parseFloat(String(v).replace(/[^0-9.]/g,'')); return isFinite(n)?n:0; };
+  /* A mixed list is one column, but that column carries a whole specification
+     — up to four dimensions — so it is allowed the same extra room a
+     four-column list gets. */
+  const extra=spec ? Math.max(0, px(dim) - 150)
+                   : Math.max(0, cols.length - 2) * (px(dim) + 8);
+  m.style.setProperty('--wqa-maxw', (900 + Math.round(extra)) + 'px');
 }
 /* The header uses the same grid, so labels sit exactly over their column. */
 function wqaRenderListHead(){
@@ -10012,9 +10096,7 @@ function wqaRenderListHead(){
     + '<span class="wqa-h wqa-h-num wqa-h-w">Weight</span>'
     + '<span class="wqa-h wqa-h-num wqa-h-price">Price</span>'
     + '<span class="wqa-h wqa-h-slack"></span>'
-    + '<span class="wqa-h wqa-h-act">Actions</span>'
-    + '<span class="wqa-h wqa-h-act wqa-h-hist"></span>'
-    + '<span class="wqa-h wqa-h-del"></span>';
+    + '<span class="wqa-h wqa-h-act">Actions</span>';
 }
 function wqaFmtPrice(v){ const n=Number(v)||0; return n>0 ? 'RM'+n.toFixed(2) : 'RM—'; }
 /* A price worked out from a material nobody chose is not this item's price, and
@@ -13398,25 +13480,30 @@ function wqaRenderRows(force){
     </div>`;
 
     return `<div class="wqa-row${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}" data-wqa-row="${i}">
-      <div class="wqa-sum${cols.length>2?' wqa-sum-wide':''}" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"
+      <div class="wqa-sum" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"
            onclick="wqaToggleRow(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wqaToggleRow(${i});}">
         <span class="wqa-sum-no">${wqa.applyScope==='selected'
           ? `<input type="checkbox" class="wqa-pick"${r.sel?' checked':''} onclick="event.stopPropagation()"
                     onchange="wqaToggleRowSel(${i})" aria-label="Select item ${i+1}">`
           : (i+1)}</span>
         ${wqaCompactCells(r,cols)}
-        <span class="wqa-sum-badges">${wqaBadgeHtml(r)}</span>
-        <span class="wqa-sum-act">${open?'Close':'Edit'}</span>
-        <!-- This row's own history, on the row itself: a ten-item enquiry is
-             ten different specifications, and reaching the evidence for one of
-             them should not mean opening its editor first. -->
-        <button type="button" class="wqa-row-hist${r.histOpen?' is-on':''}"
-                title="Pricing history for this item" aria-expanded="${r.histOpen?'true':'false'}"
-                onclick="event.stopPropagation();wqaHistToggle(${i})">History</button>
-        <button type="button" class="wqa-row-del" title="Remove"
-                onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>
+        <!-- Slack lives here, so the actions sit at the right edge whatever a
+             product's dimensions come to. -->
+        <span class="wqa-sum-gap"></span>
+        <!-- ONE cell for all three actions. They used to be three grid tracks
+             of their own, which made the layout depend on how many actions
+             there are: adding History pushed the delete off the end of a J Bolt
+             row entirely. A single track cannot do that. -->
+        <span class="wqa-sum-actions">
+          <span class="wqa-sum-act">${open?'Close':'Edit'}</span>
+          <button type="button" class="wqa-row-hist${r.histOpen?' is-on':''}"
+                  title="Pricing history for this item" aria-expanded="${r.histOpen?'true':'false'}"
+                  onclick="event.stopPropagation();wqaHistToggle(${i})">History</button>
+          <button type="button" class="wqa-row-del" title="Remove"
+                  onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>
+        </span>
       </div>
-      ${wqaRowSpecLine(r)}
+      ${wqaRowStatusLine(r)}
       ${body}
       ${histHtml}
     </div>`;

@@ -76,6 +76,24 @@ index.php
             the same phFetch / phDimDistance / phSortRecords / phRecordHtml the
             entry form calls
 
+  Pass 6  · the three row actions became ONE grid cell with a guaranteed width,
+            so the layout no longer depends on how many actions there are. The
+            badge span counted from the end of the track list (grid-column:
+            2/-3) is gone — it was what pushed History and delete off an L Bolt
+            and J Bolt row when the History track was added
+          · warnings and the row's identity text share ONE thin strip under the
+            data line, shown only when there is something to say, so a clean row
+            is one line and a warning row is a line plus a strip
+          · the modal asks for the width its own columns need, inside
+            min(96vw, …), so a J Bolt list gets room and a Stud list does not
+            grow
+          · the mixed-list specification column is sized for the longest
+            product: a J Bolt's TL was being cut off behind an ellipsis
+          · the pricing-history panel's styles referenced --surface-2,
+            --surface-3 and --brand, none of which this application declares;
+            repaired, pricing fields aligned into columns, panel indented under
+            its own row
+
 api.php
   Pass 1  · the previous-price lookup respects an unstated finish or size type
             instead of treating it as "any"
@@ -130,7 +148,8 @@ tests/lib/harness.js            serves the real index.php in Chromium
 tests/lib/assert.js             assertion + suite bookkeeping
 tests/run.js                    runner
 tests/screenshots.js            the nine evidence frames
-tests/suites/01 … 16            16 browser suites, 1029 assertions
+tests/layout-shots.js           the fourteen layout frames
+tests/suites/01 … 18            18 browser suites, 1336 assertions
 tests/php/ai_extract.test.php   64 assertions
 tests/php/pricing_history.test.php  72 assertions
 tests/tools/build-pricing-workbook.py   builds the blank V2 workbook

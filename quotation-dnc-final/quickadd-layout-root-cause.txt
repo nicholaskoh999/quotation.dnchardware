@@ -1,0 +1,32 @@
+ROOT CAUSE (measured, not inferred)
+
+.wqa-sum is a CSS grid whose tracks are composed by wqaSetListGrid():
+    lead(2) + N dimension tracks + tail
+The tail was 6 tracks when the badge rule was written:
+    qty, weight, price, badges(1fr), act(46px), del(26px)
+
+.wqa-sum-wide .wqa-sum-badges{grid-column:2/-3}
+  applied when a product has MORE THAN TWO dimension columns, i.e. L Bolt (3)
+  and J Bolt (4). "-3" meant "stop just before the act track".
+
+The previous pass appended a 7th tail track for the History button. "-3" now
+stops one track EARLIER, so on wide rows every action shifts one track right:
+
+    measured, J Bolt @1500px, 13 tracks / 13 cells
+      wqa-sum-badges   row 2, columns 2/-3, width 738
+      wqa-sum-act      row 2, width 64   <- sitting in the History track
+      wqa-row-hist     row 2, width 26   <- sitting in the delete track, clipped
+      wqa-row-del      row 3, x=15       <- no track left; wrapped out of sight
+
+Two further faults the same measurement exposed:
+
+  * .wqa-sum-wide gives badges a line of their own UNCONDITIONALLY, so a clean
+    L Bolt / J Bolt row is 82px tall against 38px for a Sag Rod — a permanent
+    second row for products that have more dimensions.
+
+  * .wqa-modal{max-width:900px} at every desktop width, so 1500px and 1366px
+    are identical and a J Bolt's fixed tracks (884px + gaps) already exceed the
+    856px content box. .wqa-rows{overflow:hidden} clips the remainder.
+
+Affected: L Bolt and J Bolt at 1500 / 1366 / 1024 / 768. Stud, Sag Rod and
+Anchor Bolt were unaffected because .wqa-sum-wide never applied to them.
