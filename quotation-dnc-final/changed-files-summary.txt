@@ -162,3 +162,54 @@ auth.php · login.php · logout.php · db.sample.php · ai_config.sample.php
 php.ini · manifest.webmanifest · assets/
 
 NO DATABASE SCHEMA CHANGE. NO SECRET IN THE REPOSITORY OR IN THIS PACKAGE.
+
+PASS 7 — AI extraction / engineering-document interpretation
+-----------------------------------------------------------
+Baseline 6bba600191a306af2e70c3d37f37f1b052099cf4
+
+ai_extract.php
+  · J_BOLT added to the document-level product enum, the per-row product enum
+    and the sanitiser's allowlist. It was absent from all three, so a J Bolt
+    was not something the model was permitted to answer.
+  · the instruction filing a drawn "L / J / U bend" under L_BOLT replaced with
+    two rules: a hook returning UP alongside the shank is a J_BOLT, a 90-degree
+    perpendicular leg is an L_BOLT
+  · RECOGNISING A J BOLT ON A DRAWING — what a hook looks like on a sheet, and
+    that any one of the return leg / inside width / hook outranks the title
+  · READING A J BOLT'S DIMENSIONS — H is the overall height however the drawing
+    labels it; a radius is not an inside diameter and is not converted into one
+  · A TABLE MAY BE PRINTED SIDEWAYS — orientation from the table's own headings,
+    rows as items after turning it, no value changed by rotation
+  · WHAT A SPECIFICATION CELL ACTUALLY COVERS — which ROWS (the merge) and which
+    PART (the rod, not its nuts and washers)
+  · A ROW'S OWN SPECIFICATION BEATS A GENERAL REMARK
+  · A STRENGTH CLASS IS NOT A MATERIAL, AND NEITHER IS A FINISH — 8.8 is not
+    4140, HDG is a finish, A2/A4 are stainless classes, "A4" beside a paper word
+    is the sheet
+  · per-product field list and row-product wording extended with L_BOLT/J_BOLT
+
+index.php
+  · a stated return height (S) alone classifies a J Bolt. It used to need an ID
+    as well, which a hook dimensioned by radius never states.
+  · on a J Bolt with no stated height, the drawing's overall L IS the height and
+    is reported as H — gated on the geometry, recorded as hFromL, shown on the
+    row. L stays L on every other product.
+  · a merged specification cell now carries down the rows it covers: material,
+    finish and size type join M and TL in the row-to-row inheritance, replaced
+    by any row that states its own, and only where the sheet is silent
+  · wqaDetectCommon takes opts.noStrengthAlloy, set only by the document path:
+    a strength class is kept as evidence and never answered with an alloy. The
+    pasted-message G8.8 -> 4140 QT mapping is untouched.
+  · A2 / A2-70 / A4 / A4-80 added as the ISO 3506 stainless classes, with a
+    paper-size guard (notNear, new in wqaMatchMaterial)
+  · row evidence fields: grade, radius, hFromL, finishSeen, specRaw — the raw
+    wording kept beside the value it became
+  · four badges and their English and Chinese strings
+
+tests/
+  · suites/19-drawing-interpretation.test.js — new, 146 assertions: both
+    reported cases, the explicit-ID variant, entity scoping, remark precedence,
+    the A2/A4 vocabulary, the paper trap and the negative tests
+  · php/ai_extract.test.php — +38 assertions on the prompt, schema and sanitiser
+  · lib/harness.js — exposes the new evidence fields
+  · extraction-shots.js, extraction-evidence.js — new evidence generators

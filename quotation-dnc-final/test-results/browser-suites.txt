@@ -16,7 +16,8 @@
   ok    quick add — each row's own pricing history, on the row  (76 assertions)
   ok    quick add layout — every product reachable at every width  (279 assertions)
   ok    quick add — twenty items, which is the ordinary case  (28 assertions)
+  ok    engineering documents — geometry, merged cells, and what a grade is not  (146 assertions)
 
-  18 suites, 1336 assertions, 0 failed
+  19 suites, 1482 assertions, 0 failed
 
-  151.8s
+  202.0s

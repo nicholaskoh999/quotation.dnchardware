@@ -1,1 +1,1 @@
-  ok    ai_extract — dense tables, truncation and error causes  (64 assertions)
+  ok    ai_extract — dense tables, truncation and error causes  (102 assertions)

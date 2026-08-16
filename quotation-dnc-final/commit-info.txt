@@ -22,8 +22,11 @@ QUICK ADD HISTORY BASELINE (pass 5)
 QUICK ADD LAYOUT BASELINE (pass 6)
   5c2c78cbc3cdf61a776f8786c50d5300f7077262
 
-DEPLOY COMMIT  <-- deploy this one
+EXTRACTION BASELINE (pass 7)
   6bba600191a306af2e70c3d37f37f1b052099cf4
+
+DEPLOY COMMIT  <-- deploy this one
+  f074b5b111fc93698968ae704fc1b3443cab6ac2
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -80,17 +83,19 @@ COMMITS ON THIS BRANCH
   5c2c78c  This row's history, on this row
   4b042b7  Audit package: stamp the commit to deploy
   6bba600  A span counted from the end of the track list
+  3a27cc3  Audit package: stamp the commit to deploy
+  f074b5b  A hook is a hook, and a grade is not a steel
 
-REGRESSION AT 6bba600
-  18 browser suites         1336 assertions   0 failed
-  ai_extract (PHP)            64 assertions   0 failed
+REGRESSION AT f074b5b
+  19 browser suites         1482 assertions   0 failed
+  ai_extract (PHP)           102 assertions   0 failed
   pricing history (PHP)       72 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     1534 assertions   0 failed
+  TOTAL                     1718 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
-AFTER DEPLOYMENT — the one check I cannot perform
+AFTER DEPLOYMENT — the checks I cannot perform
   Run HAB-TA-01.pdf and the 29-row anchor-bolt screenshot through the live
   Analyze path once, and compare against 950 / 865 / 1000 / 1200 / 1285 and
   29 rows. Everything downstream of the model's answer is proven by the suite:
@@ -99,3 +104,12 @@ AFTER DEPLOYMENT — the one check I cannot perform
   1285 without manual confirmation. What still needs a live API key is whether
   the improved prompt makes the model place those dimensions correctly in the
   first place, so that elimination is not needed at all.
+
+  Pass 7 adds two of the same kind. Run the J-shaped bolt drawing and the
+  rotated stud table through the live Analyze path once and confirm the model
+  now returns product J_BOLT for the hook, and reads the rotated table's two
+  merged specification cells onto the rows they cover. Everything downstream
+  of those answers is proven by tests/suites/19-drawing-interpretation.test.js
+  against fixtures shaped exactly like the reported failures; the schema and
+  the instruction text are proven by tests/php/ai_extract.test.php. What needs
+  a key is the model's own reading of the page.

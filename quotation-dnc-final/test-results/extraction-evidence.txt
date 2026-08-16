@@ -1,0 +1,75 @@
+Extraction evidence — 2026-08-16
+Every row below is produced by wqaAiApply, the path a photograph takes.
+
+══════════════════════════════════════════════════════════════════════════════
+CASE A — hook bolt titled "ANCHOR BOLT", dimensioned D1 12 / L 280 / S 80 / T 50 / R 25
+──────────────────────────────────────────────────────────────────────────────
+IN  [{"M":"M12","L":280,"W":null,"TL":50,"qty":40,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":null,"threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":80,"R":25}]
+IN  document product: ANCHOR_BOLT
+
+OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
+    jbolt       M12    —      280    —     80    50      40    —         —       —           
+
+    row 1: needs ID, Material, Size Type, Price
+            Needs ID | Needs Material | Needs Size Type | Needs Price | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
+
+══════════════════════════════════════════════════════════════════════════════
+CASE A variant — the same drawing with an inside width written on it
+──────────────────────────────────────────────────────────────────────────────
+IN  [{"M":"M12","L":280,"W":null,"TL":50,"qty":40,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":null,"threadEnds":null,"bodyDia":null,"H":null,"ID":50,"S":80,"R":25}]
+IN  document product: ANCHOR_BOLT
+
+OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
+    jbolt       M12    —      280    50    80    50      40    —         —       —           
+
+    row 1: needs Material, Size Type, Price
+            Needs Material | Needs Size Type | Needs Price | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
+
+══════════════════════════════════════════════════════════════════════════════
+CASE B — six stud rows, two merged specification cells
+──────────────────────────────────────────────────────────────────────────────
+IN  [{"M":"M12","L":145,"W":null,"TL":null,"qty":9,"Bmid":null,"material":"A2-70 SUS304","finish":"PLAIN","sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M20","L":240,"W":null,"TL":null,"qty":5,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M10","L":120,"W":null,"TL":null,"qty":27,"Bmid":null,"material":"STUD DIN 975 GRADE 8.8","finish":"HDG","sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M10","L":125,"W":null,"TL":null,"qty":21,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M10","L":130,"W":null,"TL":null,"qty":21,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M16","L":170,"W":null,"TL":null,"qty":9,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null}]
+
+OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
+    stud        M12    145    —      —     —     —       9     SS304     —       —           
+    stud        M20    240    —      —     —     —       5     SS304     —       —           
+    stud        M10    120    —      —     —     —       27    —         HDG     GRADE 8.8   
+    stud        M10    125    —      —     —     —       21    —         HDG     GRADE 8.8   
+    stud        M10    130    —      —     —     —       21    —         HDG     GRADE 8.8   
+    stud        M16    170    —      —     —     —       9     —         HDG     GRADE 8.8   
+
+    row 1: needs Price
+            read from: material "A2-70 SUS304" · finish "PLAIN"
+            Needs Price | PL stated — SS304 is quoted without a finish
+    row 2: needs Price
+            read from: material "A2-70 SUS304" · finish "PLAIN"
+            Needs Price | PL stated — SS304 is quoted without a finish
+    row 3: needs Material, Price
+            read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
+            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
+    row 4: needs Material, Price
+            read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
+            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
+    row 5: needs Material, Price
+            read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
+            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
+    row 6: needs Material, Price
+            read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
+            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
+
+══════════════════════════════════════════════════════════════════════════════
+A sheet-wide "ISO 898 CLASS 5.8" under a block that states DIN 975 GRADE 8.8
+──────────────────────────────────────────────────────────────────────────────
+IN  [{"M":"M10","L":120,"W":null,"TL":null,"qty":27,"Bmid":null,"material":"DIN 975 GRADE 8.8","finish":"HDG","sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null},{"M":"M10","L":125,"W":null,"TL":null,"qty":21,"Bmid":null,"material":null,"finish":null,"sizeType":null,"unclear":null,"product":"STUD","threadEnds":null,"bodyDia":null,"H":null,"ID":null,"S":null,"R":null}]
+IN  document material: "ISO 898 CLASS 5.8"
+
+OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
+    stud        M10    120    —      —     —     —       27    —         HDG     GRADE 8.8   
+    stud        M10    125    —      —     —     —       21    —         HDG     GRADE 8.8   
+
+    row 1: needs Material, Price
+            read from: material "DIN 975 GRADE 8.8" · finish "HDG"
+            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
+    row 2: needs Material, Price
+            read from: material "DIN 975 GRADE 8.8" · finish "HDG"
+            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material

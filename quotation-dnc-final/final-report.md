@@ -1,938 +1,389 @@
-# QUOTATION.DNC — final audit report
+# QUOTATION.DNC — round 7 report
 
-Three passes over the same chain: source → AI extraction → parser → canonical
-item → review UI → manual correction → Diameter Settings → unit weight → total
-weight → pricing → pricing history → save → reload → customer output.
+AI extraction / engineering-document interpretation only. Baseline
+`6bba600191a306af2e70c3d37f37f1b052099cf4`. Nothing in Pricing History, the
+pricing engine, accessories, saved quotations, the weight formula or Quick Add
+layout was touched.
 
-**Pass 1** audited and repaired that chain. **Pass 2** audited what pass 1
-changed, replaced Last Price with a full Pricing History, made Diameter Settings
-the single source of truth for weight, gave the company size-type rules one
-home, closed four ways Quick Add could quietly mislead the person using it, and
-prepared (but did not activate) Pricing Engine V2. **Pass 3** is the mini-delta: a bolt's
-unit price is now the bolt's and accessories are charged beside it, historical
-records are ranked by how close their dimensions actually are, every record says
-what it weighed and how it was priced, and the last capped history query is gone.
-**Pass 4** repairs what live acceptance testing found: the review screen now
-names every dimension the way the drawing does, and an overall dimension that
-can only belong to one part is no longer left as a question. **Pass 5** puts each Quick Add row's
-pricing history on the row itself and stops looking up rows nobody asked about.
-**Pass 6 — this one — is the Quick Add layout audit**: why a J Bolt row lost
-its History button, and what a twenty-item enquiry should look like.
-
-**Guiding principle, unchanged throughout:** a missing value with a visible
-reason is acceptable. A silently wrong size, dimension, weight or price is not.
+Earlier rounds are in `final-report-rounds-1-6.md`.
 
 ---
 
-## Commits and deployment
+## 1. Root cause — Case A
 
-| | |
-|---|---|
-| **Branch** | `claude/quotation-dnc-audit-repair-ashi82` |
-| **Starting commit (pass 1)** | `b5493089057277c6f7742931da26bc6f35553abd` |
-| **Delta baseline (pass 2)** | `744ad4084167bf3e0638535779b798b5023c0030` |
-| **Mini-delta baseline (pass 3)** | `7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a` |
-| **Live-acceptance baseline (pass 4)** | `f250426346c1a256350fca2b12c54f1f5de034b4` |
-| **Quick Add history baseline (pass 5)** | `8c43da75e2110772ad9a4d7d744c9491c0181c5e` |
-| **Quick Add layout baseline (pass 6)** | `5c2c78cbc3cdf61a776f8786c50d5300f7077262` |
-| **Ending commit** | `6bba600191a306af2e70c3d37f37f1b052099cf4` (the commit to deploy; see `commit-info.txt`) |
-| **Deployment status** | **NOT DEPLOYED** |
+Two independent faults met on the same drawing, and either alone would have
+produced the reported result.
 
-Nothing has been deployed. `.cpanel.yml` is a manual two-click deploy
-(*Update from Remote*, then *Deploy HEAD Commit*) with an allowlist that
-deliberately excludes `tests/` and this package folder, so nothing
-in the evidence tree reaches the server even when the deploy is run. The exact
-SHA to deploy is stamped in `commit-info.txt`.
+**The schema could not express a J Bolt.** `ai_extract.php`'s structured-output
+enum was `SAG_ROD · STUD · ANCHOR_BOLT · L_BOLT · OTHER`. `J_BOLT` was absent
+from the document-level enum, from the per-row enum, and from the sanitiser's
+`$prodOk` allowlist. The model could not have answered "J Bolt" however clearly
+the hook was drawn; the closest thing it was permitted to say was Anchor Bolt,
+which is what it said. The instructions made this worse by filing a J bend
+under L Bolt: *"a drawn L / J / U bend -> L_BOLT"*.
 
-I cannot press those buttons from here, and I will not describe an untested live
-site as working. Section **Live AI verification** below is the one part of the
-checklist that has to be done after deployment, by you.
-
-### Application files changed
-
-`index.php` · `api.php` · `companies.php` · `ai_extract.php` ·
-`pricing_history.php` *(new)*
-
-Everything else — `auth.php`, `login.php`, `logout.php`, `db.sample.php`,
-`ai_config.sample.php`, `php.ini`, `.cpanel.yml`'s safety model — is untouched
-except for one line adding `pricing_history.php` to the deploy allowlist. **No
-schema change. No secret in the repository or in this package.**
-
----
-
-## What was already passing
-
-Stated first, because most of this application was already right and the audit's
-job was to leave it that way.
-
-* **Weight.** `d² × developed length × 0.0000061654` for every product, with the
-  developed length computed per product (U bolt `⌈(d+ID)×1.57 + 2×IH − ID⌉`,
-  square U bolt, L bolt `⌈L+W−1.5d⌉`, J bolt, plate `L×W×T×0.00000785`). No
-  rounding of an intermediate. 39 assertions.
-* **Metric and imperial in one document.** A metric row and an imperial row in
-  the same table are each weighed in their own unit system; one row's unit
-  system says nothing about the next. 66 + 170 assertions.
-* **Dense tables.** 29 rows stay 29 rows; a merged thread-length cell reaches
-  the rows it covers and stops where the next merge starts; one unreadable row
-  costs one row, not the document.
-* **Product classification and dimension ownership.** Geometry outranks wording,
-  and a conflict is shown rather than resolved silently.
-* **Accessories are never added automatically** from a drawing's wording.
-* **Item isolation.** One form, many rows, no leakage between them.
-* **Save → reload → edit → save** without value drift; internal cost rates never
-  appear on a customer-facing page.
-* **Manual entry always outranks automation.** A typed cost rate is not
-  overwritten by any automatic source.
-
-The regression suite that protects all of it did not exist before pass 1. It is
-now 18 browser suites and three non-browser suites — **1,534 assertions, 0
-failing** — every one of them running against the shipped code path, not against
-a re-implementation of it.
-
----
-
-## What failed, and what was fixed
-
-### Pass 1 (`b549308` → `744ad40`) — 14 confirmed defects
-
-Reported in full in the previous report, preserved in git history at
-`9d70d60:audit-out/final-report.md`. In summary, the mechanisms were:
-
-| Root cause | Effect |
-|---|---|
-| The imperial size was consumed by the thread reader | `1/2 x 100 x 100/100` lost its size |
-| The size box and the row disagreed | The screen showed `23` while the row weighed `M27` |
-| Labelled dimensions read backwards | `H 530` landed in the wrong field |
-| Thread evidence outlived its section | A thread length reached rows it did not belong to |
-| The 4096-token ceiling, not the table | A dense table failed as "could not analyze" |
-| A default price outlived the item it was for | A stale rate on a changed item |
-| Undersize fell through to the fullsize inch table | Wrong diameter, wrong weight |
-| One form, many rows | Values leaked between rows |
-| The guard was defeated three lines before it ran | A price survived losing its inputs |
-| A size type we chose, presented as the customer's | A guess that looked like a statement |
-
-### Pass 2 (`744ad40` → HEAD) — this pass
-
-**1. Size type — a company rule is an answer, not a guess.**
-The previous pass had read "never guess" as "never answer", so a mild-steel M12
-that the business has always treated as undersize arrived at Review asking a
-question nobody needed to be asked. The rules now live in one place:
+**Our own geometry rule needed evidence this drawing does not carry.**
+`wqaNormalizeExtraction` promoted a row to `jbolt` only when it had **both** an
+`ID` and an `S`:
 
 ```js
-const DC_SIZE_TYPE_RULES=[
-  {materials:['MS'], sizes:['M12','1/2','1/2"'], sizeType:'UNDERSIZE', why:'companyDefault'},
-  {materials:['4140','4140_PLAIN','4340'], notSizes:['M12','1/2','1/2"'],
-   sizeType:'FULLSIZE', why:'companyDefault'},
-];
+if(it.ID!=null && it.ID!=='' && it.S!=null && it.S!=='' && rowProd!=='jbolt') rowProd='jbolt';
 ```
 
-M12 in 4140/4340 is the stated exception: the rule declines the size, and the
-answer is taken from Diameter Settings **only when the settings hold exactly one
-size type for it**. Otherwise the row says *Needs Size Type* and no size type is
-invented. Every applied default is badged on the row — *Size Type: company
-default* or *Size Type: from Diameter Settings* — so a value that came from us is
-never mistaken for one the customer stated.
+A drawing that dimensions the hook by its **radius** (`R 25`) states no inside
+diameter at all, so the condition never fired. The row stayed the Anchor Bolt
+the title block said it was — and an Anchor Bolt's schema is `M · L · TL`, so
+the `S 80` was dropped for having nowhere to go.
 
-**2. Diameter — one source, and the screen cannot disagree with it.**
-There were two answers to "what bar is this cut from": the built-in tables the
-calculator used, and a `dia` field inside the rate table that Diameter Settings
-published as a *System Default*. They disagreed for undersize 4140 M12 —
-**10.6mm** in force, **10.7mm** on the screen.
+**The height had nowhere to go either.** A J Bolt is `M · H · ID · S · TL`;
+there is no plain length in the schema. The drawing wrote its overall height as
+`L 280`, and nothing mapped that to `H`. Even with the product corrected, `H`
+would have come back empty and `280` would have sat in a field the J Bolt
+schema does not have.
 
-The rate table no longer carries a diameter at all. `dcEffectiveDiameter` is the
-single resolver: a configured rule wins, otherwise the built-in table. The
-settings screen is now rendered *from that same resolver*, so the number on the
-screen is by construction the number the weight is calculated on. A test walks
-every rule the settings screen displays, resolves each one through the
-calculator, and asserts `drift.length === 0`.
+## 2. Root cause — Case B
 
-**3. Pricing History replaces Last Price.**
-Described in its own section below.
+**A merged specification cell reached only its first row.** The extractor is
+instructed to report a merged cell on the first row it covers and leave the
+rest of that block null — that is what the cell looks like on the paper, and
+the prompt already promised *"our own code carries a value forward until the
+next one replaces it"*. For dimensions (`M`, `TL`) it does. For **material,
+finish and size type it never did**: every row after the first fell back to the
+document-level value, which on a sheet whose blocks differ is correctly null.
+Four of the six rows therefore arrived with no specification at all.
 
-**4. Choosing a product no longer discards corrections.**
-`wqaChangeProduct` re-read the original message and replaced every row, so a
-corrected material, a retyped length, a manual price and two deleted rows
-vanished silently — and it ignored the Selected-Items scope while doing it. It
-now re-reads only when there is nothing to lose:
+**A strength class was answered with an alloy.** `WQA_MATERIALS` maps
+`Grade 8.8 / GR8.8 / G8.8 / HT / High Tensile` → `4140` and `Grade 10.9` → `4340`.
+That is a deliberate, approved company mapping for a customer's *typed message*
+— badged as a default, with the wording shown back. It was also being applied
+to *extracted engineering documents*, where "DIN 975 GRADE 8.8" is the item's
+specification and not a request for the steel this shop usually buys. The
+`4140 QT` on the live screen came from our own rule table, not from the model.
+
+**A2 was not in the vocabulary at all.** ISO 3506's stainless property classes
+(`A2`, `A2-70`, `A4`, `A4-80`) had no rule; only the `SS304`/`SUS304` spellings
+did. A specification written the ISO way produced no material.
+
+## 3. Files changed
+
+| File | What changed |
+|---|---|
+| `ai_extract.php` | `J_BOLT` added to both schema enums and the sanitiser allowlist; six new instruction blocks (hook geometry, J Bolt dimension reading, rotated tables, what a specification cell covers, row-beats-remark, strength-class-is-not-a-material); per-product field list and row-product wording extended |
+| `index.php` | J Bolt geometry rule; `L → H` semantic mapping; merged-specification carry-down; `opts.noStrengthAlloy`; A2/A4 rules + paper guard; `notNear` in `wqaMatchMaterial`; row evidence fields `grade`, `hFromL`, `finishSeen`, `specRaw`; four badges and their en/zh strings |
+| `tests/suites/19-drawing-interpretation.test.js` | new — 146 assertions |
+| `tests/php/ai_extract.test.php` | +38 assertions on the prompt, the schema and the sanitiser |
+| `tests/lib/harness.js` | exposes the new evidence fields to tests |
+| `tests/extraction-shots.js`, `tests/extraction-evidence.js` | new — evidence frames and the in/out fixture dump |
+
+No change to `api.php`, `companies.php`, `pricing_history.php`, `auth.php`,
+`.cpanel.yml`, the database, or any configuration. No secret anywhere.
+
+## 4. J Bolt geometry / product fix
+
+**Schema.** `J_BOLT` is now a value the model may return, at document level and
+per row, and the sanitiser accepts it. Anything outside the list is still
+refused to `null`.
+
+**Prompt.** A new block, `RECOGNISING A J BOLT ON A DRAWING`, lists what a hook
+looks like on a sheet — a curve returning **up alongside** the shank, a short
+return leg dimensioned as a height, an inside width *or* a radius, a thread at
+the top only — and states that **any one** of them classifies it, over the title
+block. The L-vs-J distinction is written as the direction of the short leg: an
+L Bolt's leaves at a right angle and goes away, a J Bolt's turns back and runs
+beside the shank. The old line filing a J bend under `L_BOLT` is gone.
+
+**Normaliser.** A stated `S` alone is now enough:
 
 ```js
-const mayReparse = wqa.source!=='ai' && wqa.applyScope!=='selected'
-                && !wqaAnyRowEdited() && String(wqa.raw||'').trim()!=='';
+/* S is the hook's return height, and no other product in this system has one …
+   This used to require an ID as well, and a drawing that dimensions the hook by
+   its RADIUS instead — R 25 — states no inside diameter at all. */
+if(it.S!=null && it.S!=='' && rowProd!=='jbolt') rowProd='jbolt';
 ```
 
-Otherwise the product is applied to the rows in scope, every other value stays,
-and a toast says how many rows were changed. An untouched pasted list is still
-re-read under the new product's vocabulary, which is the behaviour worth keeping.
+Geometry still outranks wording, and wording alone still classifies nothing: a
+bend radius on its own does **not** make a row a J Bolt (asserted).
 
-Re-auditing that fix found the same defect surviving through a second door.
-`wqaAnyRowEdited()` only knew about corrections typed on a row's own card, while
-seven other paths write into rows — Correct Items, the Common Fields header, the
-Pricing panel, Apply Manual Price, Apply Accessories, Clear Accessories, and the
-per-row accessory editor. A correction made from a panel was still discarded, and
-more quietly: filling only some rows leaves the header reading *Mixed*, so the
-header — the one place a value could otherwise have survived a re-read — does not
-carry it either. All seven now mark the rows they change. Proved the same way:
-the marks were removed and the assertions failed (`expected "HDG,-", actual
-"PL,-"`; a cost rate applied from the Pricing panel came back empty).
-
-**5. The WhatsApp message now numbers items the way the quotation does.**
-The message groups by material and finish, so its order is not the quotation's:
-a customer saying "increase item 2" and the member of staff looking at item 2
-were discussing different products. Each line now carries the quotation item's
-own number, and where two identical items merge onto one line it carries both —
-`1, 4. M20 x L 1000 - RM12.00` — because a gap in the numbering is not traceable
-and a dropped number is worse.
-
-**6. A partial extraction is no longer indistinguishable from a complete one.**
-When the model's answer is cut off by the response limit, the rows that arrived
-are whole (the row the cut landed in is discarded rather than half-read) but the
-list may be short — and a list of 12 from a document of 30 looks exactly like a
-list of 12 from a document of 12. It used to be one grey pill among several.
-
-It is now a banner at the top of Review naming the number of rows recovered, and
-**Add Items is disabled until somebody ticks an acknowledgement** saying they
-have checked the source. Nothing recovered is discarded, the rows stay editable
-and priced, and unticking the box takes the permission back. See
-`screenshots/7-partial-extraction.png`.
-
-**7. Legacy descriptions read as words on the company screens.**
-The quotation screen already rewrote descriptions saved under the older material
-vocabulary; the company/history screens — the ones staff open to answer *"what
-did we quote them last time?"* — printed the stored value:
-`4140_HARDEN_G10_9 FULLSIZE L BOLT`. They now use the same normalisation, from
-the same rules, so one item cannot read two ways in two places. Display only;
-nothing stored is rewritten, and `4140_PLAIN` and `Y_BAR` never gain a `QT` they
-do not have. The item search now returns the material so that guard can be
-applied there too.
-
-### Pass 3 (`7d0981f` → HEAD) — the mini-delta
-
-**1. A bolt's unit price is the bolt's.**
-Ticking two nuts turned a bolt quoted at RM12.00 into a bolt quoted at RM12.50.
-The figure staff read as *what this bolt costs* therefore depended on what was
-packed beside it; the pricing history built from those figures compared bolts
-against bolts-plus-hardware; and nothing on the screen said which of the two a
-given number was.
-
-The accessory charge is now its own component. One place settles a line —
+## 5. J Bolt dimension semantic mapping
 
 ```js
-function dcLineMoney(boltUnitPrice,acc,qty){
-  const bolt=roundMoney2(Number(boltUnitPrice)||0);
-  const accUnit=roundMoney2(accAddon(acc));
-  return {finalUnitPrice:bolt, accessoryUnitPrice:accUnit,
-          lineUnitPrice:roundMoney2(bolt+accUnit),
-          accessoryTotal:roundMoney2(accUnit*n),
-          totalAmount:roundMoney2((bolt+accUnit)*n),
-          pricingModel:'bolt-separate'};
+let srcH = (it.H==null||it.H==='') ? '' : String(it.H);
+let srcL = (it.L==null||it.L==='') ? '' : String(it.L);
+let hFromL = false;
+if(rowProd==='jbolt' && !srcH && srcL){ srcH = srcL; srcL = ''; hFromL = true; }
+```
+
+Three gates, all required: the geometry must **already** have proved the row is
+a J Bolt; no height may have been stated; and there must be a length with
+nowhere else to go. It is a mapping between two names for one dimension, not a
+rule about the letter L.
+
+* On a Sag Rod, Anchor Bolt, Stud and L Bolt, `L` stays `L` — asserted for each.
+* A J Bolt that states **both** `H` and `L` keeps the stated `H` — asserted.
+* The reading is recorded (`hFromL`) and shown on the row: *"drawing L 280 read
+  as overall height H"*, so a checker can see it rather than wonder where the L
+  went.
+
+The prompt teaches the same thing upstream, by role and not by letter: *"H is
+the OVERALL height … Customer drawings label this L, LENGTH, OVERALL LENGTH,
+TOTAL LENGTH or OAL far more often than they label it H."*
+
+**Case A now produces exactly the specified result:**
+
+```
+Product J Bolt · Size M12 · H 280 · S 80 · TL 50 · ID —  (Needs ID)
+evidence: drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
+```
+
+## 6. Rotated-table / merged-cell fix
+
+**Rotation** is the model's job and is now stated as such: `A TABLE MAY BE
+PRINTED SIDEWAYS` tells it to establish the table's orientation from its own
+heading row and text baselines rather than the page, to turn it upright and
+read rows as items and columns as fields, to keep the table's reading order,
+and to change no value — *"do not transpose dimensions, do not swap length
+against quantity, do not reorder or renumber the rows, and do not drop the
+first or last row because it sits at an edge of the photograph."* A single
+sideways cell inside an upright table is called out as a tall merged cell, not
+a rotated table. No OCR heuristics, no pixel work, no preprocessing hacks.
+
+**Merged specification inheritance** is now real in the normaliser:
+
+```js
+const carry = (k, v) => {
+  if(v || said[k]){ inh[k]=v; inh.raw[k]=rawIn[k]; rawSeen[k]=rawIn[k];
+                    if(k==='material') inh.grade=(own&&own.strengthGrade)||'';
+                    return v; }
+  if(opts.inheritGaps && !common[k] && !unread){ rawSeen[k]=inh.raw[k]; return inh[k]; }
+  return v;
+};
+```
+
+Three properties make it reproduce a merge rather than smear a value:
+
+* **A statement replaces what is carried, even when it resolves to nothing.** A
+  row that says "DIN 975 GRADE 8.8" has *spoken*: the material goes empty for
+  the rows that cell covers, so the stainless block above stops dead where the
+  merge stops. Silence inherits; speech replaces.
+* **Only where the sheet itself is silent.** A document-wide value applies to
+  every row that does not speak, so one row's own value can never start a block
+  underneath it.
+* **`specResolved` rows are untouched** — the deterministic text parser has
+  already applied row > group > document, and its empty values are answers.
+
+## 7. A2 → SS304 and A4 → SS316 handling
+
+```js
+{re:/\ba2(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
+ value:'SS304', from:'A2'},
+{re:/\ba4(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
+ value:'SS316', from:'A4'},
+```
+
+Verified to resolve to **SS304**: `A2`, `A2-70`, `A2-80`, `SUS304`, `SS304`,
+`S/S 304`. To **SS316**: `A4`, `A4-70`, `A4-80`, `SUS316`, `SS316`, `S/S 316`.
+One material identity per family — `A2` and `SUS304` do not produce two
+materials, because the explicit spellings are tested first and the loop stops
+at the first match.
+
+**The paper trap.** A2 and A4 are also sheet sizes, and an engineering drawing
+is exactly where that word appears. `notNear` — new in `wqaMatchMaterial` —
+disqualifies a token when *sheet, paper, size of sheet, scale, format, drawing
+size* or *printed on* sits within a few characters either side. Verified inert:
+`SHEET SIZE A4`, `DRAWING SIZE A2`, `A4 PAPER`, `FORMAT A4`, `A2 SHEET`,
+`PRINTED ON A4`, `SCALE A2` → no material. The prompt names the same trap.
+
+## 8. Grade 8.8 / HDG handling
+
+`Grade 8.8` and `Grade 10.9` are now marked `strength:true`, and
+`wqaDetectCommon` takes `opts.noStrengthAlloy`, set **only** by
+`wqaNormalizeExtraction` — the document path:
+
+```js
+if(m.strength && opts && opts.noStrengthAlloy){
+  if(!out.strengthGrade) out.strengthGrade = wording;
+  continue;                 // read, recorded, and NOT turned into a material
 }
 ```
 
-— and every product that reaches the quotation goes through it. What did **not**
-change is the money: the line total is still `(bolt + accessories) × qty`, and a
-separation that quietly stopped charging for nuts would have been the worse bug
-of the two. Every assertion in the new suite checks both halves.
-
-It is visible everywhere the price is:
-
-* the calculation card shows the bolt price, the accessory charge, and what the
-  line comes to per piece;
-* the item card labels the item's own price *Bolt* and shows *Accessories*
-  beside it;
-* **the print sheet gives the accessories their own row**, with their own unit
-  price and their own amount — so quantity × unit price reconciles on every
-  printed row, which it could not while the two were one figure;
-* the WhatsApp message names the accessories and prices them;
-* the company screens say what is charged beside each unit price.
-
-**Items priced before the separation existed** are read exactly as they were
-written and marked legacy — no separation is invented for them. The one case
-that needs care is a *Manual Price*, which used to be the whole line: opening
-such an item for editing moves the accessory charge out of the typed figure and
-charges it beside the item, so the line total is unchanged and a message says
-what happened. Auto Round and No Round need no adjustment, because their bolt
-price is recomputed from the rates saved with them. Asserted end to end: a
-legacy line of RM307.00 for ten comes back as RM30.00 + RM0.70, total RM307.00.
-
-**2. History is ranked by how close the rod actually is.**
-"Different dimensions" was a yes/no. It is now a distance, computed the same way
-on the server and in the browser, from the labels the quotation itself writes:
-
-```
-distance = Σ |current(d) − record(d)|   over every labelled dimension in either
-```
-
-Nothing weighted, nothing learned — 100mm of length and 100mm of thread count
-the same, because no business rule says otherwise and inventing one would make
-the order unexplainable. A thread written as a pair is read as both of its ends.
-Where either side has no readable dimension the distance is *null* — unknown,
-not zero — and those records sort last within their group.
-
-```
-current   M20 × L600
-records   M20 × L500  → 100      ranked first
-          M20 × L1000 → 400      then this
-          M20 × L1200 → 600      then this
-```
-
-An M24 at exactly L600 is not in the list at all: **core identity is a hard
-boundary, and closeness is only asked about afterwards.**
-
-**3. Customer grouping, stated as an order.**
-
-```
-THIS CUSTOMER      exact dimensions → nearest → further
-OTHER CUSTOMERS    exact dimensions → nearest → further
-```
-
-The customer comes first and the geometry second, never the other way round, so
-a stranger's exact match can never bury the history of the person being quoted.
-
-**4. Every record now explains its own price.** Reference, date, customer,
-specification, dimensions and *how far they differ*, quantity, **unit weight**,
-cost rate, additional cost, markup, **price mode** and the bolt unit price, with
-the accessories stated separately. A value the record never carried says
-*Not recorded* or *Legacy / Unknown* — it is never filled in.
-
-**5. The last capped history query is gone.** `get_pricing_history` already
-searched the whole database; the retired `get_price_history` read the newest 300
-quotations and filtered them in PHP. Nothing had called it since pass 2, and it
-now answers with a plain "replaced by get_pricing_history" instead of running.
-The surviving query also narrows harder in the database: a modern quotation must
-contain both the size and the material as json_encode wrote them, and a
-pre-normalisation quotation must contain the size text. Both branches only ever
-narrow — every surviving row is still compared field by field.
-
-**6. The size-type rule, case by case.** MS + M12 and MS + 1/2" both default to
-undersize by company rule. In 4140 QT, 4340 QT and plain 4140 the blanket
-fullsize rule declines *both* M12 and 1/2" — the same exception group — and the
-answer then comes from what the company has configured, or the row asks. M12 and
-1/2" remain two different sizes: an undersize M12 is cut from 10.6mm and an
-undersize 1/2" from 10.9mm, and neither is ever written as the other. Fifteen
-assertions, one per case.
-
-**7. Diameter Settings, restated.** Configuring an undersize M12 at 10.7mm makes
-the next weight `10.7² × developed length × 0.0000061654` — asserted against the
-built-in 10.6mm, which stays in the table and stays overridden.
-
-### Pass 4 (`f250426` → HEAD) — what live acceptance testing found
-
-**1. The review screen named the same field two ways.**
-A thread length was *TL* on an L Bolt and *Thread* on a Sag Rod; a length had no
-label at all. So a row read `M30 · 950 · W 400 · TL 150` and the 950 was a number
-the reader had to identify by its position. One vocabulary now, the drawing's
-own, for every product that has the dimension:
-
-```
-  STUD          M · L
-  SAG ROD       M · L · TL
-  ANCHOR BOLT   M · L · TL
-  L BOLT        M · L · W · TL
-  J BOLT        M · H · ID · S · TL
-```
-
-Every value carries its own label with a space between them — `L 950`, never
-`L950` and never a naked `950` — in the row summary, in the column headers, in
-the per-value labels a narrow screen adds, in the expanded row's field labels
-and in the shared *Apply to All* panel. Asserted for all five products, with an
-explicit assertion against both `L950` and a naked value.
-
-**2. Two rows of HAB-TA-01 asked for a length they could not have had.**
-The extraction offered *"check length 865 or 1000"* for row 3 and *"865 or
-1285"* for row 5 — where 865 was already row 2's length. An overall dimension
-line belongs to one part, so each of those questions had exactly one possible
-answer, and the rows sat unpriced over it.
-
-Fixed at both ends. The prompt now decides *which part a dimension belongs to*
-by position before it decides anything else — reading order down the sheet,
-the part's own band, the extension lines, and N dimensions for N stacked parts
-in the same order. And the review closes a forced choice by **elimination**,
-which needs no model at all:
-
-> the row has no length of its own · the extractor named two or more candidates
-> · every candidate but one is already another row's length · no other
-> ambiguous row wants that same remaining value.
-
-Nothing is inferred from proximity, from row order, or from what a length
-usually is, and nothing is chained: a worked-out length is never used to work
-out another. Where two candidates are still free, or two rows want the same one,
-**both rows go on asking** — the uncertainty rule is untouched. A row resolved
-this way says so on its face (*"L 1000 — the only length not already another
-item's"*), so a value that came from reasoning is never mistaken for one that
-was measured.
-
-HAB-TA-01 now reads 950 / 865 / 1000 / 1200 / 1285 across rows 1–5, with the
-L Bolt's W 400 and the four Sag Rods' TL 200/200, and no row asking for a
-length. The fixture is in the suite; the five values are not in the code.
-
-### Pass 5 (`8c43da7` → HEAD) — a row's history, on the row
-
-Quick Add could already look up a row's pricing history, using the same
-functions the entry form's panel uses. But the panel lived **inside the row's
-editor**, so in Compact view — the view a multi-item enquiry is actually
-reviewed in — there was no way to reach it without opening the editor first.
-And it looked up **every** row the moment the modal opened, and again after
-every recompute.
-
-**The action is on the row.** `Edit | History | ✕`, with its own grid track at
-each breakpoint and its own order on a phone, so it never overlaps Edit or the
-delete. Clicking it expands that row's history directly beneath it, in Compact
-or Expanded view alike; clicking again collapses it. Each row keeps its own
-open/closed state, and one row's panel shows only that row's records.
-
-**Nothing is looked up until it is asked for.** A ten-item enquiry now opens
-with zero requests. A row's lookup fires on its first History click, and two
-rows of the same specification still share one request through a session cache
-— the efficiency the old sweep had, without the sweep.
-
-**Nothing shown is ever stale.** Each loaded panel records the identity *and*
-the geometry it was loaded for. Change the size, material, finish, size type,
-product or any dimension and an open panel reloads; a closed one forgets, so
-the next click fetches fresh. A change of geometry alone (L 1000 → L 1900)
-re-ranks the records already held rather than asking again — the specification
-did not change, only which rod is nearest.
-
-**One implementation, two screens.** No matching, ranking, identity, accessory
-or legacy rule was added or copied. The row calls the same `phFetch`,
-`phDimDistance`, `phSortRecords` and `phRecordHtml` the entry form calls, over
-the same `pricing_history.php` rules; only the per-row state and the button are
-new. Asserted: for one item both screens return the same set of records, the
-same fields and the same wording for what was never recorded.
-
-**Looking is not touching.** Opening a panel leaves the row's price, cost rate,
-additional cost, markup, price mode, manual price, accessories, size, material
-and product exactly as they were — asserted field by field. The only thing that
-copies anything is *Use this price*, the same explicit action the entry form
-offers, and it still refuses a record whose bolt price cannot be separated from
-its accessories.
-
-### Pass 6 (`5c2c78c` → HEAD) — the Quick Add layout audit
-
-**The root cause was a span counted from the end of the track list.** The
-summary row is a CSS grid: `lead + N dimension tracks + tail`. On any product
-with more than two dimension columns — an L Bolt (3) and a J Bolt (4) — the
-badge cell was spanned with `grid-column: 2 / -3`, which meant "stop just
-before the actions" when the tail had six tracks. Pass 5 appended a seventh
-track for History. Measured on a J Bolt at 1500px:
-
-```
-  wqa-sum-badges   row 2, columns 2/-3, 738px wide
-  wqa-sum-act      row 2, 64px   ← sitting in the History track
-  wqa-row-hist     row 2, 26px   ← sitting in the delete track, clipped
-  wqa-row-del      row 3, x=15   ← no track left; wrapped out of sight
-```
-
-Not a missing button: a button rendered 26px wide in the wrong track, with the
-delete pushed onto a third implicit line and `.wqa-rows{overflow:hidden}`
-cutting it off. **L Bolt was affected too and had not been reported.**
-
-The same measurement found two more faults: `.wqa-sum-wide` gave those products
-a badge line whether or not they had anything to warn about, so a clean J Bolt
-row was 82px against a Sag Rod's 38px; and `.wqa-modal{max-width:900px}` applied
-at every desktop width, so 1500px and 1366px were identical and a J Bolt's
-fixed tracks already exceeded the 856px content box.
-
-**What replaced it.** The three actions are now **one grid cell** containing a
-flex row, with a guaranteed width at each breakpoint. How many actions there
-are is invisible to the layout, and how many dimensions a product has is
-invisible to the actions. Nothing in the row is positioned by counting from the
-end of anything.
-
-Warnings moved to **one thin secondary strip** under the data line, shared with
-the row's identity text, and present only when there is something to say. A
-clean row is one line; a row that needs a rate is one line plus a 22px strip;
-answering the warning takes the strip away again.
-
-The modal now asks for the width its own columns need — the base for a
-two-dimension list, plus a track for each column beyond that, inside
-`min(96vw, …)` so it can never exceed the viewport. A Stud list is exactly as
-wide as it was; a J Bolt list is allowed the room its four dimensions need.
-
-**A dimension that was disappearing.** In a mixed enquiry the one specification
-column was 150px, and a J Bolt's `H 1200 · ID 125 · S 180 · TL 200` was cut off
-behind an ellipsis — a dimension vanishing from a quotation review. The column
-is sized for the longest product now, and every specification cell is asserted
-unclipped.
-
-**The history panel** was styled against three CSS variables this application
-does not declare (`--surface-2`, `--surface-3`, `--brand`), so record cards had
-no fill, this customer's own records had no accent, and the neutral tags were
-transparent — most of why it read as a wall of text. Repaired, the pricing
-fields put in aligned columns, and the panel indented under its row with a left
-rule so it cannot be read as belonging to the item below.
-
-**Measured after the change**, at 1500 / 1366 / 1024 / 768 / 390, for all five
-products: every action has a real box inside the list, none overlaps another,
-no summary grid overflows its own box, and no row causes sideways scrolling.
-
----
-
-## What was intentionally left alone
-
-* **The pricing formula.** `weight × cost rate + additional cost`, then markup,
-  then the rounding mode. Untouched.
-* **Rounding.** `round05`, `roundMoney2`, Auto Round / No Round / Manual Price.
-  Untouched — these are business conventions.
-* **The AI prompt's dimension rules**, beyond what pass 1 fixed.
-* **`.cpanel.yml`'s safety model** — allowlist, protected names, two-phase copy,
-  post-copy verification. One line added, nothing relaxed.
-* **Authentication and configuration.** Untouched.
-* **Whether the quotation line should include accessories.** A decision about
-  what customers see; see *Business input still needed*.
-* **The 4140 QT description-keyed lookup.** Dead code, but repairing it would
-  change how a material change treats a typed rate. See the same section.
-* **Anything that was already passing.** Where a test was added to an
-  already-correct behaviour, the behaviour was not touched.
-
----
-
-## Root causes
-
-Symptoms are cheap. These are the mechanisms behind pass 2's findings.
-
-**R1 — Two sources for one physical fact.** The diameter existed in the rate
-table *and* in the diameter tables, and the settings screen read one while the
-calculator read the other. Any value with two homes will eventually disagree;
-the repair was not to synchronise them but to delete one.
-
-**R2 — "Do not guess" applied to facts the business had already decided.** A
-company rule is an answer. The distinction that was missing is not
-*guess vs. refuse* but *whose answer is it* — which is why every applied default
-now carries a badge naming its source.
-
-**R3 — A lookup keyed on a display string.** `RATES_4140` is keyed
-`'4140 FULLSIZE SAG ROD'`; `buildDesc` emits `'4140 QT FULLSIZE SAG ROD'` once a
-material gained a label. Keys built from text that exists to be read will break
-when the text is improved. (Verified consequence: that one lookup is dead, while
-the identity-keyed path still delivers the rates — see *Known limitations*.)
-
-**R4 — Re-deriving state instead of amending it.** `wqaChangeProduct` rebuilt
-every row from the source text because that was the simplest way to answer "what
-would these rows look like as L Bolts?". Rebuilding discards everything a person
-has done since. The repair is to track whether anything has been done —
-`wqaMarkEdited` on every edit path — and only rebuild when the answer is no. The
-trap in that repair is the phrase *every edit path*: the first version of it
-covered the row cards and missed the seven panel paths that also write into rows,
-so a guard that looked complete still let the original defect through. A flag
-that means "somebody has worked on this" has to be set by everything that lets
-somebody work on it, or it means nothing.
-
-**R5 — A warning whose weight did not match its consequence.** The truncation
-notice was rendered with the same styling as "3 lines were not read as items".
-The severity of a warning has to be visible in its shape, not only in its words,
-and where the consequence is a quotation that silently omits items, the interface
-should require an action rather than a reading.
-
-**R6 — A display rule implemented once, in one of the two screens that needed
-it.** `displayItemDesc` existed in `index.php` only. A normalisation that is not
-shared is a normalisation that will disagree with itself.
-
----
-
-## All test results
-
-Run from the repository root immediately before packaging.
-
-```
-  ok    size normalisation — model, screen and weight agree                 (42)
-  ok    imperial — the first token of a run is the size                     (66)
-  ok    weight — every product, every input that moves it                   (39)
-  ok    pricing — nothing stale, nothing fabricated                         (47)
-  ok    pricing history — the rows we sent, and why they differed           (97)
-  ok    mixed documents — a heading speaks only for its own rows            (37)
-  ok    save / reload / output — no value drift, no internal costs          (65)
-  ok    common fields and Correct Items — a blank never clears an answer    (61)
-  ok    dense table — 29 rows, merged cells, metric beside imperial        (170)
-  ok    engineering drawing — five parts, five lengths, no borrowed dims    (48)
-  ok    company rules — a size type with a reason, a diameter with one src  (68)
-  ok    quick add safety — corrections, item numbers, partial extraction    (60)
-  ok    company history — a legacy description reads as words               (40)
-  ok    accessories — charged beside the bolt, never inside it              (41)
-  ok    dimension schema and drawing association                            (71)
-  ok    quick add — each row's own pricing history, on the row               (76)
-  ok    quick add layout — every product reachable at every width           (279)
-  ok    quick add — twenty items, which is the ordinary case                 (28)
-
-  18 suites, 1336 assertions, 0 failed        151.8s
-
-  ok    ai_extract — dense tables, truncation and error causes              (64)
-  ok    pricing history — identity, accessories, ranking                    (72)
-  ok    pricing workbook — structure present, no business values            (62)
-
-  PHP lint: 10 files, no syntax errors
-```
-
-**1,534 assertions, 0 failed.** Raw output in `test-results/`.
-
-Fixes were verified the only way that means anything: the fix was reverted, the
-suite was run, and the assertions failed for the right reason. Pass 2 —
-`the retyped length survives the product being chosen: expected "1100", actual
-"1000"`; `every number on the message is a quotation item number: expected
-"1, 4 / 2 / 3", actual "1 / 1 / 2"`; `Add Items is disabled until it is ticked:
-expected "true", actual "false"`; and for the panel paths found by re-auditing,
-`expected "HDG,-", actual "PL,-"`. Then each fix was restored and the suite went
-green again.
-
-The closeness score is verified twice over: the same table of ten cases is run
-through `dc_dim_distance` in PHP and `phDimDistance` in the browser, so the
-server's ranking and the browser's re-ranking cannot drift apart without one of
-the two suites failing.
-
-### Mandatory cases from the brief
-
-| Case | Result |
-|---|---|
-| `27` typed into the size box → `M27` → weight follows | PASS (42 assertions) |
-| `1/2 x 100 x 100/100` imperial positional parse | PASS (66 assertions) |
-| Engineering drawing, 5 parts: 950 / 865 / 1000 / 1200 / 1285 | PASS (48 assertions, simulated extraction) |
-| HAB-TA-01 as production returned it: rows 3 and 5 resolve to 1000 and 1285 | PASS (71 assertions, no manual confirmation) |
-| Product dimension schema and label spacing, all five products | PASS |
-| Quick Add: per-row History action, lazy lookup, independent state | PASS (76 assertions) |
-| Quick Add layout: 5 products × 5 widths, actions reachable, nothing clipped | PASS (279 assertions) |
-| Twenty-item enquiry: density, no eager lookups, one row opens at a time | PASS (28 assertions) |
-| 29-row anchor-bolt table, metric beside imperial | PASS (170 assertions, simulated extraction) |
-| Pricing history: same customer, different dimensions, other customer, pagination | PASS (97 + 72 assertions) |
-| Core identity never crosses: M20 never uses M18 / M22 / M24 history | PASS |
-| Dimension-closeness ranking, and customer grouping above it | PASS (both implementations, one table) |
-| Accessories separate from the bolt price | PASS (41 assertions, end to end) |
-| M12 and 1/2" share the size-type rule but are different sizes | PASS (15 cases) |
-| Configured diameter 10.6 → 10.7 changes the weight | PASS |
-| Save → reopen → edit → save | PASS (65 assertions) |
-| WhatsApp / print output | PASS (65 + 60 + 41 assertions) |
-
-### Screenshots
-
-Eight categories, not one per assertion:
-
-| File | Shows |
-|---|---|
-| `1-metric-manual-size-edit.png` | `23` corrected to `27` mid-typing; size, weight and price agree while the caret is still in the box |
-| `2-imperial-parsing.png` | `1/2`, `5/16`, `3/8`, `7/8`, `1"` and `M20` in one message, each read as itself |
-| `3-engineering-drawing.png` | Five parts, five lengths, no borrowed dimensions |
-| `4-dense-table.png` | 29 rows with merged thread lengths, metric beside imperial |
-| `5-pricing-history.png` | Records with cost rate, additional cost, markup and bolt unit price; accessories reported separately; this customer's rows above another customer's |
-| `6-save-reload-output.png` | A saved quotation reopened, beside the WhatsApp text and printed dimensions it produces |
-| `7-partial-extraction.png` | A cut-off analysis: the banner, the recovered count, the acknowledgement, and Add Items disabled |
-| `8-accessory-separation.png` | A bolt at RM13.33 with RM0.70 of nuts beside it — the two printed rows, the WhatsApp lines, and the saved item's own figures |
-| `9-quickadd-row-history.png` | A Quick Add row's own history, opened from the row in Compact view, with the row beneath it untouched |
-
-And `layout/`, fourteen frames produced for the layout audit and inspected by
-eye: each product in Compact at 1500px, Sag Rod and J Bolt with history open,
-mixed enquiries of ten and twenty items, 1366px, 1024px, 390px for a J Bolt and
-for a mixed enquiry, and Expanded mode. `quickadd-layout-root-cause.txt` holds
-the measurements the diagnosis was made from.
-
----
-
-## Pricing history design
-
-Last Price was replaced, not renamed. The feature is a **lookup, not a
-recommendation**: nothing averages, interpolates, reaches for a nearby size, or
-produces a price of its own, and every number it shows was read off a quotation
-somebody actually sent.
-
-**Where the rules live.** `pricing_history.php` — no database, session or HTTP
-dependency. `api.php` reads the rows and hands each stored item to these
-functions; the test suite hands them the same items without a database. One set
-of rules, one place, 72 assertions directly on it.
-
-**Identity is exact.** Product, material, finish, size type and size must match
-exactly: M20 is not M18 and not M22, fullsize is not undersize, PL is not ZP, an
-L Bolt is not a Sag Rod. **Quantity is not identity** — a past quantity of 1 says
-nothing about what an item costs to make — and it is reported as context instead.
-
-**Dimensions rank, they do not hide.** A 500mm rod and a 1500mm rod of the same
-specification are both shown, precisely because they explain why the two prices
-differed. Each record is marked *Same dimensions* or *Differs by 400mm*.
-
-**How close is measured.** The dimensions are read out of the labels the
-quotation itself writes — L, W, H, S, T, ID, IH, OH, TL, CL, CH — and a thread
-written as a pair is read as both of its ends. The score is the plain sum of the
-differences in millimetres:
-
-```
-  distance = Σ |current(d) − record(d)|   over every labelled dimension in either
-```
-
-Nothing is weighted, scaled or learned, because no business rule says one
-dimension matters more than another and inventing one would make the order
-unexplainable. A distance of 0 is an exact match; a record with no readable
-dimension has a distance of *null* — unknown, not close — and sorts last within
-its group. The same table of cases is run through the PHP implementation and the
-browser one, so the server's ranking and the browser's re-ranking cannot drift.
-
-**Reading order:**
-
-```
-  THIS CUSTOMER        exact dimensions
-                       nearest dimensions
-                       further dimensions
-  OTHER CUSTOMERS      exact dimensions
-                       nearest dimensions
-                       further dimensions
-```
-
-The customer comes first and the geometry second, never the other way round: a
-stranger's exact match can never bury the history of the person being quoted.
-And an M24 is not in the list at all, however close its length — core identity
-is a hard boundary, and closeness is only asked about afterwards.
-
-Every foreign record is labelled *Other customer reference* and names the
-customer. Nothing is merged across customers and nothing is averaged: two
-customers' prices for one specification are two facts about two customers.
-
-**Per record, so a price difference can be explained:** reference number,
-customer, date, specification, dimensions and how far they differ, quantity,
-**unit weight · cost rate · additional cost · markup · price mode · bolt unit
-price**, and the accessory cost stated separately. Where the record never
-carried one of those values it says *Not recorded* or *Legacy / Unknown* — it is
-never filled in. *Use this price* fills the manual price and records which
-record it came from.
-
-**Removed on purpose:** Last / Low / High / Average. An average of four
-quotations to three customers over three years is a number that describes
-nothing, and it invites a person to treat it as guidance. A test asserts the
-words *average*, *avg*, *lowest* and *highest* appear nowhere on the screen.
-
-**The whole database, not the newest 300.** `get_pricing_history` scans all
-quotations, ordered newest first, and pages 20 records at a time with *Show
-more*. The panel says *Showing 5 of 5 matching records · 3 this customer, 2
-other*, so a partial view can never read as a complete one. The database does
-the narrowing: a modern quotation must contain both the size and the material as
-`json_encode` wrote them, and a pre-normalisation quotation must contain the size
-text. Both branches only ever narrow — every surviving row is still compared
-field by field, so no legacy record is lost to an optimisation. The old
-300-quotation endpoint has been retired.
-
-**A manual price is never overwritten.** History arriving after somebody typed a
-price does not touch it, and *Use this price* is an action a person takes.
-
----
-
-## Diameter source-of-truth result
-
-**PASS.** The diameter currently configured by the user is the diameter used for
-the weight calculation, everywhere.
-
-* `dcEffectiveDiameter(type, material, sizeType, size)` is the only resolver: a
-  configured rule in Diameter Settings wins; otherwise the built-in table
-  (`DIA_FULLSIZE`, `DIA_UNDERSIZE`, `DIA_UNDERSIZE_INCH`, plus the
-  fullsize-M12→13 special).
-* The rate table's competing `dia` field is **deleted**. `get4140Rates` returns
-  rates only.
-* Diameter Settings' *System Defaults* are generated from the same resolver, so
-  the screen cannot state a diameter that is not in force.
-* One configured rule was verified end to end: a custom MS FULLSIZE M20 at
-  **19.4mm** is the effective diameter, is what the settings screen shows, is
-  what a Quick Add row is weighed on, is what the total weight uses, and is what
-  the manual entry form resolves — all asserted, with `drift.length === 0` across
-  every displayed rule.
-
----
-
-## Size type business default result
-
-**PASS, with the exception stated rather than guessed.**
-
-| Case | Result | How it is shown |
+It `continue`s rather than breaking, so if the document names an actual steel
+elsewhere, that steel is still the answer. The class travels with the block it
+belongs to (`inh.grade`), so rows 4–6 of a merged cell carry it too, and the row
+shows *"GRADE 8.8 stated — a strength class, not a material"* while Material
+reads **Needs Material**.
+
+**HDG** was already a finish and remains one; the prompt now says so explicitly
+and lists the whole finish family (HDG, Hot Dip Galvanised, GI, ZP, Zinc
+Plated, PL, Plain, Black, Self Colour, Painted) as *never* materials. Asserted:
+no row anywhere gets `material = 'HDG'`.
+
+**Precedence.** A sheet-wide `ISO 898 CLASS 5.8` under a block that states
+`DIN 975 GRADE 8.8` leaves the rows on **8.8**, in the prompt and in the
+result — verified in both the suite and `test-results/extraction-evidence.txt`.
+
+**Entity scoping.** The prompt's `WHAT A SPECIFICATION CELL ACTUALLY COVERS`
+answers two questions — *which rows* (exactly the merge) and *which part* (the
+rod, not its nuts, washers, lock nuts or plates). A cell reading
+`STUD DIN 975 GRADE 8.8 / HEX NUT DIN 934 GRADE 8 / FLAT WASHER DIN 125` gives
+the stud **8.8**, and the nut's Grade 8 is not read as the stud's — asserted.
+
+**Case B now produces exactly the specified result:**
+
+| # | Size | L | Qty | Material | Finish | Grade |
+|---|---|---|---|---|---|---|
+| 1 | M12 | 145 | 9  | SS304 | *(see §14)* | — |
+| 2 | M20 | 240 | 5  | SS304 | *(see §14)* | — |
+| 3 | M10 | 120 | 27 | Needs Material | HDG | GRADE 8.8 |
+| 4 | M10 | 125 | 21 | Needs Material | HDG | GRADE 8.8 |
+| 5 | M10 | 130 | 21 | Needs Material | HDG | GRADE 8.8 |
+| 6 | M16 | 170 | 9  | Needs Material | HDG | GRADE 8.8 |
+
+No `4140`, no `4140 QT`, no `4340`, nowhere.
+
+## 9. Anti-guessing protections added
+
+* A **radius is never an inside diameter**. Not doubled, not halved, not copied.
+  `R` is carried as evidence and shown as *"bend radius R 25 — not an inside
+  diameter"*; `ID` stays null and the row asks. Asserted that no badge or field
+  anywhere contains `ID 50` or `ID 25` for the reported drawing.
+* A **strength class never becomes an alloy** on the document path — 8.8 ≠ 4140,
+  10.9 ≠ 4340, 5.8 ≠ mild steel — in the prompt and in code.
+* A **finish never becomes a material**, and a material is never also reported
+  as a class.
+* **A2 is not "grade 2" and A4 is not a strength class** — asserted from both
+  directions (each maps to its stainless identity, and neither produces a
+  grade).
+* **A2/A4 beside a paper word is paper.**
+* **No size type is guessed from a document.** The approved rule stands: not
+  stated and no deterministic configured rule → `Needs Size Type`. Asserted that
+  the Case B rows carry none.
+* **A bend radius alone does not classify a product.**
+* **`uncertain → null` preserved** — the `unclear` path is untouched.
+* **Raw evidence kept beside the normalised value** (requirement 20): every row
+  carries `specRaw` — the wording it was read from — carried down a merged block
+  exactly as the value is, and printed in the evidence dump as
+  `read from: material "A2-70 SUS304" · finish "PLAIN"`. Never invented: a row
+  the document did not speak for has none.
+
+**No hardcoding.** No filename, no pixel coordinate, no `if R25`, no
+`if M12 → J Bolt`, and none of the six row values appears in application code.
+The reported values appear only inside test fixtures, which is what a fixture
+is. Every rule is stated in terms of geometry, cell coverage and vocabulary.
+
+## 10. Existing regressions preserved
+
+All 18 pre-existing browser suites pass unchanged, covering every item on the
+list: HAB-TA-01 and the 950 / 865 / 1000 / 1200 / 1285 row association; the five
+schemas (Stud `M·L`, Sag Rod `M·L·TL`, Anchor Bolt `M·L·TL`, L Bolt `M·L·W·TL`,
+J Bolt `M·H·ID·S·TL`); imperial/metric mixed parsing; J Bolt and L Bolt
+multiline parsing; UNC/UNF/BSW detection; `uncertain → null`; no unsupported
+Fullsize guessing; image + WhatsApp text merging; the engineering
+dimension-chain; weight; Diameter Settings; and pricing/accessories separation.
+
+The pasted-message path is deliberately **unchanged**: a customer typing
+`G8.8 STUD PL` still gets the company's established `4140 QT`, asserted in the
+new suite so the distinction cannot be lost by accident.
+
+Every fix in this round was checked by reverting it and confirming the new
+assertions fail — the J Bolt geometry rule, the `L → H` mapping, the merged
+carry-down, the strength-class suppression, the A2/A4 rules and the paper guard
+were each verified this way.
+
+## 11. Assertion count / failures
+
+| Suite | Assertions | Failed |
 |---|---|---|
-| MS + M12 (and `1/2`) | UNDERSIZE | badge: *Size Type: company default* |
-| 4140 QT / 4140 / 4340 QT, any size except M12 / `1/2` | FULLSIZE | badge: *Size Type: company default* |
-| 4140 QT / 4340 QT + M12 | taken from Diameter Settings **only if** exactly one size type is configured there | badge: *Size Type: from Diameter Settings* |
-| 4140 QT / 4340 QT + M12, nothing configured | **blank** — the row asks | *Needs Size Type*, and the item cannot be added |
-| Stud, any material | no size type at all | the field is disabled, marked N/A |
+| 19 browser suites (incl. new suite 19: 146) | **1482** | **0** |
+| `ai_extract` (PHP) | 102 | 0 |
+| `pricing_history` (PHP) | 72 | 0 |
+| pricing workbook (Python) | 62 | 0 |
+| **Total** | **1718** | **0** |
 
-One central rule source (`DC_SIZE_TYPE_RULES`), consulted by Quick Add, the
-review panel and the manual form alike. No size type is ever inferred from a
-finish, a customer's history, or a product's popularity.
+PHP lint: 10 files, no syntax errors. No page errors in any browser suite.
 
----
+## 12. Evidence screenshots / results produced
 
-## Accessory separation result
+`extraction/` — seven frames, both reported cases:
 
-**PASS — and the rule changed in this pass.** A bolt's unit price is the bolt's.
+| File | What it shows |
+|---|---|
+| `1-caseA-as-drawn.png` | the hook drawing as reported → J Bolt, M12, H 280, ID empty with **Needs ID**, S 80, TL 50, radius shown as *"from the drawing — not a quotation field"* |
+| `2-caseA-compact.png` | the same row in Compact |
+| `3-caseA-with-stated-id.png` | the same drawing with an inside width written on it → ID 50 populated, nothing else changed |
+| `4-caseB-six-rows.png` | six rows, Expanded |
+| `5-caseB-compact.png` | six rows, Compact — rows 1–2 SS304, rows 3–6 HDG + *"GRADE 8.8 stated — a strength class, not a material"* |
+| `6-row-beats-remark.png` | a sheet-wide Class 5.8 under a block stating Grade 8.8 |
+| `7-vocabulary.png` | A2-70, A4-80, SUS316, Grade 8.8, Grade 10.9 and "SHEET SIZE A4" side by side |
 
-* Choosing two nuts and a washer does not move the bolt's price by a cent. The
-  item stores `finalUnitPrice` (the bolt), `accessoryUnitPrice` (the
-  accessories), `lineUnitPrice`, `accessoryTotal` and `pricingModel:
-  bolt-separate`.
-* **The money is unchanged.** The line total is `(bolt + accessories) × qty`,
-  asserted at every stage — calculator, saved item, print row, save → reload. A
-  separation that quietly stopped charging for accessories would be a worse
-  defect than the one it fixed.
-* One function settles a line — `dcLineMoney` — and every product that reaches
-  the quotation goes through it, so the entry form, Quick Add and the plate path
-  cannot come to disagree about what a line costs.
-* The print sheet gives accessories their own row with their own unit price and
-  amount, so **quantity × unit price reconciles on every printed row**. The
-  WhatsApp message names them and prices them. The company screens say what is
-  charged beside each unit price.
-* Accessory pricing keeps its own inputs — quantity, unit price and finish per
-  accessory — and Pricing Engine V2 will give it a supplier cost and its own
-  markup. The two calculation paths never meet before the line.
-* **Items priced before the separation existed are read as they were written.**
-  Their one figure had the accessory charge inside it and that cannot be undone
-  safely, so no separation is invented: Pricing History marks such a record
-  *Accessories not separable* and reports its bolt price as unknown —
+`test-results/extraction-evidence.txt` — the extraction that goes **in** and the
+quotation rows that come **out**, for both cases plus the remark-precedence
+case, including the raw-vs-normalised `read from:` line for every row.
 
-```php
-$separated = ($item['pricingModel'] ?? '') === 'bolt-separate';
-if ($separated) { $bolt = $unit; $aCost = $item['accessoryUnitPrice']; }
-else {
-    $ambiguous = $hasAcc && $mode === '';
-    if      (!$hasAcc)           $bolt = $unit;
-    elseif  ($mode === 'manual') $bolt = $unit;
-    elseif  ($mode !== '')       $bolt = round($unit - $aCost, 4);
-    else                         $bolt = null;
-}
-```
+`screenshots/` (9 frames) and `layout/` (14 frames) regenerated unchanged, so
+the earlier rounds' evidence is current against this commit.
 
-* The one legacy case that needs handling is a *Manual Price*, which used to be
-  the whole line. Opening such an item for editing moves the accessory charge
-  out of the typed figure, charges it beside the item, leaves the line total
-  exactly as it was, and says so on screen. Asserted end to end: RM307.00 for
-  ten comes back as RM30.00 + RM0.70 = RM307.00.
-* *Use this price* refuses to act on a record whose bolt price could not be
-  separated — there is nothing to copy.
-* Accessories are never enabled automatically from a drawing's wording; the
-  wording is reported and nothing is ticked.
+`test-results/` — `browser-suites.txt` / `.json`, `php-ai-extract.txt`,
+`php-pricing-history.txt`, `php-lint.txt`, `pricing-workbook-check.txt`.
 
----
+## 13. ZIP package name
 
-## Live AI verification status
+`quotation-dnc-final.zip` — 50 files, built from the committed
+`quotation-dnc-final/` folder. The repository's `.gitignore` excludes `*.zip`
+by design (release archives must not re-enter Git history), so the folder is
+the version-controlled copy and the archive is rebuilt from it with
+`zip -r quotation-dnc-final.zip quotation-dnc-final`.
 
-**NOT PERFORMED — no OpenAI key in this environment.**
+## 14. Remaining risk
 
-What *is* proven: `ai_extract.php`'s own behaviour, including the truncation
-recovery path, under 64 assertions; and everything downstream of the model's
-answer, because the browser suites drive `wqaAiApply` with the exact JSON shape
-the endpoint returns — 170 assertions on the 29-row table, 48 on the five-part
-drawing.
+**A conflict between this round's requirement 11 and an approved rule from an
+earlier round — your decision, not mine.** Requirement 11 asks for rows 1–2 to
+read `Material SS304 / Finish PL`. The extraction does read `Plain → PL`
+correctly, and the row records it. But an approved rule from round 2,
+`DC_NO_FINISH_MATERIALS = ['SS304','SS316']`, clears the finish for stainless
+throughout the application — a stainless rod is quoted without a coating — and
+it has its own regression tests. I did **not** silently break it. The row shows
+`SS304 · N/A` with the badge *"PL stated — SS304 is quoted without a finish"*,
+so the reading is visible and nothing is lost. If you want stainless to carry
+`PL` on the quotation, say so and it is a one-line change plus its tests; it
+affects the Calculator, print output and pricing history identity as well as
+Quick Add, so it should not be changed by inference.
 
-What is **not** proven: what the model returns for those two files today.
-HAB-TA-01.pdf (950 / 865 / 1000 / 1200 / 1285) and the 29-row anchor-bolt
-screenshot were exercised through simulated extraction only. The parsing,
-merging, weighing and pricing of that answer are verified; the answer itself is
-not.
+**The model's half of both cases is unverified against the live API.** Everything
+downstream of the model's answer is proven by 146 new assertions against
+fixtures shaped exactly like the reported failures. What still needs one live
+run with a key is whether the model, with the new schema and instructions,
+actually classifies the hook as `J_BOLT` and reads the rotated table's merged
+cells the way the prompt now asks. The prompt text and the schema are asserted
+in `tests/php/ai_extract.test.php`; the model's behaviour cannot be.
 
-**After deployment, please run both files through the live Analyze path once**
-and compare against those numbers. That is the only item on the post-deploy
-checklist I cannot do for you.
+**A stated `S` now classifies a J Bolt outright.** If a future document uses `S`
+for something other than a hook's return height on a product that is not a J
+Bolt, that row would be misclassified. No product in the current schema uses `S`
+for anything else, and the review screen lets a person change the product, but
+it is a broader rule than the one it replaced.
 
----
+**Merged-cell carry-down is forward-only and unbounded.** A block's
+specification carries down until another row states one or the list ends. That
+is what a merge looks like; but if the extractor reports a block's value on the
+first row and then *omits* a later block entirely, the earlier block's value
+would reach rows it does not cover. The prompt is explicit that each block's
+value must be reported on the first row it covers, and it only applies where
+the document itself states no sheet-wide value.
 
-## Known limitations
+**Round 6's open item stands:** the deferred `get4140Rates()` description
+mismatch and the other business decisions in `remaining-business-decisions.md`
+are unchanged by this round.
 
-0. **The entry form's own history panel is not ranked by dimension.** Still
-   true after this pass — confirmed by assertion, not by assumption, and not
-   made worse: the layout work did not touch `phFormSpec`, the endpoint, or any
-   matching rule.
-
-0b. **The entry form's own history panel is not ranked by dimension.** It sends
-   no `dimensionPreview` (`phFormSpec` leaves it empty), so neither the server
-   nor the screen can tell which historical rod is nearest, and its list stays
-   in the order the server returned — this customer first, newest first. A Quick
-   Add row knows its own geometry and ranks by it. Both screens match on the
-   same identity and return the same records; only the ordering differs. Left
-   alone deliberately in this pass, because changing it changes what the
-   Calculator shows, and the brief asked for the Calculator to be unchanged. It
-   is asserted, so the day the form learns its dimensions the test says so.
-
-
-1. **`get4140Rates` is dead code — but the rates still arrive.** Verified in the
-   browser: a 4140 QT fullsize M16 PL sag rod is rated 6.50 with 3.50 additional,
-   fullsize M12 8.50, undersize M12 9.50, ZP +1.50, HDG +3.20 with 1.00 of thread
-   brushing. Those come through the Default Price path, which reads the same
-   table by identity. The description-keyed lookup returns nothing because the
-   description gained a label the keys never got. **This is not a wrong price**,
-   and repairing it would change how a *material change* treats a rate somebody
-   typed — so it is a business decision, not a tidy-up. Both facts are pinned by
-   assertions.
-
-2. **A row with no size type is weighed provisionally as fullsize** while showing
-   *Needs Size Type*. The row cannot be added, so nothing reaches a customer, but
-   the number beside the question is a provisional answer that does not say so.
-
-3. **An item priced manually before this pass, with accessories.** Its typed
-   figure was the whole line. It is shown exactly as saved, and it is only when
-   somebody opens it for editing that the accessory charge is moved out of the
-   manual price — line total unchanged, with a message saying so. Worth opening
-   one such item on the live system after deployment to confirm.
-
-4. **Line endings.** `index.php` and `api.php` were converted from CRLF to LF
-   during pass 2 and converted back in a commit of their own, so the files match
-   the repository's original convention. That restoring commit touches every line
-   of both files and changes nothing else — review the commit before it for
-   content.
-
-5. **The test tree is not deployed and must not be.** `tests/` and
-   `quotation-dnc-final/` are outside `.cpanel.yml`'s allowlist by construction.
-
-6. **`auth.php` is one shared account.** An audit trail can record what changed
-   and when, but not who.
-
----
-
-## Business input still needed
-
-Set out in full, with options and consequences, in
-**`remaining-business-decisions.md`**. In brief:
-
-1. **The 4140 QT dead lookup** — leave it, delete it, or repair it (and accept
-   that a material change would then overwrite a typed rate). *BLOCKED.*
-2. ~~Should the printed quotation line include accessories?~~ **Answered by you,
-   and done in this pass** — the item's price is the item's, accessories are
-   charged beside it, the line total is unchanged.
-3. **Supplier cost rate vs internal quoting rate** — today one number does both
-   jobs, so true margin cannot be reported.
-4. **Does any customer have a different cost, or only a different markup?**
-5. **Where banded rules meet** — thread length, quantity, size range.
-6. **Live AI verification** after deployment. *BLOCKED on deployment.*
-7. **Per-person attribution** on rate changes, if it is wanted.
-8. **Every value in the pricing workbook.** Nothing was invented; a checker
-   asserts the workbook holds no business number.
-
----
-
-## Pricing Engine V2
-
-Prepared, documented, **not activated**. See `pricing-engine-v2-plan.md` for the
-architecture, what can be reused, what should eventually be replaced, the
-calculation dependency flow, overrides, audit history, effective dates,
-customer-specific rules and the phased rollout; and
-`pricing-engine-v2-input.xlsx` for the data the business needs to supply.
-
-No raw material rate, process charge, labour tier, markup or supplier accessory
-cost has been invented. No guessed value has been turned into production pricing.
-The migration's acceptance test is stated in the plan and is deliberately strict:
-with today's numbers transcribed into the rule tables, **V2 must reproduce
-today's unit price to the cent on every item in the regression suite** before any
-real rule is allowed to change a price.
-
----
-
-## Package contents
+## 15. Final commit hash
 
 ```
-quotation-dnc-final/
-├─ final-report.md                  this file
-├─ pricing-engine-v2-plan.md        the V2 design, ten sections
-├─ pricing-engine-v2-input.xlsx     the blank workbook for the business
-├─ remaining-business-decisions.md  what only you can decide
-├─ changed-files-summary.txt        every file changed, and why
-├─ commit-info.txt                  branch, SHAs, deployment status
-├─ test-results/                    raw suite output and PHP lint
-└─ screenshots/                     eight frames, one per category
+f074b5b111fc93698968ae704fc1b3443cab6ac2
 ```
 
----
+Branch `claude/quotation-dnc-audit-repair-ashi82`. This is the commit to deploy;
+the packaging commit that follows it touches only this folder and the ZIP, both
+of which are outside `.cpanel.yml`'s allowlist.
 
-**DO NOT OPTIMIZE FOR MAKING THE TEST GREEN. OPTIMIZE FOR: THE FACTORY USER CAN
-TRUST THE QUOTATION.**
-
-A visible missing value is safer than a silently wrong one. A historical price is
-evidence, not a prediction. A pricing rule determines today's calculation.
-Accessories are independent components. Diameter Settings determines the
-effective diameter used for weight. Company size-type defaults are allowed only
-where the business has an established rule — and where one is applied, the row
-says so.
+**Deployment status: NOT DEPLOYED.** `.cpanel.yml` is a manual two-click deploy
+(*Update from Remote*, then *Deploy HEAD Commit*). I have not run it and no part
+of this report describes the live site as verified.
