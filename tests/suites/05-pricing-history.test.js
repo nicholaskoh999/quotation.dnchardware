@@ -169,24 +169,44 @@ module.exports = async (browser, A) => {
   A.ok(Math.abs(computed - 30) > 0.001 || computed === 0,
     'the row\'s own price is its own, not the RM 30.00 sitting in its history');
 
+  /* Pressing it reuses the record's PRICING — the rate, the surcharge, the
+     markup and the mode it was rounded in — and the row then works out its own
+     figure from them. The record's own RM 30.00 was for the rod it was quoted
+     on; this row is a different one. */
   await page.evaluate(() => wqaHistUse(0, 0));
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(900);
   rows = await rowState(page);
-  A.eq(rows[0].priceMode, 'manual', 'pressing Use this price is what moves the row to a manual price');
-  A.eq(rows[0].manualPrice, '30', 'at the BOLT price, not the quotation line');
+  const reused = await page.evaluate(() => ({
+    rate: String(wqa.rows[0].calc.costRate), add: String(wqa.rows[0].calc.addCost),
+    mk: String(wqa.rows[0].calc.markup), weight: wqa.rows[0].calc.weight,
+  }));
+  A.eq(rows[0].priceMode, 'auto', 'pressing Use this price restores the mode it was priced in');
+  A.eq(reused.rate, '5.00', 'with the record\'s cost rate');
+  A.eq(reused.add, '4.00', 'its additional cost');
+  A.eq(reused.mk, '4', 'and its markup');
+  A.eq(rows[0].manualPrice, '', 'and no manual price, because nothing was copied');
   A.eq(rows[0].usedHistoryRef, 'Q2026-0001', 'and the row records which quotation it came from');
-  A.near(rows[0].price, 30, 0.001, 'which is what it now charges');
+  /* This rod's own price on that basis — emphatically not the RM 30.00 the
+     record was quoted at, which was a different rod. The arithmetic itself is
+     pinned in suite 23 and against the Calculator in suite 20. */
+  A.ok(Number(rows[0].price) > 0, `and charges a price of its own (${rows[0].price})`);
+  A.ok(Math.abs(Number(rows[0].price) - 30) > 0.001,
+    'which is not the historical RM 30.00 copied across');
   A.includes(rows[0].badges, 'Q2026-0001', 'and says so on the row');
 
   // a record that cannot be separated from its accessories is not reusable
-  const before = await page.evaluate(() => wqa.rows[0].manualPrice);
+  const before = await page.evaluate(() => JSON.stringify({
+    mode: wqa.rows[0].priceMode, manual: wqa.rows[0].manualPrice,
+    ov: wqa.rows[0].priceOverride, ref: wqa.rows[0].usedHistoryRef }));
   const ambiguousAt = await page.evaluate(() =>
     wqa.rows[0].hist.records.findIndex(r => r.accessoryAmbiguous));
   A.ok(Number(ambiguousAt) >= 0, 'the ambiguous record is in the list');
   await page.evaluate(n => wqaHistUse(0, n), Number(ambiguousAt));
-  await page.waitForTimeout(500);
-  A.eq(await page.evaluate(() => wqa.rows[0].manualPrice), before,
-    'an ambiguous record refuses to be reused rather than reusing a price that includes nuts');
+  await page.waitForTimeout(600);
+  A.eq(await page.evaluate(() => JSON.stringify({
+    mode: wqa.rows[0].priceMode, manual: wqa.rows[0].manualPrice,
+    ov: wqa.rows[0].priceOverride, ref: wqa.rows[0].usedHistoryRef })), before,
+    'an ambiguous record changes nothing at all rather than reusing a price that includes nuts');
 
   // ── a manual price is not replaced by a later lookup ─────────────────────
   await page.evaluate(() => { wqaEditRowManualPrice(0, '99.50'); });

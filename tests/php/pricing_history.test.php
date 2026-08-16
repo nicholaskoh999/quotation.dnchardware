@@ -274,6 +274,113 @@ eq(dc_finish_for('SS316', 'ZP'),  '', 'and off SS316');
 eq(dc_finish_for('MS', 'HDG'), 'HDG', 'and leaves every other material alone');
 eq(dc_finish_for('4140', 'PL'), 'PL', 'including 4140 QT');
 
+// ── a legacy record whose material label has a space in it ─────────────────
+/* "Previous price does not come out." A quotation saved before the normalised
+   fields existed carries its specification only in the printed description,
+   and dc_legacy_item reads it back with
+
+       ^(\S+)\s+(FULLSIZE|UNDERSIZE)\s+(.+)$
+
+   — one non-space token for the material. But buildDesc writes the material's
+   LABEL, and two of the four canonical materials are two words: "4140 QT" and
+   "4340 QT". So "4140 QT FULLSIZE SAG ROD" put "4140" where the pattern then
+   demanded FULLSIZE, found "QT", and matched nothing at all: the record was
+   dropped without a trace. Every legacy 4140 QT and 4340 QT line in the
+   database was invisible to its own specification. */
+function legacyItem($desc, $size, $extra = []) {
+    /* Exactly the shape of a pre-normalisation item: a description, a printed
+       size label, a price — and none of the normalised identity fields. */
+    return array_merge([
+        'itemType' => 'sagrod', 'desc' => $desc, 'size' => $size,
+        'qty' => 10, 'finalUnitPrice' => 12.00, 'totalAmount' => 120.00,
+        'markup' => 4, 'weight' => 0.4735,
+    ], $extra);
+}
+$LEG_WANT = ['productType'=>'SAG ROD','material'=>'4140','sizeType'=>'FULLSIZE','finish'=>'',
+             'cleanSize'=>'M16','dimensionPreview'=>'L 300 x TL 50/50mm','companyId'=>7];
+
+$r = dc_history_record(legacyItem('4140 QT FULLSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm'),
+                       $LEG_WANT, $M);
+ok($r !== null, 'a legacy 4140 QT record is found by a 4140 QT specification');
+if ($r !== null) {
+    eq($r['material'], '4140', 'and reports the canonical material code, not the printed label');
+    eq($r['cleanSize'], 'M16', 'with its size read out of the printed label');
+    eq($r['legacy'], true, 'marked as the legacy record it is');
+}
+$r = dc_history_record(legacyItem('4340 QT FULLSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm'),
+                       array_merge($LEG_WANT, ['material'=>'4340']), $M);
+ok($r !== null, 'and a legacy 4340 QT record by a 4340 QT specification');
+$r = dc_history_record(legacyItem('Y BAR FULLSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm'),
+                       array_merge($LEG_WANT, ['material'=>'Y_BAR']), $M);
+ok($r !== null, 'and a legacy Y BAR record');
+$r = dc_history_record(legacyItem('4140 QT + HARDEN = G10.9 FULLSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm'),
+                       array_merge($LEG_WANT, ['material'=>'4140_HARDEN_G10_9']), $M);
+ok($r !== null, 'and one whose material label is a whole sentence');
+/* One-word labels must not break on the way. */
+$r = dc_history_record(legacyItem('MS FULLSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm'),
+                       array_merge($LEG_WANT, ['material'=>'MS']), $M);
+ok($r !== null, 'a legacy MS record still reads as it always did');
+
+// ── and the four canonical materials are still four ────────────────────────
+/* Finding more records must never mean finding the wrong ones. */
+foreach ([['4140','4340 QT FULLSIZE SAG ROD'], ['4340','4140 QT FULLSIZE SAG ROD'],
+          ['4140','SS304 FULLSIZE SAG ROD'],   ['SS304','4140 QT FULLSIZE SAG ROD'],
+          ['SS304','SS316 FULLSIZE SAG ROD'],  ['SS316','SS304 FULLSIZE SAG ROD'],
+          ['4140','MS FULLSIZE SAG ROD']] as $pair) {
+    list($want, $desc) = $pair;
+    ok(dc_history_record(legacyItem($desc, 'M16 x L 300 x TL 50/50mm'),
+                         array_merge($LEG_WANT, ['material'=>$want]), $M) === null,
+       "a $want specification does not match a legacy \"$desc\"");
+}
+/* The same, on normalised records. */
+foreach ([['4140','4340'], ['4340','4140'], ['4140','SS304'], ['SS304','4140'],
+          ['SS304','SS316'], ['SS316','SS304']] as $pair) {
+    list($want, $stored) = $pair;
+    ok(dc_history_record(ssItem('', $stored), array_merge($SS_WANT, ['material'=>$want]), $M) === null,
+       "$want and $stored are different materials");
+}
+/* And a different product or size type is still a different item. */
+ok(dc_history_record(legacyItem('4140 QT UNDERSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm'),
+                     $LEG_WANT, $M) === null, 'a different size type does not match');
+ok(dc_history_record(legacyItem('4140 QT FULLSIZE ANCHOR BOLT', 'M16 x L 300 x TL 50/50mm'),
+                     $LEG_WANT, $M) === null, 'nor a different product');
+ok(dc_history_record(legacyItem('4140 QT FULLSIZE SAG ROD', 'M20 x L 300 x TL 50/50mm'),
+                     $LEG_WANT, $M) === null, 'nor a different size');
+
+// ── which quotations the database is asked for ─────────────────────────────
+/* The SQL prefilter is only ever allowed to NARROW. dc_history_blob_matches is
+   the same predicate in PHP, so what the database is asked for can be tested
+   without one. */
+$normalised = json_encode([['productType'=>'SAG ROD','material'=>'4140','sizeType'=>'FULLSIZE',
+                            'finish'=>'','cleanSize'=>'M16','size'=>'M16 x L 300mm']]);
+$legacyOnly = json_encode([legacyItem('4140 QT FULLSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm')]);
+$mixed      = json_encode([['productType'=>'SAG ROD','material'=>'MS','sizeType'=>'FULLSIZE',
+                            'finish'=>'PL','cleanSize'=>'M24','size'=>'M24 x L 900mm'],
+                           legacyItem('4140 QT FULLSIZE SAG ROD', 'M16 x L 300 x TL 50/50mm')]);
+ok(dc_history_blob_matches($normalised, $LEG_WANT), 'a normalised quotation is asked for');
+ok(dc_history_blob_matches($legacyOnly, $LEG_WANT), 'and a purely legacy one');
+ok(dc_history_blob_matches($mixed, $LEG_WANT),
+   'and a legacy line sitting inside an otherwise modern quotation, which is how a '
+ . 'quotation edited across versions looks');
+ok(!dc_history_blob_matches(json_encode([['productType'=>'SAG ROD','material'=>'MS',
+     'sizeType'=>'FULLSIZE','finish'=>'PL','cleanSize'=>'M24','size'=>'M24 x L 900mm']]), $LEG_WANT),
+   'a quotation with nothing of that size in it is not asked for');
+
+// ── an older match is not hidden behind newer unrelated quotations ─────────
+/* There is no global recency window in the query, and this proves it stays
+   that way: three hundred newer quotations that cannot match are simply not
+   asked for, and the one older quotation that can is. */
+$asked = 0;
+for ($i = 0; $i < 300; $i++) {
+    $blob = json_encode([['productType'=>'STUD','material'=>'MS','sizeType'=>'',
+                          'finish'=>'PL','cleanSize'=>'M8','size'=>'M8 x L '.(100+$i).'mm']]);
+    if (dc_history_blob_matches($blob, $LEG_WANT)) $asked++;
+}
+eq($asked, 0, 'three hundred newer unrelated quotations are not even asked for');
+ok(dc_history_blob_matches($legacyOnly, $LEG_WANT),
+   'and the older matching one still is, however many newer ones exist');
+
+
 // ── report ──────────────────────────────────────────────────────────────────
 echo "  " . (count($failures) ? 'FAIL' : 'ok  ')
    . "  pricing history — identity, accessories, ranking  ($asserts assertions"

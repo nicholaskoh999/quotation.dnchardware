@@ -110,7 +110,13 @@ function dc_legacy_item($item) {
     $desc = (string)($item['desc'] ?? '');
     $size = (string)($item['size'] ?? '');
     if (!$desc || !$size) return null;
-    if (!preg_match('/^(\S+)\s+(FULLSIZE|UNDERSIZE)\s+(.+)$/', $desc, $dm)) return null;
+    /* The material is everything before the size type, not one token: two of
+       the four canonical materials are written "4140 QT" and "4340 QT", and one
+       is a whole sentence. A single-token pattern matched none of them, so every
+       legacy record for those materials was dropped without a trace — the
+       "previous price does not come out" the shop reported. Non-greedy, so the
+       FIRST size type word ends the material. */
+    if (!preg_match('/^(.+?)\s+(FULLSIZE|UNDERSIZE)\s+(.+)$/', $desc, $dm)) return null;
 
     $xPos = strpos($size, ' x ');
     $left = $xPos === false ? $size : substr($size, 0, $xPos);
@@ -121,7 +127,7 @@ function dc_legacy_item($item) {
 
     return [
         'productType' => dc_norm_product($dm[3]),
-        'material'    => $dm[1],
+        'material'    => dc_material_code($dm[1]),
         'sizeType'    => $dm[2],
         'cleanSize'   => $clean,
         'dimensionPreview' => $dims,
@@ -345,10 +351,6 @@ function dc_history_needle($cleanSize) {
     return '"cleanSize":' . json_encode((string)$cleanSize);
 }
 
-/** The same, for the material — the second most selective field of the five. */
-function dc_history_material_needle($material) {
-    return '"material":' . json_encode((string)$material);
-}
 
 /**
  * A quotation written before cleanSize existed carries its size inside the
@@ -360,4 +362,60 @@ function dc_history_material_needle($material) {
 function dc_history_size_text_needle($cleanSize) {
     $enc = json_encode((string)$cleanSize);          // keeps the \/ of an inch size
     return substr($enc, 1, -1);                      // without the quotes
+}
+
+/**
+ * Which quotations the database is asked for — one definition, used to build
+ * the SQL and to test it.
+ *
+ * The prefilter exists only to keep the decode loop off rows that could never
+ * match; dc_history_record is the authority and compares every field. So it
+ * narrows on ONE robust thing: the size, in either of the two ways a saved
+ * quotation can carry it. It used to demand the MATERIAL as well, and to send a
+ * quotation down the legacy branch only when the WHOLE blob contained no
+ * "cleanSize" anywhere — which meant a legacy line sitting inside a quotation
+ * that also held a modern one could never be reached, and that is exactly what
+ * a quotation edited across versions looks like.
+ *
+ * Returns [sql-fragment, [params...]] for the WHERE clause.
+ */
+function dc_history_sql_where($want) {
+    return [
+        '(q.items LIKE ? OR q.items LIKE ?)',
+        ['%' . dc_history_needle($want['cleanSize'] ?? '') . '%',
+         '%' . dc_history_size_text_needle($want['cleanSize'] ?? '') . '%'],
+    ];
+}
+
+/** The same predicate in PHP, so what the database is asked for is testable. */
+function dc_history_blob_matches($itemsJson, $want) {
+    $blob = (string)$itemsJson;
+    return strpos($blob, dc_history_needle($want['cleanSize'] ?? '')) !== false
+        || strpos($blob, dc_history_size_text_needle($want['cleanSize'] ?? '')) !== false;
+}
+
+/**
+ * The canonical material code behind a printed label. buildDesc writes the
+ * LABEL into a description — "4140 QT", "4340 QT", "Y BAR", and one that is a
+ * whole sentence — while every comparison is made on the code. A legacy record
+ * is read out of its description, so it has to come back the same way.
+ */
+function dc_material_code($label) {
+    static $codes = [
+        '4140 QT'                   => '4140',
+        '4340 QT'                   => '4340',
+        '4140 QT + HARDEN = G10.9'  => '4140_HARDEN_G10_9',
+        'S45C + HARDEN = G8.8'      => 'S45C_HARDEN_G8_8',
+        'Y BAR'                     => 'Y_BAR',
+        /* A bare "4140" in a LEGACY description is the old internal value for
+           4140 QT, and is read as that — the same reading displayItemDesc
+           makes. The newer 4140-plain material shares the printed label but
+           its items carry the normalised fields, so they never come through
+           this reader at all. */
+    ];
+    $k = strtoupper(trim(preg_replace('/\s+/', ' ', (string)$label)));
+    foreach ($codes as $lab => $code) {
+        if (strtoupper($lab) === $k) return $code;
+    }
+    return trim((string)$label);
 }

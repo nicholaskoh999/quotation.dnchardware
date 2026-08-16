@@ -674,34 +674,32 @@ if ($action === 'get_next_ref') {
         exit;
     }
 
-    /* Two branches, both of which only ever NARROW:
+    /* Which quotations to decode. ONE definition, in pricing_history.php, so
+       what the database is asked for is the same thing dc_history_blob_matches
+       tests — see dc_history_sql_where. It narrows on the SIZE only, in either
+       of the two ways a saved quotation can carry it, and dc_history_record
+       then compares every field.
 
-         * a quotation written with the normalised fields must contain both the
-           size and the material of the item being looked up, spelt exactly as
-           json_encode wrote them - dc_history_record compares those two field
-           for field, so a row without them could never survive it;
+       It used to demand the MATERIAL as well, and to send a quotation down the
+       legacy branch only where the WHOLE blob contained no "cleanSize"
+       anywhere. Both of those could lose a real record: the second meant a
+       legacy line sitting inside a quotation that also held a modern one was
+       unreachable, which is exactly what a quotation edited across versions
+       looks like.
 
-         * a quotation written before cleanSize existed carries its size only
-           inside the printed label, so it is narrowed by that text instead.
-           dc_legacy_item reads the size out of the same label and refuses
-           anything else, so this cannot lose a legacy record either.
-
-       Previously the legacy branch was `NOT LIKE '%"cleanSize"%'` with nothing
-       else on it, which handed every pre-normalisation quotation in the
-       database to PHP to be decoded and thrown away. */
-    $likeSize = '%' . dc_history_needle($want['cleanSize']) . '%';
-    $likeMat  = '%' . dc_history_material_needle($want['material']) . '%';
-    $likeText = '%' . dc_history_size_text_needle($want['cleanSize']) . '%';
+       There is no recency window here and there never should be: an older
+       quotation must not disappear because newer unrelated ones exist. The
+       whole matching set is built and the browser is handed one page of it. */
+    list($whereSql, $whereParams) = dc_history_sql_where($want);
     $stmt = prepare_or_fail($db,
         "SELECT q.id, q.ref_no, q.quote_date, q.created_at, q.company_id, q.customer_name, q.items,
                 c.name AS company_name
            FROM quotations q
            LEFT JOIN companies c ON q.company_id = c.id
-          WHERE (q.items LIKE ? AND q.items LIKE ?)
-             OR (q.items NOT LIKE '%\"cleanSize\"%' AND q.items LIKE ?)
+          WHERE $whereSql
           ORDER BY COALESCE(q.quote_date, q.created_at) DESC, q.id DESC",
         'Pricing history prepare failed');
-    $stmt->bind_param('sss', $likeSize, $likeMat, $likeText);
+    $stmt->bind_param(str_repeat('s', count($whereParams)), ...$whereParams);
     execute_or_fail($stmt, 'Pricing history load failed');
     $res = $stmt->get_result();
 

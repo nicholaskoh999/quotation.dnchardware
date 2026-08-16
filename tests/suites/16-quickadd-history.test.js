@@ -196,17 +196,30 @@ module.exports = async (browser, A) => {
   Object.keys(before).forEach(k => A.eq(String(after[k]), String(before[k]),
     `opening history left the row's ${k} exactly as it was`));
 
-  /* The one thing that DOES copy is the one a person presses, and it is the
-     same action the entry form offers. */
+  /* The one thing that DOES copy is the one a person presses. What copies is
+     the record's PRICING — its rate, its surcharge, its markup and the mode it
+     was rounded in — and the row then prices itself from them. It used to copy
+     the historical final figure into Manual Price instead; see suite 23. */
   await page.evaluate(() => {
     const i = wqa.rows[0].hist.records.findIndex(r => r.refNo === 'M20-1000');
     wqaHistUse(0, i);
   });
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(900);
   const used = (await rowState(page))[0];
-  A.eq(used.priceMode, 'manual', 'Use this price is an act, and it sets a manual price');
-  A.eq(used.manualPrice, '12', 'to the bolt price of the record chosen');
+  const usedCalc = await page.evaluate(() => ({
+    rate: String(wqa.rows[0].calc.costRate), add: String(wqa.rows[0].calc.addCost),
+    mk: String(wqa.rows[0].calc.markup), price: wqa.rows[0].calc.finalUnitPrice,
+    weight: wqa.rows[0].calc.weight }));
+  A.eq(used.priceMode, 'auto', 'Use this price restores the mode the record was priced in');
+  A.eq(usedCalc.rate, '2.80', 'with its cost rate');
+  A.eq(usedCalc.add, '0.60', 'its additional cost');
+  A.eq(usedCalc.mk, '8', 'and its markup');
+  A.eq(used.manualPrice, '', 'and no manual price is set');
   A.eq(used.usedHistoryRef, 'M20-1000', 'and records which one it came from');
+  /* Worked out on THIS row, from those rates — not the record's own 12.00. */
+  A.eq(String(usedCalc.price),
+    String(await page.evaluate(() => round05((wqa.rows[0].calc.weight * 2.8 + 0.6) * 1.08))),
+    'and the price is this row calculated on that basis');
 
   // ── 9 · a row that changes is not shown its old answer ───────────────────
   const askedBefore = asked.length;

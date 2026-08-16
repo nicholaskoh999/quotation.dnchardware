@@ -4043,6 +4043,11 @@ const I18N={
     materialRequired:'Material was not stated in the message, so it is not guessed. Choose the material to price these items.',
     badgeNoThread:'No thread', badgeParseWarning:'Parse warning', badgeCheck:'Check {f}',
     badgeAsymmetric:'Asymmetric', badgeLastPrice:'Reusing',
+    wqaHistRecipe:'Using {r} pricing — rate {rate} · add {add} · {mk}% · {mode}. This item is priced from its own weight.',
+    wqaHistManual:'Using {r} — it was priced by hand at RM {v}',
+    wqaHistFinalOnly:'Using {r} — historical final price RM {v} only, pricing breakdown not recorded',
+    wqaHistUnseparable:'That record cannot be separated from its accessories — reuse it by hand',
+    badgeHistRecipe:'pricing', badgeHistPrice:'price',
     wqaTitle:'WhatsApp Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
     wqaDiscardTitle:'Discard Quick Add changes?',
     wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
@@ -4275,6 +4280,11 @@ const I18N={
     materialRequired:'信息中未说明材料，系统不会猜测。请选择材料以计算价格。',
     badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
     badgeAsymmetric:'左右不对称', badgeLastPrice:'沿用',
+    wqaHistRecipe:'沿用 {r} 的计价方式 —— 单价 {rate} · 附加 {add} · {mk}% · {mode}。本项目按自身重量重新计算。',
+    wqaHistManual:'沿用 {r} —— 该单据当时以人手定价 RM {v}',
+    wqaHistFinalOnly:'沿用 {r} —— 只有历史最终单价 RM {v}，没有记录计价明细',
+    wqaHistUnseparable:'该记录无法与配件分开 —— 请手动沿用',
+    badgeHistRecipe:'计价方式', badgeHistPrice:'单价',
     wqaTitle:'WhatsApp 快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
     wqaDiscardTitle:'要放弃快速添加的内容吗？',
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
@@ -9558,6 +9568,7 @@ function wqaApplyPriceToAll(){
   let droppedLast=0;
   targets.forEach(r=>{
     wqaMarkEdited(r,'price');
+    const histMode=r.priceMode||'auto';
     if(c.costRate!=='') r.priceOverride.costRate=c.costRate;
     if(c.addCost!=='')  r.priceOverride.addCost=c.addCost;
     if(c.markup!=='')   r.priceOverride.markup=c.markup;
@@ -9567,10 +9578,20 @@ function wqaApplyPriceToAll(){
        set for it and re-priced it from the formula. It follows the same rule
        as the fields beside it: stated, or left alone. */
     if(wqa.commonPriceModeSet) r.priceMode=c.priceMode||'auto';
-    /* A row that was priced from a historical record is on Manual Price. If
-       this panel moves it off manual, the reused figure goes with it, and the
-       count is reported rather than the change being silent. */
-    if(r.priceMode!=='manual'&&r.usedHistoryRef){ r.usedHistoryRef=''; r.manualPrice=''; droppedLast++; }
+    /* A row priced from a historical record keeps that provenance until this
+       panel actually SUPERSEDES it — which it does by stating any component of
+       the pricing, or by moving the row to a different mode. A reused recipe
+       leaves the row on Auto Round, so "not manual" is no longer the test:
+       it would have quietly dropped the reference off every recipe row this
+       panel merely passed over. */
+    const supersedes=(c.costRate!=='')||(c.addCost!=='')||(c.markup!=='')
+                   ||(wqa.commonPriceModeSet && (c.priceMode||'auto')!==histMode);
+    if(r.usedHistoryRef && supersedes){
+      r.usedHistoryRef=''; r.usedHistoryRecipe=false; r.manualPrice='';
+      (r.histApplied||[]).forEach(k=>{ delete r.priceOverride[k]; });
+      r.histApplied=[];
+      droppedLast++;
+    }
   });
   wqa.panels.price=true;    // stay open while staff keep editing
   wqaRenderCommonPrice();
@@ -10280,7 +10301,10 @@ function wqaRowBadges(r){
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
-  if(r.usedHistoryRef)                          out.push({t:dcT('badgeLastPrice')+' '+r.usedHistoryRef,k:'info'});
+  /* Which of the two was reused, so "Reusing Q-2026-0366" cannot be read as
+     "RM 6.84 copied unchanged" when the row worked out its own figure. */
+  if(r.usedHistoryRef) out.push({t:dcT('badgeLastPrice')+' '+r.usedHistoryRef+' '
+    +dcT(r.usedHistoryRecipe?'badgeHistRecipe':'badgeHistPrice'),k:'info'});
   return out;
 }
 function wqaBadgeHtml(r){
@@ -13886,16 +13910,66 @@ function wqaRemoveRow(i){ wqaMarkEdited(wqa.rows[i],'removed'); wqa.rows[i].remo
    never replaced without it. The BOLT price is what is reused — accessories
    belong to this row's own accessory panel and are added by it, so taking the
    quotation line would charge last year's nuts twice. */
+/* The price modes that WORK a price out. Manual states one instead. */
+const WQA_CALC_MODES=['auto','no_round'];
 function wqaHistUse(i,n){
   const r=wqa.rows[i]; if(!r||!r.hist||!r.hist.records) return;
   const rec=r.hist.records[n]; if(!rec) return;
   const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?null:Number(rec.boltUnitPrice);
-  if(bolt===null){ showToast('That record cannot be separated from its accessories — reuse it by hand'); return; }
+  if(bolt===null){ showToast(dcT('wqaHistUnseparable')); return; }
+
+  /* Whatever the LAST reused record put on this row comes back off first, so a
+     second record REPLACES the pricing rather than merging with it — choosing
+     Q-2026-0357 after Q-2026-0366 must not leave 0366's surcharge behind. Only
+     the components a record installed are removed; a rate a person typed is
+     theirs and is not touched by this. */
+  (r.histApplied||[]).forEach(k=>{ delete r.priceOverride[k]; });
+  r.histApplied=[];
+
+  const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
+  const rate=num(rec.costRate), add=num(rec.addCost), mk=num(rec.markup);
+  const mode=String(rec.priceMode||'');
+  /* ── A previous price is a RECIPE, not a number ───────────────────────────
+     A quotation line that was WORKED OUT records how: a cost rate, a
+     surcharge, a markup and the mode its total was rounded in. Reusing it means
+     reusing those, and then running THIS row's own weight and geometry through
+     them — so the same basis applied to a longer rod gives that rod's own
+     price. Copying the historical final figure into Manual Price, which is what
+     this did, quoted last quarter's number for a different bolt and left the
+     row's unrelated rate sitting behind it contradicting the total on screen.
+
+     Every component has to be there for it to be a recipe. A record missing
+     any of them is not completed with a number nobody recorded. */
+  const recipe = WQA_CALC_MODES.indexOf(mode)>=0
+              && rate!==null && add!==null && mk!==null
+              && isFinite(rate) && isFinite(add) && isFinite(mk);
+
+  if(recipe){
+    r.priceMode=mode;
+    r.manualPrice='';
+    r.priceOverride.costRate=rate.toFixed(2);
+    r.priceOverride.addCost=add.toFixed(2);
+    r.priceOverride.markup=String(mk);
+    r.histApplied=['costRate','addCost','markup'];
+    r.usedHistoryRef=rec.refNo||'';
+    r.usedHistoryRecipe=true;
+    wqaRecomputeAll('force');
+    showToast(dcT('wqaHistRecipe').replace('{r}',rec.refNo||'—')
+      .replace('{rate}',rate.toFixed(2)).replace('{add}',add.toFixed(2))
+      .replace('{mk}',String(mk)).replace('{mode}',wqaPriceModeLabel(mode)));
+    return;
+  }
+
+  /* Priced by hand when it was quoted, or saved before the breakdown was
+     recorded. Either way the figure IS the answer and there is nothing to
+     recalculate — and nothing is manufactured to pretend otherwise. */
   r.priceMode='manual';
   r.manualPrice=String(bolt);
   r.usedHistoryRef=rec.refNo||'';
+  r.usedHistoryRecipe=false;
   wqaRecomputeAll('force');
-  showToast('Using '+(rec.refNo||'a previous price')+' — RM '+bolt.toFixed(2));
+  showToast((mode==='manual' ? dcT('wqaHistManual') : dcT('wqaHistFinalOnly'))
+    .replace('{r}',rec.refNo||'—').replace('{v}',bolt.toFixed(2)));
 }
 /* Opening one row's history says nothing about any other row's, and asks for
    nothing until it is asked for. */
