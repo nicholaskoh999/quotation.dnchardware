@@ -1,0 +1,75 @@
+COMMIT INFORMATION
+==================
+
+BRANCH
+  claude/quotation-dnc-audit-repair-ashi82
+
+STARTING COMMIT (pass 1 baseline)
+  b5493089057277c6f7742931da26bc6f35553abd
+
+DELTA BASELINE (pass 2 baseline, as given in the brief)
+  744ad4084167bf3e0638535779b798b5023c0030
+
+DEPLOY COMMIT  <-- deploy this one
+  511a6973ee4c00e9c6c71f5efb4f1970ea16052d
+
+  This is the last commit that changes an application file. The packaging
+  commit that follows it adds only this file and the ZIP, both of which are
+  outside .cpanel.yml's allowlist and are never copied to the server.
+
+DEPLOYMENT STATUS
+  NOT DEPLOYED
+
+  .cpanel.yml is a manual two-click deploy and nothing here runs on its own:
+
+    cPanel -> Git Version Control -> Manage
+      1. "Update from Remote"    pulls the branch into the server-side clone
+      2. "Deploy HEAD Commit"    copies the allowlisted files
+
+  I cannot press those buttons from this environment, and no part of this
+  report describes the live site as verified.
+
+FILES THE DEPLOY WILL COPY (changed by this work)
+  index.php
+  api.php
+  companies.php
+  ai_extract.php
+  pricing_history.php          (new; added to APPFILES in .cpanel.yml)
+
+FILES THE DEPLOY WILL NOT COPY (outside the allowlist, by construction)
+  tests/                       the regression suite and its tools
+  quotation-dnc-final-audit/   this package
+  everything else not named in APPFILES
+
+DATABASE
+  No schema change. No migration. No data written by this work.
+
+SECRETS
+  None in the repository, none in this package. auth.php, db.php and
+  ai_config.php are untouched and remain server-only.
+
+COMMITS ON THIS BRANCH
+  2e2bbd9  Nothing on the screen may disagree with the number under it
+  0c264e8  Audit package: commit info and changed-files summary
+  744ad40  Five findings that survived being argued with
+  9d70d60  Audit package: stamp the commit to deploy
+  323e92b  A company rule is an answer; a diameter has one source
+  576fde5  Pricing history: the rows we sent, and why they differed
+  9561291  A correction is not a suggestion, and a short list is not a whole one
+  21a4bf7  Pricing Engine V2: prepared, documented, and switched off
+  511a697  Restore CRLF line endings in index.php and api.php
+
+REGRESSION AT 511a697
+  13 browser suites          781 assertions   0 failed
+  ai_extract (PHP)            64 assertions   0 failed
+  pricing history (PHP)       50 assertions   0 failed
+  pricing workbook (Python)   62 assertions   0 failed
+  ------------------------------------------------------
+  TOTAL                      957 assertions   0 failed
+  PHP lint                    10 files, no syntax errors
+
+AFTER DEPLOYMENT — the one check I cannot perform
+  Run HAB-TA-01.pdf and the 29-row anchor-bolt screenshot through the live
+  Analyze path once, and compare against 950 / 865 / 1000 / 1200 / 1285 and
+  29 rows. Everything downstream of the model's answer is proven by the suite;
+  the answer itself needs a live API key.
