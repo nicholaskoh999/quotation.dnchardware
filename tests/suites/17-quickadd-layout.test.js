@@ -113,8 +113,15 @@ module.exports = async (browser, A) => {
       `with the status line adding one thin strip, not a second row (${warned.rowHeight}px)`);
     A.includes(warned.statusText, 'Needs', 'and the warning is on it');
 
-    /* Answer the warning and the line goes away again. */
-    await page.evaluate(() => wqaEditPrice(0, 'costRate', '5'));
+    /* Answer the warning and the line goes away again. A J Bolt has no
+       automatic pricing at all, so what it asks for is a rate AND a surcharge —
+       the two figures its own add path insists on. Answering only one of them
+       used to clear the warning and then fail at the click. */
+    await page.evaluate(() => { wqaEditPrice(0, 'costRate', '5'); });
+    await page.waitForTimeout(700);
+    A.includes((await page.evaluate(GEOMETRY)).statusText, 'Additional Cost',
+      'a rate on its own leaves it asking for the surcharge as well');
+    await page.evaluate(() => { wqaEditPrice(0, 'addCost', '1'); });
     await page.waitForTimeout(900);
     const answered = await page.evaluate(GEOMETRY);
     A.eq(answered.statusShown, 'false', 'answering it takes the line away');

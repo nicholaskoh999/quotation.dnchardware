@@ -235,6 +235,45 @@ ok(strpos($savedM, dc_history_needle('M20')) !== false, 'and inside a metric one
 ok(strpos($savedM, dc_history_needle('M2')) === false,
    'while M2 does not match an M20 row — the needle carries the closing quote');
 
+
+// ── stainless is quoted without a finish, and identity has to agree ─────────
+/* The browser asks for a stainless specification with finish '' — that is the
+   rule. A record SAVED before the rule held everywhere carries PL or HDG, and
+   comparing the two literally made a real previous price invisible to the very
+   item it belonged to, while that same item still printed "(HDG)". */
+$SS_WANT = ['productType'=>'SAG ROD','material'=>'SS304','sizeType'=>'FULLSIZE','finish'=>'',
+            'cleanSize'=>'M16','dimensionPreview'=>'L 300 x TL 50/50mm','companyId'=>7];
+function ssItem($finish, $material = 'SS304') {
+    return item(['itemType'=>'sagrod','productType'=>'SAG ROD','material'=>$material,
+                 'sizeType'=>'FULLSIZE','finish'=>$finish,'cleanSize'=>'M16','sizeCode'=>'M16',
+                 'size'=>'M16 x L 300 x TL 50/50mm','dimensionPreview'=>'L 300 x TL 50/50mm',
+                 'desc'=>'SS304 FULLSIZE SAG ROD']);
+}
+foreach (['', 'PL', 'HDG', 'ZP', 'Plain'] as $stored) {
+    $r = dc_history_record(ssItem($stored), $SS_WANT, $M);
+    ok($r !== null, "an SS304 record stored with finish " . var_export($stored, true) . " is still the same item");
+    if ($r !== null) eq($r['finish'], '', "and it reports no finish");
+}
+$want316 = array_merge($SS_WANT, ['material'=>'SS316']);
+ok(dc_history_record(ssItem('HDG', 'SS316'), $want316, $M) !== null,
+   'SS316 follows the same rule');
+/* The rule keys on the CANONICAL stored code, exactly as DC_NO_FINISH_MATERIALS
+   does in the browser. Source spellings — SUS316, A4-70 — are mapped to that
+   code before an item is ever saved, so they never reach this comparison, and
+   the server does not carry a second copy of that vocabulary. */
+eq(dc_finish_for('SUS316', 'HDG'), 'HDG',
+   'a source spelling is not a stored material code, and is left alone here');
+/* And the rule reaches no further than stainless. */
+$MS_WANT = array_merge($SS_WANT, ['material'=>'MS','finish'=>'HDG']);
+ok(dc_history_record(ssItem('HDG','MS'), $MS_WANT, $M) !== null,
+   'a mild steel record still matches on its finish');
+ok(dc_history_record(ssItem('PL','MS'), $MS_WANT, $M) === null,
+   'and a mild steel PL is still not a mild steel HDG');
+eq(dc_finish_for('SS304', 'HDG'), '', 'dc_finish_for takes the finish off SS304');
+eq(dc_finish_for('SS316', 'ZP'),  '', 'and off SS316');
+eq(dc_finish_for('MS', 'HDG'), 'HDG', 'and leaves every other material alone');
+eq(dc_finish_for('4140', 'PL'), 'PL', 'including 4140 QT');
+
 // ── report ──────────────────────────────────────────────────────────────────
 echo "  " . (count($failures) ? 'FAIL' : 'ok  ')
    . "  pricing history — identity, accessories, ranking  ($asserts assertions"

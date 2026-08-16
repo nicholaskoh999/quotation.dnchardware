@@ -4033,6 +4033,7 @@ const I18N={
     /* ── WhatsApp Quick Add ── */
     cancel:'Cancel', nItems:'{n} items', needAttention:'{n} need attention',
     needs:'Needs {f}', fieldProduct:'Product', fieldSize:'Size', fieldLength:'Length',
+    fieldCostRate:'Cost Rate', fieldAdditionalCost:'Additional Cost',
     fieldSizeType:'Size Type', fieldThread:'Thread', fieldPrice:'Price',
     fieldValidSize:'Valid Size', wqaUnknownSize:'Size not in Diameter Settings — no weight is calculated',
     wqaUndersizeWord:'undersize',
@@ -4049,6 +4050,7 @@ const I18N={
     wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
     wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia',
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
+    wqaAddRefused:'the calculator refused this row', fieldQty:'Qty',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
     wqaNoteLabel:'Additional info for analysis', wqaNoteOpt:'Optional / 可选',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
@@ -4263,6 +4265,7 @@ const I18N={
     /* ── WhatsApp Quick Add ── */
     cancel:'取消', nItems:'{n} 项', needAttention:'{n} 项需检查',
     needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'长度',
+    fieldCostRate:'成本单价', fieldAdditionalCost:'附加费用',
     fieldSizeType:'尺寸类型', fieldThread:'牙长', fieldPrice:'价格',
     fieldValidSize:'有效尺寸', wqaUnknownSize:'此尺寸不在直径设定中 — 不计算重量',
     wqaUndersizeWord:'小牙',
@@ -4279,6 +4282,7 @@ const I18N={
     wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
     wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径',
     wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
+    wqaAddRefused:'计算器拒绝了此项目', fieldQty:'数量',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
     wqaNoteLabel:'补充分析资料', wqaNoteOpt:'选填 / Optional',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
@@ -4762,10 +4766,15 @@ function restoreProductEntryDraftInner(entry){
     if(input.type==='checkbox'||input.type==='radio') input.checked=!!state.checked;
     else input.value=state.value??'';
   });
-  if(el(type+'-material')) updateFinishAvailability(type);
+  /* The saved radio state is re-applied FIRST and the rule runs after it. The
+     other way round — which is how this read — cleared the finish for a
+     stainless material and then put the saved HDG straight back one statement
+     later, because a disabled radio can still be checked programmatically. The
+     draft was the one path that actively undid the normalisation. */
   form.querySelectorAll('input[type="radio"][name]').forEach(input=>{
     if(Object.prototype.hasOwnProperty.call(radioGroups,input.name)) input.checked=input.value===String(radioGroups[input.name]);
   });
+  updateFinishAvailability(type);
   setFinishPills(type,getFinish(type));
   if(data.accessories) loadAccIntoForm(type,data.accessories);
   else onAccChange(type);
@@ -5064,9 +5073,18 @@ function setFinishPills(type,finish){
     p.classList.toggle('selected-'+key, val===finish);
   });
 }
+/* The material this form is quoting. Every product keeps it in <type>-material
+   — except the Welding Anchor Set, which is named after its ANCHOR and holds it
+   in was-ab-material. Reading the missing element returned '' there, so the
+   stainless rule below was permanently off for the one product whose material
+   select offers SS304 and SS316. */
+function dcFormMaterial(type){
+  return String(type==='was' ? (fv('was-ab','material')||'') : (fv(type,'material')||''));
+}
 function updateFinishAvailability(type){
-  const material=fv(type,'material');
-  const isSS = material==='SS304'||material==='SS316';
+  const material=dcFormMaterial(type);
+  /* The rule itself, not a second copy of it. */
+  const isSS = !dcMaterialHasFinish(material);
   const container=el(type+'-finishPills');
   if(container) container.classList.toggle('ss-mode',isSS);
   ['PL','ZP','HDG'].forEach(f=>{
@@ -5211,10 +5229,28 @@ function validatePriceMode(type){
   if(evalExpr(value)<0){showToast('Enter Manual Unit Price');return false;}
   return true;
 }
+/* ── What has to be TYPED, and when ────────────────────────────────────────
+   These products have no automatic pricing at all: the form says so on its own
+   face — "Cost Rate must be entered manually for this product type" — and their
+   add paths insist on a rate AND a surcharge, not one or the other.
+
+   Kept as one list because it was written out three times: on the form, in the
+   warning, and inside each add function. Quick Add now asks the same question
+   the add path asks, and it can only do that by asking the same list. */
+const DC_TYPED_RATE_PRODUCTS=['ubolt','squbolt','lbolt','lbolt45','jbolt'];
+function dcNeedsTypedAddCost(type){ return DC_TYPED_RATE_PRODUCTS.indexOf(String(type||''))>=0; }
+/* A rate is required because the price is COMPUTED from it — weight x rate,
+   plus the surcharge, plus the markup. Where the price is STATED instead, which
+   is what Manual Price means and how a price reused from a previous quotation
+   arrives, nothing is computed from a rate and a blank one is not a missing
+   value. Refusing it there was the live blocker: a J Bolt priced RM 7.40 off
+   Q-2026-0125 could not be added, because a J Bolt never gets an automatic rate
+   and the reused price had not put one in the box. */
+function dcRateRequired(type){ return getPriceMode(type)!=='manual'; }
 function syncCostRateWarning(type){
   const warning=el(type+'-warn');
   if(!warning) return;
-  const alwaysManual=['ubolt','squbolt','lbolt','lbolt45','jbolt'].includes(type);
+  const alwaysManual=DC_TYPED_RATE_PRODUCTS.includes(type);
   const materialManual=['sagrod','stud','anchorbolt'].includes(type)
     && ['S45C','S45C_HARDEN_G8_8','SS304','SS316','4340','4140_HARDEN_G10_9','4140_PLAIN','Y_BAR'].includes(fv(type,'material'));
   const show=(alwaysManual||materialManual)&&!fv(type,'costRate').trim();
@@ -6085,7 +6121,7 @@ function addSagRod(){
      quotation must never produce. Every bent-product add path already
      required the rate on its own; these three now do too. */
   const costRateVal=fv('sagrod','costRate').trim();
-  if(!costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  if(dcRateRequired('sagrod') && !costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
   if(!validatePriceMode('sagrod')) return;
   const costRate=validateRateEntry('sagrod','costRate','Cost Rate'), addCost=validateRateEntry('sagrod','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6156,7 +6192,7 @@ function addStud(){
      quotation must never produce. Every bent-product add path already
      required the rate on its own; these three now do too. */
   const costRateVal=fv('stud','costRate').trim();
-  if(!costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  if(dcRateRequired('stud') && !costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
   if(!validatePriceMode('stud')) return;
   const costRate=validateRateEntry('stud','costRate','Cost Rate'), addCost=validateRateEntry('stud','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6204,7 +6240,7 @@ function addAnchorBolt(){
      quotation must never produce. Every bent-product add path already
      required the rate on its own; these three now do too. */
   const costRateVal=fv('anchorbolt','costRate').trim();
-  if(!costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  if(dcRateRequired('anchorbolt') && !costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
   if(!validatePriceMode('anchorbolt')) return;
   const costRate=validateRateEntry('anchorbolt','costRate','Cost Rate'), addCost=validateRateEntry('anchorbolt','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6306,8 +6342,8 @@ function addUBolt(){
   if(!validateDims({'Diameter':d,'Total Length':totalLen})) return;
   if((id&&parseFloat(id)<0)||(ih&&parseFloat(ih)<0)){showToast(dcT('tIdIhNeg'));return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(!costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(!addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
   if(!validatePriceMode(type)) return;
   const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6348,8 +6384,8 @@ function addSQUBolt(){
   if(!totalLen){showToast('Total Length is 0 — check OH, W, Diameter');return}
   if(!validateDims({'Diameter':d,'OH':oh,'W':w,'Total Length':totalLen})) return;
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(!costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(!addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
   if(!validatePriceMode(type)) return;
   const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6386,8 +6422,8 @@ function addLBolt(type='lbolt'){
   if(!l||!w){showToast('Enter L and W dimensions');return}
   if(!d){showToast('Enter Diameter');return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(!costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(!addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
   if(!validatePriceMode(type)) return;
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
   if(!totalLen){showToast('Total Length is 0 — check L, W, Diameter');return}
@@ -6432,8 +6468,8 @@ function addJBolt(){
   if(!d){showToast('Enter Diameter');return}
   if(!h||!id||!s){showToast('Enter H, ID and S');return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(!costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(!addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
   if(!validatePriceMode(type)) return;
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
   if(!totalLen){showToast('Total Length is 0 — check H, ID, S, Diameter');return}
@@ -6993,7 +7029,15 @@ function wasGetHoleOpt(){const r=document.querySelector('input[name="was-bp-hole
    short and the RM/set followed it — with no "Needs Diameter" state, because
    the box was not empty. Same resolver as every other product, so a custom
    Diameter Settings rule applies here too. */
-function onWASAnchorSpecChange(){ autoFillDiameter('was-ab'); calcWAS(); }
+function onWASAnchorSpecChange(){
+  autoFillDiameter('was-ab');
+  /* The set is named after its anchor, so choosing a stainless anchor is
+     choosing a stainless item — and a stainless item is quoted without a
+     finish. Every other product's material select runs this; this one never
+     did, which is how a Welding Anchor Set could be built as SS304 (HDG). */
+  updateFinishAvailability('was');
+  calcWAS();
+}
 function onWASAnchorSizeInput(){
   const e=el('was-ab-size'), raw=e?e.value:'';
   autoFillDiameter('was-ab');
@@ -7126,12 +7170,16 @@ function addWAS(){
   // Build size string for quote list
   const {abLine,compLines}=buildWASSizeMultiline();
   const sizeStr=abLine+'\n'+compLines;
-  const finish=getFinish('was');
   /* The set is named after the Anchor Bolt material the user picked (MS,
      4140 QT, 4140, Y BAR …). It is stored on item.material so the quote list,
      Save, Print, WhatsApp, Copy and Quotation Detail all read the same title.
-     Calculation is unaffected — rates stay fully manual. */
+     Calculation is unaffected — rates stay fully manual.
+
+     Read BEFORE the finish, because it decides it: a stainless anchor set is
+     quoted without one, exactly like a stainless rod. This product does not go
+     through pushItem, so the rule is applied here as well. */
   const anchorMaterial=wasAbFv('material')||'MS';
+  const finish=dcFinishFor(anchorMaterial,getFinish('was'));
   const desc=materialLabel(anchorMaterial)+' WELDING ANCHOR SET';
   // Capture form data
   const formData={
@@ -7252,7 +7300,13 @@ function fillWASFormFromItem(item){
    the form when it returns false. */
 function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,sizeCode,sizeType,accessories,weight){
   if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return false; }
-  const finish=getFinish(type);
+  /* SS304 and SS316 are quoted without a finish. The rule held everywhere only
+     because updateFinishAvailability forces the N/A radio whenever the material
+     select says stainless — a DOM side effect, not a rule, and it does not hold
+     for a form whose material lives somewhere else or for a value restored from
+     storage. Applied HERE it holds for every product, on the one line every
+     committed item goes through, whatever the radio says. */
+  const finish=dcFinishFor(material,getFinish(type));
   const acc=accessories||{nut:{enabled:false,qty:2,finish:'',unitPrice:0},fw:{enabled:false,qty:1,finish:'',unitPrice:0},custom:{enabled:false,text:'',unitPrice:0}};
   /* The caller's totalAmount was the bolt price times the quantity. The line
      also carries the accessories, so it is settled here — one place, for every
@@ -7641,7 +7695,14 @@ function switchRefTab(key){
   ['cost','addcost','pricemode','examples'].forEach(k=>el('ref-'+k).classList.toggle('active',k===key));
 }
 let toastTimer;
+/* While an add is being attempted, the messages the calculators emit are
+   collected as well as shown. They are the only place a refusal is ever stated
+   — "Additional Cost is blank", "Enter H, ID and S", "Total Length is 0" — and
+   the summary that followed used to overwrite them before anybody could read
+   one, leaving "check the remaining rows" in their place. */
+let dcToastCapture=null;
 function showToast(msg){
+  if(dcToastCapture) dcToastCapture.push(String(msg));
   const t=el('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
 }
@@ -8133,11 +8194,13 @@ function phListHtml(state,onUse,onMore){
 let phFormState=null;
 function phFormSpec(){
   const t=currentType;
-  const material=fv(t,'material');
-  const isSS=material==='SS304'||material==='SS316';
+  /* The rule, and the form's real material — a Welding Anchor Set keeps its in
+     was-ab-material, and reading the wrong element asked history for a finish a
+     stainless item never has. */
+  const material=dcFormMaterial(t);
   return {productType:ITEM_TYPES[t]||t, material,
           sizeType:t==='stud'?'':fv(t,'sizeType'),
-          finish:isSS?'':getFinish(t),
+          finish:dcFinishFor(material,getFinish(t)),
           cleanSize:normalizeSizeValue(fv(t,'size')),
           dimensionPreview:''};
 }
@@ -8294,6 +8357,11 @@ function checkHandoff(){
      sent, and those are not ours to rewrite. */
   quoteItems=(payload.items||[]).map(i=>({...i,
     sizeType:dcSizeTypeFor(resolveItemType(i||{}),i&&i.sizeType),
+    /* Same reasoning as the size type beside it: a stainless item saved before
+       the rule existed, or built through a path that did not apply it, comes
+       back carrying PL or HDG — and a hard rule that only applied to new items
+       would not be a hard rule. */
+    finish:dcFinishFor(i&&i.material,i&&i.finish),
     customDimensions:dcNormalizeCustomDims(i&&i.customDimensions)}));
   editingItemIndex=null;
   editingQuoteId=payload.id||null;
@@ -8439,6 +8507,11 @@ function applyDefaultPrice(){
   const stale=!!(prev && prev.key!==key);
   const crEl=el(type+'-costRate'), acEl=el(type+'-addCost'), mkEl=el(type+'-markup');
   const match=findDPMatch(type,material,sizeType,size,finish);
+  /* What the rules have already written FOR THIS IDENTITY. applyDefaultPrice
+     runs several times per identity — a size commit, a recalculation, a render
+     — and only the first of those actually writes anything, so provenance has
+     to survive the calls that write nothing. */
+  const carried=(prev && prev.key===key) ? prev : {costRate:'',addCost:'',markup:''};
   /* Ours to write: not the person's, and either empty or still holding exactly
      what we wrote for a different identity. */
   const ours=(box,field)=>{
@@ -8447,11 +8520,27 @@ function applyDefaultPrice(){
     return stale && String(box.value)===String(prev[field]);
   };
   if(match){
+    /* Decided BEFORE anything is written, because writing changes the very
+       values these answers are read from. */
+    const mine={costRate:ours(crEl,'costRate'), addCost:ours(acEl,'addCost'), markup:ours(mkEl,'markup')};
     let wrote=false;
-    if(ours(crEl,'costRate')){ crEl.value=parseFloat(match.costRate||0).toFixed(2); wrote=true; }
-    if(ours(acEl,'addCost')){  acEl.value=parseFloat(match.addCost||0).toFixed(2);  wrote=true; }
-    if(ours(mkEl,'markup')){   mkEl.value=String(match.markup||0);                  wrote=true; }
-    dpAutoFilled[type]={key, costRate:crEl?crEl.value:'', addCost:acEl?acEl.value:'', markup:mkEl?mkEl.value:''};
+    if(mine.costRate){ crEl.value=parseFloat(match.costRate||0).toFixed(2); wrote=true; }
+    if(mine.addCost){  acEl.value=parseFloat(match.addCost||0).toFixed(2);  wrote=true; }
+    if(mine.markup){   mkEl.value=String(match.markup||0);                  wrote=true; }
+    /* Provenance covers the fields this rule actually WROTE — not whatever was
+       standing in the boxes. Recording the boxes claimed the thread-length
+       surcharge that onThreadLenChange had just derived, and the next identity
+       change then overwrote it as if it were ours. In a Quick Add list every
+       row is a new identity, so each row wiped the one before it: an MS Sag Rod
+       M16 x 300 TL 50/50 that the calculator quotes at RM 1.93 came out of a
+       two-row Quick Add at RM 1.33, the surcharge silently gone from a
+       customer's price. Entered by hand it kept the 0.60, because there was no
+       previous identity to be stale against — so the two screens disagreed
+       about the same item. */
+    dpAutoFilled[type]={key,
+      costRate: mine.costRate&&crEl ? crEl.value : carried.costRate,
+      addCost:  mine.addCost&&acEl  ? acEl.value : carried.addCost,
+      markup:   mine.markup&&mkEl   ? mkEl.value : carried.markup};
     /* The badge is a statement about THIS item. It must not claim a rule was
        applied to an item whose rates the person supplied themselves. */
     if(stat) stat.classList.toggle('show', wrote || !!(prev&&prev.key===key));
@@ -8465,8 +8554,18 @@ function applyDefaultPrice(){
       delete dpAutoFilled[type];
     }
     /* Provenance is recorded even when no rule matched, so the NEXT identity
-       change can still tell a value the rules wrote from one a person typed. */
-    dpAutoFilled[type]={key, costRate:crEl?crEl.value:'', addCost:acEl?acEl.value:'', markup:mkEl?mkEl.value:''};
+       change can still tell a value the rules wrote from one a person typed.
+
+       What is recorded is what the rules WROTE, and when no rule matched they
+       wrote nothing. Recording the boxes instead claimed everything standing in
+       them — including the thread-length surcharge onThreadLenChange had just
+       derived — and the next identity change then deleted it as if it were
+       ours. In a Quick Add list every row is a new identity, so each row wiped
+       the one before it: an MS Sag Rod M16 x 300 TL 50/50 quoted RM 1.93 by
+       hand came out of a two-row Quick Add at RM 1.33, the surcharge silently
+       gone from a customer's price. */
+    dpAutoFilled[type]={key, costRate:carried.costRate, addCost:carried.addCost,
+                             markup:carried.markup};
     if(stat) stat.classList.remove('show');
     if(cleared) recalcCurrent();
   }
@@ -10221,7 +10320,10 @@ function wqaUpdateAddButton(){
      screen says why, and Add waits for an explicit acknowledgement. */
   const needAck = !!(wqa.truncated && !wqa.truncAck);
   el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',live.length);
-  btn.disabled = live.length===0 || blocked>0 || needAck;
+  /* A row that needs attention holds up itself, not the list. Twenty items
+     could not be added because one of them was short of a material, with the
+     button greyed and nothing saying which row it meant. */
+  btn.disabled = live.length===0 || blocked>=live.length || needAck;
   btn.textContent = live.length? dcT('wqaAddNItems').replace('{n}',live.length) : dcT('wqaAddItems');
   const ft=el('wqaFootTotal'), fn=el('wqaFootNeed');
   if(ft) ft.textContent=dcT('nItems').replace('{n}',live.length);
@@ -13385,7 +13487,29 @@ function wqaRowMissing(r){
      50/110, an Anchor Bolt as the single value 100. Product-specific, never one
      rule for all — a Stud has no thread and is never asked for one. */
   if(prod.threadEnds>0 && !wqaThreadValue(r)) miss.push('Thread');
-  if(!(parseFloat(r.calc&&r.calc.finalUnitPrice)>0)) miss.push('Price');
+  /* ── The same two boxes the ADD path insists on ────────────────────────
+     A row is priced one of two ways, and each way has its own requirement.
+
+     COMPUTED (Auto Round, No Round): the price comes out of weight x cost
+     rate + additional cost, so the rate has to be there — and on a product
+     with no automatic pricing the surcharge has to be there too. Both are
+     asked for HERE, on the row, where a person can answer them, instead of
+     being discovered at the click. This is the half of the live blocker the
+     screen was hiding: an L Bolt with a rate typed and no surcharge showed a
+     price, said nothing was missing, and was then refused by the calculator.
+
+     STATED (Manual Price, and the price reused from a previous quotation):
+     the figure IS the price. Nothing is computed from a rate, so neither box
+     is required — asking for them was the other half of the blocker. */
+  let rateMissing=false;
+  if(t && (r.priceMode||'auto')!=='manual'){
+    if(!String((r.calc&&r.calc.costRate)||'').trim()){ miss.push('Cost Rate'); rateMissing=true; }
+    if(dcNeedsTypedAddCost(t) && !String((r.calc&&r.calc.addCost)||'').trim()){
+      miss.push('Additional Cost'); rateMissing=true; }
+  }
+  /* A blank rate ALREADY explains a price of zero. Saying both would ask the
+     same question twice and hide which one to answer. */
+  if(!rateMissing && !(parseFloat(r.calc&&r.calc.finalUnitPrice)>0)) miss.push('Price');
   return miss;
 }
 
@@ -13910,7 +14034,7 @@ function wqaExpectedDimPreview(r){
 async function wqaAddAll(){
   if(wqa.busy) return;
   const live=wqa.rows.filter(r=>!r.removed);
-  if(!live.length || live.some(wqaRowBlocked)) return;
+  if(!live.length) return;
   /* The button is disabled for this, but the function is also reachable from a
      keyboard shortcut and from a stale click, so the rule lives here too. */
   if(wqa.truncated && !wqa.truncAck){ wqaRenderPartial(); return; }
@@ -13924,41 +14048,64 @@ async function wqaAddAll(){
   wqa.busy=true;
   const btn=el('wqaAddBtn'); const label=btn.textContent; btn.disabled=true; btn.textContent='Adding…';
   const before=quoteItems.length;
+  /* Every row is tried. What goes in, goes in; what cannot, stays on screen
+     with the reason beside it, and the review does not close over the top of
+     it. The old loop skipped anything short of a quantity, added the rest and
+     then closed regardless — so a row that did not make it was not merely
+     unadded, it was gone, and "check the remaining rows" pointed at a list
+     that no longer existed. */
+  const stuck=[];
+  const nameOf=r=>`${(wqaProductByType(wqaRowProduct(r))||WQA_NO_PRODUCT).label} ${r.size||''}`.trim();
   try{
     for(const r of live){
-      if(!(parseInt(r.qty,10)>0)) continue;   // no qty: the calculator would refuse it
+      /* What THIS row is short of, in its own words, before the calculator is
+         troubled with it. */
+      if(r.productConflict){
+        stuck.push({r, why:`${nameOf(r)} — `+dcT('wqaConflictWhy')
+          .replace('{p}',r.productConflict.said).replace('{g}',r.productConflict.saw)});
+        continue;
+      }
+      const miss=wqaRowMissing(r);
+      if(miss.length){
+        stuck.push({r, why:`${nameOf(r)} — `+miss.map(x=>dcT('needs')
+          .replace('{f}',dcT('field'+x.replace(/\s/g,''),x))).join(' / ')});
+        continue;
+      }
+      if(!(parseInt(r.qty,10)>0)){
+        stuck.push({r, why:`${nameOf(r)} — `+dcT('needs').replace('{f}',dcT('fieldQty'))});
+        continue;
+      }
       /* Each row is committed through ITS OWN product's calculator — the same
          add path as before, chosen per row instead of once for the list. */
+      const n0=quoteItems.length;
       switchType(wqaRowProduct(r));
       wqaApplyRowToForm(r);
-      addCurrentItem();                 // the REAL add path: validation, calc, pushItem
+      dcToastCapture=[];
+      try{ addCurrentItem(); }            // the REAL add path: validation, calc, pushItem
+      catch(err){ dcToastCapture.push(String((err&&err.message)||err)); }
+      const said=dcToastCapture||[]; dcToastCapture=null;
+      if(quoteItems.length>n0) r.removed=true;           // it is in the quotation now
+      else stuck.push({r, why:`${nameOf(r)} — `+(said[0]||dcT('wqaAddRefused'))});
     }
   } finally {
+    dcToastCapture=null;
     wqaLiveProducts().forEach(t=>resetAccPanel(t));
     wqa.busy=false; btn.disabled=false; btn.textContent=label;
   }
   const added=quoteItems.length-before;
-  const noQty=live.filter(r=>!(parseInt(r.qty,10)>0)).length;
-  /* When a row does not make it, say WHICH row and WHY — "0 of 1 added" tells
-     nobody anything. The reason comes from the row itself: what it is missing,
-     or, when nothing is missing on our side, that the calculator refused it. */
-  const blocked=live.filter(r=>parseInt(r.qty,10)>0).map(r=>{
-    const miss=wqaRowMissing(r).filter(x=>x!=='Price');
-    const name=(wqaProductByType(wqaRowProduct(r))||WQA_NO_PRODUCT).label;
-    const why=r.productConflict
-            ? dcT('wqaConflictWhy').replace('{p}',r.productConflict.said)
-                                   .replace('{g}',r.productConflict.saw)
-            : (miss.length ? miss.map(x=>dcT('needs').replace('{f}',x)).join(' / ')
-            : (!fv(wqaRowProduct(r),'diameter') && r.size ? dcT('wqaNoCalcDia') : ''));
-    return why ? `${name} ${r.size||''} — ${why}`.trim() : '';
-  }).filter(Boolean);
-  wqaHardClose();          // a successful add is the other path that may clear state
-  showToast(added===live.length
-    ? `${added} item${added===1?'':'s'} added from WhatsApp`
-    : (noQty && added+noQty===live.length
-        ? `${added} added · ${noQty} skipped — enter a quantity for those`
-        : `${added} of ${live.length} added` + (blocked.length ? ' · '+blocked.slice(0,2).join(' · ') : ' — check the remaining rows')));
-  goToStep(3);
+  if(!stuck.length){
+    wqaHardClose();        // a successful add is the other path that may clear state
+    showToast(`${added} item${added===1?'':'s'} added from WhatsApp`);
+    goToStep(3);
+    return;
+  }
+  /* Something is still to be answered, so the review stays open holding exactly
+     those rows — the ones already in the quotation are taken out of it, so a
+     second press cannot add them twice. */
+  wqaRenderRows(true);
+  showToast((added?`${added} added · `:'')+`${stuck.length} to fix — `
+            +stuck.slice(0,2).map(x=>x.why).join(' · ')
+            +(stuck.length>2?` · +${stuck.length-2}`:''));
 }
 
 /* ── init ── */

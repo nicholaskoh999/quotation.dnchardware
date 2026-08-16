@@ -19,6 +19,16 @@
  */
 
 /** Product names as the quotation writes them, so 'sagrod' and 'Sag Rod' meet. */
+/* The browser's DC_NO_FINISH_MATERIALS, on this side of the wire. SS304 and
+   SS316 are quoted without a finish, so identity must not ask one of them for
+   a PL — and must not refuse a record that was stored carrying one. Kept beside
+   the other identity helpers rather than inside the comparison, because both
+   sides of that comparison need it. */
+const DC_NO_FINISH_MATERIALS = ['SS304', 'SS316'];
+function dc_finish_for($material, $finish) {
+    $m = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string)$material));
+    return in_array($m, DC_NO_FINISH_MATERIALS, true) ? '' : (string)$finish;
+}
 function dc_norm_product($raw) {
     $s = strtoupper(preg_replace('/[-\s]+/', '', (string)$raw));
     $map = ['SAGROD'=>'SAG ROD','STUD'=>'STUD','ANCHORBOLT'=>'ANCHOR BOLT','UBOLT'=>'U BOLT',
@@ -194,12 +204,19 @@ function dc_history_record($item, $want, $meta) {
         $dimPreview  = $parsed['dimensionPreview'];
         $legacy      = true;
     }
-    $finish = (string)($item['finish'] ?? '');
+    /* SS304 and SS316 are quoted without a finish, and identity has to agree
+       with the quotation. A stainless item stored before that rule was enforced
+       everywhere carries PL or HDG, and comparing it literally made it invisible
+       to its own specification: the browser asks for finish '' on a stainless
+       row, the record answered 'HDG', and a real previous price for the very
+       same item never appeared. Normalised on BOTH sides of the comparison, so
+       old records match and nothing else moves. */
+    $finish = dc_finish_for((string)($item['material'] ?? ''), (string)($item['finish'] ?? ''));
 
     if ($productType !== dc_norm_product($want['productType'] ?? ''))       return null;
     if (strcasecmp($material,  (string)($want['material'] ?? '')) !== 0)    return null;
     if (strcasecmp($sizeType,  (string)($want['sizeType'] ?? '')) !== 0)    return null;
-    if (strcasecmp($finish,    (string)($want['finish'] ?? '')) !== 0)      return null;
+    if (strcasecmp($finish, dc_finish_for($material, (string)($want['finish'] ?? ''))) !== 0) return null;
     if (strcasecmp($cleanSize, (string)($want['cleanSize'] ?? '')) !== 0)   return null;
 
     $form  = is_array($item['formData'] ?? null) ? $item['formData'] : [];
