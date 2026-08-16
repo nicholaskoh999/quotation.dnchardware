@@ -13,8 +13,11 @@ DELTA BASELINE (pass 2 baseline, as given in the brief)
 MINI-DELTA BASELINE (pass 3)
   7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a
 
-DEPLOY COMMIT  <-- deploy this one
+LIVE-ACCEPTANCE BASELINE (pass 4)
   f250426346c1a256350fca2b12c54f1f5de034b4
+
+DEPLOY COMMIT  <-- deploy this one
+  8c43da75e2110772ad9a4d7d744c9491c0181c5e
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -65,18 +68,24 @@ COMMITS ON THIS BRANCH
   fba453a  The same defect, through a second door
   7d0981f  Audit package: stamp the commit to deploy
   f250426  A bolt's price is the bolt's
+  7c87951  Audit package: stamp the commit to deploy
+  8c43da7  The drawing's own words, and whose dimension is whose
 
-REGRESSION AT f250426
-  14 browser suites          881 assertions   0 failed
+REGRESSION AT 8c43da7
+  15 browser suites          952 assertions   0 failed
   ai_extract (PHP)            64 assertions   0 failed
   pricing history (PHP)       72 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     1079 assertions   0 failed
+  TOTAL                     1150 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the one check I cannot perform
   Run HAB-TA-01.pdf and the 29-row anchor-bolt screenshot through the live
   Analyze path once, and compare against 950 / 865 / 1000 / 1200 / 1285 and
-  29 rows. Everything downstream of the model's answer is proven by the suite;
-  the answer itself needs a live API key.
+  29 rows. Everything downstream of the model's answer is proven by the suite:
+  the extraction production actually returned — rows 3 and 5 ambiguous — is a
+  fixture in tests/suites/15-dimension-schema.test.js and resolves to 1000 and
+  1285 without manual confirmation. What still needs a live API key is whether
+  the improved prompt makes the model place those dimensions correctly in the
+  first place, so that elimination is not needed at all.
