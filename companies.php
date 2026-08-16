@@ -705,7 +705,7 @@ input,select,textarea{
 <body>
 
 <div class="page-header">
-  <a class="brand-link" href="index.php" aria-label="Der-Cheng Quotation — home">
+  <a class="brand-link" href="index.php" data-i18n-aria="ariaHome" aria-label="Der-Cheng Quotation — home">
     <img class="logo" src="/assets/icons/icon-192.png" alt="" width="32" height="32" decoding="async">
     <div class="header-text">
       <h1>Der-Cheng Quotation</h1>
@@ -899,6 +899,12 @@ const I18N={
     /* Example values stay as typed — they show the expected FORMAT. */
     phCompanyEg:'e.g. SL Struktur Sdn Bhd', phShortEg:'e.g. SLSPJ',
     phPhoneEg:'03-XXXX XXXX', phOptional:'Optional',
+    /* Written straight into the markup and the toasts before this, so they
+       stayed English in 中文. The card action buttons carry an icon and their
+       only wording is the tooltip. */
+    btnEdit:'Edit', btnDelete:'Delete',
+    tDuplicated:'📄 Duplicated as #{n}', tQuoteNotFound:'Quotation {r} not found',
+    ariaHome:'Der-Cheng Quotation — home',
   },
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
@@ -940,6 +946,9 @@ const I18N={
     brandSub:'报价系统 · v2.24.0',
     phCompanyEg:'例如 SL Struktur Sdn Bhd', phShortEg:'例如 SLSPJ',
     phPhoneEg:'03-XXXX XXXX', phOptional:'可选',
+    btnEdit:'编辑', btnDelete:'删除',
+    tDuplicated:'📄 已复制为 #{n}', tQuoteNotFound:'找不到报价单 {r}',
+    ariaHome:'Der-Cheng 报价系统 — 首页',
   },
 };
 function dcLang(){
@@ -1428,8 +1437,8 @@ function renderCompanyCards(){
             <span class="cc-quote-line">${quoteLine}</span>
           </span>
           <span class="cc-icon-actions">
-            <button class="cc-icon-btn" title="Edit" onclick="event.stopPropagation();openEditCompany(${c.id},'${esc(c.name)}','${esc(c.short_code||'')}','${esc(c.phone||'')}','${esc(c.address||'')}')">✏️</button>
-            <button class="cc-icon-btn" title="Delete" onclick="event.stopPropagation();deleteCompany(${c.id},'${esc(c.name)}')">🗑️</button>
+            <button class="cc-icon-btn" title="${esc(dcT('btnEdit'))}" onclick="event.stopPropagation();openEditCompany(${c.id},'${esc(c.name)}','${esc(c.short_code||'')}','${esc(c.phone||'')}','${esc(c.address||'')}')">✏️</button>
+            <button class="cc-icon-btn" title="${esc(dcT('btnDelete'))}" onclick="event.stopPropagation();deleteCompany(${c.id},'${esc(c.name)}')">🗑️</button>
           </span>
         </div>
       </div>`;
@@ -1747,7 +1756,7 @@ async function duplicateQuote(id){
   q.date=q.quote_date;
   q.valid_until='';
   const saveRes=await api('save_quotation',q,'POST');
-  if(saveRes.ok){showToast('📄 Duplicated as #'+saveRes.id);await loadAllQuotations();renderSummary();renderCompanyCards();selectCompany(selectedCompanyId);}
+  if(saveRes.ok){showToast(dcT('tDuplicated').replace('{n}',saveRes.id));await loadAllQuotations();renderSummary();renderCompanyCards();selectCompany(selectedCompanyId);}
   else showToast(dcT('msgFailed'));
 }
 
@@ -1831,7 +1840,7 @@ async function openByRefFromUrl(){
   const res=await api('find_quotation&ref='+encodeURIComponent(ref));
   const hits=(res&&res.ok&&res.data)||[];
   if(hits.length===1){ viewQuote(hits[0].id); }
-  else if(hits.length===0){ showToast('Quotation '+ref+' not found'); }
+  else if(hits.length===0){ showToast(dcT('tQuoteNotFound').replace('{r}',ref)); }
   else {
     /* A retired number can match several quotations. If exactly one still carries
        this number as its CURRENT ref, open that one; otherwise fall back to search. */

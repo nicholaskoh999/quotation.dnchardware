@@ -2383,7 +2383,7 @@ input,select,textarea{
 <!-- HEADER -->
 <div class="app-header">
   <button class="hdr-burger" id="burgerBtn" onclick="toggleSidebar()">☰</button>
-  <a class="hdr-brand" href="index.php" aria-label="Der-Cheng Quotation — home">
+  <a class="hdr-brand" href="index.php" data-i18n-aria="ariaHome" aria-label="Der-Cheng Quotation — home">
     <img class="hdr-logo" src="/assets/icons/icon-192.png" alt="" width="32" height="32" decoding="async">
     <div class="hdr-text">
       <h1>Der-Cheng Quotation</h1>
@@ -3651,7 +3651,7 @@ input,select,textarea{
           <div class="wqa-file-info" id="wqaFileInfo" data-i18n="wqaNoFile">No file selected</div>
         </div>
         <div class="wqa-ai-preview" id="wqaAiPreviewBox" hidden>
-          <img id="wqaAiPreview" alt="preview" hidden>
+          <img id="wqaAiPreview" data-i18n-alt="altPreview" alt="preview" hidden>
           <div class="wqa-pdf-chip" id="wqaAiPdfChip" hidden>
             <span class="wqa-pdf-badge">PDF</span><span id="wqaAiPdfName"></span>
           </div>
@@ -4178,7 +4178,11 @@ const I18N={
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
     wqaAddRefused:'the calculator refused this row', fieldQty:'Qty',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
-    wqaThreadRef:'Thread Reference', wqaThreadRefHint:'1.75P · UNC · BSW',
+    wqaThreadRef:'Thread Reference',
+    /* Context-sensitive: see dcThreadRefHintKey. A metric size is never offered
+       UNC or BSW, because neither is a choice for it. */
+    wqaThreadRefHintMetric:'e.g. 1.75P', wqaThreadRefHintSeries:'UNC / BSW',
+    wqaThreadRefHintAny:'Optional reference',
     phUseOnThis:'Use on this item', phMoreWays:'More ways to apply this price',
     phApplyCompatible:'Apply to compatible items ({n})…', phSelectItems:'Select items…',
     phSelectItemsTitle:'Apply Previous Price', phApplyPrevious:'Apply Previous Price',
@@ -4352,6 +4356,64 @@ const I18N={
     tLegacyAccSplit:'This item was priced before accessories were separated. {a} of accessories has been moved out of the manual price, leaving {b} for the item itself. The line total is unchanged.',
     tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
     tSagRodAdded:'Sag Rod added', tStudAdded:'Stud added', tAnchorAdded:'Anchor Bolt added',
+    /* ── Validation, status and the words on generated controls ────────────
+       Every one of these used to be written straight into a showToast or a
+       title attribute, so it stayed in English however the language was set:
+       a person working in 中文 was told "Enter Diameter" and "Cost Rate is
+       blank". Dimension letters (L, W, H, ID, S, OH), product names and RM
+       keep their own spelling in both languages — they are the trade's
+       vocabulary, not prose. */
+    tEnterSize:'Enter Size', tEnterDiameter:'Enter Diameter', tEnterLength:'Enter Length',
+    tEnterL:'Enter L', tEnterLW:'Enter L and W dimensions', tEnterOHW:'Enter OH and W',
+    tEnterHIDS:'Enter H, ID and S', tEnterProductName:'Enter Product Name',
+    tEnterDimText:'Enter Dimension Text', tEnterUnitWeight:'Enter Unit Weight',
+    tEnterCostRate:'Enter Cost Rate', tEnterManualPrice:'Enter Manual Unit Price',
+    tEnterSizeValue:'Enter a Size value', tEnterValidDia:'Enter a valid Diameter',
+    tEnterSizeFirst:'Enter a Size first.',
+    tRateBlankDot:'Cost Rate is blank. Enter price before adding.',
+    tRateBlank:'Cost Rate is blank — enter price before adding',
+    tAddCostBlank:'Additional Cost is blank — enter price before adding',
+    tEnterRateFirst:'⚠️ Enter Cost Rate before adding',
+    tEnterAnchorRate:'⚠️ Enter Anchor Cost Rate',
+    tEnterPlateRate:'⚠️ Enter Base Plate Cost Rate',
+    tEnterTriRate:'⚠️ Enter Triangle Plate Cost Rate',
+    tRateManualOnly:'Cost Rate must be entered manually for this product type.',
+    tLen0IdIh:'Total Length is 0 — check Diameter, ID, IH',
+    tLen0OhW:'Total Length is 0 — check OH, W, Diameter',
+    tLen0LW:'Total Length is 0 — check L, W, Diameter',
+    tLen0HIdS:'Total Length is 0 — check H, ID, S, Diameter',
+    tSetWeight0:'⚠️ Set weight is 0 — check the dimensions',
+    tEnterLWT:'⚠️ Enter Length, Width and Thickness',
+    tEnterHoles:'⚠️ Enter Hole Dia. and Holes',
+    tEnterTri:'⚠️ Enter Triangle Plate Length, Height and Thickness',
+    tEnterAnchorDims:'⚠️ Enter Anchor Bolt dimensions',
+    tEnterPlateDims:'⚠️ Enter Base Plate dimensions',
+    tClickEditFirst:'Click Edit Saved Quotation first',
+    tFinishItemEdit:'Update or cancel item edit first',
+    tAddItemsFirst:'Add items first', tAddOneItem:'Add at least 1 item',
+    tCustomerRequired:'Customer is required', tEditCancelled:'Edit cancelled',
+    tItemRemoved:'Item removed', tListCleared:'Quotation list cleared',
+    tNewQuotation:'New quotation started',
+    tUnlocked:'Saved quotation unlocked for editing',
+    tNoRefNo:'Unable to get quotation number. Please check API/database.',
+    tSaveFailed:'Save failed: {e}', tTemplateSaved:'Template saved',
+    tTemplateFailed:'Template save failed: {e}', tImportFailed:'Import failed: {e}',
+    tNothingImport:'Nothing to import', tUpdateFailed:'Update failed',
+    tDeleteFailed:'Delete failed', tDiaSaved:'Diameter setting saved',
+    tDiaDeleted:'Diameter rule deleted', tDiaCleared:'All diameter rules cleared',
+    tLoadedQuote:'Loaded quotation {r}',
+    tSavedAsTaken:'Saved as {a} — number {b} was already taken',
+    tServerError:'server error', tNetworkError:'Network/API error',
+    tApiError:'Unknown API error',
+    tManualApplied:'Manual unit price RM{p} applied to {n} item(s)',
+    tAccApplied:'Accessories applied to {n} item(s)',
+    tAddedFromWhatsApp:'{n} item(s) added from WhatsApp',
+    tAddedItem:'Added #{n} — {d}  {p}',
+    tAdding:'Adding…', lblCurrent:'Current: ', dpAddRule:'Add Default Price Rule',
+    btnEdit:'Edit', btnDelete:'Delete', btnRemove:'Remove',
+    tipItemHistory:'Pricing history for this item',
+    ariaHome:'Der-Cheng Quotation — home', altPreview:'preview',
+    ariaSelectItem:'Select item {n}', ariaRemoveItem:'Remove item {n}',
   },
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
@@ -4434,7 +4496,10 @@ const I18N={
     wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
     wqaAddRefused:'计算器拒绝了此项目', fieldQty:'数量',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
-    wqaThreadRef:'螺纹参考', wqaThreadRefHint:'1.75P · UNC · BSW',
+    wqaThreadRef:'螺纹参考',
+    /* UNC and BSW are thread-series codes and stay in their own spelling. */
+    wqaThreadRefHintMetric:'例如 1.75P', wqaThreadRefHintSeries:'UNC / BSW',
+    wqaThreadRefHintAny:'选填参考',
     phUseOnThis:'用于此项目', phMoreWays:'更多应用方式',
     phApplyCompatible:'应用到相符项目 ({n})…', phSelectItems:'选择项目…',
     phSelectItemsTitle:'应用历史价格', phApplyPrevious:'应用历史价格',
@@ -4607,6 +4672,59 @@ const I18N={
     tLegacyAccSplit:'此项目在配件分开计价之前建立。已从手动价格中拆出配件 {a}，本体价格为 {b}，行总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
+    /* Dimension letters (L、W、H、ID、S、OH)、产品名称与 RM 保持原有写法 —
+       它们是行业用语，不是需要翻译的句子。 */
+    tEnterSize:'请输入尺寸', tEnterDiameter:'请输入直径', tEnterLength:'请输入长度',
+    tEnterL:'请输入 L', tEnterLW:'请输入 L 和 W 尺寸', tEnterOHW:'请输入 OH 和 W',
+    tEnterHIDS:'请输入 H、ID 和 S', tEnterProductName:'请输入产品名称',
+    tEnterDimText:'请输入尺寸说明', tEnterUnitWeight:'请输入单件重量',
+    tEnterCostRate:'请输入成本单价', tEnterManualPrice:'请输入手动单价',
+    tEnterSizeValue:'请输入尺寸数值', tEnterValidDia:'请输入有效的直径',
+    tEnterSizeFirst:'请先输入尺寸。',
+    tRateBlankDot:'成本单价为空，请先输入价格再加入。',
+    tRateBlank:'成本单价为空 — 请先输入价格再加入',
+    tAddCostBlank:'额外费用为空 — 请先输入价格再加入',
+    tEnterRateFirst:'⚠️ 请先输入成本单价再加入',
+    tEnterAnchorRate:'⚠️ 请输入锚栓成本单价',
+    tEnterPlateRate:'⚠️ 请输入底板成本单价',
+    tEnterTriRate:'⚠️ 请输入三角板成本单价',
+    tRateManualOnly:'此产品类型的成本单价必须手动输入。',
+    tLen0IdIh:'总长度为 0 — 请检查直径、ID、IH',
+    tLen0OhW:'总长度为 0 — 请检查 OH、W、直径',
+    tLen0LW:'总长度为 0 — 请检查 L、W、直径',
+    tLen0HIdS:'总长度为 0 — 请检查 H、ID、S、直径',
+    tSetWeight0:'⚠️ 整套重量为 0 — 请检查尺寸',
+    tEnterLWT:'⚠️ 请输入长度、宽度和厚度',
+    tEnterHoles:'⚠️ 请输入孔径和孔数',
+    tEnterTri:'⚠️ 请输入三角板长度、高度和厚度',
+    tEnterAnchorDims:'⚠️ 请输入锚栓尺寸',
+    tEnterPlateDims:'⚠️ 请输入底板尺寸',
+    tClickEditFirst:'请先点击「编辑已保存报价单」',
+    tFinishItemEdit:'请先完成或取消项目编辑',
+    tAddItemsFirst:'请先加入项目', tAddOneItem:'请至少加入 1 个项目',
+    tCustomerRequired:'必须选择客户', tEditCancelled:'已取消编辑',
+    tItemRemoved:'项目已删除', tListCleared:'报价项目已清空',
+    tNewQuotation:'已开始新的报价单',
+    tUnlocked:'已解锁此报价单以供编辑',
+    tNoRefNo:'无法取得报价单号，请检查 API／数据库。',
+    tSaveFailed:'保存失败：{e}', tTemplateSaved:'模板已保存',
+    tTemplateFailed:'模板保存失败：{e}', tImportFailed:'导入失败：{e}',
+    tNothingImport:'没有可导入的内容', tUpdateFailed:'更新失败',
+    tDeleteFailed:'删除失败', tDiaSaved:'直径设置已保存',
+    tDiaDeleted:'直径规则已删除', tDiaCleared:'已清除所有直径规则',
+    tLoadedQuote:'已载入报价单 {r}',
+    tSavedAsTaken:'已保存为 {a} — 单号 {b} 已被使用',
+    tServerError:'服务器错误', tNetworkError:'网络／API 错误',
+    tApiError:'未知的 API 错误',
+    tManualApplied:'手动单价 RM{p} 已应用到 {n} 个项目',
+    tAccApplied:'配件已应用到 {n} 个项目',
+    tAddedFromWhatsApp:'已从 WhatsApp 加入 {n} 个项目',
+    tAddedItem:'已加入 #{n} — {d}  {p}',
+    tAdding:'加入中…', lblCurrent:'当前：', dpAddRule:'新增默认价格规则',
+    btnEdit:'编辑', btnDelete:'删除', btnRemove:'移除',
+    tipItemHistory:'此项目的历史价格',
+    ariaHome:'Der-Cheng 报价系统 — 首页', altPreview:'预览',
+    ariaSelectItem:'选择第 {n} 项', ariaRemoveItem:'移除第 {n} 项',
   },
 };
 /* Current language. Anything other than a known code reads as 'en', so a
@@ -4631,6 +4749,7 @@ function dcApplyLang(){
   document.querySelectorAll('[data-i18n-ph]').forEach(n=>{ n.placeholder=dcT(n.getAttribute('data-i18n-ph')); });
   document.querySelectorAll('[data-i18n-aria]').forEach(n=>{ n.setAttribute('aria-label',dcT(n.getAttribute('data-i18n-aria'))); });
   document.querySelectorAll('[data-i18n-title]').forEach(n=>{ n.setAttribute('title',dcT(n.getAttribute('data-i18n-title'))); });
+  document.querySelectorAll('[data-i18n-alt]').forEach(n=>{ n.setAttribute('alt',dcT(n.getAttribute('data-i18n-alt'))); });
   document.querySelectorAll('[data-lang-set]').forEach(b=>{
     const on=b.getAttribute('data-lang-set')===l;
     b.classList.toggle('is-on',on);
@@ -5156,7 +5275,7 @@ function unlockSavedQuotation(){
   if(!confirm('Edit this saved quotation?\\n编辑已保存报价？')) return;
   setQuoteLockState(false,'editing');
   renderQuote();
-  showToast('Saved quotation unlocked for editing');
+  showToast(dcT('tUnlocked'));
 }
 function confirmDiscardUnsavedChanges(){
   if(!savedQuoteDirty) return true;
@@ -5406,8 +5525,8 @@ function validatePriceMode(type){
   const value=fv(type,'manualUnitPrice').trim();
   /* Unreadable is refused rather than read as zero: "2,80" must not become a
      free item any more than it should have become RM 2.00. */
-  if(!value||!isReadableAmount(value)){showToast('Enter Manual Unit Price');return false;}
-  if(evalExpr(value)<0){showToast('Enter Manual Unit Price');return false;}
+  if(!value||!isReadableAmount(value)){showToast(dcT('tEnterManualPrice'));return false;}
+  if(evalExpr(value)<0){showToast(dcT('tEnterManualPrice'));return false;}
   return true;
 }
 /* ── What has to be TYPED, and when ────────────────────────────────────────
@@ -5435,7 +5554,7 @@ function syncCostRateWarning(type){
   const materialManual=['sagrod','stud','anchorbolt'].includes(type)
     && ['S45C','S45C_HARDEN_G8_8','SS304','SS316','4340','4140_HARDEN_G10_9','4140_PLAIN','Y_BAR'].includes(fv(type,'material'));
   const show=(alwaysManual||materialManual)&&!fv(type,'costRate').trim();
-  warning.textContent='Cost Rate must be entered manually for this product type.';
+  warning.textContent=dcT('tRateManualOnly');
   warning.style.display=show?'block':'none';
 }
 function updatePriceModePreview(type){
@@ -5501,6 +5620,24 @@ const DC_THREAD_SERIES_SIZES=['1/2'];
 function dcSizeTakesSeries(size){
   return DC_THREAD_SERIES_SIZES.indexOf(normalizeSizeValue(size))>=0;
 }
+/* ── What the empty box should suggest ──────────────────────────────────────
+   One field, and what belongs in it is decided entirely by the size beside it:
+   a metric rod has a PITCH, and only 1/2" carries the approved UNC/BSW
+   distinction. Every other imperial size has no suggestion anyone could make
+   for it, so the box says it is optional rather than naming a series that does
+   not apply to it.
+
+   It used to be one fixed string on every row — "1.75P · UNC · BSW" — which
+   offered UNC and BSW to an M12 as though they were choices for it. The READING
+   rule was already right (dcThreadRefFrom attaches a series to 1/2" and to
+   nothing else); it was the help text beside it that disagreed. */
+function dcThreadRefHintKey(size){
+  const s=String(size==null?'':size).trim();
+  if(!s)                 return 'wqaThreadRefHintAny';
+  if(/^m\s*\d/i.test(s)) return 'wqaThreadRefHintMetric';
+  return dcSizeTakesSeries(s) ? 'wqaThreadRefHintSeries' : 'wqaThreadRefHintAny';
+}
+function dcThreadRefHint(size){ return dcT(dcThreadRefHintKey(size)); }
 /* One spelling for what is shown and stored: a pitch always ends in P, a series
    is upper case. Anything else a person types is kept as they typed it, trimmed
    — it is a note, and a note nobody can write is not a note. */
@@ -5821,8 +5958,8 @@ function resetDSForm(){
 async function saveDSRule(){
   const size=(el('ds-size').value||'').trim().toUpperCase();
   const diameter=parseFloat(el('ds-diameter').value);
-  if(!size){showToast('Enter a Size value');return}
-  if(isNaN(diameter)||diameter<=0){showToast('Enter a valid Diameter');return}
+  if(!size){showToast(dcT('tEnterSizeValue'));return}
+  if(isNaN(diameter)||diameter<=0){showToast(dcT('tEnterValidDia'));return}
   const type=el('ds-type').value;
   const noST=DS_TYPES_NO_SIZETYPE.includes(type);
   const rule={
@@ -5835,10 +5972,10 @@ async function saveDSRule(){
   };
   const action=rule.id?'update_diameter_setting':'save_diameter_setting';
   const res=await api(action,rule,'POST');
-  if(!res.ok){showToast('Save failed: '+(res.error||'server error'));return}
+  if(!res.ok){showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
   await refreshDSRules();
   if(rule.type===currentType){ autoFillDiameter(currentType); recalcCurrent(); }
-  showToast('Diameter setting saved');
+  showToast(dcT('tDiaSaved'));
   resetDSForm();
   renderDSList();
 }
@@ -5856,11 +5993,11 @@ function editDSRule(id){
 async function deleteDSRule(id){
   if(!confirm('Delete this diameter rule?')) return;
   const res=await api('delete_diameter_setting',{id},'POST');
-  if(!res.ok){showToast('Delete failed');return}
+  if(!res.ok){showToast(dcT('tDeleteFailed'));return}
   await refreshDSRules();
   renderDSList();
   autoFillDiameter(currentType); recalcCurrent();
-  showToast('Diameter rule deleted');
+  showToast(dcT('tDiaDeleted'));
 }
 async function clearAllDSRules(){
   const rules=loadDSRules().slice();
@@ -5868,7 +6005,7 @@ async function clearAllDSRules(){
   await refreshDSRules();
   renderDSList();
   autoFillDiameter(currentType); recalcCurrent();
-  showToast('All diameter rules cleared');
+  showToast(dcT('tDiaCleared'));
 }
 function renderDSList(){
   const q=(el('dsSearch').value||'').toLowerCase();
@@ -5903,8 +6040,8 @@ function renderDSList(){
       <td><strong>${parseFloat(r.diameter)||0}mm</strong></td>
       <td><span class="dp-badge ${isSystem?'dp-badge-system':'dp-badge-custom'}">${isSystem?'System Default / 系统默认':'Custom / 自定义'}</span></td>
       <td style="white-space:nowrap">
-        <button class="dp-act" onclick="editDSRule('${r.id}')" title="Edit">✎</button>
-        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDSRule('${r.id}')" title="Delete">✕</button>`}
+        <button class="dp-act" onclick="editDSRule('${r.id}')" title="${escHtml(dcT('btnEdit'))}">✎</button>
+        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDSRule('${r.id}')" title="${escHtml(dcT('btnDelete'))}">✕</button>`}
       </td>`;
     tbody.appendChild(tr);
   });
@@ -6115,7 +6252,7 @@ function updatePreview(weight,base,final){
 }
 function updateWASPreview(calc){
   const thirdLabel=document.querySelector('.cp-acc label');
-  if(thirdLabel) thirdLabel.textContent='Additional Cost';
+  if(thirdLabel) thirdLabel.textContent=dcT('lblAdditionalCost');
   el('cpWeight').textContent=calc.weights.setWeight>0?calc.weights.setWeight.toFixed(4)+' kg':'—';
   el('cpBase').textContent=fmt(calc.basePrice);
   el('cpAcc').textContent=calc.addCost?fmt(calc.addCost):'—';
@@ -6359,9 +6496,9 @@ function addSagRod(){
   const size=normalizeSizeValue(fv('sagrod','size'));
   const diameter=fn('sagrod','diameter'), length=fn('sagrod','length');
   const threadLen=fv('sagrod','threadLen').trim();
-  if(!size){showToast('Enter Size');return}
-  if(!diameter){showToast('Enter Diameter');return}
-  if(!length){showToast('Enter Length');return}
+  if(!size){showToast(dcT('tEnterSize'));return}
+  if(!diameter){showToast(dcT('tEnterDiameter'));return}
+  if(!length){showToast(dcT('tEnterLength'));return}
   if(!validateDims({'Diameter':diameter,'Length':length})) return;
   /* A rate and a surcharge are not interchangeable. This guard read
      `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
@@ -6371,7 +6508,7 @@ function addSagRod(){
      quotation must never produce. Every bent-product add path already
      required the rate on its own; these three now do too. */
   const costRateVal=fv('sagrod','costRate').trim();
-  if(dcRateRequired('sagrod') && !costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  if(dcRateRequired('sagrod') && !costRateVal){showToast(dcT('tRateBlankDot'));return}
   if(!validatePriceMode('sagrod')) return;
   const costRate=validateRateEntry('sagrod','costRate','Cost Rate'), addCost=validateRateEntry('sagrod','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6430,9 +6567,9 @@ function addStud(){
   const wasEditing=editingItemIndex!==null;
   const size=normalizeSizeValue(fv('stud','size'));
   const diameter=fn('stud','diameter'), length=fn('stud','l');
-  if(!size){showToast('Enter Size');return}
-  if(!diameter){showToast('Enter Diameter');return}
-  if(!length){showToast('Enter L');return}
+  if(!size){showToast(dcT('tEnterSize'));return}
+  if(!diameter){showToast(dcT('tEnterDiameter'));return}
+  if(!length){showToast(dcT('tEnterL'));return}
   if(!validateDims({'Diameter':diameter,'L':length})) return;
   /* A rate and a surcharge are not interchangeable. This guard read
      `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
@@ -6442,7 +6579,7 @@ function addStud(){
      quotation must never produce. Every bent-product add path already
      required the rate on its own; these three now do too. */
   const costRateVal=fv('stud','costRate').trim();
-  if(dcRateRequired('stud') && !costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  if(dcRateRequired('stud') && !costRateVal){showToast(dcT('tRateBlankDot'));return}
   if(!validatePriceMode('stud')) return;
   const costRate=validateRateEntry('stud','costRate','Cost Rate'), addCost=validateRateEntry('stud','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6478,9 +6615,9 @@ function addAnchorBolt(){
   const size=normalizeSizeValue(fv('anchorbolt','size'));
   const diameter=fn('anchorbolt','diameter'), length=fn('anchorbolt','l');
   const threadLen=fv('anchorbolt','threadLen').trim();
-  if(!size){showToast('Enter Size');return}
-  if(!diameter){showToast('Enter Diameter');return}
-  if(!length){showToast('Enter L');return}
+  if(!size){showToast(dcT('tEnterSize'));return}
+  if(!diameter){showToast(dcT('tEnterDiameter'));return}
+  if(!length){showToast(dcT('tEnterL'));return}
   if(!validateDims({'Diameter':diameter,'L':length})) return;
   /* A rate and a surcharge are not interchangeable. This guard read
      `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
@@ -6490,7 +6627,7 @@ function addAnchorBolt(){
      quotation must never produce. Every bent-product add path already
      required the rate on its own; these three now do too. */
   const costRateVal=fv('anchorbolt','costRate').trim();
-  if(dcRateRequired('anchorbolt') && !costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+  if(dcRateRequired('anchorbolt') && !costRateVal){showToast(dcT('tRateBlankDot'));return}
   if(!validatePriceMode('anchorbolt')) return;
   const costRate=validateRateEntry('anchorbolt','costRate','Cost Rate'), addCost=validateRateEntry('anchorbolt','addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6585,15 +6722,15 @@ function addUBolt(){
   const type='ubolt';
   const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
   const id=fv(type,'id'), ih=fv(type,'ih'), tl=fv(type,'threadLen');
-  if(!size){showToast('Enter Size');return}
-  if(!d){showToast('Enter Diameter');return}
+  if(!size){showToast(dcT('tEnterSize'));return}
+  if(!d){showToast(dcT('tEnterDiameter'));return}
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if(!totalLen){showToast('Total Length is 0 — check Diameter, ID, IH');return}
+  if(!totalLen){showToast(dcT('tLen0IdIh'));return}
   if(!validateDims({'Diameter':d,'Total Length':totalLen})) return;
   if((id&&parseFloat(id)<0)||(ih&&parseFloat(ih)<0)){showToast(dcT('tIdIhNeg'));return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
+  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
   if(!validatePriceMode(type)) return;
   const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6627,15 +6764,15 @@ function addSQUBolt(){
   const type='squbolt';
   const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
   const oh=fv(type,'oh'), w=fv(type,'w'), tl=fv(type,'threadLen');
-  if(!size){showToast('Enter Size');return}
-  if(!d){showToast('Enter Diameter');return}
-  if(!oh||!w){showToast('Enter OH and W');return}
+  if(!size){showToast(dcT('tEnterSize'));return}
+  if(!d){showToast(dcT('tEnterDiameter'));return}
+  if(!oh||!w){showToast(dcT('tEnterOHW'));return}
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if(!totalLen){showToast('Total Length is 0 — check OH, W, Diameter');return}
+  if(!totalLen){showToast(dcT('tLen0OhW'));return}
   if(!validateDims({'Diameter':d,'OH':oh,'W':w,'Total Length':totalLen})) return;
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
+  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
   if(!validatePriceMode(type)) return;
   const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6668,15 +6805,15 @@ function calcLBolt(type,skipAuto){
 function addLBolt(type='lbolt'){
   const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
   const l=fv(type,'l'), w=fv(type,'w'), tl=fv(type,'threadLen');
-  if(!size){showToast('Enter Size');return}
-  if(!l||!w){showToast('Enter L and W dimensions');return}
-  if(!d){showToast('Enter Diameter');return}
+  if(!size){showToast(dcT('tEnterSize'));return}
+  if(!l||!w){showToast(dcT('tEnterLW'));return}
+  if(!d){showToast(dcT('tEnterDiameter'));return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
+  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
   if(!validatePriceMode(type)) return;
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if(!totalLen){showToast('Total Length is 0 — check L, W, Diameter');return}
+  if(!totalLen){showToast(dcT('tLen0LW'));return}
   if(!validateDims({'Diameter':d,'L':l,'W':w,'Total Length':totalLen})) return;
   const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6714,15 +6851,15 @@ function addJBolt(){
   const type='jbolt';
   const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
   const h=fv(type,'h'), id=fv(type,'id'), s=fv(type,'s'), tl=fv(type,'threadLen');
-  if(!size){showToast('Enter Size');return}
-  if(!d){showToast('Enter Diameter');return}
-  if(!h||!id||!s){showToast('Enter H, ID and S');return}
+  if(!size){showToast(dcT('tEnterSize'));return}
+  if(!d){showToast(dcT('tEnterDiameter'));return}
+  if(!h||!id||!s){showToast(dcT('tEnterHIDS'));return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
-  if(dcRateRequired(type) && !addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
+  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
   if(!validatePriceMode(type)) return;
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if(!totalLen){showToast('Total Length is 0 — check H, ID, S, Diameter');return}
+  if(!totalLen){showToast(dcT('tLen0HIdS'));return}
   if(!validateDims({'Diameter':d,'H':h,'ID':id,'S':s,'Total Length':totalLen})) return;
   const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
   if(costRate===null||addCost===null) return;
@@ -6966,7 +7103,7 @@ dcOnRelabel(()=>{
   }
 });
 function editItem(i){
-  if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return; }
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
   if(!quoteItems[i]) return;
   fillItemFormFromItem(quoteItems[i]);
   editingItemIndex=i;
@@ -6975,11 +7112,11 @@ function editItem(i){
 }
 function cancelItemEdit(){
   setItemEditMode(null);
-  showToast('Edit cancelled');
+  showToast(dcT('tEditCancelled'));
 }
 
 function addCurrentItem(){
-  if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return; }
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
   if(currentType==='sagrod') addSagRod();
   else if(currentType==='stud') addStud();
   else if(currentType==='anchorbolt') addAnchorBolt();
@@ -7064,15 +7201,15 @@ function addOthers(){
   const diameter=fn('others','diameter'),length=fn('others','length');
   const weight=getOthersUnitWeight();
   const costRateValue=fv('others','costRate').trim();
-  if(!productName){showToast('Enter Product Name');return}
+  if(!productName){showToast(dcT('tEnterProductName'));return}
   /* Others / Special Bolt may be quoted without a material or size type — both
      are optional here and simply drop out of the description. Every other
      product type keeps its own requirements. */
-  if(!dimensionText){showToast('Enter Dimension Text');return}
-  if(weightMode==='length'&&diameter<=0){showToast('Enter Diameter');return}
-  if(weightMode==='length'&&length<=0){showToast('Enter Length');return}
-  if(weightMode==='manual'&&weight<=0){showToast('Enter Unit Weight');return}
-  if(!costRateValue||evalExpr(costRateValue)<=0){showToast('Enter Cost Rate');return}
+  if(!dimensionText){showToast(dcT('tEnterDimText'));return}
+  if(weightMode==='length'&&diameter<=0){showToast(dcT('tEnterDiameter'));return}
+  if(weightMode==='length'&&length<=0){showToast(dcT('tEnterLength'));return}
+  if(weightMode==='manual'&&weight<=0){showToast(dcT('tEnterUnitWeight'));return}
+  if(!costRateValue||evalExpr(costRateValue)<=0){showToast(dcT('tEnterCostRate'));return}
   const qty=validateQtyEntry('others');
   if(qty===null) return;
   if(!validatePriceMode('others')) return;
@@ -7175,15 +7312,15 @@ function addPlate(){
   if(qty===null) return;
   // Validation
   if(t==='ms_plate'){
-    if(!fn('plate','l')||!fn('plate','w')||!fn('plate','t')){showToast('⚠️ Enter Length, Width and Thickness');return;}
+    if(!fn('plate','l')||!fn('plate','w')||!fn('plate','t')){showToast(dcT('tEnterLWT'));return;}
     if(!validateDims({'Length':fn('plate','l'),'Width':fn('plate','w'),'Thickness':fn('plate','t')})) return;
-    if(getPlateHoleOption()!=='none'&&(!fn('plate','hd')||!fn('plate','nh'))){showToast('⚠️ Enter Hole Dia. and Holes');return;}
+    if(getPlateHoleOption()!=='none'&&(!fn('plate','hd')||!fn('plate','nh'))){showToast(dcT('tEnterHoles'));return;}
     if(getPlateHoleOption()!=='none'&&!validateDims({'Hole Dia.':fn('plate','hd'),'Holes':fn('plate','nh')})) return;
   } else {
-    if(!fn('plate','tri-l')||!fn('plate','tri-h')||!fn('plate','tri-t')){showToast('⚠️ Enter Triangle Plate Length, Height and Thickness');return;}
+    if(!fn('plate','tri-l')||!fn('plate','tri-h')||!fn('plate','tri-t')){showToast(dcT('tEnterTri'));return;}
     if(!validateDims({'Length':fn('plate','tri-l'),'Height':fn('plate','tri-h'),'Thickness':fn('plate','tri-t')})) return;
   }
-  if(!costRate){showToast('⚠️ Enter Cost Rate before adding');return;}
+  if(!costRate){showToast(dcT('tEnterRateFirst'));return;}
   if(!validatePriceMode('plate')) return;
   const weight=calcPlateWeight();
   const base=weight*costRate+addCost;
@@ -7221,7 +7358,7 @@ function addPlate(){
   quoteItems.push(item);
   markQuotationDirty(); resetPriceModeAfterAdd('plate'); dcClearCustomDims(); renderQuote(quoteItems.length-1);
   flashPreview();
-  showToast('Added #'+quoteItems.length+' — '+sizeStr+'  '+fmt(finalUnitPrice));
+  showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',sizeStr).replace('{p}',fmt(finalUnitPrice)));
 }
 /* Plate restore for edit */
 function fillPlateFormFromItem(item){
@@ -7395,11 +7532,11 @@ function buildWASSizeMultiline(){
 }
 function addWAS(){
   // Validation
-  if(!wasAbFv('material')||!wasAbFv('sizeType')||!wasAbFv('size')||!wasAbFn('diameter')||!wasAbFn('length')||!wasAbFn('qty')){showToast('⚠️ Enter Anchor Bolt dimensions');return;}
-  if(!wasBpFn('l')||!wasBpFn('w')||!wasBpFn('t')||!wasBpFn('qty')){showToast('⚠️ Enter Base Plate dimensions');return;}
-  if(wasGetHoleOpt()!=='none'&&(!wasBpFn('hd')||!wasBpFn('nh'))){showToast('⚠️ Enter Hole Dia. and Holes');return;}
+  if(!wasAbFv('material')||!wasAbFv('sizeType')||!wasAbFv('size')||!wasAbFn('diameter')||!wasAbFn('length')||!wasAbFn('qty')){showToast(dcT('tEnterAnchorDims'));return;}
+  if(!wasBpFn('l')||!wasBpFn('w')||!wasBpFn('t')||!wasBpFn('qty')){showToast(dcT('tEnterPlateDims'));return;}
+  if(wasGetHoleOpt()!=='none'&&(!wasBpFn('hd')||!wasBpFn('nh'))){showToast(dcT('tEnterHoles'));return;}
   const calc=getWASCalc();
-  if(calc.weights.tpQty>0&&(!wasTpFn('l')||!wasTpFn('h')||!wasTpFn('t'))){showToast('⚠️ Enter Triangle Plate Length, Height and Thickness');return;}
+  if(calc.weights.tpQty>0&&(!wasTpFn('l')||!wasTpFn('h')||!wasTpFn('t'))){showToast(dcT('tEnterTri'));return;}
   /* Every other add path runs validateDims; this one did not, and a thickness
      typed as -12 gave the base plate a NEGATIVE weight that quietly reduced
      the price of the whole set. */
@@ -7408,10 +7545,10 @@ function addWAS(){
                     'Base Plate Thickness':wasBpFn('t')})) return;
   if(calc.weights.tpQty>0 && !validateDims({'Triangle Plate Length':wasTpFn('l'),
                     'Triangle Plate Height':wasTpFn('h'),'Triangle Plate Thickness':wasTpFn('t')})) return;
-  if(!(calc.weights.setWeight>0)){showToast('⚠️ Set weight is 0 — check the dimensions');return;}
-  if(!calc.anchorRate){showToast('⚠️ Enter Anchor Cost Rate');return;}
-  if(!calc.basePlateRate){showToast('⚠️ Enter Base Plate Cost Rate');return;}
-  if(calc.weights.tpQty>0&&!calc.trianglePlateRate){showToast('⚠️ Enter Triangle Plate Cost Rate');return;}
+  if(!(calc.weights.setWeight>0)){showToast(dcT('tSetWeight0'));return;}
+  if(!calc.anchorRate){showToast(dcT('tEnterAnchorRate'));return;}
+  if(!calc.basePlateRate){showToast(dcT('tEnterPlateRate'));return;}
+  if(calc.weights.tpQty>0&&!calc.trianglePlateRate){showToast(dcT('tEnterTriRate'));return;}
   if(!validatePriceMode('was')) return;
   const qty=validateQtyEntry('was');
   if(qty===null) return;
@@ -7470,7 +7607,7 @@ function addWAS(){
   resetPriceModeAfterAdd('was');              // …and no manual price carried over either
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);flashPreview();
-  showToast('Added #'+quoteItems.length+' — '+materialLabel(anchorMaterial)+' Welding Anchor Set  '+fmt(finalUnitPrice)+'/set');
+  showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',materialLabel(anchorMaterial)+' Welding Anchor Set').replace('{p}',fmt(finalUnitPrice)+'/set'));
 }
 function fillWASFormFromItem(item){
   const fd=item.formData||{};
@@ -7551,7 +7688,7 @@ function fillWASFormFromItem(item){
    updated, false when it was blocked — callers must not toast "added" or clear
    the form when it returns false. */
 function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,sizeCode,sizeType,accessories,weight){
-  if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return false; }
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return false; }
   /* SS304 and SS316 are quoted without a finish. The rule held everywhere only
      because updateFinishAvailability forces the N/A radio whenever the material
      select says stainless — a DOM side effect, not a rule, and it does not hold
@@ -7597,7 +7734,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   resetPriceModeAfterAdd(type);
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);
-  showToast('Added #'+quoteItems.length+' — '+sizeStr+'  '+fmt(finalUnitPrice));
+  showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',sizeStr).replace('{p}',fmt(finalUnitPrice)));
   return true;
 }
 /* Reset every product type's accessory panel — Clear All and New Quotation must
@@ -7674,7 +7811,7 @@ function renderQuote(newIdx){
             <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${cwLine?`<span style="display:block;font-size:11.5px;color:var(--text-muted);margin-top:2px;white-space:pre-line">${escHtml(cwLine)}</span>`:''}${uboltDebugHtml}</div>
           </div>
         </div>
-        ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="Edit item">Edit / 编辑</button><button class="qi-del" onclick="removeItem(${i})" title="Delete item">Delete / 删除</button></div>`}
+        ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">Edit / 编辑</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">Delete / 删除</button></div>`}
       </div>
       <div class="qi-item-bottom">
         <div class="qi-meta">
@@ -7695,7 +7832,7 @@ function renderQuote(newIdx){
   scheduleDraftAutosave();
 }
 function removeItem(i){
-  if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return; }
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
   quoteItems.splice(i,1);
   if(editingItemIndex!==null){
     if(editingItemIndex===i) setItemEditMode(null);
@@ -7703,11 +7840,11 @@ function removeItem(i){
   }
   markQuotationDirty();
   renderQuote();
-  showToast('Item removed');
+  showToast(dcT('tItemRemoved'));
 }
 function clearAllItems(){
   if(!quoteItems.length) return;
-  if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return; }
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
   if(!confirm('Clear all items in this quotation?')) return;
   quoteItems=[];
   setItemEditMode(null);
@@ -7716,7 +7853,7 @@ function clearAllItems(){
   resetAllAccPanels();          // Clear All: no hidden accessory may survive
   dcClearCustomDims();          // …and no annotation from a cleared item either
   renderQuote();
-  showToast('Quotation list cleared');
+  showToast(dcT('tListCleared'));
 }
 function startNewQuotation(){
   const dirtyAlreadyPrompted=savedQuoteDirty;
@@ -7750,7 +7887,7 @@ function startNewQuotation(){
        preview — put the active product type's figures back. */
     recalcCurrent();
   }
-  showToast('New quotation started');
+  showToast(dcT('tNewQuotation'));
   goToStep(1);
   if(window.innerWidth<=900) toggleSidebar(false);
 }
@@ -8159,12 +8296,12 @@ async function copyTextToClipboard(text){
   return ok;
 }
 async function copyWhatsApp(){
-  if(!quoteItems.length){showToast('Add items first');return}
+  if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return}
   const ok=await copyTextToClipboard(buildQuoteText());
   showToast(ok?'WhatsApp text copied.':'Copy failed. Please copy manually from WhatsApp Message preview.');
 }
 function openWhatsApp(){
-  if(!quoteItems.length){showToast('Add items first');return}
+  if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return}
   window.open('https://wa.me/?text='+encodeURIComponent(buildQuoteText()),'_blank');
 }
 async function openWATemplateModal(){
@@ -8194,16 +8331,16 @@ async function saveWATemplate(){
   try{
     res=await api('save_whatsapp_template',{template_body:el('waTemplateInput').value},'POST');
   }catch(e){
-    showToast('Template save failed: '+(e.message||'Network/API error'));
+    showToast(dcT('tTemplateFailed').replace('{e}',e.message||dcT('tNetworkError')));
     return;
   }
   if(res.ok){
     await loadWATemplate();
     el('waTemplateInput').value=getWATemplate();
     refreshWAPreview();
-    showToast('Template saved');
+    showToast(dcT('tTemplateSaved'));
   } else {
-    showToast('Template save failed: '+(res.error||'Unknown API error'));
+    showToast(dcT('tTemplateFailed').replace('{e}',res.error||dcT('tApiError')));
   }
 }
 async function resetWATemplate(){
@@ -8300,7 +8437,7 @@ function getPrintItemDimension(item){
 }
 
 /* ── Step 4 wrappers — mark "Print / WhatsApp" step as done once used ── */
-function doPrint(){ if(!quoteItems.length){showToast('Add items first');return} sentThisSession=true; refreshWorkflow(); window.print(); }
+function doPrint(){ if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return} sentThisSession=true; refreshWorkflow(); window.print(); }
 function doWhatsApp(){ sentThisSession=true; refreshWorkflow(); openWhatsApp(); }
 function doCopyWA(){ sentThisSession=true; refreshWorkflow(); copyWhatsApp(); }
 
@@ -8496,7 +8633,7 @@ async function checkPreviousPrice(){
   /* An empty Size box would ask for "every size of this product", and M8
      beside M65 is not this item's history. */
   if(!spec.cleanSize){
-    const empty=el('phEmptyMsg'); empty.style.display='block'; empty.textContent='Enter a Size first.';
+    const empty=el('phEmptyMsg'); empty.style.display='block'; empty.textContent=dcT('tEnterSizeFirst');
     return;
   }
   phFormState=await phFetch(spec,selectedCompanyId,0,20);
@@ -8532,9 +8669,9 @@ async function loadCompaniesIntoSelect(){
 
 /* ── Save modal ── */
 async function openSaveModal(){
-  if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return; }
-  if(editingItemIndex!==null){ showToast('Update or cancel item edit first'); goToStep(2); return; }
-  if(!quoteItems.length){ showToast('Add items first'); return; }
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
+  if(editingItemIndex!==null){ showToast(dcT('tFinishItemEdit')); goToStep(2); return; }
+  if(!quoteItems.length){ showToast(dcT('tAddItemsFirst')); return; }
   await loadCompaniesIntoSelect();
   if(selectedCompanyId) el('sv-company').value=selectedCompanyId;
   else{
@@ -8543,7 +8680,7 @@ async function openSaveModal(){
   }
   const qi=getQI();
   const ref=editingQuoteId ? qi.refno : (qi.refno || await ensureRefNo());
-  if(!ref){ showToast('Unable to get quotation number. Please check API/database.'); return; }
+  if(!ref){ showToast(dcT('tNoRefNo')); return; }
   el('sv-refno').value=ref;
   el('sv-refno').readOnly=!!editingQuoteId;
   el('sv-date').value=qi.date||todayStr();
@@ -8555,16 +8692,16 @@ async function openSaveModal(){
   openModal('saveModal');
 }
 async function doSaveQuotation(){
-  if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return; }
-  if(editingItemIndex!==null){ showToast('Update or cancel item edit first'); goToStep(2); return; }
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
+  if(editingItemIndex!==null){ showToast(dcT('tFinishItemEdit')); goToStep(2); return; }
   const customer=(fv0('qi-customer')||'').trim();
-  if(!customer){ showToast('Customer is required'); goToStep(1); return; }
-  if(!quoteItems.length){ showToast('Add at least 1 item'); return; }
+  if(!customer){ showToast(dcT('tCustomerRequired')); goToStep(1); return; }
+  if(!quoteItems.length){ showToast(dcT('tAddOneItem')); return; }
   const companyId=el('sv-company').value?parseInt(el('sv-company').value,10):null;
   selectedCompanyId=companyId;
   const updatingExisting=!!editingQuoteId;
   const ref=updatingExisting ? fv0('qi-refno') : (el('sv-refno').value.trim() || await ensureRefNo());
-  if(!ref){ showToast('Unable to get quotation number. Please check API/database.'); return; }
+  if(!ref){ showToast(dcT('tNoRefNo')); return; }
   el('qi-refno').value=ref;
   el('qi-date').value=el('sv-date').value;
   el('qi-prepby').value=el('sv-prepby').value.trim();
@@ -8584,7 +8721,7 @@ async function doSaveQuotation(){
     total_amount: quoteItems.reduce((s,i)=>s+i.totalAmount,0)
   };
   const res=await api(editingQuoteId?'update_quotation':'save_quotation',payload,'POST');
-  if(!res.ok){ showToast('Save failed: '+(res.error||'server error')); return; }
+  if(!res.ok){ showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError'))); return; }
   clearUnsavedDraft();
   editingQuoteId=editingQuoteId || res.id || (res.data&&res.data.id) || null;
   /* Phase 1 fix: the quotation number is allocated by the server at save time.
@@ -8606,7 +8743,7 @@ async function doSaveQuotation(){
   renderQuote();
   await refreshNextRefNo();
   if(refWasReassigned){
-    showToast('Saved as '+el('qi-refno').value+' — number '+ref+' was already taken / 已保存为 '+el('qi-refno').value+'（'+ref+' 已被使用）');
+    showToast(dcT('tSavedAsTaken').replace('{a}',el('qi-refno').value).replace('{b}',ref));
   } else {
     showToast(updatingExisting?'Quotation updated and locked':'Quotation saved and locked');
   }
@@ -8665,7 +8802,7 @@ function checkHandoff(){
   });
   Object.entries(accByType).forEach(([t,acc])=>{ try{loadAccIntoForm(t,acc);}catch(e){} });
   renderQuote();
-  showToast('Loaded quotation '+(payload.ref_no||''));
+  showToast(dcT('tLoadedQuote').replace('{r}',payload.ref_no||''));
   goToStep(3);
   return true;
 }
@@ -8885,13 +9022,13 @@ function resetDPForm(){
   ['dp-edit-id','dp-size'].forEach(id=>{ const e=el(id); if(e) e.value=''; });
   ['dp-type','dp-material','dp-sizeType','dp-finish','dp-active'].forEach(id=>{ const e=el(id); if(e) e.selectedIndex=0; });
   ['dp-costRate','dp-addCost','dp-markup'].forEach(id=>{ const e=el(id); if(e) e.value=''; });
-  el('dpFormTitle').textContent='Add Default Price Rule';
+  el('dpFormTitle').textContent=dcT('dpAddRule');
   onDPMaterialChange();
 }
 
 async function saveDPRule(){
   const size=(el('dp-size').value||'').trim().toUpperCase();
-  if(!size){ showToast('Enter a Size value'); return; }
+  if(!size){ showToast(dcT('tEnterSizeValue')); return; }
   const mat=el('dp-material').value;
   const isSS=mat==='SS304'||mat==='SS316';
   const type=el('dp-type').value;
@@ -8909,7 +9046,7 @@ async function saveDPRule(){
   };
   const action=rule.id?'update_default_price':'save_default_price';
   const res=await api(action,rule,'POST');
-  if(!res.ok){showToast('Save failed: '+(res.error||'server error'));return}
+  if(!res.ok){showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
   await refreshDPRules();
   showToast(rule.id ? 'Rule updated' : 'Rule saved');
   resetDPForm();
@@ -8938,7 +9075,7 @@ async function toggleDPRule(id){
   const rule=loadDPRules().find(r=>String(r.id)===String(id)); if(!rule) return;
   rule.active=rule.active=='1'?'0':'1';
   const res=await api('update_default_price',rule,'POST');
-  if(!res.ok){showToast('Update failed');return}
+  if(!res.ok){showToast(dcT('tUpdateFailed'));return}
   await refreshDPRules();
   renderDPList();
   applyDefaultPrice();
@@ -8947,7 +9084,7 @@ async function toggleDPRule(id){
 async function deleteDPRule(id){
   if(!confirm('Delete this default price rule?')) return;
   const res=await api('delete_default_price',{id},'POST');
-  if(!res.ok){showToast('Delete failed');return}
+  if(!res.ok){showToast(dcT('tDeleteFailed'));return}
   await refreshDPRules();
   renderDPList();
   applyDefaultPrice();
@@ -8994,9 +9131,9 @@ function renderDPList(){
       <td><span class="dp-badge ${isSystem?'dp-badge-system':'dp-badge-custom'}">${isSystem?'System Default / 系统默认':'Custom / 自定义'}</span></td>
       <td><span class="dp-badge ${r.active=='1'?'dp-badge-on':'dp-badge-off'}">${r.active=='1'?'Active':'Off'}</span></td>
       <td style="white-space:nowrap">
-        <button class="dp-act" onclick="editDPRule('${r.id}')" title="Edit">✎</button>
+        <button class="dp-act" onclick="editDPRule('${r.id}')" title="${escHtml(dcT('btnEdit'))}">✎</button>
         ${isSystem?'':`<button class="dp-act" onclick="toggleDPRule('${r.id}')" title="${r.active=='1'?'Disable':'Enable'}">${r.active=='1'?'⏸':'▶'}</button>`}
-        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDPRule('${r.id}')" title="Delete">✕</button>`}
+        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDPRule('${r.id}')" title="${escHtml(dcT('btnDelete'))}">✕</button>`}
       </td>`;
     tbody.appendChild(tr);
   });
@@ -9036,15 +9173,15 @@ async function mdtImportFileSelected(kind,input){
   const text=await file.text();
   mdtPendingCsv[kind]=text;
   const res=await api(cfg.importAction,{mode:'preview',csv:text},'POST');
-  if(!res.ok){ showToast('Import failed: '+(res.error||'server error')); return; }
+  if(!res.ok){ showToast(dcT('tImportFailed').replace('{e}',res.error||dcT('tServerError'))); return; }
   mdtRenderPreview(kind,res);
 }
 async function mdtConfirmImport(kind){
   const cfg=MDT_CONFIG[kind];
   const csv=mdtPendingCsv[kind];
-  if(!csv){ showToast('Nothing to import'); return; }
+  if(!csv){ showToast(dcT('tNothingImport')); return; }
   const res=await api(cfg.importAction,{mode:'confirm',csv},'POST');
-  if(!res.ok){ showToast('Import failed: '+(res.error||'server error')); return; }
+  if(!res.ok){ showToast(dcT('tImportFailed').replace('{e}',res.error||dcT('tServerError'))); return; }
   await cfg.refreshFn();
   let msg='Imported '+res.imported+' rows';
   if(res.duplicateCount) msg+=' · '+res.duplicateCount+' duplicates skipped';
@@ -9562,7 +9699,7 @@ function wqaPatchItemPanel(){
   const need=wqaItemNeedCount();
   wqaPanelBadge(box,need?dcT('wqaNIncomplete').replace('{n}',need):'');
   const cur=box.querySelector('.wqa-acc-sum');
-  if(cur) cur.textContent='Current: '+wqaItemSummary(c);
+  if(cur) cur.textContent=dcT('lblCurrent')+wqaItemSummary(c);
 }
 function wqaEditCommonItem(field,value){
   if(!wqa.commonItem) wqa.commonItem=wqaEmptyItem();
@@ -9963,7 +10100,7 @@ function wqaApplyManualPriceToAll(){
   wqa.panels.price=true;
   wqaRenderCommonPrice();
   wqaRecomputeAll();
-  showToast('Manual unit price RM'+parseFloat(v).toFixed(2)+' applied to '+targets.length+' item'+(targets.length===1?'':'s'));
+  showToast(dcT('tManualApplied').replace('{p}',parseFloat(v).toFixed(2)).replace('{n}',targets.length));
 }
 /* Per row, so one item can differ from the rest. */
 function wqaEditRowMode(i,mode){
@@ -10038,7 +10175,7 @@ function wqaApplyAccToAll(){
   wqaRenderCommonAcc();
   wqaRecomputeAll();
   const n=targets.length;
-  showToast('Accessories applied to '+n+' item'+(n===1?'':'s'));
+  showToast(dcT('tAccApplied').replace('{n}',n));
 }
 function wqaClearAllAcc(){
   /* The panel above this button says "Apply to 3 selected". This cleared all
@@ -10320,14 +10457,35 @@ function wqaNormM(v,rodSize){
   return m ? 'M'+m[1].replace(/\.0$/,'') : normalizeSizeValue(s);
 }
 
+/* ── A thousands separator is not a separator between values ────────────────
+   "qty - 15,000 pcs" is fifteen thousand pieces and "M24 x 1,000" is a rod a
+   metre long. Every reader below asked for `\d+`, so the comma ended each
+   number early: the order went out at 15, and the rod — silently, with a
+   plausible-looking row on screen — at 1mm with a quantity of 0.
+
+   This is not a new rule. The calculator's own number boxes have always read
+   "1,200" as twelve hundred (see the numeric input handler), so a message and
+   a typed figure now agree instead of disagreeing. It lives HERE because every
+   line reaches the parser through this one function, so there is no second
+   place for it to drift out of step with.
+
+   A group is a separator only when it is exactly three digits, which is what
+   makes "1,000" a number and leaves "1,2" alone. And a line that is NOTHING
+   BUT comma-separated numbers is the one place a comma really does separate
+   values — a bare length list, "100,200,300" — so that line is left exactly as
+   it was written rather than fused into one impossible dimension. */
+const WQA_THOUSANDS_RE=/\b\d{1,3}(?:,\d{3})+\b/g;
+const WQA_NUM_LIST_LINE_RE=/^\d+(?:\s*,\s*\d+)+$/;
 /* Normalise separators so x / X / × / * / spaces all behave the same. */
 function wqaNorm(s){
-  return String(s||'')
+  const out=String(s||'')
     .replace(/[×✕✖]/g,'x')
     .replace(/\*/g,'x')
     .replace(/[–—]/g,'-')
     .replace(/\s+/g,' ')
     .trim();
+  return WQA_NUM_LIST_LINE_RE.test(out) ? out
+       : out.replace(WQA_THOUSANDS_RE,m=>m.replace(/,/g,''));
 }
 
 /* A line is an item line when it carries a dimension run: at least two numbers
@@ -10384,7 +10542,7 @@ function wqaPatchAccPanel(){
   const n=wqaAccActiveCount(a);
   wqaPanelBadge(box,n?n+' active':'');
   const cur=box.querySelector('.wqa-acc-sum');
-  if(cur) cur.textContent='Current: '+wqaAccSummary(a);
+  if(cur) cur.textContent=dcT('lblCurrent')+wqaAccSummary(a);
 }
 function wqaPatchPricePanel(){
   const box=el('wqaCommonPrice');
@@ -10423,8 +10581,14 @@ function wqaPatchRows(){
       const tref=String(r.threadRef||'').trim();
       cSize.classList.toggle('has-tref',!!tref);
       cSize.innerHTML=escHtml(r.size||'—')
-        +(tref?`<span class="wqa-tref" title="Thread reference — not used in any calculation">${escHtml(tref)}</span>`:'');
+        +(tref?`<span class="wqa-tref" title="${escHtml(dcT('wqaThreadRefNote'))}">${escHtml(tref)}</span>`:'');
     }
+    /* What the empty Thread Reference box suggests follows the size, so it is
+       refreshed while the size is still being typed rather than waiting for the
+       row to be rebuilt on blur. A placeholder is a read-only node; the value
+       the person is typing is not touched. */
+    const tin=card.querySelector('.wqa-tref-in');
+    if(tin) tin.placeholder=dcThreadRefHint(r.size);
     /* The line under the summary states the row's material, finish and size
        type. It was built once and never refreshed, so changing a row's
        material to SS304 repainted the price from the stainless calculation
@@ -10556,7 +10720,7 @@ function wqaCompactCells(r,cols){
      size above it is what everything is calculated from. */
   const tref=String(r.threadRef||'').trim();
   const sizeCell=`<span class="wqa-c wqa-c-size${tref?' has-tref':''}">${escHtml(r.size||'—')}${
-    tref?`<span class="wqa-tref" title="Thread reference — not used in any calculation">${escHtml(tref)}</span>`:''}</span>`;
+    tref?`<span class="wqa-tref" title="${escHtml(dcT('wqaThreadRefNote'))}">${escHtml(tref)}</span>`:''}</span>`;
   return sizeCell
     + (cols||wqaListCols()).map(c=>cell('wqa-c-dim wqa-c-'+c.k, wqaRowDimCell(r,c.k)||'—',
                                         wqaDimShort(wqaRowProduct(r),c.k))).join('')
@@ -11086,6 +11250,13 @@ function wqaProductDims(s,type){
   return {dims:out, rest:rest.replace(/\s+/g,' ').trim()};
 }
 
+/* The one wording that names a quantity and nothing else. "pcs", "sets" and
+   "nos" are counted words too, but they only ever appear WITH their number —
+   so a line carrying this word and no readable figure is a customer who meant
+   to state a count and did not, which is not the same as never mentioning one.
+   See f.qtyOpen at the foot of wqaExtractFields. */
+const WQA_QTY_WORD_RE=/\b(?:qty|quantity)\b/i;
+
 /* ── Field recognisers ──────────────────────────────────────────────────────
    Each one consumes what it matches, so a consumed qty token can never be
    re-read as part of a diameter ("4pcs - M12" never becomes 4PCSM12).      */
@@ -11093,8 +11264,14 @@ function wqaProductDims(s,type){
    wqaProductDims. Without one, none of those letters mean anything. */
 function wqaExtractFields(rawLine,opts){
   let s=wqaNorm(rawLine).replace(WQA_LIST_NUM_RE,'');
+  /* The line as it arrived, kept whole: every reader below CONSUMES what it
+     matches, so by the end there is nothing left to ask what the line said. */
+  const s0=s;
   const f={qty:null,size:null,threadLen:null,threadLen2:null,nums:[],mm:[],bodyDia:null,
-           dims:null, hadX:/\sx\s|\dx\d/i.test(s), threadEnds:null, fullyThreaded:false};
+           dims:null, hadX:/\sx\s|\dx\d/i.test(s), threadEnds:null, fullyThreaded:false,
+           /* The line used the word and gave no number any reader here could
+              take. See wqaQtyOpen below. */
+           qtyOpen:false};
   /* Read the threading off the line AS WRITTEN — the spec-word strip below
      removes the very words that say how many ends there are. */
   const ev=wqaThreadEvidence(s);
@@ -11316,6 +11493,16 @@ function wqaExtractFields(rawLine,opts){
     f.nums=inchNums.concat(f.nums);
     f.mm=inchNums.map(()=>true).concat(f.mm);
   }
+  /* ── The line asked for a quantity and did not give one ──────────────────
+     "qty ?", "qty tbc", "qty:" with nothing after it. Every reader above has
+     had its turn and none of them found a number, and the word is explicit
+     enough that this cannot be an oversight: the customer meant to state a
+     count. That is the opposite of an ABSENT quantity, which is one piece —
+     so it is recorded here and the row asks, rather than quietly becoming 1.
+
+     Only the explicit words. A count read from "pcs" or from a bare trailing
+     "- 4" always resolves, so it can never reach this line unresolved. */
+  if(f.qty===null && WQA_QTY_WORD_RE.test(s0)) f.qtyOpen=true;
   return f;
 }
 
@@ -11327,6 +11514,7 @@ function wqaExtractFields(rawLine,opts){
 function wqaBoltItem(f,type){
   const item={M:f.size||null, L:null, W:null, H:null, ID:null, S:null, R:null,
               TL:null, qty:(f.qty==null?null:String(f.qty)),
+              qtyOpen: f.qty==null && !!f.qtyOpen,
               product:type, threadEnds:1,
               conf:{}, issues:[], defaulted:{}};
   if(f.threadLen!==null) item.TL=f.threadLen2 ? f.threadLen+'/'+f.threadLen2 : f.threadLen;
@@ -11464,6 +11652,10 @@ function wqaResolveLine(f,ctx,productType){
                 TLseen:seen,
                 threadEnds: statedPair ? 2 : undefined,
                 qty:row.qty===''?null:row.qty,
+                /* Only where the box is still empty: a line that wrote "qty"
+                   and then had its count filled by the positional read has a
+                   quantity, and nothing is open about it. */
+                qtyOpen: row.qty==='' && !!f.qtyOpen,
                 conf, issues, defaulted}};
 }
 
@@ -11509,6 +11701,11 @@ function wqaLineHasSignal(line,common){
   if(WQA_SERIES_RE.test(' '+wqaNorm(line)+' ')) return true;
   const n=' '+wqaNorm(line).toLowerCase()+' ';
   if(/\d/.test(n)) return true;
+  /* "Qty tbc" carries no digit at all, so it read as noise and was thrown away
+     with the greetings — and the row above it then looked like an item nobody
+     had stated a count for, which is the one thing it is not. The word is the
+     signal here; the missing number is the point. */
+  if(WQA_QTY_WORD_RE.test(n)) return true;
   if(WQA_PRODUCTS.some(p=>p.aliases.some(a=>n.includes(a)))) return true;
   if(WQA_MATERIALS.some(m=>m.re.test(n))) return true;
   if(WQA_FINISHES.some(x=>x.re.test(n))) return true;
@@ -11556,7 +11753,18 @@ function wqaThreadOnlyValue(e){
   /* In "TL1 60" the 1 names the END, not a measurement, so the label is taken
      off before the line's numbers are counted. Only the attached form is a
      label: "thread 12" really is a 12mm thread and is left alone. */
-  const nums=(n.replace(WQA_END_LABEL_RE,' ').match(/\d+(?:\.\d+)?/g)||[]);
+  /* ── And the grade is a material, not a measurement ──────────────────────
+     "4140 sag rod, both thread 65mm, plain" is a spec header. The 4140 was
+     already read as the material, but this reader counted it a second time as
+     a number — two numbers meant "not a thread line", so the header was read
+     as an ITEM and a phantom rod 65mm long appeared beside the real one.
+
+     The line's own numbers are what wqaExtractFields already counts, through
+     wqaStripSpecWords, and it gets this right. Using the same helper here
+     removes the second, drifted answer rather than adding a third: 4140, 8.8,
+     10.9, SS304 and a DIN standard are all vocabulary, and none of them is a
+     thread length. */
+  const nums=(wqaStripSpecWords(n).replace(WQA_END_LABEL_RE,' ').match(/\d+(?:\.\d+)?/g)||[]);
   if(nums.length!==1) return null;
   const v=Number(nums[0]);
   return v>0 ? String(v) : null;
@@ -12303,6 +12511,15 @@ function wqaParseText(text,forceProduct){
             prev.qty=String(f.qty); prev.conf.qty=WQA_CONF.DETECTED; used=true;
           } else if(!ctx.qty){ ctx.qty=String(f.qty); used=true; }
         }
+        /* "Qty tbc" on a line of its own is the same continuation line with an
+           unreadable value, and it belongs to the same row. Carried across so
+           that row asks for its count instead of taking the default of one —
+           the whole point of telling ABSENT apart from UNREADABLE. */
+        else if(f.qtyOpen && !f.size && f.threadLen===null && !f.nums.length){
+          const prev=lastItem();
+          if(prev && (prev.qty==null||prev.qty==='')){ prev.qtyOpen=true; used=true; }
+          else if(!ctx.qty){ ctx.qtyOpen=true; used=true; }
+        }
       }
       if(counts && !used) unread++;
       return;
@@ -12390,6 +12607,9 @@ function wqaParseText(text,forceProduct){
       /* "All Qty 20 pcs/each size" is one quantity for every row, exactly as a
          diameter or a thread stated once is. */
       if((it.qty==null||it.qty==='') && ctx.qty){ it.qty=ctx.qty; it.conf.qty=WQA_CONF.INHERITED; }
+      /* And a quantity the message asked for and never gave is shared the same
+         way: every row it reaches asks, rather than defaulting to one piece. */
+      else if((it.qty==null||it.qty==='') && ctx.qtyOpen) it.qtyOpen=true;
       /* A material or finish written UNDER the rows is theirs too, as long as
          no group had already answered for them. */
       WQA_ROW_SPEC.forEach(k=>{
@@ -13039,6 +13259,36 @@ function wqaNormalizeExtraction(d, opts){
     if(row.threadLen && conf.threadLen===undefined) conf.threadLen=WQA_CONF.DETECTED;
     if(row.qty)   { if(conf.qty===undefined) conf.qty=WQA_CONF.DETECTED; }
     else          conf.qty=WQA_CONF.UNCERTAIN;   // optional: recorded, not an issue
+
+    /* ── No count at all is one piece ────────────────────────────────────────
+       An approved rule, and it lives HERE because this is the one funnel every
+       source runs through: a pasted message, a photograph, a PDF and a drawing
+       all reach the same answer instead of three of them reaching it and one
+       not. "M12 x 500" on its own is a customer asking for a rod, and one rod
+       is what they asked for.
+
+       It is applied ONLY to a genuinely absent count, and the distinction is
+       the whole rule:
+
+         nothing said about quantity      -> 1, shown as a default
+         quantity asked for, not readable -> blank, and the row asks
+
+       So "qty tbc" and a photograph whose count could not be made out are
+       never quietly turned into one piece — that would be the parser inventing
+       an order size. A stated 0 is a stated value and is left alone: it is not
+       absent, and the existing checks refuse it in the ordinary way. */
+    /* Two ways a source can say it: a pasted line that used the word and gave
+       no figure, and an extraction whose own "could not read" note names the
+       count ("qty unreadable"). A row that is unclear about something ELSE —
+       "size M20 or M30" — has a genuinely absent quantity and is not punished
+       for it; it is already asking about its size. */
+    const qtyUnreadable=!!it.qtyOpen || WQA_COUNT_WORD_RE.test(String(it.unclear||''));
+    row.qtyUnreadable=qtyUnreadable;
+    if(row.qty==='' && !qtyUnreadable){
+      row.qty='1';
+      conf.qty=WQA_CONF.DEFAULTED;
+      defaulted.qty=true;
+    }
 
     /* A + B + C did not reconcile with the overall length: surfaced for a human
        look, never silently corrected and never dropped. */
@@ -13940,11 +14190,15 @@ function wqaRowMissing(r){
     const v=String(r[d]==null?'':r[d]).trim();
     if(!v || !(parseFloat(v)>0)) miss.push(WQA_DIM_LABEL[d]||d);
   });
-  /* Qty is optional in Quick Add: a customer may send lengths with no counts,
-     and those are still real items. It is therefore NOT a blocker here. The
-     existing calculator still requires a qty of its own to add an item, so a
-     blank-qty row is skipped at commit and reported — never defaulted to 1,
-     which the calculator does not do either. */
+  /* ── Quantity ────────────────────────────────────────────────────────────
+     A count that was never mentioned is one piece, and the normaliser has
+     already put it in the box — so an ordinary "M12 x 500" arrives here with a
+     quantity and is not asked for one.
+
+     What IS asked for is the other case: the customer wrote "qty" and the
+     value could not be read. That row is short of a real answer, and it says
+     so here by name rather than being discovered at the click. */
+  if(r.qtyUnreadable && !String(r.qty||'').trim()) miss.push('Qty');
   /* The customer's material or nothing. Every rod is made of something, so a
      blank one means "not stated" — never "mild steel". Asked for only once the
      product is known, since Product is already the blocker until then. */
@@ -14246,7 +14500,7 @@ function wqaRenderRows(force){
              nothing that computes. -->
         <div class="field wqa-f-tref"><label data-i18n="wqaThreadRef">${escHtml(dcT('wqaThreadRef'))}</label>
           <input type="text" class="wqa-tref-in" value="${escHtml(r.threadRef||'')}"
-                 placeholder="${escHtml(dcT('wqaThreadRefHint'))}"
+                 placeholder="${escHtml(dcThreadRefHint(r.size))}"
                  oninput="wqaEdit(${i},'threadRef',this.value)"
                  onchange="wqaEditThreadRef(${i},this)">
           <small class="wqa-hint-sm" data-i18n="wqaThreadRefNote">${escHtml(dcT('wqaThreadRefNote'))}</small></div>
@@ -14322,7 +14576,7 @@ function wqaRenderRows(force){
            onclick="wqaToggleRow(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wqaToggleRow(${i});}">
         <span class="wqa-sum-no">${wqa.applyScope==='selected'
           ? `<input type="checkbox" class="wqa-pick"${r.sel?' checked':''} onclick="event.stopPropagation()"
-                    onchange="wqaToggleRowSel(${i})" aria-label="Select item ${i+1}">`
+                    onchange="wqaToggleRowSel(${i})" aria-label="${escHtml(dcT('ariaSelectItem').replace('{n}',i+1))}">`
           : (i+1)}</span>
         ${wqaCompactCells(r,cols)}
         <!-- Slack lives here, so the actions sit at the right edge whatever a
@@ -14342,10 +14596,10 @@ function wqaRenderRows(force){
                   aria-expanded="${open?'true':'false'}"
                   onclick="event.stopPropagation();wqaToggleRow(${i})">${open?'Close':'Edit'}</button>
           <button type="button" class="wqa-row-act wqa-row-hist${r.histOpen?' is-on':''}"
-                  title="Pricing history for this item" aria-expanded="${r.histOpen?'true':'false'}"
+                  title="${escHtml(dcT('tipItemHistory'))}" aria-expanded="${r.histOpen?'true':'false'}"
                   onclick="event.stopPropagation();wqaHistToggle(${i})">History${
                     wqaHistCountLabel(r)}<span class="wqa-row-caret">${r.histOpen?'▲':''}</span></button>
-          <button type="button" class="wqa-row-act wqa-row-del" title="Remove" aria-label="Remove item ${i+1}"
+          <button type="button" class="wqa-row-act wqa-row-del" title="${escHtml(dcT('btnRemove'))}" aria-label="${escHtml(dcT('ariaRemoveItem').replace('{n}',i+1))}"
                   onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>
         </span>
       </div>
@@ -14880,7 +15134,7 @@ async function wqaAddAll(){
      walking away from it meant; the item itself is untouched. */
   if(editingItemIndex!==null){ editingItemIndex=null; setItemEditMode(null); }
   wqa.busy=true;
-  const btn=el('wqaAddBtn'); const label=btn.textContent; btn.disabled=true; btn.textContent='Adding…';
+  const btn=el('wqaAddBtn'); const label=btn.textContent; btn.disabled=true; btn.textContent=dcT('tAdding');
   const before=quoteItems.length;
   /* Every row is tried. What goes in, goes in; what cannot, stays on screen
      with the reason beside it, and the review does not close over the top of
@@ -14929,7 +15183,7 @@ async function wqaAddAll(){
   const added=quoteItems.length-before;
   if(!stuck.length){
     wqaHardClose();        // a successful add is the other path that may clear state
-    showToast(`${added} item${added===1?'':'s'} added from WhatsApp`);
+    showToast(dcT('tAddedFromWhatsApp').replace('{n}',added));
     goToStep(3);
     return;
   }

@@ -14,8 +14,68 @@ const { openApp, quickAddPaste, rowState } = require('../lib/harness');
 const RHO = 0.0000061654;
 const HALF_UNDER = 10.9;                 // an undersized 1/2" rod, in mm
 
+/* The empty box's own suggestion, read off the row that is actually on screen. */
+const hintOf = (page, i) => page.evaluate(k => {
+  const card = document.querySelector('[data-wqa-row="' + k + '"]');
+  const box = card && card.querySelector('.wqa-tref-in');
+  return box ? box.placeholder : null;
+}, i);
+
 module.exports = async (browser, A) => {
   const S = A.suite('thread reference — a note about the thread');
+
+  // ══ THE SUGGESTION IN THE EMPTY BOX ══════════════════════════════════════
+  /* A metric rod has a pitch. Only 1/2" carries the approved UNC/BSW
+     distinction. Everything else has no suggestion to make, and says so —
+     rather than offering an M12 a choice between two imperial thread series,
+     which is what one fixed hint string on every row did. */
+  {
+    const page = await openApp(browser);
+    await page.evaluate(() => { selectedCompanyId = 7; });
+
+    for (const [size, want, why] of [
+      ['M12',   'e.g. 1.75P',         'a metric size is offered a pitch'],
+      ['M24',   'e.g. 1.75P',         'and so is a bigger one'],
+      ['1/2',   'UNC / BSW',          'the one imperial size with an approved series'],
+      ['3/8',   'Optional reference', 'another imperial size is offered neither'],
+      ['5/8',   'Optional reference', 'nor is this one'],
+      ['3/4',   'Optional reference', 'nor this one'],
+      ['1-1/4', 'Optional reference', 'nor this one'],
+    ]) {
+      await quickAddPaste(page, `MS SAG ROD PL FULLSIZE\n${size} x 300 x 70/70 - 4pcs`,
+        { settle: 900 });
+      A.eq(await hintOf(page, 0), want, `${why} (${size})`);
+    }
+
+    /* Never UNC or BSW on a metric row — the specific thing the brief forbids. */
+    await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 300 x 70/70 - 4pcs', { settle: 900 });
+    const metric = await hintOf(page, 0);
+    A.excludes(metric, 'UNC', 'an M12 is never offered UNC');
+    A.excludes(metric, 'BSW', 'and never offered BSW');
+
+    /* And it follows the size when the size is corrected on the screen. */
+    await page.evaluate(() => {
+      const card = document.querySelector('[data-wqa-row="0"]');
+      const box = card.querySelector('input[oninput^="wqaEditSize"]');
+      box.value = '1/2';
+      wqaEditSize(0, box, true);
+    });
+    await page.waitForTimeout(500);
+    A.eq(await hintOf(page, 0), 'UNC / BSW',
+      'retyping the size to 1/2" changes what the box suggests');
+
+    /* 中文 keeps the codes and translates the words around them. */
+    await page.evaluate(() => dcSetLang('zh'));
+    await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 300 x 70/70 - 4pcs', { settle: 900 });
+    const zhMetric = await hintOf(page, 0);
+    A.includes(zhMetric, '1.75P', '中文: the pitch example is a code and stays');
+    A.excludes(zhMetric, 'e.g.', '中文: and the wording around it is translated');
+    await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\n1/2 x 300 x 70/70 - 4pcs', { settle: 900 });
+    A.eq(await hintOf(page, 0), 'UNC / BSW', '中文: UNC and BSW are codes, not words to translate');
+    await page.evaluate(() => dcSetLang('en'));
+
+    await page.close();
+  }
 
   // ══ METRIC PITCH ═════════════════════════════════════════════════════════
   {
