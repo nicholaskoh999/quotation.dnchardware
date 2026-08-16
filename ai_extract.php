@@ -184,7 +184,7 @@ function ai_output_schema() {
         'additionalProperties' => false,
         'properties' => [
             'product' => ['type'=>['string','null'],
-                'enum'=>['SAG_ROD','STUD','ANCHOR_BOLT','L_BOLT','OTHER',null]],
+                'enum'=>['SAG_ROD','STUD','ANCHOR_BOLT','L_BOLT','J_BOLT','OTHER',null]],
             'material' => ['type'=>['string','null']],
             'finish'   => ['type'=>['string','null']],
             'sizeType' => ['type'=>['string','null']],
@@ -226,11 +226,12 @@ function ai_output_schema() {
                         // The field it describes must be null.
                         'unclear'  => ['type'=>['string','null']],
                         // What THIS row is, when the row's own geometry says so
-                        // — one drawing may hold a bent L-bolt and several
-                        // straight two-end rods. Null means "this row does not
-                        // say"; the document-level product then applies.
+                        // — one drawing may hold a hooked J-bolt, a bent
+                        // L-bolt and several straight two-end rods. Null means
+                        // "this row does not say"; the document-level product
+                        // then applies.
                         'product'  => ['type'=>['string','null'],
-                            'enum'=>['SAG_ROD','STUD','ANCHOR_BOLT','L_BOLT','OTHER',null]],
+                            'enum'=>['SAG_ROD','STUD','ANCHOR_BOLT','L_BOLT','J_BOLT','OTHER',null]],
                         // How many ends of THIS row's rod carry a thread. Row
                         // evidence: our own code turns it into the product.
                         'threadEnds' => ['type'=>['integer','null'], 'enum'=>[1,2,null]],
@@ -292,8 +293,11 @@ are used loosely and routinely disagree with what is actually drawn, so the
 title is the WEAKEST signal, not the strongest. Never copy the drawing title
 into product. Resolve in this order: 1 geometry, 2 dimensional structure,
 3 which portions are threaded or bent, 4 drawing annotations, 5 wording.
-  - bend/width column (B), or a drawn L / J / U bend -> L_BOLT, even when the
-    text says "Anchor Bolt" or "Foundation Bolt"
+  - a hook: a rod whose lower end curves round and returns UP alongside
+    itself, or a stated return height (S) -> J_BOLT, even when the text says
+    "Anchor Bolt" or "Foundation Bolt"
+  - a 90-degree bend with a short leg PERPENDICULAR to the shank, or a
+    bend/width column (B) in a table -> L_BOLT, same whatever the title says
   - STRAIGHT rod, no bend, threaded at BOTH ends — our M + overall L + TL1/TL2
     shape -> SAG_ROD, even when the title says "Anchor Bolt"
   - straight rod threaded at ONE end only -> SAG_ROD or ANCHOR_BOLT per the
@@ -315,6 +319,44 @@ Where a drawing is headed "Anchor Bolt" but shows a 90-degree bend, it is an
 L_BOLT — the bend is geometry and the heading is only wording.
 Never fill W, ID, S or H because the product has that field: a number whose role
 the drawing does not establish stays null and the review screen asks.
+
+RECOGNISING A J BOLT ON A DRAWING
+A J Bolt is a straight threaded shank whose lower end curves through about 180
+degrees and comes back up beside itself. On the sheet that shows as:
+  - a hook, U-turn or J curve at the bottom of an otherwise straight rod
+  - a short return leg drawn PARALLEL to the shank and dimensioned as a height
+    — S, "bend high", "hook height", "return height", "leg"
+  - the curve dimensioned by its inside width (ID, "inside dia", "I.D.",
+    "inner width") or by its RADIUS ("R25", "bend radius 25")
+  - a thread callout or thread hatching at the TOP end only
+Any ONE of those is enough to classify it. The heading is not: "ANCHOR BOLT",
+"FOUNDATION BOLT", "HOOK BOLT", "J TYPE" and plain "BOLT" all sit over J Bolts
+routinely, and the geometry outranks every one of them.
+The difference from an L Bolt is the direction of the short leg: an L Bolt's
+leg leaves the shank at a right angle and goes away from it, a J Bolt's turns
+back and runs alongside it.
+
+READING A J BOLT'S DIMENSIONS
+  H  the OVERALL height of the whole part, end to end, hook included. Customer
+     drawings label this L, LENGTH, OVERALL LENGTH, TOTAL LENGTH or OAL far
+     more often than they label it H. On a J_BOLT that dimension IS H: report
+     it as H and leave L null.
+  S  the return / bend height — the short leg running beside the shank.
+  TL the threaded length at the top, however it is labelled: T, THD, THREAD,
+     "thread length", "T=50".
+  ID the INSIDE width of the hook, and ONLY where an inside dimension is
+     actually written. A radius is not an inside diameter. R goes in R, ID
+     stays null, and the review screen asks for it. Do not double a radius, do
+     not halve a diameter, do not derive either from the other, and do not put
+     the radius in ID because ID is empty. A J Bolt drawn with a radius and no
+     stated inside width is a complete, correct answer with ID null.
+Worked example, following those rules. A hook bolt titled "ANCHOR BOLT",
+labelled D1=12mm, L=280mm, S=80mm, T=50mm, R=25mm:
+  product J_BOLT — the hook is geometry, the title is only wording
+  {"M":"M12","L":null,"W":null,"H":280,"ID":null,"S":80,"TL":50,"R":25}
+D1 (also D, d, dia) is the rod diameter, so M12. L spans the whole part, so it
+is H. T is the thread, so TL. R stays in R. ID is null because no inside width
+appears anywhere on the sheet — it is not calculated from the 25.
 
 ONE DOCUMENT MAY HOLD MORE THAN ONE PRODUCT. A drawing with a bent 90-degree
 rod at the top and straight rods threaded at both ends underneath is an L_BOLT
@@ -421,6 +463,30 @@ written: no wording means null. Stainless needs its GRADE — "stainless" or "SS
 with no 304/316 beside it is material = "stainless steel" and nothing more; do
 not choose a grade.
 
+A STRENGTH CLASS IS NOT A MATERIAL, AND NEITHER IS A FINISH
+Copy what the document says. Never answer it with something it did not say.
+  - Grade 8.8, Class 8.8, GR8.8, 8.8, Grade 10.9, Class 5.8, ISO 898, DIN 975
+    Grade 8.8 are STRENGTH classes and the standards that define them. They say
+    how strong the fastener is, not what steel it was cut from. Put the wording
+    in material exactly as written and stop there. A strength class NEVER
+    becomes an alloy: 8.8 is not 4140, not 4140 QT, not 42CrMo, not S45C and
+    not "high tensile steel"; 10.9 is not 4340; 5.8 is not mild steel. Where
+    the sheet names no steel, no steel is reported.
+  - HDG, Hot Dip Galvanised, Galvanized, GI, ZP, Zinc Plated, Electroplated,
+    PL, Plain, Black, Self Colour and Painted are FINISHES. They belong in
+    finish. None of them is ever a material: a block whose only wording is
+    "GRADE 8.8 / HDG" has material "GRADE 8.8", finish "HDG", and nothing else.
+  - A2, A2-70, A2-80, SUS304, SS304, S/S 304 and 304 are the stainless class
+    for 304; A4, A4-70, A4-80, SUS316, SS316, S/S 316 and 316 are the
+    stainless class for 316. Copy the wording as written. They are stainless
+    designations and are never read as carbon strength grades — A2 is not
+    "grade 2", and A4 is not a strength class. Watch the paper trap: "A4",
+    "A3" or "A2" beside sheet, paper, size, scale, format or drawing size is
+    the paper the drawing is printed on, and is not a material at all.
+Our review screen shows a strength class beside the row and asks a person for
+the material. A class you answered with an alloy would go to a customer
+unquestioned.
+
 These three are the DOCUMENT-wide values: the ones that apply to the whole
 sheet. A document that specifies each block separately has none — put each
 block's wording on its own rows instead (see the item fields), and leave the
@@ -455,8 +521,8 @@ items — one per document row, in document order:
        This is NOT the L-bolt bend column — a bend/B column goes to W.
   qty from pcs/pc/nos/qty — a quantity is never a dimension
   product = what THIS row is, by its own geometry — SAG_ROD, STUD, ANCHOR_BOLT,
-       L_BOLT — or null when the row does not show it and the document already
-       said. Geometry beats wording here exactly as it does at document level.
+       L_BOLT, J_BOLT — or null when the row does not show it and the document
+       already said. Geometry beats wording here exactly as it does at document level.
   threadEnds = how many ends of THIS row's rod are threaded: 2, 1, or null.
        Row evidence, not a product name: "thread one end 100" is 1, "thread both
        ends 80" is 2, and two thread values given for one row are 2.
@@ -524,14 +590,34 @@ Read the notation, report what it means, invent nothing:
 PRODUCT-SPECIFIC DIMENSIONS — SEARCH THE WHOLE DOCUMENT
 Once the product is known, the fields the quotation needs are known too, so look
 for them EVERYWHERE, not only on the item's own row:
-  SAG_ROD      M, L, TL   TL is BOTH ends: "75/75", "50/110"   qty optional
-  ANCHOR_BOLT  M, L, TL   TL is ONE value: 100                 qty optional
-  STUD         M, L                                            qty optional
+  SAG_ROD      M, L, TL      TL is BOTH ends: "75/75", "50/110"  qty optional
+  ANCHOR_BOLT  M, L, TL      TL is ONE value: 100               qty optional
+  STUD         M, L                                             qty optional
+  L_BOLT       M, L, W, TL   W is the short perpendicular leg    qty optional
+  J_BOLT       M, H, ID, S, TL   no L at all — the overall height is H
 A diameter written once in a heading, a thread stated once beside it and a list
 of lengths underneath describe ONE specification: put that M and that TL on
 EVERY item that does not state its own. A value written on a row overrides the
 shared one for THAT row only, and the shared value still applies to the rows
 after it.
+
+A TABLE MAY BE PRINTED SIDEWAYS
+Engineering sheets are photographed at an angle, scanned upside down, or carry
+a wide table turned 90 degrees so it fits a tall sheet. Read the table as the
+table it is, not as the page it sits on:
+  - Work out the table's own orientation from its heading row and the baselines
+    of its text. Where the headings read bottom-to-top or top-to-bottom, the
+    table is rotated: turn it upright in your head and read it normally.
+  - Once upright, a ROW is one item and a COLUMN is one field, exactly as on
+    any other table. Never report a rotated table's columns as items.
+  - Report the rows in the table's own reading order, first to last.
+  - Rotation changes no value. Do not transpose dimensions, do not swap length
+    against quantity, do not reorder or renumber the rows, and do not drop the
+    first or last row because it sits at an edge of the photograph.
+  - A single cell whose text is printed sideways inside an otherwise upright
+    table is a tall merged cell, not a rotated table. It covers the rows the
+    cell spans — see the rule below.
+Every other rule here applies unchanged to a rotated table.
 
 A SHARED VALUE REACHES ONLY THE ROWS IT COVERS
 A table cell merged down a block of rows, or a value written once against a
@@ -547,6 +633,33 @@ one block's value over the whole sheet.
 Never take a merged value as document-wide when the document plainly gives a
 different one further down. A value written sideways in a tall merged cell is
 still that cell's value and covers exactly the rows the cell spans.
+
+WHAT A SPECIFICATION CELL ACTUALLY COVERS
+A specification, material or remarks cell merged beside a block of rows
+describes THOSE rows and nothing else. Two questions decide what it says:
+  1. WHICH ROWS. Exactly the rows the merge spans, and no further. A cell
+     beside rows 1-2 says nothing whatever about rows 3-6, and the cell beside
+     rows 3-6 says nothing about rows 1-2. Report each block's wording on the
+     FIRST row it covers and leave the field null on the rest of that block.
+  2. WHICH PART. One cell often specifies a whole assembly in a single
+     paragraph — the rod, its nuts and its washers together: "STUD DIN 975
+     GRADE 8.8 / HEX NUT DIN 934 GRADE 8 / FLAT WASHER DIN 125 / HDG". The
+     item being quoted is the ROD. Take the material, grade and standard
+     attached to the rod and ignore the ones attached to the nut, the washer,
+     the lock nut, the plate or the anchor. A hex nut's Grade 8 is not the
+     stud's grade; a washer's hardness is not the stud's anything.
+A finish stated once for such an assembly — HDG, ZP, PL — applies to the rows
+that cell covers. It is a finish, and it never becomes the material.
+
+A ROW'S OWN SPECIFICATION BEATS A GENERAL REMARK
+Sheets carry sheet-wide notes: "ALL BOLTS TO ISO 898 CLASS 5.8", "UNLESS NOTED
+OTHERWISE", a standard printed in the title block. Those are the fallback, used
+only where nothing more specific applies. A grade, standard or material written
+against a particular row or block replaces the general note for those rows:
+where the sheet note says Class 5.8 and the cell beside rows 3-6 says DIN 975
+Grade 8.8, those rows are Grade 8.8. Report the row's own wording, do not
+overwrite it with the sheet-wide note, and do not merge the two into one
+string.
 
 STRUCTURED COLUMNS OUTRANK THE DESCRIPTION
 Where a table has its own columns — D, L, TL, B, Quantity — those columns are
@@ -844,7 +957,7 @@ function ai_sanitise_data($d) {
         if (is_string($v) && preg_match('/^\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?$/', trim($v))) return trim($v);
         return null;
     };
-    $prodOk = ['SAG_ROD','STUD','ANCHOR_BOLT','L_BOLT','OTHER'];
+    $prodOk = ['SAG_ROD','STUD','ANCHOR_BOLT','L_BOLT','J_BOLT','OTHER'];
     $prod = (is_string($d['product']) && in_array($d['product'],$prodOk,true)) ? $d['product'] : null;
     $items = [];
     foreach (array_slice($d['items'], 0, AI_MAX_ITEMS) as $it) {

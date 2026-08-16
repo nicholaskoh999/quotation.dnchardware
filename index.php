@@ -4056,6 +4056,10 @@ const I18N={
     wqaNoteUsed:'Your additional info was applied to {n} item(s) — it overrides the document.',
     wqaNoteUnused:'Part of your additional info was not applied: it names no product and the document has more than one item. Write the product first, e.g. "L BOLT TL 100".',
     wqaLenResolved:'L {v} — the only length not already another item\'s',
+    wqaGradeSeen:'{g} stated — a strength class, not a material',
+    wqaHeightFromL:'drawing L {v} read as overall height H',
+    wqaRadiusSeen:'bend radius R {v} — not an inside diameter',
+    wqaFinishDropped:'{v} stated — {m} is quoted without a finish',
     wqaPartialTitle:'Partial extraction',
     wqaPartialBody:'The analysis stopped before the end of the document. Only {n} item(s) were recovered — they are correct, but the source may contain more. Check them against the original, and re-analyse or add the rest separately before this quotation goes out.',
     wqaPartialAck:'I have checked the source. These {n} item(s) are the ones to add.',
@@ -4282,6 +4286,10 @@ const I18N={
     wqaNoteUsed:'补充资料已套用到 {n} 个项目 — 以补充资料为准。',
     wqaNoteUnused:'部分补充资料未被套用：未指明产品，而文件有多个项目。请先写产品，例如「L BOLT TL 100」。',
     wqaLenResolved:'L {v} —— 其余长度已属于其他项目，只剩此一个',
+    wqaGradeSeen:'文件注明 {g} —— 属强度等级，并非材质',
+    wqaHeightFromL:'图纸 L {v} 视为总高 H',
+    wqaRadiusSeen:'弯曲半径 R {v} —— 并非内径',
+    wqaFinishDropped:'文件注明 {v} —— {m} 报价不含表面处理',
     wqaPartialTitle:'部分提取',
     wqaPartialBody:'分析在文件结束前中断。仅提取到 {n} 个项目 —— 这些是正确的，但原件可能还有更多。请与原件核对，报价发出前请重新分析或另行补上其余项目。',
     wqaPartialAck:'我已核对原件，确认要加入这 {n} 个项目。',
@@ -8847,6 +8855,10 @@ const WQA_NO_PRODUCT={type:'',token:'',label:'—',dims:['size','length'],map:{}
    occurrence is skipped; the rule itself keeps looking. */
 const WQA_MEASURED_RE=/\b(?:qty|quantity|length|width|height|weight|thick(?:ness)?|dia|diameter|size|overall)\s*[:=]?\s*$/i;
 
+/* A2 and A4 also name a paper size, and an engineering drawing is exactly the
+   place that word appears. Where one of these sits beside the token, it is the
+   sheet, not the fastener class. */
+const WQA_PAPER_RE=/\b(?:sheet|paper|size\s*of\s*sheet|scale|format|drawing\s*size|print(?:ed)?\s*on)\b/i;
 /* Material aliases -> the system's EXISTING internal values. Order matters:
    the more specific spellings must be tested before the bare "4140". */
 const WQA_MATERIALS=[
@@ -8864,7 +8876,7 @@ const WQA_MATERIALS=[
      notAfter keeps a grade apart from a measurement that happens to read the
      same: "qty 10.9" and "length 10.9" are numbers, not materials. */
   {re:/\bgrade[\s-]*10\.?9\b|\bgr\.?[\s-]*10\.?9\b|\bg[\s-]*10\.?9\b|\bht[\s-]*10\.?9\b|\bhigh[\s-]*tensile[\s-]*10\.?9\b|\b10\.9\b(?!\s*(?:mm|cm|kg|m\b))/i,
-   notAfter:WQA_MEASURED_RE, value:'4340', defaulted:true, from:'G10.9'},
+   notAfter:WQA_MEASURED_RE, value:'4340', defaulted:true, strength:true, from:'G10.9'},
   /* G8.8, HT and High Tensile are all STRENGTH descriptions, not materials.
      Several materials can meet them, and the established business answer for
      all of them is 4140 QT — a defined mapping, not a guess, so the row is not
@@ -8879,7 +8891,7 @@ const WQA_MATERIALS=[
      "8.8 → 4140 QT". HT stays two letters and is matched only as a whole token,
      so "height 200" and "length 1000" can never reach it. */
   {re:/\bgrade[\s-]*8\.?8\b|\bgr\.?[\s-]*8\.?8\b|\bg[\s-]*8\.?8\b|\bht[\s-]*8\.?8\b|\bhigh[\s-]*tensile[\s-]*8\.?8\b|\bhigh[\s-]*tensile(?:\s*steel)?\b|\bht\b(?:\s*(?:material|rod|steel|stud|bolt))?|\b8\.8\b(?!\s*mm)/i,
-   notAfter:WQA_MEASURED_RE, value:'4140', defaulted:true, from:'G8.8'},
+   notAfter:WQA_MEASURED_RE, value:'4140', defaulted:true, strength:true, from:'G8.8'},
   {re:/\b4140\s*qt\b/i,                                   value:'4140'},
   {re:/\b4140\s*(plain|non[\s-]*qt|not[\s-]*qt)\b|\b(plain|non[\s-]*qt)\s*4140\b/i, value:'4140_PLAIN'},
   {re:/\b4140\b/i,                                        value:'4140', defaulted:true},
@@ -8893,6 +8905,24 @@ const WQA_MATERIALS=[
    value:'SS304'},
   {re:/\bs\s*[\/.]?\s*s\s*[\s\/.-]*316\b|\bsus[\s-]*316\b|\bstainless(?:\s*steel)?[\s-]*316\b|\b316[\s-]*(?:ss|s\s*\/\s*s|stainless(?:\s*steel)?)\b/i,
    value:'SS316'},
+  /* ── A2 and A4 are STAINLESS property classes ───────────────────────────
+     ISO 3506 classifies stainless fasteners as A2 (the 304 family) and A4 (the
+     316 family), with a strength suffix: A2-70, A4-80. Engineering
+     specifications write them constantly, and they are a different
+     classification family from the carbon-steel strength grades 5.8 / 8.8 /
+     10.9 — an A2 is not "grade 2" and an A4 is not a strength.
+
+     Tested AFTER the explicit SUS304 / SS304 spellings above, so a document
+     that says both resolves through the named grade and the two never produce
+     two different materials for one item.
+
+     The guard is for drawings: a sheet size is also written A2 and A4, so the
+     paper words disqualify it. Nothing else about the token is guessed — a
+     bare A2 with no such word beside it IS the property class. */
+  {re:/\ba2(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
+   value:'SS304', from:'A2'},
+  {re:/\ba4(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
+   value:'SS316', from:'A4'},
   {re:/\by\s*bar\b|\bybar\b/i,                            value:'Y_BAR'},
   {re:/\bs45c\b/i,                                        value:'S45C'},
   {re:/\bms\b|\bm\s*\/\s*s\b|\bmild\s*steel\b/i,          value:'MS'},
@@ -10137,6 +10167,19 @@ function wqaRowBadges(r){
   /* Read off nothing: worked out, because only one answer was left. Said on
      the row so it is never mistaken for a dimension somebody measured. */
   if(r.lengthResolved) out.push({t:dcT('wqaLenResolved').replace('{v}',r.lengthResolved),k:'info'});
+  /* The specification's own strength class, shown as evidence. It is not a
+     material and it never becomes one on its own. */
+  if(r.grade && !wqaRowSpec(r,'material')) out.push({t:dcT('wqaGradeSeen').replace('{g}',r.grade),k:'info'});
+  /* The drawing's own letter, and what it was read as. A J Bolt's height is
+     routinely dimensioned L, and a reader checking the row against the paper
+     should see the reading rather than wonder where the L went. */
+  if(r.hFromL && r.h) out.push({t:dcT('wqaHeightFromL').replace('{v}',String(r.h)),k:'info'});
+  /* A bend radius is not an inside diameter. Shown as the fact it is so
+     nobody has to ask why the ID is still empty. */
+  if(r.radius) out.push({t:dcT('wqaRadiusSeen').replace('{v}',String(r.radius)),k:'info'});
+  /* Read, and then ruled out by a rule of ours rather than missed. */
+  if(r.finishSeen) out.push({t:dcT('wqaFinishDropped').replace('{v}',r.finishSeen)
+                                                     .replace('{m}',String(r.material||'')),k:'info'});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
@@ -10215,18 +10258,39 @@ function wqaDeferRender(kind){
    can say "length 10.9mm" in one line and "grade 10.9" in another, and only the
    second one is the material. */
 function wqaMatchMaterial(m,said){
-  if(!m.notAfter) return m.re.exec(said);
+  if(!m.notAfter && !m.notNear) return m.re.exec(said);
   const re=new RegExp(m.re.source,'gi');
   let x;
   while((x=re.exec(said))!==null){
-    if(!m.notAfter.test(said.slice(0,x.index))) return x;
+    const before=said.slice(0,x.index);
+    /* notAfter: the token is a measurement's value, not a material.
+       notNear:  a word within a few of it disqualifies it — A2 and A4 are
+                 sheet sizes as well as stainless classes. */
+    const ok = (!m.notAfter || !m.notAfter.test(before))
+            && (!m.notNear  || !(m.notNear.test(before.slice(-28))
+                              || m.notNear.test(said.slice(x.index, x.index+x[0].length+22))));
+    if(ok) return x;
     if(re.lastIndex<=x.index) re.lastIndex=x.index+1;
   }
   return null;
 }
-function wqaDetectCommon(text){
+/* ── A strength is not an alloy ─────────────────────────────────────────────
+   "Grade 8.8" and "10.9" are STRENGTH classes. Several materials meet them,
+   and this shop's established answer for a customer's own message is 4140 QT —
+   a company default, badged as one, and the wording is shown back.
+
+   An engineering specification is a different kind of document. "DIN 975 Grade
+   8.8" is the item's specification, not a request for our usual steel, and
+   answering it with 4140 QT puts an alloy on a quotation that the document
+   never named. So the extracted-document path asks for the mapping to be left
+   alone: the grade is kept as the evidence it is, the material stays empty,
+   and the row asks. Nothing is invented to make pricing easier.
+
+   opts.noStrengthAlloy — set by wqaNormalizeExtraction, never by the parser
+   that reads a customer's pasted words. */
+function wqaDetectCommon(text,opts){
   const hay=' '+wqaNorm(text).toLowerCase()+' ';
-  const out={product:null,material:'',materialDefaulted:false,finish:'',sizeType:''};
+  const out={product:null,material:'',materialDefaulted:false,finish:'',sizeType:'',strengthGrade:''};
   /* Every product the wording names, not the first one. A document that says
      "SAG ROD / ANCHOR BOLT" has not said which, and choosing for the customer
      is exactly the confident-and-wrong answer we refuse to give: product stays
@@ -10254,9 +10318,18 @@ function wqaDetectCommon(text){
   const said=' '+wqaNorm(text)+' ';
   for(const m of WQA_MATERIALS){
     const hit=wqaMatchMaterial(m,said);
-    if(hit){ out.material=m.value; out.materialDefaulted=!!m.defaulted;
-             out.materialDefaultedFrom=String(hit[0]).replace(/\s+/g,' ').trim()||m.from||'4140';
-             break; }
+    if(!hit) continue;
+    const wording=String(hit[0]).replace(/\s+/g,' ').trim()||m.from||'';
+    if(m.strength && opts && opts.noStrengthAlloy){
+      /* Read, recorded, and NOT turned into a material. Kept looking, because
+         the document may name the alloy somewhere else — and if it does, that
+         is the answer. */
+      if(!out.strengthGrade) out.strengthGrade=wording;
+      continue;
+    }
+    out.material=m.value; out.materialDefaulted=!!m.defaulted;
+    out.materialDefaultedFrom=wording||'4140';
+    break;
   }
   for(const f of WQA_FINISHES){ if(f.re.test(hay)){ out.finish=f.value; break; } }
   /* "undersized" is as common as "undersize" on a handwritten drawing. */
@@ -12133,7 +12206,7 @@ async function wqaAnalyze(){
    and PDF all resolve the product identically.                              */
 function wqaNormalizeExtraction(d, opts){
   d=d||{}; opts=opts||{};
-  const word={SAG_ROD:'SAG ROD',STUD:'STUD',ANCHOR_BOLT:'ANCHOR BOLT',L_BOLT:'L BOLT'};
+  const word={SAG_ROD:'SAG ROD',STUD:'STUD',ANCHOR_BOLT:'ANCHOR BOLT',L_BOLT:'L BOLT',J_BOLT:'J BOLT'};
 
   /* Product: an extraction token (SAG_ROD) or an internal type (sagrod). Both
      resolve through the same table, so there is no second mapping to drift. */
@@ -12155,7 +12228,10 @@ function wqaNormalizeExtraction(d, opts){
   const wording=(opts.wording!=null)
     ? opts.wording
     : [d.material,d.finish,st,word[src]||''].filter(Boolean).join(' ');
-  const common=wqaDetectCommon(wording);
+  /* An extracted document's own words go through the same vocabulary a pasted
+     message does — with one difference: a strength grade is not answered with
+     an alloy here. See wqaDetectCommon. */
+  const common=wqaDetectCommon(wording,{noStrengthAlloy:true});
   common.product=prod;
 
   const ends=wqaThreadEnds(prod);
@@ -12163,7 +12239,8 @@ function wqaNormalizeExtraction(d, opts){
      product, or an undersize note. Owned here so a photo and a paste
      standardise identically. */
   const rodSize=ends>0 || common.sizeType==='UNDERSIZE';
-  const inh={M:'',TL:''};
+  const inh={M:'',TL:'',material:'',finish:'',sizeType:'',grade:'',
+             raw:{material:'',finish:'',sizeType:''}};
   const rows=(d.items||[]).map(it=>{
     const conf={...(it.conf||{})};
     const issues=(it.issues||[]).filter(x=>x!=='size'&&x!=='length');
@@ -12189,8 +12266,42 @@ function wqaNormalizeExtraction(d, opts){
        L Bolt, and a hook with an inside diameter and a return height is a
        J Bolt. Only where the shape is actually stated — a W, or an ID and an S
        — never from the word alone. */
-    if(it.ID!=null&&it.ID!==''&&it.S!=null&&it.S!==''&&rowProd!=='jbolt') rowProd='jbolt';
+    /* ── A hook is a J Bolt ────────────────────────────────────────────────
+       S is the hook's return height, and no other product in this system has
+       one: a Sag Rod, a Stud, an Anchor Bolt and an L Bolt are all described
+       without it. So a row that states an S is describing a hook, whatever the
+       drawing's title block filed it under.
+
+       This used to require an ID as well, and a drawing that dimensions the
+       hook by its RADIUS instead — R 25 — states no inside diameter at all.
+       The row was left as the Anchor Bolt the title said, its S dropped for
+       having nowhere to go, and its overall height with it. One dimension is
+       enough to know the shape; the ID is a separate question, and it stays
+       unanswered rather than being computed from the radius. */
+    if(it.S!=null&&it.S!==''&&rowProd!=='jbolt') rowProd='jbolt';
+    else if(it.ID!=null&&it.ID!==''&&it.S!=null&&it.S!==''&&rowProd!=='jbolt') rowProd='jbolt';
     else if(it.W!=null&&it.W!==''&&(rowProd==='anchorbolt'||rowProd==='sagrod'||!rowProd)) rowProd='lbolt';
+
+    /* ── An overall height that the drawing calls L ───────────────────────
+       A J Bolt is described M · H · ID · S · TL. H is the overall height of
+       the part, and the schema has no plain length at all — so a J Bolt row
+       carrying a length has a dimension with nowhere to go, and the height
+       it should have filled is asked for as missing.
+
+       Drawings do not use our letter. The one in front of me dimensions the
+       same measurement L 280, running the full height of the bolt beside the
+       S and the hook. That is our H under another name, so it is reported as
+       H.
+
+       This is a mapping between two names for ONE dimension, not a rule that
+       L becomes H: it applies only where the geometry has already proved the
+       row is a J Bolt, only where no height was stated, and nowhere else in
+       the system. A J Bolt that states both keeps the stated H and leaves the
+       L where it is for a person to look at. */
+    let srcH=(it.H==null||it.H==='')?'':String(it.H);
+    let srcL=(it.L==null||it.L==='')?'':String(it.L);
+    let hFromL=false;
+    if(rowProd==='jbolt' && !srcH && srcL){ srcH=srcL; srcL=''; hFromL=true; }
 
     /* ── Wording against geometry ─────────────────────────────────────────
        A one-end thread under a Sag Rod title is an Anchor Bolt, and a bend
@@ -12236,21 +12347,72 @@ function wqaNormalizeExtraction(d, opts){
        the SAME wqaDetectCommon rules the document wording does. Neither source
        gets its own normalisation engine. */
     const own=(it.material||it.finish||it.sizeType)
-      ? wqaDetectCommon([it.material,it.finish,it.sizeType].filter(Boolean).join(' '))
+      ? wqaDetectCommon([it.material,it.finish,it.sizeType].filter(Boolean).join(' '),
+                        {noStrengthAlloy:true})
       : null;
     /* specResolved means the extractor has ALREADY applied row > group >
        document for this item, so an empty value is an answer — "no finish was
        stated for this group" — and must not be refilled from the document.
        That distinction is the whole reason an HDG stated for the first two rows
        stays off the stainless rows below them. */
+    /* ── A merged specification cell covers the rows it spans ─────────────
+       The extractor reports a block's specification on the FIRST row the merge
+       covers and leaves it null on the rest, because that is what the cell
+       looks like on the paper. Carrying it down the rest of the block is this
+       code's job, and until now nothing did it: every row after the first fell
+       back to the document, which on a sheet whose blocks differ says nothing
+       at all. A six-row table specified in two merged cells arrived with four
+       of its rows blank.
+
+       Silence and a statement are different things. A row that states
+       specification wording REPLACES what is being carried — even where our
+       vocabulary resolves that wording to no material, which is exactly what
+       "DIN 975 GRADE 8.8" does: a strength class is not a material, so the
+       material goes empty for the rows that cell covers and the stainless
+       block above them stops dead where the merge stops.
+
+       And only where the sheet itself is silent. A document-wide material
+       applies to every row that does not speak, so one row's own value can
+       never start a block underneath it. */
+    const rawIn={material:String(it.material||'').trim(),
+                 finish:String(it.finish||'').trim(),
+                 sizeType:String(it.sizeType||'').trim()};
+    const said={material:rawIn.material!=='', finish:rawIn.finish!=='',
+                sizeType:rawIn.sizeType!==''};
+    /* The document's own words, kept beside the value they became. "A2-70"
+       and SS304 are the same fact written twice, and a person checking a row
+       against the paper needs to see both — the normalised value is what is
+       quoted, the wording is what was read. Carried down a block exactly as
+       the value is, so row 4 of a merged cell can say where its HDG came
+       from. Never invented: a row the document did not speak for has none. */
+    const rawSeen={material:'',finish:'',sizeType:''};
+    const carry=(k,v)=>{
+      if(v||said[k]){
+        inh[k]=v; inh.raw[k]=rawIn[k]; rawSeen[k]=rawIn[k];
+        if(k==='material') inh.grade=(own&&own.strengthGrade)||'';
+        return v;
+      }
+      if(opts.inheritGaps && !common[k] && !unread){ rawSeen[k]=inh.raw[k]; return inh[k]; }
+      return v;
+    };
     const spec = it.specResolved ? {
       material:String(it.materialValue||''), finish:String(it.finishValue||''),
       sizeType:String(it.sizeTypeValue||''),
     } : {
-      material: (own&&own.material) || common.material || '',
-      finish:   (own&&own.finish)   || common.finish   || '',
-      sizeType: (own&&own.sizeType) || common.sizeType || '',
+      material: carry('material', (own&&own.material) || common.material || ''),
+      finish:   carry('finish',   (own&&own.finish)   || common.finish   || ''),
+      sizeType: carry('sizeType', (own&&own.sizeType) || common.sizeType || ''),
     };
+    /* The strength class travels with the material it stands in place of. */
+    const gradeVal = it.specResolved
+      ? String(it.grade||'')
+      : ((own&&own.strengthGrade) || (said.material ? '' : inh.grade)
+         || it.grade || common.strengthGrade || '');
+    /* What the document actually said, kept before the rule below runs. A
+       stainless specification that says "Plain" HAS said something, and the row
+       should show that it was read rather than look as though the word was
+       missed on the way in. */
+    const finishSeen=spec.finish;
     /* Whatever the finish resolved to, stainless has none. Applied HERE, in the
        normaliser every source runs through, so a pasted message, a photo and a
        PDF all agree. */
@@ -12291,19 +12453,28 @@ function wqaNormalizeExtraction(d, opts){
                   these would be worse than showing them as what they are. */
                pitch:(it.pitch==null||it.pitch==='')?'':String(it.pitch),
                series:(it.series==null||it.series==='')?'':String(it.series),
-               length:(it.L==null||it.L==='')?'':String(it.L),
+               length:srcL,
                w:(it.W==null||it.W==='')?'':String(it.W),
-               h:(it.H==null||it.H==='')?'':String(it.H),
+               /* The value the drawing wrote, and the name it wrote it under,
+                  kept apart: hFromL says the height came in as an L so the
+                  review can show the reading rather than hide it. */
+               h:srcH, hFromL,
                id:(it.ID==null||it.ID==='')?'':String(it.ID),
                s:(it.S==null||it.S==='')?'':String(it.S),
                threadLen:tl.a, threadLen2:tl.b,
                qty:(it.qty==null||it.qty==='')?'':String(it.qty),
                material:spec.material, finish:spec.finish, sizeType:spec.sizeType,
+               finishSeen:(finishSeen!==spec.finish?finishSeen:''),
+               specRaw:(it.specResolved?{material:'',finish:'',sizeType:''}:rawSeen),
                stDefaulted, stWhy,
                matFrom: it.matFrom || ((own&&own.materialDefaulted)?own.materialDefaultedFrom:'')
                         || (spec.material===common.material ? (common.materialDefaultedFrom||'') : ''),
                matDefaulted: it.matDefaulted!==undefined ? !!it.matDefaulted
                             : ((own&&own.materialDefaulted) || (spec.material===common.material && !!common.materialDefaulted)),
+               /* Read off the document and kept as the fact it is: a strength
+                  class, not a material. The row shows it and asks for the
+                  material rather than choosing an alloy nobody wrote. */
+               grade:String(gradeVal||''),
                issues, defaulted, conf, aiUncertain:[],
                raw: it.raw!=null ? String(it.raw)
                     : [it.M,it.L,it.TL,(it.qty!=null?it.qty+'pcs':null)].filter(v=>v!=null).join(' x ')};

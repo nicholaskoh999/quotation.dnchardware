@@ -68,6 +68,67 @@ ok(strpos($payload['instructions'], 'A SHARED VALUE REACHES ONLY THE ROWS IT COV
 ok(strpos($payload['instructions'], 'STRUCTURED COLUMNS OUTRANK THE DESCRIPTION') !== false,
    'and the table-column rule');
 
+// ── what the model is told about a hook, a sideways table, and a grade ──────
+/* These are the two live acceptance cases. Everything downstream of the
+   model's answer is asserted in tests/suites/19-drawing-interpretation; what
+   the model is ASKED to do can only be asserted here, against the prompt and
+   the schema it is bound to. */
+$ins = $payload['instructions'];
+ok(strpos($ins, 'RECOGNISING A J BOLT ON A DRAWING') !== false,
+   'the instructions say how a hook is recognised');
+ok(strpos($ins, "READING A J BOLT'S DIMENSIONS") !== false,
+   'and which of its dimensions is which');
+ok(strpos($ins, 'A TABLE MAY BE PRINTED SIDEWAYS') !== false,
+   'and that a table may be rotated');
+ok(strpos($ins, 'WHAT A SPECIFICATION CELL ACTUALLY COVERS') !== false,
+   'and how far a merged specification cell reaches');
+ok(strpos($ins, "A ROW'S OWN SPECIFICATION BEATS A GENERAL REMARK") !== false,
+   'and that a row beats a sheet-wide remark');
+ok(strpos($ins, 'A STRENGTH CLASS IS NOT A MATERIAL') !== false,
+   'and that a strength class is not a steel');
+foreach (['8.8 is not 4140', 'A2 is not', 'ever a material'] as $phrase) {
+    ok(strpos($ins, $phrase) !== false, "the prompt says so in as many words: \"$phrase\"");
+}
+foreach (['A2-70', 'A4-70', 'SUS304', 'SUS316'] as $w) {
+    ok(strpos($ins, $w) !== false, "$w is named in the vocabulary");
+}
+ok(strpos($ins, 'paper trap') !== false, 'and the A4-paper trap is called out');
+
+// ── the schema can actually express a J Bolt ───────────────────────────────
+/* The live drawing could not have come back as a J Bolt however clearly the
+   hook was drawn: the enum did not contain one. */
+$schema = ai_output_schema();
+$docEnum  = $schema['properties']['product']['enum'];
+$itemEnum = $schema['properties']['items']['items']['properties']['product']['enum'];
+ok(in_array('J_BOLT', $docEnum, true),  'the document-level product can be a J Bolt');
+ok(in_array('J_BOLT', $itemEnum, true), 'and so can a single row of a mixed sheet');
+foreach (['SAG_ROD', 'STUD', 'ANCHOR_BOLT', 'L_BOLT', 'OTHER'] as $p) {
+    ok(in_array($p, $itemEnum, true), "$p is still there beside it");
+}
+foreach (['H', 'ID', 'S', 'R'] as $k) {
+    ok(isset($schema['properties']['items']['items']['properties'][$k]),
+       "a row can carry its $k");
+    ok(in_array($k, $schema['properties']['items']['items']['required'], true),
+       "and $k is required, so it is answered rather than omitted");
+}
+
+// ── and the sanitiser lets a J Bolt through ────────────────────────────────
+$hook = ai_sanitise_extraction(extraction(
+    [item('M12', null, 50, 40, ['H' => 280, 'ID' => null, 'S' => 80, 'R' => 25,
+                                'product' => 'J_BOLT'])],
+    ['product' => 'J_BOLT']));
+eq($hook['product'], 'J_BOLT', 'a J Bolt document survives the sanitiser');
+eq($hook['items'][0]['product'], 'J_BOLT', 'and so does a J Bolt row');
+eq($hook['items'][0]['H'], 280, 'with its height');
+eq($hook['items'][0]['S'], 80, 'its return height');
+eq($hook['items'][0]['R'], 25, 'and its radius');
+eq($hook['items'][0]['ID'], null, 'while an ID nobody wrote stays null');
+eq($hook['items'][0]['TL'], 50, 'the thread callout is a thread length');
+$bad = ai_sanitise_extraction(extraction([item('M12', null, 50, 40, ['product' => 'U_BOLT'])],
+                                         ['product' => 'U_BOLT']));
+eq($bad['product'], null, 'a product outside the list is still refused');
+eq($bad['items'][0]['product'], null, 'on the row as well as the document');
+
 // ── one bad row does not cost the others ───────────────────────────────────
 $mixed = [item('M20', 300, 100, 5), 'not an object', item('M24', 400, 120, 6)];
 $d = ai_sanitise_extraction(extraction($mixed));
