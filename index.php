@@ -2161,6 +2161,38 @@ input,select,textarea{
 /* Quick Add — common Size / Thread panel */
 .wqa-item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:11px}
 @media (max-width:560px){.wqa-item-grid{grid-template-columns:1fr}}
+
+/* ── Pricing history ─────────────────────────────────────────────────────── */
+.ph-list{max-height:none}
+.ph-count{font-size:11px;font-weight:700;color:var(--text-muted);margin:6px 0 8px;letter-spacing:.02em}
+.ph-scroll{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+.ph-rec{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface-2)}
+.ph-rec-own{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
+.ph-rec-head{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:12px}
+.ph-rec-ref{font-weight:800}
+.ph-rec-cust{font-weight:600;color:var(--text)}
+.ph-rec-date{color:var(--text-muted);margin-left:auto}
+.ph-rec-spec{font-size:11px;color:var(--text-muted);margin-top:3px}
+.ph-rec-dims{font-size:12px;font-weight:600;margin-top:2px}
+.ph-rec-nums{display:flex;flex-wrap:wrap;gap:14px;margin-top:7px;font-size:12px}
+.ph-rec-nums span{display:flex;flex-direction:column}
+.ph-rec-nums label{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:700}
+.ph-rec-unit{font-weight:800}
+.ph-rec-acc{margin-top:6px;font-size:11px;color:var(--text-muted)}
+.ph-rec-foot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.ph-rec-tag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 7px;border-radius:99px;background:var(--surface-3);color:var(--text-muted)}
+.ph-rec-exact{background:rgba(52,168,110,.16);color:#1f7a4d}
+.ph-rec-other{background:rgba(120,120,140,.18)}
+.ph-rec-warn{background:rgba(214,158,46,.18);color:#8a5a00}
+.ph-rec-use{margin-left:auto}
+.ph-more{margin-top:8px;width:100%}
+.wqa-hist-panel{padding:0;background:none;border:none}
+.wqa-hist-bar{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:8px;text-align:left}
+.wqa-hist-arrow{font-size:10px;color:var(--text-muted)}
+.wqa-hist-lbl{font-weight:700;font-size:12px}
+.wqa-hist-count{margin-left:auto;font-size:11px;color:var(--text-muted)}
 </style>
 </head>
 <body>
@@ -3023,32 +3055,20 @@ input,select,textarea{
 
         <div class="ph-mini" id="phMini">
           <div class="ph-mini-head">
-            <span class="ph-title"><span data-i18n="prevQuotedPrices">Previous Quoted Prices</span> <span class="ph-tag" data-i18n="mRefOnly">reference only, does not change your price</span></span>
-            <button class="btn btn-outline btn-sm" onclick="checkPreviousPrice()"><span data-i18n="checkPrevPrices">Check Previous Prices</span></button>
+            <span class="ph-title"><span data-i18n="prevQuotedPrices">Pricing History</span> <span class="ph-tag" data-i18n="mRefOnly">reference only, does not change your price</span></span>
+            <button class="btn btn-outline btn-sm" onclick="checkPreviousPrice()"><span data-i18n="checkPrevPrices">Show Pricing History</span></button>
           </div>
+          <!-- The records themselves. A Last / Low / High / Avg summary used to
+               sit here, computed over every length of the specification at
+               once: a 750mm rod at RM 9.80 and a 3000mm rod at RM 39.00
+               averaged to RM 24.40 beside a 500mm rod being quoted, which is
+               a number that describes no item anybody ever sold. What
+               explains a price is the rows — the length, the thread, the
+               rate, the markup — so the rows are what is shown. -->
           <div id="phResults" style="display:none">
-            <div class="ph-section" id="phSameCustomerSection" style="display:none">
-              <div class="ph-section-title">Same Customer History</div>
-              <div class="ph-stats">
-                <div class="ph-stat hl"><label>Last Quoted</label><span id="phSameLast">—</span></div>
-                <div class="ph-stat"><label>Low</label><span id="phSameLow">—</span></div>
-                <div class="ph-stat"><label>High</label><span id="phSameHigh">—</span></div>
-                <div class="ph-stat"><label>Avg</label><span id="phSameAvg">—</span></div>
-                <div class="ph-stat"><label>Records</label><span id="phSameRecords">—</span></div>
-              </div>
-            </div>
-            <div class="ph-section" id="phAllSection" style="display:none">
-              <div class="ph-section-title">All Customer Reference</div>
-              <div class="ph-stats">
-                <div class="ph-stat hl"><label>Last Quoted</label><span id="phAllLast">—</span></div>
-                <div class="ph-stat"><label>Low</label><span id="phAllLow">—</span></div>
-                <div class="ph-stat"><label>High</label><span id="phAllHigh">—</span></div>
-                <div class="ph-stat"><label>Avg</label><span id="phAllAvg">—</span></div>
-                <div class="ph-stat"><label>Records</label><span id="phAllRecords">—</span></div>
-              </div>
-            </div>
+            <div id="phList" class="ph-list"></div>
           </div>
-          <div class="ph-empty-msg" id="phEmptyMsg" style="display:none">No matching saved quotations for this Product Type, Material, Size Type, Finish and Size yet.</div>
+          <div class="ph-empty-msg" id="phEmptyMsg" style="display:none">No pricing history for this exact specification yet.</div>
         </div>
 
         <!-- Extra Drawing Dimensions lives HERE and only here, and only while an
@@ -3945,7 +3965,7 @@ const I18N={
     optRequired:'— required —', optNone:'— none —', wqaMixed:'Mixed',
     materialRequired:'Material was not stated in the message, so it is not guessed. Choose the material to price these items.',
     badgeNoThread:'No thread', badgeParseWarning:'Parse warning', badgeCheck:'Check {f}',
-    badgeAsymmetric:'Asymmetric', badgeLastPrice:'Last price',
+    badgeAsymmetric:'Asymmetric', badgeLastPrice:'Reusing',
     wqaTitle:'WhatsApp Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
     wqaDiscardTitle:'Discard Quick Add changes?',
     wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
@@ -4056,7 +4076,7 @@ const I18N={
     addDiameterRule:'Add Diameter Rule', editDiameterRule:'Edit Diameter Rule',
     savedDiameterRules:'Saved Diameter Rules', saveRule:'Save Rule',
     lblDiameterMm:'Diameter (mm)',
-    prevQuotedPrices:'Previous Quoted Prices', checkPrevPrices:'Check Previous Prices',
+    prevQuotedPrices:'Pricing History', checkPrevPrices:'Show Pricing History',
     lblManualWeight:'Manual Weight', lblDiaXLength:'Diameter × Length',
     lblUnitWeight:'Unit Weight', lblBasePrice:'Base Price',
     lblFinalUnitPrice:'Final Unit Price', lblRawPrice:'Raw Price',
@@ -4165,7 +4185,7 @@ const I18N={
     optRequired:'— 必填 —', optNone:'— 无 —', wqaMixed:'多种',
     materialRequired:'信息中未说明材料，系统不会猜测。请选择材料以计算价格。',
     badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
-    badgeAsymmetric:'左右不对称', badgeLastPrice:'上次价格',
+    badgeAsymmetric:'左右不对称', badgeLastPrice:'沿用',
     wqaTitle:'WhatsApp 快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
     wqaDiscardTitle:'要放弃快速添加的内容吗？',
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
@@ -4275,7 +4295,7 @@ const I18N={
     addDiameterRule:'添加直径规则', editDiameterRule:'编辑直径规则',
     savedDiameterRules:'已保存直径规则', saveRule:'保存规则',
     lblDiameterMm:'直径 (mm)',
-    prevQuotedPrices:'之前报价', checkPrevPrices:'查看之前报价',
+    prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
     lblManualWeight:'手动重量', lblDiaXLength:'直径 × 长度',
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
     lblFinalUnitPrice:'最终单价', lblRawPrice:'原始价格',
@@ -7754,89 +7774,126 @@ function doWhatsApp(){ sentThisSession=true; refreshWorkflow(); openWhatsApp(); 
 function doCopyWA(){ sentThisSession=true; refreshWorkflow(); copyWhatsApp(); }
 
 /* ── Previous Quoted Prices (MySQL quotation history) ── */
-const PH_EMPTY_DEFAULT='No matching saved quotations for this Product Type, Material, Size Type, Finish and Size yet.';
-function resetPriceHistoryPanel(){
-  const empty=el('phEmptyMsg'); if(empty) empty.textContent=PH_EMPTY_DEFAULT;
-  el('phResults').style.display='none';
-  el('phEmptyMsg').style.display='none';
-  el('phSameCustomerSection').style.display='none';
-  el('phAllSection').style.display='none';
+const PH_EMPTY_DEFAULT='No pricing history for this exact specification yet.';
+/* ── Pricing history ───────────────────────────────────────────────────────
+   Evidence, not a prediction. The rows we actually sent, with the numbers that
+   produced each price, so the question a person really has — why was that one
+   dearer? — is answerable from the screen: a longer rod, a longer thread, a
+   different cost rate, a different markup, or a different customer.
+
+   Nothing here averages or interpolates, and there is deliberately no headline
+   figure. A single number over a specification whose lengths run from 500mm to
+   3000mm describes no item anybody ever sold, and staff read a headline as a
+   recommendation whatever the label beside it says.
+
+   ONE renderer, used by the entry form's panel and by every Quick Add row, so
+   the two cannot come to disagree about what a historical price means. */
+function phMoney(v){ return (v===null||v===undefined||v==='') ? '—' : 'RM '+(Number(v)||0).toFixed(2); }
+function phPct(v){ return (v===null||v===undefined||v==='') ? '—' : (Number(v)||0)+'%'; }
+function phRecordHtml(rec,onUse){
+  const own=!!rec.own;
+  /* The bolt's own price is what a bolt costs. Where the saved row cannot
+     prove how accessories were treated, no separated figure is invented — the
+     line the customer received is shown, and said to be unseparated. */
+  const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?null:Number(rec.boltUnitPrice);
+  const acc=Number(rec.accessoryCost)||0;
+  const dims=String(rec.dimensionPreview||'').trim();
+  const spec=[materialLabel(rec.material),rec.sizeType,rec.productType,rec.finish?'('+rec.finish+')':'']
+             .filter(Boolean).join(' ');
+  const tags=[];
+  if(!own) tags.push('<span class="ph-rec-tag ph-rec-other">Other customer reference</span>');
+  tags.push(rec.exactDims ? '<span class="ph-rec-tag ph-rec-exact">Same dimensions</span>'
+                          : '<span class="ph-rec-tag">Different dimensions</span>');
+  if(rec.legacy) tags.push('<span class="ph-rec-tag">Legacy record</span>');
+  if(rec.accessoryAmbiguous) tags.push('<span class="ph-rec-tag ph-rec-warn">Accessories not separable</span>');
+  const useBtn = onUse && bolt!==null
+    ? `<button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="${onUse}">Use this price</button>` : '';
+  return `<div class="ph-rec${own?' ph-rec-own':''}">
+    <div class="ph-rec-head">
+      <span class="ph-rec-ref">${escHtml(rec.refNo||'—')}</span>
+      <span class="ph-rec-cust">${escHtml(rec.customer||'—')}</span>
+      <span class="ph-rec-date">${escHtml(fmtDateShort(rec.date))}</span>
+    </div>
+    <div class="ph-rec-spec">${escHtml(spec)}</div>
+    <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · Qty ${parseInt(rec.qty,10)||0}</div>
+    <div class="ph-rec-nums">
+      <span><label>Cost Rate</label>${phMoney(rec.costRate)}</span>
+      <span><label>Add Cost</label>${phMoney(rec.addCost)}</span>
+      <span><label>Markup</label>${phPct(rec.markup)}</span>
+      <span class="ph-rec-unit"><label>${bolt===null?'Unit Price':'Bolt Unit Price'}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
+    </div>
+    ${acc>0?`<div class="ph-rec-acc">Accessories, separately: ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.unitPrice)+')'}</div>`:''}
+    <div class="ph-rec-foot">${tags.join('')}${useBtn}</div>
+  </div>`;
 }
-async function fetchPriceHistory(companyId){
-  const material=fv(currentType,'material');
-  const isSS=material==='SS304'||material==='SS316';
-  const params=new URLSearchParams({
-    action:'get_price_history',
-    productType:ITEM_TYPES[currentType]||currentType,
-    material,
-    sizeType:currentType==='stud' ? '' : fv(currentType,'sizeType'),
-    finish:isSS ? '' : getFinish(currentType),
-    cleanSize:normalizeSizeValue(fv(currentType,'size'))
-  });
-  if(companyId!=null) params.set('company_id',companyId);
-  /* null means the lookup did not run — a lapsed session, an unavailable
-     table. An empty array means it ran and found nothing. Collapsing the two
-     turned "we could not look" into "there is nothing", which is an assertion
-     about the customer's record that staff price repeat orders on. */
+/* One page of history for one specification. null means the lookup could not
+   run at all, which is not the same answer as "there is nothing". */
+async function phFetch(spec,companyId,offset,limit){
+  if(!spec) return null;
+  const params=new URLSearchParams({action:'get_pricing_history', ...spec,
+                                    offset:String(offset||0), limit:String(limit||20)});
+  if(companyId!=null) params.set('company_id',String(companyId));
   try{
     const res=await fetch('api.php?'+params.toString()).then(r=>r.json());
-    return (res&&res.ok) ? (res.data||[]) : null;
+    return (res&&res.ok&&res.data) ? res.data : null;
   }catch(e){ return null; }
 }
-function computeStats(matches){
-  if(!matches.length) return null;
-  const sorted=matches.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const priceOf=m=>parseFloat(m.unitPrice!==undefined?m.unitPrice:m.price)||0;
-  /* Low, High and Avg already ignored a record priced at zero; Last did not,
-     so the headline figure could read RM 0.00 with a Low of RM 9.80 beside it.
-     One rule for all four. */
-  const priced=sorted.filter(m=>priceOf(m)>0);
-  const prices=priced.map(priceOf);
-  if(!prices.length) return null;
-  return {last:priceOf(priced[0]), low:Math.min(...prices), high:Math.max(...prices), avg:prices.reduce((s,p)=>s+p,0)/prices.length, records:sorted.length};
+function phListHtml(state,onUse,onMore){
+  if(!state) return '<div class="ph-empty-msg">Could not load pricing history — this is not the same as there being none.</div>';
+  if(!state.records || !state.records.length)
+    return '<div class="ph-empty-msg">No pricing history for this exact specification.</div>';
+  const shown=state.records.length, total=state.total||shown;
+  const more = shown<total && onMore
+    ? `<button type="button" class="btn btn-outline btn-sm ph-more" onclick="${onMore}">Load more</button>` : '';
+  return `<div class="ph-count">Showing ${shown} of ${total} matching records`
+       + (state.ownTotal!==undefined?` · ${state.ownTotal} this customer, ${state.otherTotal} other`:'')
+       + `</div><div class="ph-scroll">`
+       + state.records.map((rec,n)=>phRecordHtml(rec,onUse?onUse.replace('{n}',n):'')).join('')
+       + `</div>${more}`;
 }
-function fillStats(prefix,stats){
-  el('ph'+prefix+'Last').textContent=fmt(stats.last);
-  el('ph'+prefix+'Low').textContent=fmt(stats.low);
-  el('ph'+prefix+'High').textContent=fmt(stats.high);
-  el('ph'+prefix+'Avg').textContent=fmt(stats.avg);
-  el('ph'+prefix+'Records').textContent=stats.records;
+
+/* ── The entry form's panel ───────────────────────────────────────────────── */
+let phFormState=null;
+function phFormSpec(){
+  const t=currentType;
+  const material=fv(t,'material');
+  const isSS=material==='SS304'||material==='SS316';
+  return {productType:ITEM_TYPES[t]||t, material,
+          sizeType:t==='stud'?'':fv(t,'sizeType'),
+          finish:isSS?'':getFinish(t),
+          cleanSize:normalizeSizeValue(fv(t,'size')),
+          dimensionPreview:''};
 }
 async function checkPreviousPrice(){
   resetPriceHistoryPanel();
-  /* An empty Size box would ask the server for "every size of this product",
-     and the answer — M8 beside M65 — is not this item's history. */
-  if(!normalizeSizeValue(fv(currentType,'size'))){
-    el('phResults').style.display='none';
-    el('phEmptyMsg').style.display='block';
-    showToast('Enter a Size first');
+  const spec=phFormSpec();
+  /* An empty Size box would ask for "every size of this product", and M8
+     beside M65 is not this item's history. */
+  if(!spec.cleanSize){
+    const empty=el('phEmptyMsg'); empty.style.display='block'; empty.textContent='Enter a Size first.';
     return;
   }
-  const sameMatches = selectedCompanyId!=null ? await fetchPriceHistory(selectedCompanyId) : [];
-  const allMatches = await fetchPriceHistory(null);
-  if(sameMatches===null || allMatches===null){
-    el('phResults').style.display='none';
-    const empty=el('phEmptyMsg');
-    empty.style.display='block';
-    empty.textContent=dcT('phCheckFailed');
-    return;
-  }
-  const sameStats = computeStats(sameMatches);
-  const allStats = computeStats(allMatches);
-
-  const showSame = !!sameStats;
-  const showAll = !!allStats && (!sameStats || sameStats.records<3);
-
-  el('phSameCustomerSection').style.display = showSame ? 'block' : 'none';
-  el('phAllSection').style.display = showAll ? 'block' : 'none';
-  if(showSame) fillStats('Same', sameStats);
-  if(showAll) fillStats('All', allStats);
-
-  const hasAny = showSame || showAll;
-  el('phResults').style.display = hasAny ? 'block' : 'none';
-  el('phEmptyMsg').style.display = hasAny ? 'none' : 'block';
+  phFormState=await phFetch(spec,selectedCompanyId,0,20);
+  if(phFormState) phFormState._spec=spec;
+  el('phEmptyMsg').style.display='none';
+  el('phResults').style.display='block';
+  el('phList').innerHTML=phListHtml(phFormState,null,'phFormMore()');
+}
+async function phFormMore(){
+  if(!phFormState||!phFormState._spec) return;
+  const next=await phFetch(phFormState._spec,selectedCompanyId,phFormState.records.length,20);
+  if(!next) return;
+  phFormState.records=phFormState.records.concat(next.records||[]);
+  el('phList').innerHTML=phListHtml(phFormState,null,'phFormMore()');
 }
 
+function resetPriceHistoryPanel(){
+  phFormState=null;
+  const empty=el('phEmptyMsg');
+  if(empty){ empty.textContent=PH_EMPTY_DEFAULT; empty.style.display='none'; }
+  const results=el('phResults'); if(results) results.style.display='none';
+  const list=el('phList'); if(list) list.innerHTML='';
+}
 function findMatchingCompanyByName(name){
   const n=(name||'').trim().toLowerCase();
   return companiesCache.find(c=>(c.name||'').trim().toLowerCase()===n)||null;
@@ -9109,9 +9166,10 @@ function wqaApplyPriceToAll(){
        set for it and re-priced it from the formula. It follows the same rule
        as the fields beside it: stated, or left alone. */
     if(wqa.commonPriceModeSet) r.priceMode=c.priceMode||'auto';
-    /* Leaving a row on Use Last Price while the copied mode says Auto would be
-       a silent contradiction, so the flag is cleared and the count reported. */
-    if(r.priceMode!=='manual'&&r.useLastPrice){ r.useLastPrice=false; r.manualPrice=''; droppedLast++; }
+    /* A row that was priced from a historical record is on Manual Price. If
+       this panel moves it off manual, the reused figure goes with it, and the
+       count is reported rather than the change being silent. */
+    if(r.priceMode!=='manual'&&r.usedHistoryRef){ r.usedHistoryRef=''; r.manualPrice=''; droppedLast++; }
   });
   wqa.panels.price=true;    // stay open while staff keep editing
   wqaRenderCommonPrice();
@@ -9126,7 +9184,7 @@ function wqaApplyManualPriceToAll(){
   if(v===''||!(parseFloat(v)>0)){ showToast(dcT('wqaToastEnterManual')); return; }
   const targets=wqaApplyTargets();
   if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
-  targets.forEach(r=>{ r.priceMode='manual'; r.manualPrice=v; r.useLastPrice=false; });
+  targets.forEach(r=>{ r.priceMode='manual'; r.manualPrice=v; r.usedHistoryRef=''; });
   wqa.panels.price=true;
   wqaRenderCommonPrice();
   wqaRecomputeAll();
@@ -9136,12 +9194,12 @@ function wqaApplyManualPriceToAll(){
 function wqaEditRowMode(i,mode){
   const r=wqa.rows[i]; if(!r) return;
   r.priceMode=mode;
-  if(mode!=='manual'){ r.useLastPrice=false; r.manualPrice=''; }
+  if(mode!=='manual'){ r.usedHistoryRef=''; r.manualPrice=''; }
   wqaRecomputeAll(true);          // the manual price field appears/disappears
 }
 function wqaEditRowManualPrice(i,v){
   const r=wqa.rows[i]; if(!r) return;
-  r.manualPrice=v; r.useLastPrice=false;     // typed by hand, so not a "last price"
+  r.manualPrice=v; r.usedHistoryRef='';      // typed by hand, so not a reused record
   clearTimeout(wqa._tm); wqa._tm=setTimeout(()=>wqaRecomputeAll('patch'),250);
 }
 
@@ -9750,7 +9808,7 @@ function wqaRowBadges(r){
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
-  if(r.useLastPrice)                            out.push({t:dcT('badgeLastPrice'),k:'info'});
+  if(r.usedHistoryRef)                          out.push({t:dcT('badgeLastPrice')+' '+r.usedHistoryRef,k:'info'});
   return out;
 }
 function wqaBadgeHtml(r){
@@ -12201,8 +12259,8 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
     wqa.textSource = String(rawText||'');
   }
   wqa.common={...common};
-  wqa.rows=rows.map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',useLastPrice:false,manualPrice:'',
-                         priceOverride:{},history:undefined,removed:false}));
+  wqa.rows=rows.map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
+                         priceOverride:{},hist:undefined,histOpen:false,removed:false}));
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
   wqa.panels.source=wqaSourceOpenDefault();
@@ -12471,7 +12529,7 @@ function wqaChangeProduct(t){
   /* Same pipeline as the first parse, so header context and inheritance behave
      identically after a product switch. */
   wqa.rows=wqaParseText(wqa.raw,t).rows
-    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',useLastPrice:false,manualPrice:'',priceOverride:{},history:undefined,removed:false}));
+    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histOpen:false,removed:false}));
   wqaRenderCommon();
   wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
   wqaRecomputeAll();
@@ -12737,7 +12795,7 @@ function wqaApplyRowToForm(r){
      it sets the FINAL unit price and leaves cost rate / additional cost /
      markup exactly as they are. Auto and No Round never carry a final price
      across rows — each row recalculates from its own dimensions below. */
-  const rowMode=r.useLastPrice?'manual':(r.priceMode||'auto');
+  const rowMode=r.priceMode||'auto';
   setFieldValue(t,'priceMode',rowMode);
   setFieldValue(t,'manualUnitPrice',rowMode==='manual'?(r.manualPrice||''):'');
   onPriceModeChange(t);
@@ -12823,24 +12881,30 @@ function wqaRenderRows(force){
     const open=wqaRowIsOpen(r);
     const miss=wqaRowMissing(r);
     const calc=r.calc||{};
-    const hist=r.history;
-    /* Where the number came from is part of the number. This customer's own
-       previous price is a Last Price; somebody else's is a Reference Price and
-       is named as theirs, so nobody quotes one customer's rate to another
-       believing it was their own. */
-    let histHtml='<div class="wqa-hist wqa-hist-none">No previous price found</div>';
-    if(hist===undefined) histHtml='<div class="wqa-hist">Checking previous prices…</div>';
-    else if(hist&&hist.failed) histHtml='<div class="wqa-hist wqa-hist-similar">Could not check previous prices — this is not the same as there being none.</div>';
-    else if(hist&&hist.rec){
-      const exact=hist.exact, own=hist.own;
-      const tag = (own?'Same customer':'Other customer')+' · '
-                + (exact?'exact specification':'same specification, different dimensions');
-      const label = own ? 'Last Price' : 'Reference Price';
-      histHtml=`<div class="wqa-hist ${own&&exact?'wqa-hist-exact':'wqa-hist-similar'}">
-        <div class="wqa-hist-tag">${escHtml(tag)}</div>
-        <div class="wqa-hist-line">${escHtml(hist.rec.dimensionPreview||'')} · ${escHtml(hist.rec.refNo||'')} · ${escHtml(fmtDateShort(hist.rec.date))} · Qty ${parseInt(hist.rec.qty,10)||0}${own?'':' · '+escHtml(hist.rec.customer||'other customer')}</div>
-        <div class="wqa-hist-foot"><span class="wqa-hist-price">${label} RM ${(parseFloat(hist.rec.unitPrice)||0).toFixed(2)}</span>
-        <button type="button" class="btn btn-outline btn-sm" onclick="wqaUseLastPrice(${i})">${r.useLastPrice?'✓ Using '+label:'Use '+label}</button></div>
+    /* ── Pricing history ──────────────────────────────────────────────────
+       A collapsed bar with the count on it, opening onto the records
+       themselves: whose quotation, what dimensions, what cost rate, what
+       markup, what the bolt cost. Collapsed by default, because twenty rows
+       each showing five records is not a review screen — and open in one
+       click, because "why was that one dearer" is the question this answers.
+       Nothing is copied into the row until somebody presses Use this price. */
+    const hist=r.hist;
+    let histHtml='';
+    if(hist===undefined){
+      histHtml='<div class="wqa-hist">Loading pricing history…</div>';
+    } else if(hist && hist.failed){
+      histHtml='<div class="wqa-hist wqa-hist-similar">Could not load pricing history — this is not the same as there being none.</div>';
+    } else if(!hist || !hist.records || !hist.records.length){
+      histHtml='<div class="wqa-hist wqa-hist-none">No pricing history for this exact specification</div>';
+    } else {
+      const own=hist.ownTotal||0, other=hist.otherTotal||0;
+      histHtml=`<div class="wqa-hist wqa-hist-panel">
+        <button type="button" class="wqa-hist-bar" onclick="wqaHistToggle(${i})">
+          <span class="wqa-hist-arrow">${r.histOpen?'▾':'▸'}</span>
+          <span class="wqa-hist-lbl">Pricing History</span>
+          <span class="wqa-hist-count">${hist.total||hist.records.length} record${(hist.total||1)===1?'':'s'}${own?' · '+own+' this customer':''}${other?' · '+other+' other':''}</span>
+        </button>
+        ${r.histOpen?phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`):''}
       </div>`;
     }
     /* The body — every control that existed before — is built only when this row
@@ -12895,9 +12959,9 @@ function wqaRenderRows(force){
         <div class="field"><label>Markup (%)</label><input type="number" value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></div>
         <div class="field"><label data-i18n="lblPriceMode">Price Mode</label>
           <select onchange="wqaEditRowMode(${i},this.value)">${
-            WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.useLastPrice?'manual':(r.priceMode||'auto'))===m.v?' selected':''}>${m.label}</option>`).join('')
+            WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${m.label}</option>`).join('')
           }</select></div>
-        ${(r.useLastPrice?'manual':(r.priceMode||'auto'))==='manual'?`<div class="field"><label>Manual Unit Price (RM)</label>
+        ${(r.priceMode||'auto')==='manual'?`<div class="field"><label>Manual Unit Price (RM)</label>
           <input type="number" min="0" step="0.01" value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></div>`:''}
       </div>
       <div class="wqa-weight-line">
@@ -13003,132 +13067,105 @@ function wqaEditSize(i,inp,commit){
 function wqaEditPrice(i,k,v){ wqa.rows[i].priceOverride[k]=v;
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250); }
 function wqaRemoveRow(i){ wqa.rows[i].removed=true; wqaRenderRows(true); }
-function wqaUseLastPrice(i){
-  const r=wqa.rows[i];
-  if(!r.history||!r.history.rec) return;
-  r.useLastPrice=!r.useLastPrice;
-  r.manualPrice=r.useLastPrice?String(parseFloat(r.history.rec.unitPrice)||0):'';
-  wqaRecomputeAll();
+/* Reusing a historical price is a DECISION, taken by a person, on one record.
+   Nothing copies a price on its own: the row prices itself from its own weight
+   and rates until somebody presses this, and a price already typed by hand is
+   never replaced without it. The BOLT price is what is reused — accessories
+   belong to this row's own accessory panel and are added by it, so taking the
+   quotation line would charge last year's nuts twice. */
+function wqaHistUse(i,n){
+  const r=wqa.rows[i]; if(!r||!r.hist||!r.hist.records) return;
+  const rec=r.hist.records[n]; if(!rec) return;
+  const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?null:Number(rec.boltUnitPrice);
+  if(bolt===null){ showToast('That record cannot be separated from its accessories — reuse it by hand'); return; }
+  r.priceMode='manual';
+  r.manualPrice=String(bolt);
+  r.usedHistoryRef=rec.refNo||'';
+  wqaRecomputeAll('force');
+  showToast('Using '+(rec.refNo||'a previous price')+' — RM '+bolt.toFixed(2));
 }
+function wqaHistToggle(i){
+  const r=wqa.rows[i]; if(!r) return;
+  r.histOpen=!r.histOpen;
+  wqaRenderRows(true);
+}
+async function wqaHistMore(i){
+  const r=wqa.rows[i]; if(!r||!r.hist) return;
+  const spec=wqaHistSpec(r);
+  const next=await phFetch(spec,selectedCompanyId,(r.hist.records||[]).length,20);
+  if(!next) return;
+  r.hist.records=(r.hist.records||[]).concat(next.records||[]);
+  wqaRenderRows(true);
+}
+/* ── Pricing history, per row ──────────────────────────────────────────────
+   Evidence about this exact specification: product, material, finish, size
+   type and size matched exactly, quantity no part of it. Dimensions do not
+   filter — a 500mm rod and a 1500mm rod of the same specification are both
+   worth reading, because between them they explain why the two prices
+   differed — they rank the list instead, this customer's own records first.
 
-/* ── Previous price ────────────────────────────────────────────────────────
-   A LOOKUP, not a suggestion. It answers one question — "what did we charge
-   for this exact item before?" — by reading the FINAL unit price off a saved
-   quotation. Nothing here averages, interpolates, or reaches for a nearby
-   size: get_price_history matches product, material, finish, size type and
-   size exactly, and quantity is not part of the match at all, because a
-   historical Qty of 1 says nothing about what the item cost.
-
-   Two sources, in this order, and the row always says which one it got:
-     1. THIS customer. Their own previous price is the answer.
-     2. Only when this customer has none: any other customer, same exact
-        specification, shown as a REFERENCE and named as somebody else's.
-   The two are never merged and never averaged — different customers have
-   different rates, and one customer's price is not evidence about another's.
-
-   Within a source, a record whose dimensions also match is the exact answer;
-   a same-specification record with different dimensions is offered under a
-   label that says so, so nobody reads a 500mm rod's price as a 1500mm rod's.  */
-/* Price history lands asynchronously, so it must never rebuild the rows out from
-   under someone mid-edit. It re-renders only when a row's result actually
-   changed — toggling an accessory or retyping a rate leaves it identical, so
-   nothing is replaced. */
+   Loaded once per DISTINCT specification, however many rows share it, so a
+   twenty-row paste asks the server once rather than twenty times. */
 function wqaHistKey(){
-  return wqa.rows.map(r=>r.removed?'x':(r.history===undefined?'?':(r.history&&r.history.failed?'!':
-    (r.history&&r.history.rec
-    ? (r.history.own?'O':'X')+(r.history.exact?'E':'S')+':'+r.history.rec.refNo+':'+r.history.rec.unitPrice
-    : '-')))).join('|');
+  return wqa.rows.map(r=>{
+    if(r.removed) return 'x';
+    if(r.hist===undefined) return '?';
+    if(!r.hist) return '-';
+    if(r.hist.failed) return '!';
+    return (r.hist.total||0)+':'+(r.hist.records||[]).map(x=>x.refNo).join(',');
+  }).join('|');
 }
-/* The exact specification this row would be saved under. Built once per row so
-   the two lookups below cannot drift apart, and used as a cache key: a list of
-   twenty rows of the same specification asks the server once, not twenty
-   times, which is also what keeps this off the critical path while somebody is
-   typing. */
+/* The exact specification this row would be saved under, and the dimensions it
+   would carry. A specification with a hole in it is not a specification: an
+   empty field means "any" to the server, and a row that has not yet been told
+   its finish would match the customer's HDG record and print it as this PL
+   rod's own history. There is nothing to look up until the row says what it
+   is. */
 function wqaHistSpec(r){
   const t=wqaRowProduct(r), c=wqa.common;
   if(!t) return null;
   const rMat=wqaRowSpec(r,'material')||c.material||'';
   const rSt =t==='stud'?'':(wqaRowSpec(r,'sizeType')||c.sizeType||'');
   const rFin=dcMaterialHasFinish(rMat)?(wqaRowSpec(r,'finish')||c.finish||''):'';
-  /* An empty field is "any" to the server, not "none" — so a row that has not
-     yet been told its finish would match the customer's HDG record and print
-     RM 44.00 as this PL rod's own exact previous price, galvanising and all.
-     A specification with a hole in it is not a specification: there is nothing
-     to look up until the row says what it is. */
   if(!rMat) return null;
   if(!normalizeSizeValue(r.size)) return null;
   if(dcProductHasSizeType(t) && !rSt) return null;
   if(dcMaterialHasFinish(rMat) && !rFin) return null;
-  return {productType:ITEM_TYPES[t]||t, material:rMat,
-          sizeType:rSt, finish:rFin,
-          cleanSize:normalizeSizeValue(r.size)};
-}
-async function wqaHistFetch(spec, companyId, cache){
-  const key=JSON.stringify(spec)+'|'+(companyId==null?'*':companyId);
-  if(cache.has(key)) return cache.get(key);
-  const params=new URLSearchParams({action:'get_price_history', ...spec});
-  if(companyId!=null) params.set('company_id',String(companyId));
-  /* A signed-out session and an empty history look identical from here, and
-     they are not the same answer: "no previous price" is an assertion about
-     the customer's record, and staff price repeat orders from scratch on the
-     strength of it. A lookup that could not run says so instead. */
-  const p=fetch('api.php?'+params.toString()).then(x=>x.json())
-    .then(res=>(res&&res.ok&&res.data)||null).catch(()=>null);
-  cache.set(key,p);
-  return p;
+  return {productType:ITEM_TYPES[t]||t, material:rMat, sizeType:rSt, finish:rFin,
+          cleanSize:normalizeSizeValue(r.size),
+          dimensionPreview:wqaExpectedDimPreview(r)};
 }
 async function wqaLoadHistory(){
   const token=wqa.session;                 // abandon results from a discarded session
   const live=wqa.rows.filter(r=>!r.removed);
   const before=wqaHistKey();
   const cache=new Map();
-  let repriced=false;
-  const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
-  const newest=recs=>recs.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   for(const r of live){
     try{
       const spec=wqaHistSpec(r);
-      if(!spec || !spec.cleanSize){ r.history=null; continue; }
-      const want=wqaExpectedDimPreview(r);
-      const pick=(recs,own)=>{
-        const sorted=newest(recs);
-        const hit=sorted.find(x=>norm(x.dimensionPreview)===norm(want));
-        return hit ? {rec:hit,exact:true,own} : (sorted[0]?{rec:sorted[0],exact:false,own}:null);
-      };
-      let found=null, failed=false;
-      if(selectedCompanyId!=null){
-        const own=await wqaHistFetch(spec,selectedCompanyId,cache);
-        if(own===null) failed=true; else found=pick(own,true);
-      }
-      /* Only when this customer has nothing at all. Their own non-exact record
-         still outranks a stranger's exact one: it is THEIR price. */
-      if(!found && !failed){
-        const any=await wqaHistFetch(spec,null,cache);
-        if(any===null) failed=true; else found=pick(any,false);
-      }
-      if(token!==wqa.session) return;     // the session was discarded mid-fetch
-      r.history=failed?{failed:true}:found;
-      /* "Use Last Price" copies the figure the card is SHOWING. Edit the row
-         afterwards — a different length finds a different record — and the
-         card repainted with the new price while the row stayed priced at the
-         old one, under a button reading "✓ Using Last Price". It follows the
-         record it names, and lets go when there is no record to follow. */
-      if(r.useLastPrice){
-        const was=r.manualPrice;
-        if(found&&found.rec) r.manualPrice=String(parseFloat(found.rec.unitPrice)||0);
-        else { r.useLastPrice=false; r.manualPrice=''; }
-        /* The row is priced from manualPrice, and the recompute that produced
-           the current price ran BEFORE this lookup landed. Changing the figure
-           without re-pricing left the card reading RM 60 while the row — and
-           the item it would add — was still RM 45. */
-        if(r.manualPrice!==was) repriced=true;
-      }
-    }catch(e){ if(token!==wqa.session) return; r.history={failed:true}; }
+      if(!spec){ r.hist=null; continue; }
+      /* Same specification, same answer — asked once. Two rows differing only
+         in length share the identity and therefore share the lookup; the
+         dimensions only mark which records are the closest comparison, and
+         that is decided per row below. */
+      const key=JSON.stringify([spec.productType,spec.material,spec.sizeType,spec.finish,spec.cleanSize]);
+      if(!cache.has(key)) cache.set(key, phFetch(spec,selectedCompanyId,0,20));
+      const data=await cache.get(key);
+      if(token!==wqa.session) return;
+      if(data===null){ r.hist={failed:true}; continue; }
+      /* The shared answer, re-marked for THIS row's own dimensions. */
+      const want=String(spec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
+      const records=(data.records||[]).map(rec=>({...rec,
+        exactDims: want!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===want}));
+      records.sort((a,b)=>{
+        const rank=x=>(x.own?0:2)+(x.exactDims?0:1);
+        const d=rank(a)-rank(b); if(d) return d;
+        return String(b.date||'').localeCompare(String(a.date||''));
+      });
+      r.hist={...data, records};
+    }catch(e){ if(token!==wqa.session) return; r.hist={failed:true}; }
   }
   if(token!==wqa.session) return;
-  /* One pass only: wqaRecomputeAll calls back into this function, and the flag
-     is false the second time round because the prices now agree. */
-  if(repriced){ await wqaRecomputeAll('patch'); return; }
   if(wqaHistKey()!==before) wqaRenderRows();
 }
 /* Mirror of the dimension string the add functions build, so an exact match

@@ -156,7 +156,11 @@ async function rowState(page) {
       shownUnitWeight: q('.wqa-uw-full'),
       shownTotalWeight: q('.wqa-tw'),
       shownPrice: (card && card.querySelector('.wqa-fin') || {}).textContent || '',
-      history: r.history === undefined ? 'pending' : (r.history ? r.history : null),
+      hist: r.hist === undefined ? 'pending' : (r.hist ? r.hist : null),
+      histOpen: !!r.histOpen,
+      priceMode: r.priceMode || 'auto',
+      manualPrice: r.manualPrice || '',
+      usedHistoryRef: r.usedHistoryRef || '',
     };
   }));
 }

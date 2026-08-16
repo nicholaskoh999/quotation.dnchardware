@@ -11,6 +11,7 @@ require_once __DIR__ . '/auth.php';
 dc_require_api_login();
 
 require_once 'db.php';
+require_once __DIR__ . '/pricing_history.php';   // identity, accessories and ranking
 $db = getDB();
 
 // ── Phase 1 stability: pin timezone to Malaysia ──
@@ -635,48 +636,6 @@ if ($action === 'get_next_ref') {
     $fSort     = trim($_GET['sort'] ?? 'latest');
     $fCompanyId = intval($_GET['company_id'] ?? 0);
 
-    function normalizeProductTypePHP($raw) {
-        $s = strtoupper(preg_replace('/[-\s]+/', '', (string)$raw));
-        $map = ['SAGROD'=>'SAG ROD','STUD'=>'STUD','ANCHORBOLT'=>'ANCHOR BOLT','UBOLT'=>'U BOLT','SQUBOLT'=>'SQ U BOLT','LBOLT'=>'L BOLT','JBOLT'=>'J BOLT'];
-        if (isset($map[$s])) return $map[$s];
-        return strtoupper(trim((string)$raw));
-    }
-
-    // Parse a legacy item (no normalized fields) from desc + size.
-    // Returns null if the item cannot be safely parsed — caller must skip it.
-    function parseLegacyItem($item) {
-        $desc = (string)($item['desc'] ?? '');
-        $size = (string)($item['size'] ?? '');
-        if (!$desc || !$size) return null;
-
-        // desc: "{MATERIAL} {FULLSIZE|UNDERSIZE} {PRODUCT...}"
-        if (!preg_match('/^(\S+)\s+(FULLSIZE|UNDERSIZE)\s+(.+)$/', $desc, $dm)) return null;
-        $material   = $dm[1];
-        $sizeType   = $dm[2];
-        $productRaw = $dm[3];
-
-        // size: "{sizeLabel} x {dim1} x {dim2}..." — leading token before first " x " is the size label.
-        $xPos = strpos($size, ' x ');
-        $leftPart = $xPos === false ? $size : substr($size, 0, $xPos);
-        $dimensionPreview = $xPos === false ? '' : substr($size, $xPos + 3);
-
-        // FULLSIZE custom-diameter label format: "Ø13-M12" → cleanSize = "M12"
-        if (preg_match('/^Ø[\d.]+-(.+)$/u', $leftPart, $om)) {
-            $cleanSize = $om[1];
-        } else {
-            $cleanSize = $leftPart;
-        }
-        if (!$cleanSize) return null;
-
-        return [
-            'productType' => normalizeProductTypePHP($productRaw),
-            'material'    => $material,
-            'sizeType'    => $sizeType,
-            'cleanSize'   => $cleanSize,
-            'dimensionPreview' => $dimensionPreview,
-        ];
-    }
-
     if ($fCompanyId > 0) {
         $stmt = prepare_or_fail($db, "SELECT q.*, c.name as company_name FROM quotations q LEFT JOIN companies c ON q.company_id=c.id WHERE q.company_id=? ORDER BY q.created_at DESC LIMIT 300", 'Price history prepare failed');
         $stmt->bind_param('i', $fCompanyId);
@@ -694,14 +653,14 @@ if ($action === 'get_next_ref') {
         foreach ($items as $item) {
             // A. New-format item — normalized fields already present.
             if (isset($item['productType'], $item['material'], $item['sizeType'], $item['cleanSize'])) {
-                $productType = normalizeProductTypePHP($item['productType']);
+                $productType = dc_norm_product($item['productType']);
                 $material    = (string)$item['material'];
                 $sizeType    = (string)$item['sizeType'];
                 $cleanSize   = (string)$item['cleanSize'];
                 $dimensionPreview = (string)($item['dimensionPreview'] ?? '');
             } else {
                 // B. Legacy item — attempt parse; skip if unparseable (never guess).
-                $parsed = parseLegacyItem($item);
+                $parsed = dc_legacy_item($item);
                 if ($parsed === null) continue;
                 $productType = $parsed['productType'];
                 $material    = $parsed['material'];
@@ -713,7 +672,7 @@ if ($action === 'get_next_ref') {
             $finish = (string)($item['finish'] ?? '');
 
             // Apply filters — broad match only, never on dimensions.
-            if ($fProduct  !== '' && $productType !== normalizeProductTypePHP($fProduct)) continue;
+            if ($fProduct  !== '' && $productType !== dc_norm_product($fProduct)) continue;
             if ($fMaterial !== '' && strcasecmp($material, $fMaterial) !== 0) continue;
             if ($fSizeType !== '' && strcasecmp($sizeType, $fSizeType) !== 0) continue;
             if ($fFinish   !== '' && strcasecmp($finish, $fFinish) !== 0) continue;
@@ -746,6 +705,81 @@ if ($action === 'get_next_ref') {
 
     echo json_encode(['ok'=>true,'data'=>$records]);
 
+
+} elseif ($action === 'get_pricing_history') {
+    /* ── Pricing history ───────────────────────────────────────────────────
+       Not a suggestion and not a statistic: the saved rows themselves, with
+       the numbers that produced each price, so staff can see WHY one quotation
+       was dearer than another — a longer rod, a longer thread, a different
+       cost rate, a different markup, or a different customer.
+
+       The whole history is searched, not the newest 300. Items live inside a
+       JSON blob so the specification cannot be a SQL predicate, but the SIZE
+       can be a text prefilter on that blob, and that is what keeps the decode
+       loop off rows that could never match. The prefilter only ever narrows:
+       every surviving row is compared field by field by dc_history_record, and
+       quotations written before cleanSize existed are let through it so a
+       legacy record is never lost to an optimisation. */
+    $want = [
+        'productType'      => trim($_GET['productType'] ?? ''),
+        'material'         => trim($_GET['material'] ?? ''),
+        'sizeType'         => trim($_GET['sizeType'] ?? ''),
+        'finish'           => trim($_GET['finish'] ?? ''),
+        'cleanSize'        => trim($_GET['cleanSize'] ?? ''),
+        'dimensionPreview' => trim($_GET['dimensionPreview'] ?? ''),
+        'companyId'        => intval($_GET['company_id'] ?? 0),
+    ];
+    $offset = max(0, intval($_GET['offset'] ?? 0));
+    $limit  = min(100, max(1, intval($_GET['limit'] ?? 20)));
+
+    /* Identity is the point. Without a size and a product there is nothing to
+       look up, and "everything of this material" is a different answer to a
+       different question. */
+    if ($want['cleanSize'] === '' || $want['productType'] === '') {
+        echo json_encode(['ok'=>true,'data'=>['records'=>[],'total'=>0,'ownTotal'=>0,'otherTotal'=>0,
+                                              'offset'=>0,'limit'=>$limit]]);
+        exit;
+    }
+
+    $like = '%' . dc_history_needle($want['cleanSize']) . '%';
+    $stmt = prepare_or_fail($db,
+        "SELECT q.id, q.ref_no, q.quote_date, q.created_at, q.company_id, q.customer_name, q.items,
+                c.name AS company_name
+           FROM quotations q
+           LEFT JOIN companies c ON q.company_id = c.id
+          WHERE q.items LIKE ? OR q.items NOT LIKE '%\"cleanSize\"%'
+          ORDER BY COALESCE(q.quote_date, q.created_at) DESC, q.id DESC",
+        'Pricing history prepare failed');
+    $stmt->bind_param('s', $like);
+    execute_or_fail($stmt, 'Pricing history load failed');
+    $res = $stmt->get_result();
+
+    $records = [];
+    while ($row = $res->fetch_assoc()) {
+        $items = json_decode($row['items'], true);
+        if (!is_array($items)) continue;
+        $meta = [
+            'quotationId' => (int)$row['id'],
+            'refNo'       => $row['ref_no'],
+            'date'        => $row['quote_date'] ?: $row['created_at'],
+            'customer'    => $row['customer_name'] ?: $row['company_name'],
+            'companyId'   => (int)$row['company_id'],
+        ];
+        foreach ($items as $item) {
+            $rec = dc_history_record($item, $want, $meta);
+            if ($rec !== null) $records[] = $rec;
+        }
+    }
+    dc_history_sort($records);
+
+    echo json_encode(['ok'=>true,'data'=>[
+        'records'    => array_slice($records, $offset, $limit),
+        'total'      => count($records),
+        'ownTotal'   => count(array_filter($records, function ($r) { return $r['own']; })),
+        'otherTotal' => count(array_filter($records, function ($r) { return !$r['own']; })),
+        'offset'     => $offset,
+        'limit'      => $limit,
+    ]]);
 
 } elseif ($action === 'get_default_prices') {
     require_table($db, 'default_prices');

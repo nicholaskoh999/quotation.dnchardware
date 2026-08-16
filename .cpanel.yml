@@ -41,7 +41,7 @@ deployment:
   tasks:
     # ── Target and file lists ────────────────────────────────────────────────
     - 'export DEPLOYPATH=/home5/dnchardw/quo.dnchardware.com/'
-    - 'export APPFILES="index.php api.php companies.php ai_extract.php auth.php login.php logout.php manifest.webmanifest ai_config.sample.php db.sample.php"'
+    - 'export APPFILES="index.php api.php companies.php ai_extract.php pricing_history.php auth.php login.php logout.php manifest.webmanifest ai_config.sample.php db.sample.php"'
     - 'export PROTECTED="ai_config.php db.php error_log php.ini"'
 
     # ── Phase 1: preflight. Abort before touching anything. ──────────────────
