@@ -440,3 +440,85 @@ tests/
   · php/imperial-like-evidence.php — new; builds the blob with json_encode
     itself, prints the actual SQL params, and applies MySQL's LIKE semantics
   · sizetype-shots.js — new, the five size-type frames
+
+PASS 7 PART 7 — Quick Add polish + Thread Reference
+---------------------------------------------------
+Baseline 9483a3d
+
+index.php  (the only application file)
+
+  THREAD REFERENCE — reference metadata, read by nothing that computes
+  · dcNormThreadRef / dcThreadRefFrom / dcSizeTakesSeries, with
+    DC_THREAD_SERIES=['UNC','BSW'] and DC_THREAD_SERIES_SIZES=['1/2']. A pitch
+    and a series describe the THREAD: an M12 x 1.75P is an M12, and a 1/2" UNC
+    and a 1/2" BSW are cut from the same 12.7mm rod and weigh the same.
+  · WQA_BARE_PITCH_RE — the unmarked "M12 x 1.75", read only where the shape
+    settles it: after a metric size, a decimal fraction no larger than the
+    coarsest pitch there is. "M12 x 300" is a length and stays one, and where
+    it does fire the number leaves the line so "M12 x 1.75 x 300" keeps its 300.
+  · the series word is REMOVED from the line once read, as the pitch already
+    was. It stood between the fraction and its x, so "1/2 UNC x 1020" could not
+    reach the unmarked-inch reader: the 1/2 was read as the thread pair 1 and 2
+    and the size box came back empty.
+  · r.threadRef on the row, shown under the size in secondary text, editable
+    and clearable in the expanded row, and carried to the item through
+    dcItemThreadRef — the same way an item's custom dimensions travel. An older
+    quotation without the field restores as empty.
+  · nothing is written into size, cleanSize, sizeCode or dimensionPreview, and
+    no Diameter Settings identity is created.
+
+  PREVIOUS PRICE — the same record onto every item it describes
+  · wqaHistCompat — ONE compatibility rule, asked with wqaHistSpec, reporting
+    the first field that disagrees so a disabled row says why. Five fields:
+    product, material, size type, size, finish. Geometry is deliberately
+    absent, and so is the thread reference.
+  · wqaHistMatches is now that function with finish skipped, so the use-time
+    guard and the bulk apply cannot drift apart.
+  · wqaHistApplyToRow — one record onto one row, pulled out of wqaHistUse so
+    that "use on this item" and "apply to compatible items" are the same
+    operation performed once or several times.
+  · wqaHistCompatRows / wqaHistApplyRows / wqaHistApplyCompatible / the picker
+    (wqaHistPickOpen, wqaHistPickToggle, wqaHistPickApply). Every row is
+    repriced from its OWN weight; a disabled row is disabled in the model, not
+    only in the markup; a reference record has no caret, no menu and no picker,
+    and refuses if the functions are called on it directly.
+  · phRecordReusable — one answer for the button, the section a record is filed
+    under, and the bulk apply.
+
+  THE REVIEW SCREEN
+  · the four bulk panels are one collapsed group (wqaRenderBulk / wqaToggleBulk)
+    with ONE scope selector; wqaScopeTitle no longer repeats it in four titles.
+  · row selection gains a bar (wqaRenderSelBar) with Bulk Edit, Apply Previous
+    Price and Clear Selection, shown only while a selection can exist.
+  · Edit, History and Remove are .wqa-row-act buttons at 32px with hover,
+    pressed, keyboard-focus and open states; History carries its record count
+    and a caret when open.
+  · wqaProvenanceHtml — where a price came from, as its own control under the
+    row, replacing the "Reusing …" pill. Pressing it opens the record.
+  · phListHtml files records under Reusable and References when reuse is on
+    offer; the entry form's panel, which reuses nothing, keeps its single list.
+  · wqaFlashRows / wqaApplyFlash — a price that CHANGED is highlighted for
+    0.9s. A row seeing its first price is not a change.
+  · subtle accordion/panel motion, all of it removed under
+    prefers-reduced-motion.
+
+  TWO DEFECTS OLDER THAN THIS WORK
+  · wqaApplyRowToForm empties the cost rate and additional cost at the TOP,
+    before the row's own derivations run. Every row is priced through the ONE
+    form for its product, and a Sag Rod row whose specification has no Default
+    Price rule kept the rate the row above it was priced on. Emptied at the top
+    rather than later, so the thread-length surcharge and the Default Price
+    rules still fill them and Quick Add still agrees with the Calculator.
+  · wqaSetListGrid is recomposed on resize. The tracks were composed once at
+    render, so a window dragged narrower kept desktop widths and the item table
+    scrolled sideways between roughly 600 and 780px.
+
+tests/
+  · suites/26-thread-reference.test.js — new, 87 assertions (brief Z 1-15)
+  · suites/27-bulk-previous-price.test.js — new, 79 assertions (brief AA 1-12)
+  · suites/28-quickadd-ui.test.js — new, 66 assertions (brief AB)
+  · polish-shots.js — new, the twelve acceptance frames
+  · suites/05, 16, 17, 18, 23, 25 — updated where they read markup that has
+    changed, each with more assertions than before. Suite 18's row-height
+    ceiling moved 68 -> 72px, the direct cost of the 32px click target, and it
+    now asserts the control heights explicitly.

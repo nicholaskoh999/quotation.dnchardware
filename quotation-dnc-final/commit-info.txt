@@ -40,8 +40,11 @@ PREVIOUS PRICE (pass 7, part 4)
 HISTORY IDENTITY (pass 7, part 5)
   0f4f184b8487e73803e0506b475ba2465c711a9d
 
-DEPLOY COMMIT  <-- deploy this one
+LIVE FAILURE REPAIR (pass 7, part 6)
   16b5f3c  Imperial pricing history, and an unanswered size type
+
+DEPLOY COMMIT  <-- deploy this one
+  7932c2c  A review screen, a thread that is not a size, and one price on many rows
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -115,14 +118,16 @@ COMMITS ON THIS BRANCH
   0f4f184  The record has to still be this item's when the button is pressed
   f84ada8  Audit package: whose price is this
   16b5f3c  Imperial pricing history, and an unanswered size type
+  9483a3d  Audit package: the size the query could not ask for
+  7932c2c  A review screen, a thread that is not a size, and one price on many rows
 
-REGRESSION AT 16b5f3c
-  25 browser suites         2230 assertions   0 failed
+REGRESSION AT 7932c2c
+  28 browser suites         2480 assertions   0 failed
   ai_extract (PHP)           107 assertions   0 failed
   pricing history (PHP)      161 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     2560 assertions   0 failed
+  TOTAL                     2810 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the checks I cannot perform

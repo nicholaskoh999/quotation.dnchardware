@@ -2,7 +2,7 @@
   ok    imperial — the first token of a run is the size  (66 assertions)
   ok    weight — every product, every input that moves it  (39 assertions)
   ok    pricing — nothing stale, nothing fabricated  (47 assertions)
-  ok    pricing history — the rows we sent, and why they differed  (102 assertions)
+  ok    pricing history — the rows we sent, and why they differed  (105 assertions)
   ok    mixed documents — a heading speaks only for its own rows  (37 assertions)
   ok    save / reload / output — no value drift, no internal costs on the page  (65 assertions)
   ok    common fields and Correct Items — a blank never clears an answer  (61 assertions)
@@ -13,17 +13,20 @@
   ok    company history — a legacy description reads as words, not as a stored value  (40 assertions)
   ok    accessories — charged beside the bolt, never inside it  (41 assertions)
   ok    dimension schema and drawing association  (71 assertions)
-  ok    quick add — each row's own pricing history, on the row  (80 assertions)
+  ok    quick add — each row's own pricing history, on the row  (85 assertions)
   ok    quick add layout — every product reachable at every width  (280 assertions)
-  ok    quick add — twenty items, which is the ordinary case  (28 assertions)
+  ok    quick add — twenty items, which is the ordinary case  (30 assertions)
   ok    engineering documents — geometry, merged cells and specification scope  (148 assertions)
   ok    add to quotation — the button at the end of the review  (160 assertions)
   ok    stainless — SS304 and SS316 carry no finish, on every screen  (119 assertions)
   ok    materials — four identities, one vocabulary, one answer  (236 assertions)
-  ok    previous price — a recipe, not a number  (68 assertions)
+  ok    previous price — a recipe, not a number  (73 assertions)
   ok    pricing history — whose price is this  (61 assertions)
-  ok    size type — unknown is not fullsize  (68 assertions)
+  ok    size type — unknown is not fullsize  (71 assertions)
+  ok    thread reference — a note about the thread  (87 assertions)
+  ok    previous price — applied to the items it describes  (79 assertions)
+  ok    quick add — a review screen, not a settings page  (66 assertions)
 
-  25 suites, 2230 assertions, 0 failed
+  28 suites, 2480 assertions, 0 failed
 
-  428.3s
+  515.7s
