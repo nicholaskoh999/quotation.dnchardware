@@ -64,6 +64,18 @@ index.php
           · the note behind such a choice is read whole, never from the pill it
             was trimmed into
 
+  Pass 5  · a History action on every Quick Add row, beside Edit and the
+            delete, with its own grid track at each breakpoint
+          · the history panel moved out of the row's editor, so a collapsed row
+            can show it; each row keeps its own open/closed state
+          · wqaLoadRowHistory / wqaHistFor / wqaHistStale: a row is looked up
+            when it is asked about and never before, reloaded when its identity
+            or geometry moves, and re-ranked without a request when only the
+            geometry moved. Two rows of one specification share one request
+          · no matching, ranking or interpretation rule added: the row calls
+            the same phFetch / phDimDistance / phSortRecords / phRecordHtml the
+            entry form calls
+
 api.php
   Pass 1  · the previous-price lookup respects an unstated finish or size type
             instead of treating it as "any"
@@ -117,8 +129,8 @@ NOT DEPLOYED (outside the .cpanel.yml allowlist by construction)
 tests/lib/harness.js            serves the real index.php in Chromium
 tests/lib/assert.js             assertion + suite bookkeeping
 tests/run.js                    runner
-tests/screenshots.js            the eight evidence frames
-tests/suites/01 … 15            15 browser suites, 952 assertions
+tests/screenshots.js            the nine evidence frames
+tests/suites/01 … 16            16 browser suites, 1029 assertions
 tests/php/ai_extract.test.php   64 assertions
 tests/php/pricing_history.test.php  72 assertions
 tests/tools/build-pricing-workbook.py   builds the blank V2 workbook

@@ -64,6 +64,12 @@ module.exports = async (browser, A) => {
   A.eq(rows.length, 1, 'one row to price');
   A.eq(rows[0].size, 'M20', 'an M20 L Bolt');
 
+  // ── nothing is asked for until somebody asks ─────────────────────────────
+  A.eq(asked.length, 0,
+    'opening the modal looks nothing up — a ten-item enquiry is not ten lookups nobody wanted');
+  await page.evaluate(() => wqaHistToggle(0));
+  await page.waitForTimeout(500);
+
   // ── what it asks for ─────────────────────────────────────────────────────
   A.ok(asked.length > 0, 'the endpoint was called');
   const q = asked[asked.length - 1];
@@ -87,10 +93,8 @@ module.exports = async (browser, A) => {
   A.includes(ui.bar, '6 records', 'with the count on it');
   A.includes(ui.bar, '5 this customer', 'and how many are this customer\'s');
   A.includes(ui.bar, '1 other', 'and how many are not');
-  A.eq(ui.open, 'false', 'collapsed until asked — twenty rows of records is not a review screen');
+  A.eq(ui.open, 'true', 'and the records themselves, because this row was asked about');
 
-  await page.evaluate(() => wqaHistToggle(0));
-  await page.waitForTimeout(400);
   const panel = await page.evaluate(() => {
     const card = document.querySelector('[data-wqa-row="0"]');
     return { text: (card.querySelector('.ph-scroll') || {}).textContent || '',
@@ -246,6 +250,7 @@ module.exports = async (browser, A) => {
   const failed = await openApp(browser, { api: { get_pricing_history: () => ({ ok: false, error: 'signed out' }) } });
   await failed.evaluate(id => { selectedCompanyId = id; }, ALPHA);
   await quickAddPaste(failed, MSG, { settle: 900 });
+  await failed.evaluate(() => wqaHistToggle(0));
   await failed.waitForTimeout(800);
   const failText = await failed.evaluate(() =>
     (document.querySelector('[data-wqa-row="0"] .wqa-hist') || {}).textContent || '');

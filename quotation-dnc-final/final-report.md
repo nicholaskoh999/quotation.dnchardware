@@ -12,9 +12,11 @@ prepared (but did not activate) Pricing Engine V2. **Pass 3** is the mini-delta:
 unit price is now the bolt's and accessories are charged beside it, historical
 records are ranked by how close their dimensions actually are, every record says
 what it weighed and how it was priced, and the last capped history query is gone.
-**Pass 4 — this one — repairs what live acceptance testing found**: the review
-screen now names every dimension the way the drawing does, and an overall
-dimension that can only belong to one part is no longer left as a question.
+**Pass 4** repairs what live acceptance testing found: the review screen now
+names every dimension the way the drawing does, and an overall dimension that
+can only belong to one part is no longer left as a question. **Pass 5 — this
+one — puts each Quick Add row's pricing history on the row itself**, and stops
+looking up rows nobody asked about.
 
 **Guiding principle, unchanged throughout:** a missing value with a visible
 reason is acceptable. A silently wrong size, dimension, weight or price is not.
@@ -30,6 +32,7 @@ reason is acceptable. A silently wrong size, dimension, weight or price is not.
 | **Delta baseline (pass 2)** | `744ad4084167bf3e0638535779b798b5023c0030` |
 | **Mini-delta baseline (pass 3)** | `7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a` |
 | **Live-acceptance baseline (pass 4)** | `f250426346c1a256350fca2b12c54f1f5de034b4` |
+| **Quick Add history baseline (pass 5)** | `8c43da75e2110772ad9a4d7d744c9491c0181c5e` |
 | **Ending commit** | `8c43da75e2110772ad9a4d7d744c9491c0181c5e` (the commit to deploy; see `commit-info.txt`) |
 | **Deployment status** | **NOT DEPLOYED** |
 
@@ -80,7 +83,7 @@ job was to leave it that way.
   overwritten by any automatic source.
 
 The regression suite that protects all of it did not exist before pass 1. It is
-now 15 browser suites and three non-browser suites — **1,150 assertions, 0
+now 16 browser suites and three non-browser suites — **1,227 assertions, 0
 failing** — every one of them running against the shipped code path, not against
 a re-implementation of it.
 
@@ -360,6 +363,47 @@ HAB-TA-01 now reads 950 / 865 / 1000 / 1200 / 1285 across rows 1–5, with the
 L Bolt's W 400 and the four Sag Rods' TL 200/200, and no row asking for a
 length. The fixture is in the suite; the five values are not in the code.
 
+### Pass 5 (`8c43da7` → HEAD) — a row's history, on the row
+
+Quick Add could already look up a row's pricing history, using the same
+functions the entry form's panel uses. But the panel lived **inside the row's
+editor**, so in Compact view — the view a multi-item enquiry is actually
+reviewed in — there was no way to reach it without opening the editor first.
+And it looked up **every** row the moment the modal opened, and again after
+every recompute.
+
+**The action is on the row.** `Edit | History | ✕`, with its own grid track at
+each breakpoint and its own order on a phone, so it never overlaps Edit or the
+delete. Clicking it expands that row's history directly beneath it, in Compact
+or Expanded view alike; clicking again collapses it. Each row keeps its own
+open/closed state, and one row's panel shows only that row's records.
+
+**Nothing is looked up until it is asked for.** A ten-item enquiry now opens
+with zero requests. A row's lookup fires on its first History click, and two
+rows of the same specification still share one request through a session cache
+— the efficiency the old sweep had, without the sweep.
+
+**Nothing shown is ever stale.** Each loaded panel records the identity *and*
+the geometry it was loaded for. Change the size, material, finish, size type,
+product or any dimension and an open panel reloads; a closed one forgets, so
+the next click fetches fresh. A change of geometry alone (L 1000 → L 1900)
+re-ranks the records already held rather than asking again — the specification
+did not change, only which rod is nearest.
+
+**One implementation, two screens.** No matching, ranking, identity, accessory
+or legacy rule was added or copied. The row calls the same `phFetch`,
+`phDimDistance`, `phSortRecords` and `phRecordHtml` the entry form calls, over
+the same `pricing_history.php` rules; only the per-row state and the button are
+new. Asserted: for one item both screens return the same set of records, the
+same fields and the same wording for what was never recorded.
+
+**Looking is not touching.** Opening a panel leaves the row's price, cost rate,
+additional cost, markup, price mode, manual price, accessories, size, material
+and product exactly as they were — asserted field by field. The only thing that
+copies anything is *Use this price*, the same explicit action the entry form
+offers, and it still refuses a record whose bolt price cannot be separated from
+its accessories.
+
 ---
 
 ## What was intentionally left alone
@@ -444,8 +488,9 @@ Run from the repository root immediately before packaging.
   ok    company history — a legacy description reads as words               (40)
   ok    accessories — charged beside the bolt, never inside it              (41)
   ok    dimension schema and drawing association                            (71)
+  ok    quick add — each row's own pricing history, on the row               (76)
 
-  15 suites, 952 assertions, 0 failed         102.4s
+  16 suites, 1029 assertions, 0 failed        110.1s
 
   ok    ai_extract — dense tables, truncation and error causes              (64)
   ok    pricing history — identity, accessories, ranking                    (72)
@@ -454,7 +499,7 @@ Run from the repository root immediately before packaging.
   PHP lint: 10 files, no syntax errors
 ```
 
-**1,150 assertions, 0 failed.** Raw output in `test-results/`.
+**1,227 assertions, 0 failed.** Raw output in `test-results/`.
 
 Fixes were verified the only way that means anything: the fix was reverted, the
 suite was run, and the assertions failed for the right reason. Pass 2 —
@@ -479,6 +524,7 @@ the two suites failing.
 | Engineering drawing, 5 parts: 950 / 865 / 1000 / 1200 / 1285 | PASS (48 assertions, simulated extraction) |
 | HAB-TA-01 as production returned it: rows 3 and 5 resolve to 1000 and 1285 | PASS (71 assertions, no manual confirmation) |
 | Product dimension schema and label spacing, all five products | PASS |
+| Quick Add: per-row History action, lazy lookup, independent state | PASS (76 assertions) |
 | 29-row anchor-bolt table, metric beside imperial | PASS (170 assertions, simulated extraction) |
 | Pricing history: same customer, different dimensions, other customer, pagination | PASS (97 + 72 assertions) |
 | Core identity never crosses: M20 never uses M18 / M22 / M24 history | PASS |
@@ -503,6 +549,7 @@ Eight categories, not one per assertion:
 | `6-save-reload-output.png` | A saved quotation reopened, beside the WhatsApp text and printed dimensions it produces |
 | `7-partial-extraction.png` | A cut-off analysis: the banner, the recovered count, the acknowledgement, and Add Items disabled |
 | `8-accessory-separation.png` | A bolt at RM13.33 with RM0.70 of nuts beside it — the two printed rows, the WhatsApp lines, and the saved item's own figures |
+| `9-quickadd-row-history.png` | A Quick Add row's own history, opened from the row in Compact view, with the row beneath it untouched |
 
 ---
 
@@ -704,6 +751,17 @@ checklist I cannot do for you.
 ---
 
 ## Known limitations
+
+0. **The entry form's own history panel is not ranked by dimension.** It sends
+   no `dimensionPreview` (`phFormSpec` leaves it empty), so neither the server
+   nor the screen can tell which historical rod is nearest, and its list stays
+   in the order the server returned — this customer first, newest first. A Quick
+   Add row knows its own geometry and ranks by it. Both screens match on the
+   same identity and return the same records; only the ordering differs. Left
+   alone deliberately in this pass, because changing it changes what the
+   Calculator shows, and the brief asked for the Calculator to be unchanged. It
+   is asserted, so the day the form learns its dimensions the test says so.
+
 
 1. **`get4140Rates` is dead code — but the rates still arrive.** Verified in the
    browser: a 4140 QT fullsize M16 PL sag rod is rated 6.50 with 3.50 additional,

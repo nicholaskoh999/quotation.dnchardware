@@ -209,6 +209,46 @@ const item = (M, L, TL, qty, extra = {}) => Object.assign({
     await page.close();
   }
 
+  // ── 9. each Quick Add row's own history, on the row ─────────────────────
+  {
+    const rec = o => Object.assign({
+      quotationId: 1, refNo: 'Q2026-0001', date: '2026-01-05', customer: 'Alpha Sdn Bhd',
+      companyId: 7, own: true, productType: 'SAG ROD', material: 'MS', sizeType: 'FULLSIZE',
+      finish: 'PL', cleanSize: 'M20', dimensionPreview: 'L 1000 x TL 100/100mm', exactDims: true,
+      qty: 40, unitPrice: 12.50, boltUnitPrice: 12.50, accessoryCost: 0, accessorySummary: '',
+      accessoryAmbiguous: false, priceMode: 'auto', priceModeLabel: 'Auto Round',
+      costRate: 2.80, addCost: 0.60, markup: 8, weight: 2.4662, legacy: false,
+    }, o);
+    const page = await openApp(browser, {
+      viewport: { width: 1500, height: 1250 },
+      api: { get_pricing_history: url => {
+        const size = new URL(url).searchParams.get('cleanSize');
+        const rows = [
+          rec({ cleanSize: size, refNo: 'Q2026-0001' }),
+          rec({ cleanSize: size, refNo: 'Q2025-0831', dimensionPreview: 'L 600 x TL 100/100mm',
+                qty: 12, unitPrice: 9.40, boltUnitPrice: 9.40, markup: 6 }),
+          rec({ cleanSize: size, refNo: 'Q2023-0044', customer: 'Gamma Steel', companyId: 9,
+                own: false, qty: 4, unitPrice: 14.00, boltUnitPrice: null, accessoryCost: 0.70,
+                accessorySummary: '2 Nut PL', accessoryAmbiguous: true, priceMode: '',
+                priceModeLabel: 'Legacy / Unknown', costRate: null, addCost: null,
+                markup: null, weight: null, legacy: true }),
+        ];
+        return { ok: true, data: { records: rows, total: rows.length,
+          ownTotal: rows.filter(r => r.own).length, otherTotal: rows.filter(r => !r.own).length,
+          offset: 0, limit: 20 } };
+      } },
+    });
+    await page.evaluate(() => { selectedCompanyId = 7; });
+    await quickAddPaste(page, ['MS SAG ROD PL FULLSIZE',
+                               'M20 x 1000 x 100/100 - 250pcs',
+                               'M24 x 800 x 100/100 - 10pcs'].join('\n'),
+                        { expanded: false, settle: 1000 });
+    await page.click('[data-wqa-row="0"] .wqa-row-hist');
+    await page.waitForTimeout(1000);
+    await shot(page, '9-quickadd-row-history', '#wqaStep2');
+    await page.close();
+  }
+
   // ── 6. the quotation as the customer receives it ────────────────────────
   {
     let payload = null;

@@ -1940,7 +1940,7 @@ input,select,textarea{
   --wqa-lead: 32px 62px;                                    /* #  Size        */
   --wqa-dim:  78px;                                         /* each dimension */
   --wqa-dim-spec: minmax(150px,1.4fr);   /* a mixed list's one whole-spec cell */
-  --wqa-tail: 56px 104px 86px minmax(0,1fr) 46px 26px;      /* Qty W Price … */
+  --wqa-tail: 56px 104px 86px minmax(0,1fr) 46px 64px 26px; /* Qty W Price … */
   --wqa-cols: var(--wqa-lead) var(--wqa-dim) var(--wqa-tail);
 }
 .wqa-list-head,.wqa-sum{
@@ -2036,7 +2036,7 @@ input,select,textarea{
     --wqa-dim:  minmax(46px,62px);
     --wqa-dim-spec: minmax(96px,1.4fr);
     --wqa-tail: minmax(30px,42px) minmax(80px,100px) minmax(56px,72px)
-                minmax(0,1fr) 38px 20px;
+                minmax(0,1fr) 38px 56px 20px;
     width:min(96vw,900px);          /* wide enough for one line, never overflowing */
   }
   .wqa-list-head,.wqa-sum{
@@ -2071,6 +2071,7 @@ input,select,textarea{
   .wqa-sum .wqa-c-w,.wqa-sum .wqa-c-price{flex:0 0 auto}
   .wqa-sum .wqa-c-price{margin-left:auto}
   .wqa-sum-act{flex:0 0 auto;order:8}
+  .wqa-sum .wqa-row-hist{flex:0 0 auto;order:8;padding:1px 7px;font-size:11px}
   .wqa-sum .wqa-row-del{flex:0 0 auto;order:9}
   .wqa-sum-badges{flex:1 1 100%;justify-content:flex-start;order:10}
   /* No header on a phone, so each dimension carries its own letter. */
@@ -2215,6 +2216,12 @@ input,select,textarea{
 .wqa-hist-arrow{font-size:10px;color:var(--text-muted)}
 .wqa-hist-lbl{font-weight:700;font-size:12px}
 .wqa-hist-count{margin-left:auto;font-size:11px;color:var(--text-muted)}
+/* Beside Edit and the delete, never on top of them. */
+.wqa-row-hist{flex:0 0 auto;background:none;border:1px solid var(--border);border-radius:var(--pill-r);
+  padding:2px 9px;font-family:inherit;font-size:11.5px;font-weight:700;color:var(--text-2);
+  cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
+.wqa-row-hist:hover{background:var(--surface2);border-color:var(--accent-mid)}
+.wqa-row-hist.is-on{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent-2)}
 </style>
 </head>
 <body>
@@ -9979,7 +9986,7 @@ function wqaSetListGrid(){
   const spec=cols.length===1 && cols[0].k==='spec';
   const dim =((spec ? cs.getPropertyValue('--wqa-dim-spec') : cs.getPropertyValue('--wqa-dim'))
               ||'78px').trim();
-  const tail=(cs.getPropertyValue('--wqa-tail')||'56px 104px 86px minmax(0,1fr) 46px 26px').trim();
+  const tail=(cs.getPropertyValue('--wqa-tail')||'56px 104px 86px minmax(0,1fr) 46px 64px 26px').trim();
   m.style.setProperty('--wqa-cols',
     [lead].concat(new Array(cols.length).fill(dim)).concat([tail]).join(' '));
 }
@@ -10006,6 +10013,7 @@ function wqaRenderListHead(){
     + '<span class="wqa-h wqa-h-num wqa-h-price">Price</span>'
     + '<span class="wqa-h wqa-h-slack"></span>'
     + '<span class="wqa-h wqa-h-act">Actions</span>'
+    + '<span class="wqa-h wqa-h-act wqa-h-hist"></span>'
     + '<span class="wqa-h wqa-h-del"></span>';
 }
 function wqaFmtPrice(v){ const n=Number(v)||0; return n>0 ? 'RM'+n.toFixed(2) : 'RM—'; }
@@ -12529,6 +12537,8 @@ function wqaResetState(){
   wqa._deferred={};
 
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
+  /* Whatever the last message's specifications looked up belongs to it. */
+  wqa.histCache=new Map();
   /* Both source states, and which of them the Review is showing. */
   wqa.textSource=''; wqa.fileSource=null; wqa.srcKind='text';
   wqa.commonItem=wqaEmptyItem();
@@ -12627,7 +12637,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   }
   wqa.common={...common};
   wqa.rows=rows.map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
-                         priceOverride:{},hist:undefined,histOpen:false,removed:false,edited:{}}));
+                         priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
   wqa.panels.source=wqaSourceOpenDefault();
@@ -12925,7 +12935,7 @@ function wqaChangeProduct(t){
   /* Same pipeline as the first parse, so header context and inheritance behave
      identically after a product switch. */
   wqa.rows=wqaParseText(wqa.raw,t).rows
-    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histOpen:false,removed:false,edited:{}}));
+    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   rebuild();
   wqaRecomputeAll();
 }
@@ -13288,9 +13298,13 @@ function wqaRenderRows(force){
        each showing five records is not a review screen — and open in one
        click, because "why was that one dearer" is the question this answers.
        Nothing is copied into the row until somebody presses Use this price. */
+    /* Built only for the row that asked. A row nobody has asked about has no
+       history object at all and makes no request — see wqaHistToggle. */
     const hist=r.hist;
     let histHtml='';
-    if(hist===undefined){
+    if(!r.histOpen){
+      histHtml='';
+    } else if(hist===undefined){
       histHtml='<div class="wqa-hist">Loading pricing history…</div>';
     } else if(hist && hist.failed){
       histHtml='<div class="wqa-hist wqa-hist-similar">Could not load pricing history — this is not the same as there being none.</div>';
@@ -13304,7 +13318,7 @@ function wqaRenderRows(force){
           <span class="wqa-hist-lbl">Pricing History</span>
           <span class="wqa-hist-count">${hist.total||hist.records.length} record${(hist.total||1)===1?'':'s'}${own?' · '+own+' this customer':''}${other?' · '+other+' other':''}</span>
         </button>
-        ${r.histOpen?phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`):''}
+        ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`)}
       </div>`;
     }
     /* The body — every control that existed before — is built only when this row
@@ -13370,7 +13384,6 @@ function wqaRenderRows(force){
         <span class="wqa-w-item"><span class="wqa-w-lbl">Total Weight</span>
           <span class="wqa-w-val wqa-tw">${wqaFmtTotalWeight(calc.weight,r.qty)}</span></span>
       </div>
-      ${histHtml}
       <div class="wqa-row-acc">
         <button type="button" class="wqa-acc-bar" onclick="wqaToggleAccOpen(${i})">
           <span class="wqa-acc-arrow">${r.accOpen?'▾':'▸'}</span>
@@ -13394,11 +13407,18 @@ function wqaRenderRows(force){
         ${wqaCompactCells(r,cols)}
         <span class="wqa-sum-badges">${wqaBadgeHtml(r)}</span>
         <span class="wqa-sum-act">${open?'Close':'Edit'}</span>
+        <!-- This row's own history, on the row itself: a ten-item enquiry is
+             ten different specifications, and reaching the evidence for one of
+             them should not mean opening its editor first. -->
+        <button type="button" class="wqa-row-hist${r.histOpen?' is-on':''}"
+                title="Pricing history for this item" aria-expanded="${r.histOpen?'true':'false'}"
+                onclick="event.stopPropagation();wqaHistToggle(${i})">History</button>
         <button type="button" class="wqa-row-del" title="Remove"
                 onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>
       </div>
       ${wqaRowSpecLine(r)}
       ${body}
+      ${histHtml}
     </div>`;
   }).join('');
   wqaRenderListHead();
@@ -13491,17 +13511,75 @@ function wqaHistUse(i,n){
   wqaRecomputeAll('force');
   showToast('Using '+(rec.refNo||'a previous price')+' — RM '+bolt.toFixed(2));
 }
+/* Opening one row's history says nothing about any other row's, and asks for
+   nothing until it is asked for. */
 function wqaHistToggle(i){
   const r=wqa.rows[i]; if(!r) return;
   r.histOpen=!r.histOpen;
+  if(r.histOpen && wqaHistStale(r)) wqaLoadRowHistory(r);   // fetches, then re-renders
   wqaRenderRows(true);
+}
+/* What a loaded history was loaded FOR: the identity it was matched on and the
+   geometry it was ranked against. When either moves — a size retyped, a length
+   corrected, a finish chosen — what is on screen no longer describes this row,
+   so it is reloaded before it is shown again and never left to go stale. */
+function wqaHistFor(r){
+  const spec=wqaHistSpec(r);
+  if(!spec) return '';
+  return JSON.stringify([spec.productType,spec.material,spec.sizeType,spec.finish,
+                         spec.cleanSize,spec.dimensionPreview]);
+}
+function wqaHistStale(r){
+  return !r || r.hist===undefined || r.histFor!==wqaHistFor(r);
+}
+/* One row's lookup. The identity is shared, so two rows of the same
+   specification wait on ONE request; the ranking is each row's own, because
+   two lengths of one specification are ranked differently. */
+async function wqaLoadRowHistory(r){
+  const token=wqa.session;
+  const spec=wqaHistSpec(r);
+  const forKey=wqaHistFor(r);
+  if(!spec){ r.hist=null; r.histFor=forKey; return; }
+  r.hist=undefined;                                  // shows "Loading…" on this row only
+  r.histFor=forKey;
+  try{
+    const key=JSON.stringify([spec.productType,spec.material,spec.sizeType,spec.finish,spec.cleanSize]);
+    if(!wqa.histCache) wqa.histCache=new Map();
+    if(!wqa.histCache.has(key)) wqa.histCache.set(key, phFetch(spec,selectedCompanyId,0,20));
+    const data=await wqa.histCache.get(key);
+    if(token!==wqa.session) return;
+    if(r.histFor!==wqaHistFor(r)) return;             // the row moved on while we waited
+    if(data===null){ wqa.histCache.delete(key); r.hist={failed:true}; }
+    else r.hist=wqaRankHistory(data,spec);
+  }catch(e){
+    if(token!==wqa.session) return;
+    r.hist={failed:true};
+  }
+  if(token===wqa.session) wqaRenderRows();
+}
+/* The shared answer, measured against ONE row's geometry — the same distance
+   and the same order the entry form's panel uses. */
+function wqaRankHistory(data,spec){
+  const wantDims=String(spec.dimensionPreview||'');
+  const wantKey=wantDims.toUpperCase().replace(/[^A-Z0-9]+/g,'');
+  const records=(data.records||[]).map(rec=>{
+    const dist=phDimDistance(wantDims,rec.dimensionPreview);
+    return {...rec, dimDistance:dist,
+            exactDims: dist===0 ||
+              (wantKey!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===wantKey)};
+  });
+  phSortRecords(records);
+  return {...data, records};
 }
 async function wqaHistMore(i){
   const r=wqa.rows[i]; if(!r||!r.hist) return;
-  const spec=wqaHistSpec(r);
+  const spec=wqaHistSpec(r); if(!spec) return;
   const next=await phFetch(spec,selectedCompanyId,(r.hist.records||[]).length,20);
   if(!next) return;
-  r.hist.records=(r.hist.records||[]).concat(next.records||[]);
+  /* The next page is measured against this row too, so page two is ranked by
+     the same distance page one was. */
+  const ranked=wqaRankHistory(next,spec);
+  r.hist.records=(r.hist.records||[]).concat(ranked.records||[]);
   wqaRenderRows(true);
 }
 /* ── Pricing history, per row ──────────────────────────────────────────────
@@ -13542,41 +13620,18 @@ function wqaHistSpec(r){
           cleanSize:normalizeSizeValue(r.size),
           dimensionPreview:wqaExpectedDimPreview(r)};
 }
-async function wqaLoadHistory(){
-  const token=wqa.session;                 // abandon results from a discarded session
-  const live=wqa.rows.filter(r=>!r.removed);
-  const before=wqaHistKey();
-  const cache=new Map();
-  for(const r of live){
-    try{
-      const spec=wqaHistSpec(r);
-      if(!spec){ r.hist=null; continue; }
-      /* Same specification, same answer — asked once. Two rows differing only
-         in length share the identity and therefore share the lookup; the
-         dimensions only mark which records are the closest comparison, and
-         that is decided per row below. */
-      const key=JSON.stringify([spec.productType,spec.material,spec.sizeType,spec.finish,spec.cleanSize]);
-      if(!cache.has(key)) cache.set(key, phFetch(spec,selectedCompanyId,0,20));
-      const data=await cache.get(key);
-      if(token!==wqa.session) return;
-      if(data===null){ r.hist={failed:true}; continue; }
-      /* The shared answer, re-measured against THIS row's own dimensions: two
-         rows of the same specification share one lookup, and each ranks it by
-         how close each record is to its own geometry. */
-      const wantDims=String(spec.dimensionPreview||'');
-      const wantKey=wantDims.toUpperCase().replace(/[^A-Z0-9]+/g,'');
-      const records=(data.records||[]).map(rec=>{
-        const dist=phDimDistance(wantDims,rec.dimensionPreview);
-        return {...rec, dimDistance:dist,
-                exactDims: dist===0 ||
-                  (wantKey!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===wantKey)};
-      });
-      phSortRecords(records);
-      r.hist={...data, records};
-    }catch(e){ if(token!==wqa.session) return; r.hist={failed:true}; }
-  }
-  if(token!==wqa.session) return;
-  if(wqaHistKey()!==before) wqaRenderRows();
+/* Called after every recompute. It asks for NOTHING on its own: a row whose
+   history nobody has opened is left alone, however many times the list is
+   repriced. An OPEN row whose identity or dimensions have moved is reloaded,
+   because what it is showing has stopped describing it; a closed one simply
+   forgets, so the next click fetches fresh rather than showing yesterday's
+   size. */
+function wqaLoadHistory(){
+  wqa.rows.forEach(r=>{
+    if(r.removed || !wqaHistStale(r)) return;
+    if(r.histOpen) wqaLoadRowHistory(r);
+    else if(r.hist!==undefined){ r.hist=undefined; r.histFor=''; }
+  });
 }
 /* Mirror of the dimension string the add functions build, so an exact match
    really means the same length and thread. */
