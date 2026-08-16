@@ -98,6 +98,50 @@ module.exports = async (browser, A) => {
   A.eq(rows[0].w, '100', 'and the same 100 is read as an L Bolt\'s short leg — the re-read still happens');
   A.eq(rows[0].length, '1000', 'with the length unchanged');
 
+  /* A correction made from a PANEL is a correction too. The Correct Items,
+     Common Fields, Pricing and Accessories panels all write into the rows, and
+     a re-read discards what they wrote just as thoroughly as it discards a
+     typed length — more quietly, because filling only the blanks leaves the
+     header reading "Mixed" and the header is where the value would otherwise
+     have survived. */
+  await quickAddPaste(page, ['PL FULLSIZE',
+                             'MS M20 x 1000 x 100 - 4pcs',
+                             'SS304 M24 x 1200 x 150 - 2pcs'].join('\n'), { settle: 900 });
+  rows = await rowState(page);
+  A.eq(rows.map(r => r.finish || '-').join(','), 'PL,-',
+    'the message says PL, and the stainless row takes no finish at all');
+
+  const panelApplied = await page.evaluate(() => {
+    wqa.commonFix = Object.assign(wqaEmptyFix(), { finish: 'HDG' });
+    wqaApplyFixToAll();
+    return { finishes: wqa.rows.map(r => r.finish || '-'), header: wqa.common.finish || '-' };
+  });
+  await page.waitForTimeout(800);
+  A.eq(panelApplied.finishes.join(','), 'HDG,-',
+    'Correct Items galvanises the mild steel row and refuses the stainless one');
+  A.eq(panelApplied.header, 'PL',
+    'so the header still reads PL — it cannot carry the correction through a re-read');
+
+  await page.evaluate(() => wqaChangeProduct('lbolt'));
+  await page.waitForTimeout(900);
+  rows = await rowState(page);
+  A.eq(rows.map(r => r.finish || '-').join(','), 'HDG,-',
+    'and choosing a product afterwards keeps what the panel applied');
+  A.eq(rows.map(r => r.product).join(','), 'lbolt,lbolt', 'while every row takes the product');
+
+  /* The same for a price applied from the panel. */
+  await quickAddPaste(page, ['MS PL FULLSIZE',
+                             'M20 x 1000 x 100 - 4pcs'].join('\n'), { settle: 900 });
+  await page.evaluate(() => {
+    wqa.commonPrice = Object.assign(wqaEmptyPrice(), { costRate: '9.25', addCost: '2', markup: '' });
+    wqaApplyPriceToAll();
+  });
+  await page.waitForTimeout(800);
+  await page.evaluate(() => wqaChangeProduct('lbolt'));
+  await page.waitForTimeout(900);
+  const keptRate = await page.evaluate(() => String((wqa.rows[0].priceOverride || {}).costRate || ''));
+  A.eq(keptRate, '9.25', 'a cost rate applied from the Pricing panel survives the product being chosen');
+
   /* An extraction has no transcript to re-read, so its rows are never replaced
      — "[uploaded] drawing.png" would parse to nothing at all. */
   await page.evaluate(async d => { wqaHardClose(); wqaOpen(); await wqaAiApply(d); }, {

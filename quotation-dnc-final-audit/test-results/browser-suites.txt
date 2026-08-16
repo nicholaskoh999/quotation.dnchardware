@@ -9,9 +9,9 @@
   ok    dense table — 29 rows, merged cells, metric beside imperial  (170 assertions)
   ok    engineering drawing — five parts, five lengths, no borrowed dimensions  (48 assertions)
   ok    company rules — a size type with a reason, a diameter with one source  (44 assertions)
-  ok    quick add safety — corrections, item numbers, partial extraction  (54 assertions)
+  ok    quick add safety — corrections, item numbers, partial extraction  (60 assertions)
   ok    company history — a legacy description reads as words, not as a stored value  (35 assertions)
 
-  13 suites, 781 assertions, 0 failed
+  13 suites, 787 assertions, 0 failed
 
-  86.2s
+  91.1s

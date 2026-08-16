@@ -28,7 +28,11 @@ index.php
             per-record cost rate / additional cost / markup / bolt unit price,
             accessory cost stated separately, no averages anywhere
           · wqaChangeProduct: corrections and deletions survive choosing a
-            product; the Selected-Items scope is obeyed
+            product; the Selected-Items scope is obeyed. Seven paths that write
+            into rows — Correct Items, the Common Fields header, the Pricing
+            panel, Apply Manual Price, Apply/Clear Accessories and the per-row
+            accessory editor — now mark the rows they change, so a correction
+            made from a panel survives too
           · buildWAItemsText: message lines carry the quotation's own item
             numbers; merged twins carry both
           · partial extraction: a banner with the recovered count, and Add Items

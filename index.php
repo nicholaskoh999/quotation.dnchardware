@@ -9045,7 +9045,7 @@ function wqaApplyFixToAll(){
         r.sizeType=v; r.stDefaulted=false; did=true; return;
       }
     });
-    if(did) changed++;
+    if(did){ changed++; set.forEach(k=>wqaMarkEdited(r,k)); }
   });
   /* The header is a summary of the rows, so it follows them. */
   const p=wqaRowsCommonValue('product');
@@ -9197,6 +9197,7 @@ function wqaApplyPriceToAll(){
   if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
   let droppedLast=0;
   targets.forEach(r=>{
+    wqaMarkEdited(r,'price');
     if(c.costRate!=='') r.priceOverride.costRate=c.costRate;
     if(c.addCost!=='')  r.priceOverride.addCost=c.addCost;
     if(c.markup!=='')   r.priceOverride.markup=c.markup;
@@ -9224,7 +9225,8 @@ function wqaApplyManualPriceToAll(){
   if(v===''||!(parseFloat(v)>0)){ showToast(dcT('wqaToastEnterManual')); return; }
   const targets=wqaApplyTargets();
   if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
-  targets.forEach(r=>{ r.priceMode='manual'; r.manualPrice=v; r.usedHistoryRef=''; });
+  targets.forEach(r=>{ wqaMarkEdited(r,'price');
+                       r.priceMode='manual'; r.manualPrice=v; r.usedHistoryRef=''; });
   wqa.panels.price=true;
   wqaRenderCommonPrice();
   wqaRecomputeAll();
@@ -9299,7 +9301,7 @@ function wqaApplyAccToAll(){
     showToast(dcT('wqaToastAccNothing'));
     return;
   }
-  targets.forEach(r=>{ r.acc=wqaCloneAcc(src); });                   // clone per row
+  targets.forEach(r=>{ wqaMarkEdited(r,'acc'); r.acc=wqaCloneAcc(src); });   // clone per row
   wqa.panels.acc=true;      // stay open while staff keep editing
   wqaRenderCommonAcc();
   wqaRecomputeAll();
@@ -9309,7 +9311,7 @@ function wqaApplyAccToAll(){
 function wqaClearAllAcc(){
   /* The panel above this button says "Apply to 3 selected". This cleared all
      nineteen. One scope for the whole panel. */
-  wqaApplyTargets().forEach(r=>{ r.acc=null; });        // dimensions and pricing entry untouched
+  wqaApplyTargets().forEach(r=>{ wqaMarkEdited(r,'acc'); r.acc=null; });  // dimensions and pricing entry untouched
   wqa.panels.acc=true;
   wqaRenderCommonAcc();
   wqaRecomputeAll();
@@ -9317,6 +9319,7 @@ function wqaClearAllAcc(){
 }
 function wqaEditAcc(i,group,field,value){
   const r=wqa.rows[i]; if(!r) return;
+  wqaMarkEdited(r,'acc');
   if(!r.acc) r.acc=wqaEmptyAcc();          // lazily own an object on first edit
   wqaSetAccField(r.acc,group,field,value);
   const card=el('wqaRows').querySelector('[data-wqa-row="'+i+'"]');
@@ -12660,6 +12663,9 @@ function wqaSetCommon(k,v){
        size type. */
     if(k==='finish'   && wqaNoFinish(wqaRowSpec(r,'material'))) return;
     if(k==='sizeType' && !dcProductHasSizeType(wqaRowProduct(r))) return;
+    /* Chosen at the top and written into the row: the same correction as
+       typing it on the card, and just as easily thrown away by a re-read. */
+    wqaMarkEdited(r,k);
     r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
                                 r.finish=wqaFinishFor(v,r.finish); }
   });

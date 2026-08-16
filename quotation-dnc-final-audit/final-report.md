@@ -73,7 +73,7 @@ job was to leave it that way.
   overwritten by any automatic source.
 
 The regression suite that protects all of it did not exist before pass 1. It is
-now 13 browser suites and three non-browser suites — **957 assertions, 0
+now 13 browser suites and three non-browser suites — **963 assertions, 0
 failing** — every one of them running against the shipped code path, not against
 a re-implementation of it.
 
@@ -152,6 +152,17 @@ Otherwise the product is applied to the rows in scope, every other value stays,
 and a toast says how many rows were changed. An untouched pasted list is still
 re-read under the new product's vocabulary, which is the behaviour worth keeping.
 
+Re-auditing that fix found the same defect surviving through a second door.
+`wqaAnyRowEdited()` only knew about corrections typed on a row's own card, while
+seven other paths write into rows — Correct Items, the Common Fields header, the
+Pricing panel, Apply Manual Price, Apply Accessories, Clear Accessories, and the
+per-row accessory editor. A correction made from a panel was still discarded, and
+more quietly: filling only some rows leaves the header reading *Mixed*, so the
+header — the one place a value could otherwise have survived a re-read — does not
+carry it either. All seven now mark the rows they change. Proved the same way:
+the marks were removed and the assertions failed (`expected "HDG,-", actual
+"PL,-"`; a cost rate applied from the Pricing panel came back empty).
+
 **5. The WhatsApp message now numbers items the way the quotation does.**
 The message groups by material and finish, so its order is not the quotation's:
 a customer saying "increase item 2" and the member of staff looking at item 2
@@ -227,7 +238,12 @@ the identity-keyed path still delivers the rates — see *Known limitations*.)
 every row from the source text because that was the simplest way to answer "what
 would these rows look like as L Bolts?". Rebuilding discards everything a person
 has done since. The repair is to track whether anything has been done —
-`wqaMarkEdited` on every edit path — and only rebuild when the answer is no.
+`wqaMarkEdited` on every edit path — and only rebuild when the answer is no. The
+trap in that repair is the phrase *every edit path*: the first version of it
+covered the row cards and missed the seven panel paths that also write into rows,
+so a guard that looked complete still let the original defect through. A flag
+that means "somebody has worked on this" has to be set by everything that lets
+somebody work on it, or it means nothing.
 
 **R5 — A warning whose weight did not match its consequence.** The truncation
 notice was rendered with the same styling as "3 lines were not read as items".
@@ -257,10 +273,10 @@ Run from the repository root immediately before packaging.
   ok    dense table — 29 rows, merged cells, metric beside imperial        (170)
   ok    engineering drawing — five parts, five lengths, no borrowed dims    (48)
   ok    company rules — a size type with a reason, a diameter with one src  (44)
-  ok    quick add safety — corrections, item numbers, partial extraction    (54)
+  ok    quick add safety — corrections, item numbers, partial extraction    (60)
   ok    company history — a legacy description reads as words              (35)
 
-  13 suites, 781 assertions, 0 failed          86.2s
+  13 suites, 787 assertions, 0 failed          91.1s
 
   ok    ai_extract — dense tables, truncation and error causes              (64)
   ok    pricing history — identity, accessories, ranking                    (50)
@@ -269,7 +285,7 @@ Run from the repository root immediately before packaging.
   PHP lint: 10 files, no syntax errors
 ```
 
-**957 assertions, 0 failed.** Raw output in `test-results/`.
+**963 assertions, 0 failed.** Raw output in `test-results/`.
 
 Three of pass 2's fixes were verified the only way that means anything: the fix
 was reverted, the suite was run, and the assertions failed for the right reason —
@@ -290,7 +306,7 @@ green again.
 | Pricing history: same customer, different dimensions, other customer, pagination | PASS (79 + 50 assertions) |
 | Accessories separate from the bolt price | PASS |
 | Save → reopen → edit → save | PASS (65 assertions) |
-| WhatsApp / print output | PASS (65 + 54 assertions) |
+| WhatsApp / print output | PASS (65 + 60 assertions) |
 
 ### Screenshots
 
