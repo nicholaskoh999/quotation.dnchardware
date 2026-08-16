@@ -220,8 +220,9 @@ module.exports = async (browser, A) => {
   A.includes(tl, '120.5=1', 'and 120.5 is in the upper one, not in a hole between them');
   A.includes(tl, '121=1', '121 too');
 
-  // ── Plate accessories are charged, not just printed ──────────────────────
+  // ── Accessories are charged, and charged BESIDE the item's own price ─────
   const plate = await page.evaluate(() => {
+    quoteItems.length = 0;
     switchType('plate');
     productEntryTouchedFields.clear();
     document.getElementById('plate-l').value = '200';
@@ -230,6 +231,7 @@ module.exports = async (browser, A) => {
     document.getElementById('plate-costRate').value = '5';
     document.getElementById('plate-addCost').value = '0';
     document.getElementById('plate-markup').value = '0';
+    document.getElementById('plate-qty').value = '4';
     calcPlate();
     const withoutAcc = (priceCalcState.plate || {}).finalUnitPrice;
     document.getElementById('plate-nutEnabled').checked = true;
@@ -237,12 +239,26 @@ module.exports = async (browser, A) => {
     document.getElementById('plate-nutQty').value = '2';
     document.getElementById('plate-nutPrice').value = '1.50';
     onAccChange('plate');
-    return { withoutAcc, withAcc: (priceCalcState.plate || {}).finalUnitPrice,
-             addon: accAddon(getAccessories('plate')) };
+    const state = priceCalcState.plate || {};
+    addPlate();
+    const it = quoteItems[0] || {};
+    return { withoutAcc, withAcc: state.finalUnitPrice, line: state.lineUnitPrice,
+             addon: accAddon(getAccessories('plate')),
+             item: { unit: it.finalUnitPrice, acc: it.accessoryUnitPrice,
+                     lineUnit: it.lineUnitPrice, total: it.totalAmount,
+                     model: it.pricingModel, qty: it.qty } };
   });
   A.eq(plate.addon, '3', 'two nuts at RM1.50 is RM3.00 of accessories');
-  A.near(Number(plate.withAcc) - Number(plate.withoutAcc), 3, 0.001,
-    'and the plate price includes them — they are promised on the printed quotation');
+  A.near(Number(plate.withAcc), Number(plate.withoutAcc), 0.001,
+    'selecting them does NOT change the plate\'s own unit price — a bolt price is the bolt\'s');
+  A.near(Number(plate.line) - Number(plate.withoutAcc), 3, 0.001,
+    'while the line price says what the customer is charged for the pair together');
+  A.near(plate.item.unit, plate.withoutAcc, 0.001, 'the saved item keeps the item\'s own price');
+  A.eq(plate.item.acc, '3', 'and records the accessory charge as its own figure');
+  A.near(plate.item.lineUnit, Number(plate.withoutAcc) + 3, 0.001, 'with the line price beside it');
+  A.near(plate.item.total, (Number(plate.withoutAcc) + 3) * 4, 0.001,
+    'and the line total still charges for both — separating them does not make them free');
+  A.eq(plate.item.model, 'bolt-separate', 'the item records which pricing model produced it');
 
   A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
   await page.close();

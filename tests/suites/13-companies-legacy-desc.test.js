@@ -39,10 +39,12 @@ module.exports = async (browser, A) => {
   A.ok(!!fromIndex, 'index.php has the description normaliser');
   A.ok(!!fromCompanies, 'and companies.php now has one too');
 
-  const run = code => { const ctx = { out: null }; vm.createContext(ctx);
-                        vm.runInContext(code + '\nout = displayItemDesc;', ctx); return ctx.out; };
-  const idx = run(fromIndex);
-  const cmp = run(fromCompanies);
+  /* The function itself, lifted out of the shipped file and run — so what is
+     asserted is the code that ships, not a copy of it. */
+  const run = (code, name) => { const ctx = { out: null }; vm.createContext(ctx);
+                                vm.runInContext(code + '\nout = ' + name + ';', ctx); return ctx.out; };
+  const idx = run(fromIndex, 'displayItemDesc');
+  const cmp = run(fromCompanies, 'displayItemDesc');
 
   const CASES = [
     [{ desc: '4140_HARDEN_G10_9 FULLSIZE L BOLT', material: '4140_HARDEN_G10_9' },
@@ -97,6 +99,22 @@ module.exports = async (browser, A) => {
   const api = fs.readFileSync(path.join(ROOT, 'api.php'), 'utf8');
   A.includes(api, "'material'        => (string)($it['material'] ?? '')",
     'and the item search returns the material the rule needs');
+
+  /* ── An item's price is the item's here too ──────────────────────────────
+     The company screens print "QTY 10 × RM 12.00" beside a line total. Once
+     the accessory charge left the unit price, those two figures stopped
+     reconciling on any item that has accessories — unless the accessories are
+     named here as well. */
+  const accSplit = extract('companies.php', 'dcItemAccUnit');
+  A.ok(!!accSplit, 'the company screens know what an accessory charge is');
+  const accRun = run(accSplit, 'dcItemAccUnit');
+  A.eq(accRun({ pricingModel: 'bolt-separate', accessoryUnitPrice: 0.7 }), 0.7,
+    'a separately-priced item reports its accessory charge');
+  A.eq(accRun({ accessoryUnitPrice: 0.7 }), 0,
+    'while an item saved before the separation reports none — its charge is inside its unit price and cannot be told apart');
+  A.eq(accRun({}), 0, 'and an item with no accessories reports nothing');
+  A.eq((html.match(/esc\(dcAccNote\(/g) || []).length, 3,
+    'all three places that print a unit price on the company screens say what is charged beside it');
 
   return S;
 };

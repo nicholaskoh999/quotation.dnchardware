@@ -49,21 +49,37 @@ across materials as part of V2 rather than as a one-line change now.
 
 ---
 
-## 2. Should the printed quotation line include accessories?
-**BLOCKED — BUSINESS INPUT REQUIRED**
+## 2. Should the printed quotation line include accessories? — ANSWERED, and done
 
-Today, in Auto Round and No Round, the accessory cost is added to the bolt's
-computed price and the sum becomes the unit price on the quotation. In Manual
-Price, the typed price is the whole line and nothing is added.
+You answered this: the item's unit price is the item's, and accessories are
+charged separately. That is now how the application prices, saves, displays and
+prints an item.
 
-Pricing History now separates them: it reports the bolt's own price and the
-accessory cost beside it, and where a saved row cannot prove how it was priced it
-says "Accessories not separable" instead of inventing a separation.
+What it means in practice:
 
-The question is whether the *quotation itself* should keep folding accessories
-into one unit price, or show them as their own line. That is a decision about
-what your customers should see, and it changes every quotation, so I have not
-touched it.
+* Ticking two nuts no longer moves the bolt's own price. The item stores
+  `finalUnitPrice` (the bolt), `accessoryUnitPrice` (the accessories) and
+  `pricingModel: bolt-separate`.
+* The line total is unchanged in money: `(bolt + accessories) x qty`. Separating
+  the two figures does not make the nuts free — that would have been the worse
+  bug of the two.
+* The print sheet gives the accessories their own row, with their own unit price
+  and their own amount, so quantity x unit price reconciles on every printed
+  row. It could not while the two were one figure.
+* The WhatsApp message names the accessories and prices them.
+* Pricing History reads the stored separation instead of working it out, and an
+  older record that cannot prove one is still marked "Accessories not separable"
+  rather than being guessed at.
+
+**One thing to check on the live system after deployment.** An item priced
+before this change with a *Manual Price* carried the accessory charge inside
+that typed figure. Opening such an item for editing now moves the accessory
+charge out of the manual price and charges it beside the item instead — the line
+total stays exactly the same, and a message on screen says what happened. Auto
+Round and No Round items need no such adjustment, because their bolt price is
+recomputed from the cost rate, additional cost and markup saved with them. If
+you have manually-priced items with accessories, open one and confirm the line
+total is what it was.
 
 ---
 

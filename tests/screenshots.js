@@ -157,6 +157,58 @@ const item = (M, L, TL, qty, extra = {}) => Object.assign({
     await page.close();
   }
 
+  // ── 8. a bolt's price, and the accessories charged beside it ────────────
+  {
+    const page = await openApp(browser, { viewport: V });
+    await page.evaluate(() => {
+      switchType('sagrod');
+      productEntryTouchedFields.clear();
+      document.getElementById('sagrod-material').value = 'MS';
+      document.getElementById('sagrod-sizeType').value = 'FULLSIZE';
+      document.getElementById('sagrod-size').value = 'M20'; onSizeCommit('sagrod');
+      document.getElementById('sagrod-length').value = '1000';
+      document.getElementById('sagrod-threadLen').value = '100/100';
+      document.getElementById('sagrod-qty').value = '10';
+      document.getElementById('sagrod-costRate').value = '5';
+      document.getElementById('sagrod-addCost').value = '1';
+      document.getElementById('sagrod-nutEnabled').checked = true; onAccChange('sagrod');
+      document.getElementById('sagrod-nutQty').value = '2';
+      document.getElementById('sagrod-nutPrice').value = '0.30';
+      document.getElementById('sagrod-fwEnabled').checked = true; onAccChange('sagrod');
+      document.getElementById('sagrod-fwQty').value = '1';
+      document.getElementById('sagrod-fwPrice').value = '0.10';
+      onAccChange('sagrod');
+      addSagRod();
+      goToStep(3);
+    });
+    await page.waitForTimeout(600);
+    /* The item card beside the printed rows it produces, so one frame shows
+       the bolt price, the accessory charge, and the two rows on paper. */
+    await page.evaluate(() => {
+      window.dispatchEvent(new Event('beforeprint'));
+      const rows = Array.from(document.querySelectorAll('#printItemsBody tr'))
+        .map(tr => Array.from(tr.children).map(td => td.textContent.trim()).join('   |   '));
+      window.dispatchEvent(new Event('afterprint'));
+      const box = document.createElement('pre');
+      box.style.cssText = 'position:fixed;right:16px;top:16px;width:560px;'
+        + 'background:#fff;color:#111;border:2px solid #5b7af5;border-radius:10px;padding:14px;'
+        + 'font:12px/1.6 monospace;white-space:pre-wrap;z-index:99999';
+      box.textContent = 'PRINTED QUOTATION ROWS\n\n' + rows.join('\n')
+        + '\n\nWHATSAPP\n\n' + buildWAItemsText()
+        + '\n\nSAVED ITEM\n\n'
+        + JSON.stringify({ finalUnitPrice: quoteItems[0].finalUnitPrice,
+                           accessoryUnitPrice: quoteItems[0].accessoryUnitPrice,
+                           lineUnitPrice: quoteItems[0].lineUnitPrice,
+                           qty: quoteItems[0].qty,
+                           totalAmount: quoteItems[0].totalAmount,
+                           pricingModel: quoteItems[0].pricingModel }, null, 1);
+      document.body.appendChild(box);
+    });
+    await page.waitForTimeout(400);
+    await shot(page, '8-accessory-separation');
+    await page.close();
+  }
+
   // ── 6. the quotation as the customer receives it ────────────────────────
   {
     let payload = null;

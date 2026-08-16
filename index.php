@@ -527,6 +527,13 @@ input,select,textarea{font-family:inherit}
 }
 .qi-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .qi-meta-pill{font-size:13px;color:var(--text-2);font-weight:600}
+/* Accessories, beside the bolt's own price and never inside it. */
+.qi-acc-pill{color:var(--text-muted)}
+/* Inside .cp-final, whose span rules are larger and greener — said explicitly
+   so the note stays a note, and hidden means hidden. */
+.cp-item .cp-line-note,.calc-preview .cp-final span.cp-line-note{
+  display:block;font-size:11.5px;font-weight:700;color:var(--text-muted);margin-top:3px;letter-spacing:0}
+.cp-line-note[hidden],.calc-preview .cp-final span.cp-line-note[hidden]{display:none}
 .qi-meta-pill strong{color:var(--text)}
 .qi-price-group{display:flex;align-items:baseline;gap:8px}
 .qi-unit{font-size:13px;color:var(--text-muted);font-weight:600}
@@ -903,6 +910,9 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
   .print-items-table .print-col-qty{width:14mm;text-align:center}
   .print-items-table .print-col-money{width:25mm;text-align:right;white-space:nowrap}
   .print-item-size{white-space:pre-line;overflow-wrap:anywhere}
+  /* The accessory row belongs to the item above it: same line, quieter. */
+  .print-acc-row td{color:#333;font-size:11px;padding-top:1px;border-top:none}
+  .print-acc-row td:nth-child(2){padding-left:14px}
   .print-items-table tbody tr{break-inside:avoid;page-break-inside:avoid}
   .print-items-table tfoot td{font-size:10pt;font-weight:800;background:#f5f5f5!important}
   .print-grand-label{text-align:right}
@@ -1704,6 +1714,8 @@ input,select,textarea{
 .wqa-price-grid{margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
 .wqa-final{display:flex;align-items:center;min-height:var(--control-h);font-size:15px;font-weight:800;color:var(--green)}
 .wqa-final-tag{margin-left:6px;font-size:10.5px;font-weight:700;color:var(--text-muted)}
+/* The accessory charge, beside the accessories and never inside the bolt price. */
+.wqa-acc-bar-money{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--text-2)}
 .wqa-acc-toggle{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer}
 .wqa-flag{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--pill-r);
   background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
@@ -3021,7 +3033,7 @@ input,select,textarea{
           <div class="cp-item"><label data-i18n="lblUnitWeight">Unit Weight</label><span id="cpWeight">—</span></div>
           <div class="cp-item"><label data-i18n="lblBasePrice">Base Price</label><span id="cpBase">—</span></div>
           <div class="cp-item cp-acc"><label><span data-i18n="accessories">Accessories</span></label><span id="cpAcc">—</span></div>
-          <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Final Unit Price</label><span id="cpFinal">—</span></div>
+          <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Bolt Unit Price</label><span id="cpFinal">—</span><span id="cpLine" class="cp-line-note" hidden></span></div>
         </div>
         <div class="price-mode-preview" id="priceModePreview">
           <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
@@ -4136,6 +4148,7 @@ const I18N={
     tLineNeg:'Line total is negative — check inputs',
     tIdIhNeg:'ID / IH cannot be negative', tItemUpdated:'Item updated',
     tOldNoRate:'Old item has no saved Cost Rate. Please confirm pricing.',
+    tLegacyAccSplit:'This item was priced before accessories were separated. {a} of accessories has been moved out of the manual price, leaving {b} for the item itself. The line total is unchanged.',
     tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
     tSagRodAdded:'Sag Rod added', tStudAdded:'Stud added', tAnchorAdded:'Anchor Bolt added',
   },
@@ -4359,6 +4372,7 @@ const I18N={
     tLineNeg:'总额为负数，请检查输入',
     tIdIhNeg:'ID / IH 不能为负数', tItemUpdated:'产品已更新',
     tOldNoRate:'旧项目没有保存 Cost Rate，请确认价格。',
+    tLegacyAccSplit:'此项目在配件分开计价之前建立。已从手动价格中拆出配件 {a}，本体价格为 {b}，行总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
   },
@@ -5104,14 +5118,18 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
   const mode=getPriceMode(type);
   const manualRaw=fv(type,'manualUnitPrice').trim();
   const manualUnitPrice=evalExpr(manualRaw);
+  /* The accessory charge is still passed in — the screen shows it, and the
+     line carries it — but it is no longer added to the bolt's own price. */
   let finalUnitPrice;
   if(mode==='manual') finalUnitPrice=manualUnitPrice;
-  else if(mode==='no_round') finalUnitPrice=roundMoney2(rawUnitPrice)+accessoriesCost;
-  else finalUnitPrice=autoRoundedUnitPrice+accessoriesCost;
+  else if(mode==='no_round') finalUnitPrice=roundMoney2(rawUnitPrice);
+  else finalUnitPrice=autoRoundedUnitPrice;
+  const accUnit=roundMoney2(Number(accessoriesCost)||0);
   priceCalcState[type]={
     priceMode:mode,manualUnitPrice:manualRaw,rawUnitPrice:Number(rawUnitPrice)||0,
-    roundedUnitPrice:Number(autoRoundedUnitPrice)||0,accessoriesCost:Number(accessoriesCost)||0,
-    finalUnitPrice:Number(finalUnitPrice)||0
+    roundedUnitPrice:Number(autoRoundedUnitPrice)||0,accessoriesCost:accUnit,
+    finalUnitPrice:Number(finalUnitPrice)||0,
+    lineUnitPrice:roundMoney2((Number(finalUnitPrice)||0)+accUnit)
   };
   updatePriceModePreview(type);
   return priceCalcState[type].finalUnitPrice;
@@ -5736,7 +5754,15 @@ function updatePreview(weight,base,final){
      that a person typed themselves is theirs and still shows. */
   const priced = weight>0 || getPriceMode(currentType)==='manual';
   el('cpBase').textContent  = priced ? fmt(base) : '—';
-  el('cpFinal').textContent = priced ? fmt(resolved?resolved.finalUnitPrice:final+accTotal) : '—';
+  el('cpFinal').textContent = priced ? fmt(resolved?resolved.finalUnitPrice:final) : '—';
+  /* The bolt's price is the headline; the line total says what the customer is
+     charged once the accessories beside it are counted. */
+  const lineNote=el('cpLine');
+  if(lineNote){
+    const bolt=resolved?Number(resolved.finalUnitPrice)||0:final;
+    lineNote.hidden=!(priced && accTotal>0);
+    lineNote.textContent='+ '+fmt(accTotal)+' accessories = '+fmt(roundMoney2(bolt+accTotal))+'/pc';
+  }
   syncCostRateWarning(currentType);
   updatePriceModePreview(currentType);
 }
@@ -5832,6 +5858,38 @@ function getAccessories(type){
     fw:{enabled:fwEnabled,qty:fwQty,finish:fwFinish,unitPrice:fwPrice},
     custom:{enabled:customEnabled,text:customText,unitPrice:customPrice}
   };
+}
+/* ── Bolt price and accessory price are two prices ──────────────────────────
+   The bolt's unit price is the bolt's: weight x cost rate + additional cost,
+   marked up and rounded. An accessory is its own component with its own cost,
+   and it is charged to the LINE — never folded into the bolt.
+
+   Selecting two nuts used to turn a bolt quoted at RM12.00 into a bolt quoted
+   at RM12.50, so the figure staff read as "what this bolt costs" depended on
+   what was packed beside it, and the pricing history built from those figures
+   compared bolts against bolts-plus-hardware.
+
+   Items saved before this separation existed hold ONE number with the
+   accessory charge already inside it. They are read exactly as they were
+   written and marked legacy; no separation is invented for them. */
+const DC_PRICING_MODEL='bolt-separate';
+function dcItemIsSeparated(item){ return !!item && item.pricingModel===DC_PRICING_MODEL; }
+/* The accessory charge carried on the LINE, per piece. Zero for a legacy item
+   — not because it had none, but because what it had cannot be told apart from
+   the bolt price it was added into. */
+function dcItemAccUnit(item){ return dcItemIsSeparated(item) ? (Number(item.accessoryUnitPrice)||0) : 0; }
+function dcItemBoltUnit(item){ return Number(item&&item.finalUnitPrice)||0; }
+/* One place where a line's money is settled, so the entry form, Quick Add and
+   the plate path cannot come to disagree about what a line costs. */
+function dcLineMoney(boltUnitPrice,acc,qty){
+  const bolt=roundMoney2(Number(boltUnitPrice)||0);
+  const accUnit=roundMoney2(accAddon(acc));
+  const n=parseInt(qty,10)||0;
+  return {finalUnitPrice:bolt, accessoryUnitPrice:accUnit,
+          lineUnitPrice:roundMoney2(bolt+accUnit),
+          accessoryTotal:roundMoney2(accUnit*n),
+          totalAmount:roundMoney2((bolt+accUnit)*n),
+          pricingModel:DC_PRICING_MODEL};
 }
 function accAddon(acc){
   if(!acc) return 0;
@@ -6410,6 +6468,33 @@ function resolveItemType(item){
     .find(([,label])=>normalized.includes(label.replace(/[-\s]+/g,'')));
   return found ? found[0] : currentType;
 }
+/* ── Editing an item priced before accessories were separated ───────────────
+   A Manual Price used to BE the whole line: it replaced the calculation and
+   nothing was added to it, so an item manually priced at RM30.70 with RM0.70
+   of nuts beside it carried the nuts inside that figure. Re-saving it now
+   would charge the RM0.70 twice, and the customer's line would quietly rise.
+
+   So the manual figure is unfolded once, on the way into the form: the bolt's
+   share goes into the Manual Price box and the accessories are charged beside
+   it, exactly as they are for a new item. The LINE TOTAL is unchanged — that
+   is the number the customer agreed to, and it is the number this preserves.
+
+   Only Manual Price needs it. Auto Round and No Round recompute the bolt price
+   from the cost rate, additional cost and markup that are saved with the item,
+   and the accessory charge that used to be added on top is now added to the
+   line instead: same money, no unfolding required. */
+function dcUnfoldLegacyManualPrice(type,item){
+  if(!item || dcItemIsSeparated(item)) return;                 // already separate
+  const mode=String(item.priceMode || (item.formData&&item.formData.priceMode) || 'auto');
+  if(mode!=='manual') return;
+  const acc=accAddon((item.formData&&item.formData.accessories) || item.accessories);
+  if(!(acc>0)) return;
+  const line=Number(item.finalUnitPrice)||0;
+  const bolt=roundMoney2(line-acc);
+  if(!(bolt>0)) return;             // nothing sensible to unfold; leave it alone
+  setFieldValue(type,'manualUnitPrice',bolt.toFixed(2));
+  showToast(dcT('tLegacyAccSplit').replace('{a}',fmt(acc)).replace('{b}',fmt(bolt)));
+}
 function fillItemFormFromItem(item){
   formRestoreInProgress=true;
   try{ fillItemFormFromItemInner(item); } finally { formRestoreInProgress=false; }
@@ -6475,6 +6560,7 @@ function fillItemFormFromItemInner(item){
   if(hasSavedAddCost) markUserPriced(type,'addCost');
   setFinishValue(type,saved.finish ?? item.finish ?? '');
   loadAccIntoForm(type,saved.accessories || item.accessories);
+  dcUnfoldLegacyManualPrice(type,item);
   onPriceModeChange(type);
   if(type==='others') onOthersWeightModeChange();
   if(!hasSavedCostRate || !hasSavedAddCost){
@@ -6755,8 +6841,8 @@ function addPlate(){
   const raw=base*(1+markup/100);
   /* Read before the price, because the price now includes it. */
   const acc=getAccessories('plate');
-  const finalUnitPrice=resolvePriceMode('plate',raw,round05(raw),accAddon(acc));
-  const totalAmount=finalUnitPrice*qty;
+  const money=dcLineMoney(resolvePriceMode('plate',raw,round05(raw),accAddon(acc)),acc,qty);
+  const finalUnitPrice=money.finalUnitPrice, totalAmount=money.totalAmount;
   if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return; // Phase 1 fix
   // Build size string (English only)
   const sizeStr=buildPlateSizeStr();
@@ -6768,12 +6854,13 @@ function addPlate(){
   const item={
     itemType:'plate',plateType:t,
     desc,finish:getFinish('plate'),
-    size:sizeStr,qty,finalUnitPrice,totalAmount,markup,
+    size:sizeStr,qty,markup,
     material:fv('plate','material'),
     sizeCode:'',sizeType:'',
     productType:t==='ms_plate'?'MS PLATE':'TRIANGLE PLATE',
     cleanSize:'',dimensionPreview:sizeStr,
-    accessories:acc,weight,customDimensions:dcReadCustomDims(),formData,...getPriceModeSaveData('plate')
+    accessories:acc,weight,customDimensions:dcReadCustomDims(),formData,
+    ...getPriceModeSaveData('plate'),...money
   };
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const idx=editingItemIndex;
@@ -7104,12 +7191,17 @@ function fillWASFormFromItem(item){
    the form when it returns false. */
 function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,sizeCode,sizeType,accessories,weight){
   if(loadedSavedQuote && quoteLocked){ showToast('Click Edit Saved Quotation first'); return false; }
-  if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return false; // Phase 1 fix: final safety net
   const finish=getFinish(type);
   const acc=accessories||{nut:{enabled:false,qty:2,finish:'',unitPrice:0},fw:{enabled:false,qty:1,finish:'',unitPrice:0},custom:{enabled:false,text:'',unitPrice:0}};
+  /* The caller's totalAmount was the bolt price times the quantity. The line
+     also carries the accessories, so it is settled here — one place, for every
+     product that comes through this path. */
+  const money=dcLineMoney(finalUnitPrice,acc,qty);
+  finalUnitPrice=money.finalUnitPrice; totalAmount=money.totalAmount;
+  if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return false; // Phase 1 fix: final safety net
   const productType=type==='others'?(fv(type,'productName').trim()||ITEM_TYPES[type]):(ITEM_TYPES[type]||type);
   const priceData=getPriceModeSaveData(type);
-  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,finalUnitPrice,totalAmount,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),formData:captureItemFormData(type),...priceData};
+  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),formData:captureItemFormData(type),...priceData,...money};
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const updatedIndex=editingItemIndex;
     quoteItems[updatedIndex]=item;
@@ -7220,7 +7312,8 @@ function renderQuote(newIdx){
         <div class="qi-meta">
           ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">Unit Weight <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>${parseInt(item.qty,10)>1?`<span class="qi-meta-pill qi-weight-pill">Total <strong>${(parseFloat(item.weight)*parseInt(item.qty,10)).toFixed(3)}kg</strong></span>`:``}`:''}
           <span class="qi-meta-pill">Qty <strong>${parseInt(item.qty,10)||0}</strong></span>
-          <span class="qi-meta-pill">Unit <strong>${fmt(item.finalUnitPrice)}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
+          <span class="qi-meta-pill">${dcItemAccUnit(item)>0?'Bolt':'Unit'} <strong>${fmt(item.finalUnitPrice)}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
+          ${dcItemAccUnit(item)>0?`<span class="qi-meta-pill qi-acc-pill">Accessories <strong>${fmt(dcItemAccUnit(item))}/pc</strong></span>`:''}
         </div>
         <div class="qi-price-group">
           <span class="qi-unit">Total</span>
@@ -7582,7 +7675,13 @@ function buildWAItemsText(emptyText='-'){
     const wasDisplay=wasItem?wasDisplayData(item):null;
     const size=wasItem?wasDisplay.abLine:(item.size||'').trim();
     const price=fmtWAUnitPrice(item.finalUnitPrice);
-    const cw=wasItem?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
+    /* The accessory charge is the customer's to see: the bolt's price is the
+       bolt's, and the nuts beside it carry their own figure rather than
+       disappearing into it. A legacy item, whose charge is inside its unit
+       price, keeps the plain note it has always had. */
+    const accUnit=wasItem?0:dcItemAccUnit(item);
+    const cwText=wasItem?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
+    const cw=(accUnit>0&&cwText)?cwText+' - '+fmtWAUnitPrice(accUnit):cwText;
     const wasComp=wasItem?wasDisplay.compLines:'';
     /* Two items are the same LINE only when everything the line shows is the
        same. The custom dimensions are part of what the line shows — the print
@@ -7759,14 +7858,28 @@ window.addEventListener('beforeprint',()=>{
     const qty=parseInt(item.qty,10)||0;
     const unit=parseFloat(item.finalUnitPrice)||0;
     const total=Number.isFinite(Number(item.totalAmount))?Number(item.totalAmount):qty*unit;
+    /* Accessories are their own component, so they are their own row: the
+       bolt's unit price times the quantity is the bolt's line, and the nuts and
+       washers are priced beside it. Quantity x unit price now reconciles on
+       every row, which it could not do while the two were one figure. */
+    const accUnit=dcItemAccUnit(item);
+    const boltTotal=accUnit>0?roundMoney2(unit*qty):total;
+    const accRow=accUnit>0?`<tr class="print-acc-row">
+      <td class="print-col-no"></td>
+      <td>${escHtml(accCWLabel(item.accessories||null)||'Accessories')}</td>
+      <td class="print-item-size"></td>
+      <td class="print-col-qty">${qty}</td>
+      <td class="print-col-money">${formatPrintMoney(accUnit)}</td>
+      <td class="print-col-money">${formatPrintMoney(roundMoney2(accUnit*qty))}</td>
+    </tr>`:'';
     return `<tr>
       <td class="print-col-no">${index+1}</td>
       <td>${escHtml(getPrintItemDescription(item))}</td>
       <td class="print-item-size">${escHtml(getPrintItemDimension(item))}</td>
       <td class="print-col-qty">${qty}</td>
       <td class="print-col-money">${formatPrintMoney(unit)}${item.itemType==='was'?'/set':''}</td>
-      <td class="print-col-money">${formatPrintMoney(total)}</td>
-    </tr>`;
+      <td class="print-col-money">${formatPrintMoney(boltTotal)}</td>
+    </tr>${accRow}`;
   }).join('');
   const grand=quoteItems.reduce((sum,item)=>sum+(parseFloat(item.totalAmount)||0),0);
   el('printGrandTotal').textContent=formatPrintMoney(grand);
@@ -7799,7 +7912,13 @@ function getPrintItemDescription(item){
 }
 function getPrintItemDimension(item){
   const size=item.itemType==='was'?wasDisplayData(item).size:String(item.size||'');
-  const accessories=item.itemType==='was'?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
+  /* An item whose accessories are priced separately names them on their own
+     row, with their own money beside them. Naming them here as well would
+     print the same nuts twice — once as a note, once as a charge. A legacy
+     item, whose accessory charge is inside its unit price and cannot be shown
+     on a row of its own, still carries the note it always did. */
+  const accessories=item.itemType==='was' ? wasCWLabel(item.accessories||null)
+                  : (dcItemAccUnit(item)>0 ? '' : accCWLabel(item.accessories||null));
   /* Custom dimensions print with the dimension they annotate, above the
      accessory line. An item with none prints exactly as it did before. */
   return [size,dcCustomDimsPrintLine(item),accessories].filter(Boolean).join('\n');
@@ -7825,8 +7944,60 @@ const PH_EMPTY_DEFAULT='No pricing history for this exact specification yet.';
 
    ONE renderer, used by the entry form's panel and by every Quick Add row, so
    the two cannot come to disagree about what a historical price means. */
+/* ── How close is this record to the item being quoted? ─────────────────────
+   The mirror of dc_dim_values / dc_dim_distance in pricing_history.php, kept
+   deliberately identical: the server ranks the page it sends, and the browser
+   re-ranks it for the row that asked, so the two must agree to the millimetre.
+   Both are asserted against the same table of cases.
+
+   Dimensions are read out of the labels the quotation writes, a thread pair
+   counts as both of its ends, and the score is the plain sum of differences in
+   millimetres — nothing weighted, nothing learned. Null means neither side
+   said anything measurable: unknown, not close. */
+const PH_DIM_RE=/\b(TL|ID|IH|OH|CL|CH|L|W|H|S|T|B|R)\s*([0-9]+(?:\.[0-9]+)?)(?:\s*\/\s*([0-9]+(?:\.[0-9]+)?))?/gi;
+function phDimValues(str){
+  const out={}; const re=new RegExp(PH_DIM_RE.source,'gi'); let m;
+  while((m=re.exec(String(str||'')))!==null){
+    const k=m[1].toUpperCase();
+    if(out[k]===undefined) out[k]=parseFloat(m[2]);
+    if(m[3]!==undefined && out[k+'2']===undefined) out[k+'2']=parseFloat(m[3]);
+  }
+  return out;
+}
+function phDimDistance(wantStr,recStr){
+  const a=phDimValues(wantStr), b=phDimValues(recStr);
+  const ka=Object.keys(a), kb=Object.keys(b);
+  if(!ka.length || !kb.length) return null;
+  let total=0;
+  new Set(ka.concat(kb)).forEach(k=>{ total+=Math.abs((a[k]||0)-(b[k]||0)); });
+  return Math.round(total*10000)/10000;
+}
+/* This customer first, then the nearest rod, then the most recent — the same
+   order dc_history_sort produces on the server. */
+function phSortRecords(records){
+  records.sort((x,y)=>{
+    const rx=x.own?0:1, ry=y.own?0:1;
+    if(rx!==ry) return rx-ry;
+    const dx=(x.dimDistance===null||x.dimDistance===undefined)?Infinity:Number(x.dimDistance);
+    const dy=(y.dimDistance===null||y.dimDistance===undefined)?Infinity:Number(y.dimDistance);
+    if(dx!==dy) return dx-dy;
+    const d=String(y.date||'').localeCompare(String(x.date||''));
+    if(d) return d;
+    return (Number(y.quotationId)||0)-(Number(x.quotationId)||0);
+  });
+  return records;
+}
 function phMoney(v){ return (v===null||v===undefined||v==='') ? '—' : 'RM '+(Number(v)||0).toFixed(2); }
 function phPct(v){ return (v===null||v===undefined||v==='') ? '—' : (Number(v)||0)+'%'; }
+/* A value the record never carried is said to be missing, never filled in. */
+function phWeight(v){ return (v===null||v===undefined||v===''||!(Number(v)>0))
+  ? 'Not recorded' : (Number(v).toFixed(4)+' kg/pc'); }
+function phDimText(mm){ return (Math.round(Number(mm)*100)/100)+'mm'; }
+/* How the price was arrived at. A record that never recorded it says so. */
+const PH_MODE_LABELS={auto:'Auto Round',no_round:'No Round',manual:'Manual'};
+function phPriceMode(rec){
+  return rec.priceModeLabel || PH_MODE_LABELS[String(rec.priceMode||'')] || 'Legacy / Unknown';
+}
 function phRecordHtml(rec,onUse){
   const own=!!rec.own;
   /* The bolt's own price is what a bolt costs. Where the saved row cannot
@@ -7839,8 +8010,14 @@ function phRecordHtml(rec,onUse){
              .filter(Boolean).join(' ');
   const tags=[];
   if(!own) tags.push('<span class="ph-rec-tag ph-rec-other">Other customer reference</span>');
-  tags.push(rec.exactDims ? '<span class="ph-rec-tag ph-rec-exact">Same dimensions</span>'
-                          : '<span class="ph-rec-tag">Different dimensions</span>');
+  /* Same, near, or unknown — and by how much, because "why was that one
+     dearer" is usually answered by a number of millimetres. */
+  const dist=(rec.dimDistance===null||rec.dimDistance===undefined)?null:Number(rec.dimDistance);
+  tags.push(rec.exactDims
+    ? '<span class="ph-rec-tag ph-rec-exact">Same dimensions</span>'
+    : (dist===null
+       ? '<span class="ph-rec-tag">Dimensions not comparable</span>'
+       : `<span class="ph-rec-tag">Differs by ${escHtml(phDimText(dist))}</span>`));
   if(rec.legacy) tags.push('<span class="ph-rec-tag">Legacy record</span>');
   if(rec.accessoryAmbiguous) tags.push('<span class="ph-rec-tag ph-rec-warn">Accessories not separable</span>');
   const useBtn = onUse && bolt!==null
@@ -7854,12 +8031,14 @@ function phRecordHtml(rec,onUse){
     <div class="ph-rec-spec">${escHtml(spec)}</div>
     <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · Qty ${parseInt(rec.qty,10)||0}</div>
     <div class="ph-rec-nums">
+      <span><label>Unit Weight</label>${phWeight(rec.weight)}</span>
       <span><label>Cost Rate</label>${phMoney(rec.costRate)}</span>
       <span><label>Add Cost</label>${phMoney(rec.addCost)}</span>
       <span><label>Markup</label>${phPct(rec.markup)}</span>
+      <span><label>Price Mode</label>${escHtml(phPriceMode(rec))}</span>
       <span class="ph-rec-unit"><label>${bolt===null?'Unit Price':'Bolt Unit Price'}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
     </div>
-    ${acc>0?`<div class="ph-rec-acc">Accessories, separately: ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.unitPrice)+')'}</div>`:''}
+    ${acc>0?`<div class="ph-rec-acc">Accessories, separately: ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)+')'}</div>`:''}
     <div class="ph-rec-foot">${tags.join('')}${useBtn}</div>
   </div>`;
 }
@@ -13091,6 +13270,7 @@ function wqaRenderRows(force){
           <span class="wqa-acc-arrow">${r.accOpen?'▾':'▸'}</span>
           <span class="wqa-acc-bar-lbl">Accessories:</span>
           <span class="wqa-acc-bar-sum${wqaAccHas(r.acc)?' has':''}">${escHtml(wqaAccShortSummary(r.acc))}</span>
+          ${accAddon(r.acc)>0?`<span class="wqa-acc-bar-money">+ ${escHtml(fmt(accAddon(r.acc)))}/pc</span>`:''}
           <span class="wqa-panel-badge"${wqaAccActiveCount(r.acc)?'':' hidden'}>${wqaAccActiveCount(r.acc)?wqaAccActiveCount(r.acc)+' active':''}</span>
         </button>
         ${r.accOpen?wqaAccEditor(r.acc||wqaEmptyAcc(),(g,f,v)=>`wqaEditAcc(${i},'${g}','${f}',${v})`):''}
@@ -13274,15 +13454,18 @@ async function wqaLoadHistory(){
       const data=await cache.get(key);
       if(token!==wqa.session) return;
       if(data===null){ r.hist={failed:true}; continue; }
-      /* The shared answer, re-marked for THIS row's own dimensions. */
-      const want=String(spec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
-      const records=(data.records||[]).map(rec=>({...rec,
-        exactDims: want!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===want}));
-      records.sort((a,b)=>{
-        const rank=x=>(x.own?0:2)+(x.exactDims?0:1);
-        const d=rank(a)-rank(b); if(d) return d;
-        return String(b.date||'').localeCompare(String(a.date||''));
+      /* The shared answer, re-measured against THIS row's own dimensions: two
+         rows of the same specification share one lookup, and each ranks it by
+         how close each record is to its own geometry. */
+      const wantDims=String(spec.dimensionPreview||'');
+      const wantKey=wantDims.toUpperCase().replace(/[^A-Z0-9]+/g,'');
+      const records=(data.records||[]).map(rec=>{
+        const dist=phDimDistance(wantDims,rec.dimensionPreview);
+        return {...rec, dimDistance:dist,
+                exactDims: dist===0 ||
+                  (wantKey!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===wantKey)};
       });
+      phSortRecords(records);
       r.hist={...data, records};
     }catch(e){ if(token!==wqa.session) return; r.hist={failed:true}; }
   }

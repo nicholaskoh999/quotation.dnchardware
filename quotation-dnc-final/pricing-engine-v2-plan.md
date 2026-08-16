@@ -83,7 +83,7 @@ build on them rather than around them.
 | Rule table shaped by identity | `default_prices` (+ `findDPMatch`, `dpKey`) | Already keyed product · material · size type · size · finish — the same key V2 needs |
 | Manual-entry protection | `productEntryTouchedFields`, `isUserPriced`, `setAutoRate`, the `ours()` test in `applyDefaultPrice` | The rule "an automatic value never overwrites a typed one" is already implemented and tested. V2 must reuse the semantics verbatim |
 | Price modes and rounding | `resolvePriceMode`, `round05`, `roundMoney2` | Auto Round / No Round / Manual Price are a business convention, not an implementation detail |
-| Accessory separation | `accAddon`, `getAccessories`, and the separation rules in `pricing_history.php` | Accessories are already outside the bolt price everywhere the code was corrected |
+| Accessory separation | `dcLineMoney`, `accAddon`, `getAccessories`, and the separation rules in `pricing_history.php` | **Done.** The bolt's unit price is the bolt's, the accessory charge is its own figure on the line, and both are saved on the item. V2 adds the supplier cost and the markup behind that figure — it does not have to invent the separation |
 | Pricing History | `pricing_history.php`, `get_pricing_history`, the Review panel | The evidence layer, finished. V2 does not touch it |
 | The saved item shape | `formData.costRate/addCost/markup`, `priceMode`, `weight`, `cleanSize`, `dimensionPreview` | Already stores the inputs, which is why history can explain a past price at all |
 | Import/export of rules | `export_diameter_settings` / `import_diameter_settings` | The pattern for loading a filled workbook into a rule table already exists |
@@ -106,7 +106,7 @@ them are invisible to the people who own them.
 | `get4140Rates()` keyed on the built description | index.php | Deleted. It is already dead code — see the note below |
 | A single typed *Additional Cost* box | every product form | A computed sum of process costs, with the box kept as a visible override |
 | No labour component at all | — | `LABOUR_QTY_RULES` |
-| Accessory unit price typed by hand, no supplier, no markup, no history | the accessory panel | `ACCESSORY_COSTS` + an accessory markup, priced like a small product |
+| Accessory unit price typed by hand, no supplier, no markup, no history | the accessory panel | `ACCESSORY_COSTS` + an accessory markup, priced like a small product. The charge already lands on the line as its own figure, so this replaces where the number comes from, not where it goes |
 
 **About `get4140Rates` — verified, and not a pricing defect.** `RATES_4140` is
 keyed `'4140 FULLSIZE SAG ROD'` while `buildDesc` emits `'4140 QT FULLSIZE SAG
@@ -190,10 +190,17 @@ marked *(new)*:
                     ▼
               UNIT PRICE (the bolt)                    (live)
                     +
-              ACCESSORIES, priced separately           (live; supplier cost + accessory markup are new)
+              ACCESSORY UNIT PRICE                     (live as a separate charge)
+                    ↑
+              accessory supplier cost × accessory markup   (new)
                     ▼
-              QUOTATION LINE
+              QUOTATION LINE = (bolt unit price + accessory unit price) × qty
 ```
+
+The two paths never meet before the line. A bolt's price is weight × cost rate
++ additional cost, marked up and rounded; an accessory's price is supplier cost
++ its own markup; and the line adds them. Nothing about an accessory may move
+the bolt's own price, in V2 any more than today.
 
 **The migration acceptance test, stated now so it cannot be argued away later:**
 with one `MATERIAL_RATES` row per (material, finish) carrying today's numbers,
@@ -338,6 +345,22 @@ one that says so.
 and the shadow-difference report contains no difference that cannot be explained
 by a rule somebody intended. Not "the tests are green" — *the factory user can
 trust the quotation.*
+
+---
+
+## What has already changed, so V2 does not have to
+
+The accessory separation this design assumed is no longer future work: it is in
+the shipped code. A bolt's unit price is the bolt's, the accessory charge is its
+own figure, both are stored on the item (`finalUnitPrice`, `accessoryUnitPrice`,
+`pricingModel`), and the line total is `(bolt + accessories) × qty`. The screen,
+the print sheet, the WhatsApp message and the company screens all show the two
+figures apart, and Pricing History reads the stored separation instead of
+working it out.
+
+What V2 still has to supply for accessories is the number itself: a supplier
+cost and an accessory markup, from `ACCESSORY_COSTS`, replacing the unit price
+somebody types today.
 
 ---
 

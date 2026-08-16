@@ -119,8 +119,15 @@ module.exports = async (browser, A) => {
 
   // ── dimensions rank; they never hide ─────────────────────────────────────
   A.includes(panel.text, 'Same dimensions', 'the identical rod is marked');
-  A.includes(panel.text, 'Different dimensions', 'and the ones that differ are shown, marked as differing');
+  A.includes(panel.text, 'Differs by', 'and the ones that differ say by how much, rather than only that they do');
   A.includes(panel.text, 'L 1500 x W 150 x TL 200mm', 'including the longest one');
+
+  // ── what makes two similar records cost different money ──────────────────
+  A.includes(panel.text, 'Unit Weight', 'the weight that rod was, so a heavier rod explains a dearer price');
+  A.includes(panel.text, '2.4662 kg/pc', 'as it was recorded');
+  A.includes(panel.text, 'Price Mode', 'and how the price was arrived at');
+  A.includes(panel.text, 'Auto Round', 'named for a record that says so');
+  A.includes(panel.text, 'Legacy / Unknown', 'and said to be unknown for one that never recorded it');
 
   // ── same customer first, others named ────────────────────────────────────
   A.eq(panel.own.slice(0, 5).every(Boolean), 'true', 'this customer\'s five records come first');
@@ -265,6 +272,54 @@ module.exports = async (browser, A) => {
   A.includes(formPanel.text, 'Gamma Steel', 'the same other-customer labelling');
   A.excludes(formPanel.text, 'Avg', 'and no average anywhere');
   await form.close();
+
+  /* ── Closeness, measured the same way on both sides ──────────────────────
+     The server ranks the page it sends and the browser re-ranks it for the row
+     that asked, so the two formulas have to agree to the millimetre. The table
+     below is the same one tests/php/pricing_history.test.php runs through
+     dc_dim_distance; if either implementation drifts, one of the two suites
+     fails. */
+  const DIST = [
+    ['L 600 x W 100 x TL 150mm', 'L 600 x W 100 x TL 150mm', 0, 'the identical rod'],
+    ['L 600 x W 100 x TL 150mm', 'L 500 x W 100 x TL 150mm', 100, '100mm shorter'],
+    ['L 600 x W 100 x TL 150mm', 'L 1000 x W 100 x TL 150mm', 400, '400mm longer'],
+    ['L 600 x W 100 x TL 150mm', 'L 1200 x W 100 x TL 150mm', 600, '600mm longer'],
+    ['L 600 x W 100 x TL 150mm', 'L 500 x W 100 x TL 100mm', 150, 'shorter rod and shorter thread together'],
+    ['L 600 x W 100 x TL 150mm', 'L 1000 x W 200 x TL 250mm', 600, 'every dimension the product uses'],
+    ['L 1000 x TL 100/100mm', 'L 1000 x TL 100/50mm', 50, 'a thread pair is read as both of its ends'],
+    ['L 1000 x TL 100/100mm', 'L 900 x TL 100/100mm', 100, 'with the length still counting'],
+    ['L 600 x W 100 x TL 150mm', '', null, 'a record with no dimensions has no distance'],
+    ['', 'L 600 x W 100 x TL 150mm', null, 'and neither has an item quoted without them'],
+  ];
+  const measured = await page.evaluate(rows => rows.map(r => {
+    const d = phDimDistance(r[0], r[1]);
+    return d === null ? 'null' : String(d);
+  }), DIST);
+  DIST.forEach((c, i) => A.eq(measured[i], c[2] === null ? 'null' : String(c[2]),
+    'closeness: ' + c[3]));
+
+  /* An M24 is never a candidate at all — core identity is a hard boundary that
+     closeness is only asked about afterwards. The endpoint is asked for M20 and
+     answers with M20s; the browser never widens that. */
+  const asked20 = asked.filter(q => String(q.cleanSize || '').toUpperCase() === 'M20');
+  A.ok(asked20.length > 0, 'the lookup asks for the size on the row');
+  A.eq(asked.some(q => /M24|M18|M22/i.test(String(q.cleanSize || ''))), 'false',
+    'and never for a neighbouring size');
+
+  const ordered = await page.evaluate(() => {
+    const rec = (ref, own, dist, date) => ({ refNo: ref, own, dimDistance: dist, date, quotationId: 1 });
+    const rows = [
+      rec('OTHER-EXACT', false, 0, '2026-09-09'),
+      rec('OWN-1200', true, 600, '2026-01-01'),
+      rec('OWN-500', true, 100, '2025-01-01'),
+      rec('OWN-1000', true, 400, '2026-06-06'),
+      rec('OWN-EXACT', true, 0, '2024-01-01'),
+      rec('OTHER-1000', false, 400, '2026-12-12'),
+    ];
+    return phSortRecords(rows).map(r => r.refNo).join(',');
+  });
+  A.eq(ordered, 'OWN-EXACT,OWN-500,OWN-1000,OWN-1200,OTHER-EXACT,OTHER-1000',
+    'reading order: this customer first, nearest rod first within them, and a stranger\'s exact match never above them');
 
   A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
   await page.close();

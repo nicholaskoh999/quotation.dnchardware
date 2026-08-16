@@ -630,84 +630,14 @@ if ($action === 'get_next_ref') {
 // New-format items already carry productType/material/sizeType/cleanSize/dimensionPreview.
 // Old-format items are parsed from desc + size; unparseable items are skipped (never guessed).
 } elseif ($action === 'get_price_history') {
-    $fProduct  = trim($_GET['productType'] ?? '');
-    $fMaterial = trim($_GET['material'] ?? '');
-    $fSizeType = trim($_GET['sizeType'] ?? '');
-    $fFinish   = trim($_GET['finish'] ?? '');
-    $fSize     = trim($_GET['cleanSize'] ?? '');
-    $fCustomer = trim($_GET['customer'] ?? '');
-    $fSort     = trim($_GET['sort'] ?? 'latest');
-    $fCompanyId = intval($_GET['company_id'] ?? 0);
-
-    if ($fCompanyId > 0) {
-        $stmt = prepare_or_fail($db, "SELECT q.*, c.name as company_name FROM quotations q LEFT JOIN companies c ON q.company_id=c.id WHERE q.company_id=? ORDER BY q.created_at DESC LIMIT 300", 'Price history prepare failed');
-        $stmt->bind_param('i', $fCompanyId);
-        execute_or_fail($stmt, 'Price history load failed');
-        $res = $stmt->get_result();
-    } else {
-        $res = query_or_fail($db, "SELECT q.*, c.name as company_name FROM quotations q LEFT JOIN companies c ON q.company_id=c.id ORDER BY q.created_at DESC LIMIT 300", 'Price history load failed');
-    }
-    $records = [];
-    while ($row = $res->fetch_assoc()) {
-        $items = json_decode($row['items'], true);
-        if (!is_array($items)) continue;
-        $customerName = $row['customer_name'] ?: $row['company_name'];
-
-        foreach ($items as $item) {
-            // A. New-format item — normalized fields already present.
-            if (isset($item['productType'], $item['material'], $item['sizeType'], $item['cleanSize'])) {
-                $productType = dc_norm_product($item['productType']);
-                $material    = (string)$item['material'];
-                $sizeType    = (string)$item['sizeType'];
-                $cleanSize   = (string)$item['cleanSize'];
-                $dimensionPreview = (string)($item['dimensionPreview'] ?? '');
-            } else {
-                // B. Legacy item — attempt parse; skip if unparseable (never guess).
-                $parsed = dc_legacy_item($item);
-                if ($parsed === null) continue;
-                $productType = $parsed['productType'];
-                $material    = $parsed['material'];
-                $sizeType    = $parsed['sizeType'];
-                $cleanSize   = $parsed['cleanSize'];
-                $dimensionPreview = $parsed['dimensionPreview'];
-            }
-
-            $finish = (string)($item['finish'] ?? '');
-
-            // Apply filters — broad match only, never on dimensions.
-            if ($fProduct  !== '' && $productType !== dc_norm_product($fProduct)) continue;
-            if ($fMaterial !== '' && strcasecmp($material, $fMaterial) !== 0) continue;
-            if ($fSizeType !== '' && strcasecmp($sizeType, $fSizeType) !== 0) continue;
-            if ($fFinish   !== '' && strcasecmp($finish, $fFinish) !== 0) continue;
-            if ($fSize     !== '' && strcasecmp($cleanSize, $fSize) !== 0) continue;
-            if ($fCustomer !== '' && stripos((string)$customerName, $fCustomer) === false) continue;
-
-            $records[] = [
-                'productType' => $productType,
-                'material'    => $material,
-                'sizeType'    => $sizeType,
-                'finish'      => $finish,
-                'cleanSize'   => $cleanSize,
-                'dimensionPreview' => $dimensionPreview,
-                'qty'         => (int)($item['qty'] ?? 0),
-                'unitPrice'   => (float)($item['finalUnitPrice'] ?? 0),
-                'date'        => $row['quote_date'] ?: $row['created_at'],
-                'customer'    => $customerName,
-                'refNo'       => $row['ref_no'],
-            ];
-        }
-    }
-
-    if ($fSort === 'lowhigh') {
-        usort($records, fn($a, $b) => $a['unitPrice'] <=> $b['unitPrice']);
-    } elseif ($fSort === 'highlow') {
-        usort($records, fn($a, $b) => $b['unitPrice'] <=> $a['unitPrice']);
-    } else {
-        usort($records, fn($a, $b) => strcmp((string)$b['date'], (string)$a['date']));
-    }
-
-    echo json_encode(['ok'=>true,'data'=>$records]);
-
+    /* Retired. This was the previous-price lookup: it read the newest 300
+       quotations, filtered them in PHP, and could report "no previous price"
+       for an item whose last quotation fell outside that window. It was
+       replaced by get_pricing_history, which searches the whole history behind
+       a database prefilter and pages through the result, and nothing has
+       called this since. It answers rather than 404s, so an older cached page
+       cannot mistake a missing endpoint for "there is no history". */
+    echo json_encode(['ok'=>false,'error'=>'get_price_history has been replaced by get_pricing_history']);
 
 } elseif ($action === 'get_pricing_history') {
     /* ── Pricing history ───────────────────────────────────────────────────
@@ -744,16 +674,34 @@ if ($action === 'get_next_ref') {
         exit;
     }
 
-    $like = '%' . dc_history_needle($want['cleanSize']) . '%';
+    /* Two branches, both of which only ever NARROW:
+
+         * a quotation written with the normalised fields must contain both the
+           size and the material of the item being looked up, spelt exactly as
+           json_encode wrote them - dc_history_record compares those two field
+           for field, so a row without them could never survive it;
+
+         * a quotation written before cleanSize existed carries its size only
+           inside the printed label, so it is narrowed by that text instead.
+           dc_legacy_item reads the size out of the same label and refuses
+           anything else, so this cannot lose a legacy record either.
+
+       Previously the legacy branch was `NOT LIKE '%"cleanSize"%'` with nothing
+       else on it, which handed every pre-normalisation quotation in the
+       database to PHP to be decoded and thrown away. */
+    $likeSize = '%' . dc_history_needle($want['cleanSize']) . '%';
+    $likeMat  = '%' . dc_history_material_needle($want['material']) . '%';
+    $likeText = '%' . dc_history_size_text_needle($want['cleanSize']) . '%';
     $stmt = prepare_or_fail($db,
         "SELECT q.id, q.ref_no, q.quote_date, q.created_at, q.company_id, q.customer_name, q.items,
                 c.name AS company_name
            FROM quotations q
            LEFT JOIN companies c ON q.company_id = c.id
-          WHERE q.items LIKE ? OR q.items NOT LIKE '%\"cleanSize\"%'
+          WHERE (q.items LIKE ? AND q.items LIKE ?)
+             OR (q.items NOT LIKE '%\"cleanSize\"%' AND q.items LIKE ?)
           ORDER BY COALESCE(q.quote_date, q.created_at) DESC, q.id DESC",
         'Pricing history prepare failed');
-    $stmt->bind_param('s', $like);
+    $stmt->bind_param('sss', $likeSize, $likeMat, $likeText);
     execute_or_fail($stmt, 'Pricing history load failed');
     $res = $stmt->get_result();
 

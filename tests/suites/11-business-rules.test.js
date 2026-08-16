@@ -145,6 +145,104 @@ module.exports = async (browser, A) => {
     await configured.close();
   }
 
+  /* ── M12 and 1/2" share a rule; they are not the same size ───────────────
+     The confirmed business rule, case by case. M12 and 1/2" belong to the same
+     size-type group in every material — but they remain two different sizes,
+     each weighed on its own diameter, and neither is ever written as the
+     other. */
+  const sizeTypeTable = await page.evaluate(() => {
+    const ask = (material, size) => {
+      const r = dcCompanySizeType('sagrod', material, size);
+      return (r.sizeType || 'NEEDS SIZE TYPE') + (r.why === 'companyDefault' ? ' (company default)'
+                                                : r.why === 'configured' ? ' (from settings)' : '');
+    };
+    return {
+      msM12:      ask('MS', 'M12'),
+      msHalf:     ask('MS', '1/2'),
+      msHalfMark: ask('MS', '1/2"'),
+      msM20:      ask('MS', 'M20'),
+      qtM12:      ask('4140', 'M12'),
+      qtHalf:     ask('4140', '1/2'),
+      qtM20:      ask('4140', 'M20'),
+      qtHalfInch: ask('4140', '3/4'),
+      s4340M12:   ask('4340', 'M12'),
+      s4340Half:  ask('4340', '1/2'),
+      s4340M20:   ask('4340', 'M20'),
+      plainM12:   ask('4140_PLAIN', 'M12'),
+      plainHalf:  ask('4140_PLAIN', '1/2'),
+      plainM20:   ask('4140_PLAIN', 'M20'),
+      unknown:    ask('SS304', 'M20'),
+      /* Two different sizes, whatever rule they share. */
+      normM12: normalizeSizeValue('M12'),
+      normHalf: normalizeSizeValue('1/2'),
+      diaM12: dcEffectiveDiameter('sagrod', 'MS', 'UNDERSIZE', 'M12'),
+      diaHalf: dcEffectiveDiameter('sagrod', 'MS', 'UNDERSIZE', '1/2'),
+    };
+  });
+
+  A.eq(sizeTypeTable.msM12, 'UNDERSIZE (company default)', 'MS + M12 is undersize by company rule');
+  A.eq(sizeTypeTable.msHalf, 'UNDERSIZE (company default)', 'MS + 1/2" too — the same rule covers both');
+  A.eq(sizeTypeTable.msHalfMark, 'UNDERSIZE (company default)', 'written with its inch mark or without it');
+  A.eq(sizeTypeTable.msM20, 'NEEDS SIZE TYPE', 'while an MS M20 is asked for, not guessed');
+  /* The exception group behaves as one: in 4140 QT, 4340 QT and plain 4140 the
+     blanket fullsize rule DECLINES both M12 and 1/2", and the answer then comes
+     from what the company has actually configured — or the row asks. What is
+     configured differs between the two sizes, which is the rule working rather
+     than an inconsistency: a fullsize M12 is stocked, a 1/2" is not. */
+  A.eq(sizeTypeTable.qtM12, 'FULLSIZE (from settings)',
+    '4140 QT + M12 declines the blanket rule and takes the one size type configured for it');
+  A.eq(sizeTypeTable.qtHalf, 'NEEDS SIZE TYPE',
+    'and 4140 QT + 1/2" declines it the same way — with nothing configured, the row asks');
+  A.eq(sizeTypeTable.qtM20, 'FULLSIZE (company default)', 'every other 4140 QT size defaults to fullsize');
+  A.eq(sizeTypeTable.qtHalfInch, 'FULLSIZE (company default)', 'including an inch size that is not 1/2"');
+  A.eq(sizeTypeTable.s4340M12, 'FULLSIZE (from settings)', '4340 QT + M12 is in the same exception group');
+  A.eq(sizeTypeTable.s4340Half, 'NEEDS SIZE TYPE', 'and 4340 QT + 1/2" with it');
+  A.eq(sizeTypeTable.s4340M20, 'FULLSIZE (company default)', 'with 4340 QT defaulting to fullsize elsewhere');
+  A.eq(sizeTypeTable.plainM12, 'NEEDS SIZE TYPE',
+    'plain 4140 is its own material: nothing is configured for its M12, so nothing is invented');
+  A.eq(sizeTypeTable.plainHalf, 'NEEDS SIZE TYPE', 'and nothing for its 1/2" either');
+  A.eq(sizeTypeTable.plainM20, 'FULLSIZE (company default)', 'while its other sizes take the default');
+  A.eq(sizeTypeTable.unknown, 'NEEDS SIZE TYPE',
+    'a material the business has stated no rule for is never given one');
+  A.eq(sizeTypeTable.normM12, 'M12', 'M12 stays M12');
+  A.eq(sizeTypeTable.normHalf, '1/2', 'and 1/2" stays 1/2" — one rule, two sizes');
+  A.eq(sizeTypeTable.diaM12, '10.6', 'an undersize M12 is cut from 10.6mm');
+  A.eq(sizeTypeTable.diaHalf, '10.9', 'and an undersize 1/2" from 10.9mm — never the same bar');
+
+  /* ── Changing the configured diameter changes the weight ─────────────────
+     The rule stated plainly: 10.6 becomes 10.7 in Diameter Settings, and the
+     next weight is calculated on 10.7. */
+  {
+    const cfg = await openApp(browser, {
+      api: { get_diameter_settings: { ok: true, data: [
+        { id: '9', type: 'sagrod', material: 'MS', sizeType: 'UNDERSIZE', size: 'M12', diameter: 10.7 },
+      ] } },
+    });
+    const changed = await cfg.evaluate(() => {
+      switchType('sagrod');
+      document.getElementById('sagrod-material').value = 'MS';
+      document.getElementById('sagrod-sizeType').value = 'UNDERSIZE';
+      document.getElementById('sagrod-size').value = 'M12'; onSizeCommit('sagrod');
+      document.getElementById('sagrod-length').value = '1000';
+      document.getElementById('sagrod-threadLen').value = '100';
+      document.getElementById('sagrod-qty').value = '1';
+      document.getElementById('sagrod-costRate').value = '5';
+      calcSagRod();
+      return { builtIn: dcBuiltInDiameter('sagrod', 'MS', 'UNDERSIZE', 'M12'),
+               effective: dcEffectiveDiameter('sagrod', 'MS', 'UNDERSIZE', 'M12'),
+               formDia: fv('sagrod', 'diameter'),
+               weight: (priceCalcState.sagrod || {}).weight };
+    });
+    A.eq(changed.builtIn, '10.6', 'the built-in table still says 10.6');
+    A.eq(changed.effective, '10.7', 'but the configured 10.7 is the effective diameter');
+    A.eq(changed.formDia, '10.7', 'the form resolves 10.7');
+    A.near(changed.weight, 10.7 * 10.7 * 1000 * K, 1e-9,
+      'and the weight is calculated on 10.7 — no hidden table overrides what was configured');
+    A.ok(Math.abs(Number(changed.weight) - 10.6 * 10.6 * 1000 * K) > 1e-6,
+      'which is not the weight 10.6 would have produced');
+    await cfg.close();
+  }
+
   /* ── The 4140 QT rate table, and which route it travels ──────────────────
      RATES_4140 is read twice: once by get4140Rates(), keyed on the built
      description, and once by getSystemDPRules(), keyed on the item's identity.

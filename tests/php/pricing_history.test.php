@@ -152,6 +152,77 @@ eq(implode(',', $order), 'Q-E,Q-A,Q-D,Q-B,Q-C', implode("\n", [
     '      different dimensions, then another customer exact, then another customer different',
 ]));
 
+// ── dimension closeness: core identity first, then the nearest rod ─────────
+/* The rule the business stated: an M20 x L600 is compared with M20s, and the
+   closest M20 wins. An M24 at exactly L600 is not a candidate at all. */
+$L600 = ['productType'=>'L BOLT','material'=>'4140','sizeType'=>'FULLSIZE','finish'=>'PL',
+         'cleanSize'=>'M20','dimensionPreview'=>'L 600 x W 100 x TL 150mm','companyId'=>7];
+$near = function ($dims) use ($L600, $M) {
+    return dc_history_record(item(['dimensionPreview'=>$dims]), $L600, $M);
+};
+eq($near('L 600 x W 100 x TL 150mm')['dimDistance'], 0.0, 'the identical rod is a distance of zero');
+eq($near('L 500 x W 100 x TL 150mm')['dimDistance'], 100.0, 'a 500mm rod is 100 away from a 600mm one');
+eq($near('L 1000 x W 100 x TL 150mm')['dimDistance'], 400.0, 'a 1000mm rod is 400 away');
+eq($near('L 1200 x W 100 x TL 150mm')['dimDistance'], 600.0, 'and a 1200mm rod is 600 away');
+eq($near('L 500 x W 100 x TL 100mm')['dimDistance'], 150.0,
+   'a shorter thread counts as much as a shorter rod — 100 of length and 50 of thread');
+eq($near('L 1000 x W 200 x TL 250mm')['dimDistance'], 600.0,
+   'and every dimension the product uses is counted: 400 + 100 + 100');
+eq($near('L 600 x W 100 x TL 150mm')['exactDims'], true, 'a distance of zero is an exact match');
+eq($near('L 601 x W 100 x TL 150mm')['exactDims'], false, 'one millimetre is not');
+
+/* A thread written as a pair is read as both of its ends. */
+$pair = ['productType'=>'SAG ROD','material'=>'MS','sizeType'=>'FULLSIZE','finish'=>'PL',
+         'cleanSize'=>'M20','dimensionPreview'=>'L 1000 x TL 100/100mm','companyId'=>7];
+$pairRec = function ($dims) use ($pair, $M) {
+    return dc_history_record(item(['productType'=>'SAG ROD','itemType'=>'sagrod','material'=>'MS',
+                                   'desc'=>'MS FULLSIZE SAG ROD','dimensionPreview'=>$dims]), $pair, $M);
+};
+eq($pairRec('L 1000 x TL 100/100mm')['dimDistance'], 0.0, 'the same pair of thread ends is exact');
+eq($pairRec('L 1000 x TL 100/50mm')['dimDistance'], 50.0, 'a shorter second end is 50 away, not zero');
+eq($pairRec('L 900 x TL 100/100mm')['dimDistance'], 100.0, 'and the length still counts');
+
+/* Nothing measurable on one side is unknown, not close. */
+eq($near('')['dimDistance'], null, 'a record with no dimensions has no distance');
+eq(dc_history_record(item(), ['productType'=>'L BOLT','material'=>'4140','sizeType'=>'FULLSIZE',
+                             'finish'=>'PL','cleanSize'=>'M20','dimensionPreview'=>'','companyId'=>7],
+                     $M)['dimDistance'], null,
+   'and neither does an item being quoted with none');
+
+// ── reading order: this customer, then the nearest rod ─────────────────────
+$ranked = [
+    dc_history_record(item(['dimensionPreview'=>'L 600 x W 100 x TL 150mm']), $L600, meta(1,'OTHER-EXACT','2026-09-09','Gamma Steel',9)),
+    dc_history_record(item(['dimensionPreview'=>'L 1200 x W 100 x TL 150mm']), $L600, meta(2,'OWN-1200','2026-01-01','ADVANCE',7)),
+    dc_history_record(item(['dimensionPreview'=>'L 500 x W 100 x TL 150mm']),  $L600, meta(3,'OWN-500','2025-01-01','ADVANCE',7)),
+    dc_history_record(item(['dimensionPreview'=>'L 1000 x W 100 x TL 150mm']), $L600, meta(4,'OWN-1000','2026-06-06','ADVANCE',7)),
+    dc_history_record(item(['dimensionPreview'=>'L 600 x W 100 x TL 150mm']),  $L600, meta(5,'OWN-EXACT','2024-01-01','ADVANCE',7)),
+    dc_history_record(item(['dimensionPreview'=>'L 1000 x W 100 x TL 150mm']), $L600, meta(6,'OTHER-1000','2026-12-12','Gamma Steel',9)),
+];
+dc_history_sort($ranked);
+eq(implode(',', array_map(function ($r) { return $r['refNo']; }, $ranked)),
+   'OWN-EXACT,OWN-500,OWN-1000,OWN-1200,OTHER-EXACT,OTHER-1000',
+   implode("\n", [
+     'reading order: every one of this customer\'s records first, nearest rod first within',
+     '      them, and only then anybody else\'s - a stranger\'s exact match never buries the',
+     '      history of the customer being quoted',
+   ]));
+
+// ── an accessory charge that was recorded separately needs no working out ──
+$sep = dc_history_record(item(['accessories'=>$withAcc,'finalUnitPrice'=>30.00,
+                               'accessoryUnitPrice'=>0.70,'pricingModel'=>'bolt-separate',
+                               'lineUnitPrice'=>30.70,'priceMode'=>'auto']), $WANT, $M);
+eq($sep['boltUnitPrice'], 30.0, 'a separated record reports the bolt price as it was saved');
+eq($sep['accessoryCost'], 0.7, 'and the accessory charge as it was saved');
+eq($sep['accessoryAmbiguous'], false, 'with nothing left ambiguous');
+eq($sep['unitPrice'], 30.0, 'the bolt price IS the item price now — accessories are not inside it');
+
+// ── how the price was arrived at, in the words the screen uses ─────────────
+eq(dc_history_record(item(['priceMode'=>'auto']), $WANT, $M)['priceModeLabel'], 'Auto Round', 'auto round is named');
+eq(dc_history_record(item(['priceMode'=>'no_round']), $WANT, $M)['priceModeLabel'], 'No Round', 'no round is named');
+eq(dc_history_record(item(['priceMode'=>'manual']), $WANT, $M)['priceModeLabel'], 'Manual', 'a manual price is named');
+eq(dc_history_record(item(['priceMode'=>'','formData'=>[]]), $WANT, $M)['priceModeLabel'], 'Legacy / Unknown',
+   'and a record that never said is called unknown, not called Auto Round');
+
 // ── the prefilter needle matches how the size was written ───────────────────
 eq(dc_history_needle('M20'), '"cleanSize":"M20"', 'a metric size needle');
 eq(dc_history_needle('1/2'), '"cleanSize":"1\\/2"',

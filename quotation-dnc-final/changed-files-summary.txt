@@ -39,6 +39,21 @@ index.php
             gated on an explicit acknowledgement
           · displayItemDesc unchanged, now shared with companies.php
 
+  Pass 3  · dcLineMoney: one place that settles a line's money. A bolt's unit
+            price is the bolt's; the accessory charge is its own figure; the
+            line total is (bolt + accessories) x qty and is unchanged in money
+          · resolvePriceMode no longer adds the accessory charge to the bolt
+          · the calculation card, the item card, the print sheet, the WhatsApp
+            message and the Quick Add row all show the two figures apart; the
+            print sheet gives accessories their own priced row
+          · dcUnfoldLegacyManualPrice: an item manually priced before the
+            separation has its accessory charge moved out of the typed figure
+            when it is edited, leaving the line total exactly as it was
+          · phDimValues / phDimDistance / phSortRecords: the closeness score and
+            reading order, mirroring pricing_history.php to the millimetre
+          · the history record shows unit weight, price mode and how far the
+            dimensions differ; a value never recorded says so
+
 api.php
   Pass 1  · the previous-price lookup respects an unstated finish or size type
             instead of treating it as "any"
@@ -47,12 +62,20 @@ api.php
             LIKE prefilter, paginated, ownTotal/otherTotal reported
           · search_items now returns the item's material, so a legacy
             description can be normalised the way the quotation screen does
+  Pass 3  · get_pricing_history narrows in the database on both branches — size
+            AND material for a modern quotation, size text for a legacy one —
+            and both branches only ever narrow
+          · get_price_history retired: it read the newest 300 quotations and
+            nothing had called it since pass 2
 
 companies.php
   Pass 1  · one display fix carried over from the quotation screen
   Pass 2  · displayItemDesc added; every staff-facing description on the company
             screens goes through it. Display only — nothing stored is rewritten,
             and 4140_PLAIN / Y_BAR never gain a "QT" they do not have
+  Pass 3  · dcItemAccUnit / dcAccNote: the three places that print a unit price
+            now say what is charged beside it, so quantity x unit price and the
+            line total reconcile
 
 ai_extract.php
   Pass 1  · dense tables no longer fail as "could not analyze": the response
@@ -65,6 +88,11 @@ pricing_history.php                                              NEW
   Pass 2  · the identity, accessory-separation and ranking rules, with no
             database, session or HTTP dependency, so api.php and the tests share
             one implementation
+  Pass 3  · dc_dim_values / dc_dim_distance: the deterministic closeness score
+          · dc_history_sort: this customer first, then the nearest rod
+          · a record saved with the accessory charge separated is read directly;
+            an older one is still never guessed at
+          · records carry dimDistance, lineUnitPrice and priceModeLabel
 
 .cpanel.yml
   Pass 2  · one line: pricing_history.php added to the APPFILES allowlist.
@@ -76,14 +104,13 @@ NOT DEPLOYED (outside the .cpanel.yml allowlist by construction)
 tests/lib/harness.js            serves the real index.php in Chromium
 tests/lib/assert.js             assertion + suite bookkeeping
 tests/run.js                    runner
-tests/screenshots.js            the seven evidence frames
-tests/suites/01 … 13            13 browser suites, 781 assertions
+tests/screenshots.js            the eight evidence frames
+tests/suites/01 … 14            14 browser suites, 881 assertions
 tests/php/ai_extract.test.php   64 assertions
-tests/php/pricing_history.test.php  50 assertions
+tests/php/pricing_history.test.php  72 assertions
 tests/tools/build-pricing-workbook.py   builds the blank V2 workbook
 tests/tools/check-pricing-workbook.py   asserts it holds no business value
-quotation-dnc-final-audit/      this package
-audit-out/                      pass 1's package, superseded by this one
+quotation-dnc-final/            this package
 
 UNTOUCHED
 ---------

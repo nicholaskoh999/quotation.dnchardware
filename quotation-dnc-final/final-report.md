@@ -1,15 +1,18 @@
 # QUOTATION.DNC — final audit report
 
-Two passes over the same chain: source → AI extraction → parser → canonical item
-→ review UI → manual correction → Diameter Settings → unit weight → total weight
-→ pricing → pricing history → save → reload → customer output.
+Three passes over the same chain: source → AI extraction → parser → canonical
+item → review UI → manual correction → Diameter Settings → unit weight → total
+weight → pricing → pricing history → save → reload → customer output.
 
-The first pass audited and repaired that chain. The second pass — this one —
-audited what the first pass changed, replaced Last Price with a full Pricing
-History, made Diameter Settings the single source of truth for weight, gave the
-company size-type rules one home, closed four ways Quick Add could quietly
-mislead the person using it, and prepared (but did **not** activate) Pricing
-Engine V2.
+**Pass 1** audited and repaired that chain. **Pass 2** audited what pass 1
+changed, replaced Last Price with a full Pricing History, made Diameter Settings
+the single source of truth for weight, gave the company size-type rules one
+home, closed four ways Quick Add could quietly mislead the person using it, and
+prepared (but did not activate) Pricing Engine V2. **Pass 3 — this one — is the
+mini-delta**: a bolt's unit price is now the bolt's and accessories are charged
+beside it, historical records are ranked by how close their dimensions actually
+are, every record says what it weighed and how it was priced, and the last
+capped history query is gone.
 
 **Guiding principle, unchanged throughout:** a missing value with a visible
 reason is acceptable. A silently wrong size, dimension, weight or price is not.
@@ -23,6 +26,7 @@ reason is acceptable. A silently wrong size, dimension, weight or price is not.
 | **Branch** | `claude/quotation-dnc-audit-repair-ashi82` |
 | **Starting commit (pass 1)** | `b5493089057277c6f7742931da26bc6f35553abd` |
 | **Delta baseline (pass 2)** | `744ad4084167bf3e0638535779b798b5023c0030` |
+| **Mini-delta baseline (pass 3)** | `7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a` |
 | **Ending commit** | `fba453a80f89af08ee0d14190f6e3a5ccdce288b` (the commit to deploy; see `commit-info.txt`) |
 | **Deployment status** | **NOT DEPLOYED** |
 
@@ -73,7 +77,7 @@ job was to leave it that way.
   overwritten by any automatic source.
 
 The regression suite that protects all of it did not exist before pass 1. It is
-now 13 browser suites and three non-browser suites — **963 assertions, 0
+now 14 browser suites and three non-browser suites — **1,079 assertions, 0
 failing** — every one of them running against the shipped code path, not against
 a re-implementation of it.
 
@@ -193,6 +197,116 @@ nothing stored is rewritten, and `4140_PLAIN` and `Y_BAR` never gain a `QT` they
 do not have. The item search now returns the material so that guard can be
 applied there too.
 
+### Pass 3 (`7d0981f` → HEAD) — the mini-delta
+
+**1. A bolt's unit price is the bolt's.**
+Ticking two nuts turned a bolt quoted at RM12.00 into a bolt quoted at RM12.50.
+The figure staff read as *what this bolt costs* therefore depended on what was
+packed beside it; the pricing history built from those figures compared bolts
+against bolts-plus-hardware; and nothing on the screen said which of the two a
+given number was.
+
+The accessory charge is now its own component. One place settles a line —
+
+```js
+function dcLineMoney(boltUnitPrice,acc,qty){
+  const bolt=roundMoney2(Number(boltUnitPrice)||0);
+  const accUnit=roundMoney2(accAddon(acc));
+  return {finalUnitPrice:bolt, accessoryUnitPrice:accUnit,
+          lineUnitPrice:roundMoney2(bolt+accUnit),
+          accessoryTotal:roundMoney2(accUnit*n),
+          totalAmount:roundMoney2((bolt+accUnit)*n),
+          pricingModel:'bolt-separate'};
+}
+```
+
+— and every product that reaches the quotation goes through it. What did **not**
+change is the money: the line total is still `(bolt + accessories) × qty`, and a
+separation that quietly stopped charging for nuts would have been the worse bug
+of the two. Every assertion in the new suite checks both halves.
+
+It is visible everywhere the price is:
+
+* the calculation card shows the bolt price, the accessory charge, and what the
+  line comes to per piece;
+* the item card labels the item's own price *Bolt* and shows *Accessories*
+  beside it;
+* **the print sheet gives the accessories their own row**, with their own unit
+  price and their own amount — so quantity × unit price reconciles on every
+  printed row, which it could not while the two were one figure;
+* the WhatsApp message names the accessories and prices them;
+* the company screens say what is charged beside each unit price.
+
+**Items priced before the separation existed** are read exactly as they were
+written and marked legacy — no separation is invented for them. The one case
+that needs care is a *Manual Price*, which used to be the whole line: opening
+such an item for editing moves the accessory charge out of the typed figure and
+charges it beside the item, so the line total is unchanged and a message says
+what happened. Auto Round and No Round need no adjustment, because their bolt
+price is recomputed from the rates saved with them. Asserted end to end: a
+legacy line of RM307.00 for ten comes back as RM30.00 + RM0.70, total RM307.00.
+
+**2. History is ranked by how close the rod actually is.**
+"Different dimensions" was a yes/no. It is now a distance, computed the same way
+on the server and in the browser, from the labels the quotation itself writes:
+
+```
+distance = Σ |current(d) − record(d)|   over every labelled dimension in either
+```
+
+Nothing weighted, nothing learned — 100mm of length and 100mm of thread count
+the same, because no business rule says otherwise and inventing one would make
+the order unexplainable. A thread written as a pair is read as both of its ends.
+Where either side has no readable dimension the distance is *null* — unknown,
+not zero — and those records sort last within their group.
+
+```
+current   M20 × L600
+records   M20 × L500  → 100      ranked first
+          M20 × L1000 → 400      then this
+          M20 × L1200 → 600      then this
+```
+
+An M24 at exactly L600 is not in the list at all: **core identity is a hard
+boundary, and closeness is only asked about afterwards.**
+
+**3. Customer grouping, stated as an order.**
+
+```
+THIS CUSTOMER      exact dimensions → nearest → further
+OTHER CUSTOMERS    exact dimensions → nearest → further
+```
+
+The customer comes first and the geometry second, never the other way round, so
+a stranger's exact match can never bury the history of the person being quoted.
+
+**4. Every record now explains its own price.** Reference, date, customer,
+specification, dimensions and *how far they differ*, quantity, **unit weight**,
+cost rate, additional cost, markup, **price mode** and the bolt unit price, with
+the accessories stated separately. A value the record never carried says
+*Not recorded* or *Legacy / Unknown* — it is never filled in.
+
+**5. The last capped history query is gone.** `get_pricing_history` already
+searched the whole database; the retired `get_price_history` read the newest 300
+quotations and filtered them in PHP. Nothing had called it since pass 2, and it
+now answers with a plain "replaced by get_pricing_history" instead of running.
+The surviving query also narrows harder in the database: a modern quotation must
+contain both the size and the material as json_encode wrote them, and a
+pre-normalisation quotation must contain the size text. Both branches only ever
+narrow — every surviving row is still compared field by field.
+
+**6. The size-type rule, case by case.** MS + M12 and MS + 1/2" both default to
+undersize by company rule. In 4140 QT, 4340 QT and plain 4140 the blanket
+fullsize rule declines *both* M12 and 1/2" — the same exception group — and the
+answer then comes from what the company has configured, or the row asks. M12 and
+1/2" remain two different sizes: an undersize M12 is cut from 10.6mm and an
+undersize 1/2" from 10.9mm, and neither is ever written as the other. Fifteen
+assertions, one per case.
+
+**7. Diameter Settings, restated.** Configuring an undersize M12 at 10.7mm makes
+the next weight `10.7² × developed length × 0.0000061654` — asserted against the
+built-in 10.6mm, which stays in the table and stays overridden.
+
 ---
 
 ## What was intentionally left alone
@@ -265,35 +379,42 @@ Run from the repository root immediately before packaging.
   ok    size normalisation — model, screen and weight agree                 (42)
   ok    imperial — the first token of a run is the size                     (66)
   ok    weight — every product, every input that moves it                   (39)
-  ok    pricing — nothing stale, nothing fabricated                         (41)
-  ok    pricing history — the rows we sent, and why they differed           (79)
+  ok    pricing — nothing stale, nothing fabricated                         (47)
+  ok    pricing history — the rows we sent, and why they differed           (97)
   ok    mixed documents — a heading speaks only for its own rows            (37)
   ok    save / reload / output — no value drift, no internal costs          (65)
   ok    common fields and Correct Items — a blank never clears an answer    (61)
   ok    dense table — 29 rows, merged cells, metric beside imperial        (170)
   ok    engineering drawing — five parts, five lengths, no borrowed dims    (48)
-  ok    company rules — a size type with a reason, a diameter with one src  (44)
+  ok    company rules — a size type with a reason, a diameter with one src  (68)
   ok    quick add safety — corrections, item numbers, partial extraction    (60)
-  ok    company history — a legacy description reads as words              (35)
+  ok    company history — a legacy description reads as words               (40)
+  ok    accessories — charged beside the bolt, never inside it              (41)
 
-  13 suites, 787 assertions, 0 failed          91.1s
+  14 suites, 881 assertions, 0 failed          95.9s
 
   ok    ai_extract — dense tables, truncation and error causes              (64)
-  ok    pricing history — identity, accessories, ranking                    (50)
+  ok    pricing history — identity, accessories, ranking                    (72)
   ok    pricing workbook — structure present, no business values            (62)
 
   PHP lint: 10 files, no syntax errors
 ```
 
-**963 assertions, 0 failed.** Raw output in `test-results/`.
+**1,079 assertions, 0 failed.** Raw output in `test-results/`.
 
-Three of pass 2's fixes were verified the only way that means anything: the fix
-was reverted, the suite was run, and the assertions failed for the right reason —
+Fixes were verified the only way that means anything: the fix was reverted, the
+suite was run, and the assertions failed for the right reason. Pass 2 —
 `the retyped length survives the product being chosen: expected "1100", actual
 "1000"`; `every number on the message is a quotation item number: expected
 "1, 4 / 2 / 3", actual "1 / 1 / 2"`; `Add Items is disabled until it is ticked:
-expected "true", actual "false"`. Then the fix was restored and the suite went
+expected "true", actual "false"`; and for the panel paths found by re-auditing,
+`expected "HDG,-", actual "PL,-"`. Then each fix was restored and the suite went
 green again.
+
+The closeness score is verified twice over: the same table of ten cases is run
+through `dc_dim_distance` in PHP and `phDimDistance` in the browser, so the
+server's ranking and the browser's re-ranking cannot drift apart without one of
+the two suites failing.
 
 ### Mandatory cases from the brief
 
@@ -303,14 +424,18 @@ green again.
 | `1/2 x 100 x 100/100` imperial positional parse | PASS (66 assertions) |
 | Engineering drawing, 5 parts: 950 / 865 / 1000 / 1200 / 1285 | PASS (48 assertions, simulated extraction) |
 | 29-row anchor-bolt table, metric beside imperial | PASS (170 assertions, simulated extraction) |
-| Pricing history: same customer, different dimensions, other customer, pagination | PASS (79 + 50 assertions) |
-| Accessories separate from the bolt price | PASS |
+| Pricing history: same customer, different dimensions, other customer, pagination | PASS (97 + 72 assertions) |
+| Core identity never crosses: M20 never uses M18 / M22 / M24 history | PASS |
+| Dimension-closeness ranking, and customer grouping above it | PASS (both implementations, one table) |
+| Accessories separate from the bolt price | PASS (41 assertions, end to end) |
+| M12 and 1/2" share the size-type rule but are different sizes | PASS (15 cases) |
+| Configured diameter 10.6 → 10.7 changes the weight | PASS |
 | Save → reopen → edit → save | PASS (65 assertions) |
-| WhatsApp / print output | PASS (65 + 60 assertions) |
+| WhatsApp / print output | PASS (65 + 60 + 41 assertions) |
 
 ### Screenshots
 
-Six categories, not one per assertion:
+Eight categories, not one per assertion:
 
 | File | Shows |
 |---|---|
@@ -321,6 +446,7 @@ Six categories, not one per assertion:
 | `5-pricing-history.png` | Records with cost rate, additional cost, markup and bolt unit price; accessories reported separately; this customer's rows above another customer's |
 | `6-save-reload-output.png` | A saved quotation reopened, beside the WhatsApp text and printed dimensions it produces |
 | `7-partial-extraction.png` | A cut-off analysis: the banner, the recovered count, the acknowledgement, and Add Items disabled |
+| `8-accessory-separation.png` | A bolt at RM13.33 with RM0.70 of nuts beside it — the two printed rows, the WhatsApp lines, and the saved item's own figures |
 
 ---
 
@@ -334,7 +460,7 @@ somebody actually sent.
 **Where the rules live.** `pricing_history.php` — no database, session or HTTP
 dependency. `api.php` reads the rows and hands each stored item to these
 functions; the test suite hands them the same items without a database. One set
-of rules, one place, 50 assertions directly on it.
+of rules, one place, 72 assertions directly on it.
 
 **Identity is exact.** Product, material, finish, size type and size must match
 exactly: M20 is not M18 and not M22, fullsize is not undersize, PL is not ZP, an
@@ -343,25 +469,51 @@ nothing about what an item costs to make — and it is reported as context inste
 
 **Dimensions rank, they do not hide.** A 500mm rod and a 1500mm rod of the same
 specification are both shown, precisely because they explain why the two prices
-differed. Each record is marked *Same dimensions* or *Different dimensions*.
+differed. Each record is marked *Same dimensions* or *Differs by 400mm*.
+
+**How close is measured.** The dimensions are read out of the labels the
+quotation itself writes — L, W, H, S, T, ID, IH, OH, TL, CL, CH — and a thread
+written as a pair is read as both of its ends. The score is the plain sum of the
+differences in millimetres:
+
+```
+  distance = Σ |current(d) − record(d)|   over every labelled dimension in either
+```
+
+Nothing is weighted, scaled or learned, because no business rule says one
+dimension matters more than another and inventing one would make the order
+unexplainable. A distance of 0 is an exact match; a record with no readable
+dimension has a distance of *null* — unknown, not close — and sorts last within
+its group. The same table of cases is run through the PHP implementation and the
+browser one, so the server's ranking and the browser's re-ranking cannot drift.
 
 **Reading order:**
 
 ```
-  this customer, same dimensions      newest first
-  this customer, different dimensions newest first
-  another customer, same dimensions   newest first
-  another customer, different dims    newest first
+  THIS CUSTOMER        exact dimensions
+                       nearest dimensions
+                       further dimensions
+  OTHER CUSTOMERS      exact dimensions
+                       nearest dimensions
+                       further dimensions
 ```
+
+The customer comes first and the geometry second, never the other way round: a
+stranger's exact match can never bury the history of the person being quoted.
+And an M24 is not in the list at all, however close its length — core identity
+is a hard boundary, and closeness is only asked about afterwards.
 
 Every foreign record is labelled *Other customer reference* and names the
 customer. Nothing is merged across customers and nothing is averaged: two
 customers' prices for one specification are two facts about two customers.
 
-**Per record:** reference number, customer, date, specification, dimensions,
-quantity, **cost rate · additional cost · markup · bolt unit price**, and the
-accessory cost stated separately. *Use this price* fills the manual price and
-records which record it came from.
+**Per record, so a price difference can be explained:** reference number,
+customer, date, specification, dimensions and how far they differ, quantity,
+**unit weight · cost rate · additional cost · markup · price mode · bolt unit
+price**, and the accessory cost stated separately. Where the record never
+carried one of those values it says *Not recorded* or *Legacy / Unknown* — it is
+never filled in. *Use this price* fills the manual price and records which
+record it came from.
 
 **Removed on purpose:** Last / Low / High / Average. An average of four
 quotations to three customers over three years is a number that describes
@@ -369,10 +521,14 @@ nothing, and it invites a person to treat it as guidance. A test asserts the
 words *average*, *avg*, *lowest* and *highest* appear nowhere on the screen.
 
 **The whole database, not the newest 300.** `get_pricing_history` scans all
-quotations with a SQL `LIKE` prefilter on the size, ordered newest first, and
-pages 20 records at a time with *Show more*. The panel says *Showing 5 of 5
-matching records · 3 this customer, 2 other*, so a partial view can never read as
-a complete one.
+quotations, ordered newest first, and pages 20 records at a time with *Show
+more*. The panel says *Showing 5 of 5 matching records · 3 this customer, 2
+other*, so a partial view can never read as a complete one. The database does
+the narrowing: a modern quotation must contain both the size and the material as
+`json_encode` wrote them, and a pre-normalisation quotation must contain the size
+text. Both branches only ever narrow — every surviving row is still compared
+field by field, so no legacy record is lost to an optimisation. The old
+300-quotation endpoint has been retired.
 
 **A manual price is never overwritten.** History arriving after somebody typed a
 price does not touch it, and *Use this price* is an action a person takes.
@@ -420,26 +576,48 @@ finish, a customer's history, or a product's popularity.
 
 ## Accessory separation result
 
-**PASS.**
+**PASS — and the rule changed in this pass.** A bolt's unit price is the bolt's.
 
-* An accessory has its own quantity, unit price and finish, and its cost is
-  computed by `accAddon` — never folded into a cost rate or a weight.
-* In Auto Round and No Round the accessory cost is added on top of the computed
-  bolt price. In Manual Price the typed price is the whole line and nothing is
-  added. Pricing History relies on exactly this distinction to separate a past
-  bolt price from its accessories.
-* **Where a saved record cannot prove how it was priced, no separation is
-  invented.** The record is shown as it stands, marked *Accessories not
-  separable*, and its bolt price is reported as unknown rather than guessed:
+* Choosing two nuts and a washer does not move the bolt's price by a cent. The
+  item stores `finalUnitPrice` (the bolt), `accessoryUnitPrice` (the
+  accessories), `lineUnitPrice`, `accessoryTotal` and `pricingModel:
+  bolt-separate`.
+* **The money is unchanged.** The line total is `(bolt + accessories) × qty`,
+  asserted at every stage — calculator, saved item, print row, save → reload. A
+  separation that quietly stopped charging for accessories would be a worse
+  defect than the one it fixed.
+* One function settles a line — `dcLineMoney` — and every product that reaches
+  the quotation goes through it, so the entry form, Quick Add and the plate path
+  cannot come to disagree about what a line costs.
+* The print sheet gives accessories their own row with their own unit price and
+  amount, so **quantity × unit price reconciles on every printed row**. The
+  WhatsApp message names them and prices them. The company screens say what is
+  charged beside each unit price.
+* Accessory pricing keeps its own inputs — quantity, unit price and finish per
+  accessory — and Pricing Engine V2 will give it a supplier cost and its own
+  markup. The two calculation paths never meet before the line.
+* **Items priced before the separation existed are read as they were written.**
+  Their one figure had the accessory charge inside it and that cannot be undone
+  safely, so no separation is invented: Pricing History marks such a record
+  *Accessories not separable* and reports its bolt price as unknown —
 
 ```php
-$ambiguous = $hasAcc && $mode === '';
-if      (!$hasAcc)           $bolt = $unit;
-elseif  ($mode === 'manual') $bolt = $unit;
-elseif  ($mode !== '')       $bolt = round($unit - $aCost, 4);
-else                         $bolt = null;
+$separated = ($item['pricingModel'] ?? '') === 'bolt-separate';
+if ($separated) { $bolt = $unit; $aCost = $item['accessoryUnitPrice']; }
+else {
+    $ambiguous = $hasAcc && $mode === '';
+    if      (!$hasAcc)           $bolt = $unit;
+    elseif  ($mode === 'manual') $bolt = $unit;
+    elseif  ($mode !== '')       $bolt = round($unit - $aCost, 4);
+    else                         $bolt = null;
+}
 ```
 
+* The one legacy case that needs handling is a *Manual Price*, which used to be
+  the whole line. Opening such an item for editing moves the accessory charge
+  out of the typed figure, charges it beside the item, leaves the line total
+  exactly as it was, and says so on screen. Asserted end to end: RM307.00 for
+  ten comes back as RM30.00 + RM0.70 = RM307.00.
 * *Use this price* refuses to act on a record whose bolt price could not be
   separated — there is nothing to copy.
 * Accessories are never enabled automatically from a drawing's wording; the
@@ -485,20 +663,20 @@ checklist I cannot do for you.
    *Needs Size Type*. The row cannot be added, so nothing reaches a customer, but
    the number beside the question is a provisional answer that does not say so.
 
-3. **The old `get_price_history` endpoint still reads the newest 300 quotations.**
-   The new `get_pricing_history` scans the whole database with pagination; the
-   older endpoint remains for the *Check Previous Prices* panel's legacy path and
-   keeps its cap.
+3. **An item priced manually before this pass, with accessories.** Its typed
+   figure was the whole line. It is shown exactly as saved, and it is only when
+   somebody opens it for editing that the accessory charge is moved out of the
+   manual price — line total unchanged, with a message saying so. Worth opening
+   one such item on the live system after deployment to confirm.
 
 4. **Line endings.** `index.php` and `api.php` were converted from CRLF to LF
-   during this work and have been converted back in the final commit, so the
-   files match the repository's original convention. That restoring commit
-   touches every line of those two files and changes nothing else — review the
-   commit before it for content.
+   during pass 2 and converted back in a commit of their own, so the files match
+   the repository's original convention. That restoring commit touches every line
+   of both files and changes nothing else — review the commit before it for
+   content.
 
-5. **The test tree is not deployed and must not be.** `tests/`,
-   `quotation-dnc-final-audit/` and `audit-out/` are outside `.cpanel.yml`'s
-   allowlist by construction.
+5. **The test tree is not deployed and must not be.** `tests/` and
+   `quotation-dnc-final/` are outside `.cpanel.yml`'s allowlist by construction.
 
 6. **`auth.php` is one shared account.** An audit trail can record what changed
    and when, but not who.
@@ -512,8 +690,9 @@ Set out in full, with options and consequences, in
 
 1. **The 4140 QT dead lookup** — leave it, delete it, or repair it (and accept
    that a material change would then overwrite a typed rate). *BLOCKED.*
-2. **Should the printed quotation line include accessories,** or show them
-   separately? Changes every quotation. *BLOCKED.*
+2. ~~Should the printed quotation line include accessories?~~ **Answered by you,
+   and done in this pass** — the item's price is the item's, accessories are
+   charged beside it, the line total is unchanged.
 3. **Supplier cost rate vs internal quoting rate** — today one number does both
    jobs, so true margin cannot be reported.
 4. **Does any customer have a different cost, or only a different markup?**
@@ -545,7 +724,7 @@ real rule is allowed to change a price.
 ## Package contents
 
 ```
-quotation-dnc-final-audit/
+quotation-dnc-final/
 ├─ final-report.md                  this file
 ├─ pricing-engine-v2-plan.md        the V2 design, ten sections
 ├─ pricing-engine-v2-input.xlsx     the blank workbook for the business
@@ -553,7 +732,7 @@ quotation-dnc-final-audit/
 ├─ changed-files-summary.txt        every file changed, and why
 ├─ commit-info.txt                  branch, SHAs, deployment status
 ├─ test-results/                    raw suite output and PHP lint
-└─ screenshots/                     seven frames, one per category
+└─ screenshots/                     eight frames, one per category
 ```
 
 ---

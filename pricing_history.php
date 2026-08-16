@@ -33,6 +33,65 @@ function dc_dim_key($s) {
 }
 
 /**
+ * ── How close is this record to the item being quoted? ──────────────────────
+ *
+ * Core identity has already matched EXACTLY by the time this is asked: same
+ * product, material, finish, size type and size. What is left is the geometry,
+ * and the question a person actually has is "which of these rods is most like
+ * the one I am quoting?".
+ *
+ * The dimensions are read out of the labels the quotation itself writes —
+ * L, W, H, S, T, ID, IH, OH, TL, CL, CH — and a thread length written as a
+ * pair ("TL 100/50") is read as both of its ends. Only the labels a product
+ * actually uses appear in its own dimension string, so a Sag Rod is never
+ * compared on a bend it does not have.
+ *
+ * The score is the plain sum of the differences, in millimetres:
+ *
+ *     distance = Σ |current(d) − record(d)|   over every label d in either
+ *
+ * with a label missing from one side counted at its full value on the other.
+ * Nothing is weighted, scaled or learned: 100mm of length and 100mm of thread
+ * count the same, because no business rule says otherwise and inventing one
+ * would make the order unexplainable.
+ *
+ *     current  M20 x L600
+ *     records  L500 → 100 · L1000 → 400 · L1200 → 600
+ *
+ * A distance of 0 is an exact dimensional match. Where either side has no
+ * readable dimension at all the distance is null — unknown, not zero — and
+ * those records sort last within their group rather than pretending to be
+ * close.
+ */
+function dc_dim_values($s) {
+    $out = [];
+    $re = '/\b(TL|ID|IH|OH|CL|CH|L|W|H|S|T|B|R)\s*'
+        . '([0-9]+(?:\.[0-9]+)?)(?:\s*\/\s*([0-9]+(?:\.[0-9]+)?))?/i';
+    if (!preg_match_all($re, (string)$s, $m, PREG_SET_ORDER)) return $out;
+    foreach ($m as $hit) {
+        $label = strtoupper($hit[1]);
+        // First writing wins: "L 1000 ... L 500" is one rod described once.
+        if (!isset($out[$label])) $out[$label] = (float)$hit[2];
+        if (isset($hit[3]) && $hit[3] !== '' && !isset($out[$label . '2'])) {
+            $out[$label . '2'] = (float)$hit[3];
+        }
+    }
+    return $out;
+}
+
+/** The score above. Null when either side says nothing measurable. */
+function dc_dim_distance($wantDims, $recordDims) {
+    $a = dc_dim_values($wantDims);
+    $b = dc_dim_values($recordDims);
+    if (!$a || !$b) return null;
+    $total = 0.0;
+    foreach (array_unique(array_merge(array_keys($a), array_keys($b))) as $k) {
+        $total += abs((float)($a[$k] ?? 0) - (float)($b[$k] ?? 0));
+    }
+    return round($total, 4);
+}
+
+/**
  * An item saved before the normalised fields existed, read out of its
  * description and size label. Returns null when it cannot be read safely —
  * a record we cannot identify is skipped, never guessed at.
@@ -151,20 +210,44 @@ function dc_history_record($item, $want, $meta) {
     $hasAcc = dc_acc_has($acc);
 
     /* Accessories are a separate component and a bolt's price is the bolt's.
-       Where the saved row says how it was priced the two can be separated:
+
+       An item saved once the two were separated says so, and says both figures:
+       finalUnitPrice IS the bolt, accessoryUnitPrice IS the accessories, and
+       nothing has to be worked out.
+
+       Older rows carry one number with the accessory charge inside it. Where
+       such a row records how it was priced the two can still be told apart:
        Auto Round and No Round added the accessory charge on top of the
        calculated price, Manual Price replaced it and added nothing. Where the
-       row does not say — an item saved before the price mode was stored — the
-       separation is NOT invented. The record is returned as it stands and
-       marked ambiguous, and the screen says so. */
-    $ambiguous = $hasAcc && $mode === '';
-    if      (!$hasAcc)           $bolt = $unit;
-    elseif  ($mode === 'manual') $bolt = $unit;
-    elseif  ($mode !== '')       $bolt = round($unit - $aCost, 4);
-    else                         $bolt = null;
+       row does not say, the separation is NOT invented — the record is
+       returned as it stands, marked ambiguous, and the screen says so. */
+    $separated = (string)($item['pricingModel'] ?? '') === 'bolt-separate';
+    if ($separated) {
+        $ambiguous = false;
+        $bolt      = $unit;                                   // already the bolt's own
+        $aCost     = round((float)($item['accessoryUnitPrice'] ?? 0), 4);
+        $hasAcc    = $hasAcc || $aCost > 0;
+    } else {
+        $ambiguous = $hasAcc && $mode === '';
+        if      (!$hasAcc)           $bolt = $unit;
+        elseif  ($mode === 'manual') $bolt = $unit;
+        elseif  ($mode !== '')       $bolt = round($unit - $aCost, 4);
+        else                         $bolt = null;
+    }
 
     $num = function ($v) { return ($v === null || $v === '') ? null : (float)$v; };
     $wantDims = (string)($want['dimensionPreview'] ?? '');
+    $dist     = dc_dim_distance($wantDims, $dimPreview);
+    /* An exact dimensional match is a distance of zero. The string comparison
+       is kept as a second way in, for a dimension written in wording the
+       labels above cannot read — identical text is identical geometry. */
+    $exact = ($dist !== null && $dist == 0.0)
+          || ($wantDims !== '' && dc_dim_key($dimPreview) === dc_dim_key($wantDims));
+
+    /* How the price was arrived at, in the words the screen uses. A row that
+       never recorded it says so rather than being called Auto Round. */
+    $modeLabels = ['auto' => 'Auto Round', 'no_round' => 'No Round', 'manual' => 'Manual'];
+    $modeLabel  = $modeLabels[$mode] ?? 'Legacy / Unknown';
 
     return [
         'quotationId'  => (int)($meta['quotationId'] ?? 0),
@@ -179,14 +262,20 @@ function dc_history_record($item, $want, $meta) {
         'finish'       => $finish,
         'cleanSize'    => $cleanSize,
         'dimensionPreview' => $dimPreview,
-        'exactDims'    => ($wantDims !== '' && dc_dim_key($dimPreview) === dc_dim_key($wantDims)),
+        'exactDims'    => $exact,
+        'dimDistance'  => $dist,
         'qty'          => (int)($item['qty'] ?? 0),
         'unitPrice'    => $unit,
+        /* What the customer's line actually came to. For a record saved once
+           the two were separated that is the bolt plus its accessories; for an
+           older one the saved figure already WAS the line. */
+        'lineUnitPrice' => $separated ? round($unit + $aCost, 4) : $unit,
         'boltUnitPrice' => $bolt,
         'accessoryCost' => $aCost,
         'accessorySummary' => $hasAcc ? dc_acc_summary($acc) : '',
         'accessoryAmbiguous' => $ambiguous,
         'priceMode'    => $mode,
+        'priceModeLabel' => $modeLabel,
         'costRate'     => $num($form['costRate'] ?? null),
         'addCost'      => $num($form['addCost'] ?? null),
         'markup'       => isset($item['markup']) ? (float)$item['markup'] : $num($form['markup'] ?? null),
@@ -196,18 +285,37 @@ function dc_history_record($item, $want, $meta) {
 }
 
 /**
- * Reading order. This customer's own records first, because their own price is
- * the answer and anybody else's is a reference; then the rod that matches
- * dimension for dimension, because it is the closest comparison; then by date.
+ * Reading order:
+ *
+ *     THIS CUSTOMER          exact dimensions
+ *                            nearest dimensions
+ *                            further dimensions
+ *     OTHER CUSTOMERS        exact dimensions
+ *                            nearest dimensions
+ *                            further dimensions
+ *
+ * The customer comes first and the geometry second, in that order and never
+ * the other way round: this customer's 1500mm rod is a fact about what this
+ * customer pays, and a stranger's 600mm rod is not, however close it is. Every
+ * one of this customer's records is above every other customer's, so a
+ * stranger's exact match can never bury the history that belongs to the person
+ * being quoted.
+ *
+ * Within a group the nearest rod is first (see dc_dim_distance), then the most
+ * recent, then the newest quotation. A record whose dimensions cannot be read
+ * sorts last in its group — unknown is not the same as close.
  *
  * Nothing is merged across customers and nothing is averaged: two customers'
  * prices for one specification are two facts about two customers.
  */
 function dc_history_sort(array &$records) {
     usort($records, function ($a, $b) {
-        $rank = function ($r) { return ($r['own'] ? 0 : 2) + ($r['exactDims'] ? 0 : 1); };
-        $ra = $rank($a); $rb = $rank($b);
+        $ra = empty($a['own']) ? 1 : 0;
+        $rb = empty($b['own']) ? 1 : 0;
         if ($ra !== $rb) return $ra <=> $rb;
+        $da = $a['dimDistance'] === null ? INF : (float)$a['dimDistance'];
+        $db = $b['dimDistance'] === null ? INF : (float)$b['dimDistance'];
+        if ($da !== $db) return $da <=> $db;
         $d = strcmp((string)$b['date'], (string)$a['date']);
         if ($d !== 0) return $d;
         return $b['quotationId'] <=> $a['quotationId'];
@@ -218,4 +326,21 @@ function dc_history_sort(array &$records) {
 function dc_history_needle($cleanSize) {
     // json_encode escapes a forward slash, so an inch size is stored "1\/2".
     return '"cleanSize":' . json_encode((string)$cleanSize);
+}
+
+/** The same, for the material — the second most selective field of the five. */
+function dc_history_material_needle($material) {
+    return '"material":' . json_encode((string)$material);
+}
+
+/**
+ * A quotation written before cleanSize existed carries its size inside the
+ * printed size label ("M20 x L 1000mm"), so the size TEXT is the only prefilter
+ * available for it. It only ever narrows: dc_legacy_item reads the size out of
+ * that same label and refuses anything that is not the size being asked for, so
+ * a row this excludes could never have matched anyway.
+ */
+function dc_history_size_text_needle($cleanSize) {
+    $enc = json_encode((string)$cleanSize);          // keeps the \/ of an inch size
+    return substr($enc, 1, -1);                      // without the quotes
 }
