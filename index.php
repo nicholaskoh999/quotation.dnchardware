@@ -4018,7 +4018,8 @@ const I18N={
     wqaToastEnterSizeThread:'Enter a Size or a Thread first', wqaToastNoItems:'There are no items to apply to',
     wqaToastPriceApplied:'Pricing entry applied to all items',
     phCheckFailed:'Could not check previous prices — this is not the same as there being none. Check the connection, or sign in again, and try once more.',
-    wqaStDefaulted:'Size Type is ours, not stated',
+    wqaStCompany:'Size Type: company default',
+    wqaStConfigured:'Size Type: from Diameter Settings',
     wqaToastAccNothing:'No accessories are set in this panel — nothing was applied. Use Clear All Accessories to remove them from the rows.',
     wqaToastLastPriceOff:'Last Price switched off on {n} row(s)',
     wqaToastAccCleared:'Accessories cleared on all items',
@@ -4237,7 +4238,8 @@ const I18N={
     wqaToastEnterSizeThread:'请先填写尺寸或牙长', wqaToastNoItems:'没有可应用的项目',
     wqaToastPriceApplied:'价格设置已应用到全部项目',
     phCheckFailed:'无法查询过往价格 —— 这不等于没有记录。请检查连线或重新登入后再试。',
-    wqaStDefaulted:'尺寸类型由系统判定，非客户注明',
+    wqaStCompany:'尺寸类型：公司预设',
+    wqaStConfigured:'尺寸类型：取自直径设置',
     wqaToastAccNothing:'此面板未设置配件 —— 未套用任何内容。若要清除各行配件，请使用「清除全部配件」。',
     wqaToastLastPriceOff:'{n} 行的上次价格已关闭',
     wqaToastAccCleared:'已清除全部项目的配件',
@@ -4857,9 +4859,15 @@ function confirmDiscardUnsavedChanges(){
 
 /* ── Rate tables (unchanged from production) ── */
 const RATES={PL:{costRate:2.80},ZP:{costRate:4.20},HDG:{costRate:6.00}};
+/* RATES, and only rates. It used to carry a `dia` as well, which the settings
+   screen published as a system default and the calculator never used — two
+   answers to "what bar is this cut from" with no way for staff to tell which
+   was in force. The diameter lives in Diameter Settings; if the business wants
+   an undersize 4140 M12 weighed on 10.7mm, that is a rule they add there and
+   it will be used, because a configured rule outranks the built-in table. */
 const RATES_4140={
-  '4140 FULLSIZE SAG ROD':{ 'M12':{dia:13,plRate:8.50,addCostPL:2.50}, 'M16':{dia:16,plRate:6.50,addCostPL:3.50} },
-  '4140 UNDERSIZE SAG ROD':{ 'M12':{dia:10.7,plRate:9.50,addCostPL:2.00}, 'M16':{dia:14.5,plRate:8.00,addCostPL:2.50} }
+  '4140 FULLSIZE SAG ROD':{ 'M12':{plRate:8.50,addCostPL:2.50}, 'M16':{plRate:6.50,addCostPL:3.50} },
+  '4140 UNDERSIZE SAG ROD':{ 'M12':{plRate:9.50,addCostPL:2.00}, 'M16':{plRate:8.00,addCostPL:2.50} }
 };
 const ZP_SURCHARGE=1.50, HDG_SURCHARGE=3.20, HDG_THREAD_BRUSHING=1.00;
 
@@ -5229,17 +5237,19 @@ function wqaImperialDia(size){
   const key=wqaInchKey(size);
   return (key && WQA_INCH_DIA[key]!==undefined) ? String(WQA_INCH_DIA[key]) : '';
 }
-function autoFillDiameter(type){
-  const material=fv(type,'material'), sizeType=fv(type,'sizeType');
-  const sizeEl=el(type+'-size'); if(!sizeEl)return;
-  const size=normalizeSizeValue(sizeEl.value); sizeEl.value=size;
-  const diaEl=el(type+'-diameter');
-  const setDia=v=>{ if(diaEl) diaEl.value=(v!==''&&v!=null?String(v):''); };
+/* ── The effective diameter ─────────────────────────────────────────────────
+   Weight is diameter squared. So the ONE question that matters about a size is
+   what bar it is actually cut from, and there must be exactly one answer to
+   it — the one Diameter Settings is showing.
 
-  // Custom diameter rule takes priority
-  const custom=findDSRule(type,material,sizeType,size);
-  if(custom!==null){ setDia(custom); return; }
-
+   The built-in tables are the answer only where the settings do not override
+   them, and the settings screen renders THESE functions rather than a second
+   list of its own, so what is displayed cannot drift from what is weighed.
+   Change the number in Diameter Settings and the weight changes with it; that
+   is the whole contract, and there is no other place a diameter comes from. */
+function dcBuiltInDiameter(type,material,sizeType,size){
+  const s=String(size||'').trim();
+  if(!s) return '';
   /* Undersize is a DIFFERENT bar, not a differently-spelled one: an undersized
      1/2" rod is 10.9mm where a fullsize one is 12.7. The undersize inch table
      is keyed 1/2, and a person may type 1/2" or 3/4" BSW, so the key is read
@@ -5248,22 +5258,36 @@ function autoFillDiameter(type){
      through to the FULLSIZE inch table is how an undersized 1/2" rod came back
      12.7mm: 36% too heavy, and priced on it. No diameter, no weight, no price,
      and the row says why. */
-  const ik=wqaInchKey(size);
+  const ik=wqaInchKey(s);
   // Stud always uses undersize diameter regardless of size type
   if(type==='stud' || sizeType==='UNDERSIZE'){
-    setDia(DIA_UNDERSIZE_INCH[size]!==undefined ? DIA_UNDERSIZE_INCH[size]
+    return DIA_UNDERSIZE_INCH[s]!==undefined ? DIA_UNDERSIZE_INCH[s]
          : (ik && DIA_UNDERSIZE_INCH[ik]!==undefined) ? DIA_UNDERSIZE_INCH[ik]
-         : (DIA_UNDERSIZE[size]!==undefined ? DIA_UNDERSIZE[size] : ''));
-    return;
+         : (DIA_UNDERSIZE[s]!==undefined ? DIA_UNDERSIZE[s] : '');
   }
   let dia='';
-  if((material==='4140'||material==='4340')&&DIA_FULLSIZE_SPECIAL[size]!==undefined) dia=DIA_FULLSIZE_SPECIAL[size];
-  else dia=DIA_FULLSIZE[size]!==undefined?DIA_FULLSIZE[size]:'';
+  if((material==='4140'||material==='4340')&&DIA_FULLSIZE_SPECIAL[s]!==undefined) dia=DIA_FULLSIZE_SPECIAL[s];
+  else dia=DIA_FULLSIZE[s]!==undefined?DIA_FULLSIZE[s]:'';
   /* Nothing in the metric table matched. If the size is written in inches —
      1/2", 3/4" BSW — the calculation diameter is the millimetres behind that
      fraction. Only ever a fallback, so no size that already resolves changes. */
-  if(dia==='') dia=wqaImperialDia(size);
-  setDia(dia);
+  if(dia==='') dia=wqaImperialDia(s);
+  return dia;
+}
+/* What this item will actually be weighed on. A Diameter Settings rule the
+   user configured outranks the built-in table, always. */
+function dcEffectiveDiameter(type,material,sizeType,size){
+  const custom=findDSRule(type,material,sizeType,size);
+  if(custom!==null) return custom;
+  return dcBuiltInDiameter(type,material,sizeType,size);
+}
+function autoFillDiameter(type){
+  const material=fv(type,'material'), sizeType=fv(type,'sizeType');
+  const sizeEl=el(type+'-size'); if(!sizeEl)return;
+  const size=normalizeSizeValue(sizeEl.value); sizeEl.value=size;
+  const diaEl=el(type+'-diameter');
+  const dia=dcEffectiveDiameter(type,material,sizeType,size);
+  if(diaEl) diaEl.value=(dia!==''&&dia!=null?String(dia):'');
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5301,20 +5325,40 @@ function dsKey(r){
 function makeSystemDSRule(type,material,sizeType,size,diameter){
   return normalizeDSRule({id:'sys-ds:'+[type,material,sizeType,size].join(':'),type,material,sizeType,size,diameter,source:'system',active:'1'});
 }
+/* Materials whose built-in answer can differ from mild steel's. Listed so the
+   settings screen can show the difference rather than leaving it hidden. */
+const DS_SPECIAL_MATERIALS=['4140','4340'];
 function getSystemDSRules(){
   const rows=[];
   const sizedTypes=['sagrod','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt'];
+  const metric=Object.keys(DIA_FULLSIZE);
+  const under =Object.keys(DIA_UNDERSIZE).concat(Object.keys(DIA_UNDERSIZE_INCH));
+  /* Every row is what dcBuiltInDiameter ACTUALLY returns for that combination.
+     The list used to be assembled from the raw tables plus a rates table the
+     calculator never consulted, so Diameter Settings advertised 10.7mm for an
+     undersize 4140 M12 that was in fact weighed on 10.6. A screen that states
+     a diameter must state the one in force. */
+  const add=(type,material,sizeType,size)=>{
+    const d=dcBuiltInDiameter(type,material,sizeType,size);
+    if(d!=='' && d!=null && parseFloat(d)>0) rows.push(makeSystemDSRule(type,material,sizeType,size,d));
+  };
   sizedTypes.forEach(type=>{
-    Object.entries(DIA_FULLSIZE).forEach(([size,dia])=>rows.push(makeSystemDSRule(type,'MS','FULLSIZE',size,dia)));
-    Object.entries(DIA_UNDERSIZE).forEach(([size,dia])=>rows.push(makeSystemDSRule(type,'MS','UNDERSIZE',size,dia)));
-    Object.entries(DIA_UNDERSIZE_INCH).forEach(([size,dia])=>rows.push(makeSystemDSRule(type,'MS','UNDERSIZE',size,dia)));
+    metric.forEach(size=>add(type,'MS','FULLSIZE',size));
+    under.forEach(size=>add(type,'MS','UNDERSIZE',size));
+    /* Only where the special material's answer differs from mild steel's —
+       otherwise the list doubles in length and says nothing new. */
+    DS_SPECIAL_MATERIALS.forEach(mat=>{
+      metric.forEach(size=>{
+        if(String(dcBuiltInDiameter(type,mat,'FULLSIZE',size))!==String(dcBuiltInDiameter(type,'MS','FULLSIZE',size)))
+          add(type,mat,'FULLSIZE',size);
+      });
+      under.forEach(size=>{
+        if(String(dcBuiltInDiameter(type,mat,'UNDERSIZE',size))!==String(dcBuiltInDiameter(type,'MS','UNDERSIZE',size)))
+          add(type,mat,'UNDERSIZE',size);
+      });
+    });
   });
-  Object.entries(DIA_UNDERSIZE).forEach(([size,dia])=>rows.push(makeSystemDSRule('stud','MS','',size,dia)));
-  Object.entries(DIA_UNDERSIZE_INCH).forEach(([size,dia])=>rows.push(makeSystemDSRule('stud','MS','',size,dia)));
-  Object.entries(RATES_4140).forEach(([desc,sizes])=>{
-    const sizeType=desc.includes('UNDERSIZE')?'UNDERSIZE':'FULLSIZE';
-    Object.entries(sizes).forEach(([size,row])=>rows.push(makeSystemDSRule('sagrod','4140',sizeType,size,row.dia)));
-  });
+  under.forEach(size=>add('stud','MS','',size));
   return rows;
 }
 function getDSDisplayRules(){
@@ -5470,7 +5514,7 @@ function get4140Rates(desc,size,finish){
   const row=table[key];
   const surcharge=(finish==='ZP'?ZP_SURCHARGE:finish==='HDG'?HDG_SURCHARGE:0);
   const addCost=row.addCostPL+(finish==='HDG'?HDG_THREAD_BRUSHING:0);
-  return {costRate:row.plRate+surcharge, addCost, dia:row.dia};
+  return {costRate:row.plRate+surcharge, addCost};
 }
 function getAddCostFromTL(s){
   if(!s||!s.trim())return 0;
@@ -5557,7 +5601,9 @@ function onMaterialSizeChange(type,skipDiameterRefill,trigger){
       } else if(material==='4140'){
         const desc=buildDesc('sagrod'), size=normalizeSizeValue(fv('sagrod','size'));
         const r=get4140Rates(desc,size,finish);
-        if(r){ setAutoRate('sagrod','costRate',r.costRate.toFixed(2),force); setAutoRate('sagrod','addCost',r.addCost.toFixed(2),force); el('sagrod-diameter').value=r.dia; }
+        /* Rates only. The diameter is Diameter Settings' answer, not a rate
+           table's — writing one here was the second competing source. */
+        if(r){ setAutoRate('sagrod','costRate',r.costRate.toFixed(2),force); setAutoRate('sagrod','addCost',r.addCost.toFixed(2),force); }
       }
     }
   } else {
@@ -9215,13 +9261,77 @@ const WQA_BARE_MATERIALS=DC_NO_FINISH_MATERIALS;
    inventing a third rule here would be exactly the guess the whole review
    screen exists to avoid. A defaulted value is marked as defaulted, so the
    screen can say it was ours and not the customer's. */
+/* ── Company size-type defaults ─────────────────────────────────────────────
+   THE one place a size type nobody stated may be filled in, and the only one.
+   The distinction the business draws is not "never guess" — it is:
+
+       a company rule is an answer; anything else is a guess.
+
+   So a rule states its material, the sizes it covers, the answer, and WHY,
+   and the row carries the why so staff can see the value did not come from
+   the customer. Adding a rule is editing this list; nothing anywhere else
+   invents a size type.
+
+   The M12 exception is real and deliberate. 4140 QT and 4340 are ordinarily
+   fullsize, but M12 is the size where that stops being reliable, so the rules
+   below decline it and the answer is looked for in what the company has
+   actually configured — a Diameter Settings entry for this product, material
+   and size exists for exactly one size type, and that is the established
+   rule. If the settings are silent too, the row asks. */
+const DC_SIZE_TYPE_RULES=[
+  /* Mild steel is drawn undersize at M12 and at the half inch. */
+  {materials:['MS'], sizes:['M12','1/2','1/2"'], sizeType:'UNDERSIZE',
+   why:'companyDefault'},
+  /* The quenched-and-tempered grades are fullsize — except at M12, where the
+     company's own settings decide. */
+  {materials:['4140','4140_PLAIN','4340'], notSizes:['M12','1/2','1/2"'],
+   sizeType:'FULLSIZE', why:'companyDefault'},
+];
+/* Kept for the older callers and for the material lists that read it. */
 const WQA_FULLSIZE_MATERIALS=['4140','4140_PLAIN','4340'];
 const WQA_UNDERSIZE_MS_SIZES=['M12','1/2','1/2"'];
-function wqaDefaultSizeType(material,size){
-  const m=String(material||''), s=String(size||'').trim();
-  if(WQA_FULLSIZE_MATERIALS.indexOf(m)>=0) return 'FULLSIZE';
-  if(m==='MS' && WQA_UNDERSIZE_MS_SIZES.indexOf(s)>=0) return 'UNDERSIZE';
-  return '';
+/* Which size types the company has actually configured a diameter for, on this
+   product / material / size. One answer is an established rule; none or two is
+   not, and the row asks rather than being told. */
+function dcConfiguredSizeTypes(product,material,size){
+  const want=String(size||'').trim().toUpperCase();
+  const seen=new Set();
+  (typeof getDSDisplayRules==='function' ? getDSDisplayRules() : []).forEach(r=>{
+    if(product && r.type && r.type!==product) return;
+    if(material && r.material && r.material!==material) return;
+    if(!r.size || String(r.size).trim().toUpperCase()!==want) return;
+    if(!r.sizeType) return;
+    if(!(parseFloat(r.diameter)>0)) return;
+    seen.add(r.sizeType);
+  });
+  return [...seen];
+}
+/* {sizeType, why} — why is '' when nothing answers, and the row asks.
+
+   The settings are consulted ONLY where a rule covers the material and
+   deliberately declines the size: that is the M12 exception, and it is the one
+   place the business said to look at what is actually configured. Everywhere
+   else, no rule means no answer. A diameter table that happens to hold one
+   size type for a size is not a company rule about it — reading it as one
+   would answer a question nobody has established the answer to, on every size
+   in the table, which is the guessing this exists to prevent. */
+function dcCompanySizeType(product,material,size){
+  const m=String(material||''), s=String(size||'').trim().toUpperCase();
+  const has=(list)=>(list||[]).some(x=>String(x).toUpperCase()===s);
+  for(const rule of DC_SIZE_TYPE_RULES){
+    if(rule.materials.indexOf(m)<0) continue;
+    if(rule.sizes && !has(rule.sizes)) continue;
+    if(rule.notSizes && has(rule.notSizes)){
+      const configured=dcConfiguredSizeTypes(product,m,s);
+      return configured.length===1 ? {sizeType:configured[0], why:'configured'}
+                                   : {sizeType:'', why:''};
+    }
+    return {sizeType:rule.sizeType, why:rule.why};
+  }
+  return {sizeType:'', why:''};
+}
+function wqaDefaultSizeType(material,size,product){
+  return dcCompanySizeType(product,material,size).sizeType;
 }
 function wqaNoFinish(material){ return !dcMaterialHasFinish(material); }
 function wqaFinishFor(material,finish){ return dcFinishFor(material,finish); }
@@ -9622,7 +9732,7 @@ function wqaRowBadges(r){
      the diameter and therefore the weight and the price by about 22% at M12.
      It was recorded as ours (stDefaulted) and shown as if the document had
      said it — the select simply read "Undersize", with nothing to question. */
-  if(r.stDefaulted) out.push({t:dcT('wqaStDefaulted'),k:'info'});
+  if(r.stDefaulted) out.push({t:dcT(r.stWhy==='configured'?'wqaStConfigured':'wqaStCompany'),k:'info'});
   if(r.noteApplied&&r.noteApplied.length)
     out.push({t:dcT('wqaNoteBadge')+' '+[...new Set(r.noteApplied)].join(' · '),k:'info'});
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
@@ -11732,16 +11842,16 @@ function wqaNormalizeExtraction(d, opts){
     if(tl.a && !tl.b && rEnds===2){ tl={a:tl.a,b:tl.a}; }
     else if(tl.a && !rowProd && !tl.b){ tl={a:'',b:''}; }
 
-    /* Ours, not the customer's — and said so. */
-    let stDefaulted=false;
+    /* Ours, not the customer's — and said so, including WHERE it came from. */
+    let stDefaulted=false, stWhy='';
     if(!spec.sizeType){
-      const def=wqaDefaultSizeType(spec.material,M);
-      if(def){ spec.sizeType=def; stDefaulted=true; }
+      const def=dcCompanySizeType(rowProd,spec.material,M);
+      if(def.sizeType){ spec.sizeType=def.sizeType; stDefaulted=true; stWhy=def.why; }
     }
     /* And then the hard rule, over both the customer's wording and our own
        default: a Stud has no size type at all. A 4140 QT stud does not become
        fullsize because 4140 usually is. */
-    if(!dcProductHasSizeType(rowProd)){ spec.sizeType=''; stDefaulted=false; }
+    if(!dcProductHasSizeType(rowProd)){ spec.sizeType=''; stDefaulted=false; stWhy=''; }
 
     /* Kept beside the row and used by nothing else until a person picks the
        product this thread belongs to. */
@@ -11766,7 +11876,7 @@ function wqaNormalizeExtraction(d, opts){
                threadLen:tl.a, threadLen2:tl.b,
                qty:(it.qty==null||it.qty==='')?'':String(it.qty),
                material:spec.material, finish:spec.finish, sizeType:spec.sizeType,
-               stDefaulted,
+               stDefaulted, stWhy,
                matFrom: it.matFrom || ((own&&own.materialDefaulted)?own.materialDefaultedFrom:'')
                         || (spec.material===common.material ? (common.materialDefaultedFrom||'') : ''),
                matDefaulted: it.matDefaulted!==undefined ? !!it.matDefaulted

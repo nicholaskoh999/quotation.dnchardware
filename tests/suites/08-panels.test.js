@@ -179,11 +179,11 @@ module.exports = async (browser, A) => {
   const defaulted = await rowState(page);
   const wasDefaulted = await page.evaluate(() => !!wqa.rows[0].stDefaulted);
   if (wasDefaulted) {
-    A.includes(defaulted[0].badges, 'ours',
-      'a size type applied by our own rule, which the customer never stated, says so on the row');
+    A.includes(defaulted[0].badges, 'company default',
+      'a size type applied by a company rule, which the customer never stated, says so on the row');
     await page.evaluate(() => wqaEditRowSpec(0, 'sizeType', 'FULLSIZE'));
     await page.waitForTimeout(700);
-    A.excludes((await rowState(page))[0].badges, 'ours',
+    A.excludes((await rowState(page))[0].badges, 'company default',
       'and stops saying so once a person has chosen one');
   } else {
     A.ok(true, 'no size type was defaulted for this message — case not applicable');
