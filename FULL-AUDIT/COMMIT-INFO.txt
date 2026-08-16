@@ -69,3 +69,17 @@ TEST MATRIX AT FINAL SHA
 BASELINE FOR COMPARISON
 -----------------------
   2,810 assertions, 0 failed.  +390 assertions this run.
+
+FINAL RE-AUDIT (after all repairs, clean tree)
+----------------------------------------------
+  Browser suites            32 suites, 2,858 assertions, 0 failed   (601.4s)
+  See regression-evidence/final-re-audit.log
+
+ZIP
+---
+  quotation-dnc-final.zip   13 MB, 227 files
+  Built with: git archive --format=zip --prefix=quotation-dnc-final/ \
+                          -o quotation-dnc-final.zip HEAD
+  Verified: the file set in the archive is identical to `git ls-files` at
+  1f418335f75f8513deceef9d8785ef1ce883b2f0. .gitignore excludes *.zip by design, so the
+  archive is a build artifact and is not committed back into the history.
