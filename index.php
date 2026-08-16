@@ -5594,6 +5594,24 @@ function normalizeSizeValue(raw){
      without it a bare 1 is M1. */
   m=v.match(/^(\d+\s*[-\s]\s*\d+\s*\/\s*\d+|\d+\s*\/\s*\d+)\s*(?:"|”|″|IN|INCH(?:ES)?)?$/);
   if(m) return m[1].replace(/\s*\/\s*/,'/').replace(/\s*[-\s]\s*/,'-');
+  /* ── A whole number of inches, however the mark was written ──────────────
+     The rule above canonicalises FRACTIONS only, so 1/2" and 1/2 have always
+     been one size. A whole number keeps its mark — a bare 1 is M1 — but the
+     mark may be typed as ", ”, ″, IN or INCH, and only the straight quote was
+     being canonicalised. So "1 INCH" stayed "1 INCH", which is:
+
+       · not a size isKnownSize recognises (it looks for / " or ');
+       · still worth 25.4mm as a FULLSIZE bar, because the inch reader that
+         resolves the diameter DOES understand the word;
+       · worth nothing at all as an UNDERSIZE one, because that table is keyed
+         1" and nothing rewrote the spelling to match.
+
+     One rod, three spellings, three different answers. The inch reader has
+     always treated all of them as the same size (see wqaInchKey); this makes
+     the size box say so too, so the diameter, the weight and the previous
+     price are the same whichever way it was typed. */
+  m=v.match(/^(\d+)\s*(?:"|”|″|IN|INCH(?:ES)?)$/);
+  if(m) return m[1]+'"';
   return v;
 }
 /* ── Thread Reference — reference metadata, and nothing else ────────────────
@@ -10933,6 +10951,33 @@ function wqaDeferRender(kind){
   },true);
 }
 
+/* ── An alias is a WORD, not a run of letters inside one ────────────────────
+   "SPECIAL BOLT" contains the letters of "l bolt" — specia|l bolt — and was
+   therefore read as an L Bolt: an L Bolt's dimension schema, an L Bolt's
+   computed total length and an L Bolt's price, for the product the app calls
+   Others / Special Bolt. "STEEL BOLT" and "FULL BOLT" read the same way.
+
+   The two word-bounded tests were already here and already right; the bare
+   substring test beside them defeated both. It was there for punctuation —
+   "(sag rod)" and "sag-rod," have no space around the alias — so punctuation
+   is still a boundary here. Only a letter or a digit is not. */
+function wqaSaysWord(hay,word){
+  const w=String(word||'').toLowerCase();
+  if(!w) return false;
+  const open=c=>!c||!/[a-z0-9]/.test(c);
+  for(let i=hay.indexOf(w); i>=0; i=hay.indexOf(w,i+1)){
+    if(!open(hay[i-1])) continue;
+    const after=hay[i+w.length];
+    if(open(after)) return true;
+    /* "sag rods", "studs" — a plural is the same word. */
+    if(after==='s' && open(hay[i+w.length+1])) return true;
+  }
+  return false;
+}
+/* "L BOLT 45 DEG", "L-BOLT 45°", "45 DEGREE L BOLT" — the wording that names
+   the OTHER L Bolt product. */
+const WQA_L45_RE=/\b45\s*(?:deg(?:ree)?s?\b|°)|°45\b/i;
+
 /* Layer 1 — whole-message scan for the fields that are stated once and apply to
    every row. Aliases resolve to the SAME value, so "MS UNDERSIZE SAG ROD (ZP)"
    and "m/s zp sag rod (undersize)" produce one consistent set, not a conflict. */
@@ -10978,12 +11023,24 @@ function wqaDetectCommon(text,opts){
      answer at document level — each row then says what it is. */
   const named=[];
   for(const p of WQA_PRODUCTS){
-    if((p.std && p.std.test(hay)) ||
-       p.aliases.some(a=>hay.includes(' '+a+' ')||hay.includes(' '+a+'s ')||hay.includes(a))){
+    if((p.std && p.std.test(hay)) || p.aliases.some(a=>wqaSaysWord(hay,a))){
       named.push(p.type); }
   }
   out.product = named.length===1 ? named[0] : null;
   out.productAmbiguous = named.length>1;
+  /* ── A 45-degree L Bolt is a different product ───────────────────────────
+     The application has one: L Bolt 45DEG, with its own entry form, its own
+     default prices and its own diameter rules. What makes it different is the
+     one thing that matters here — a plain L Bolt's total length is COMPUTED
+     from its legs (l + w - d x 1.5, the 90-degree bend deduction) and a 45
+     DEG one's is not, because the bend develops differently. Quick Add does
+     not read that product, so a message that says 45DEG was being read as a
+     plain L Bolt: same legs, the 90-degree deduction applied to them, and a
+     weight and a price worked out from a bend the customer did not order.
+
+     Nothing here guesses the geometry. The product is simply left unsettled,
+     which is what Review already exists to ask about. */
+  if(out.product==='lbolt' && WQA_L45_RE.test(hay)){ out.product=null; out.productUnsupported='lbolt45'; }
   /* A stated 90-degree bend is geometry, and geometry outranks the family the
      customer filed it under: "ANCHOR BOLT 90 DEG BEND" is an L Bolt. The same
      doctrine the parser already applies when a W or an ID and an S appear.
