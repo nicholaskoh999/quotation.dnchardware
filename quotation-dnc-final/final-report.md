@@ -8,11 +8,13 @@ weight → pricing → pricing history → save → reload → customer output.
 changed, replaced Last Price with a full Pricing History, made Diameter Settings
 the single source of truth for weight, gave the company size-type rules one
 home, closed four ways Quick Add could quietly mislead the person using it, and
-prepared (but did not activate) Pricing Engine V2. **Pass 3 — this one — is the
-mini-delta**: a bolt's unit price is now the bolt's and accessories are charged
-beside it, historical records are ranked by how close their dimensions actually
-are, every record says what it weighed and how it was priced, and the last
-capped history query is gone.
+prepared (but did not activate) Pricing Engine V2. **Pass 3** is the mini-delta: a bolt's
+unit price is now the bolt's and accessories are charged beside it, historical
+records are ranked by how close their dimensions actually are, every record says
+what it weighed and how it was priced, and the last capped history query is gone.
+**Pass 4 — this one — repairs what live acceptance testing found**: the review
+screen now names every dimension the way the drawing does, and an overall
+dimension that can only belong to one part is no longer left as a question.
 
 **Guiding principle, unchanged throughout:** a missing value with a visible
 reason is acceptable. A silently wrong size, dimension, weight or price is not.
@@ -27,6 +29,7 @@ reason is acceptable. A silently wrong size, dimension, weight or price is not.
 | **Starting commit (pass 1)** | `b5493089057277c6f7742931da26bc6f35553abd` |
 | **Delta baseline (pass 2)** | `744ad4084167bf3e0638535779b798b5023c0030` |
 | **Mini-delta baseline (pass 3)** | `7d0981fdb0f83a0b76a4c3d6b8a3ad1a80e3f38a` |
+| **Live-acceptance baseline (pass 4)** | `f250426346c1a256350fca2b12c54f1f5de034b4` |
 | **Ending commit** | `f250426346c1a256350fca2b12c54f1f5de034b4` (the commit to deploy; see `commit-info.txt`) |
 | **Deployment status** | **NOT DEPLOYED** |
 
@@ -77,7 +80,7 @@ job was to leave it that way.
   overwritten by any automatic source.
 
 The regression suite that protects all of it did not exist before pass 1. It is
-now 14 browser suites and three non-browser suites — **1,079 assertions, 0
+now 15 browser suites and three non-browser suites — **1,150 assertions, 0
 failing** — every one of them running against the shipped code path, not against
 a re-implementation of it.
 
@@ -307,6 +310,56 @@ assertions, one per case.
 the next weight `10.7² × developed length × 0.0000061654` — asserted against the
 built-in 10.6mm, which stays in the table and stays overridden.
 
+### Pass 4 (`f250426` → HEAD) — what live acceptance testing found
+
+**1. The review screen named the same field two ways.**
+A thread length was *TL* on an L Bolt and *Thread* on a Sag Rod; a length had no
+label at all. So a row read `M30 · 950 · W 400 · TL 150` and the 950 was a number
+the reader had to identify by its position. One vocabulary now, the drawing's
+own, for every product that has the dimension:
+
+```
+  STUD          M · L
+  SAG ROD       M · L · TL
+  ANCHOR BOLT   M · L · TL
+  L BOLT        M · L · W · TL
+  J BOLT        M · H · ID · S · TL
+```
+
+Every value carries its own label with a space between them — `L 950`, never
+`L950` and never a naked `950` — in the row summary, in the column headers, in
+the per-value labels a narrow screen adds, in the expanded row's field labels
+and in the shared *Apply to All* panel. Asserted for all five products, with an
+explicit assertion against both `L950` and a naked value.
+
+**2. Two rows of HAB-TA-01 asked for a length they could not have had.**
+The extraction offered *"check length 865 or 1000"* for row 3 and *"865 or
+1285"* for row 5 — where 865 was already row 2's length. An overall dimension
+line belongs to one part, so each of those questions had exactly one possible
+answer, and the rows sat unpriced over it.
+
+Fixed at both ends. The prompt now decides *which part a dimension belongs to*
+by position before it decides anything else — reading order down the sheet,
+the part's own band, the extension lines, and N dimensions for N stacked parts
+in the same order. And the review closes a forced choice by **elimination**,
+which needs no model at all:
+
+> the row has no length of its own · the extractor named two or more candidates
+> · every candidate but one is already another row's length · no other
+> ambiguous row wants that same remaining value.
+
+Nothing is inferred from proximity, from row order, or from what a length
+usually is, and nothing is chained: a worked-out length is never used to work
+out another. Where two candidates are still free, or two rows want the same one,
+**both rows go on asking** — the uncertainty rule is untouched. A row resolved
+this way says so on its face (*"L 1000 — the only length not already another
+item's"*), so a value that came from reasoning is never mistaken for one that
+was measured.
+
+HAB-TA-01 now reads 950 / 865 / 1000 / 1200 / 1285 across rows 1–5, with the
+L Bolt's W 400 and the four Sag Rods' TL 200/200, and no row asking for a
+length. The fixture is in the suite; the five values are not in the code.
+
 ---
 
 ## What was intentionally left alone
@@ -390,8 +443,9 @@ Run from the repository root immediately before packaging.
   ok    quick add safety — corrections, item numbers, partial extraction    (60)
   ok    company history — a legacy description reads as words               (40)
   ok    accessories — charged beside the bolt, never inside it              (41)
+  ok    dimension schema and drawing association                            (71)
 
-  14 suites, 881 assertions, 0 failed          95.9s
+  15 suites, 952 assertions, 0 failed         102.4s
 
   ok    ai_extract — dense tables, truncation and error causes              (64)
   ok    pricing history — identity, accessories, ranking                    (72)
@@ -400,7 +454,7 @@ Run from the repository root immediately before packaging.
   PHP lint: 10 files, no syntax errors
 ```
 
-**1,079 assertions, 0 failed.** Raw output in `test-results/`.
+**1,150 assertions, 0 failed.** Raw output in `test-results/`.
 
 Fixes were verified the only way that means anything: the fix was reverted, the
 suite was run, and the assertions failed for the right reason. Pass 2 —
@@ -423,6 +477,8 @@ the two suites failing.
 | `27` typed into the size box → `M27` → weight follows | PASS (42 assertions) |
 | `1/2 x 100 x 100/100` imperial positional parse | PASS (66 assertions) |
 | Engineering drawing, 5 parts: 950 / 865 / 1000 / 1200 / 1285 | PASS (48 assertions, simulated extraction) |
+| HAB-TA-01 as production returned it: rows 3 and 5 resolve to 1000 and 1285 | PASS (71 assertions, no manual confirmation) |
+| Product dimension schema and label spacing, all five products | PASS |
 | 29-row anchor-bolt table, metric beside imperial | PASS (170 assertions, simulated extraction) |
 | Pricing history: same customer, different dimensions, other customer, pagination | PASS (97 + 72 assertions) |
 | Core identity never crosses: M20 never uses M18 / M22 / M24 history | PASS |

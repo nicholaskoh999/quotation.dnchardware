@@ -12,7 +12,8 @@
   ok    quick add safety — corrections, item numbers, partial extraction  (60 assertions)
   ok    company history — a legacy description reads as words, not as a stored value  (40 assertions)
   ok    accessories — charged beside the bolt, never inside it  (41 assertions)
+  ok    dimension schema and drawing association  (71 assertions)
 
-  14 suites, 881 assertions, 0 failed
+  15 suites, 952 assertions, 0 failed
 
-  95.9s
+  102.4s

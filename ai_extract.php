@@ -360,6 +360,31 @@ own region and nowhere else.
     for a value that the arithmetic below confirms. Where the evidence settles
     the value, fill the field and leave "unclear" null.
 
+WHICH PART DOES AN OVERALL DIMENSION BELONG TO
+Decide this by POSITION on the sheet, before you decide anything else about it.
+  - Parts stacked down a sheet are read top to bottom; parts placed side by
+    side are read left to right. That reading order is the order you report
+    them in, and it is the order their dimensions are in too.
+  - A part's own band is the horizontal strip its outline occupies. An overall
+    dimension line drawn inside that band, or immediately above or below its
+    outline and spanning the same width as it, is THAT part's overall length.
+    A dimension inside the band of the part above belongs to the part above.
+  - N parts stacked down a sheet with N overall dimensions means one each, in
+    the same order: the first dimension from the top belongs to the first part
+    from the top, the second to the second, and so on. Do not pair the second
+    part with the first part's dimension because the numbers look similar.
+  - Follow the extension lines. An overall dimension line ends in two extension
+    lines that touch the two ends of ONE part. Whatever they touch is what the
+    dimension measures.
+  - Parts that differ only in length are the ordinary case, and their lengths
+    are meant to differ. 865, 1000, 1200 and 1285 down one sheet are four
+    parts' lengths, one each, in that order — not four candidates for any one
+    of them.
+  - Only when the sheet genuinely does not show which part a dimension belongs
+    to — no extension lines you can follow, no band you can place it in — is
+    that part's L null. Say what you could not place in "unclear"; never offer
+    another part's dimension as an alternative reading of this one.
+
 WHICH DIMENSION IS THE OVERALL LENGTH
 Within one part's own region, in this order:
   1. A dimension line that SPANS the whole part end to end. That is L. Prefer

@@ -54,6 +54,16 @@ index.php
           · the history record shows unit weight, price mode and how far the
             dimensions differ; a value never recorded says so
 
+  Pass 4  · wqaDimLabel: one vocabulary for every product — L, W, H, ID, S, TL
+            — so a Sag Rod's thread is TL exactly as an L Bolt's is
+          · wqaRowDimSummary / wqaDimShort: every value carries its label with
+            a space, and no value is shown naked
+          · wqaResolveAmbiguousLengths: an overall dimension that can only
+            belong to one part is assigned by elimination, badged as worked out,
+            and left alone whenever the choice is still genuinely open
+          · the note behind such a choice is read whole, never from the pill it
+            was trimmed into
+
 api.php
   Pass 1  · the previous-price lookup respects an unstated finish or size type
             instead of treating it as "any"
@@ -78,6 +88,9 @@ companies.php
             line total reconcile
 
 ai_extract.php
+  Pass 4  · the prompt decides WHICH PART an overall dimension belongs to by
+            position — reading order, the part's own band, the extension lines,
+            N dimensions for N stacked parts — before it decides anything else
   Pass 1  · dense tables no longer fail as "could not analyze": the response
             ceiling was the cause, not the table
           · a truncated response keeps the rows that arrived whole and reports
@@ -105,7 +118,7 @@ tests/lib/harness.js            serves the real index.php in Chromium
 tests/lib/assert.js             assertion + suite bookkeeping
 tests/run.js                    runner
 tests/screenshots.js            the eight evidence frames
-tests/suites/01 … 14            14 browser suites, 881 assertions
+tests/suites/01 … 15            15 browser suites, 952 assertions
 tests/php/ai_extract.test.php   64 assertions
 tests/php/pricing_history.test.php  72 assertions
 tests/tools/build-pricing-workbook.py   builds the blank V2 workbook

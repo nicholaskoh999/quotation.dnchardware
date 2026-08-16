@@ -4004,6 +4004,7 @@ const I18N={
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
     wqaNoteUsed:'Your additional info was applied to {n} item(s) — it overrides the document.',
     wqaNoteUnused:'Part of your additional info was not applied: it names no product and the document has more than one item. Write the product first, e.g. "L BOLT TL 100".',
+    wqaLenResolved:'L {v} — the only length not already another item\'s',
     wqaPartialTitle:'Partial extraction',
     wqaPartialBody:'The analysis stopped before the end of the document. Only {n} item(s) were recovered — they are correct, but the source may contain more. Check them against the original, and re-analyse or add the rest separately before this quotation goes out.',
     wqaPartialAck:'I have checked the source. These {n} item(s) are the ones to add.',
@@ -4063,7 +4064,7 @@ const I18N={
     wqaMsgNoLines:'No item lines found. Each line needs dimensions, e.g. "m12 x 1000 x 100 - 2pcs".',
     wqaMsgPasteFirst:'Paste the customer text first.',
     wqaDropNoFile:'That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.',
-    wqaToastEnterSizeThread:'Enter a Size or a Thread first', wqaToastNoItems:'There are no items to apply to',
+    wqaToastEnterSizeThread:'Enter a Size or a TL first', wqaToastNoItems:'There are no items to apply to',
     wqaToastPriceApplied:'Pricing entry applied to all items',
     wqaProductKept:'Product changed on {n} item(s). Your corrections were kept — the message was not re-read.',
     phCheckFailed:'Could not check previous prices — this is not the same as there being none. Check the connection, or sign in again, and try once more.',
@@ -4229,6 +4230,7 @@ const I18N={
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
     wqaNoteUsed:'补充资料已套用到 {n} 个项目 — 以补充资料为准。',
     wqaNoteUnused:'部分补充资料未被套用：未指明产品，而文件有多个项目。请先写产品，例如「L BOLT TL 100」。',
+    wqaLenResolved:'L {v} —— 其余长度已属于其他项目，只剩此一个',
     wqaPartialTitle:'部分提取',
     wqaPartialBody:'分析在文件结束前中断。仅提取到 {n} 个项目 —— 这些是正确的，但原件可能还有更多。请与原件核对，报价发出前请重新分析或另行补上其余项目。',
     wqaPartialAck:'我已核对原件，确认要加入这 {n} 个项目。',
@@ -8964,7 +8966,8 @@ function wqaNormSize(v){ return wqaNormM(v); }
 function wqaItemSummary(c){
   const bits=[];
   if(String(c.size||'').trim())   bits.push('Size '+wqaNormSize(c.size));
-  if(String(c.thread||'').trim()) bits.push('Thread '+String(c.thread).trim());
+  /* TL, as the rows and the drawing call it. */
+  if(String(c.thread||'').trim()) bits.push('TL '+String(c.thread).trim());
   return bits.length ? bits.join(' · ') : dcT('notSet');
 }
 /* Rows still missing a size or a thread — the reason this panel exists, so it
@@ -8997,7 +9000,7 @@ function wqaRenderCommonItem(force){
          <label class="wqa-acc-f"><span>Size</span>
            <input type="text" id="wqaCommonSize" value="${escHtml(c.size)}" placeholder="M12"
                   oninput="wqaEditCommonItem('size',this.value)"></label>
-         ${ends?`<label class="wqa-acc-f"><span>Thread</span>
+         ${ends?`<label class="wqa-acc-f"><span>TL</span>
            <input type="text" id="wqaCommonThread" value="${escHtml(c.thread)}" placeholder="${ends===2?'75/75':'100'}"
                   oninput="wqaEditCommonItem('thread',this.value)"></label>`:''}
        </div>
@@ -9640,10 +9643,22 @@ const WQA_DIM_LABEL={length:'Length', w:'W', h:'H', id:'ID', s:'S'};
    labelled and how the calculator's own form is labelled, so the review says
    the same. A J Bolt has no length at all: its overall size is H, and asking
    for a Length would be asking for a dimension the product does not have. */
+/* ── What the factory calls each dimension ──────────────────────────────────
+   One vocabulary, the drawing's own, for every product that has the dimension:
+
+     STUD          M · L
+     SAG ROD       M · L · TL
+     ANCHOR BOLT   M · L · TL
+     L BOLT        M · L · W · TL
+     J BOLT        M · H · ID · S · TL
+
+   A thread length is TL on a Sag Rod exactly as it is on an L Bolt — calling
+   it "Thread" on one and TL on the other made the same field read as two
+   different things, and a review screen that names a dimension differently
+   from the drawing it was read off is a screen people have to translate. */
 function wqaDimLabel(product,d){
-  const bent=(product==='lbolt'||product==='lbolt45'||product==='jbolt');
-  if(d==='threadLen') return bent?'TL':'Thread';
-  if(d==='length')    return bent?'L':'Length';
+  if(d==='threadLen') return 'TL';
+  if(d==='length')    return 'L';
   return WQA_DIM_LABEL[d]||d;
 }
 /* The columns the compact list actually has. Every live row is asked what its
@@ -9672,10 +9687,12 @@ function wqaRowDimCell(r,k){
 function wqaRowDimSummary(r){
   const t=wqaRowProduct(r);
   const p=wqaProductByType(t)||WQA_NO_PRODUCT;
+  /* Every value carries its own label, with a space between them: "L 950",
+     never "L950" and never a naked 950. A number on its own beside three
+     labelled ones is the one a person has to guess at. */
   return (p.dims||[]).filter(d=>d!=='size').map(d=>{
     const v=wqaRowDimCell(r,d);
-    if(!v) return '';
-    return d==='length' ? v : wqaDimLabel(t,d)+' '+v;
+    return v ? wqaDimLabel(t,d)+' '+v : '';
   }).filter(Boolean).join(' · ');
 }
 /* And what it IS. A row carries its own product, so an Anchor Bolt and a Sag
@@ -9929,12 +9946,11 @@ function wqaRowSpecLine(r){
   return `<div class="wqa-row-spec"${t?'':' hidden'}>${escHtml(t)}</div>`;
 }
 /* The letter this dimension is known by, short enough to sit in front of its
-   own value on a phone — where there is no column header to read it from. A
-   length needs none: the number after the size is the length on every product
-   that has one. */
+   own value on a phone — where there is no column header to read it from. The
+   length carries its L like every other dimension: on a narrow screen a bare
+   950 between a size and a W is a number nobody can name. */
 function wqaDimShort(product,k){
-  if(k==='length'||k==='spec') return '';
-  return k==='threadLen' ? 'TL' : wqaDimLabel(product,k);
+  return k==='spec' ? '' : wqaDimLabel(product,k);
 }
 function wqaCompactCells(r,cols){
   const calc=r.calc||{};
@@ -10028,6 +10044,9 @@ function wqaRowBadges(r){
                 +': '+dcT('wqaNoDia'),k:'warn',w:1});
   if(r.productConflict) out.push({t:dcT('wqaConflictWhy').replace('{p}',r.productConflict.said)
                                         .replace('{g}',r.productConflict.saw),k:'warn',w:1});
+  /* Read off nothing: worked out, because only one answer was left. Said on
+     the row so it is never mistaken for a dimension somebody measured. */
+  if(r.lengthResolved) out.push({t:dcT('wqaLenResolved').replace('{v}',r.lengthResolved),k:'info'});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
@@ -11007,7 +11026,10 @@ function wqaNoteSummary(text){
       const lbl = k==='threadLen' ? 'TL'
                 : k==='size' ? 'Size' : k==='qty' ? 'Qty'
                 : k==='material' ? 'Material' : k==='finish' ? 'Finish'
-                : k==='sizeType' ? 'Size Type' : (WQA_DIM_LABEL[k]||k);
+                : k==='sizeType' ? 'Size Type'
+                /* The same vocabulary the rows use — this read-back sits above
+                   them and must not name a dimension differently. */
+                : k==='length' ? 'L' : (WQA_DIM_LABEL[k]||k);
       const val = k==='threadLen' && g.facts.threadLen2
                 ? g.facts.threadLen+'/'+g.facts.threadLen2 : g.facts[k];
       out.push((p?p+' ':'')+(g.scope==='all'?'all ':'')+lbl+' '+val);
@@ -12208,7 +12230,13 @@ function wqaNormalizeExtraction(d, opts){
     /* The extractor could not read something on this row and said so. It is a
        note for a person, never a value: whatever it names is null, and the row
        asks for it in the ordinary way. */
-    if(it.unclear) row.aiUncertain.push(String(it.unclear).slice(0,40));
+    if(it.unclear){
+      row.aiUncertain.push(String(it.unclear).slice(0,40));
+      /* The badge is trimmed to fit a pill; the note itself is kept whole.
+         Reading candidate dimensions out of the TRIMMED text could cut "1000"
+         down to "100" and hand the row a length nobody wrote. */
+      row.unclearRaw=String(it.unclear);
+    }
     /* Product-aware, per ROW: only a product that HAS a thread can be missing
        one, and which product this is was decided a few lines above. */
     if(rEnds>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
@@ -12221,6 +12249,11 @@ function wqaNormalizeExtraction(d, opts){
     });
     return row;
   });
+
+  /* An overall dimension belongs to ONE part. Where the extractor read two
+     candidates for a row and one of them is already another row's length, the
+     answer is forced — see wqaResolveAmbiguousLengths. */
+  wqaResolveAmbiguousLengths(rows);
 
   /* The rows have been resolved, so the header can now say what they ARE:
      the shared value where they agree, Mixed where they do not. Done here, in
@@ -12311,6 +12344,79 @@ async function wqaAiApply(d, msgTarget, meta){
                        fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')),
                        [], 'ai', fromText ? 'text' : 'file');
   return true;
+}
+
+/* ── An overall dimension belongs to one part ───────────────────────────────
+   A sheet of stacked parts carries one overall dimension line per part. When
+   the extractor cannot tell which of two of them belongs to a row, it says so
+   —— "check length 865 or 1000" —— and the row asks for its length. On the HAB
+   sheet that left two of five rows unpriced over a question with only one
+   possible answer: 865 is the row above's length, and an overall dimension
+   line belongs to one part, so this row's is the 1000.
+
+   So the choice is closed by ELIMINATION, and only by elimination:
+
+     * the row must have no length of its own;
+     * the extractor must have named two or more candidates for it;
+     * every candidate but one must already be the length of ANOTHER row;
+     * no other ambiguous row may want that same remaining value.
+
+   Nothing is inferred from proximity, from the order of the rows, or from what
+   a length usually is. Where two candidates are still free, or two rows want
+   the same one, nothing is decided and both rows go on asking — uncertainty is
+   preserved exactly as it was. A row resolved this way says so on its face, so
+   a value that came from reasoning is never mistaken for one that was read.
+
+   The reverse case is handled by the same rule: if the row really is the 865
+   and another part has claimed the 1000, then 865 is what is left, and 865 is
+   what the row gets. */
+function wqaAmbiguousLengthCandidates(r){
+  if(!r || r.length) return [];
+  const out=[];
+  /* The note as it was written, never the pill it was trimmed into. */
+  const notes=r.unclearRaw ? [r.unclearRaw] : (r.aiUncertain||[]);
+  notes.forEach(t=>{
+    const s=String(t||'');
+    /* A note about the LENGTH, offering a choice. "size M20 or M30" is a
+       different doubt about a different field and is left alone. */
+    if(!/length|overall|\blong\b/i.test(s)) return;
+    if(!/\bor\b|\/|,/.test(s)) return;
+    (s.match(/\d+(?:\.\d+)?/g)||[]).forEach(n=>{
+      const v=Number(n);
+      if(v>0 && out.indexOf(v)<0) out.push(v);
+    });
+  });
+  return out.length>=2 ? out : [];
+}
+function wqaResolveAmbiguousLengths(rows){
+  if(!rows || rows.length<2) return;
+  /* Read BEFORE anything is resolved, so the outcome cannot depend on the
+     order the rows happen to be in. */
+  const taken=new Set();
+  rows.forEach(r=>{ const v=Number(r.length); if(v>0) taken.add(v); });
+
+  const claims=new Map();
+  rows.forEach(r=>{
+    const cands=wqaAmbiguousLengthCandidates(r);
+    if(!cands.length) return;
+    const free=cands.filter(v=>!taken.has(v));
+    if(free.length!==1) return;              // still a choice: the row asks
+    const list=claims.get(free[0])||[];
+    list.push(r);
+    claims.set(free[0],list);
+  });
+  claims.forEach((list,v)=>{
+    if(list.length!==1) return;              // two rows, one value: forced for neither
+    const r=list[0];
+    r.length=String(v);
+    r.lengthResolved=String(v);
+    r.conf=r.conf||{};
+    r.conf.length=WQA_CONF.DEFAULTED;
+    r.issues=(r.issues||[]).filter(x=>x!=='length');
+    /* The doubt is answered, so the note that carried it goes. Any other
+       uncertainty on the row stays exactly where it was. */
+    r.aiUncertain=(r.aiUncertain||[]).filter(t=>!/length|overall|\blong\b/i.test(String(t)));
+  });
 }
 
 /* ── Deterministic-first quality gate ───────────────────────────────────────
