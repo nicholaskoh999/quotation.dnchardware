@@ -23,7 +23,7 @@ reason is acceptable. A silently wrong size, dimension, weight or price is not.
 | **Branch** | `claude/quotation-dnc-audit-repair-ashi82` |
 | **Starting commit (pass 1)** | `b5493089057277c6f7742931da26bc6f35553abd` |
 | **Delta baseline (pass 2)** | `744ad4084167bf3e0638535779b798b5023c0030` |
-| **Ending commit** | `511a6973ee4c00e9c6c71f5efb4f1970ea16052d` (the commit to deploy; see `commit-info.txt`) |
+| **Ending commit** | `fba453a80f89af08ee0d14190f6e3a5ccdce288b` (the commit to deploy; see `commit-info.txt`) |
 | **Deployment status** | **NOT DEPLOYED** |
 
 Nothing has been deployed. `.cpanel.yml` is a manual two-click deploy

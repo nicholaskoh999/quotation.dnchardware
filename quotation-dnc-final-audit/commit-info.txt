@@ -11,7 +11,7 @@ DELTA BASELINE (pass 2 baseline, as given in the brief)
   744ad4084167bf3e0638535779b798b5023c0030
 
 DEPLOY COMMIT  <-- deploy this one
-  511a6973ee4c00e9c6c71f5efb4f1970ea16052d
+  fba453a80f89af08ee0d14190f6e3a5ccdce288b
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -58,14 +58,16 @@ COMMITS ON THIS BRANCH
   9561291  A correction is not a suggestion, and a short list is not a whole one
   21a4bf7  Pricing Engine V2: prepared, documented, and switched off
   511a697  Restore CRLF line endings in index.php and api.php
+  0cba90b  Audit package: stamp the commit to deploy
+  fba453a  The same defect, through a second door
 
-REGRESSION AT 511a697
-  13 browser suites          781 assertions   0 failed
+REGRESSION AT fba453a
+  13 browser suites          787 assertions   0 failed
   ai_extract (PHP)            64 assertions   0 failed
   pricing history (PHP)       50 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                      957 assertions   0 failed
+  TOTAL                      963 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the one check I cannot perform
