@@ -35,7 +35,7 @@ reason is acceptable. A silently wrong size, dimension, weight or price is not.
 | **Live-acceptance baseline (pass 4)** | `f250426346c1a256350fca2b12c54f1f5de034b4` |
 | **Quick Add history baseline (pass 5)** | `8c43da75e2110772ad9a4d7d744c9491c0181c5e` |
 | **Quick Add layout baseline (pass 6)** | `5c2c78cbc3cdf61a776f8786c50d5300f7077262` |
-| **Ending commit** | `5c2c78cbc3cdf61a776f8786c50d5300f7077262` (the commit to deploy; see `commit-info.txt`) |
+| **Ending commit** | `6bba600191a306af2e70c3d37f37f1b052099cf4` (the commit to deploy; see `commit-info.txt`) |
 | **Deployment status** | **NOT DEPLOYED** |
 
 Nothing has been deployed. `.cpanel.yml` is a manual two-click deploy
