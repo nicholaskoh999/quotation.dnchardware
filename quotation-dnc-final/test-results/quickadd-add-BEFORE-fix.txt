@@ -1,0 +1,98 @@
+  FAIL  add to quotation — the button at the end of the review  (153 assertions, 31 failed)
+
+  1 suites, 153 assertions, 31 failed
+
+  FAILURES
+   - [add to quotation — the button at the end of the review] clicking Add puts the item in the quotation
+      expected: "1"
+      actual:   "0"
+   - [add to quotation — the button at the end of the review] as a J Bolt
+      expected: "jbolt"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] at the price the row was showing
+      expected: "7.4"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] with its quantity
+      expected: "50"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] and does not report a partial failure
+      expected NOT to contain: "of 1 added"
+      actual: "0 of 1 added — check the remaining rows"
+   - [add to quotation — the button at the end of the review] sagrod: the rate typed in the review reached the row
+      expected: "6.5"
+      actual:   "6.50"
+   - [add to quotation — the button at the end of the review] sagrod: and the weight the review was showing
+      expected: "0.47350272000000004"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] stud: the rate typed in the review reached the row
+      expected: "6.5"
+      actual:   "6.50"
+   - [add to quotation — the button at the end of the review] stud: and the weight the review was showing
+      expected: "0.388882605"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] anchorbolt: the rate typed in the review reached the row
+      expected: "6.5"
+      actual:   "6.50"
+   - [add to quotation — the button at the end of the review] anchorbolt: and the weight the review was showing
+      expected: "1.109772"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] lbolt: the rate typed in the review reached the row
+      expected: "6.5"
+      actual:   "6.50"
+   - [add to quotation — the button at the end of the review] lbolt: exactly one item enters the quotation
+      expected: "1"
+      actual:   "0"
+   - [add to quotation — the button at the end of the review] lbolt: as a lbolt
+      expected: "lbolt"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] lbolt: at the price the review was showing
+      expected: "21.2"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] lbolt: and the weight the review was showing
+      expected: "3.2553312"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] lbolt: with its own quantity
+      expected: "90"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] jbolt: the rate typed in the review reached the row
+      expected: "6.5"
+      actual:   "6.50"
+   - [add to quotation — the button at the end of the review] jbolt: exactly one item enters the quotation
+      expected: "1"
+      actual:   "0"
+   - [add to quotation — the button at the end of the review] jbolt: as a jbolt
+      expected: "jbolt"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] jbolt: at the price the review was showing
+      expected: "8.2"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] jbolt: and the weight the review was showing
+      expected: "1.2626739200000001"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] jbolt: with its own quantity
+      expected: "28"
+      actual:   "undefined"
+   - [add to quotation — the button at the end of the review] the second is missing its material
+   - [add to quotation — the button at the end of the review] the complete row is added
+      expected: "1"
+      actual:   "2"
+   - [add to quotation — the button at the end of the review] and the review stays open for the other
+      expected: "true"
+      actual:   "false"
+   - [add to quotation — the button at the end of the review] holding exactly the row that could not go
+      expected: "1"
+      actual:   "0"
+   - [add to quotation — the button at the end of the review] the message names what is actually wrong
+      expected to contain: "Material"
+      actual: "2 items added from WhatsApp"
+   - [add to quotation — the button at the end of the review] with the row still in it, to be corrected
+      expected: "1"
+      actual:   "0"
+   - [add to quotation — the button at the end of the review] and the reason is named, not "check the remaining rows"
+      expected to contain: "Material"
+      actual: ""
+   - [add to quotation — the button at the end of the review] row 1 is untouched by row 2 being edited
+      expected: "1.93"
+      actual:   "1.33"
+
+  62.8s

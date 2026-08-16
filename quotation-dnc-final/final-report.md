@@ -1,389 +1,302 @@
 # QUOTATION.DNC — round 7 report
 
-AI extraction / engineering-document interpretation only. Baseline
-`6bba600191a306af2e70c3d37f37f1b052099cf4`. Nothing in Pricing History, the
-pricing engine, accessories, saved quotations, the weight formula or Quick Add
-layout was touched.
+Round 7 covers two things: the AI extraction work accepted earlier in the round
+(`f074b5b`), and the Quick Add insertion blocker found in live acceptance after
+it. Baseline `6bba600191a306af2e70c3d37f37f1b052099cf4`.
 
-Earlier rounds are in `final-report-rounds-1-6.md`.
+The extraction half is reported in `final-report-extraction.md` and is
+unchanged by this work. Earlier rounds are in `final-report-rounds-1-6.md`.
+
+**The stainless rule is taken as final and authoritative, exactly as stated:
+`SS304 → N/A`, `SS316 → N/A`, no PL, no HDG, no ZP, whatever the source
+document said.** `DC_NO_FINISH_MATERIALS` is preserved and is now enforced on
+every surface rather than on some of them. My round-7 report raised this as an
+open conflict; it is closed, and the code already matched the ruling.
 
 ---
 
-## 1. Root cause — Case A
+## 1. Quick Add root cause
 
-Two independent faults met on the same drawing, and either alone would have
-produced the reported result.
+Three independent faults met on the same click. Each alone produces the
+reported result. The full trace is in `quickadd-add-root-cause.txt`.
 
-**The schema could not express a J Bolt.** `ai_extract.php`'s structured-output
-enum was `SAG_ROD · STUD · ANCHOR_BOLT · L_BOLT · OTHER`. `J_BOLT` was absent
-from the document-level enum, from the per-row enum, and from the sanitiser's
-`$prodOk` allowlist. The model could not have answered "J Bolt" however clearly
-the hook was drawn; the closest thing it was permitted to say was Anchor Bolt,
-which is what it said. The instructions made this worse by filing a J bend
-under L Bolt: *"a drawn L / J / U bend -> L_BOLT"*.
+**1 — a stated price still had to have a rate behind it.** Every product's add
+path refuses a blank Cost Rate, and the four bent products refuse a blank
+Additional Cost as well. Those guards exist so a price *computed* as
+`weight × rate + surcharge` can never reach a customer with no material cost in
+it — the comment in `addSagRod` gives the case it was written for. **Manual
+Price computes nothing.** The figure *is* the price, and reusing a price from a
+previous quotation is Manual Price: `wqaHistUse` sets `priceMode='manual'` and
+`manualPrice`, and deliberately leaves the rate boxes alone. Meanwhile
+`syncCostRateWarning` states on the form that a J Bolt's rate must always be
+typed. So the one way to price a J Bolt without typing a rate was the one way
+that could not be added.
 
-**Our own geometry rule needed evidence this drawing does not carry.**
-`wqaNormalizeExtraction` promoted a row to `jbolt` only when it had **both** an
-`ID` and an `S`:
+**2 — the review did not ask for what the add path insisted on.**
+`wqaApplyRowToForm` calls `onMaterialSizeChange(t,false,'material')`, which for
+every product except Sag Rod clears **both** rate boxes on every row. Nothing
+refills the surcharge for an L Bolt or J Bolt — `applyDefaultPrice` writes only
+when a rule matches, and there is none for those products. `wqaRowMissing`
+never looked at either box; it asked only whether a final price was greater
+than zero, and `evalExpr('')` is `0`, so a blank surcharge still produced a
+perfectly good price on screen. The row said nothing was missing and the click
+then failed.
 
-```js
-if(it.ID!=null && it.ID!=='' && it.S!=null && it.S!=='' && rowProd!=='jbolt') rowProd='jbolt';
+**3 — the reason was overwritten and the rows were thrown away.** Each add
+function states its refusal through `showToast`; `wqaAddAll` then called
+`showToast` again with its summary in the same synchronous run, so no per-row
+reason ever reached the screen. Its fallback re-derived a reason from
+`wqaRowMissing`, which by construction returned `[]` for exactly these rows —
+leaving the literal `"0 of 1 added — check the remaining rows"`. And
+`wqaHardClose()` ran unconditionally, so a row that had not been added was not
+merely unadded, it was gone. One blocked row also returned before anything was
+attempted, silently.
+
+## 2. Exact state/payload failure
+
+For the reported J Bolt, at the moment of the click:
+
+| | review row | form the add path read |
+|---|---|---|
+| `priceMode` | `manual` | `manual` |
+| `manualPrice` | `7.40` | `7.40` |
+| `finalUnitPrice` | `7.40` | `7.40` |
+| Cost Rate | *not asked for* | `""` |
+| Additional Cost | *not asked for* | `""` |
+| `wqaRowMissing()` | `[]` | — |
+
+`addJBolt` reached `if(!costRateRaw){ showToast('Cost Rate is blank — enter
+price before adding'); return }` and returned. `quoteItems.length` never moved,
+so `added` was `0`; `blocked` was empty because `wqaRowMissing` had nothing to
+report; the summary degraded to the generic string; `wqaHardClose()` discarded
+the row.
+
+The same row, after the fix, commits as
+`itemType:'jbolt' · cleanSize:'M12' · qty:50 · finalUnitPrice:7.40 ·
+priceMode:'manual' · weight:0.204` — screenshot `add/2-jbolt-after-add.png`.
+
+## 3. Exact repair
+
+| What | Where |
+|---|---|
+| `DC_TYPED_RATE_PRODUCTS` — one list of the products whose rate *and* surcharge are typed, shared with `syncCostRateWarning` | `index.php` |
+| `dcRateRequired(type)` = price mode is not manual — applied at all eight blank-rate guards | `addSagRod`, `addStud`, `addAnchorBolt`, `addUBolt`, `addSQUBolt`, `addLBolt`, `addJBolt` |
+| `wqaRowMissing` asks for Cost Rate, and for Additional Cost on those five products, under the same rule; `Price` is no longer reported on top of a blank rate that already explains it | `wqaRowMissing` |
+| `dcToastCapture` — the calculators' own refusal messages are collected as well as shown | `showToast` |
+| `wqaAddAll` attempts every row, removes the ones that went in, keeps the ones that did not, and names the row and the reason | `wqaAddAll` |
+| Add button enabled while at least one row can go | `wqaUpdateAddButton` |
+
+Nothing is auto-filled to clear an error: a row that needs a rate says so, on
+the row, and waits.
+
+## 4. Stainless rule verification
+
+The rule existed as `dcFinishFor`, but **outside Quick Add it was not the rule
+that held the line** — it was a DOM side effect: `updateFinishAvailability`
+ticks the N/A radio whenever the material *select* reads stainless. That holds
+only where such a select exists and the value comes from the DOM. Three paths
+had neither, and one comparison ignored the rule entirely:
+
+| Path | Before | Now |
+|---|---|---|
+| **Welding Anchor Set** — material lives in `was-ab-material`, so the check read an element that does not exist and never fired; `onWASAnchorSpecChange` did not run it at all | could **originate** an `SS304` item wearing `HDG`, which then survived save, reload, print, WhatsApp and history | `dcFormMaterial` reads the anchor; `onWASAnchorSpecChange` runs the rule; `addWAS` applies `dcFinishFor` |
+| **`pushItem`** — the one funnel every other product's item passes through | read `getFinish(type)` raw; correct only while the side effect held | `dcFinishFor(material, getFinish(type))` |
+| **Draft restore** | cleared the finish, then re-applied the saved radio one statement later — a disabled radio can still be checked programmatically | radios restored first, rule applied after |
+| **Quotation loaded from Companies** | size type normalised on the way in, finish not | `finish: dcFinishFor(i.material, i.finish)` |
+| **Pricing-history identity** | `strcasecmp` on the stored finish, so a stainless record saved wearing `HDG` could never match its own specification — invisible in Previous Prices while still printing "(HDG)" | `dc_finish_for` normalises **both sides**; mirrors `DC_NO_FINISH_MATERIALS` exactly, on canonical stored codes |
+| **Print / WhatsApp / quotation list / companies.php** | pass-through | unchanged — they now pass through a value that is always correct |
+
+Verified end to end, in one test, with a mild-steel HDG row beside the
+stainless one so the assertion is not merely "no finish anywhere":
+
+```
+review row      SS304 / N/A          MS / HDG
+committed item  finish ''            finish 'HDG'
+form snapshot   finish ''
+description     no HDG
+print sheet     no (HDG)             (HDG)
+WhatsApp        no HDG               HDG
+saved payload   finish ''
+reopened        finish ''  ← even when the stored item arrives wearing HDG
+history lookup  asks material SS304, finish ''  → matches a record stored 'HDG'
 ```
 
-A drawing that dimensions the hook by its **radius** (`R 25`) states no inside
-diameter at all, so the condition never fired. The row stayed the Anchor Bolt
-the title block said it was — and an Anchor Bolt's schema is `M · L · TL`, so
-the `S 80` was dropped for having nowhere to go.
+All ten stainless spellings map and then lose their finish: `SS304 · SUS304 ·
+A2 · A2-70 · A2-80 → SS304` and `SS316 · SUS316 · A4 · A4-70 · A4-80 → SS316`,
+each against source `PL / PLAIN / HDG / ZP` — 80 combinations, all `N/A`. The
+source wording is kept as evidence on the row: *"PL stated — SS304 is quoted
+without a finish"*. The A2/A4 paper-size guard is unchanged and still asserted.
 
-**The height had nowhere to go either.** A J Bolt is `M · H · ID · S · TL`;
-there is no plain length in the schema. The drawing wrote its overall height as
-`L 280`, and nothing mapped that to `H`. Even with the product corrected, `H`
-would have come back empty and `280` would have sat in a field the J Bolt
-schema does not have.
-
-## 2. Root cause — Case B
-
-**A merged specification cell reached only its first row.** The extractor is
-instructed to report a merged cell on the first row it covers and leave the
-rest of that block null — that is what the cell looks like on the paper, and
-the prompt already promised *"our own code carries a value forward until the
-next one replaces it"*. For dimensions (`M`, `TL`) it does. For **material,
-finish and size type it never did**: every row after the first fell back to the
-document-level value, which on a sheet whose blocks differ is correctly null.
-Four of the six rows therefore arrived with no specification at all.
-
-**A strength class was answered with an alloy.** `WQA_MATERIALS` maps
-`Grade 8.8 / GR8.8 / G8.8 / HT / High Tensile` → `4140` and `Grade 10.9` → `4340`.
-That is a deliberate, approved company mapping for a customer's *typed message*
-— badged as a default, with the wording shown back. It was also being applied
-to *extracted engineering documents*, where "DIN 975 GRADE 8.8" is the item's
-specification and not a request for the steel this shop usually buys. The
-`4140 QT` on the live screen came from our own rule table, not from the model.
-
-**A2 was not in the vocabulary at all.** ISO 3506's stainless property classes
-(`A2`, `A2-70`, `A4`, `A4-80`) had no rule; only the `SS304`/`SUS304` spellings
-did. A specification written the ISO way produced no material.
-
-## 3. Files changed
+## 5. Changed files
 
 | File | What changed |
 |---|---|
-| `ai_extract.php` | `J_BOLT` added to both schema enums and the sanitiser allowlist; six new instruction blocks (hook geometry, J Bolt dimension reading, rotated tables, what a specification cell covers, row-beats-remark, strength-class-is-not-a-material); per-product field list and row-product wording extended |
-| `index.php` | J Bolt geometry rule; `L → H` semantic mapping; merged-specification carry-down; `opts.noStrengthAlloy`; A2/A4 rules + paper guard; `notNear` in `wqaMatchMaterial`; row evidence fields `grade`, `hFromL`, `finishSeen`, `specRaw`; four badges and their en/zh strings |
-| `tests/suites/19-drawing-interpretation.test.js` | new — 146 assertions |
-| `tests/php/ai_extract.test.php` | +38 assertions on the prompt, the schema and the sanitiser |
-| `tests/lib/harness.js` | exposes the new evidence fields to tests |
-| `tests/extraction-shots.js`, `tests/extraction-evidence.js` | new — evidence frames and the in/out fixture dump |
+| `index.php` | `DC_TYPED_RATE_PRODUCTS` + `dcRateRequired`; eight rate guards; `wqaRowMissing`; `dcToastCapture` in `showToast`; `wqaAddAll` rewritten to a partial add; `wqaUpdateAddButton`; `dcFormMaterial`; `updateFinishAvailability` uses the rule; `pushItem`, `addWAS`, `checkHandoff` and `phFormSpec` apply `dcFinishFor`; `onWASAnchorSpecChange` runs the rule; draft-restore ordering; `applyDefaultPrice` provenance; two i18n strings in both languages |
+| `pricing_history.php` | `DC_NO_FINISH_MATERIALS` + `dc_finish_for`; both sides of the finish comparison in `dc_history_record` |
+| `tests/suites/20-quickadd-add.test.js` | new — 160 assertions |
+| `tests/suites/21-stainless-finish.test.js` | new — 119 assertions |
+| `tests/php/pricing_history.test.php` | +18 assertions on the server-side rule |
+| `tests/suites/17-quickadd-layout.test.js` | updated: a J Bolt now asks for the surcharge as well as the rate |
+| `tests/add-shots.js` | new — the twelve Add evidence frames |
 
-No change to `api.php`, `companies.php`, `pricing_history.php`, `auth.php`,
-`.cpanel.yml`, the database, or any configuration. No secret anywhere.
+`api.php`, `companies.php`, `ai_extract.php`, `auth.php`, `.cpanel.yml`, the
+database and every configuration file are untouched. No secret anywhere.
 
-## 4. J Bolt geometry / product fix
+## 6. New tests
 
-**Schema.** `J_BOLT` is now a value the model may return, at document level and
-per row, and the sanitiser accepts it. Anything outside the list is still
-refused to `null`.
+**Suite 20 — add to quotation (160).** The reported J Bolt, priced by reusing
+Q-2026-0125, clicked through the real button and read out of `quoteItems`. Then
+each of the five Quick Add products in turn: created valid, **changed through
+the review screen**, checked that the canonical row took the change and
+repriced from it, added, and the committed item compared field by field against
+what the row was showing. Then: three valid rows add as three; one valid and
+one incomplete — the valid one goes in, the other stays with its reason;
+a row that cannot be added names the missing field, and the generic wording is
+asserted **gone**; Apply-to-All writes into every row object and those values
+reach the quotation; a per-row edit changes that row and no other; mixed
+materials do not contaminate each other; and a stainless row adds carrying no
+finish, for `SS304`/`SS316` against source `PL / PLAIN / HDG / ZP`.
 
-**Prompt.** A new block, `RECOGNISING A J BOLT ON A DRAWING`, lists what a hook
-looks like on a sheet — a curve returning **up alongside** the shank, a short
-return leg dimensioned as a height, an inside width *or* a radius, a thread at
-the top only — and states that **any one** of them classifies it, over the title
-block. The L-vs-J distinction is written as the direction of the short leg: an
-L Bolt's leaves at a right angle and goes away, a J Bolt's turns back and runs
-beside the shank. The old line filing a J bend under `L_BOLT` is gone.
+Also in suite 20: **Quick Add quotes what the Calculator quotes.** Three items
+entered by hand through the Calculator's own form, then the same three as one
+Quick Add list — the prices must be identical, must not change on a recompute,
+and must be what the quotation carries.
 
-**Normaliser.** A stated `S` alone is now enough:
+**Suite 21 — stainless (119).** The table in §4, plus the Calculator (choosing
+SS304 takes the finish away; choosing MS again restores one), the Welding
+Anchor Set, the draft restore, and a history lookup against a record stored
+wearing a finish.
 
-```js
-/* S is the hook's return height, and no other product in this system has one …
-   This used to require an ID as well, and a drawing that dimensions the hook by
-   its RADIUS instead — R 25 — states no inside diameter at all. */
-if(it.S!=null && it.S!=='' && rowProd!=='jbolt') rowProd='jbolt';
-```
+**`pricing_history.test.php` (+18).** A stainless record stored with `''`, `PL`,
+`HDG`, `ZP` or `Plain` is the same item as a stainless specification asking for
+none; a mild-steel `PL` is still not a mild-steel `HDG`.
 
-Geometry still outranks wording, and wording alone still classifies nothing: a
-bend radius on its own does **not** make a row a J Bolt (asserted).
+### Proved failing first
 
-## 5. J Bolt dimension semantic mapping
+Required, and done. `test-results/quickadd-add-BEFORE-fix.txt` is suite 20
+against `f074b5b`: **153 assertions, 31 failed**, including *"clicking Add puts
+the item in the quotation — expected 1, actual 0"* and the toast reading
+*"0 of 1 added — check the remaining rows"*. After the repair the same file
+passes 160/160.
 
-```js
-let srcH = (it.H==null||it.H==='') ? '' : String(it.H);
-let srcL = (it.L==null||it.L==='') ? '' : String(it.L);
-let hFromL = false;
-if(rowProd==='jbolt' && !srcH && srcL){ srcH = srcL; srcL = ''; hFromL = true; }
-```
+Each fix was then re-verified by reverting it alone:
 
-Three gates, all required: the geometry must **already** have proved the row is
-a J Bolt; no height may have been stated; and there must be a length with
-nowhere else to go. It is a mapping between two names for one dimension, not a
-rule about the letter L.
+| Reverted | New assertions that fail |
+|---|---|
+| `dcRateRequired` → always true | 4 — the reported J Bolt is not added |
+| partial add → always close | 6 — the review closes, rows are lost, no reason named |
+| `dcFinishFor` at `pushItem` / `checkHandoff` | 3 — a stainless item reopens wearing HDG and prints it |
+| `applyDefaultPrice` provenance | Quick Add falls back to RM 1.33 against the Calculator's RM 1.93 |
 
-* On a Sag Rod, Anchor Bolt, Stud and L Bolt, `L` stays `L` — asserted for each.
-* A J Bolt that states **both** `H` and `L` keeps the stated `H` — asserted.
-* The reading is recorded (`hFromL`) and shown on the row: *"drawing L 280 read
-  as overall height H"*, so a checker can see it rather than wonder where the L
-  went.
+## 7. Assertion totals
 
-The prompt teaches the same thing upstream, by role and not by letter: *"H is
-the OVERALL height … Customer drawings label this L, LENGTH, OVERALL LENGTH,
-TOTAL LENGTH or OAL far more often than they label it H."*
-
-**Case A now produces exactly the specified result:**
-
-```
-Product J Bolt · Size M12 · H 280 · S 80 · TL 50 · ID —  (Needs ID)
-evidence: drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
-```
-
-## 6. Rotated-table / merged-cell fix
-
-**Rotation** is the model's job and is now stated as such: `A TABLE MAY BE
-PRINTED SIDEWAYS` tells it to establish the table's orientation from its own
-heading row and text baselines rather than the page, to turn it upright and
-read rows as items and columns as fields, to keep the table's reading order,
-and to change no value — *"do not transpose dimensions, do not swap length
-against quantity, do not reorder or renumber the rows, and do not drop the
-first or last row because it sits at an edge of the photograph."* A single
-sideways cell inside an upright table is called out as a tall merged cell, not
-a rotated table. No OCR heuristics, no pixel work, no preprocessing hacks.
-
-**Merged specification inheritance** is now real in the normaliser:
-
-```js
-const carry = (k, v) => {
-  if(v || said[k]){ inh[k]=v; inh.raw[k]=rawIn[k]; rawSeen[k]=rawIn[k];
-                    if(k==='material') inh.grade=(own&&own.strengthGrade)||'';
-                    return v; }
-  if(opts.inheritGaps && !common[k] && !unread){ rawSeen[k]=inh.raw[k]; return inh[k]; }
-  return v;
-};
-```
-
-Three properties make it reproduce a merge rather than smear a value:
-
-* **A statement replaces what is carried, even when it resolves to nothing.** A
-  row that says "DIN 975 GRADE 8.8" has *spoken*: the material goes empty for
-  the rows that cell covers, so the stainless block above stops dead where the
-  merge stops. Silence inherits; speech replaces.
-* **Only where the sheet itself is silent.** A document-wide value applies to
-  every row that does not speak, so one row's own value can never start a block
-  underneath it.
-* **`specResolved` rows are untouched** — the deterministic text parser has
-  already applied row > group > document, and its empty values are answers.
-
-## 7. A2 → SS304 and A4 → SS316 handling
-
-```js
-{re:/\ba2(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
- value:'SS304', from:'A2'},
-{re:/\ba4(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
- value:'SS316', from:'A4'},
-```
-
-Verified to resolve to **SS304**: `A2`, `A2-70`, `A2-80`, `SUS304`, `SS304`,
-`S/S 304`. To **SS316**: `A4`, `A4-70`, `A4-80`, `SUS316`, `SS316`, `S/S 316`.
-One material identity per family — `A2` and `SUS304` do not produce two
-materials, because the explicit spellings are tested first and the loop stops
-at the first match.
-
-**The paper trap.** A2 and A4 are also sheet sizes, and an engineering drawing
-is exactly where that word appears. `notNear` — new in `wqaMatchMaterial` —
-disqualifies a token when *sheet, paper, size of sheet, scale, format, drawing
-size* or *printed on* sits within a few characters either side. Verified inert:
-`SHEET SIZE A4`, `DRAWING SIZE A2`, `A4 PAPER`, `FORMAT A4`, `A2 SHEET`,
-`PRINTED ON A4`, `SCALE A2` → no material. The prompt names the same trap.
-
-## 8. Grade 8.8 / HDG handling
-
-`Grade 8.8` and `Grade 10.9` are now marked `strength:true`, and
-`wqaDetectCommon` takes `opts.noStrengthAlloy`, set **only** by
-`wqaNormalizeExtraction` — the document path:
-
-```js
-if(m.strength && opts && opts.noStrengthAlloy){
-  if(!out.strengthGrade) out.strengthGrade = wording;
-  continue;                 // read, recorded, and NOT turned into a material
-}
-```
-
-It `continue`s rather than breaking, so if the document names an actual steel
-elsewhere, that steel is still the answer. The class travels with the block it
-belongs to (`inh.grade`), so rows 4–6 of a merged cell carry it too, and the row
-shows *"GRADE 8.8 stated — a strength class, not a material"* while Material
-reads **Needs Material**.
-
-**HDG** was already a finish and remains one; the prompt now says so explicitly
-and lists the whole finish family (HDG, Hot Dip Galvanised, GI, ZP, Zinc
-Plated, PL, Plain, Black, Self Colour, Painted) as *never* materials. Asserted:
-no row anywhere gets `material = 'HDG'`.
-
-**Precedence.** A sheet-wide `ISO 898 CLASS 5.8` under a block that states
-`DIN 975 GRADE 8.8` leaves the rows on **8.8**, in the prompt and in the
-result — verified in both the suite and `test-results/extraction-evidence.txt`.
-
-**Entity scoping.** The prompt's `WHAT A SPECIFICATION CELL ACTUALLY COVERS`
-answers two questions — *which rows* (exactly the merge) and *which part* (the
-rod, not its nuts, washers, lock nuts or plates). A cell reading
-`STUD DIN 975 GRADE 8.8 / HEX NUT DIN 934 GRADE 8 / FLAT WASHER DIN 125` gives
-the stud **8.8**, and the nut's Grade 8 is not read as the stud's — asserted.
-
-**Case B now produces exactly the specified result:**
-
-| # | Size | L | Qty | Material | Finish | Grade |
-|---|---|---|---|---|---|---|
-| 1 | M12 | 145 | 9  | SS304 | *(see §14)* | — |
-| 2 | M20 | 240 | 5  | SS304 | *(see §14)* | — |
-| 3 | M10 | 120 | 27 | Needs Material | HDG | GRADE 8.8 |
-| 4 | M10 | 125 | 21 | Needs Material | HDG | GRADE 8.8 |
-| 5 | M10 | 130 | 21 | Needs Material | HDG | GRADE 8.8 |
-| 6 | M16 | 170 | 9  | Needs Material | HDG | GRADE 8.8 |
-
-No `4140`, no `4140 QT`, no `4340`, nowhere.
-
-## 9. Anti-guessing protections added
-
-* A **radius is never an inside diameter**. Not doubled, not halved, not copied.
-  `R` is carried as evidence and shown as *"bend radius R 25 — not an inside
-  diameter"*; `ID` stays null and the row asks. Asserted that no badge or field
-  anywhere contains `ID 50` or `ID 25` for the reported drawing.
-* A **strength class never becomes an alloy** on the document path — 8.8 ≠ 4140,
-  10.9 ≠ 4340, 5.8 ≠ mild steel — in the prompt and in code.
-* A **finish never becomes a material**, and a material is never also reported
-  as a class.
-* **A2 is not "grade 2" and A4 is not a strength class** — asserted from both
-  directions (each maps to its stainless identity, and neither produces a
-  grade).
-* **A2/A4 beside a paper word is paper.**
-* **No size type is guessed from a document.** The approved rule stands: not
-  stated and no deterministic configured rule → `Needs Size Type`. Asserted that
-  the Case B rows carry none.
-* **A bend radius alone does not classify a product.**
-* **`uncertain → null` preserved** — the `unclear` path is untouched.
-* **Raw evidence kept beside the normalised value** (requirement 20): every row
-  carries `specRaw` — the wording it was read from — carried down a merged block
-  exactly as the value is, and printed in the evidence dump as
-  `read from: material "A2-70 SUS304" · finish "PLAIN"`. Never invented: a row
-  the document did not speak for has none.
-
-**No hardcoding.** No filename, no pixel coordinate, no `if R25`, no
-`if M12 → J Bolt`, and none of the six row values appears in application code.
-The reported values appear only inside test fixtures, which is what a fixture
-is. Every rule is stated in terms of geometry, cell coverage and vocabulary.
-
-## 10. Existing regressions preserved
-
-All 18 pre-existing browser suites pass unchanged, covering every item on the
-list: HAB-TA-01 and the 950 / 865 / 1000 / 1200 / 1285 row association; the five
-schemas (Stud `M·L`, Sag Rod `M·L·TL`, Anchor Bolt `M·L·TL`, L Bolt `M·L·W·TL`,
-J Bolt `M·H·ID·S·TL`); imperial/metric mixed parsing; J Bolt and L Bolt
-multiline parsing; UNC/UNF/BSW detection; `uncertain → null`; no unsupported
-Fullsize guessing; image + WhatsApp text merging; the engineering
-dimension-chain; weight; Diameter Settings; and pricing/accessories separation.
-
-The pasted-message path is deliberately **unchanged**: a customer typing
-`G8.8 STUD PL` still gets the company's established `4140 QT`, asserted in the
-new suite so the distinction cannot be lost by accident.
-
-Every fix in this round was checked by reverting it and confirming the new
-assertions fail — the J Bolt geometry rule, the `L → H` mapping, the merged
-carry-down, the strength-class suppression, the A2/A4 rules and the paper guard
-were each verified this way.
-
-## 11. Assertion count / failures
-
-| Suite | Assertions | Failed |
+| | Before this work | Now |
 |---|---|---|
-| 19 browser suites (incl. new suite 19: 146) | **1482** | **0** |
-| `ai_extract` (PHP) | 102 | 0 |
-| `pricing_history` (PHP) | 72 | 0 |
-| pricing workbook (Python) | 62 | 0 |
-| **Total** | **1718** | **0** |
+| Browser suites | 19 / 1,482 | **21 / 1,762** |
+| `ai_extract` (PHP) | 102 | 102 |
+| `pricing_history` (PHP) | 72 | **90** |
+| Pricing workbook (Python) | 62 | 62 |
+| **Total** | **1,718** | **2,016** |
+| **Failures** | 0 | **0** |
 
 PHP lint: 10 files, no syntax errors. No page errors in any browser suite.
 
-## 12. Evidence screenshots / results produced
+## 8. Screenshot / evidence list
 
-`extraction/` — seven frames, both reported cases:
+`add/` — twelve frames:
 
 | File | What it shows |
 |---|---|
-| `1-caseA-as-drawn.png` | the hook drawing as reported → J Bolt, M12, H 280, ID empty with **Needs ID**, S 80, TL 50, radius shown as *"from the drawing — not a quotation field"* |
-| `2-caseA-compact.png` | the same row in Compact |
-| `3-caseA-with-stated-id.png` | the same drawing with an inside width written on it → ID 50 populated, nothing else changed |
-| `4-caseB-six-rows.png` | six rows, Expanded |
-| `5-caseB-compact.png` | six rows, Compact — rows 1–2 SS304, rows 3–6 HDG + *"GRADE 8.8 stated — a strength class, not a material"* |
-| `6-row-beats-remark.png` | a sheet-wide Class 5.8 under a block stating Grade 8.8 |
-| `7-vocabulary.png` | A2-70, A4-80, SUS316, Grade 8.8, Grade 10.9 and "SHEET SIZE A4" side by side |
+| `1-jbolt-before-add.png` | the reported row, complete, RM 7.40 reused from Q-2026-0125 |
+| `2-jbolt-after-add.png` | it in the quotation: qty 50, Unit RM 7.40, Manual Price, total RM 370.00 |
+| `3/4-sagrod-*.png` | a Sag Rod before and after |
+| `5-lbolt-asks-for-the-surcharge.png` | a rate typed, and the row saying it still needs the Additional Cost — **before** the click |
+| `6-lbolt-after-add.png` | the same L Bolt in the quotation |
+| `7/8-mixed-*.png` | five rows across four products, added at once |
+| `9-partial-add-row-kept.png` | *"1 added · 1 to fix — Sag Rod M20 — Needs Material"*, the review still open holding only that row |
+| `10-partial-add-quotation.png` | and the item that did go in |
+| `11-stainless-review.png` / `12-stainless-quotation.png` | SS304 beside MS from one message that said HDG for both: the stainless item carries no finish chip, the MS one keeps HDG |
 
-`test-results/extraction-evidence.txt` — the extraction that goes **in** and the
-quotation rows that come **out**, for both cases plus the remark-precedence
-case, including the raw-vs-normalised `read from:` line for every row.
+`extraction/` — seven frames, both attached cases, regenerated at this commit:
+Case A (J Bolt · M12 · H 280 · S 80 · TL 50 · **Needs ID**, radius shown as
+evidence) and Case B (six rows; rows 1–2 **SS304 · N/A**; rows 3–6 HDG +
+*"GRADE 8.8 stated — a strength class, not a material"*; no 4140 anywhere).
 
-`screenshots/` (9 frames) and `layout/` (14 frames) regenerated unchanged, so
-the earlier rounds' evidence is current against this commit.
+`screenshots/` (9) and `layout/` (14) regenerated unchanged.
 
-`test-results/` — `browser-suites.txt` / `.json`, `php-ai-extract.txt`,
-`php-pricing-history.txt`, `php-lint.txt`, `pricing-workbook-check.txt`.
+`test-results/` — `browser-suites.txt`/`.json`, `php-ai-extract.txt`,
+`php-pricing-history.txt`, `php-lint.txt`, `pricing-workbook-check.txt`,
+`extraction-evidence.txt` (the in/out fixture dump, with the raw wording beside
+every normalised value), and `quickadd-add-BEFORE-fix.txt`.
 
-## 13. ZIP package name
+`quickadd-add-root-cause.txt` — the full trace, including what was checked and
+ruled **out**.
 
-`quotation-dnc-final.zip` — 50 files, built from the committed
-`quotation-dnc-final/` folder. The repository's `.gitignore` excludes `*.zip`
-by design (release archives must not re-enter Git history), so the folder is
-the version-controlled copy and the archive is rebuilt from it with
+## 9. Remaining real risks
+
+**A non-stainless row with no finish commits `PL`.** Where a document states no
+finish, the review row shows none, but `updateFinishAvailability` gives every
+non-stainless form a `PL` default, so the committed item is `PL`. The screen
+and the quotation therefore disagree on that one field. It is long-standing, it
+is not the reported blocker, and either direction is a business decision —
+showing `PL` on the row would put a finish on screen the document never stated;
+committing no finish would change descriptions and history identity for every
+MS row. **Not changed. Pinned by assertion so it cannot drift, and flagged for
+your decision.**
+
+**The review now asks for an Additional Cost on U-Bolt, SQ U-Bolt, L Bolt,
+L Bolt 45° and J Bolt.** That is what their add paths have always required, so
+it is the screen catching up — but it means a J Bolt row that used to look
+complete after a rate alone now asks for one more figure. Intended, and it is
+the second half of the blocker.
+
+**A 0-quantity row is now kept instead of skipped.** It used to be dropped with
+"N skipped — enter a quantity for those" and the review closed over it. It now
+stays with *"Needs Qty"*. Better, but it is a change in what the screen does.
+
+**Quick Add reads five products.** Sag Rod, Stud, Anchor Bolt, L Bolt, J Bolt —
+`WQA_PRODUCTS`. U-Bolt, SQ U-Bolt, L Bolt 45°, Plate, Welding Anchor Set and
+Others are Calculator-only and cannot be reached from Quick Add at all, so
+"Add from Quick Add" was tested for the five that exist. The stainless rule was
+tested on the Welding Anchor Set through the Calculator, because that is the
+only way to reach it.
+
+**The model's half of both extraction cases is still unverified against the
+live API**, unchanged from the extraction report: the schema and the prompt
+text are asserted, the model's own reading of a page cannot be.
+
+## 10. Final application commit hash
+
+```
+581d5024e0e68426de27016d742ed28139919934
+```
+
+Branch `claude/quotation-dnc-audit-repair-ashi82`. This is the commit to
+deploy. The packaging commit that follows it touches only `quotation-dnc-final/`,
+which is outside `.cpanel.yml`'s allowlist and is never copied to the server.
+
+## 11. Deployment status
+
+**NOT DEPLOYED.** `.cpanel.yml` is a manual two-click deploy — *Update from
+Remote*, then *Deploy HEAD Commit*. I have not run it, and no part of this
+report describes the live site as verified.
+
+After deployment, the checks that need real production evidence:
+
+* **Case A** — J Bolt · M12 · H 280 · ID null / Needs ID · S 80 · TL 50
+* **Case B** — the six rows, with rows 1–2 `SS304 / N/A` and rows 3–6
+  Needs Material / HDG / Grade 8.8, and **no 4140, 4140 QT or 4340**
+* **Add** — the corrected J Bolt adds; a Sag Rod adds; no generic
+  "0 of 1 added" on a valid row
+
+## 12. Updated ZIP
+
+`quotation-dnc-final.zip` — rebuilt from the committed `quotation-dnc-final/`
+folder. `.gitignore` excludes `*.zip` by design, so the folder is the
+version-controlled copy and the archive is regenerated with
 `zip -r quotation-dnc-final.zip quotation-dnc-final`.
 
-## 14. Remaining risk
+---
 
-**A conflict between this round's requirement 11 and an approved rule from an
-earlier round — your decision, not mine.** Requirement 11 asks for rows 1–2 to
-read `Material SS304 / Finish PL`. The extraction does read `Plain → PL`
-correctly, and the row records it. But an approved rule from round 2,
-`DC_NO_FINISH_MATERIALS = ['SS304','SS316']`, clears the finish for stainless
-throughout the application — a stainless rod is quoted without a coating — and
-it has its own regression tests. I did **not** silently break it. The row shows
-`SS304 · N/A` with the badge *"PL stated — SS304 is quoted without a finish"*,
-so the reading is visible and nothing is lost. If you want stainless to carry
-`PL` on the quotation, say so and it is a one-line change plus its tests; it
-affects the Calculator, print output and pricing history identity as well as
-Quick Add, so it should not be changed by inference.
-
-**The model's half of both cases is unverified against the live API.** Everything
-downstream of the model's answer is proven by 146 new assertions against
-fixtures shaped exactly like the reported failures. What still needs one live
-run with a key is whether the model, with the new schema and instructions,
-actually classifies the hook as `J_BOLT` and reads the rotated table's merged
-cells the way the prompt now asks. The prompt text and the schema are asserted
-in `tests/php/ai_extract.test.php`; the model's behaviour cannot be.
-
-**A stated `S` now classifies a J Bolt outright.** If a future document uses `S`
-for something other than a hook's return height on a product that is not a J
-Bolt, that row would be misclassified. No product in the current schema uses `S`
-for anything else, and the review screen lets a person change the product, but
-it is a broader rule than the one it replaced.
-
-**Merged-cell carry-down is forward-only and unbounded.** A block's
-specification carries down until another row states one or the list ends. That
-is what a merge looks like; but if the extractor reports a block's value on the
-first row and then *omits* a later block entirely, the earlier block's value
-would reach rows it does not cover. The prompt is explicit that each block's
-value must be reported on the first row it covers, and it only applies where
-the document itself states no sheet-wide value.
-
-**Round 6's open item stands:** the deferred `get4140Rates()` description
-mismatch and the other business decisions in `remaining-business-decisions.md`
-are unchanged by this round.
-
-## 15. Final commit hash
-
-```
-f074b5b111fc93698968ae704fc1b3443cab6ac2
-```
-
-Branch `claude/quotation-dnc-audit-repair-ashi82`. This is the commit to deploy;
-the packaging commit that follows it touches only this folder and the ZIP, both
-of which are outside `.cpanel.yml`'s allowlist.
-
-**Deployment status: NOT DEPLOYED.** `.cpanel.yml` is a manual two-click deploy
-(*Update from Remote*, then *Deploy HEAD Commit*). I have not run it and no part
-of this report describes the live site as verified.
+*Round 7 is not declared accepted here. These artifacts are for your acceptance
+review.*

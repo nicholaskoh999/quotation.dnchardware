@@ -194,6 +194,36 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
+  // ══ the other side of the rule, pinned as it stands ══════════════════════
+  /* A NON-stainless row whose document stated no finish shows none on the
+     review — and commits PL, because updateFinishAvailability gives every
+     non-stainless form a PL default and pushItem reads the form. The screen
+     and the quotation therefore disagree about that one field.
+
+     This is long-standing and it is not the reported blocker. Either direction
+     is a business decision: showing PL on the row would put a finish on screen
+     that the document never stated, and committing no finish would change
+     descriptions and pricing-history identity for every mild-steel row. So it
+     is left exactly as it is and pinned here, so that whichever way it is
+     settled, it is settled deliberately and not by drift. */
+  {
+    const page = await openApp(browser);
+    await page.evaluate(() => { selectedCompanyId = 7; });
+    await quickAddPaste(page, 'MS SAG ROD FULLSIZE\nM16 x 300 x 50/50 - 10pcs',
+      { expanded: false, settle: 900 });
+    const row = (await rowState(page))[0];
+    A.eq(row.material, 'MS', 'a mild steel row');
+    A.eq(row.finish, '', 'whose message stated no finish shows none on the review');
+    await page.evaluate(() => wqaAddAll());
+    await page.waitForTimeout(1300);
+    const item = await page.evaluate(() => quoteItems[0] && ({
+      material: quoteItems[0].material, finish: quoteItems[0].finish }));
+    A.eq(item.material, 'MS', 'it is added');
+    A.eq(item.finish, 'PL',
+      'and the committed item carries the form default PL — TODAY\'S behaviour, pinned, not endorsed');
+    await page.close();
+  }
+
   // ══ an unsaved draft does not put the finish back ═════════════════════════
   {
     const page = await openApp(browser);

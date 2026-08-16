@@ -213,3 +213,52 @@ tests/
   · php/ai_extract.test.php — +38 assertions on the prompt, schema and sanitiser
   · lib/harness.js — exposes the new evidence fields
   · extraction-shots.js, extraction-evidence.js — new evidence generators
+
+PASS 7 PART 2 — Quick Add insertion blocker and the stainless rule
+-----------------------------------------------------------------
+Baseline f074b5b111fc93698968ae704fc1b3443cab6ac2
+
+index.php
+  · DC_TYPED_RATE_PRODUCTS — the five products whose rate AND surcharge are
+    typed, shared with syncCostRateWarning instead of written out three times
+  · dcRateRequired(type): a rate is required because the price is COMPUTED from
+    it, so a Manual Price — which is how a reused historical price arrives —
+    needs none. Applied at all eight blank-rate guards. This is the reported
+    blocker: a J Bolt priced RM 7.40 off a previous quotation could not be
+    added, because a J Bolt never gets an automatic rate.
+  · wqaRowMissing asks for the same two boxes the add path insists on, on the
+    row, where a person can answer them. Nothing is auto-filled.
+  · showToast collects the calculators' own refusal messages while an add is
+    being attempted (dcToastCapture); they used to be overwritten by the
+    summary before anyone could read one
+  · wqaAddAll attempts every row, removes the ones that went in, keeps the ones
+    that did not with the reason beside them, and no longer closes the review
+    over the top of them. One blocked row no longer returns silently.
+  · wqaUpdateAddButton enables Add while at least one row can go
+  · applyDefaultPrice records the fields the rule actually WROTE, carried across
+    the calls that write nothing. It used to adopt the thread-length surcharge
+    and delete it on the next identity change, so a two-row Quick Add quoted
+    RM 1.33 for a rod the calculator quotes at RM 1.93.
+  · the stainless rule, applied where it was only a DOM side effect before:
+    dcFormMaterial reads a Welding Anchor Set's material from its anchor;
+    updateFinishAvailability uses dcMaterialHasFinish; onWASAnchorSpecChange
+    runs it; pushItem, addWAS, the saved-quotation handoff and phFormSpec apply
+    dcFinishFor; the draft restore applies the rule AFTER re-checking the saved
+    radios rather than before
+  · two i18n strings in both languages
+
+pricing_history.php
+  · DC_NO_FINISH_MATERIALS and dc_finish_for, mirroring the browser constant
+  · both sides of the finish comparison in dc_history_record normalised, so a
+    stainless record stored wearing HDG is no longer invisible to its own
+    specification
+
+tests/
+  · suites/20-quickadd-add.test.js — new, 160 assertions: the reported failure,
+    every Quick Add product, Apply-to-All, per-row edit, multi-row and partial
+    add, the reason shown by name, and Quick Add priced against the Calculator
+  · suites/21-stainless-finish.test.js — new, 115 assertions: the rule from the
+    review row to the print sheet, the WhatsApp text and history identity
+  · php/pricing_history.test.php — +18 assertions on the server-side rule
+  · suites/17-quickadd-layout.test.js — a J Bolt now asks for the surcharge too
+  · add-shots.js — new, the twelve before/after Add frames

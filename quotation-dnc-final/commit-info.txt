@@ -25,8 +25,11 @@ QUICK ADD LAYOUT BASELINE (pass 6)
 EXTRACTION BASELINE (pass 7)
   6bba600191a306af2e70c3d37f37f1b052099cf4
 
-DEPLOY COMMIT  <-- deploy this one
+EXTRACTION COMMIT (pass 7, part 1)
   f074b5b111fc93698968ae704fc1b3443cab6ac2
+
+DEPLOY COMMIT  <-- deploy this one
+  581d5024e0e68426de27016d742ed28139919934
 
   This is the last commit that changes an application file. The packaging
   commit that follows it adds only this file and the ZIP, both of which are
@@ -85,14 +88,17 @@ COMMITS ON THIS BRANCH
   6bba600  A span counted from the end of the track list
   3a27cc3  Audit package: stamp the commit to deploy
   f074b5b  A hook is a hook, and a grade is not a steel
+  4e2ed7e  Audit package: the hook, the sideways table, and the evidence
+  ef3d191  The scratch the evidence is made in is not the evidence
+  581d502  The screen said the row was ready and the button disagreed
 
-REGRESSION AT f074b5b
-  19 browser suites         1482 assertions   0 failed
+REGRESSION AT 581d502
+  21 browser suites         1762 assertions   0 failed
   ai_extract (PHP)           102 assertions   0 failed
-  pricing history (PHP)       72 assertions   0 failed
+  pricing history (PHP)       90 assertions   0 failed
   pricing workbook (Python)   62 assertions   0 failed
   ------------------------------------------------------
-  TOTAL                     1718 assertions   0 failed
+  TOTAL                     2016 assertions   0 failed
   PHP lint                    10 files, no syntax errors
 
 AFTER DEPLOYMENT — the checks I cannot perform
@@ -113,3 +119,9 @@ AFTER DEPLOYMENT — the checks I cannot perform
   against fixtures shaped exactly like the reported failures; the schema and
   the instruction text are proven by tests/php/ai_extract.test.php. What needs
   a key is the model's own reading of the page.
+
+  Pass 7 part 2 adds the live acceptance checks for the Quick Add repair. Add
+  the corrected J Bolt and a Sag Rod from Quick Add and confirm each reaches
+  the Quotation List, with no generic "0 of 1 added" on a valid row. Confirm a
+  stainless item carries no finish on the quotation, on the print sheet and in
+  the WhatsApp text.

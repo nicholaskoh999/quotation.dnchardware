@@ -1,0 +1,127 @@
+QUICK ADD — "0 of 1 added": what was actually wrong
+===================================================
+
+REPORTED
+  A J Bolt row, complete on screen:
+    Product J Bolt · M12 · H 150 · ID 26 · S 36 · TL 75 · Qty 50
+    Material 4140 QT · Finish PL · Size Type Fullsize
+    Price RM 7.40, reused from Q-2026-0125
+    every warning cleared
+  Clicked "Add 1 Items to Quotation".
+    -> "0 of 1 added — check the remaining rows"
+    -> Quotation List: "No items yet"
+  The same behaviour was seen on other products, e.g. Sag Rod.
+
+
+THE CHAIN, AND WHERE IT BROKE
+  wqaAddAll
+    -> switchType(product)
+    -> wqaApplyRowToForm(row)          writes the row into the product's own form
+    -> addCurrentItem()                -> addJBolt() / addSagRod() / ...
+       -> pushItem()                   -> quoteItems.push()
+
+  The review screen and the add path had two different definitions of "priced",
+  and neither could see the other's.
+
+
+ROOT CAUSE 1 — a stated price still had to have a rate behind it
+  index.php addJBolt / addLBolt / addUBolt / addSQUBolt:
+      if(!costRateRaw){showToast('Cost Rate is blank — enter price before adding');return}
+      if(!addCostRaw){showToast('Additional Cost is blank — enter price before adding');return}
+  index.php addSagRod / addStud / addAnchorBolt:
+      if(!costRateVal){showToast('Cost Rate is blank. Enter price before adding.');return}
+
+  Those guards exist so that a price COMPUTED as weight x rate + surcharge can
+  never be produced with no material cost in it. The comment in addSagRod says
+  so, and gives the case: a 0.27 kg rod quoted at RM 2.88 with the Additional
+  Cost standing on its own.
+
+  Manual Price does not compute anything. The figure IS the price — and
+  reusing a price from a previous quotation is Manual Price (wqaHistUse sets
+  r.priceMode='manual' and r.manualPrice). The cost rate box is untouched by
+  design, because the reused figure is not derived from a rate.
+
+  Meanwhile syncCostRateWarning says, on the form, in as many words:
+      const alwaysManual=['ubolt','squbolt','lbolt','lbolt45','jbolt']...
+      'Cost Rate must be entered manually for this product type.'
+  A J Bolt therefore NEVER has an automatic rate. The only way to price one
+  without typing a rate is to reuse a previous price — which is exactly the
+  case the guard refused.
+
+  FIX  dcRateRequired(type) === (getPriceMode(type) !== 'manual'), applied at
+       all eight guards. A stated price needs no rate; a computed one still
+       does, and validatePriceMode still refuses a manual mode with no figure
+       in it.
+
+ROOT CAUSE 2 — the review did not ask for what the add path insisted on
+  wqaApplyRowToForm calls onMaterialSizeChange(t,false,'material'), and for
+  every product except Sag Rod that runs:
+      if(trigger==='material'){ setAutoRate(type,'costRate','',true);
+                                setAutoRate(type,'addCost','',true); }
+  so every row starts with both boxes blank. Nothing refills the surcharge for
+  an L Bolt or a J Bolt — applyDefaultPrice only writes when a Default Price
+  rule matches, and there is none for these products.
+
+  wqaRowMissing never looked at either box. It asked only:
+      if(!(parseFloat(r.calc&&r.calc.finalUnitPrice)>0)) miss.push('Price');
+  and evalExpr('') is 0, so a blank surcharge still produced a perfectly good
+  price on screen. The row said nothing was missing. The click then failed.
+
+  FIX  wqaRowMissing now asks for the same two boxes the add path insists on,
+       under the same rule: in a computed price mode a Cost Rate is required,
+       and on the five products with no automatic pricing an Additional Cost is
+       required too. Nothing is auto-filled — the row asks, on the row, where a
+       person can answer it. DC_TYPED_RATE_PRODUCTS is the one list, shared
+       with syncCostRateWarning, so the form and the review cannot drift apart.
+
+ROOT CAUSE 3 — the reason was overwritten, and the rows were thrown away
+  Each add function states its refusal by calling showToast. wqaAddAll then
+  called showToast again with its summary, inside the same synchronous run, so
+  no per-row reason ever reached the screen. Its fallback re-derived a reason
+  from wqaRowMissing — which by construction returned [] for exactly these
+  rows — leaving the literal string:
+      `${added} of ${live.length} added` + ' — check the remaining rows'
+
+  Worse, wqaAddAll called wqaHardClose() unconditionally. Whatever happened,
+  the review closed and every row that had not been added was discarded. And
+  one blocked row made the whole function return before it started, silently:
+      if(!live.length || live.some(wqaRowBlocked)) return;
+
+  FIX  Every row is attempted. The messages the calculators emit are captured
+       (dcToastCapture) as well as shown, so the summary can quote the actual
+       refusal. Rows that were added are taken out of the review; rows that
+       were not stay in it with the reason beside them, and the review does not
+       close. The button is enabled while at least one row can go.
+
+
+FOUND ON THE WAY — a real difference in money
+  applyDefaultPrice recorded its provenance as "whatever is in the boxes":
+      dpAutoFilled[type]={key, costRate:crEl.value, addCost:acEl.value, ...}
+  so it adopted the thread-length surcharge that onThreadLenChange had just
+  derived, and on the next identity change deleted it as if it were its own. In
+  a Quick Add list every row is a new identity, so each row wiped the one
+  before it.
+
+  Measured, against the Calculator, which is the authority:
+      Calculator   MS Sag Rod M16 x 300 TL 50/50    RM 1.93
+      Calculator   MS Sag Rod M20 x 400 TL 100/100  RM 3.36
+      Quick Add    the same two, as one list        RM 1.33 and RM 2.76
+  The screen also changed its mind: row 1 showed 1.93 on the first render and
+  1.33 after any recompute, and the quotation got 1.33.
+
+  FIX  Provenance covers the fields the rule actually WROTE, carried across the
+       calls that write nothing (applyDefaultPrice runs several times per
+       identity and only the first writes). Both screens now agree: 1.93 and
+       3.36, stable across renders, and that is what the quotation carries.
+
+
+NOT A CAUSE — checked and ruled out
+  · switchType leaving currentType wrong: it sets currentType first.
+  · J Bolt / L Bolt Total Length not derived: it is, via recalcCurrent, which
+    dispatches on currentType and switchType has already set it. Measured 1320
+    for an M20 L Bolt 950 x 400.
+  · RATES[''] throwing on a blank finish: updateFinishAvailability restores PL
+    for any non-stainless material before the rate is read. Probed directly.
+  · loadedSavedQuote && quoteLocked: real, but it needs a locked saved
+    quotation open, which was not the reported case.
+  · accessories state: resetAccPanel and loadAccIntoForm cannot refuse an add.

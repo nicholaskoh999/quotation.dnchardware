@@ -10,8 +10,8 @@ IN  document product: ANCHOR_BOLT
 OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
     jbolt       M12    —      280    —     80    50      40    —         —       —           
 
-    row 1: needs ID, Material, Size Type, Price
-            Needs ID | Needs Material | Needs Size Type | Needs Price | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
+    row 1: needs ID, Material, Size Type, Cost Rate, Additional Cost
+            Needs ID | Needs Material | Needs Size Type | Needs Cost Rate | Needs Additional Cost | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
 
 ══════════════════════════════════════════════════════════════════════════════
 CASE A variant — the same drawing with an inside width written on it
@@ -22,8 +22,8 @@ IN  document product: ANCHOR_BOLT
 OUT product     size   L      H      ID    S     TL      qty   material  finish  grade
     jbolt       M12    —      280    50    80    50      40    —         —       —           
 
-    row 1: needs Material, Size Type, Price
-            Needs Material | Needs Size Type | Needs Price | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
+    row 1: needs Material, Size Type, Cost Rate, Additional Cost
+            Needs Material | Needs Size Type | Needs Cost Rate | Needs Additional Cost | drawing L 280 read as overall height H | bend radius R 25 — not an inside diameter
 
 ══════════════════════════════════════════════════════════════════════════════
 CASE B — six stud rows, two merged specification cells
@@ -38,24 +38,24 @@ OUT product     size   L      H      ID    S     TL      qty   material  finish 
     stud        M10    130    —      —     —     —       21    —         HDG     GRADE 8.8   
     stud        M16    170    —      —     —     —       9     —         HDG     GRADE 8.8   
 
-    row 1: needs Price
+    row 1: needs Cost Rate
             read from: material "A2-70 SUS304" · finish "PLAIN"
-            Needs Price | PL stated — SS304 is quoted without a finish
-    row 2: needs Price
+            Needs Cost Rate | PL stated — SS304 is quoted without a finish
+    row 2: needs Cost Rate
             read from: material "A2-70 SUS304" · finish "PLAIN"
-            Needs Price | PL stated — SS304 is quoted without a finish
-    row 3: needs Material, Price
+            Needs Cost Rate | PL stated — SS304 is quoted without a finish
+    row 3: needs Material, Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
-    row 4: needs Material, Price
+            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
+    row 4: needs Material, Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
-    row 5: needs Material, Price
+            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
+    row 5: needs Material, Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
-    row 6: needs Material, Price
+            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
+    row 6: needs Material, Cost Rate
             read from: material "STUD DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
+            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
 
 ══════════════════════════════════════════════════════════════════════════════
 A sheet-wide "ISO 898 CLASS 5.8" under a block that states DIN 975 GRADE 8.8
@@ -67,9 +67,9 @@ OUT product     size   L      H      ID    S     TL      qty   material  finish 
     stud        M10    120    —      —     —     —       27    —         HDG     GRADE 8.8   
     stud        M10    125    —      —     —     —       21    —         HDG     GRADE 8.8   
 
-    row 1: needs Material, Price
+    row 1: needs Material, Cost Rate
             read from: material "DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
-    row 2: needs Material, Price
+            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material
+    row 2: needs Material, Cost Rate
             read from: material "DIN 975 GRADE 8.8" · finish "HDG"
-            Needs Material | Needs Price | GRADE 8.8 stated — a strength class, not a material
+            Needs Material | Needs Cost Rate | GRADE 8.8 stated — a strength class, not a material

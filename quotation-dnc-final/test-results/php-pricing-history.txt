@@ -1,1 +1,1 @@
-  ok    pricing history — identity, accessories, ranking  (72 assertions)
+  ok    pricing history — identity, accessories, ranking  (90 assertions)
