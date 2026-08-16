@@ -44,7 +44,7 @@ const apply = async (page, d) => {
 };
 
 module.exports = async (browser, A) => {
-  const S = A.suite('engineering documents — geometry, merged cells, and what a grade is not');
+  const S = A.suite('engineering documents — geometry, merged cells and specification scope');
 
   // ══ CASE A ══ the hook bolt titled "Anchor Bolt" ═════════════════════════
   {
@@ -179,24 +179,27 @@ module.exports = async (browser, A) => {
     A.eq(rows[0].finishSeen, 'PL', 'Plain was read as PL');
     A.eq(rows[1].finishSeen, 'PL', 'on both rows of the block');
 
-    // ── the second block: a grade, a finish, and no alloy ──────────────────
+    // ── the second block: the company's answer to Grade 8.8 ────────────────
+    /* Superseded ruling: the company buys 4140 QT for 8.8, on a drawing exactly
+       as in a typed message. The class stays beside it as the evidence it came
+       from, and the row is priceable rather than held open. */
     for (let i = 2; i < 6; i++) {
-      A.eq(rows[i].material, '', `row ${i + 1} is given no material, because none was written`);
+      A.eq(rows[i].material, '4140', `row ${i + 1} is 4140 QT — the company's 8.8 material`);
       A.eq(rows[i].finish, 'HDG', `row ${i + 1} carries the block's finish`);
       A.includes(rows[i].grade.toLowerCase(), '8.8', `row ${i + 1} keeps the grade as evidence`);
-      A.includes(rows[i].badges.toLowerCase(), '8.8', `and says so on the row`);
+      A.includes(rows[i].matFrom.toLowerCase(), '8.8',
+        `and records that its material came from that class`);
+      A.ok(!rows[i].missing.includes('Material'), `row ${i + 1} does not ask for a material`);
     }
-    /* The whole reason this case was reported. */
-    const all = rows.map(r => `${r.material}|${r.finish}|${r.grade}`).join(' ');
-    A.excludes(all, '4140', 'not one row was answered with 4140');
-    A.excludes(all, '4340', 'nor with 4340');
-    A.excludes(all, 'S45C', 'nor with any other alloy nobody wrote');
+    /* And 4340 is a different material, which nothing here is. */
+    A.excludes(rows.map(r => r.material).join(' '), '4340',
+      'no row was answered with 4340, which is the 10.9 material');
 
     // ── a block stops where the merge stops ────────────────────────────────
     A.excludes(rows[0].finish + rows[1].finish, 'HDG',
       'the HDG merged over the lower block never reaches the stainless rows above it');
-    A.eq(rows[2].material + rows[3].material + rows[4].material + rows[5].material, '',
-      'and the stainless merged over the upper block never reaches the rows below it');
+    A.excludes(rows[2].material + rows[3].material + rows[4].material + rows[5].material,
+      'SS304', 'and the stainless merged over the upper block never reaches the rows below it');
 
     // ── HDG is a finish ────────────────────────────────────────────────────
     A.ok(rows.every(r => r.material !== 'HDG'), 'HDG is never a material');
@@ -230,10 +233,11 @@ module.exports = async (browser, A) => {
     A.includes(rows[0].grade, '8.8', "the stud's own grade is the one the row carries");
     A.excludes(rows[0].grade.replace(/8\.8/g, ''), 'GRADE 8',
       "and the hex nut's Grade 8 is not read as the stud's");
-    A.eq(rows[0].material, '', 'no part of the assembly wording became a material');
+    A.eq(rows[0].material, '4140',
+      "so the stud is 4140 QT — the company's material for ITS grade, not the nut's");
     A.eq(rows[0].finish, 'HDG', 'the assembly finish applies to the rod');
     A.eq(rows[1].grade, rows[0].grade, 'and the whole reading carries down the block');
-    A.excludes(rows.map(r => r.material).join(' '), '4140', 'still nothing became 4140');
+    A.eq(rows[1].material, '4140', 'and the row the cell also covers is the same');
     await page.close();
   }
 
@@ -253,10 +257,10 @@ module.exports = async (browser, A) => {
       'the block\'s own Grade 8.8 is what the row carries');
     A.excludes(rows[0].grade, '5.8', 'not the sheet-wide Class 5.8');
     A.includes(rows[1].grade.toLowerCase(), '8.8', 'and it carries down the rows the cell covers');
-    A.eq(rows[0].material, '', 'neither class becomes a material');
-    A.eq(rows[1].material, '', 'on either row');
-    A.excludes(rows.map(r => r.material + r.grade).join(' '), '4140',
-      'and no class anywhere becomes 4140');
+    A.eq(rows[0].material, '4140', 'so the row is 4140 QT, the material for 8.8');
+    A.eq(rows[1].material, '4140', 'on both rows');
+    A.excludes(rows.map(r => r.material).join(' '), '4340',
+      'and the sheet-wide 5.8 named no material of its own');
     await page.close();
   }
 
@@ -283,20 +287,23 @@ module.exports = async (browser, A) => {
                       'FORMAT A4', 'A2 SHEET', 'PRINTED ON A4', 'SCALE A2'])
       A.eq(await readsAs(w, 'material'), '', `${JSON.stringify(w)} is the paper, not the steel`);
 
-    // ── strength classes stay classes ────────────────────────────────────
+    // ── a strength class is answered by the company's own material ───────
     for (const w of ['GRADE 8.8', 'CLASS 8.8', 'GR8.8', 'DIN 975 GRADE 8.8']) {
-      A.eq(await readsAs(w, 'material'), '', `${w} names no steel`);
-      A.includes((await readsAs(w, 'grade')).toLowerCase(), '8.8', `${w} is kept as a class`);
+      A.eq(await readsAs(w, 'material'), '4140', `${w} → 4140 QT`);
+      A.includes((await readsAs(w, 'grade')).toLowerCase(), '8.8', `${w} is kept as the class it is`);
     }
-    A.eq(await readsAs('GRADE 10.9', 'material'), '', 'Grade 10.9 names no steel either');
+    A.eq(await readsAs('GRADE 10.9', 'material'), '4340', 'Grade 10.9 → 4340 QT');
     A.includes(await readsAs('GRADE 10.9', 'grade'), '10.9', 'and is kept as a class');
-    A.eq(await readsAs('CLASS 5.8', 'material'), '', 'and neither does Class 5.8');
+    A.eq(await readsAs('CLASS 5.8', 'material'), '',
+      'Class 5.8 has no company material, so it stays unanswered');
 
     // ── a steel that IS named is used ────────────────────────────────────
     /* The stored value is the code; "4140 QT" is what the screen prints for it. */
     A.eq(await readsAs('4140 QT', 'material'), '4140', 'a steel the document names is the material');
     A.eq(await readsAs('MS', 'material'), 'MS', 'and so is mild steel');
     A.eq(await readsAs('SS304', 'grade'), '', 'a material is not also reported as a class');
+    A.eq(await readsAs('HT', 'material'), '',
+      'and a bare HT still names neither of the two high-tensile materials');
 
     // ── finishes are finishes ────────────────────────────────────────────
     for (const w of ['HDG', 'HOT DIP GALVANISED', 'ZP', 'PLAIN']) {
@@ -320,27 +327,24 @@ module.exports = async (browser, A) => {
         item({ M: 'M16', L: 350, qty: 10, product: 'STUD' }),
       ],
     }));
-    A.eq(rows[0].material, '', 'a row specified only by strength has no material');
-    A.ok(rows[0].missing.includes('Material'), 'and the review screen is what asks for one');
-    A.eq(rows[1].material, '', 'the row below it inherits the same silence, not an alloy');
-    A.excludes(rows.map(r => r.material).join(' '), '4140', 'nothing became 4140');
+    A.eq(rows[0].material, '4140', 'a row specified by Grade 8.8 is 4140 QT');
+    A.ok(!rows[0].missing.includes('Material'), 'and is not asked for a material');
+    A.eq(rows[1].material, '4140', 'the row below it inherits the same answer');
+    A.includes(rows[1].matFrom.toLowerCase(), '8.8', 'along with where it came from');
 
     await page.close();
   }
 
-  // ══ and none of it reached the pasted-message path ═══════════════════════
+  // ══ a document and a message reach the same answer ═══════════════════════
   {
-    /* A customer typing into WhatsApp is a different source with a different
-       established rule: there, the company's mapping from a grade to the steel
-       it buys has been in place for years and is not what this round is about.
-       Only a DOCUMENT is read strictly. */
+    /* One mapping, not two. A grade a customer types and a grade printed on a
+       drawing are the same specification and get the same material. */
     const page = await openApp(browser);
     await quickAddPaste(page, '4140 QT STUD PL\nM16 x 300 - 10pcs', { settle: 700 });
     A.eq((await rowState(page))[0].material, '4140', 'a typed 4140 QT is still 4140 QT');
     await quickAddPaste(page, 'G8.8 STUD PL\nM16 x 300 - 10pcs', { settle: 700 });
     const g = (await rowState(page))[0];
     A.eq(g.material, '4140', 'and a typed G8.8 still follows the company rule it always has');
-    A.eq(g.grade, '', 'a typed grade is answered, not held open');
     await page.close();
   }
 

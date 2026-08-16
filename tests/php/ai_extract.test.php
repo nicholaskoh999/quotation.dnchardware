@@ -84,10 +84,16 @@ ok(strpos($ins, 'WHAT A SPECIFICATION CELL ACTUALLY COVERS') !== false,
    'and how far a merged specification cell reaches');
 ok(strpos($ins, "A ROW'S OWN SPECIFICATION BEATS A GENERAL REMARK") !== false,
    'and that a row beats a sheet-wide remark');
-ok(strpos($ins, 'A STRENGTH CLASS IS NOT A MATERIAL') !== false,
-   'and that a strength class is not a steel');
-foreach (['8.8 is not 4140', 'A2 is not', 'ever a material'] as $phrase) {
+ok(strpos($ins, 'COPY THE SPECIFICATION, DO NOT TRANSLATE IT') !== false,
+   'and that the wording is copied, not translated into an alloy');
+/* The company's mapping from a class to the steel it buys is ours to apply,
+   in wqaDetectCommon, on every source alike. The model states the class. */
+foreach (['never answer 8.8 with', 'A2 is not', 'ever a material',
+          'not yours to apply'] as $phrase) {
     ok(strpos($ins, $phrase) !== false, "the prompt says so in as many words: \"$phrase\"");
+}
+foreach (['HT8.8', 'AISI 304', 'AISI 316', 'A4-70'] as $w) {
+    ok(strpos($ins, $w) !== false, "$w is named in the vocabulary");
 }
 foreach (['A2-70', 'A4-70', 'SUS304', 'SUS316'] as $w) {
     ok(strpos($ins, $w) !== false, "$w is named in the vocabulary");

@@ -8965,6 +8965,32 @@ const WQA_MATERIALS=[
      reading of it: "4140 QT + HARDEN = G10.9" selects exactly that. */
   {re:/\b4140\s*(qt)?\s*\+?\s*harden\b/i,                value:'4140_HARDEN_G10_9'},
   {re:/\bs45c\s*\+?\s*harden\b/i,                        value:'S45C_HARDEN_G8_8'},
+  /* ── STAINLESS IDENTITY, ahead of every strength grade ──────────────────
+     SS304, SS 304, S/S304, S.S 304, SUS304, AISI 304, STAINLESS STEEL 304,
+     304 SS — and ISO 3506's property classes A2 and A4, which is how an
+     engineering specification usually writes them: A2-50, A2-70, A4-80.
+
+     The GRADE is what makes it a material. A bare "S/S", "SS" or "Stainless"
+     with no number stays null and Review asks, because 304 and 316 are
+     different materials and choosing one would be a guess. A bare 304 or 316
+     is just a number — "304 pcs" is a quantity, "Length 316mm" is a length.
+
+     Tested FIRST, before the strength families below, because an explicit base
+     material outranks a strength written beside it: "SUS304 GRADE 8.8" is
+     stainless, and A2-70's 70 is a property class and not grade 8.8. The loop
+     stops at the first match, so putting identity first IS the precedence
+     rule.
+
+     The guard is for drawings: A2 and A4 are also sheet sizes, so the paper
+     words disqualify them. Nothing else about the token is guessed. */
+  {re:/\bs\s*[\/.]?\s*s\s*[\s\/.-]*304\b|\bsus[\s-]*304\b|\baisi[\s-]*304\b|\bstainless(?:\s*steel)?[\s-]*304\b|\b304[\s-]*(?:ss|s\s*\/\s*s|stainless(?:\s*steel)?)\b/i,
+   value:'SS304'},
+  {re:/\bs\s*[\/.]?\s*s\s*[\s\/.-]*316\b|\bsus[\s-]*316\b|\baisi[\s-]*316\b|\bstainless(?:\s*steel)?[\s-]*316\b|\b316[\s-]*(?:ss|s\s*\/\s*s|stainless(?:\s*steel)?)\b/i,
+   value:'SS316'},
+  {re:/\ba2(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
+   value:'SS304', from:'A2'},
+  {re:/\ba4(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
+   value:'SS316', from:'A4'},
   /* 10.9 is the other established strength mapping, and it is 4340 QT — never
      a harder 4140. It has to be tested BEFORE the 8.8/HT family below, because
      "HT 10.9" contains the generic HT and must not be answered by it: the more
@@ -8974,54 +9000,26 @@ const WQA_MATERIALS=[
      4340 QT exactly as a bare grade 10.9 does.
      notAfter keeps a grade apart from a measurement that happens to read the
      same: "qty 10.9" and "length 10.9" are numbers, not materials. */
-  {re:/\bgrade[\s-]*10\.?9\b|\bgr\.?[\s-]*10\.?9\b|\bg[\s-]*10\.?9\b|\bht[\s-]*10\.?9\b|\bhigh[\s-]*tensile[\s-]*10\.?9\b|\b10\.9\b(?!\s*(?:mm|cm|kg|m\b))/i,
+  {re:/\bgrade[\s-]*10\.?9\b|\bgr\.?[\s-]*10\.?9\b|\bg[\s-]*10\.?9\b|\bclass[\s-]*10\.?9\b|\bcl\.?[\s-]*10\.?9\b|\bh\.?\s*t\.?[\s-]*10\.?9\b|\bhigh[\s-]*tensile[\s-]*(?:grade[\s-]*)?10\.?9\b|\baisi[\s-]*4340(?:[\s-]*q\s*&?\s*t)?\b|\b4340\s*q\s*&\s*t\b|\b10\.9\b(?!\s*(?:mm|cm|kg|m\b))/i,
    notAfter:WQA_MEASURED_RE, value:'4340', defaulted:true, strength:true, from:'G10.9'},
-  /* G8.8, HT and High Tensile are all STRENGTH descriptions, not materials.
-     Several materials can meet them, and the established business answer for
-     all of them is 4140 QT — a defined mapping, not a guess, so the row is not
-     blocked; the note simply says which wording produced it. Writing
-     "S45C + HARDEN" explicitly still selects that material on the line above.
+  /* 8.8 is the company's other established mapping, and it is 4140 QT. Grade,
+     Class, GR, G, HT and High Tensile all name the same family as long as the
+     NUMBER is with them, and a DIN 975 standard beside it changes nothing.
 
-     HT is a two-letter token, so it is matched ONLY standing alone: "HT SAG
-     ROD" is high tensile, "length 1000" is not, and no word containing those
-     letters can trigger it. */
-  /* Longest wording first, because the first alternative that matches is also
+     A bare HT or HIGH TENSILE names no material. Both 8.8 and 10.9 are high
+     tensile, so the wording on its own does not say which of the two steels the
+     company would buy — it stays null and Review asks. It used to answer 4140
+     QT, which is a guess between two real and different materials.
+
+     Longest wording first, because the first alternative that matches is also
      the wording shown back to the customer: "GRADE 8.8 → 4140 QT", not
-     "8.8 → 4140 QT". HT stays two letters and is matched only as a whole token,
-     so "height 200" and "length 1000" can never reach it. */
-  {re:/\bgrade[\s-]*8\.?8\b|\bgr\.?[\s-]*8\.?8\b|\bg[\s-]*8\.?8\b|\bht[\s-]*8\.?8\b|\bhigh[\s-]*tensile[\s-]*8\.?8\b|\bhigh[\s-]*tensile(?:\s*steel)?\b|\bht\b(?:\s*(?:material|rod|steel|stud|bolt))?|\b8\.8\b(?!\s*mm)/i,
+     "8.8 → 4140 QT". */
+  {re:/\bgrade[\s-]*8\.?8\b|\bgr\.?[\s-]*8\.?8\b|\bg[\s-]*8\.?8\b|\bclass[\s-]*8\.?8\b|\bcl\.?[\s-]*8\.?8\b|\bh\.?\s*t\.?[\s-]*8\.?8\b|\bhigh[\s-]*tensile[\s-]*(?:grade[\s-]*)?8\.?8\b|\baisi[\s-]*4140(?:[\s-]*q\s*&?\s*t)?\b|\b4140\s*q\s*&\s*t\b|\b8\.8\b(?!\s*mm)/i,
    notAfter:WQA_MEASURED_RE, value:'4140', defaulted:true, strength:true, from:'G8.8'},
-  {re:/\b4140\s*qt\b/i,                                   value:'4140'},
+  {re:/\b4140\s*(?:qt|q\s*&\s*t)\b/i,                       value:'4140'},
   {re:/\b4140\s*(plain|non[\s-]*qt|not[\s-]*qt)\b|\b(plain|non[\s-]*qt)\s*4140\b/i, value:'4140_PLAIN'},
   {re:/\b4140\b/i,                                        value:'4140', defaulted:true},
-  {re:/\b4340\s*(qt)?\b/i,                                value:'4340'},
-  /* Stainless is written SS304, SS 304, S/S304, S.S 304, SUS304, STAINLESS
-     STEEL 304 or 304 SS. The GRADE is what makes it a material: a bare "S/S" or
-     "Stainless" with no number stays null and Review asks, and a bare 304 or
-     316 is just a number — "304 pcs" is a quantity, "Length 316mm" is a
-     length. */
-  {re:/\bs\s*[\/.]?\s*s\s*[\s\/.-]*304\b|\bsus[\s-]*304\b|\bstainless(?:\s*steel)?[\s-]*304\b|\b304[\s-]*(?:ss|s\s*\/\s*s|stainless(?:\s*steel)?)\b/i,
-   value:'SS304'},
-  {re:/\bs\s*[\/.]?\s*s\s*[\s\/.-]*316\b|\bsus[\s-]*316\b|\bstainless(?:\s*steel)?[\s-]*316\b|\b316[\s-]*(?:ss|s\s*\/\s*s|stainless(?:\s*steel)?)\b/i,
-   value:'SS316'},
-  /* ── A2 and A4 are STAINLESS property classes ───────────────────────────
-     ISO 3506 classifies stainless fasteners as A2 (the 304 family) and A4 (the
-     316 family), with a strength suffix: A2-70, A4-80. Engineering
-     specifications write them constantly, and they are a different
-     classification family from the carbon-steel strength grades 5.8 / 8.8 /
-     10.9 — an A2 is not "grade 2" and an A4 is not a strength.
-
-     Tested AFTER the explicit SUS304 / SS304 spellings above, so a document
-     that says both resolves through the named grade and the two never produce
-     two different materials for one item.
-
-     The guard is for drawings: a sheet size is also written A2 and A4, so the
-     paper words disqualify it. Nothing else about the token is guessed — a
-     bare A2 with no such word beside it IS the property class. */
-  {re:/\ba2(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
-   value:'SS304', from:'A2'},
-  {re:/\ba4(?:[\s-]*\d{2})?\b/i, notAfter:WQA_MEASURED_RE, notNear:WQA_PAPER_RE,
-   value:'SS316', from:'A4'},
+  {re:/\b4340\s*(?:qt|q\s*&\s*t)?\b/i,                      value:'4340'},
   {re:/\by\s*bar\b|\bybar\b/i,                            value:'Y_BAR'},
   {re:/\bs45c\b/i,                                        value:'S45C'},
   {re:/\bms\b|\bm\s*\/\s*s\b|\bmild\s*steel\b/i,          value:'MS'},
@@ -9029,14 +9027,14 @@ const WQA_MATERIALS=[
 /* Finish -> existing finish values only. "plain" reads as the PL finish; it is
    NOT treated as plain-4140 material, which needs explicit non-QT wording. */
 const WQA_FINISHES=[
-  {re:/\bhdg\b|\bhot\s*dip\b|\bgalvani[sz]ed\b/i, value:'HDG'},
+  {re:/\bhdg\b|\bhot[\s-]*dip\b|\bgalvani[sz]ed\b/i, value:'HDG'},
   /* Zinc plating is written a dozen ways by hand and comes back from OCR with
      whatever punctuation was on the paper: ZP, Z/P, Z(P), Z[P], z p. They all
      mean the one finish we quote. */
   {re:/\bzp\b|\bz\s*[\/(\[]\s*p\s*[)\]]?|\bz\s+p\b|\bzinc\b/i, value:'ZP'},
   /* Black is what the trade calls an uncoated rod, and PL is what we quote it
      as. Matched as a whole word only. */
-  {re:/\bpl\b|\bplain\b|\bblack\b/i,             value:'PL'},
+  {re:/\bpl\b|\bplain\b|\bblack\b|\bself[\s-]*colou?r\b/i, value:'PL'},
 ];
 
 const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPrice:null,
@@ -10376,20 +10374,17 @@ function wqaMatchMaterial(m,said){
   }
   return null;
 }
-/* ── A strength is not an alloy ─────────────────────────────────────────────
-   "Grade 8.8" and "10.9" are STRENGTH classes. Several materials meet them,
-   and this shop's established answer for a customer's own message is 4140 QT —
-   a company default, badged as one, and the wording is shown back.
+/* ── One mapping, whatever the source ──────────────────────────────────────
+   "Grade 8.8" means the same thing on a drawing as it does in a WhatsApp
+   message: the company buys 4140 QT for it, and 4340 QT for 10.9. Those are
+   defined company mappings, not guesses, so a row carrying one is priced and
+   not held open — and the wording that produced it is shown back beside the
+   answer, so nobody has to wonder where 4140 QT came from.
 
-   An engineering specification is a different kind of document. "DIN 975 Grade
-   8.8" is the item's specification, not a request for our usual steel, and
-   answering it with 4140 QT puts an alloy on a quotation that the document
-   never named. So the extracted-document path asks for the mapping to be left
-   alone: the grade is kept as the evidence it is, the material stays empty,
-   and the row asks. Nothing is invented to make pricing easier.
-
-   opts.noStrengthAlloy — set by wqaNormalizeExtraction, never by the parser
-   that reads a customer's pasted words. */
+   This deliberately replaced a split where a document's grade was kept as a
+   strength class with no material while a typed one resolved. Two answers for
+   one specification is worse than either answer: the same stud came out of a
+   photograph unpriceable and out of a pasted line priced. */
 function wqaDetectCommon(text,opts){
   const hay=' '+wqaNorm(text).toLowerCase()+' ';
   const out={product:null,material:'',materialDefaulted:false,finish:'',sizeType:'',strengthGrade:''};
@@ -10422,13 +10417,8 @@ function wqaDetectCommon(text,opts){
     const hit=wqaMatchMaterial(m,said);
     if(!hit) continue;
     const wording=String(hit[0]).replace(/\s+/g,' ').trim()||m.from||'';
-    if(m.strength && opts && opts.noStrengthAlloy){
-      /* Read, recorded, and NOT turned into a material. Kept looking, because
-         the document may name the alloy somewhere else — and if it does, that
-         is the answer. */
-      if(!out.strengthGrade) out.strengthGrade=wording;
-      continue;
-    }
+    /* The class the answer came from, kept beside it as the evidence it is. */
+    if(m.strength) out.strengthGrade=wording;
     out.material=m.value; out.materialDefaulted=!!m.defaulted;
     out.materialDefaultedFrom=wording||'4140';
     break;
@@ -12331,9 +12321,8 @@ function wqaNormalizeExtraction(d, opts){
     ? opts.wording
     : [d.material,d.finish,st,word[src]||''].filter(Boolean).join(' ');
   /* An extracted document's own words go through the same vocabulary a pasted
-     message does — with one difference: a strength grade is not answered with
-     an alloy here. See wqaDetectCommon. */
-  const common=wqaDetectCommon(wording,{noStrengthAlloy:true});
+     message does, and reach the same answer. See wqaDetectCommon. */
+  const common=wqaDetectCommon(wording);
   common.product=prod;
 
   const ends=wqaThreadEnds(prod);
@@ -12342,6 +12331,7 @@ function wqaNormalizeExtraction(d, opts){
      standardise identically. */
   const rodSize=ends>0 || common.sizeType==='UNDERSIZE';
   const inh={M:'',TL:'',material:'',finish:'',sizeType:'',grade:'',
+             matFrom:'',matDefaulted:false,
              raw:{material:'',finish:'',sizeType:''}};
   const rows=(d.items||[]).map(it=>{
     const conf={...(it.conf||{})};
@@ -12449,8 +12439,7 @@ function wqaNormalizeExtraction(d, opts){
        the SAME wqaDetectCommon rules the document wording does. Neither source
        gets its own normalisation engine. */
     const own=(it.material||it.finish||it.sizeType)
-      ? wqaDetectCommon([it.material,it.finish,it.sizeType].filter(Boolean).join(' '),
-                        {noStrengthAlloy:true})
+      ? wqaDetectCommon([it.material,it.finish,it.sizeType].filter(Boolean).join(' '))
       : null;
     /* specResolved means the extractor has ALREADY applied row > group >
        document for this item, so an empty value is an answer — "no finish was
@@ -12488,13 +12477,26 @@ function wqaNormalizeExtraction(d, opts){
        the value is, so row 4 of a merged cell can say where its HDG came
        from. Never invented: a row the document did not speak for has none. */
     const rawSeen={material:'',finish:'',sizeType:''};
+    let matInherited=false;
     const carry=(k,v)=>{
       if(v||said[k]){
         inh[k]=v; inh.raw[k]=rawIn[k]; rawSeen[k]=rawIn[k];
-        if(k==='material') inh.grade=(own&&own.strengthGrade)||'';
+        /* A material's provenance travels with it: the class it was read from
+           and whether it was our mapping rather than the customer's own word.
+           Without this, row 4 of a merged cell showed 4140 QT with nothing
+           saying it came from the block's GRADE 8.8. */
+        if(k==='material'){
+          inh.grade=(own&&own.strengthGrade)||'';
+          inh.matFrom=(own&&own.materialDefaulted)?own.materialDefaultedFrom:'';
+          inh.matDefaulted=!!(own&&own.materialDefaulted);
+        }
         return v;
       }
-      if(opts.inheritGaps && !common[k] && !unread){ rawSeen[k]=inh.raw[k]; return inh[k]; }
+      if(opts.inheritGaps && !common[k] && !unread){
+        rawSeen[k]=inh.raw[k];
+        if(k==='material') matInherited=true;
+        return inh[k];
+      }
       return v;
     };
     const spec = it.specResolved ? {
@@ -12570,9 +12572,11 @@ function wqaNormalizeExtraction(d, opts){
                specRaw:(it.specResolved?{material:'',finish:'',sizeType:''}:rawSeen),
                stDefaulted, stWhy,
                matFrom: it.matFrom || ((own&&own.materialDefaulted)?own.materialDefaultedFrom:'')
+                        || (matInherited ? inh.matFrom : '')
                         || (spec.material===common.material ? (common.materialDefaultedFrom||'') : ''),
                matDefaulted: it.matDefaulted!==undefined ? !!it.matDefaulted
-                            : ((own&&own.materialDefaulted) || (spec.material===common.material && !!common.materialDefaulted)),
+                            : ((own&&own.materialDefaulted) || (matInherited && inh.matDefaulted)
+                               || (spec.material===common.material && !!common.materialDefaulted)),
                /* Read off the document and kept as the fact it is: a strength
                   class, not a material. The row shows it and asks for the
                   material rather than choosing an alloy nobody wrote. */

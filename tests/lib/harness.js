@@ -146,6 +146,7 @@ async function rowState(page) {
       qty: r.qty, product: r.product, material: r.material, finish: r.finish,
       sizeType: r.sizeType, noDia: r.noDia,
       grade: r.grade || '', radius: r.radius || '',
+      matFrom: r.matFrom || '', matDefaulted: !!r.matDefaulted,
       hFromL: !!r.hFromL, finishSeen: r.finishSeen || '',
       unsupported: r.unsupported || '',
       specRaw: r.specRaw || { material: '', finish: '', sizeType: '' },

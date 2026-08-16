@@ -463,29 +463,33 @@ written: no wording means null. Stainless needs its GRADE — "stainless" or "SS
 with no 304/316 beside it is material = "stainless steel" and nothing more; do
 not choose a grade.
 
-A STRENGTH CLASS IS NOT A MATERIAL, AND NEITHER IS A FINISH
-Copy what the document says. Never answer it with something it did not say.
-  - Grade 8.8, Class 8.8, GR8.8, 8.8, Grade 10.9, Class 5.8, ISO 898, DIN 975
-    Grade 8.8 are STRENGTH classes and the standards that define them. They say
-    how strong the fastener is, not what steel it was cut from. Put the wording
-    in material exactly as written and stop there. A strength class NEVER
-    becomes an alloy: 8.8 is not 4140, not 4140 QT, not 42CrMo, not S45C and
-    not "high tensile steel"; 10.9 is not 4340; 5.8 is not mild steel. Where
-    the sheet names no steel, no steel is reported.
-  - HDG, Hot Dip Galvanised, Galvanized, GI, ZP, Zinc Plated, Electroplated,
-    PL, Plain, Black, Self Colour and Painted are FINISHES. They belong in
-    finish. None of them is ever a material: a block whose only wording is
-    "GRADE 8.8 / HDG" has material "GRADE 8.8", finish "HDG", and nothing else.
-  - A2, A2-70, A2-80, SUS304, SS304, S/S 304 and 304 are the stainless class
-    for 304; A4, A4-70, A4-80, SUS316, SS316, S/S 316 and 316 are the
-    stainless class for 316. Copy the wording as written. They are stainless
-    designations and are never read as carbon strength grades — A2 is not
-    "grade 2", and A4 is not a strength class. Watch the paper trap: "A4",
-    "A3" or "A2" beside sheet, paper, size, scale, format or drawing size is
-    the paper the drawing is printed on, and is not a material at all.
-Our review screen shows a strength class beside the row and asks a person for
-the material. A class you answered with an alloy would go to a customer
-unquestioned.
+COPY THE SPECIFICATION, DO NOT TRANSLATE IT
+The wording goes into material and finish exactly as the document writes it.
+Our own code maps it to the material we quote — that mapping is the company's
+and it is not yours to apply or to second-guess.
+  - Grade 8.8, Class 8.8, GR8.8, HT8.8, 8.8, High Tensile 8.8, DIN 975 Grade
+    8.8, Grade 10.9, Class 10.9, HT10.9, ISO 898 Class 5.8 are STRENGTH classes
+    and the standards that define them. Copy the wording. Do NOT write an alloy
+    of your own in its place: never answer 8.8 with "4140", "42CrMo" or
+    "high tensile steel", and never answer 10.9 with "4340". Report what is
+    printed and let our rules decide what it is bought as.
+  - HDG, Hot Dip Galvanised, Galvanized, GI, ZP, Zinc, Zinc Plated,
+    Electroplated, PL, Plain, Black, Self Colour and Painted are FINISHES. They
+    belong in finish. None of them is ever a material: a block whose only
+    wording is "GRADE 8.8 / HDG" has material "GRADE 8.8", finish "HDG", and
+    nothing else.
+  - A2, A2-70, A2-80, SUS304, SS304, S/S 304, AISI 304 and 304 are the
+    stainless class for 304; A4, A4-70, A4-80, SUS316, SS316, S/S 316,
+    AISI 316 and 316 are the stainless class for 316. Copy the wording as
+    written. They are stainless designations and are never read as carbon
+    strength grades — A2 is not "grade 2", and A4-70's 70 is a property class,
+    not grade 8.8. Where a block says both a stainless class and a strength
+    class, copy both and let our rules settle which is the material. Watch the
+    paper trap: "A4", "A3" or "A2" beside sheet, paper, size, scale, format or
+    drawing size is the paper the drawing is printed on, and is not a material
+    at all.
+Report the wording the document uses, whole. An alloy you supplied yourself
+would go to a customer as if the drawing had named it.
 
 These three are the DOCUMENT-wide values: the ones that apply to the whole
 sheet. A document that specifies each block separately has none — put each

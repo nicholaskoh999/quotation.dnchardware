@@ -43,6 +43,19 @@ const CASES = [
      item({ M: 'M10', L: 120, qty: 27, product: 'STUD', material: 'DIN 975 GRADE 8.8', finish: 'HDG' }),
      item({ M: 'M10', L: 125, qty: 21, product: 'STUD' }),
    ] })],
+  ['LIVE — HT8.8 two-end studs, zinc (photographed order list)',
+   doc({ items: [
+     item({ M: 'M12', L: 1582, TL: '200/200', qty: 37,  threadEnds: 2, product: 'SAG_ROD',
+            material: 'HT8.8', finish: 'ZINC' }),
+     item({ M: 'M12', L: 1406, TL: '200/200', qty: 382, threadEnds: 2, product: 'SAG_ROD' }),
+     item({ M: 'M12', L: 1104, TL: '200/200', qty: 44,  threadEnds: 2, product: 'SAG_ROD' }),
+     item({ M: 'M12', L: 986,  TL: '200/200', qty: 28,  threadEnds: 2, product: 'SAG_ROD' }),
+   ] })],
+  ['LIVE — HAB-TA-01, five parts captioned PLAIN G8.8 M30 x their own length',
+   doc({ items: [950, 865, 1000, 1200, 1285].map((L, i) => item({
+     M: 'M30', L, TL: i ? '200/200' : null, threadEnds: i ? 2 : null,
+     Bmid: [null, 465, 600, 800, 885][i], product: 'SAG_ROD',
+     material: i ? null : 'PLAIN G8.8', finish: i ? null : 'PLAIN' })) })],
 ];
 
 const pad = (s, n) => String(s === '' || s == null ? '—' : s).padEnd(n);
@@ -72,6 +85,7 @@ const pad = (s, n) => String(s === '' || s == null ? '—' : s).padEnd(n);
         product: r.product, size: r.size, length: r.length, w: r.w,
         h: r.h, id: r.id, s: r.s, thread: wqaThreadValue(r), qty: r.qty,
         material: r.material, finish: r.finish, sizeType: r.sizeType,
+        matFrom: r.matFrom || '',
         grade: r.grade, radius: r.radius, hFromL: r.hFromL, finishSeen: r.finishSeen,
         specRaw: r.specRaw || {},
         missing: wqaRowMissing(r).join(', '),
@@ -93,6 +107,7 @@ const pad = (s, n) => String(s === '' || s == null ? '—' : s).padEnd(n);
                    ['sizeType', r.specRaw.sizeType]].filter(([, v]) => v)
                   .map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(' · ');
       if (raw) say(`            read from: ${raw}`);
+      if (r.matFrom) say(`            material from: ${JSON.stringify(r.matFrom)}`);
       if (r.badges) say(`            ${r.badges}`);
     });
   }

@@ -70,6 +70,21 @@ const VOCAB = doc({
   ],
 });
 
+/* LIVE — the photographed order list: one heading, four rows, HT8.8 and zinc. */
+const HT88 = doc({ items: [
+  item({ M: 'M12', L: 1582, TL: '200/200', qty: 37,  threadEnds: 2, product: 'SAG_ROD',
+         material: 'HT8.8', finish: 'ZINC' }),
+  item({ M: 'M12', L: 1406, TL: '200/200', qty: 382, threadEnds: 2, product: 'SAG_ROD' }),
+  item({ M: 'M12', L: 1104, TL: '200/200', qty: 44,  threadEnds: 2, product: 'SAG_ROD' }),
+  item({ M: 'M12', L: 986,  TL: '200/200', qty: 28,  threadEnds: 2, product: 'SAG_ROD' }),
+] });
+
+/* LIVE — HAB-TA-01: five parts, each captioned PLAIN G8.8 M30 x its own length. */
+const HAB = doc({ items: [950, 865, 1000, 1200, 1285].map((L, i) => item({
+  M: 'M30', L, TL: i ? '200/200' : null, threadEnds: i ? 2 : null,
+  Bmid: [null, 465, 600, 800, 885][i], product: 'SAG_ROD',
+  material: i ? null : 'PLAIN G8.8', finish: i ? null : 'PLAIN' })) });
+
 const shot = async (page, name, sel) => {
   const t = sel ? await page.$(sel) : null;
   await (t || page).screenshot({ path: path.join(OUT, name + '.png') });
@@ -95,6 +110,9 @@ async function frame(browser, name, d, opts = {}) {
   await frame(browser, '5-caseB-compact',        CASE_B, { height: 1200, view: 'compact', settle: 1500 });
   await frame(browser, '6-row-beats-remark',     REMARK);
   await frame(browser, '7-vocabulary',           VOCAB, { height: 1300, settle: 1500 });
+  await frame(browser, '8-live-ht88-zinc',       HT88,  { height: 1200, settle: 1400 });
+  await frame(browser, '9-live-ht88-compact',    HT88,  { height: 1100, view: 'compact', settle: 1400 });
+  await frame(browser, '10-live-plain-g88',      HAB,   { height: 1300, settle: 1400 });
   await browser.close();
   console.log('\n  extraction frames in ' + OUT);
 })().catch(e => { console.error('FATAL', e); process.exit(1); });
