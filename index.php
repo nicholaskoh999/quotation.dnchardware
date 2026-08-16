@@ -4047,6 +4047,8 @@ const I18N={
     wqaHistManual:'Using {r} — it was priced by hand at RM {v}',
     wqaHistFinalOnly:'Using {r} — historical final price RM {v} only, pricing breakdown not recorded',
     wqaHistUnseparable:'That record cannot be separated from its accessories — reuse it by hand',
+    wqaHistMoved:'This item has changed — that record no longer describes it. Open its history again.',
+    wqaHistOtherFinish:'That record is a different finish — a reference, not a recipe to reuse',
     badgeHistRecipe:'pricing', badgeHistPrice:'price',
     wqaTitle:'WhatsApp Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
     wqaDiscardTitle:'Discard Quick Add changes?',
@@ -4284,6 +4286,8 @@ const I18N={
     wqaHistManual:'沿用 {r} —— 该单据当时以人手定价 RM {v}',
     wqaHistFinalOnly:'沿用 {r} —— 只有历史最终单价 RM {v}，没有记录计价明细',
     wqaHistUnseparable:'该记录无法与配件分开 —— 请手动沿用',
+    wqaHistMoved:'此项目已更改 —— 该记录已不符合，请重新打开历史价格。',
+    wqaHistOtherFinish:'该记录表面处理不同 —— 仅供参考，不可直接沿用计价方式',
     badgeHistRecipe:'计价方式', badgeHistPrice:'单价',
     wqaTitle:'WhatsApp 快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
     wqaDiscardTitle:'要放弃快速添加的内容吗？',
@@ -8110,6 +8114,10 @@ function phSortRecords(records){
   records.sort((x,y)=>{
     const rx=x.own?0:1, ry=y.own?0:1;
     if(rx!==ry) return rx-ry;
+    /* The exact specification first, then the same rod in another coating as a
+       reference — the same order dc_history_sort uses. */
+    const fx=x.finishMatch===false?1:0, fy=y.finishMatch===false?1:0;
+    if(fx!==fy) return fx-fy;
     const dx=(x.dimDistance===null||x.dimDistance===undefined)?Infinity:Number(x.dimDistance);
     const dy=(y.dimDistance===null||y.dimDistance===undefined)?Infinity:Number(y.dimDistance);
     if(dx!==dy) return dx-dy;
@@ -8152,7 +8160,13 @@ function phRecordHtml(rec,onUse){
        : `<span class="ph-rec-tag">Differs by ${escHtml(phDimText(dist))}</span>`));
   if(rec.legacy) tags.push('<span class="ph-rec-tag">Legacy record</span>');
   if(rec.accessoryAmbiguous) tags.push('<span class="ph-rec-tag ph-rec-warn">Accessories not separable</span>');
-  const useBtn = onUse && bolt!==null
+  /* The same rod in another coating. Shown, because it is the same rod and a
+     person wants to see what it went out at — and labelled, because a coating
+     is what changes the cost rate. It is a reference, so it is not offered as
+     a recipe to reuse. */
+  const otherFinish = rec.finishMatch===false;
+  if(otherFinish) tags.push(`<span class="ph-rec-tag ph-rec-warn">Different finish — quoted ${escHtml(rec.finish||'—')} · reference only</span>`);
+  const useBtn = onUse && bolt!==null && !otherFinish
     ? `<button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="${onUse}">Use this price</button>` : '';
   return `<div class="ph-rec${own?' ph-rec-own':''}">
     <div class="ph-rec-head">
@@ -13912,9 +13926,32 @@ function wqaRemoveRow(i){ wqaMarkEdited(wqa.rows[i],'removed'); wqa.rows[i].remo
    quotation line would charge last year's nuts twice. */
 /* The price modes that WORK a price out. Manual states one instead. */
 const WQA_CALC_MODES=['auto','no_round'];
+/* Does this record still describe THIS row? Asked with the row's own history
+   identity — the same wqaHistSpec the lookup was made with, so there is one
+   set of rules and not a second matcher drifting beside it.
+
+   The panel reloads when a row's identity moves, and clears the old cards
+   before it waits. But the edit that moves it is debounced, and a card is
+   clickable for exactly as long as it is on screen: change the material and
+   press Use in the same breath and a 4140 QT recipe reached a mild steel row.
+   Cheap to check, and it is the last thing standing between a stale card and a
+   customer's price.
+
+   FINISH is deliberately not part of this. A record in another coating is
+   shown as a reference and has no reuse button at all — see phRecordHtml — so
+   it can never arrive here. */
+function wqaHistMatches(r,rec){
+  const spec=wqaHistSpec(r);
+  if(!spec||!rec) return false;
+  const same=(a,b)=>String(a||'').trim().toUpperCase()===String(b||'').trim().toUpperCase();
+  return same(spec.productType,rec.productType) && same(spec.material,rec.material)
+      && same(spec.sizeType,rec.sizeType)       && same(spec.cleanSize,rec.cleanSize);
+}
 function wqaHistUse(i,n){
   const r=wqa.rows[i]; if(!r||!r.hist||!r.hist.records) return;
   const rec=r.hist.records[n]; if(!rec) return;
+  if(!wqaHistMatches(r,rec)){ showToast(dcT('wqaHistMoved')); return; }
+  if(rec.finishMatch===false){ showToast(dcT('wqaHistOtherFinish')); return; }
   const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?null:Number(rec.boltUnitPrice);
   if(bolt===null){ showToast(dcT('wqaHistUnseparable')); return; }
 

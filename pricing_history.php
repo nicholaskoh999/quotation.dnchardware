@@ -222,7 +222,19 @@ function dc_history_record($item, $want, $meta) {
     if ($productType !== dc_norm_product($want['productType'] ?? ''))       return null;
     if (strcasecmp($material,  (string)($want['material'] ?? '')) !== 0)    return null;
     if (strcasecmp($sizeType,  (string)($want['sizeType'] ?? '')) !== 0)    return null;
-    if (strcasecmp($finish, dc_finish_for($material, (string)($want['finish'] ?? ''))) !== 0) return null;
+    /* ── The one identity field that admits a REFERENCE ───────────────────
+       Everything above is the item's identity and must be exact. A coating is
+       different: the same rod in another finish is unmistakably the same rod,
+       and refusing it altogether reported "no previous price" for a half-inch
+       MS undersize sag rod that had been quoted twice — hiding the two records
+       a person most wanted to see.
+
+       So it is kept and FLAGGED. It ranks below every exact match, the card
+       says which coating it was, and it offers no reuse button, because a
+       coating is precisely what changes the cost rate: reusing a PL recipe on
+       a ZP rod would quote the wrong rate with nothing on screen to say so. */
+    $wantFinish  = dc_finish_for($material, (string)($want['finish'] ?? ''));
+    $finishMatch = strcasecmp($finish, $wantFinish) === 0;
     if (strcasecmp($cleanSize, (string)($want['cleanSize'] ?? '')) !== 0)   return null;
 
     $form  = is_array($item['formData'] ?? null) ? $item['formData'] : [];
@@ -283,6 +295,8 @@ function dc_history_record($item, $want, $meta) {
         'material'     => $material,
         'sizeType'     => $sizeType,
         'finish'       => $finish,
+        /* False = the same rod, another coating: a reference, never a recipe. */
+        'finishMatch'  => $finishMatch,
         'cleanSize'    => $cleanSize,
         'dimensionPreview' => $dimPreview,
         'exactDims'    => $exact,
@@ -336,6 +350,11 @@ function dc_history_sort(array &$records) {
         $ra = empty($a['own']) ? 1 : 0;
         $rb = empty($b['own']) ? 1 : 0;
         if ($ra !== $rb) return $ra <=> $rb;
+        /* The exact specification first, then the same rod in another coating
+           as a reference. Inside each, still the nearest geometry. */
+        $fa = (isset($a['finishMatch']) && $a['finishMatch'] === false) ? 1 : 0;
+        $fb = (isset($b['finishMatch']) && $b['finishMatch'] === false) ? 1 : 0;
+        if ($fa !== $fb) return $fa <=> $fb;
         $da = $a['dimDistance'] === null ? INF : (float)$a['dimDistance'];
         $db = $b['dimDistance'] === null ? INF : (float)$b['dimDistance'];
         if ($da !== $db) return $da <=> $db;

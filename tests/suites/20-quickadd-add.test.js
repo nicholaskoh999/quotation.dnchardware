@@ -15,7 +15,7 @@ const { openApp, quickAddPaste, rowState } = require('../lib/harness');
    one did. The size is echoed back so any row matches. */
 const histRecord = (size, price) => ({
   quotationId: 1, refNo: 'Q-2026-0125', date: '2026-01-25', customer: 'Alpha Sdn Bhd',
-  companyId: 7, own: true, productType: 'J BOLT', material: '4140 QT', sizeType: 'FULLSIZE',
+  companyId: 7, own: true, productType: 'J BOLT', material: '4140', sizeType: 'FULLSIZE',
   finish: 'PL', cleanSize: size, dimensionPreview: 'H 150 x ID 26 x S 36 x TL 75mm',
   exactDims: true, qty: 50, unitPrice: price, boltUnitPrice: price, accessoryCost: 0,
   accessorySummary: '', accessoryAmbiguous: false, priceMode: 'manual',

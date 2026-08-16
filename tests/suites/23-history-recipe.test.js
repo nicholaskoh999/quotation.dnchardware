@@ -54,10 +54,21 @@ const QUNSEPARABLE = REC({ refNo: 'Q-2024-0100', quotationId: 5, date: '2024-01-
                            boltUnitPrice: null, accessoryCost: 0.70,
                            accessorySummary: '2 Nut PL', accessoryAmbiguous: true });
 
+/* The server's own identity rules, applied to what the row actually asked for,
+   so a record can never be offered to a specification it does not belong to.
+   A stub that answers everything with the same record is how a frame showing
+   an MS row under a 4140 QT card came to exist — see suite 24. */
 const serve = records => ({
   get_pricing_history: url => {
-    const size = String(new URL(url).searchParams.get('cleanSize') || '');
-    const rows = records.map(r => Object.assign({}, r, { cleanSize: size }));
+    const p = new URL(url).searchParams;
+    const want = { productType: p.get('productType') || '', material: p.get('material') || '',
+                   sizeType: p.get('sizeType') || '', finish: p.get('finish') || '',
+                   cleanSize: p.get('cleanSize') || '' };
+    const rows = records
+      .map(r => Object.assign({}, r, { cleanSize: want.cleanSize }))
+      .filter(r => r.productType === want.productType && r.material === want.material
+                && r.sizeType === want.sizeType)
+      .map(r => Object.assign({}, r, { finishMatch: r.finish === want.finish }));
     return { ok: true, data: { records: rows, total: rows.length,
                                ownTotal: rows.filter(r => r.own).length,
                                otherTotal: rows.filter(r => !r.own).length,
@@ -103,7 +114,8 @@ const pricing = page => page.evaluate(() => {
   };
 });
 
-const ROW = 'MS SAG ROD PL FULLSIZE\nM16 x 300 x 50/50 - 35pcs';
+/* The row these records belong to: Q-2026-0366 is a 4140 QT rod. */
+const ROW = '4140 QT SAG ROD PL FULLSIZE\nM16 x 300 x 50/50 - 35pcs';
 
 module.exports = async (browser, A) => {
   const S = A.suite('previous price — a recipe, not a number');
@@ -184,7 +196,7 @@ module.exports = async (browser, A) => {
        final figure were being copied, both rows would read 6.84. */
     const page = await openApp(browser, { api: serve([Q0366]) });
     await page.evaluate(() => { selectedCompanyId = 7; });
-    await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM20 x 1000 x 100/100 - 10pcs',
+    await quickAddPaste(page, '4140 QT SAG ROD PL FULLSIZE\nM20 x 1000 x 100/100 - 10pcs',
       { expanded: false, settle: 900 });
     await useRecord(page, 'Q-2026-0366');
     const now = await pricing(page);

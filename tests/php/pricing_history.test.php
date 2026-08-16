@@ -52,13 +52,26 @@ foreach ([
     ['cleanSize', 'M18',       'a smaller size'],
     ['cleanSize', 'M22',       'a larger size'],
     ['sizeType',  'UNDERSIZE', 'a different size type'],
-    ['finish',    'ZP',        'zinc plated instead of plain'],
-    ['finish',    'HDG',       'galvanised instead of plain'],
     ['material',  'MS',        'mild steel instead of 4140 QT'],
 ] as $case) {
     list($field, $value, $why) = $case;
     eq(dc_history_record(item([$field => $value]), $WANT, $M), null, 'never matched: ' . $why);
 }
+/* A COATING is the one identity field that admits a reference. The same rod in
+   another finish is the same rod, and hiding it reported "no previous price"
+   for an item that had been quoted twice. It is kept and flagged, never
+   silently treated as the same specification. */
+foreach ([['ZP', 'zinc plated instead of plain'], ['HDG', 'galvanised instead of plain']] as $case) {
+    list($value, $why) = $case;
+    $ref = dc_history_record(item(['finish' => $value]), $WANT, $M);
+    ok($ref !== null, 'kept as a reference: ' . $why);
+    if ($ref !== null) {
+        eq($ref['finishMatch'], false, "and flagged as a different finish: $why");
+        eq($ref['finish'], $value, 'reporting the finish it actually was');
+    }
+}
+$exact = dc_history_record(item(), $WANT, $M);
+eq($exact['finishMatch'], true, 'while the same finish is an exact match');
 eq(dc_history_record(item(['productType'=>'SAG ROD','itemType'=>'sagrod']), $WANT, $M), null,
    'never matched: a Sag Rod is not an L Bolt');
 
@@ -267,8 +280,9 @@ eq(dc_finish_for('SUS316', 'HDG'), 'HDG',
 $MS_WANT = array_merge($SS_WANT, ['material'=>'MS','finish'=>'HDG']);
 ok(dc_history_record(ssItem('HDG','MS'), $MS_WANT, $M) !== null,
    'a mild steel record still matches on its finish');
-ok(dc_history_record(ssItem('PL','MS'), $MS_WANT, $M) === null,
-   'and a mild steel PL is still not a mild steel HDG');
+$msRef = dc_history_record(ssItem('PL','MS'), $MS_WANT, $M);
+ok($msRef !== null, 'a mild steel PL record is a reference for a mild steel HDG item');
+if ($msRef !== null) eq($msRef['finishMatch'], false, 'flagged as the different finish it is');
 eq(dc_finish_for('SS304', 'HDG'), '', 'dc_finish_for takes the finish off SS304');
 eq(dc_finish_for('SS316', 'ZP'),  '', 'and off SS316');
 eq(dc_finish_for('MS', 'HDG'), 'HDG', 'and leaves every other material alone');
@@ -379,6 +393,48 @@ for ($i = 0; $i < 300; $i++) {
 eq($asked, 0, 'three hundred newer unrelated quotations are not even asked for');
 ok(dc_history_blob_matches($legacyOnly, $LEG_WANT),
    'and the older matching one still is, however many newer ones exist');
+
+
+// ── the exact specification first, then the same rod in another coating ────
+/* The reported half-inch case: MS UNDERSIZE 1/2" quoted twice before at L980
+   and L1080, asked for today at L1020 in a different coating. Both must be
+   offered, the nearer length first, and the coating said. */
+$HALF_WANT = ['productType'=>'SAG ROD','material'=>'MS','sizeType'=>'UNDERSIZE','finish'=>'ZP',
+              'cleanSize'=>'1/2','dimensionPreview'=>'L 1020 x TL 100/100mm','companyId'=>7];
+function halfItem($len, $finish) {
+    return item(['itemType'=>'sagrod','productType'=>'SAG ROD','material'=>'MS',
+                 'sizeType'=>'UNDERSIZE','finish'=>$finish,'cleanSize'=>'1/2','sizeCode'=>'1/2',
+                 'size'=>'1/2" x L '.$len.' x TL 100/100mm',
+                 'dimensionPreview'=>'L '.$len.' x TL 100/100mm',
+                 'desc'=>'MS UNDERSIZE SAG ROD']);
+}
+$r980  = dc_history_record(halfItem(980,  'PL'), $HALF_WANT, meta(1,'Q-2026-0470','2026-01-20','Alpha',7));
+$r1080 = dc_history_record(halfItem(1080, 'PL'), $HALF_WANT, meta(2,'Q-2026-0471','2026-02-20','Alpha',7));
+$rZp   = dc_history_record(halfItem(1200, 'ZP'), $HALF_WANT, meta(3,'Q-2026-0472','2026-03-20','Alpha',7));
+ok($r980  !== null, 'the L980 half-inch record is not hidden by its coating');
+ok($r1080 !== null, 'nor the L1080 one');
+ok($rZp   !== null, 'and a record in the same coating is there too');
+eq($r980['finishMatch'],  false, 'the L980 is flagged as another coating');
+eq($rZp['finishMatch'],   true,  'while the ZP one is an exact match');
+eq($r980['dimDistance'],  40.0,  'L980 is 40mm from L1020');
+eq($r1080['dimDistance'], 60.0,  'and L1080 is 60mm');
+
+$ranked = [$r1080, $r980, $rZp];
+dc_history_sort($ranked);
+eq(implode(',', array_column($ranked, 'refNo')), 'Q-2026-0472,Q-2026-0470,Q-2026-0471',
+   'the exact coating ranks first, then the nearest length among the references');
+
+/* And the boundary the reference must never cross. */
+eq(dc_history_record(halfItem(980,'PL'), array_merge($HALF_WANT, ['cleanSize'=>'M16']), $M), null,
+   'a half-inch record is never offered to an M16');
+eq(dc_history_record(halfItem(980,'PL'), array_merge($HALF_WANT, ['cleanSize'=>'M12']), $M), null,
+   'nor to an M12 — a different diameter is a different rod');
+eq(dc_history_record(halfItem(980,'PL'), array_merge($HALF_WANT, ['material'=>'4140']), $M), null,
+   'and a coating reference never relaxes the material');
+eq(dc_history_record(halfItem(980,'PL'), array_merge($HALF_WANT, ['sizeType'=>'FULLSIZE']), $M), null,
+   'nor the size type');
+eq(dc_history_record(halfItem(980,'PL'), array_merge($HALF_WANT, ['productType'=>'ANCHOR BOLT']), $M), null,
+   'nor the product');
 
 
 // ── report ──────────────────────────────────────────────────────────────────
