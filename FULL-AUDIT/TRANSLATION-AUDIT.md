@@ -25,10 +25,10 @@ Three tools, and the third exists because the first two were not enough:
 
 | File | Keys | Translated | Missing zh | Undefined | Identical (non-code) | Bypassing dcT | Unapplied hooks |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| index.php | 677 | 100% | 0 | 0 | 0 | 0 | 0 |
+| index.php | 678 | 100% | 0 | 0 | 0 | 0 | 0 |
 | companies.php | 120 | 100% | 0 | 0 | 0 | 0 | 0 |
 | login.php | 11 | 100% | 0 | 0 | 0 | 0 | 0 |
-| **Total** | **808** | **100%** | **0** | **0** | **0** | **0** | **0** |
+| **Total** | **809** | **100%** | **0** | **0** | **0** | **0** | **0** |
 
 Regenerated from the final SHA. The overnight figure of 658 and the morning
 figure of 756 are both superseded and should not be quoted.
@@ -39,7 +39,7 @@ translation, it is not a translation at all**, and 129 of those were on screen.
 
 | | baseline | overnight | morning | final |
 |---|---:|---:|---:|---:|
-| dictionary keys | 512 | 658 | 756 | **808** |
+| dictionary keys | 512 | 658 | 756 | **809** |
 | dictionary coverage | 100% | 100% | 100% | **100%** |
 | strings bypassing `dcT`, as the checker THEN saw it | 129 | 0 | 0 | **0** |
 | strings bypassing `dcT`, as the CURRENT checker sees it | — | ~210 | **36** | **0** |
@@ -221,7 +221,7 @@ scanning the source, and is English on the screen forever. **63 elements** were
 built that way.
 
 The answer is a check that reads the other end. `tests/lib/dom-i18n.js` switches
-to 中文, walks eleven reachable states, collects every visible run of text and
+to 中文, walks twelve reachable states, collects every visible run of text and
 every visible `placeholder`, `title`, `aria-label` and `alt`, subtracts one
 explicit table of trade vocabulary, and reports what is left. Its first run
 found **38** leaks:
@@ -254,8 +254,8 @@ element also resolves through `dcT`.
 * `tests/tools/check-translations.js` — 15 assertions, run as part of the test
   matrix. Reports all four failure modes, the unapplied-hook rule above, and the
   deliberate exclusions.
-* `tests/suites/33-rendered-i18n.test.js` — 109 assertions. The rendered-DOM
-  scan above, run over eleven states: every product form, five modals and all
+* `tests/suites/33-rendered-i18n.test.js` — 139 assertions. The rendered-DOM
+  scan above, run over twelve states: every product form, five modals and all
   four Pricing Guide tabs, Quick Add from pasted text and from an IMAGE
   extraction, its history, accessory and Bulk Edit panels, both apply scopes,
   a row short of a quantity and a row with an unsupported product, Companies in

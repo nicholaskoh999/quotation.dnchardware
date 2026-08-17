@@ -1,8 +1,8 @@
 {
   "files": {
     "index.php": {
-      "enKeys": 677,
-      "zhKeys": 677,
+      "enKeys": 678,
+      "zhKeys": 678,
       "coverage": 100,
       "missingZh": [],
       "missingKey": [],
@@ -55,7 +55,7 @@
     }
   },
   "totals": {
-    "keys": 808,
+    "keys": 809,
     "missingZh": 0,
     "hardCoded": 0
   }

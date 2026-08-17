@@ -8,7 +8,7 @@ Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
 Final application SHA `dd15663cc391546ae4cac34026b00e23cd083358` · **NOT DEPLOYED.**
 
 **P0 0 · P1 8 · P2 19 · P3 2 — 29 findings, all repaired.**
-**3,450 assertions, 0 failed, 0 skipped.**
+**3,480 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
@@ -241,7 +241,7 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **808 keys, 100% translated, nothing bypassing the
+The priority deliverable. **809 keys, 100% translated, nothing bypassing the
 translator, and no element relying on a hook that nothing applies** — up from
 512 keys with **129 strings that never reached it**, then a further ~210 the
 overnight checker could not see, then 36 more and 63 unapplied hooks that the
@@ -367,7 +367,7 @@ the layer that would have caught it.
 * `after-fix/` — the matching sixteen.
 * `regression-evidence/` — every suite's own log, plus the JSON.
 
-**TOTAL ASSERTIONS 3,450 · TOTAL FAILED 0 · SKIPPED 0.**
+**TOTAL ASSERTIONS 3,480 · TOTAL FAILED 0 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
@@ -386,7 +386,7 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green: 33 suites, 3,105 assertions, 0 failed in the browser matrix; 3,450
+re-exercised. Green: 33 suites, 3,135 assertions, 0 failed in the browser matrix; 3,480
 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth
@@ -430,7 +430,7 @@ were built that way, and every check in this repository read them as translated.
 No amount of source reading fixes that, because whether a hook is ever applied
 depends on WHEN the element came into being. So the closing round added a check
 that reads the other end: `tests/lib/dom-i18n.js` switches the application to
-中文, walks eleven reachable states, collects every visible run of text and
+中文, walks twelve reachable states, collects every visible run of text and
 every visible placeholder, title, aria-label and alt, subtracts ONE explicit
 table of trade vocabulary, and reports what is left.
 
@@ -475,6 +475,38 @@ Three changes, none of them to pricing:
   and throws by name if it is not;
 * frame F states the whole calculation on one screen and **fails the run** if
   the answer is not RM 10.97.
+
+---
+
+## 36 · UI copy: what the Quick Add entry is called, and where its scope lives
+
+Two things were wrong with the homepage entry, and neither was a translation
+defect — both strings were already under `dcT` and already translated.
+
+**It was called "WhatsApp Quick Add".** A photograph, a screenshot, a drawing
+and a PDF all go through the same door, and have since v2.23; the name said
+otherwise. The homepage entry is now **Quick Add** / **快速添加**, and its
+subtitle says what actually goes in: *Paste customer text or upload image / PDF*
+/ *粘贴客户文字或上传图片 / PDF*. It has its own key, `wqaOpenTitle`, rather
+than sharing the modal's `wqaTitle` — the two are no longer the same words, and
+a shared key would mean neither could be changed on its own.
+
+**It named three products, and the parser reads five.** The button said
+"Sag Rod / Stud / Anchor Bolt"; `WQA_PRODUCTS` holds Sag Rod, Stud, Anchor Bolt,
+**L Bolt and J Bolt**. Two of the five were being under-sold on the front page.
+
+The scope no longer lives on a button. It lives once, inside the modal, beside
+the box it describes, and it is complete:
+
+> Paste the customer's WhatsApp message. Sag Rod · Stud · Anchor Bolt · L Bolt ·
+> J Bolt are read.
+>
+> 粘贴客户的 WhatsApp 信息。可识别 Sag Rod · Stud · Anchor Bolt · L Bolt · J Bolt。
+
+Suite 33 §2b asserts the list against **`WQA_PRODUCTS` itself**, not against a
+copy of it — so teaching the parser a sixth product and forgetting the hint
+fails the suite rather than shipping a quiet inaccuracy. It also asserts that
+the homepage entry names no product at all, in either language.
 
 ---
 

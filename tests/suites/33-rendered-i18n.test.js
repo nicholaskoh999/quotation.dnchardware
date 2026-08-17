@@ -128,6 +128,80 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
+  /* ── 2b · The Quick Add entry, and where the product scope is stated ────
+     The homepage button used to be called "WhatsApp Quick Add" and to name
+     three products under it — Sag Rod / Stud / Anchor Bolt — while the parser
+     reads five. Two things were wrong with that: the name said WhatsApp when a
+     photograph or a PDF goes through the same door, and the scope was both
+     incomplete and in the wrong place, on a button rather than beside the box
+     it describes.
+
+     So the button names no product at all, and the scope lives once, inside
+     the modal, next to the paste box. This asserts both halves in both
+     languages — and asserts the list against the PARSER's own table rather
+     than against a copy of it, so adding a product to WQA_PRODUCTS and not to
+     the hint fails here.                                                    */
+  {
+    const page = await openApp(browser);
+
+    const readEntry = () => page.evaluate(() => {
+      const btn = document.querySelector('.wqa-open-btn');
+      const sub = btn && btn.querySelector('.wqa-open-sub');
+      return {
+        all: btn ? btn.textContent.replace(/\s+/g, ' ').trim() : '',
+        sub: sub ? sub.textContent.replace(/\s+/g, ' ').trim() : '',
+      };
+    });
+
+    const en = await readEntry();
+    A.includes(en.all, 'Quick Add', 'English: the homepage entry is called Quick Add');
+    A.excludes(en.all, 'WhatsApp Quick Add', 'English: and not WhatsApp Quick Add');
+    A.eq(en.sub, 'Paste customer text or upload image / PDF',
+      'English: the entry says what goes in, text or a file');
+
+    await setLang(page, 'zh');
+    const zh = await readEntry();
+    A.includes(zh.all, '快速添加', '中文: the homepage entry is 快速添加');
+    A.excludes(zh.all, 'Quick Add', '中文: with no English name beside it');
+    A.eq(zh.sub, '粘贴客户文字或上传图片 / PDF', '中文: and the same subtitle, translated');
+
+    /* No product is named on the homepage, in either language. */
+    for (const [lang, e] of [['English', en], ['中文', zh]]) {
+      for (const p of ['Sag Rod', 'Stud', 'Anchor Bolt', 'L Bolt', 'J Bolt']) {
+        A.excludes(e.all, p, `${lang}: the homepage entry does not name ${p}`);
+      }
+    }
+
+    /* Inside the modal, the scope is stated once — and completely. */
+    const PARSED = await page.evaluate(() =>
+      WQA_PRODUCTS.filter(p => p && p.type).map(p => p.label));
+    A.eq(PARSED.slice().sort().join(','), 'Anchor Bolt,J Bolt,L Bolt,Sag Rod,Stud',
+      'the parser reads exactly these five products');
+
+    for (const lang of ['zh', 'en']) {
+      await setLang(page, lang);
+      await page.evaluate(() => { try { wqaHardClose(); } catch (e) {} wqaOpen(); });
+      await page.waitForTimeout(350);
+      /* By its key, not by its class — the modal has several hints and the
+         first one asks how the customer sent the request. */
+      const hint = await page.evaluate(() =>
+        (document.querySelector('[data-i18n="wqaPasteHint"]') || {}).textContent || '');
+      for (const p of PARSED) {
+        A.includes(hint, p, `${lang}: the modal's scope names ${p}, which the parser reads`);
+      }
+      if (lang === 'zh') A.ok(/[一-鿿]/.test(hint), '中文: and the sentence around them is Chinese');
+      await page.evaluate(() => { try { wqaHardClose(); } catch (e) {} });
+      await page.waitForTimeout(200);
+    }
+
+    await setLang(page, 'zh');
+    await page.evaluate(() => wqaOpen());
+    await page.waitForTimeout(350);
+    await clean(page, 'Quick Add entry and paste-box scope', A);
+    A.ok(!page._dcErrors.length, 'no script error on the Quick Add entry: ' + page._dcErrors.join(' | '));
+    await page.close();
+  }
+
   /* ── 3 · The modals ──────────────────────────────────────────────────── */
   {
     const page = await openApp(browser);

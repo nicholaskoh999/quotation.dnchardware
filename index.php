@@ -2523,8 +2523,8 @@ input,select,textarea{
         </div>
 
         <button type="button" class="btn btn-outline wqa-open-btn" onclick="wqaOpen()">
-          <span class="wqa-open-ico">💬</span> <span data-i18n="wqaTitle">WhatsApp Quick Add</span>
-          <span class="wqa-open-sub"><span data-i18n="wqaOpenSub">Paste customer text · Sag Rod / Stud / Anchor Bolt</span></span>
+          <span class="wqa-open-ico">💬</span> <span data-i18n="wqaOpenTitle">Quick Add</span>
+          <span class="wqa-open-sub"><span data-i18n="wqaOpenSub">Paste customer text or upload image / PDF</span></span>
         </button>
 
         <div class="group-label full" style="margin-bottom:8px" data-i18n="productEntry">Product Entry</div>
@@ -3631,7 +3631,7 @@ input,select,textarea{
       </div>
 
       <div id="wqaPastePane">
-        <p class="wqa-hint" data-i18n="wqaPasteHint">Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.</p>
+        <p class="wqa-hint" data-i18n="wqaPasteHint">Paste the customer's WhatsApp message. Sag Rod &middot; Stud &middot; Anchor Bolt &middot; L Bolt &middot; J Bolt are read.</p>
         <textarea id="wqaInput" class="wqa-input" rows="9" spellcheck="false"
           placeholder="ms hdg sag rod&#10;&#10;1. m12 x 1000 x 100 - 1&#10;2. m12 x 1070 x 100 - 2pc&#10;3. m12 x 1120 x 100 - 3pcs"></textarea>
       </div>
@@ -4224,7 +4224,7 @@ const I18N={
     cdimAdd:'+ Add Dimension', cdimLabelPh:'Dimension', cdimValuePh:'Value',
     cdimRemove:'Remove this dimension', cdimPrefix:'Custom:',
     cdimHint:"Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.",
-    wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod, Stud and Anchor Bolt are supported.",
+    wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod · Stud · Anchor Bolt · L Bolt · J Bolt are read.",
     wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
     wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
     wqaNoFile:'No file selected', wqaAnalyzing:'Analyzing document…',
@@ -4373,7 +4373,8 @@ const I18N={
     mNoSizeType:'No Size Type', mCustomOnly:'Custom Only', mSystemDefaults:'System Defaults',
     mDiameterRules:'Diameter Rules', mResetAllRules:'Reset All Rules',
     mMessageTemplate:'Message Template', mPlaceholders:'Placeholders:',
-    wqaOpenSub:'Paste customer text · Sag Rod / Stud / Anchor Bolt',
+    wqaOpenTitle:'Quick Add',
+    wqaOpenSub:'Paste customer text or upload image / PDF',
     /* ── commit 5: settings modals, guide, placeholders, toasts ── */
     optNone:'— none —', mThType:'Type',
     step3Sub:'Review & save', step4Sub:'Print / WhatsApp', itemsUnit:'items', save:'Save',
@@ -4694,7 +4695,7 @@ const I18N={
     cdimAdd:'+ 新增尺寸', cdimLabelPh:'尺寸名称', cdimValuePh:'数值',
     cdimRemove:'删除此尺寸', cdimPrefix:'自定义：',
     cdimHint:'选填。图纸上的额外尺寸，例如 A 120。不参与任何重量或价格计算，也不能代替产品本身的尺寸字段。',
-    wqaPasteHint:'粘贴客户的 WhatsApp 信息。支持 Sag Rod、Stud 和 Anchor Bolt。',
+    wqaPasteHint:'粘贴客户的 WhatsApp 信息。可识别 Sag Rod · Stud · Anchor Bolt · L Bolt · J Bolt。',
     wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
     wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
     wqaNoFile:'未选择文件', wqaAnalyzing:'正在分析文件…',
@@ -4829,7 +4830,8 @@ const I18N={
     mNoSizeType:'无尺寸类型', mCustomOnly:'仅自定义', mSystemDefaults:'系统默认',
     mDiameterRules:'直径规则', mResetAllRules:'重置所有规则',
     mMessageTemplate:'信息模板', mPlaceholders:'占位符：',
-    wqaOpenSub:'粘贴客户文字 · Sag Rod / Stud / Anchor Bolt',
+    wqaOpenTitle:'快速添加',
+    wqaOpenSub:'粘贴客户文字或上传图片 / PDF',
     /* ── 第 5 次：设置弹窗、说明、占位符、提示 ── */
     optNone:'— 无 —', mThType:'类型',
     step3Sub:'检查与保存', step4Sub:'打印 / WhatsApp', itemsUnit:'项', save:'保存',

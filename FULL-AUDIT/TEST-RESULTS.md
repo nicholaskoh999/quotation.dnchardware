@@ -22,7 +22,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 33 | **3,105** | **0** |
+| Browser suites (`node tests/run.js`) | 33 | **3,135** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **161** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -32,12 +32,12 @@ against itself.
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **3,450** |
+| **TOTAL ASSERTIONS** | **3,480** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+640 assertions**, all
+Baseline for comparison: 2,810 assertions, 0 failed. **+670 assertions**, all
 of them new coverage over defects found this round — 3,338 after the morning
-repair, and 112 more added by the closing one (109 in the new rendered-DOM
+repair, and 142 more added by the closing one (139 in the new rendered-DOM
 suite, 3 in the source checker).
 
 **Skipped or environment-limited: none.** Every suite named in the brief ran to
@@ -80,9 +80,9 @@ completion and is counted above.
   ok    English / 中文 — the screen, not the dictionary                                 165
   ok    size system — one rod, one diameter, whichever way it was written             132
   ok    responsive — every width the brief names                                       70
-  ok    rendered 中文 — the DOM, not the dictionary                                     109
+  ok    rendered 中文 — the DOM, not the dictionary                                     139
 
-  33 suites, 3105 assertions, 0 failed                                                    632.5s
+  33 suites, 3135 assertions, 0 failed                                                    634.6s
 ```
 
 ---
@@ -159,8 +159,8 @@ paints, which is the behaviour under test.
 | Check | Result |
 |---|---|
 | `php -l` over every PHP file | clean |
-| Translation coverage | 808 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
-| Rendered 中文 DOM | 11 states scanned, 0 English runs outside the trade allowlist |
+| Translation coverage | 809 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
+| Rendered 中文 DOM | 12 states scanned, 0 English runs outside the trade allowlist |
 | Browser console errors | asserted per-page in suites 30, 31 and 32 (`page._dcErrors` empty at every viewport) |
 | Pricing workbook contains no business values | 62 assertions, clean |
 

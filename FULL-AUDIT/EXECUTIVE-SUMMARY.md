@@ -18,7 +18,7 @@ Final application SHA `dd15663cc391546ae4cac34026b00e23cd083358` · **NOT DEPLOY
 
 Eleven commits. **Eight P1 findings, nineteen P2, two P3, no P0 — 29 in all.**
 Every one was reproduced, given a failing regression, repaired, and re-proved.
-The full test matrix is green and 640 assertions larger than it was.
+The full test matrix is green and 670 assertions larger than it was.
 
 The two that matter most were both **silent** — the screen showed a complete,
 ordinary-looking, priceable row and the number in it was wrong:
@@ -95,7 +95,7 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**808 keys, 100% translated, nothing bypassing the translator, and no element
+**809 keys, 100% translated, nothing bypassing the translator, and no element
 relying on a hook that nothing applies.** Proved by reading the rendered screen,
 not the dictionary.
 

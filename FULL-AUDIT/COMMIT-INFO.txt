@@ -108,22 +108,22 @@ FILES CHANGED (baseline -> final)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
-  Browser suites            33 suites, 3,105 assertions, 0 failed   (632.5s)
+  Browser suites            33 suites, 3,135 assertions, 0 failed   (634.6s)
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      3,450
+  TOTAL ASSERTIONS                      3,480
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   php -l over every PHP file  clean
   Browser console errors      none, asserted per page at every viewport
-  Rendered 中文 DOM           11 states, 0 English runs outside the allowlist
+  Rendered 中文 DOM           12 states, 0 English runs outside the allowlist
 
-  Baseline for comparison: 2,810 assertions, 0 failed.  +640 this round
-  (3,338 after the morning repair; +112 in the closing one).
+  Baseline for comparison: 2,810 assertions, 0 failed.  +670 this round
+  (3,338 after the morning repair; +142 in the closing one).
 
 FINDINGS
 --------
