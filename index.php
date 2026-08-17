@@ -2028,6 +2028,11 @@ input,select,textarea{
 .wqa-c-dia.is-manual{color:var(--accent-2)}
 .wqa-dia-tag{font-size:8.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
   color:var(--accent-2);opacity:.85}
+/* A diameter somebody chose, while they are choosing it. Quiet — an underline
+   in the same accent the compact Manual tag uses — because the ordinary case
+   is the table's own answer and deserves no comment. */
+.wqa-ei.is-manual-dia{color:var(--accent-2);font-weight:800;
+  box-shadow:inset 0 -2px 0 var(--accent-mid)}
 /* A thread reference is a note about the thread, so it reads as one: under the
    size, smaller, quieter, and never wide enough to move a column. */
 .wqa-c-size.has-tref{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.15}
@@ -11123,6 +11128,10 @@ function wqaPatchRows(){
         const want=String(r.diaMm==null?'':r.diaMm);
         if(dIn.value!==want) dIn.value=want;
       }
+      if(dIn){
+        dIn.classList.toggle('is-manual-dia', !!r.diaManual);
+        dIn.title = r.diaManual ? dcT('diaManual') : dcT('diaDefault');
+      }
     }
     if(!wqaEditing()){
       const cQty=card.querySelector('.wqa-c-qty');
@@ -11516,13 +11525,30 @@ function wqaEditKey(ev,i,f){
     ev.preventDefault(); ev.stopPropagation();
     let snap=null;
     try{ snap=JSON.parse(wqa.edit&&wqa.edit.snap||'[]')[i]; }catch(e){}
-    if(snap){
-      const was = f==='dia' ? (snap.diaMm||'')
-                : f==='threadLen' ? (snap.threadLen||'')
-                : (snap[f]==null?'':snap[f]);
-      ev.target.value=was;
-      wqaEditCell(i,f,was);
+    if(!snap) return;
+    /* ── Diameter is two facts, so both are put back ──────────────────────
+       The number, and whether a person chose it. Sending the restored value
+       back through wqaEditDia would restore only the first: that function's
+       whole job is to record "somebody typed this", so handing it the
+       table's own 10.6 would announce a 10.6 nobody had overridden.
+
+       Provenance is not decoration. It decides whether the table may answer
+       again for the next size, so a row left wearing a Manual mark it never
+       earned would later have an override dropped that never existed. Both
+       fields are restored together, from the snapshot, and the cell is
+       repainted so the Manual tag agrees with what is now true. */
+    if(f==='dia'){
+      const r=wqa.rows[i]; if(!r) return;
+      r.diaMm = snap.diaMm==null?'':snap.diaMm;
+      r.diaManual = !!snap.diaManual;
+      ev.target.value = String(r.diaMm);
+      clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250);
+      return;
     }
+    const was = f==='threadLen' ? (snap.threadLen||'')
+              : (snap[f]==null?'':snap[f]);
+    ev.target.value=was;
+    wqaEditCell(i,f,was);
   }
 }
 /* ── The cells, as inputs ──────────────────────────────────────────────────
@@ -11538,7 +11564,9 @@ function wqaEditCellHtml(r,i,f,cls){
   const handler = f.kind==='size'
     ? `oninput="wqaEditSize(${i},this,false)" onchange="wqaEditSize(${i},this,true)"`
     : `oninput="wqaEditCell(${i},'${f.k}',this.value)"`;
-  return `<span class="wqa-c wqa-ec ${cls}"><input class="wqa-ei${err?' is-bad':''}" type="text"
+  /* Where the bar came from, on the box that can change it. */
+  const prov = f.k==='dia' ? (r.diaManual?' is-manual-dia':'') : '';
+  return `<span class="wqa-c wqa-ec ${cls}"><input class="wqa-ei${err?' is-bad':''}${prov}" type="text"
     data-ef="${f.k}" value="${escHtml(String(v==null?'':v))}"
     ${err?`title="${escHtml(err)}" aria-invalid="true"`:''}
     onclick="event.stopPropagation()"

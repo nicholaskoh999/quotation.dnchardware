@@ -53,6 +53,14 @@ const rowDia = (page, i = 0) => page.evaluate(n => {
   };
 }, i);
 
+/* Is the DIA box wearing its "somebody chose this" mark? Read off the class
+   the stylesheet actually paints, not off the row's state — the point of the
+   assertion is that the screen and the state agree. */
+const diaMark = (page, i = 0) => page.evaluate(n => {
+  const inp = document.querySelector(`[data-wqa-row="${n}"] [data-ef="dia"]`);
+  return inp ? String(inp.classList.contains('is-manual-dia')) : 'no-box';
+}, i);
+
 async function typeCell(page, row, field, value) {
   const sel = `[data-wqa-row="${row}"] [data-ef="${field}"]`;
   await page.click(sel, { clickCount: 3 });
@@ -262,6 +270,87 @@ module.exports = async (browser, A) => {
     A.eq(m24.shown, '24', 'M24 fullsize is a 24mm bar');
     A.near(m24.weight, 3.5513, 5e-4, 'weighing 3.5513 kg/pc, which is the manually verified figure');
     A.near(m24.weight, weightOf(24, 1000), 1e-9, 'and that figure is π/4·24²·1000·ρ');
+    await page.close();
+  }
+
+  /* ── Escape restores the bar AND where it came from ──────────────────────
+     A diameter is two facts, not one: the number, and whether a person chose
+     it. Escape used to give back only the number — 10.6 returned, but the row
+     went on believing somebody had typed it, and the cell went on wearing the
+     Manual mark for a value nobody had touched. The next size change would
+     then have dropped an "override" that never existed.
+
+     Provenance is not cosmetic. It decides whether the table is allowed to
+     answer again, so restoring the digits and not the source leaves the row
+     in a state it was never in. */
+  {
+    const page = await openApp(browser);
+    await quickAddPaste(page, 'MS SAG ROD PL UNDERSIZE\nM12 x 1000 x tl 100/100 - 10pcs',
+      { expanded: false, settle: 900 });
+    await page.evaluate(() => wqaEditStart(0, 'dia'));
+    await page.waitForTimeout(400);
+
+    // A. Default 10.6 → edit 10.7 → Esc ⇒ 10.6, and Default again.
+    const a0 = await rowDia(page);
+    A.eq(a0.shown, '10.6', 'A: the row starts on the table\'s 10.6mm bar');
+    A.eq(a0.manual, 'false', 'A: with nobody having overridden it');
+
+    await typeCell(page, 0, 'dia', '10.7');
+    const a1 = await rowDia(page);
+    A.eq(a1.shown, '10.7', 'A: typing 10.7 puts 10.7 on the screen');
+    A.eq(a1.manual, 'true', 'A: and marks the diameter as chosen by a person');
+
+    /* Provenance has to be visible, or "Escape restored it" is a claim about
+       state that nobody at the screen can check. */
+    A.eq(await diaMark(page), 'true', 'A: and the box is visibly marked as chosen');
+
+    await page.click('[data-wqa-row="0"] [data-ef="dia"]');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(700);
+    const a2 = await rowDia(page);
+    A.eq(await diaMark(page), 'false', 'A: Escape clears the mark, so the restore is visible');
+    A.eq(a2.shown, '10.6', 'A: Escape puts 10.6 back on the screen');
+    A.eq(a2.manual, 'false', 'A: AND gives the table its authority back — Default, not Manual');
+    A.near(a2.weight, weightOf(10.6, 1000), 1e-9,
+      'C: the weight after Escape is π/4·10.6²·1000·ρ — made of the restored bar');
+    A.eq(a2.weight, a0.weight, 'C: which is bit-for-bit the weight before the edit');
+    A.eq(a2.price, a0.price, 'D: and the price is the one that weight had');
+
+    // B. Manual 10.7 → edit 11.0 → Esc ⇒ 10.7, and still Manual.
+    await typeCell(page, 0, 'dia', '10.7');
+    await page.evaluate(() => { wqaEditDone(); });
+    await page.waitForTimeout(700);
+    await page.evaluate(() => wqaEditStart(0, 'dia'));
+    await page.waitForTimeout(400);
+    const b0 = await rowDia(page);
+    A.eq(b0.shown, '10.7', 'B: a session that OPENS on a manual 10.7');
+    A.eq(b0.manual, 'true', 'B: with the override already in place');
+
+    await typeCell(page, 0, 'dia', '11');
+    const b1 = await rowDia(page);
+    A.eq(b1.shown, '11', 'B: editing it to 11.0');
+    A.eq(b1.manual, 'true', 'B: which is still a person\'s choice');
+
+    await page.click('[data-wqa-row="0"] [data-ef="dia"]');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(700);
+    const b2 = await rowDia(page);
+    A.eq(b2.shown, '10.7', 'B: Escape returns the 10.7 the session opened on');
+    A.eq(b2.manual, 'true', 'B: and it is STILL Manual — the override was never surrendered');
+    A.near(b2.weight, weightOf(10.7, 1000), 1e-9,
+      'C: weighing π/4·10.7²·1000·ρ, on the restored override');
+    A.ok(Math.abs(b2.weight - weightOf(10.6, 1000)) > 1e-6,
+      'C: and demonstrably NOT the table\'s 10.6 — Escape did not overshoot');
+
+    /* The proof that provenance was really restored and not merely displayed:
+       a size-type change is only allowed to drop an override that exists. */
+    await page.evaluate(() => { wqaEditDone(); });
+    await page.waitForTimeout(600);
+    await page.evaluate(() => wqaEditRowSpec(0, 'sizeType', 'FULLSIZE'));
+    await page.waitForTimeout(800);
+    const b3 = await rowDia(page);
+    A.eq(b3.shown, '12', 'B: changing to Fullsize drops the restored override, as an override should be dropped');
+    A.eq(b3.manual, 'false', 'B: leaving the table to answer for the new identity');
     await page.close();
   }
 
