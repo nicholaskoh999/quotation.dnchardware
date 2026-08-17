@@ -2,7 +2,14 @@
 
 **Overnight full-system audit + morning repair · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final `3696f59d684392914f58e6ac2ad44422c1f3f3df` · **NOT DEPLOYED.**
+Final application SHA `40e56d6951d7832a19e5b7fd121877faecf7f54a` · **NOT DEPLOYED.**
+
+> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
+> application or its tests — it is what the numbers in this package were
+> measured against. The commits after it write this package, and a report
+> cannot name the commit it is inside without changing it. The exact HEAD
+> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
+> generated at build time and is not committed.
 
 ---
 

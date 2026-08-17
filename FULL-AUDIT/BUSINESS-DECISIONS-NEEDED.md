@@ -1,10 +1,17 @@
 # NEEDS BUSINESS DECISION
 
-Final `3696f59d684392914f58e6ac2ad44422c1f3f3df` · not deployed.
+Final application SHA `40e56d6951d7832a19e5b7fd121877faecf7f54a` · not deployed.
 
 Each of these would change price, quantity, size identity, quotation output or
 what a customer receives. None was guessed at. Every one is a single question
 with the options laid out and what the code does today.
+
+> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
+> application or its tests — it is what the numbers in this package were
+> measured against. The commits after it write this package, and a report
+> cannot name the commit it is inside without changing it. The exact HEAD
+> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
+> generated at build time and is not committed.
 
 ---
 

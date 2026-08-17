@@ -1,7 +1,7 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final `3696f59d684392914f58e6ac2ad44422c1f3f3df` · Not deployed.
+Final application SHA `40e56d6951d7832a19e5b7fd121877faecf7f54a` · Not deployed.
 
 **P0 0 · P1 7 · P2 15 · P3 2 · 24 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came
@@ -15,6 +15,13 @@ usability failure · **P3** cosmetic.
 
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
+
+> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
+> application or its tests — it is what the numbers in this package were
+> measured against. The commits after it write this package, and a report
+> cannot name the commit it is inside without changing it. The exact HEAD
+> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
+> generated at build time and is not committed.
 
 ---
 

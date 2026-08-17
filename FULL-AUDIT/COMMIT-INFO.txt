@@ -4,18 +4,27 @@ QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT + MORNING REPAIR
 BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
-FINAL SHA       3696f59d684392914f58e6ac2ad44422c1f3f3df
-                "The package, told from one SHA"
+FINAL APPLICATION SHA
+                40e56d6951d7832a19e5b7fd121877faecf7f54a
+                "An ambiguous count is not a count, and a switch is not a\n                 re-render"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
 
 WORKING TREE    clean at the final commit
 
-There is exactly ONE final SHA and it is the one above. Every report in this
-package quotes it. Earlier drafts of these reports quoted intermediate commits
-(8724894, 1f41833, a10e92c); those are audit commits in the list below, not
-final SHAs.
+There is exactly ONE final application SHA and it is the one above: the last
+commit that changed index.php, companies.php, the API or the tests. Every
+report in this package quotes it, and every number in this package was measured
+against it.
+
+The commits after it write this package. A report cannot name the commit it is
+inside without changing that commit, so the exact HEAD the archive was built
+from is recorded in ZIP-MANIFEST.txt, generated at build time and not committed.
+
+Earlier drafts quoted 8724894, 1f41833 and a10e92c as "final"; those are audit
+commits in the list below, and that inconsistency is what this correction
+removes.
 
 AUDIT COMMITS (7, oldest first)
 -------------------------------

@@ -5,6 +5,13 @@ Tooling: `tests/tools/check-translations.js`
 (static, reads the shipped source) and `tests/suites/30-language.test.js`
 (browser, switches the language the way the button does and reads the SCREEN).
 
+> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
+> application or its tests — it is what the numbers in this package were
+> measured against. The commits after it write this package, and a report
+> cannot name the commit it is inside without changing it. The exact HEAD
+> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
+> generated at build time and is not committed.
+
 ---
 
 ## Coverage
