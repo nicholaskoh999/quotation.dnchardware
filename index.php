@@ -4423,7 +4423,7 @@ const I18N={
     wqaFixBlanksOnly:'Fill blanks only',
     wqaFixNote:'Nothing changes until Apply. Each field is independent — a field left on “Keep existing” is not touched. Fill blanks only fills what is empty and never replaces a value.',
     wqaToastFixNothing:'Choose at least one field to change first',
-    wqaToastFixApplied:'{n} item(s) corrected',
+    wqaToastFixApplied:'{n} items corrected', wqaToastFixApplied1:'1 item corrected',
     wqaToastFixNoChange:'Nothing changed — those items already say that',
     wqaCommonPriceTitle:'Pricing Entry', wqaCommonAccTitle:'Accessories',
     wqaMsgNoRows:'No item rows could be read from this file. Try again or paste the text manually.',
@@ -4433,7 +4433,17 @@ const I18N={
     wqaMsgPasteFirst:'Paste the customer text first.',
     wqaDropNoFile:'That drop did not contain a file. Drop a JPG, PNG, WEBP or PDF.',
     wqaToastEnterSizeThread:'Enter a Size or a TL first', wqaToastNoItems:'There are no items to apply to',
-    wqaToastPriceApplied:'Pricing entry applied to all items',
+    /* Two whole sentences per action. "all items" is only ever said when the
+       scope really was all items. */
+    wqaToastPriceApplied:'Pricing applied to all items',
+    wqaToastPriceAppliedSel:'Pricing applied to {n} selected items',
+    wqaToastAccApplied:'Accessories applied to all items',
+    wqaToastAccAppliedSel:'Accessories applied to {n} selected items',
+    wqaToastAccClearedSel:'Accessories cleared on {n} selected items',
+    wqaToastItemApplied:'{v} applied to all items',
+    wqaToastItemAppliedSel:'{v} applied to {n} selected items',
+    wqaToastManualApplied:'Manual price RM{p} applied to all items',
+    wqaToastManualAppliedSel:'Manual price RM{p} applied to {n} selected items',
     wqaProductKept:'Product changed on {n} item(s). Your corrections were kept — the message was not re-read.',
     phCheckFailed:'Could not check previous prices — this is not the same as there being none. Check the connection, or sign in again, and try once more.',
     wqaStCompany:'Size Type: company default',
@@ -4934,7 +4944,7 @@ const I18N={
     wqaFixBlanksOnly:'只填空白',
     wqaFixNote:'按下应用之前不会改动任何项目。每个字段各自独立——保持“保持不变”的字段不会被修改。勾选“只填空白”后只填补空白，不会覆盖已有的值。',
     wqaToastFixNothing:'请先选择至少一个要修改的字段',
-    wqaToastFixApplied:'已修正 {n} 个项目',
+    wqaToastFixApplied:'已修正 {n} 个项目', wqaToastFixApplied1:'已修正 1 个项目',
     wqaToastFixNoChange:'没有改动——这些项目已经是这个值',
     wqaCommonPriceTitle:'价格设置', wqaCommonAccTitle:'配件',
     wqaMsgNoRows:'无法从这个文件读取到产品行。请重试，或改用粘贴文字。',
@@ -4945,6 +4955,14 @@ const I18N={
     wqaDropNoFile:'拖进来的不是文件。请拖入 JPG、PNG、WEBP 或 PDF。',
     wqaToastEnterSizeThread:'请先填写尺寸或牙长', wqaToastNoItems:'没有可应用的项目',
     wqaToastPriceApplied:'价格设置已应用到全部项目',
+    wqaToastPriceAppliedSel:'价格设置已应用到 {n} 个已选择项目',
+    wqaToastAccApplied:'配件已应用到全部项目',
+    wqaToastAccAppliedSel:'配件已应用到 {n} 个已选择项目',
+    wqaToastAccClearedSel:'已清除 {n} 个已选择项目的配件',
+    wqaToastItemApplied:'{v} 已应用到全部项目',
+    wqaToastItemAppliedSel:'{v} 已应用到 {n} 个已选择项目',
+    wqaToastManualApplied:'手动价格 RM{p} 已应用到全部项目',
+    wqaToastManualAppliedSel:'手动价格 RM{p} 已应用到 {n} 个已选择项目',
     wqaProductKept:'已更改 {n} 个项目的产品。您的修改已保留 —— 未重新解析原文。',
     phCheckFailed:'无法查询过往价格 —— 这不等于没有记录。请检查连线或重新登入后再试。',
     wqaStCompany:'尺寸类型：公司默认',
@@ -10191,6 +10209,20 @@ function wqaPatchBulkIntents(){
     n.textContent=wqaBulkIntent(parts[0],parts[1]);
   });
 }
+/* ── Saying what was actually done ─────────────────────────────────────────
+   An apply that touched four rows must not report that it touched all of
+   them. The scope is known at the moment the message is built, so the
+   sentence is CHOSEN by the scope rather than written once for the common
+   case and left to be wrong in the other one.
+
+   Two whole sentences per action rather than a verb concatenated with a
+   scope clause: Chinese and English put the pieces in different places, and
+   a translator handed half a sentence cannot do anything useful with it. */
+function wqaAppliedToast(allKey,selKey,n){
+  return wqa.applyScope==='selected'
+    ? dcT(selKey).replace('{n}',n)
+    : dcT(allKey);
+}
 /* What a panel's Apply button says it will do, in the language of the moment. */
 function wqaApplyLabel(allKey,selKey){
   return wqa.applyScope==='selected'
@@ -10210,6 +10242,13 @@ function wqaPatchApplyLabels(){
   step.querySelectorAll('[data-wqa-apply]').forEach(btn=>{
     const k=String(btn.getAttribute('data-wqa-apply')).split('|');
     btn.textContent=wqaApplyLabel(k[0],k[1]);
+    btn.disabled=blocked;
+    btn.title=blocked?dcT('wqaNoneSelected'):'';
+  });
+  /* Buttons that need a selection but whose LABEL does not name one — Clear
+     All Accessories reads the same either way, and could still be pressed
+     against nothing. */
+  step.querySelectorAll('[data-wqa-needsel]').forEach(btn=>{
     btn.disabled=blocked;
     btn.title=blocked?dcT('wqaNoneSelected'):'';
   });
@@ -10457,9 +10496,9 @@ function wqaApplyItemToAll(){
   wqa.panels.item = wqaItemNeedCount()>0;
   wqaRenderCommonItem(true);
   wqaRecomputeAll();                    // existing validation + calculator, unchanged
-  const what = size&&thread ? 'Size '+size+' and Thread '+thread
-             : (size ? 'Size '+size : 'Thread '+thread);
-  showToast(what+' applied to '+live.length+' item'+(live.length===1?'':'s'));
+  const what = size&&thread ? size+' · TL '+thread : (size ? size : 'TL '+thread);
+  showToast(wqaAppliedToast('wqaToastItemApplied','wqaToastItemAppliedSel',live.length)
+    .replace('{v}',what));
 }
 
 /* ── Bulk correction ────────────────────────────────────────────────────────
@@ -10641,7 +10680,7 @@ function wqaApplyFixToAll(){
   wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
   wqaRecomputeAll('force');
   showToast((changed
-    ? dcT('wqaToastFixApplied').replace('{n}',changed)
+    ? dcT(changed===1?'wqaToastFixApplied1':'wqaToastFixApplied').replace('{n}',changed)
     : dcT('wqaToastFixNoChange'))
     + (dropped?' · '+dcT('wqaToastPrevPriceOff').replace('{n}',dropped):''));
 }
@@ -10809,7 +10848,8 @@ function wqaApplyPriceToAll(){
   wqa.panels.price=true;    // stay open while staff keep editing
   wqaRenderCommonPrice();
   wqaRecomputeAll();
-  showToast(dcT('wqaToastPriceApplied')+(droppedLast?' · '+dcT('wqaToastLastPriceOff').replace('{n}',droppedLast):''));
+  showToast(wqaAppliedToast('wqaToastPriceApplied','wqaToastPriceAppliedSel',targets.length)
+    +(droppedLast?' · '+dcT('wqaToastLastPriceOff').replace('{n}',droppedLast):''));
 }
 /* Separate, manual-only, and never triggered by the button above. */
 function wqaApplyManualPriceToAll(){
@@ -10824,7 +10864,8 @@ function wqaApplyManualPriceToAll(){
   wqa.panels.price=true;
   wqaRenderCommonPrice();
   wqaRecomputeAll();
-  showToast(dcT('tManualApplied').replace('{p}',parseFloat(v).toFixed(2)).replace('{n}',targets.length));
+  showToast(wqaAppliedToast('wqaToastManualApplied','wqaToastManualAppliedSel',targets.length)
+    .replace('{p}',parseFloat(v).toFixed(2)));
 }
 /* Per row, so one item can differ from the rest. */
 function wqaEditRowMode(i,mode){
@@ -10866,7 +10907,8 @@ function wqaRenderCommonAcc(force){
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyAccToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
-         <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()">${escHtml(dcT('lblClearAllAcc'))}</button>
+         <button type="button" class="btn btn-ghost btn-sm" data-wqa-needsel
+                 onclick="wqaClearAllAcc()">${escHtml(dcT('lblClearAllAcc'))}</button>
          <span class="wqa-none-sel" hidden>${escHtml(dcT('wqaNoneSelected'))}</span>
          <span class="wqa-acc-sum">${escHtml(dcT('lblCurrentColon').replace('{v}',wqaAccSummary(a)))}</span>
        </div>
@@ -10899,17 +10941,23 @@ function wqaApplyAccToAll(){
   wqa.panels.acc=true;      // stay open while staff keep editing
   wqaRenderCommonAcc();
   wqaRecomputeAll();
-  const n=targets.length;
-  showToast(dcT('tAccApplied').replace('{n}',n));
+  showToast(wqaAppliedToast('wqaToastAccApplied','wqaToastAccAppliedSel',targets.length));
 }
 function wqaClearAllAcc(){
   /* The panel above this button says "Apply to 3 selected". This cleared all
-     nineteen. One scope for the whole panel. */
-  wqaApplyTargets().forEach(r=>{ wqaMarkEdited(r,'acc'); r.acc=null; });  // dimensions and pricing entry untouched
+     nineteen. One scope for the whole panel — and, since the scope can be a
+     selection of nothing, one refusal too: a destructive action that reports
+     success over an empty set is worse than one that is merely broad. */
+  const targets=wqaApplyTargets();
+  if(!targets.length){
+    showToast(dcT(wqa.applyScope==='selected'?'wqaNoneSelected':'wqaToastNoItems'));
+    return;
+  }
+  targets.forEach(r=>{ wqaMarkEdited(r,'acc'); r.acc=null; });  // dimensions and pricing entry untouched
   wqa.panels.acc=true;
   wqaRenderCommonAcc();
   wqaRecomputeAll();
-  showToast(dcT('wqaToastAccCleared'));
+  showToast(wqaAppliedToast('wqaToastAccCleared','wqaToastAccClearedSel',targets.length));
 }
 function wqaEditAcc(i,group,field,value){
   const r=wqa.rows[i]; if(!r) return;
@@ -12434,6 +12482,30 @@ const WQA_QTY_AMBIG_RE=new RegExp(
   '^\\s*(?:qty|quantity)\\s*[:=]?\\s*'
   + '\\d+(?:\\.\\d+)?\\s*(?:\\/|\\bor\\b|\\bto\\b|~|-|–)\\s*\\d+(?:\\.\\d+)?'
   + '\\s*(?:pcs?|nos?|no\\.|sets?|units?|items?)?\\s*[.,]?\\s*$','i');
+/* ── The same ambiguity, written on the item's own line ──────────────────
+   "M24 x 300 x tl 65/65 qty 100 / 200" is the identical statement — a count
+   given twice, differently — and it was silently resolved to 100 while the
+   own-line form was correctly refused. A rule that holds in one position and
+   not the other is not a rule; it is a place the customer happened not to
+   press.
+
+   Anchoring the original to the whole line was deliberate and stays: a slash
+   between two numbers is a THREAD PAIR everywhere else in this trade, and
+   "M24 x 300 x 100/200" must never be read as a quantity. What makes the
+   inline form safe to detect is the same thing that makes the own-line form
+   safe — the word. The quantity marker must sit immediately in front of the
+   two numbers, so a thread pair, a length range and a dimension chain are all
+   untouched because none of them is preceded by "qty".
+
+   The difference from the own-line case is what happens next. There, the
+   whole line was nothing but the unreadable count, so it is emptied. Here the
+   line is a real item that also carries an unreadable count: only the phrase
+   is consumed, the geometry is read as normal, and the row asks for its
+   quantity instead of inventing one. */
+const WQA_QTY_AMBIG_INLINE_RE=new RegExp(
+  '(?:^|[\\s,;(])(?:qty|quantity)\\s*[:=]?\\s*'
+  + '\\d+(?:\\.\\d+)?\\s*(?:\\/|\\bor\\b|\\bto\\b|~|-|–)\\s*\\d+(?:\\.\\d+)?'
+  + '\\s*(?:pcs?|nos?|no\\.|sets?|units?|items?)?','i');
 
 /* ── Field recognisers ──────────────────────────────────────────────────────
    Each one consumes what it matches, so a consumed qty token can never be
@@ -12475,6 +12547,16 @@ function wqaExtractFields(rawLine,opts){
      the continuation reader as what it is: an unanswered count belonging to
      the row above it. */
   if(WQA_QTY_AMBIG_RE.test(s)){ f.qtyOpen=true; s=''; }
+  else {
+    /* Same statement, mid-line. Only the phrase goes, so the item keeps its
+       size, its length and its thread and loses only the count nobody can
+       read — which is exactly what the row is then asked for. */
+    const amb=WQA_QTY_AMBIG_INLINE_RE.exec(s);
+    if(amb){
+      f.qtyOpen=true;
+      s=s.slice(0,amb.index)+' '+s.slice(amb.index+amb[0].length);
+    }
+  }
   /* "2k pcs" is two thousand pieces. Taken out first so the 2 never becomes a
      dimension, and only ever where the count context is written. */
   const qk=WQA_QTY_K_RE.exec(s);
@@ -15635,7 +15717,20 @@ async function wqaRecomputeAll(mode){
     /* No recognised size, no diameter, no weight — and therefore no price. The
        calculator is not even asked: a weight of zero with an Additional Cost on
        top still produces a number, and a number is what a person would trust. */
-    if(!isKnownSize(r.size)){ r.calc=null; r.noDia=false; return; }
+    if(!isKnownSize(r.size)){
+      r.calc=null;
+      /* noDia stays false on purpose: the row must ask for a valid SIZE, which
+         is the actual problem, rather than for a diameter nobody could supply
+         until the size is right. But the diameter it was showing belonged to
+         the size that has just been replaced — an M27's 27mm sitting beside a
+         typed M23 — and the whole contract of that column is that the number
+         on the screen is the bar the weight was made of. There is no weight
+         here, so there must be no bar either. A diameter a PERSON typed is
+         theirs and is left alone. */
+      r.noDia=false;
+      if(!r.diaManual) r.diaMm='';
+      return;
+    }
     /* And no dimension, no weight, for the same reason. A length that is blank
        or zero weighs nothing, and the calculator would still answer: weight 0
        with the Additional Cost on top is RM 0.60, which is a number, and a
@@ -15845,9 +15940,9 @@ function wqaRenderRows(force){
              row underneath. All three are buttons now, at a size a finger can
              actually land on, with hover, pressed, focus and open states. -->
         <span class="wqa-sum-actions">
-          <button type="button" class="wqa-row-act wqa-row-details${open?' is-on':''}"
+          ${wqa.view==='expanded' ? '' : `<button type="button" class="wqa-row-act wqa-row-details${open?' is-on':''}"
                   aria-expanded="${open?'true':'false'}"
-                  onclick="event.stopPropagation();wqaToggleRow(${i})">${escHtml(dcT(open?'close':'btnDetails'))}</button>
+                  onclick="event.stopPropagation();wqaToggleRow(${i})">${escHtml(dcT(open?'close':'btnDetails'))}</button>`}
           <button type="button" class="wqa-row-act wqa-row-hist${r.histOpen?' is-on':''}"
                   title="${escHtml(dcT('tipItemHistory'))}" aria-expanded="${r.histOpen?'true':'false'}"
                   onclick="event.stopPropagation();wqaHistToggle(${i})">${escHtml(dcT('btnHistory'))}${

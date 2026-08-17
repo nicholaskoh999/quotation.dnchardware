@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `409f66442780151a6f691b924e2b50a3150ca863`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `2aa5aba16293072e8d9285a67a60b5e920263de9`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,7 +8,7 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `409f66442780151a6f691b924e2b50a3150ca863` is the last commit that changed the
+> **On SHAs.** `2aa5aba16293072e8d9285a67a60b5e920263de9` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the

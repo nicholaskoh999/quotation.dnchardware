@@ -373,6 +373,44 @@ module.exports = async (browser, A) => {
     A.ok(priced > 20, 'and is nothing like the RM 0.60 a 1mm rod was quoted at');
   }
 
+  /* ── F34 · the same ambiguity, wherever it is written ────────────────────
+     The block above covers "qty 100 / 200" on a line of its own, which the
+     original repair anchored to. Written INLINE — "M24 x 300 x tl 65/65
+     qty 100 / 200" — it is the identical statement, a count given twice and
+     differently, and it was silently resolved to 100.
+
+     A rule that holds in one position and not the other is not a rule; it is
+     a place the customer happened not to press. What made the own-line form
+     safe to detect makes the inline form safe too: the WORD. The marker must
+     sit immediately in front of the two numbers, so nothing that is merely a
+     pair of numbers — a thread pair above all — can be caught by it.        */
+  {
+    for (const line of ['qty 100 / 200', 'qty 100/200', 'qty: 100 / 200',
+                        'qty 100 or 200', 'qty 100 - 200', 'quantity 50 to 80']) {
+      const rows = await parse(page, `sag rod\nM24 x 300 x tl 65/65 ${line}`);
+      A.eq(rows.length, 1, `inline "${line}": one item, and no phantom row`);
+      const r = rows[0] || {};
+      A.eq(r.qty, '', `inline "${line}": neither number is taken as the quantity`);
+      A.ok(r.unreadable, `inline "${line}": and the row is marked as needing one`);
+      /* Only the count is lost. The item is a real item and keeps being one. */
+      A.eq(r.length, '300', `inline "${line}": the item keeps its length`);
+      A.eq(r.tl, '65/65', `inline "${line}": and its thread`);
+      A.eq(r.size, 'M24', `inline "${line}": and its size`);
+    }
+
+    /* The false positives this must not create. A slash between two numbers
+       is a THREAD PAIR everywhere else in this trade. */
+    const pair = await parse(page, 'sag rod\nM24 x 300 x 100/200 - 12pcs');
+    A.eq((pair[0] || {}).qty, '12', 'a thread pair beside a count is still a count');
+    A.eq((pair[0] || {}).tl, '100/200', 'and the pair is still the thread');
+
+    const one = await parse(page, 'sag rod\nM24 x 300 x tl 65/65 qty 100');
+    A.eq((one[0] || {}).qty, '100', 'one number after an inline marker still reads');
+
+    const trailing = await parse(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 40pcs');
+    A.eq((trailing[0] || {}).qty, '40', 'and an ordinary trailing count is untouched');
+  }
+
   await page.close();
   return S;
 };

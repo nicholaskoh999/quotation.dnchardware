@@ -453,5 +453,174 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
+  /* ── CR-01 · a message that knows which rows it was about ────────────────
+     The data was always right — Selected Items really did write only to the
+     ticked rows. What was wrong was the sentence afterwards, which said "all
+     items" whatever the scope had been. A person who reads the toast and not
+     the rows was told something false about their own quotation.
+
+     Both scopes, both languages, and every apply path that reports a count —
+     because this was one shared habit, not one broken function.            */
+  {
+    const page = await openApp(browser);
+    await quickAddPaste(page, FOUR, { expanded: false, settle: 1300 });
+
+    const toast = () => page.evaluate(() => {
+      const t = document.querySelector('.toast, #toast, .dc-toast');
+      return t ? t.textContent.replace(/\s+/g, ' ').trim() : '';
+    });
+
+    for (const lang of ['en', 'zh']) {
+      await page.evaluate(l => dcSetLang(l), lang);
+      await page.waitForTimeout(500);
+
+      // ── All Items: the sentence may say "all items", because it is true.
+      await page.evaluate(() => {
+        wqaClearSel(); wqaSetApplyScope('all');
+        wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('price');
+        wqaEditCommonPrice('markup', '3'); wqaApplyPriceToAll();
+      });
+      await page.waitForTimeout(900);
+      const all = await toast();
+      A.ok(all.length > 0, `${lang} · All Items: a message appears`);
+      if (lang === 'en') A.includes(all, 'all items', 'EN · All Items says "all items"');
+      else A.includes(all, '全部项目', '中文 · All Items says 全部项目');
+
+      // ── Selected Items: it must name the count and never say "all".
+      await page.evaluate(() => {
+        wqaSetApplyScope('selected');
+        [1, 3].forEach(i => wqaToggleRowSel(i));
+        wqaEditCommonPrice('markup', '7'); wqaApplyPriceToAll();
+      });
+      await page.waitForTimeout(900);
+      const sel = await toast();
+      A.includes(sel, '2', `${lang} · Selected: the message states the count`);
+      if (lang === 'en') {
+        A.includes(sel, 'selected', 'EN · Selected says "selected"');
+        A.excludes(sel, 'all items', 'EN · and never claims all items');
+      } else {
+        A.includes(sel, '已选择', '中文 · Selected says 已选择');
+        A.excludes(sel, '全部项目', '中文 · and never claims 全部项目');
+      }
+
+      /* and the data really did stay inside the selection */
+      const marks = await page.evaluate(() =>
+        wqa.rows.map(r => String((r.priceOverride || {}).markup == null ? '' : r.priceOverride.markup)));
+      A.eq(marks.join('|'), '3|7|3|7', `${lang} · the rows agree with the message`);
+
+      await page.evaluate(() => { wqaClearSel(); wqaSetApplyScope('all'); });
+      await page.waitForTimeout(400);
+    }
+    await page.evaluate(() => dcSetLang('en'));
+    await page.close();
+  }
+
+  /* ── CR-02 · no Close that cannot close ──────────────────────────────────
+     In global Expanded every row is open BECAUSE of the view — wqaRowIsOpen
+     returns true from wqa.view alone — so a row-level Close set r.open=false
+     and the row stayed open. A control that cannot do what it says is worse
+     than no control: it teaches a person that the screen does not respond.  */
+  {
+    const page = await openApp(browser);
+    await quickAddPaste(page, FOUR, { expanded: false, settle: 1300 });
+
+    A.eq(await page.evaluate(() =>
+      document.querySelectorAll('#wqaRows .wqa-row-details').length), 4,
+      'Compact offers Details on every row');
+
+    await page.evaluate(() => wqaSetView('expanded'));
+    await page.waitForTimeout(800);
+    const exp = await page.evaluate(() => ({
+      details: document.querySelectorAll('#wqaRows .wqa-row-details').length,
+      /* every row IS open, by the view */
+      open: wqa.rows.filter(r => wqaRowIsOpen(r)).length,
+      bodies: document.querySelectorAll('#wqaRows .wqa-row-body').length,
+      /* the other two row actions are unaffected */
+      hist: document.querySelectorAll('#wqaRows .wqa-row-hist').length,
+      del: document.querySelectorAll('#wqaRows .wqa-row-del').length,
+    }));
+    A.eq(exp.details, 0, 'Expanded renders NO row action that cannot close the row');
+    A.eq(exp.open, 4, 'while every row is open, by the view');
+    A.eq(exp.bodies, 4, 'and every form is on the screen');
+    A.eq(exp.hist, 4, 'History is still offered');
+    A.eq(exp.del, 4, 'and remove');
+
+    /* Compact keeps the working one, and it really closes. */
+    await page.evaluate(() => wqaSetView('compact'));
+    await page.waitForTimeout(700);
+    await page.evaluate(() => wqaToggleRow(0));
+    await page.waitForTimeout(600);
+    A.eq(await page.evaluate(() =>
+      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim()),
+      'Close', 'Compact: the open row offers Close');
+    await page.evaluate(() =>
+      document.querySelector('[data-wqa-row="0"] .wqa-row-details').click());
+    await page.waitForTimeout(700);
+    A.eq(await page.evaluate(() => wqa.rows.filter(r => wqaRowIsOpen(r)).length), 0,
+      'and pressing it actually closes the row');
+    await page.close();
+  }
+
+  /* ── CR-03 · a clear that refuses an empty selection ─────────────────────
+     Clear All Accessories carries the panel's scope, so with "Selected" and
+     nothing ticked it had nothing to clear — and said "Accessories cleared"
+     anyway. A destructive action reporting success over an empty set is the
+     worst of the three: it reads as "done" and invites nobody to check.     */
+  {
+    const page = await openApp(browser);
+    await quickAddPaste(page, FOUR, { expanded: false, settle: 1300 });
+
+    /* give the rows something to lose */
+    await page.evaluate(() => {
+      wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('acc');
+      wqaEditCommonAcc('nut', 'enabled', true);
+      wqaEditCommonAcc('nut', 'qty', 2);
+      wqaApplyAccToAll();
+    });
+    await page.waitForTimeout(1400);
+    const withAcc = await page.evaluate(() => wqa.rows.filter(r => wqaAccHas(r.acc)).length);
+    A.eq(withAcc, 4, 'all four rows carry an accessory');
+
+    await page.evaluate(() => { wqaSetApplyScope('selected'); wqaClearSel(); });
+    await page.waitForTimeout(800);
+    const guard = await page.evaluate(() => {
+      const clear = document.querySelector('#wqaCommonAcc [data-wqa-needsel]');
+      const apply = document.querySelector('#wqaCommonAcc [data-wqa-apply]');
+      const msg = document.querySelector('#wqaCommonAcc .wqa-none-sel');
+      return { clearOff: !!clear && !!clear.disabled, applyOff: !!apply && !!apply.disabled,
+               msgShown: !!msg && !msg.hidden, msg: msg ? msg.textContent.trim() : '',
+               title: clear ? clear.title : '' };
+    });
+    A.eq(String(guard.clearOff), 'true', 'Clear All Accessories is disabled with nothing selected');
+    A.eq(String(guard.applyOff), 'true', 'and so is Apply');
+    A.eq(guard.msg, 'Select at least one item.', 'with the same refusal wording as everywhere else');
+    A.eq(String(guard.msgShown), 'true', 'shown beside the actions it refuses');
+
+    /* and if it is called anyway, it changes nothing and says so */
+    await page.evaluate(() => wqaClearAllAcc());
+    await page.waitForTimeout(900);
+    A.eq(await page.evaluate(() => wqa.rows.filter(r => wqaAccHas(r.acc)).length), 4,
+      'calling it directly clears nothing — Selected never becomes All');
+    A.includes(await page.evaluate(() => {
+      const t = document.querySelector('.toast, #toast, .dc-toast');
+      return t ? t.textContent : '';
+    }), 'Select at least one item', 'and the message is the refusal, not a success');
+
+    /* tick two and it works, on those two, and says which */
+    await page.evaluate(() => { wqaToggleRowSel(0); wqaToggleRowSel(2); });
+    await page.waitForTimeout(600);
+    await page.evaluate(() => wqaClearAllAcc());
+    await page.waitForTimeout(1200);
+    const after = await page.evaluate(() => ({
+      has: wqa.rows.map(r => wqaAccHas(r.acc) ? '1' : '0').join(''),
+      toast: (document.querySelector('.toast, #toast, .dc-toast') || {}).textContent || '',
+    }));
+    A.eq(after.has, '0101', 'ticking two clears exactly those two');
+    A.includes(after.toast, '2', 'and the message states how many');
+    A.excludes(after.toast, 'all items', 'never claiming all items');
+    A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
+    await page.close();
+  }
+
   return S;
 };

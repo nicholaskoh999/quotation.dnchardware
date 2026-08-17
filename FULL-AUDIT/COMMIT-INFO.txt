@@ -1,15 +1,25 @@
 QUOTATION.DNC — FULL-SYSTEM AUDIT, REPAIRS AND WORKFLOW POLISH
 ==============================================================
 
+<<<GENERATED:HEADER>>>
 BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
-FINAL APPLICATION SHA
-                409f66442780151a6f691b924e2b50a3150ca863
-                "The refusal beside every Apply it refuses"
+APPLICATION COMMIT
+                2aa5aba16293072e8d9285a67a60b5e920263de9
+                "The ticks measured at all seven widths, not counted"
+                The last commit that changed application or test code.
+                Every figure in this package was measured against it.
+PACKAGE / HEAD COMMIT
+                55a99c23803e5481000a4377ca93ab7552bec757
+                "The package, told from the workflow-polish SHA"
+                Carries this package. A report cannot name the commit it
+                is inside, so the exact HEAD an archive was built from is
+                also recorded in the archive's own manifest.
 DEPLOYED        NO — nothing was deployed, and nothing was run against
-                production data. Every test drives the shipped code against a
-                controlled API in a local browser.
+                production data. Every test drives the shipped code
+                against a controlled API in a local browser.
+<<<END:HEADER>>>
 
 WORKING TREE    clean at the final commit
 
@@ -47,10 +57,10 @@ stay on the row, because by then they are the row's own pricing entry.
 
 AUDIT COMMITS (oldest first — this list is the count)
 -----------------------------------------------------
+<<<GENERATED:COMMITS>>>
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
-  8e1bfff  The screens the language switch never reached, and a reference that
-           was markup
+  8e1bfff  The screens the language switch never reached, and a reference that was markup
   1f41833  The evidence, and the widths it was checked at
   a10e92c  The re-audit, and the archive that is the commit
   40e56d6  An ambiguous count is not a count, and a switch is not a re-render
@@ -61,11 +71,9 @@ AUDIT COMMITS (oldest first — this list is the count)
   dd15663  The screen, read in 中文, and the hook nothing ever applied
   d2069c2  The closing round, told from one SHA and one set of counts
   4907667  The logs the reports name, actually inside the package
-  4210c1b  Quick Add is called Quick Add, and its scope is the one the
-           parser has
+  4210c1b  Quick Add is called Quick Add, and its scope is the one the parser has
   2aaceb1  The package, told from the SHA that includes the copy change
-  50787d1  ERP polish: hierarchy, states and one sentence under a grey
-           button
+  50787d1  ERP polish: hierarchy, states and one sentence under a grey button
   7945bf9  The package, told from the polish SHA
   d4a4cd0  What a row is priced on, without opening it
   04e4159  The package, told from the row-summary SHA
@@ -77,6 +85,9 @@ AUDIT COMMITS (oldest first — this list is the count)
   7cc1ccf  Three mechanisms, three jobs, no overlap
   0ac5fc5  The new surfaces, scanned in 中文 rather than assumed
   409f664  The refusal beside every Apply it refuses
+  2aa5aba  The ticks measured at all seven widths, not counted
+  55a99c2  The package, told from the workflow-polish SHA
+<<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made
@@ -231,7 +242,9 @@ FILES CHANGED (baseline -> final)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
-  Browser suites            37 suites, 3,482 assertions, 0 failed   (795.8s)
+<<<GENERATED:MATRIX>>>
+  37 suites, 3482 assertions, 0 failed   (795.8s)
+<<<END:MATRIX>>>
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed

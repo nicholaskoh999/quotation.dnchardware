@@ -354,5 +354,65 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
+  /* ── F35 · a size nothing recognises has no bar ──────────────────────────
+     The column's whole contract is that the number on the screen is the bar
+     the weight was made of. An unknown size produces no weight — the row is
+     blocked by the Valid Size rule — but the DIA cell went on showing the
+     PREVIOUS size's diameter, because the recompute returns early for an
+     unknown size and the calculator still held the last one it was given.
+
+     So an M23 typed over an M27 sat beside a 27mm bar: a diameter belonging
+     to a size that was gone, next to no weight at all.                      */
+  {
+    const page = await openApp(browser);
+    await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 10pcs',
+      { expanded: false, settle: 900 });
+    await page.evaluate(() => wqaEditStart(0, 'size'));
+    await page.waitForTimeout(400);
+
+    await typeCell(page, 0, 'size', '27');
+    const known = await rowDia(page);
+    A.eq(known.size, 'M27', 'a bare 27 becomes M27');
+    A.eq(known.shown, '27', 'on a 27mm bar');
+    A.near(known.weight, weightOf(27, 1000), 1e-9, 'weighing what a 27mm bar weighs');
+
+    await typeCell(page, 0, 'size', 'M23');
+    const unknown = await rowDia(page);
+    A.eq(unknown.size, 'M23', 'M23 is kept as typed — it is not silently mapped to anything');
+    A.eq(unknown.shown, '', 'and shows NO diameter, rather than the M27 bar it replaced');
+    A.eq(unknown.state, '', 'the row holds none either');
+    A.eq(unknown.weight, null, 'there is no weight');
+    A.includes(unknown.missing.join(','), 'Valid Size',
+      'and the row asks for a valid size, which is the actual problem');
+    A.excludes(unknown.missing.join(','), 'Diameter',
+      'not for a diameter, which nobody could supply until the size is right');
+
+    /* And a recognised size gets its bar straight back. */
+    await typeCell(page, 0, 'size', 'M20');
+    const back = await rowDia(page);
+    A.eq(back.shown, '20', 'a recognised size restores the bar at once');
+    A.near(back.weight, weightOf(20, 1000), 1e-9, 'and the weight follows it');
+
+    /* And a manual diameter follows the SAME rule an unknown size follows as
+       any other size change: it belongs to the identity it was typed for, so
+       moving to a different one drops it and lets the table answer again.
+       Checked here rather than assumed, because the two mechanisms — clearing
+       a stale table diameter, and clearing a stale override — are separate
+       pieces of code that happen to agree. */
+    await page.evaluate(() => { wqaEditDia(0, '19.5'); });
+    await page.waitForTimeout(800);
+    const typed = await rowDia(page);
+    A.eq(typed.manual, 'true', 'a diameter typed against M20 is marked as the person\'s');
+    A.eq(typed.state, '19.5', 'and holds their number');
+
+    await typeCell(page, 0, 'size', 'M23');
+    const moved = await rowDia(page);
+    A.eq(moved.manual, 'false',
+      'moving to an unrecognised size drops it, exactly as moving to a recognised one does');
+    A.eq(moved.state, '', 'leaving no diameter at all rather than one belonging to M20');
+    A.eq(moved.weight, null, 'and no weight');
+    await page.close();
+  }
+
   return S;
 };
