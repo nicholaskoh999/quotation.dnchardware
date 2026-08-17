@@ -2,9 +2,9 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `2aa5aba16293072e8d9285a67a60b5e920263de9` · **NOT DEPLOYED.**
+Final application SHA `d0275356e7dee1d32781cb78a137ce95e607153f` · **NOT DEPLOYED.**
 
-> **On SHAs.** `2aa5aba16293072e8d9285a67a60b5e920263de9` is the last commit that changed the
+> **On SHAs.** `d0275356e7dee1d32781cb78a137ce95e607153f` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -16,10 +16,10 @@ Final application SHA `2aa5aba16293072e8d9285a67a60b5e920263de9` · **NOT DEPLOY
 
 ## The short version
 
-**Ten P1 findings, twenty-one P2, two P3, no P0 — 33 in all.**
+**Thirteen P1 findings, twenty-four P2, two P3, no P0 — 39 in all.**
 The audit and repair commits are listed, one by one, in `COMMIT-INFO.txt`.
 Every one was reproduced, given a failing regression, repaired, and re-proved.
-The full test matrix is green and 1,017 assertions larger than it was.
+The full test matrix is green and 1,148 assertions larger than it was.
 
 The last round separated the three ways a Quick Add row can be written to,
 which had genuinely overlapped: two controls both said "Edit", and the two

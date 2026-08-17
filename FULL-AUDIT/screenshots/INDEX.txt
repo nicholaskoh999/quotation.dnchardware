@@ -84,3 +84,12 @@
 84  R15-chinese-details.png
 85  R16-selection-1366.png
 86  R17-esc-restores-provenance.png
+87  C01-selected-apply-message.png
+88  C02-all-items-apply-message.png
+89  C03-selected-apply-message-chinese.png
+90  C04-accessories-zero-selected.png
+91  R11-expanded-no-fake-close.png
+92  C06-previous-price-invalidated.png
+93  C07-inline-ambiguous-qty.png
+94  C08-item-number-not-a-length.png
+95  C09-unknown-size-no-bar.png

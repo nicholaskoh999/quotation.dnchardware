@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `2aa5aba16293072e8d9285a67a60b5e920263de9`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `d0275356e7dee1d32781cb78a137ce95e607153f`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,7 +8,7 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `2aa5aba16293072e8d9285a67a60b5e920263de9` is the last commit that changed the
+> **On SHAs.** `d0275356e7dee1d32781cb78a137ce95e607153f` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -22,7 +22,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 37 | **3,482** | **0** |
+| Browser suites (`node tests/run.js`) | 37 | **3,613** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **161** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -32,10 +32,10 @@ against itself.
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **3,827** |
+| **TOTAL ASSERTIONS** | **3,958** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+1,017 assertions**, all
+Baseline for comparison: 2,810 assertions, 0 failed. **+1,148 assertions**, all
 of them new coverage — 3,338 after the morning repair, 142 from the closing
 round, 5 from the UI polish, 59 from the compact row's pricing summary, 135
 from Fast Edit and the diameter contract (suites 35 and 36), and 120 from the
@@ -70,12 +70,12 @@ different. Each slice says so in its first two lines.
   ok   dense table — 29 rows, merged cells, metric beside imperial                      170
   ok   engineering drawing — five parts, five lengths, no borrowed dimensions            73
   ok   company rules — a size type with a reason, a diameter with one source             68
-  ok   quick add safety — corrections, item numbers, partial extraction                  60
+  ok   quick add safety — corrections, item numbers, partial extraction                 103
   ok   company history — a legacy description reads as words, not as a stored value      40
   ok   accessories — charged beside the bolt, never inside it                            41
   ok   dimension schema and drawing association                                          71
   ok   quick add — each row's own pricing history, on the row                            85
-  ok   quick add layout — every product reachable at every width                        284
+  ok   quick add layout — every product reachable at every width                        285
   ok   quick add — twenty items, which is the ordinary case                              31
   ok   engineering documents — geometry, merged cells and specification scope           148
   ok   add to quotation — the button at the end of the review                           160
@@ -87,17 +87,17 @@ different. Each slice says so in its first two lines.
   ok   thread reference — a note about the thread                                       100
   ok   previous price — applied to the items it describes                                79
   ok   quick add — a review screen, not a settings page                                  65
-  ok   quantity — fifteen thousand, one, and the ones we must not guess                 136
+  ok   quantity — fifteen thousand, one, and the ones we must not guess                 176
   ok   English / 中文 — the screen, not the dictionary                                    165
   ok   size system — one rod, one diameter, whichever way it was written                132
   ok   responsive — every width the brief names                                          98
   ok   rendered 中文 — the DOM, not the dictionary                                        166
   ok   compact row — the pricing summary, from the row's own state                       54
   ok   fast edit — one state, and everything it holds still                              77
-  ok   diameter — the bar the weight is made of                                          78
-  ok   roles — Fast Edit, Bulk Edit and Details do not overlap                           78
+  ok   diameter — the bar the weight is made of                                          94
+  ok   roles — Fast Edit, Bulk Edit and Details do not overlap                          109
 
-  37 suites, 3482 assertions, 0 failed    795.8s
+  37 suites, 3613 assertions, 0 failed    835.7s
 ```
 
 ---

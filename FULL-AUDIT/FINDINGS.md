@@ -1,9 +1,9 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `2aa5aba16293072e8d9285a67a60b5e920263de9` · Not deployed.
+Final application SHA `d0275356e7dee1d32781cb78a137ce95e607153f` · Not deployed.
 
-**P0 0 · P1 10 · P2 21 · P3 2 · 33 total, all repaired.**
+**P0 0 · P1 13 · P2 24 · P3 2 · 39 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
 external review the following morning and are marked *(morning repair)*.
 F25–F29 came out of the review after that and are marked *(final closing
@@ -13,6 +13,12 @@ the workflow polish round and are marked *(workflow polish round)*: F30 was
 reported by external review, F31 and F32 were found while separating the three
 editing mechanisms, and F33 was found by the rendered-DOM 中文 suite.
 
+F34–F36 are the *(closing repair)*, all three reported by external review and
+all three the same fault in different clothes: the screen saying something that
+was not true. F37–F39 came out of the *(overnight audit)* that followed, and
+were found by reproducing named weak spots rather than by reading code — two of
+them put a wrong number into a quotation with no warning at all.
+
 Severity follows the brief: **P0** wrong customer / data corruption / catastrophic
 pricing · **P1** wrong price, weight, quantity, material, finish, Previous Price
 reuse, or major parser corruption · **P2** workflow, persistence, translation or
@@ -21,7 +27,7 @@ usability failure · **P3** cosmetic.
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
 
-> **On SHAs.** `2aa5aba16293072e8d9285a67a60b5e920263de9` is the last commit that changed the
+> **On SHAs.** `d0275356e7dee1d32781cb78a137ce95e607153f` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -458,6 +464,118 @@ that "Auto Round 与 No Round" items recompute, naming two controls by names
 they do not have on that screen — the buttons two lines below say 自动进位 and
 不进位.
 *Regression: suite 33 §13 and suite 37 §13.*
+
+---
+
+### F34 · A bulk apply that touched four rows said it touched all of them — *(closing repair)*
+**P2.** Scope Selected Items, four rows ticked, Apply Pricing — the data was
+right, and only those four moved. The message afterwards said *Pricing entry
+applied to all items* / *价格设置已应用到全部项目*, because there was only one
+sentence and it was written for the common case.
+
+A person who reads the toast and not the list was told something false about
+their own quotation. Every apply path now chooses a whole sentence by scope,
+so "all items" can only be said when the scope really was all items.
+
+Two whole sentences per action rather than a verb concatenated with a scope
+clause: Chinese and English put the pieces in different places, and a
+translator handed half a sentence cannot do anything useful with it.
+
+The Size / TL panel was worse than the rest — it built its sentence by English
+string concatenation, so 中文 read *"Size M12 applied to 3 items"*.
+*Regression: suite 37 §CR-01 — both scopes × both languages, asserting the
+count is named, that "all items" never appears under a selection, and that the
+rows agree with the message.*
+
+### F35 · Expanded rendered a Close that could not close — *(closing repair)*
+**P2.** `wqaRowIsOpen` returns true from `wqa.view === 'expanded'` alone, so in
+global Expanded the row-level Close set `r.open = false` and the row stayed
+open. The action was inert in the only mode it appeared to be needed.
+
+A control that cannot do what it says is worse than no control: it teaches a
+person that the screen does not respond, and that lesson carries to the
+controls that do work. Expanded no longer renders it; Compact keeps
+Details / Close, which closes.
+*Regression: suite 37 §CR-02 and suite 17 — Expanded asserts the action is
+ABSENT while History and remove stay reachable, and Compact asserts that
+pressing Close actually closes the row.*
+
+### F36 · Clear All Accessories reported success over an empty selection — *(closing repair)*
+**P1.** With scope Selected Items and nothing ticked, Clear All Accessories was
+pressable, cleared nothing, and said *Accessories cleared on all items*.
+
+A destructive action reporting success over an empty set is the worst of the
+three messages in this group: it reads as "done" and invites nobody to check.
+Graded P1 rather than P2 because the sentence it printed described a
+destructive operation across every row.
+
+It now refuses with the same wording every other refusal uses, cannot be
+pressed in the first place, and — when it does run — names the rows it
+actually cleared.
+*Regression: suite 37 §CR-03 — disabled, explained, changes nothing when
+called directly, then clears exactly the two ticked rows and says so.*
+
+### F37 · An ambiguous quantity written INLINE was silently resolved — *(overnight audit)*
+**P1.** `qty 100 / 200` on a line of its own is correctly refused. The identical
+statement on the item's own line —
+
+> `M24 x 300 x tl 65/65 qty 100 / 200`
+
+— quoted **100 pieces**, with no warning. Every spelling behaved the same way:
+`100/200`, `100 or 200`, `100 - 200`, `50 to 80`.
+
+The original repair anchored its rule to the whole line, deliberately: a slash
+between two numbers is a THREAD PAIR everywhere else in this trade, and
+`M24 x 300 x 100/200` must never be read as a count. That anchoring stays. What
+makes the inline form safe to detect is the same thing that made the own-line
+form safe — the WORD. The marker must sit immediately in front of the two
+numbers, so a thread pair, a length range and a dimension chain are all
+untouched because none of them is preceded by "qty".
+
+The difference is what happens next: the own-line form is emptied, because the
+line was nothing but the unreadable count; the inline form loses only the
+phrase, so the item keeps its size, length and thread and asks for its
+quantity instead of inventing one.
+
+A rule that holds in one position and not the other is not a rule; it is a
+place the customer happened not to press.
+*Regression: suite 29 — all six spellings inline, each asserting the geometry
+survives, plus the three false positives that must not appear (a thread pair
+beside a count, a single inline count, an ordinary trailing count).*
+
+### F38 · An item number written as a word became the length — *(overnight audit)*
+**P1.** `3.` and `3)` were recognised as list numbering and dropped. `NO3`,
+`NO.3`, `NO 3` and `#3` were not, so the number stayed on the line for the
+dimension readers:
+
+> `NO3 M12 L=1000 TL 70/70 - 3pcs`  →  **length 3**
+
+A metre-long rod quoted at three millimetres, silently. Named in the brief as a
+known weak spot and reproduced on every spelling.
+
+The repair is deliberately narrow: the marker word must be present — a bare
+leading number keeps the existing rule and its existing guards — and something
+must follow it, so a line that is nothing but `NO. 3` is left alone rather than
+emptied.
+*Regression: suite 12 — eight spellings, plus a line with no numbering and an
+imperial `1/2` that must not be read as one.*
+
+### F39 · An unrecognised size kept the previous size's diameter on screen — *(overnight audit)*
+**P2.** Typing `M23` over an `M27` left the DIA column showing **27**. No price
+was produced — the row is blocked by the Valid Size rule — but the column's
+entire contract is that the number on the screen is the bar the weight was made
+of, and here it was a bar belonging to a size that was gone, beside no weight
+at all.
+
+The recompute returns early for an unknown size, before the read-back that
+keeps the column honest, and the calculator still held the last size it was
+given. The row now shows no diameter; it still asks for a valid SIZE, which is
+the actual problem, rather than for a diameter nobody could supply until the
+size is right. A diameter a person typed is theirs and follows the existing
+identity rule instead.
+*Regression: suite 36 — M27 → M23 → M20, asserting the bar disappears and
+returns, and that a manual diameter is dropped by an unrecognised size exactly
+as it is by a recognised one.*
 
 ---
 

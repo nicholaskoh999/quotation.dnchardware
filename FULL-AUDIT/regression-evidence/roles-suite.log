@@ -1,6 +1,6 @@
 Sliced from the full matrix run recorded in browser-suite.log.
 Same run, same tree — not a separate invocation.
 
-  ok    roles — Fast Edit, Bulk Edit and Details do not overlap  (78 assertions)
+  ok    roles — Fast Edit, Bulk Edit and Details do not overlap  (109 assertions)
 
-  37 suites, 3482 assertions, 0 failed
+  37 suites, 3613 assertions, 0 failed

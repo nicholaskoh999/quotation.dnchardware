@@ -6,13 +6,13 @@ BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 APPLICATION COMMIT
-                2aa5aba16293072e8d9285a67a60b5e920263de9
-                "The ticks measured at all seven widths, not counted"
+                d0275356e7dee1d32781cb78a137ce95e607153f
+                "One archive, laid out for a reviewer, and nine frames that prove the repairs"
                 The last commit that changed application or test code.
                 Every figure in this package was measured against it.
 PACKAGE / HEAD COMMIT
-                55a99c23803e5481000a4377ca93ab7552bec757
-                "The package, told from the workflow-polish SHA"
+                d0275356e7dee1d32781cb78a137ce95e607153f
+                "One archive, laid out for a reviewer, and nine frames that prove the repairs"
                 Carries this package. A report cannot name the commit it
                 is inside, so the exact HEAD an archive was built from is
                 also recorded in the archive's own manifest.
@@ -87,6 +87,9 @@ AUDIT COMMITS (oldest first — this list is the count)
   409f664  The refusal beside every Apply it refuses
   2aa5aba  The ticks measured at all seven widths, not counted
   55a99c2  The package, told from the workflow-polish SHA
+  61d4fef  Closing repairs, and two things the probes reproduced
+  414ea18  An item number written as a word is not a dimension
+  d027535  One archive, laid out for a reviewer, and nine frames that prove the repairs
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -243,7 +246,7 @@ FILES CHANGED (baseline -> final)
 TEST MATRIX AT FINAL SHA
 ------------------------
 <<<GENERATED:MATRIX>>>
-  37 suites, 3482 assertions, 0 failed   (795.8s)
+  37 suites, 3613 assertions, 0 failed   (835.7s)
 <<<END:MATRIX>>>
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed

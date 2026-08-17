@@ -250,7 +250,13 @@ function commitInfoBlocks() {
   }
   if (process.argv.includes('--write')) {
     fs.writeFileSync(path.join(AUDIT, 'COMMIT-INFO.txt'), out);
-    check(true, 'COMMIT-INFO.txt generated blocks rewritten from Git');
+    /* Everything above was measured against the file as it stood BEFORE this
+       rewrite, so reporting those results now would be reporting the problem
+       this run just fixed. Write mode writes and says so; verification is the
+       next run, which is the one packaging gates on. */
+    console.log('\n  COMMIT-INFO.txt regenerated from Git.'
+      + '\n  Re-run without --write to verify.\n');
+    process.exit(0);
   } else {
     drift.forEach(d => fail.push('FAIL ' + d + ' — run with --write'));
     check(!drift.length, 'COMMIT-INFO.txt generated blocks match Git');
