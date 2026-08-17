@@ -496,5 +496,103 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
+  /* ── 13 · the surfaces this round added ────────────────────────────────
+     Details, row selection, the Bulk Edit count, "apply to Selected Items"
+     and the refusal when nothing is selected. Each is markup generated after
+     dcApplyLang has already run, which is exactly the shape that produced
+     every false-green this suite exists to catch: a data-i18n attribute on
+     an element built too late for the one pass that reads them. So each is
+     opened in 中文 and scanned as it stands.                               */
+  {
+    const page = await openApp(browser);
+    await setLang(page, 'zh');
+    await page.evaluate(() => wqaOpen());
+    await page.waitForTimeout(320);
+    await quickAddPaste(page, 'MS SAG ROD ZP UNDERSIZE\nM12 x 853 x 70/70 - 4pcs\nM16 x 500 x 70/70 - 2pcs');
+    await page.evaluate(() => wqaSetView('compact'));
+    await page.waitForTimeout(400);
+
+    /* The row action, closed and open. It said "Edit" in both languages
+       before it had a key of its own. */
+    const shut = await page.evaluate(() =>
+      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim());
+    A.eq(shut, '详情', 'the row action is 详情, not Details');
+    await clean(page, 'compact rows with selection ticks', A);
+
+    await page.evaluate(() => wqaToggleRow(0));
+    await page.waitForTimeout(500);
+    A.eq(await page.evaluate(() =>
+      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim()),
+      '关闭', 'and 关闭 while it is open');
+    await clean(page, 'Details open', A);
+    await page.evaluate(() => wqaToggleRow(0));
+    await page.waitForTimeout(400);
+
+    /* Selection: the count badge and the bar are both built on demand. */
+    await page.evaluate(() => { wqaToggleRowSel(0); wqaToggleRowSel(1); });
+    await page.waitForTimeout(500);
+    const sel = await page.evaluate(() => ({
+      badge: (el('wqaBulkSelN') || {}).textContent || '',
+      bar: (el('wqaSelBar') || {}).textContent || '',
+      headTitle: (document.querySelector('#wqaListHead .wqa-pick-all') || {}).title || '',
+    }));
+    A.ok(/[一-鿿]/.test(sel.badge), `the selected count is in Chinese — ${sel.badge.trim()}`);
+    A.ok(/[一-鿿]/.test(sel.bar), 'and so is the selection bar');
+    A.eq(sel.headTitle, '全选项目', 'and the select-all box says 全选项目');
+    await clean(page, 'two rows selected', A);
+
+    /* The refusal, which only exists in one state and is easy to miss. */
+    await page.evaluate(() => {
+      wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('fix');
+      wqaSetApplyScope('selected'); wqaClearSel();
+    });
+    await page.waitForTimeout(700);
+    const refuse = await page.evaluate(() => {
+      const n = document.querySelector('#wqaCommonFix .wqa-none-sel');
+      return { shown: !!n && !n.hidden, text: n ? n.textContent.trim() : '' };
+    });
+    A.eq(String(refuse.shown), 'true', 'Selected with nothing selected shows the refusal');
+    A.eq(refuse.text, '请至少选择一个项目。', 'in Chinese, word for word');
+    await clean(page, 'Bulk Edit refusing an empty selection', A);
+
+    /* Bulk Edit's three sections, each opened, each scanned. */
+    await page.evaluate(() => wqaSetApplyScope('all'));
+    await page.waitForTimeout(400);
+    for (const sec of ['fix', 'price', 'acc']) {
+      await page.evaluate(k => wqaTogglePanel(k), sec);
+      await page.waitForTimeout(450);
+      await clean(page, `Bulk Edit section ${sec}`, A);
+    }
+    const titles = await page.evaluate(() =>
+      [...document.querySelectorAll('#wqaBulkBody .wqa-panel-title')].map(n => n.textContent.trim()));
+    A.eq(titles.join(' · '), '通用项目字段 · 价格设置 · 配件',
+      'and the three section titles are Chinese');
+
+    /* Fast Edit, which replaces every value cell with a box. */
+    await page.evaluate(() => wqaEditStart());
+    await page.waitForTimeout(700);
+    await clean(page, 'Fast Edit open', A);
+    const editBtns = await page.evaluate(() => ({
+      done: (el('wqaEditDoneBtn') || {}).textContent || '',
+      cancel: (el('wqaEditCancelBtn') || {}).textContent || '',
+      view: (document.querySelector('.wqa-view-lbl') || {}).textContent || '',
+    }));
+    A.ok(/[一-鿿]/.test(editBtns.done), 'Done is Chinese in Fast Edit');
+    A.ok(/[一-鿿]/.test(editBtns.cancel), 'and Cancel');
+    A.eq(editBtns.view.trim(), '视图', 'and the VIEW label reads 视图');
+    await page.evaluate(() => wqaEditCancel());
+    await page.waitForTimeout(600);
+
+    /* And back, twice, because a re-render is where a label goes missing. */
+    for (const lang of ['en', 'zh', 'en', 'zh']) { await setLang(page, lang); }
+    await page.waitForTimeout(400);
+    A.eq(await page.evaluate(() =>
+      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim()),
+      '详情', 'the row action survives EN→中文→EN→中文');
+    await clean(page, 'after four language switches', A);
+    A.ok(!page._dcErrors.length, 'no script error: ' + page._dcErrors.join(' | '));
+    await page.close();
+  }
+
   return S;
 };

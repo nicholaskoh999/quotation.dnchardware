@@ -5180,7 +5180,7 @@ const I18N={
     impNone:'没有警告或错误。',
     wqaCopyNoteBlank:'只会复制到每个项目一次，之后各项目仍可独立修改。留空的字段不会被套用 — 不会清除项目原有的内容。',
     wqaCopyNote:'只会复制到每个项目一次，之后各项目仍可独立修改。',
-    wqaEntryOnly:'仅为输入值。Auto Round 与 No Round 的项目会各自依本身尺寸重新计算最终单价。',
+    wqaEntryOnly:'仅为输入值。「自动进位」与「不进位」的项目会各自依本身尺寸重新计算最终单价。',
     wqaManualWarn:'Manual Price 会让每个项目使用相同的最终价格。长度不同通常价格也不同 — 只有在客户确实报一个统一价格时才使用。',
     wqaChooseProduct:'文件没有说明这是什么产品，系统不会自行猜测。请选择产品以便计价。',
     lblAddCustom:'新增自定义', lblAddCostShort:'额外费用', lblProductName:'产品名称',
@@ -10285,7 +10285,8 @@ function wqaOpenBulkFor(){
 }
 function wqaClearSel(){
   wqa.rows.forEach(r=>{ r.sel=false; });
-  wqaRenderRows(true); wqaRenderSelBar();
+  wqaRenderRows(true);
+  wqaAfterSelChange();
 }
 /* Previous Price for a selection is still chosen from a RECORD, so this opens
    the history of the first selected row and leaves the choosing to a person.
