@@ -1,85 +1,105 @@
-QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT
-===========================================
+QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT + MORNING REPAIR
+============================================================
 
 BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
-FINAL SHA       87248945a9a21e9cbd846054680f5abdf75b9ed9
+FINAL SHA       40e56d6951d7832a19e5b7fd121877faecf7f54a
+                "An ambiguous count is not a count, and a switch is not a
+                 re-render"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
 
 WORKING TREE    clean at the final commit
 
-AUDIT COMMITS
--------------
+There is exactly ONE final SHA and it is the one above. Every report in this
+package quotes it. Earlier drafts of these reports quoted intermediate commits
+(8724894, 1f41833, a10e92c); those are audit commits in the list below, not
+final SHAs.
+
+AUDIT COMMITS (6, oldest first)
+-------------------------------
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
-  8724894  The screens the language switch never reached, and a reference that was markup
+  8e1bfff  The screens the language switch never reached, and a reference that was markup
+  1f41833  The evidence, and the widths it was checked at
+  a10e92c  The re-audit, and the archive that is the commit
+  40e56d6  An ambiguous count is not a count, and a switch is not a re-render
 
-  1cea497  Fifteen thousand is not fifteen, and one is not none
-           The three Priority Zero items, plus the two comma defects behind
+  1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made
-           to use the same helper wqaExtractFields already uses; the approved
+           to use the helper wqaExtractFields already uses; the approved
            absent-Qty rule in the one normaliser every source passes through,
            with absent told apart from unreadable; the context-sensitive
            Thread Reference hint. And 127 user-visible strings moved out of
            showToast and title attributes into the dictionary.
 
-  5591772  One rod, one diameter, and a product word that is a word
-           Inch spellings canonicalised so 1", 1 IN and 1 INCH are one size
+  5591772  Inch spellings canonicalised so 1", 1 IN and 1 INCH are one size
            with one fullsize and one undersize bar; the product alias matcher
            made word-bounded so SPECIAL BOLT is not an L Bolt; L BOLT 45DEG no
-           longer priced with the 90-degree bend deduction. Suite 31 holds the
-           two fullsize inch tables against each other and recomputes eighteen
-           weights independently.
+           longer priced with the 90-degree bend deduction.
 
-  8724894  The screens the language switch never reached, and a reference
-           that was markup
-           The Pricing Guide, the Plate and Welding Anchor Set forms, the
+  8e1bfff  The Pricing Guide, the Plate and Welding Anchor Set forms, the
            empty states and the short labels. The deliberate exclusions
-           written into the checker so they stay visible. And the quotation
-           reference on the Companies page, which reached innerHTML unescaped.
+           written into the checker. And the quotation reference on the
+           Companies page, which reached innerHTML unescaped.
 
-FILES CHANGED
--------------
-   companies.php                            |  3767 ++--
-   index.php                                | 30354 +++++++++++++++--------------
-   tests/suites/26-thread-reference.test.js |    60 +
-   tests/suites/29-quantity.test.js         |   229 +
-   tests/suites/30-language.test.js         |   230 +
-   tests/suites/31-size-system.test.js      |   246 +
-   tests/tools/check-translations.js        |   367 +
-   7 files changed, 18419 insertions(+), 16834 deletions(-)
+  1f41833  The responsive suite at the seven widths the brief names, the
+           32-frame evidence set, and the audit package.
+
+  a10e92c  The full matrix re-run from a clean tree, and the archive built
+           with git archive from HEAD.
+
+  40e56d6  MORNING REPAIR. The ambiguous quantity, which resolved itself to
+           one piece and spawned a phantom row. The language switch that wiped
+           the live item count. The item cards that were never re-rendered, so
+           they read "Edit / 编辑". The translation checker that reported zero
+           while all of that was on screen — and everything it then found.
+
+FILES CHANGED (baseline -> final)
+---------------------------------
+   companies.php                            |  200 +++--
+   index.php                                | 1283 +++++++++++++++++++++---------
+   tests/audit-shots.js                     |  409 ++++++++++
+   tests/lib/harness.js                     |   74 +-
+   tests/suites/26-thread-reference.test.js |   60 ++
+   tests/suites/29-quantity.test.js         |  372 +++++++++
+   tests/suites/30-language.test.js         |  362 +++++++++
+   tests/suites/31-size-system.test.js      |  246 ++++++
+   tests/suites/32-responsive.test.js       |  124 +++
+   tests/tools/check-translations.js        |  485 +++++++++++
+   10 files changed, 3182 insertions(+), 433 deletions(-)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
-  Browser suites            32 suites, 2,858 assertions, 0 failed
+  Browser suites            32 suites, 2,996 assertions, 0 failed   (598.9s)
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    12 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      3,200
+  TOTAL ASSERTIONS                      3,338
   TOTAL FAILED                              0
+  SKIPPED / ENVIRONMENT-LIMITED             0
 
   php -l over 13 files      clean
   Browser console errors    none, asserted per page at every viewport
 
-BASELINE FOR COMPARISON
------------------------
-  2,810 assertions, 0 failed.  +390 assertions this run.
+  Baseline for comparison: 2,810 assertions, 0 failed.  +528 this round.
 
-FINAL RE-AUDIT (after all repairs, clean tree)
-----------------------------------------------
-  Browser suites            32 suites, 2,858 assertions, 0 failed   (601.4s)
-  See regression-evidence/final-re-audit.log
+FINDINGS
+--------
+  P0  0
+  P1  7   all repaired
+  P2  15  all repaired
+  P3  2   all repaired
+  ---------------------
+  24 total, 24 repaired.  6 recorded-not-repaired with reasons.
+  6 questions need a business answer.
 
-ZIP
----
-  quotation-dnc-final.zip   13 MB, 227 files
-  Built with: git archive --format=zip --prefix=quotation-dnc-final/ \
-                          -o quotation-dnc-final.zip HEAD
-  Verified: the file set in the archive is identical to `git ls-files` at
-  1f418335f75f8513deceef9d8785ef1ce883b2f0. .gitignore excludes *.zip by design, so the
-  archive is a build artifact and is not committed back into the history.
+LINE ENDINGS
+------------
+  index.php and companies.php are uniformly CRLF at the final commit, as they
+  were at the baseline. Checked before committing; the one earlier lapse
+  (LF conversion by a bulk-edit script) was caught and restored in 8e1bfff.

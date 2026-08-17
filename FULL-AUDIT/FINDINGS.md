@@ -1,6 +1,12 @@
 # FINDINGS
 
-Baseline `f96714e` · Final `8724894`+ · Not deployed.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
+Final `40e56d6951d7832a19e5b7fd121877faecf7f54a` · Not deployed.
+
+**P0 0 · P1 7 · P2 15 · P3 2 · 24 total, all repaired.**
+F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came
+out of external review the following morning and are marked *(morning
+repair)*.
 
 Severity follows the brief: **P0** wrong customer / data corruption / catastrophic
 pricing · **P1** wrong price, weight, quantity, material, finish, Previous Price
@@ -106,13 +112,13 @@ what the inch reader has always treated them as. *Regression* — suite 31 §1.
 
 ## P2 — MEDIUM
 
-### F7 · An absent quantity blocked the row instead of defaulting to one
+### F8 · An absent quantity blocked the row instead of defaulting to one
 Newly approved rule (brief §2.2). A message with no count at all left every row
 blank and unaddable. *Repair* — applied in `wqaNormalizeExtraction`, the single
 funnel a pasted message, a photograph, a PDF and a drawing all pass through, so
 all four now agree. *Regression* — suite 29 §5, §8, §9.
 
-### F8 · An unreadable quantity was indistinguishable from an absent one
+### F9 · An unreadable quantity was indistinguishable from an absent one
 `qty tbc`, `qty ?`, `qty:` — the customer meant to state a count and did not.
 Defaulting those to 1 would be the parser inventing an order size. Worse, a
 digit-less `qty tbc` line was classified as noise and thrown away with the
@@ -120,14 +126,14 @@ greetings, so the row above it looked like an item nobody had stated a count
 for. *Repair* — the distinction is now carried explicitly, and such a row asks
 for its quantity by name. *Regression* — suite 29 §6, §8.
 
-### F9 · Thread Reference offered UNC and BSW to metric sizes
+### F10 · Thread Reference offered UNC and BSW to metric sizes
 One fixed hint string — `1.75P · UNC · BSW` — on every row. The READING rule was
 already right (only 1/2" gets a series attached); the help text disagreed with
 it. *Repair* — context-sensitive by size: `e.g. 1.75P` on metric, `UNC / BSW` on
 1/2", `Optional reference` on every other imperial size. It follows the size when
 the size is corrected on screen. *Regression* — suite 26.
 
-### F10 · 129 user-visible strings never reached the translator
+### F11 · 129 user-visible strings never reached the translator
 Almost every validation message in the application, plus the icon-button
 tooltips and the screen-reader labels, were written straight into `showToast`
 and into `title` attributes. They had no key, so they counted as fully
@@ -135,25 +141,25 @@ translated and appeared in English to anyone working in 中文: "Enter Diameter"
 "Cost Rate is blank. Enter price before adding."
 *Regression* — suite 30 §2, which reads the toast off the screen.
 
-### F11 · The Pricing Guide was never switched at all
+### F12 · The Pricing Guide was never switched at all
 The whole page was written in English in the markup — every explanation of Cost
 Rate, Additional Cost, Auto Round, No Round and Manual Price. *Regression* —
 suite 30 §5.
 
-### F12 · Plate and Welding Anchor Set still used the pre-switch bilingual style
+### F13 · Plate and Welding Anchor Set still used the pre-switch bilingual style
 Thirty-two labels reading "Material 材料" — both languages at once, in either
 mode — which is exactly the mixed labelling the language switch replaced
 everywhere else. *Regression* — suite 30 §5.
 
-### F13 · The Welding Anchor Set guide box was Chinese only
+### F14 · The Welding Anchor Set guide box was Chinese only
 An English reader was handed a paragraph they could not read. A cost note beside
 it was Chinese with "Additional Cost" embedded in the middle of it.
 *Regression* — suite 30 §5.
 
-### F14 · Empty states, Quick Open errors, history messages and import results
+### F15 · Empty states, Quick Open errors, history messages and import results
 untranslated. These are most of what a new install shows in its first week.
 
-### F15 · A quotation reference reached innerHTML unescaped
+### F16 · A quotation reference reached innerHTML unescaped
 The Latest Saved Quote card on the Companies page wrote `ref_no` straight into
 markup — the comment above it said so — while the company name beside it was
 escaped. The reference is typed by hand when a quotation is saved, and that page
@@ -163,13 +169,99 @@ lists every customer. *Repair* — escaped like every other stored value.
 
 ## P3 — LOW
 
-### F16 · `data-i18n-alt` had no handler
+### F23 · `data-i18n-alt` had no handler
 The attribute convention documented four hooks and `dcApplyLang` implemented
 three. Added.
 
-### F17 · Two hard-coded English tooltips on the Quick Add size cell
+### F24 · Two hard-coded English tooltips on the Quick Add size cell
 `title="Thread reference — not used in any calculation"`, built into the row
 renderer twice. Both now read from the dictionary.
+
+---
+
+## P1 — HIGH *(morning repair)*
+
+### F7 · An ambiguous quantity resolved itself, and to one piece
+```
+M24 x 300 x tl 65/65
+qty 100 / 200
+```
+The quantity marker took the first number. The leftover 200 became a **phantom
+item** carrying a length and no size. And the real item — never told that
+anything on the line had been unreadable — fell through to the absent-quantity
+rule and went out at **Qty 1**.
+
+That is the precise substitution F9 exists to prevent: an ambiguous count
+becoming a confident one. It was worse than the original report, which expected
+the item to take 100.
+
+*Repair* — the line is refused whole, before any reader touches it, and the
+item asks for its count by name. `qty 100/200`, `qty: 100 / 200`,
+`qty 100 or 200`, `qty 100 - 200` and `quantity 50 to 80` all behave the same.
+A single number after the marker still reads, and a thread pair — `M24 x 300 x
+100/200` — is untouched, because the ambiguity is in the QUANTITY wording and
+nowhere else.
+*Regression* — suite 29 §10, §11: the row is blocked, Add All and partial add
+both leave it on screen, and answering the quantity lets it in with the number
+the person typed. *Evidence* — `after-fix/33-ambiguous-qty-needs-qty.png`.
+
+---
+
+## P2 — MEDIUM *(morning repair)*
+
+### F17 · A language switch wiped the live item count
+`dcApplyLang` writes each `data-i18n` element's text from the dictionary. On a
+COUNTER that constant is a lie — `wqaFootTotal` is declared `wqaZeroItems`,
+literally "0 items" — and `dcRelabel` is what puts the real number back.
+
+`dcSetLang` skipped `dcRelabel` when the chosen language was the one already in
+force, which is exactly what pressing the active EN or 中文 button does. The
+footer went to **0 项 with two rows on the screen** and the Add button lost its
+count with it.
+
+Eighteen elements in `index.php` have computed text and a constant declared
+beside it. *Repair* — `dcSetLang` always relabels, and the Quick Add count is
+recomputed outside the `rows.length` guard so an empty review says 0 项 rather
+than 0 items. *Regression* — suite 30 §7, over 0, 1, 2 and 4 rows, both
+directions, and the same button pressed twice.
+
+### F18 · The quotation's item cards were never re-rendered
+They are built once, when an item is added, and no relabel hook rebuilt them —
+so a card added in English kept **"Edit / 编辑"** and **"Delete / 删除"**, both
+languages at once, in either mode. *Repair* — `renderQuote` registered with
+`dcOnRelabel`. *Regression* — suite 30 §8. *Evidence* —
+`after-fix/36-saved-quote-english.png`, `after-fix/37-saved-quote-chinese.png`.
+
+### F19 · The Quick Add review's own labels
+Built in script on every render, so none reached the attribute scan: the column
+headers (`#`, Size, TL, Qty, Weight, Price, Actions), the row buttons (Edit,
+History, Close), the common-fields labels (Product, Material, Finish, Size
+Type), the expanded row's Size and Qty, the accessory panels, the history panel
+and its record card, the weight and accessory bars.
+*Evidence* — `after-fix/35-quickadd-chinese-item-count.png`.
+
+### F20 · Almost the whole Companies page
+Its loading line, the four status badges, the buttons under every quotation
+(Load / Duplicate / Delete / View), the card meta, the detail panel, the
+end-of-list line, one more side-by-side bilingual heading, and four inline
+English strings including two `confirm()` dialogs.
+*Evidence* — `after-fix/38-companies-chinese-dynamic.png`.
+
+### F21 · The translation checker was false-green
+It reported **0 hard-coded** while all of F20 and F21 were on screen. It refused
+any run containing `$` or `{`, so every label with an interpolation beside its
+English was invisible — which is most dynamic markup. It also could not see
+markup built inside a string rather than written as markup.
+
+*Repair* — interpolations are stripped and the English around them is read; one
+word is the threshold everywhere, which is only workable because `isCode`
+already knows the trade's vocabulary; a fifth pass reads markup built in
+strings; and every finding is verified against the source before it is
+reported. That last one is what stopped me dismissing a real leak as a false
+positive.
+
+### F22 · The Pricing Guide's worked examples, the U-Bolt breakdown, the Others form
+The remaining static-markup labels the one-word threshold surfaced.
 
 ---
 

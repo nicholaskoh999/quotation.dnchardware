@@ -1,15 +1,16 @@
 # EXECUTIVE SUMMARY
 
-**Overnight full-system audit · QUOTATION.DNC**
-Baseline `f96714e` → final. **NOT DEPLOYED.**
+**Overnight full-system audit + morning repair · QUOTATION.DNC**
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
+Final `40e56d6951d7832a19e5b7fd121877faecf7f54a` · **NOT DEPLOYED.**
 
 ---
 
 ## The short version
 
-Three commits. **Six P1 findings, eleven P2, two P3, no P0.** Every one was
-reproduced, given a failing regression, repaired, and re-proved. The full test
-matrix is green and 428 assertions larger than it was.
+Six commits. **Seven P1 findings, fifteen P2, two P3, no P0 — 24 in all.**
+Every one was reproduced, given a failing regression, repaired, and re-proved.
+The full test matrix is green and 528 assertions larger than it was.
 
 The two that matter most were both **silent** — the screen showed a complete,
 ordinary-looking, priceable row and the number in it was wrong:
@@ -35,13 +36,13 @@ with the calculator. It now agrees.
 | | Count | Repaired |
 |---|---:|---:|
 | **P0** critical | 0 | — |
-| **P1** high | 6 | 6 |
-| **P2** medium | 11 | 11 |
+| **P1** high | 7 | 7 |
+| **P2** medium | 15 | 15 |
 | **P3** low | 2 | 2 |
 | Recorded, not repaired (with reasons) | 6 | — |
 | Needs a business decision | 6 | — |
 
-### The six P1s
+### The seven P1s
 
 1. A comma-grouped **quantity** read as its first group — 15,000 → 15.
 2. A comma-grouped **dimension** read as its first group — 1,000 mm → 1 mm,
@@ -57,6 +58,10 @@ with the calculator. It now agrees.
 6. **One inch size, three spellings, three answers.** `1"` was worth 25.4 mm
    fullsize and 23 mm undersize; `1 INCH` was worth 25.4 mm fullsize and
    *nothing* undersize.
+7. **An ambiguous quantity resolved itself — to one piece.** `qty 100 / 200`
+   handed the first number to a phantom row and left the real item to fall
+   through to the absent-quantity default. The count nobody could read became
+   a confident 1. *(morning repair)*
 
 ### The translation work
 
@@ -69,8 +74,23 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**658 keys, 100% translated, nothing bypassing the translator.** Proved by
+**756 keys, 100% translated, nothing bypassing the translator.** Proved by
 reading the rendered screen, not the dictionary.
+
+That figure is from the morning, and it is larger than the overnight one for a
+reason worth stating plainly: **the overnight checker was false-green.** It
+reported zero hard-coded strings while the Quick Add column headers, its row
+buttons, its panel labels and almost the whole Companies page were still
+English in 中文. It refused to look at any run containing `$` or `{`, so every
+label with an interpolation beside its English was invisible to it — which is
+most dynamic markup. The checker now strips interpolations, holds every label
+to one word, reads markup built inside strings, and verifies each finding
+against the source before reporting it.
+
+Two more of the same shape came with it: pressing the language button for the
+language already in force wiped the Quick Add item count to **0 项 with two rows
+on screen**, and the quotation's own item cards were never re-rendered on a
+switch, so they read **"Edit / 编辑"** — both languages at once.
 
 The new Chinese strings are first-pass and should be read by a native speaker
 before release. That is a smaller claim than "translated", and it is the honest
@@ -91,6 +111,9 @@ escaped like everything else.
 * **Nothing was tested against production data.** Every test runs the shipped
   code against a controlled API, which is how the suite has always worked. No
   live database was read or written.
+* **The morning round was driven by external review, not by the overnight
+  audit's own checks.** The overnight translation tooling passed while real
+  leaks were on screen; that is recorded as F22 rather than glossed.
 * **Sections 9–19 were audited through the existing suites and targeted probes,
   not re-derived from scratch.** Bulk apply, the pricing engine, accessories,
   the quotation flow, companies, default prices, diameter settings and the

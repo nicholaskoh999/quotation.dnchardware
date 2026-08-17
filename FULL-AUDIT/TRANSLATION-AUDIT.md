@@ -1,6 +1,7 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e` → final. Tooling: `tests/tools/check-translations.js`
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `40e56d6951d7832a19e5b7fd121877faecf7f54a`.
+Tooling: `tests/tools/check-translations.js`
 (static, reads the shipped source) and `tests/suites/30-language.test.js`
 (browser, switches the language the way the button does and reads the SCREEN).
 
@@ -10,20 +11,30 @@ Baseline `f96714e` → final. Tooling: `tests/tools/check-translations.js`
 
 | File | Keys | Translated | Missing zh | Undefined | Identical (non-code) | Bypassing dcT |
 |---|---:|---:|---:|---:|---:|---:|
-| index.php | 564 | 100% | 0 | 0 | 0 | 0 |
-| companies.php | 83 | 100% | 0 | 0 | 0 | 0 |
+| index.php | 629 | 100% | 0 | 0 | 0 | 0 |
+| companies.php | 116 | 100% | 0 | 0 | 0 | 0 |
 | login.php | 11 | 100% | 0 | 0 | 0 | 0 |
-| **Total** | **658** | **100%** | **0** | **0** | **0** | **0** |
+| **Total** | **756** | **100%** | **0** | **0** | **0** | **0** |
+
+Regenerated from the final SHA. The overnight figure of 658 is superseded and
+should not be quoted.
 
 At baseline the dictionary already read 100% translated. That number was not
 false, but it was not the whole picture: **a string with no key is not a missing
 translation, it is not a translation at all**, and 129 of those were on screen.
 
-| | baseline | final |
-|---|---:|---:|
-| dictionary keys | 512 | 658 |
-| dictionary coverage | 100% | 100% |
-| strings bypassing `dcT` | **129** | **0** |
+| | baseline | overnight | final |
+|---|---:|---:|---:|
+| dictionary keys | 512 | 658 | **756** |
+| dictionary coverage | 100% | 100% | **100%** |
+| strings bypassing `dcT`, as the checker then saw it | 129 | 0 | **0** |
+| strings bypassing `dcT`, as the CURRENT checker sees it | — | **~210** | **0** |
+
+That last row is the important one. **The overnight checker was false-green.**
+It reported zero while the Quick Add column headers, its row buttons, its panel
+labels, the accessory panels, the pricing-history record card, Quick Open and
+almost the whole Companies page were still English in 中文. See §"What the
+checker could not see" below.
 
 ---
 
@@ -78,9 +89,57 @@ These are most of what a new install shows in its first week.
 
 A scan looking for sentences walks straight past "Add Cost", "Weight Mode",
 "Add Custom", "Load more", "Show Debug", "Reference Total", "Last Updated" —
-two words each, every one a control. The checker now holds label-bearing tags
-(`label`, `h1`–`h6`, `button`, `option`, `th`, and `*-label` / `ref-tab`
-classes) to two words and everything else to four.
+two words each, every one a control.
+
+### 6 · The dynamic renderers *(morning repair)*
+
+This is the group the overnight checker could not see at all, and it is the
+largest one left:
+
+* **Quick Add's review screen** — the column headers (`#`, Size, TL, Qty,
+  Weight, Price, Actions), the row buttons (Edit, History, Close), the
+  common-fields labels (Product, Material, Finish, Size Type), the expanded
+  row's own Size and Qty, the accessory panels, the weight and accessory bars,
+  the history panel and every tag on a pricing-history record card.
+* **The Companies page** — its loading line, all four status badges (Active,
+  No Quotes, Recent, Has Remarks), the buttons under every quotation (Load,
+  Duplicate, Delete, View), the card meta (Saved quotes / Latest / Contact /
+  Last Updated / Latest Product / Reference Total), the detail panel, the
+  end-of-list line, one more side-by-side bilingual heading, and four inline
+  English strings including two `confirm()` dialogs.
+* **The quotation's own item cards** — which read **"Edit / 编辑"** and
+  **"Delete / 删除"**, both languages at once, because nothing re-rendered them
+  on a switch.
+* Quick Open, the import result lines, the Others form and the Pricing Guide's
+  worked examples.
+
+---
+
+## What the checker could not see
+
+The overnight checker reported **0 hard-coded** while everything in §6 was on
+screen. Three blind spots, all now closed:
+
+1. **Interpolations.** It refused any run containing `$` or `{`, so
+   `<label>Product${req?' *':''}</label>` and `>${open?'Close':'Edit'}<` matched
+   nothing at all. Interpolations are now stripped and the English AROUND them
+   is read.
+2. **One-word labels.** The threshold was two words for label-ish tags and four
+   for everything else, so "Size", "Qty", "Price", "Edit" and "History" all
+   walked through. It is one word everywhere now — workable only because
+   `isCode()` already knows the trade's vocabulary.
+3. **Markup built inside a string.** `Saved quotes: <b>${n}</b> · Latest: …` is
+   assigned to a variable and injected later, so the English sits before and
+   after a tag rather than between two of them. A fifth pass reads those.
+
+It also now **verifies each finding against the source** before reporting it.
+That is not a nicety: it is what stopped me dismissing a genuine leak — a
+side-by-side "Saved Quotations 报价记录" heading — as a false positive.
+
+And one lesson about hooks: `data-i18n` only works for markup that exists when
+the switch happens. Markup rendered afterwards must call `dcT()` at render
+time, and its renderer must be registered with `dcOnRelabel`. Both mistakes
+were present and both are fixed.
 
 ---
 
@@ -127,14 +186,26 @@ claim from being well written.
 
 * `tests/tools/check-translations.js` — 12 assertions, run as part of the test
   matrix. Reports all four failure modes and the deliberate exclusions.
-* `tests/suites/30-language.test.js` — 82 assertions. Switches the language,
+* `tests/suites/30-language.test.js` — 165 assertions. Switches the language,
   reads the rendered screen, presses real buttons and reads real toasts,
   confirms trade vocabulary survives, and asserts no key name is ever shown raw.
+  Since the morning repair it also holds the item count across 0, 1, 2 and 4
+  rows in both directions and with the same language button pressed twice; the
+  saved quotation's Edit/Delete controls in one language at a time; and the
+  whole Companies page in 中文.
 
 ## Evidence
 
 `screenshots/25-main-page-english.png` · `26-main-page-chinese.png` ·
 `27-quickadd-chinese.png` · `28-companies-chinese.png` ·
 `29-calculator-chinese.png` · `30-validation-message-chinese.png`
-and `before-fix/30-validation-message-chinese.png` (the same refusal, in
-English, with the interface in 中文) and `before-fix/B-welding-anchor-set-english.png`.
+
+Morning repair: `after-fix/35-quickadd-chinese-item-count.png` (2 项 on the
+header and the footer, 添加 2 项到报价单 on the button, every dynamic header
+translated) · `after-fix/36-saved-quote-english.png` and
+`after-fix/37-saved-quote-chinese.png` (Edit/Delete, then 编辑/删除, never both)
+· `after-fix/38-companies-chinese-dynamic.png`.
+
+Before: `before-fix/30-validation-message-chinese.png` (the same refusal, in
+English, with the interface in 中文) and
+`before-fix/B-welding-anchor-set-english.png`.

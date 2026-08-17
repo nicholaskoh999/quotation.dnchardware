@@ -1,5 +1,7 @@
 # NEEDS BUSINESS DECISION
 
+Final `40e56d6951d7832a19e5b7fd121877faecf7f54a` · not deployed.
+
 Each of these would change price, quantity, size identity, quotation output or
 what a customer receives. None was guessed at. Every one is a single question
 with the options laid out and what the code does today.
@@ -30,22 +32,30 @@ option.
 
 ---
 
-## 2 · What should a conflicting quantity do?
+## 2 · A conflicting quantity — ANSWERED, and implemented
 
 `qty 100 / 200` on a line of its own.
 
-**Today** it is read as quantity 100, and the leftover 200 becomes a second row
-carrying a length and no size. That row cannot be added — it is flagged Needs
-Size — so nothing wrong reaches a quotation, but the list has a row in it that
-the customer did not write.
+This was an open question after the overnight round. It has since been answered
+by instruction and implemented: **read neither number, no phantom row, mark the
+item Needs Qty.** That is option (a) as it was put.
 
-The brief says an ambiguous quantity should be marked Needs Qty rather than
-silently resolved. Taking the first number IS a silent resolution.
+Recorded here rather than deleted so the decision has somewhere to live. What
+ships today:
 
-**Options**
-* (a) read neither number, mark the item Needs Qty (matches the brief's wording);
-* (b) keep today's behaviour and suppress the spurious second row only;
-* (c) treat it as a range and ask.
+* neither 100 nor 200 is taken;
+* the second number produces no row of its own;
+* the item's quantity is blank and the row says "Needs Qty";
+* Add All and a partial add both refuse it;
+* correcting the quantity by hand lets the row in normally.
+
+Also covered: `qty 100/200`, `qty: 100 / 200`, `qty 100 or 200`,
+`qty 100 - 200`, `quantity 50 to 80`. A thread pair — `M24 x 300 x 100/200` —
+is untouched, because the ambiguity is in the QUANTITY wording and nowhere
+else.
+
+**Still open, if you want it different:** whether a RANGE ("50 to 80") should
+be treated as a range rather than as an unreadable count.
 
 ---
 

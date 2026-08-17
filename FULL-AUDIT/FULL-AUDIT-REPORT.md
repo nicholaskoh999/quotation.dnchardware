@@ -1,7 +1,13 @@
 # FULL AUDIT REPORT — QUOTATION.DNC
 
-Overnight autonomous full-system audit and repair loop.
-Baseline `f96714e` → final `8e1bfff`. **NOT DEPLOYED.**
+Overnight autonomous full-system audit and repair loop, plus the morning
+repair that closed what external review found.
+
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
+Final `40e56d6951d7832a19e5b7fd121877faecf7f54a` · **NOT DEPLOYED.**
+
+**P0 0 · P1 7 · P2 15 · P3 2 — 24 findings, all repaired.**
+**3,338 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
@@ -17,6 +23,7 @@ Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 | Production data touched | **None.** Every test drives the shipped code against a controlled `api.php` in a local Chromium. No live database was read or written. |
 | Destructive operations | None. |
 | Pre-existing failures hidden | None — the baseline was green (2,810 assertions) and is recorded. |
+| Tests skipped or environment-limited | None. Every suite the brief names ran to completion. |
 | Assertions weakened to get green | None. Four suites were added and one extended; nothing was relaxed. |
 | Working tree at final commit | Clean. |
 
@@ -29,7 +36,9 @@ regression that states the expected behaviour → find the root cause → make t
 smallest repair that removes the cause → run the focused suite → run the full
 matrix → capture evidence → re-audit the surrounding area.
 
-Three commits, each a coherent group of repairs with its own regression.
+Six commits, each a coherent group of repairs with its own regression. The
+sixth is the morning repair, driven by external review rather than by the
+audit's own checks — which is itself a finding, recorded as F22.
 
 ---
 
@@ -221,8 +230,10 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **658 keys, 100% translated, nothing bypassing the
-translator**, up from 512 keys with **129 strings that never reached it**.
+The priority deliverable. **756 keys, 100% translated, nothing bypassing the
+translator**, up from 512 keys with **129 strings that never reached it** — and
+then a further ~210 that the overnight checker could not see, found the morning
+after by a stricter one. See §34 and F17–F22.
 
 Full detail in `TRANSLATION-AUDIT.md`, including the list of what is
 deliberately not translated and why, and the caveat that the new Chinese strings
@@ -265,6 +276,13 @@ field is an absent field and not an error.
 ---
 
 ## 25 · Error, empty and edge states
+
+**Ambiguous Qty was the morning's P1.** `qty 100 / 200` took the first number,
+gave the leftover to a phantom row, and left the real item to fall through to
+the absent-quantity default — so a count nobody could read became a confident
+**1**. Nothing is read now: the line is refused whole, the item asks by name,
+and neither Add All nor a partial add can take it. Evidence:
+`after-fix/33-ambiguous-qty-needs-qty.png`.
 
 Absent Qty, ambiguous Qty, zero Qty, comma Qty, very large Qty, missing
 material, missing size type, missing size, unsupported input, no history, failed
@@ -333,19 +351,46 @@ the layer that would have caught it.
 * `after-fix/` — the matching four.
 * `regression-evidence/` — every suite's own log, plus the JSON.
 
-**TOTAL ASSERTIONS 3,200 · TOTAL FAILED 0.**
+**TOTAL ASSERTIONS 3,338 · TOTAL FAILED 0 · SKIPPED 0.**
+
+Every log the package claims exists is in `regression-evidence/`:
+`browser-suite.log` (and `.json`), `pricing-history-php.log`,
+`ai-extract-php.log`, `pricing-workbook.log`, `translation-coverage.log` (and
+`.json`), `php-lint.log`, `responsive-matrix.log`, `quantity-suite.log`,
+`language-suite.log`. An earlier draft named a `final-re-audit.log` that had
+been superseded; the browser-suite log IS the final run and there is no longer
+a claim to a file that does not exist.
 
 ---
 
 ## 33 · Final re-audit
 
-After all repairs, the full matrix was re-run from a clean tree, and Quick Add,
+After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green. One late defect was caught by that re-audit and fixed: two
-files had had their line endings converted from CRLF to LF by the tooling used
-for the bulk translation edits, which would have made the final diff
-unreviewable. Restored, and the diff is 1,867 insertions over 7 files.
+re-exercised. Green: 32 suites, 2,996 assertions, 0 failed.
+
+Two defects were caught by re-checking rather than by a test, and both are worth
+naming because both were self-inflicted:
+
+* the bulk-edit tooling converted `index.php` and `companies.php` from CRLF to
+  LF, which would have made the diff a whole-file rewrite. Restored, and line
+  endings are now checked before every commit;
+* a key written as `{n} record(s)` broke a suite that asserts real English
+  ("6 records"). Pluralised properly rather than weakening the assertion.
+
+## 34 · What the audit's own checks did not catch
+
+The overnight round reported a green translation checker while the Quick Add
+column headers, its row buttons, its panel labels and almost the whole
+Companies page were still English in 中文, and while a language switch could
+wipe the item count to 0 项 with two rows on screen.
+
+That is recorded as F22, at the same severity as the leaks it hid, because a
+check that passes while the defect is visible is worse than no check: it
+converts "not looked at" into "looked at and fine". The checker now strips
+interpolations, holds every label to one word, reads markup built inside
+strings, and verifies each finding against the source before reporting it.
 
 ---
 

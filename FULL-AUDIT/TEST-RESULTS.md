@@ -1,6 +1,7 @@
 # TEST RESULTS
 
-Baseline `f96714e` → final. Every suite below runs against the **shipped** code:
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `40e56d6951d7832a19e5b7fd121877faecf7f54a`.
+Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
 `api.php` from a table the test controls, and drive the page in Chromium. No
@@ -13,7 +14,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 32 | **2,858** | **0** |
+| Browser suites (`node tests/run.js`) | 32 | **2,996** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **161** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -23,11 +24,14 @@ against itself.
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **3,200** |
+| **TOTAL ASSERTIONS** | **3,338** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+390 assertions**, all of
-them new coverage over defects found this run.
+Baseline for comparison: 2,810 assertions, 0 failed. **+528 assertions**, all of
+them new coverage over defects found this round.
+
+**Skipped or environment-limited: none.** Every suite named in the brief ran to
+completion and is counted above.
 
 ---
 
@@ -59,15 +63,15 @@ them new coverage over defects found this run.
   ok  previous price — a recipe, not a number                          73
   ok  pricing history — whose price is this                            61
   ok  size type — unknown is not fullsize                              71
-  ok  thread reference — a note about the thread                      100   (+13)
+  ok  thread reference — a note about the thread                      100
   ok  previous price — applied to the items it describes               79
   ok  quick add — a review screen, not a settings page                 66
-  ok  quantity — fifteen thousand, one, and the ones we must not guess 81   (NEW)
-  ok  English / 中文 — the screen, not the dictionary                   82   (NEW)
-  ok  size system — one rod, one diameter, whichever way written      132   (NEW)
-  ok  responsive — every width the brief names                         70   (NEW)
+  ok  quantity — fifteen thousand, one, and the ones we must not guess 136
+  ok  English / 中文 — the screen, not the dictionary                   165
+  ok  size system — one rod, one diameter, whichever way written      132
+  ok  responsive — every width the brief names                         70
 
-  32 suites, 2858 assertions, 0 failed          600.5s
+  32 suites, 2996 assertions, 0 failed          598.9s
 ```
 
 ---
@@ -76,7 +80,7 @@ them new coverage over defects found this run.
 
 ### Added
 
-**`tests/suites/29-quantity.test.js` — 81 assertions.**
+**`tests/suites/29-quantity.test.js` — 136 assertions.**
 The live message end to end; the spec-header reader over six material spellings
 plus the guard case that made it strict; every quantity variant the brief names;
 thousands separators in a quantity AND in a dimension; the bare-list boundary;
@@ -84,7 +88,7 @@ absent quantity defaulting to one, at the parser, on the review screen and
 through the extraction normaliser; and quantity wording with no readable value,
 which must NOT default.
 
-**`tests/suites/30-language.test.js` — 82 assertions.**
+**`tests/suites/30-language.test.js` — 165 assertions.**
 Switches the language the way the button does and reads the rendered SCREEN, not
 the dictionary. Presses real buttons and reads real toasts in 中文. Covers the
 Pricing Guide, the Plate and Welding Anchor Set forms, the Companies page and
@@ -109,6 +113,22 @@ a box and is inside the window at every width.
 Static analysis of the shipped source. Reports all four ways a screen can stay
 English and holds the deliberate exclusions explicitly.
 
+### Added in the morning repair
+
+Suite 29 grew §10–§12 (55 assertions): the ambiguous quantity refusing to
+resolve, the row being blocked from Add All AND from a partial add, the
+correction path, and the comma-in-a-length **after** proof whose weight is
+computed in the test file from the diameter the app reports.
+
+Suite 30 grew §7–§9 (83 assertions): the item count across 0, 1, 2 and 4 rows
+in both directions and with the same language button pressed twice; the saved
+quotation's own Edit/Delete controls in one language at a time; and the whole
+Companies page in 中文, which is drawn almost entirely from data.
+
+`tests/lib/harness.js` gained a `get_quotation` fixture that returns items as
+an ARRAY, the shape the endpoint returns — the previous placeholder was a
+string and the Companies renderer could not map over it.
+
 ### Modified
 
 **`tests/suites/26-thread-reference.test.js` — 87 → 100.**
@@ -128,7 +148,7 @@ paints, which is the behaviour under test.
 | Check | Result |
 |---|---|
 | `php -l` over all 13 PHP files | clean |
-| Translation coverage | 658 keys, 100%, 0 bypassing `dcT` |
+| Translation coverage | 756 keys, 100%, 0 bypassing `dcT` |
 | Browser console errors | asserted per-page in suites 30, 31 and 32 (`page._dcErrors` empty at every viewport) |
 | Pricing workbook contains no business values | 62 assertions, clean |
 
