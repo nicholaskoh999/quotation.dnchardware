@@ -1994,6 +1994,33 @@ input,select,textarea{
 .wqa-c{font-weight:600;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums;
   overflow:hidden;text-overflow:ellipsis;text-align:center}
 .wqa-c-size {font-weight:700;color:var(--text)}
+/* ── Fast Edit ─────────────────────────────────────────────────────────────
+   A box where the value was, in the same track, at the same height. The row
+   must not grow when it becomes editable — a list of twenty that reflows on
+   Edit is a list nobody can keep their place in. */
+.wqa-edit-actions{display:inline-flex;gap:6px;margin-right:10px}
+.wqa-edit-btn{font-weight:800}
+.wqa-edit-done{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent-2);font-weight:800}
+.wqa-edit-done:hover{background:var(--accent-mid)}
+.wqa-view-btn.is-locked{opacity:.45;cursor:not-allowed}
+.wqa-ec{padding:0 2px;min-width:0}
+.wqa-ei{width:100%;min-width:0;height:26px;padding:0 6px;font:inherit;font-size:12px;font-weight:700;
+  text-align:center;color:var(--text);background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-xs);
+  font-variant-numeric:tabular-nums;transition:border-color .14s ease,box-shadow .14s ease}
+.wqa-ei:hover{border-color:var(--border-focus)}
+.wqa-ei:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.wqa-ei.is-bad{border-color:var(--red,#dc2626);background:var(--red-light,#fee2e2)}
+/* Outside Edit, a value is a way in — it says so on hover and nowhere else. */
+.wqa-c-tap{cursor:text;border-radius:var(--r-xs)}
+.wqa-c-tap:hover{background:var(--accent-light);box-shadow:inset 0 0 0 1px var(--accent-mid)}
+.wqa-rows.is-editing .wqa-sum{cursor:default}
+.wqa-pill-go{cursor:pointer;font-family:inherit;transition:background .14s ease}
+.wqa-pill-go:hover{background:var(--amber-mid)}
+.wqa-pill-go:focus-visible{outline:2px solid var(--accent-mid);outline-offset:2px}
+.wqa-hist-panel.is-muted{opacity:.55;pointer-events:none}
+.wqa-edit-note{font-size:11px;font-weight:700;color:var(--accent-2);margin-left:8px}
+.wqa-edit-note[hidden]{display:none}
 /* The bar, beside the thread. Quiet by default — it is usually the table's
    answer and needs no comment — and marked only when somebody overrode it. */
 .wqa-c-dia{font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;
@@ -3788,6 +3815,18 @@ input,select,textarea{
         <span id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
         <!-- Shown only when an AI call actually produced the rows below. -->
         <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiAssisted" hidden>✨ AI assisted</span>
+        <!-- Edit is an OPERATION; Compact and Expanded are VIEWS. Kept apart
+             by a gap and by their shapes, because one segmented control of
+             three said they were one kind of thing and they are not. -->
+        <span class="wqa-edit-actions" id="wqaEditActions">
+          <button type="button" class="wqa-row-act wqa-edit-btn" id="wqaEditBtn"
+                  onclick="wqaEditStart()" data-i18n="btnEdit">Edit</button>
+          <button type="button" class="wqa-row-act wqa-edit-done" id="wqaEditDoneBtn"
+                  onclick="wqaEditDone()" hidden>✓ <span data-i18n="btnDone">Done</span></button>
+          <button type="button" class="wqa-row-act wqa-edit-cancel" id="wqaEditCancelBtn"
+                  onclick="wqaEditRequestCancel()" hidden data-i18n="cancel">Cancel</button>
+        </span>
+        <span class="wqa-edit-note" id="wqaEditNote" hidden></span>
         <span class="wqa-view-toggle" role="group" data-i18n-aria="wqaAriaView" aria-label="View">
           <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')" data-i18n="wqaCompact">Compact</button>
           <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')" data-i18n="wqaExpanded">Expanded</button>
@@ -4406,6 +4445,19 @@ const I18N={
        different numbers and the weight is made of the second one. */
     hdrDiaMm:'DIA (MM)', lblDiameterMm:'Diameter (mm)',
     fieldDiameter:'Diameter', diaDefault:'Default', diaManual:'Manual',
+    btnDone:'Done',
+    editLockExpanded:'Finish editing before opening Expanded.',
+    editLockAdd:'Finish editing before adding to the quotation.',
+    editLockHistory:'Finish editing before applying a previous price.',
+    editLockBulk:'Finish editing before using Bulk Edit.',
+    editLockCommon:'Finish editing before changing the common fields.',
+    editLockReparse:'Finish editing before re-reading the source.',
+    editLockDelete:'Finish editing before removing a row.',
+    editHistRefresh:'Previous Price will refresh after editing.',
+    editDiscardAsk:'You have unfinished edits. Discard them?',
+    errBadNumber:'That is not a number this field can use.',
+    errBadQty:'A quantity is a whole number of pieces, greater than zero.',
+    errBadSize:'That size is not one the diameter tables know.',
     diaDefaultShort:'Default', diaManualShort:'Manual',
     sumCostRate:'Cost Rate', sumAddCost:'Additional Cost', sumMarkup:'Markup',
     wqaOneFileUsing:'One file per analysis — using {f}.',
@@ -4882,6 +4934,19 @@ const I18N={
     sumPricing:'价格参数', sumSizeType:'尺寸类型：',
     hdrDiaMm:'直径 (MM)', lblDiameterMm:'直径 (mm)',
     fieldDiameter:'直径', diaDefault:'默认', diaManual:'手动',
+    btnDone:'完成',
+    editLockExpanded:'请先完成编辑后再打开展开模式。',
+    editLockAdd:'请先完成编辑后再加入报价单。',
+    editLockHistory:'请先完成编辑后再应用历史价格。',
+    editLockBulk:'请先完成编辑后再使用批量编辑。',
+    editLockCommon:'请先完成编辑后再修改通用参数。',
+    editLockReparse:'请先完成编辑后再重新读取原文。',
+    editLockDelete:'请先完成编辑后再删除项目。',
+    editHistRefresh:'完成编辑后将重新匹配历史价格。',
+    editDiscardAsk:'还有未完成的编辑，确定放弃吗？',
+    errBadNumber:'此栏位无法使用该数值。',
+    errBadQty:'数量必须是大于零的整数。',
+    errBadSize:'直径表中没有此尺寸。',
     diaDefaultShort:'默认', diaManualShort:'手动',
     sumCostRate:'成本率', sumAddCost:'附加成本', sumMarkup:'加成',
     wqaOneFileUsing:'每次分析一个文件 — 使用 {f}。',
@@ -10057,7 +10122,10 @@ function wqaRenderSelBar(){
     <button type="button" class="btn btn-ghost btn-sm" ${n?'':'disabled'}
             onclick="wqaClearSel()">${escHtml(dcT('wqaClearSel'))}</button>`;
 }
-function wqaOpenBulkFor(){ wqa.bulkOpen=true; wqaRenderBulk(); }
+function wqaOpenBulkFor(){
+  if(wqaEditing()){ showToast(dcT('editLockBulk')); return; }
+  wqa.bulkOpen=true; wqaRenderBulk();
+}
 function wqaClearSel(){
   wqa.rows.forEach(r=>{ r.sel=false; });
   wqaRenderRows(true); wqaRenderSelBar();
@@ -11098,6 +11166,10 @@ function wqaFmtTotalWeight(w,qty){
 function wqaRowIsOpen(r){ return wqa.view==='expanded' || !!r.open; }
 function wqaToggleRow(i){ const r=wqa.rows[i]; if(!r) return; r.open=!wqaRowIsOpen(r); wqaRenderRows(true); }
 function wqaSetView(v){
+  /* Compact dimension editing and Expanded editing are two write surfaces over
+     one row. The button is disabled; this is the same rule for anything that
+     calls the function directly. */
+  if(v==='expanded' && wqaEditing()){ showToast(dcT('editLockExpanded')); return; }
   wqa.view = v==='expanded' ? 'expanded' : 'compact';
   if(wqa.view==='compact') wqa.rows.forEach(r=>{ r.open=false; });
   const c=el('wqaViewCompact'), e=el('wqaViewExpanded');
@@ -11196,9 +11268,239 @@ function wqaDiaText(r){
 }
 function wqaDiaCellHtml(r){
   const manual=!!r.diaManual && String(r.diaMm||'').trim()!=='';
-  return `<span class="wqa-c wqa-c-dia${manual?' is-manual':''}"${
+  const ri=wqa.rows.indexOf(r);
+  return `<span class="wqa-c wqa-c-dia wqa-c-tap${manual?' is-manual':''}" data-cell="dia"
+    onclick="event.stopPropagation();wqaEditStart(${ri},'dia')"${
     manual?` title="${escHtml(dcT('diaManual'))}"`:''}>${escHtml(wqaDiaText(r))}${
     manual?`<span class="wqa-dia-tag">${escHtml(dcT('diaManualShort'))}</span>`:''}</span>`;
+}
+/* ══ FAST EDIT ═════════════════════════════════════════════════════════════
+   wqa.edit is the whole state: null, or a session holding the snapshot taken
+   when it opened. Everything else asks wqaEditing().                        */
+function wqaEditing(){ return !!wqa.edit; }
+/* ── What an open edit closes off, and why ─────────────────────────────────
+   An edit session is a transaction over rows that are still being typed into.
+   Everything below either writes the same rows from somewhere else, rebuilds
+   them from scratch, or commits them — and each one, run mid-edit, produces a
+   quotation nobody quite chose.
+
+   Gathered in ONE function so the list is readable and so no future control
+   can be added to the screen and quietly miss it. */
+function wqaSyncEditLocks(){
+  const on=wqaEditing();
+  const set=(id,off,why)=>{ const n=el(id); if(!n) return;
+    n.disabled=!!off; if(why){ n.title=off?why:''; } };
+  const editBtn=el('wqaEditBtn'), doneBtn=el('wqaEditDoneBtn'), cancelBtn=el('wqaEditCancelBtn');
+  if(editBtn)  editBtn.hidden=on;
+  if(doneBtn)  doneBtn.hidden=!on;
+  if(cancelBtn)cancelBtn.hidden=!on;
+  const live=wqa.rows.filter(r=>!r.removed).length;
+  if(editBtn) editBtn.disabled=!live;
+  /* Expanded: a form for one row cannot be open while a grid of every row is.
+     Compact stays available — it is where the edit lives. */
+  set('wqaViewExpanded',on,on?dcT('editLockExpanded'):'');
+  const exp=el('wqaViewExpanded');
+  if(exp) exp.classList.toggle('is-locked',on);
+  /* Add: even when every value looks right, the row is mid-transaction. */
+  const add=el('wqaAddBtn');
+  if(add && on){ add.disabled=true; add.title=dcT('editLockAdd'); }
+  else if(add){ add.title=''; }
+  /* Re-upload and re-parse rebuild the rows from the source, which would wipe
+     a draft edit without asking. */
+  ['wqaBackBtn','wqaParseBtn','wqaAnalyzeBtn'].forEach(id=>set(id,on,on?dcT('editLockReparse'):''));
+  /* Bulk Edit and the Common Fields write the same rows from above. */
+  const bulk=el('wqaBulkHead');
+  if(bulk) bulk.querySelectorAll('button').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockBulk'); });
+  const body=el('wqaBulkBody');
+  if(body) body.querySelectorAll('input,select,button,textarea').forEach(n=>{ n.disabled=on; });
+  const common=el('wqaCommon');
+  if(common) common.querySelectorAll('select,input,button').forEach(n=>{ n.disabled=on;
+    if(on) n.title=dcT('editLockCommon'); else n.title=''; });
+  /* Delete and the history controls, on every row. */
+  const rows=el('wqaRows');
+  if(rows){
+    rows.querySelectorAll('.wqa-row-del').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockDelete'); });
+    rows.querySelectorAll('.wqa-row-hist').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockHistory'); });
+    rows.querySelectorAll('.ph-rec-use,.ph-more,.wqa-prov').forEach(b=>{ b.disabled=on; });
+    rows.querySelectorAll('.wqa-hist-panel').forEach(p=>p.classList.toggle('is-muted',on));
+  }
+  const note=el('wqaEditNote');
+  if(note){ note.hidden=!on; note.textContent=on?dcT('editHistRefresh'):''; }
+  const list=el('wqaRows'); if(list) list.classList.toggle('is-editing',on);
+}
+/* Cancel throws work away, so it asks first when there is work to throw. */
+function wqaEditRequestCancel(){
+  if(wqaEditDirty() && !confirm(dcT('editDiscardAsk'))) return;
+  wqaEditCancel();
+}
+/* Which cells a row offers. Size and the diameter always; then the product's
+   OWN dimensions, by its own schema — a Stud has one, a J Bolt four — and the
+   quantity last. No universal geometry is invented: a product is asked for
+   exactly what wqaProductByType says it has. */
+function wqaEditFields(r){
+  const p=wqaProductByType(wqaRowProduct(r))||WQA_NO_PRODUCT;
+  const out=[{k:'size',kind:'size'},{k:'dia',kind:'dia'}];
+  (p.dims||[]).forEach(d=>{
+    if(d==='size') return;
+    out.push({k:d, kind:d==='threadLen'?'thread':'dim'});
+  });
+  out.push({k:'qty',kind:'qty'});
+  return out;
+}
+/* A value a person could not have meant. BLANK IS NOT INVALID — a customer
+   who did not state H leaves H blank, and being unable to leave an edit until
+   every missing dimension is invented is worse than the gap. What is refused
+   is a value that is WRONG: letters where millimetres go, a negative count, a
+   bar of zero diameter. */
+function wqaEditCellError(r,f){
+  const raw=String(wqaEditCellValue(r,f)==null?'':wqaEditCellValue(r,f)).trim();
+  if(raw==='') return '';                       // missing is allowed out
+  if(f.kind==='size') return isKnownSize(raw)?'':dcT('errBadSize');
+  if(f.kind==='thread') return /^[\d.]+(\s*\/\s*[\d.]+)?$/.test(raw)?'':dcT('errBadNumber');
+  const n=Number(raw);
+  if(!isFinite(n)) return dcT('errBadNumber');
+  if(f.kind==='qty') return (n>0 && Number.isInteger(n))?'':dcT('errBadQty');
+  return n>0?'':dcT('errBadNumber');            // dia and every dimension
+}
+function wqaEditCellValue(r,f){
+  if(f.kind==='dia')    return r.diaMm||'';
+  if(f.kind==='thread') return wqaThreadValue(r)||'';
+  return r[f.k]==null?'':r[f.k];
+}
+/* Every row, every cell, in visual order — which is also the Tab order. */
+function wqaEditErrors(){
+  const out=[];
+  wqa.rows.forEach((r,i)=>{
+    if(r.removed) return;
+    wqaEditFields(r).forEach(f=>{
+      const e=wqaEditCellError(r,f);
+      if(e) out.push({row:i, field:f.k, msg:e});
+    });
+  });
+  return out;
+}
+/* The snapshot. Deep enough to hold everything an edit session can move —
+   dimensions, the diameter and where it came from, the quantity, the price
+   overrides — so Cancel is a restore and not a "close the boxes and keep it". */
+function wqaEditSnapshot(){
+  return JSON.stringify(wqa.rows.map(r=>({
+    size:r.size, qty:r.qty, threadLen:r.threadLen, threadLen2:r.threadLen2,
+    length:r.length, w:r.w, h:r.h, id:r.id, s:r.s, radius:r.radius, bodyDia:r.bodyDia,
+    diaMm:r.diaMm, diaManual:!!r.diaManual, threadRef:r.threadRef,
+    material:r.material, finish:r.finish, sizeType:r.sizeType, product:r.product,
+    stDefaulted:!!r.stDefaulted, stWhy:r.stWhy,
+    priceOverride:Object.assign({},r.priceOverride||{}),
+    priceMode:r.priceMode, manualPrice:r.manualPrice,
+    usedHistoryRef:r.usedHistoryRef, usedHistoryRecipe:r.usedHistoryRecipe,
+    removed:!!r.removed,
+  })));
+}
+function wqaEditDirty(){
+  return !!(wqa.edit && wqa.edit.snap!==wqaEditSnapshot());
+}
+/* ── Opening it ────────────────────────────────────────────────────────────
+   From the button (no field), from a cell, or from a "Needs X" tag. All three
+   land here, so there is one way in and one state to leave.
+
+   Compact is forced: the whole point is a spreadsheet of every row at once,
+   and an expanded row is a form for one. Bulk Edit closes for the same reason
+   it is later disabled — two write surfaces over one row is one too many. */
+function wqaEditStart(rowIdx,field){
+  if(!wqa.rows.filter(r=>!r.removed).length) return;
+  if(!wqa.edit){
+    wqa.edit={ snap:wqaEditSnapshot() };
+    wqa.bulkOpen=false;
+    if(wqa.view!=='compact') wqaSetView('compact');
+  }
+  wqaRenderBulk();
+  wqaRenderRows(true);
+  wqaEditFocus(rowIdx,field);
+}
+function wqaEditFocus(rowIdx,field){
+  setTimeout(()=>{
+    try{
+      const root=el('wqaRows'); if(!root) return;
+      let n=null;
+      if(rowIdx!=null && field) n=root.querySelector(`[data-wqa-row="${rowIdx}"] [data-ef="${field}"]`);
+      if(!n && rowIdx!=null) n=root.querySelector(`[data-wqa-row="${rowIdx}"] [data-ef]`);
+      if(!n) n=root.querySelector('[data-ef]');
+      if(n){ n.focus(); if(n.select) n.select(); }
+    }catch(e){}
+  },30);
+}
+/* A missing field is a reason to stay and fix it, never a reason to be unable
+   to leave; an invalid one is the opposite. */
+function wqaEditDone(){
+  if(!wqa.edit) return true;
+  const bad=wqaEditErrors();
+  if(bad.length){
+    showToast(bad[0].msg);
+    wqaEditFocus(bad[0].row,bad[0].field);
+    return false;
+  }
+  wqa.edit=null;
+  wqaRenderBulk();
+  /* The row's identity may have moved under the history it was matched on, so
+     the existing matcher is re-run against the NEW state rather than left
+     pointing at what the row used to be. */
+  wqaRecomputeAll('force');
+  return true;
+}
+function wqaEditCancel(){
+  if(!wqa.edit) return;
+  let snap=[];
+  try{ snap=JSON.parse(wqa.edit.snap); }catch(e){ snap=[]; }
+  snap.forEach((s,i)=>{ const r=wqa.rows[i]; if(!r) return; Object.assign(r,s); });
+  wqa.edit=null;
+  wqaRenderBulk();
+  wqaRecomputeAll('force');
+}
+/* ── The cell editors ──────────────────────────────────────────────────────
+   Each writes through the SAME function the expanded form uses, so a value
+   typed here and a value typed there travel one path. */
+function wqaEditDia(i,v){
+  const r=wqa.rows[i]; if(!r) return;
+  const t=String(v==null?'':v).trim();
+  wqaMarkEdited(r,'dia');
+  if(t===''){ r.diaManual=false; r.diaMm=''; }
+  else { r.diaManual=true; r.diaMm=t; }
+  clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250);
+}
+function wqaEditCell(i,f,v){
+  if(f==='size'){ wqaEdit(i,'size',v); return; }
+  if(f==='dia'){ wqaEditDia(i,v); return; }
+  if(f==='threadLen'){ wqaEditThread(i,v); return; }
+  wqaEdit(i,f,v);
+}
+/* Enter accepts; Escape puts the cell back to what the snapshot holds without
+   ending the session, which is the one thing a person expects Escape to do in
+   a grid and the one thing it must not be allowed to do to the whole edit. */
+function wqaEditKey(ev,i,f){
+  if(ev.key==='Enter'){ ev.preventDefault(); ev.target.blur(); return; }
+  if(ev.key==='Escape'){
+    ev.preventDefault(); ev.stopPropagation();
+    let snap=null;
+    try{ snap=JSON.parse(wqa.edit&&wqa.edit.snap||'[]')[i]; }catch(e){}
+    if(snap){
+      const was = f==='dia' ? (snap.diaMm||'')
+                : f==='threadLen' ? (snap.threadLen||'')
+                : (snap[f]==null?'':snap[f]);
+      ev.target.value=was;
+      wqaEditCell(i,f,was);
+    }
+  }
+}
+/* ── The cells, as inputs ──────────────────────────────────────────────────
+   Same grid, same tracks, same density: a box where the value was. */
+function wqaEditCellHtml(r,i,f,cls){
+  const v=wqaEditCellValue(r,f);
+  const err=wqaEditCellError(r,f);
+  return `<span class="wqa-c wqa-ec ${cls}"><input class="wqa-ei${err?' is-bad':''}" type="text"
+    data-ef="${f.k}" value="${escHtml(String(v==null?'':v))}"
+    ${err?`title="${escHtml(err)}" aria-invalid="true"`:''}
+    onclick="event.stopPropagation()"
+    oninput="wqaEditCell(${i},'${f.k}',this.value)"
+    onkeydown="wqaEditKey(event,${i},'${f.k}')"></span>`;
 }
 function wqaCompactCells(r,cols){
   const calc=r.calc||{};
@@ -11207,13 +11509,35 @@ function wqaCompactCells(r,cols){
      the table gains no column and no width. It is a note about the thread; the
      size above it is what everything is calculated from. */
   const tref=String(r.threadRef||'').trim();
-  const sizeCell=`<span class="wqa-c wqa-c-size${tref?' has-tref':''}">${escHtml(r.size||'—')}${
+  const ri=wqa.rows.indexOf(r);
+  const sizeCell=`<span class="wqa-c wqa-c-size wqa-c-tap${tref?' has-tref':''}" data-cell="size"
+    onclick="event.stopPropagation();wqaEditStart(${ri},'size')">${escHtml(r.size||'—')}${
     tref?`<span class="wqa-tref" title="${escHtml(dcT('wqaThreadRefNote'))}">${escHtml(tref)}</span>`:''}</span>`;
+  const i=wqa.rows.indexOf(r);
+  if(wqaEditing()){
+    /* Every editable cell at once, for every row — nobody clicks a field to
+       wake it up. Weight and Price stay read-only results, because they are
+       results. */
+    const fs=wqaEditFields(r);
+    const at=k=>fs.find(f=>f.k===k);
+    const dimCols=(cols||wqaListCols());
+    return wqaEditCellHtml(r,i,at('size'),'wqa-c-size')
+      + wqaEditCellHtml(r,i,at('dia'),'wqa-c-dia')
+      + dimCols.map(c=>at(c.k)
+          ? wqaEditCellHtml(r,i,at(c.k),'wqa-c-dim wqa-c-'+c.k)
+          : cell('wqa-c-dim wqa-c-'+c.k, wqaRowDimCell(r,c.k)||'—')).join('')
+      + wqaEditCellHtml(r,i,at('qty'),'wqa-c-qty')
+      + `<span class="wqa-c wqa-c-w wqa-uw">${escHtml(wqaFmtWeight(calc.weight))}</span>`
+      + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span>`;
+  }
+  /* Not editing: the value itself is the way in. Clicking one opens the same
+     edit state with that exact cell focused. */
+  const tap=(k)=>` data-cell="${k}" onclick="event.stopPropagation();wqaEditStart(${i},'${k}')"`;
   return sizeCell
     + wqaDiaCellHtml(r)
-    + (cols||wqaListCols()).map(c=>cell('wqa-c-dim wqa-c-'+c.k, wqaRowDimCell(r,c.k)||'—',
-                                        wqaDimShort(wqaRowProduct(r),c.k))).join('')
-    + cell('wqa-c-qty',  r.qty||'—')
+    + (cols||wqaListCols()).map(c=>`<span class="wqa-c wqa-c-dim wqa-c-${c.k} wqa-c-tap"${tap(c.k)}>${
+        escHtml(wqaRowDimCell(r,c.k)||'—')}</span>`).join('')
+    + `<span class="wqa-c wqa-c-qty wqa-c-tap"${tap('qty')}>${escHtml(r.qty||'—')}</span>`
     + `<span class="wqa-c wqa-c-w wqa-uw">${escHtml(wqaFmtWeight(calc.weight))}</span>`
     + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span>`;
 }
@@ -11328,8 +11652,13 @@ function wqaRowBadges(r){
      fields, not to shout. */
   const missing=wqaRowMissing(r);
   if(missing.length) out.push({t:dcT('wqaNeedsAttention'),k:'attn'});
+  /* Each tag names a field, so each tag is a way into that field: pressing
+     "Needs H" opens the edit with H focused. Correcting a parse is the most
+     common thing anybody does on this screen, and it should be one press. */
+  const FIELD_CELL={Qty:'qty', Size:'size', Diameter:'dia', Length:'length',
+                    W:'w', H:'h', ID:'id', S:'s', Thread:'threadLen'};
   missing.forEach(m=>out.push({t:dcT('needs').replace('{f}',
-    dcT('field'+m.replace(/\s/g,''),m)),k:'req'}));
+    dcT('field'+m.replace(/\s/g,''),m)),k:'req', cell:FIELD_CELL[m]||''}));
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
   if(String(r.size).trim() && !isKnownSize(r.size))
     out.push({t:String(r.size)+': '+dcT('wqaUnknownSize'),k:'warn',w:1});
@@ -11365,8 +11694,11 @@ function wqaRowBadges(r){
   return out;
 }
 function wqaBadgeHtml(r){
+  const ri=wqa.rows.indexOf(r);
   return wqaRowBadges(r).map(b=>{
     const cls=`wqa-pill wqa-pill-${b.k}${b.w?' wqa-pill-why':''}`;
+    if(b.cell) return `<button type="button" class="${cls} wqa-pill-go"
+        onclick="event.stopPropagation();wqaEditStart(${ri},'${b.cell}')">${escHtml(b.t)}</button>`;
     if(!b.quoted) return `<span class="${cls}">${escHtml(b.t)}</span>`;
     /* Split the sentence around the quotation so the quoted half carries the
        marker and the half this application wrote does not. */
@@ -11428,6 +11760,9 @@ function wqaUpdateAddButton(){
   /* Keeps the "N incomplete" badge live as rows are edited, without ever
      re-rendering the panel out from under a caret. */
   wqaPatchItemPanel();
+  /* Add is disabled while an edit is open whatever the rows say, so the lock
+     is re-applied after every recount of them. */
+  if(wqaEditing()){ const a=el('wqaAddBtn'); if(a){ a.disabled=true; a.title=dcT('editLockAdd'); } }
 }
 /* A render that arrives mid-typing (price history landing, a debounced
    recompute) patches instead, and the real render runs once focus leaves. */
@@ -14250,6 +14585,8 @@ function wqaResetState(){
   if(el('wqaStep2')) el('wqaStep2').hidden=true;
 }
 function wqaRequestClose(){
+  /* An edit session that has changed something is not thrown away silently. */
+  if(wqaEditDirty() && !confirm(dcT('editDiscardAsk'))) return;
   if(!wqaIsDirty()){ wqaHardClose(); return; }
   el('wqaConfirm').hidden=false;
   setTimeout(()=>{ try{ el('wqaKeepBtn').focus(); }catch(e){} },30);
@@ -15240,6 +15577,7 @@ function wqaRenderRows(force){
   wqaRenderListHead();
   wqaApplyFlash();
   wqaUpdateAddButton();
+  wqaSyncEditLocks();
 }
 /* How many records this row has, once it knows — a count on a closed control
    is the reason to open it. Silent until the row has actually asked. */
