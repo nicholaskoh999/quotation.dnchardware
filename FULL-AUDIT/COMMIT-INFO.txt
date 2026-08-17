@@ -10,11 +10,8 @@ APPLICATION COMMIT
                 "COMMIT-INFO stops naming the commit it is inside"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
-                was produced by this tree.
-                Application SOURCE last changed one commit earlier, at
-                67d4980 — "COMMIT-INFO stops naming the commit it is inside".
-                Everything after it is evidence tooling and reports,
-                and no application behaviour has moved since.
+                was produced by this tree, and docs/control/
+                CANONICAL-STATE.json is the authority for all of them.
 PACKAGE / HEAD COMMIT
                 Not named here, and deliberately. The commits after the
                 application one carry this package, and a document
@@ -284,7 +281,13 @@ FINDINGS
   P2  24  all repaired
   P3  2   all repaired
   ---------------------
-  39 total, 39 repaired.  6 recorded-not-repaired with reasons.
+  39 total, 39 repaired.
+
+  5 further observations are recorded and were not changed by
+  design: N2, N3, N4, N5, N6. N1 is NOT among them — it was
+  resolved by F7, and counting it would count a repaired defect twice.
+  These are observations with stated reasons, not outstanding defects.
+
   2 questions still need a business answer; 4 earlier ones are now decided
   and are recorded as decided rather than counted as open.
 <<<END:FINDINGS>>>

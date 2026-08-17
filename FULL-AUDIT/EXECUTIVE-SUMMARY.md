@@ -58,11 +58,21 @@ with the calculator. It now agrees.
 | | Count | Repaired |
 |---|---:|---:|
 | **P0** critical | 0 | — |
-| **P1** high | 8 | 8 |
-| **P2** medium | 19 | 19 |
+| **P1** high | 13 | 13 |
+| **P2** medium | 24 | 24 |
 | **P3** low | 2 | 2 |
-| Recorded, not repaired (with reasons) | 6 | — |
+| Recorded, not repaired (with reasons) | 5 | — |
 | Needs a business decision | **2** | — |
+
+**39 application findings were repaired and closed.** Five further observations
+remain recorded but were not changed by design — N2, N3, N4, N5 and N6 — each
+with its reason written out in `FINDINGS.md`: a parser-scope decision, a
+duplicated diameter table, two deliberate non-translations and the
+trade-vocabulary boundary. They are observations, not outstanding defects, and
+this is not "39 repaired plus 6 unresolved bugs".
+
+N1 is **not** among them. It described behaviour that F7 repaired, so counting
+it would count one defect twice — once as fixed and once as open.
 
 Four of what were once counted as six open questions are now decided and are no
 longer counted: the printed quotation stays English for now, Thread Reference

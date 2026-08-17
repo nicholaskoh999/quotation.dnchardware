@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "application": {
+    "acceptedCommit": "7f5bc977197a658d6d4db995ee2c9bb5e106e21b",
+    "status": "accepted"
+  },
+  "tests": {
+    "baselineAssertions": 2810,
+    "finalAssertions": 3958,
+    "deltaAssertions": 1148,
+    "failed": 0,
+    "skipped": 0,
+    "browserSuites": 37,
+    "browserAssertions": 3613,
+    "pricingHistoryAssertions": 161,
+    "aiExtractionAssertions": 107,
+    "workbookAssertions": 62,
+    "translationAssertions": 15
+  },
+  "translation": {
+    "keys": 862,
+    "coveragePercent": 100,
+    "missing": 0,
+    "hardcoded": 0,
+    "unapplied": 0
+  },
+  "findings": {
+    "p0": 0,
+    "p1": 13,
+    "p2": 24,
+    "p3": 2,
+    "total": 39,
+    "recordedUnrepaired": 5,
+    "recordedUnrepairedIds": ["N2", "N3", "N4", "N5", "N6"]
+  },
+  "package": {
+    "filename": "QUOTATION-DNC-REVIEW.zip",
+    "manifestPath": "MANIFEST/MANIFEST.txt",
+    "singleArchiveOnly": true,
+    "deploymentApproved": false
+  },
+  "history": {
+    "note": "Superseded values, listed so a checker can recognise them as stale rather than having them re-derived. Never quote these as current.",
+    "supersededAssertionTotals": [2810, 3334, 3482, 3679, 3799, 3827],
+    "supersededTranslationKeys": [512, 658, 756, 843, 853],
+    "supersededFindingTotals": [29, 33],
+    "supersededDeltas": [734, 869, 989, 1017],
+    "supersededSuiteCounts": [34, 36, 38],
+    "retiredManifestName": "ZIP-MANIFEST.txt",
+    "resolvedObservation": {
+      "id": "N1",
+      "resolvedBy": "F7",
+      "note": "N1 described behaviour that F7 repaired. It is NOT part of the recorded-not-repaired count."
+    }
+  }
+}

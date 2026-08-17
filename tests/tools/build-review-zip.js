@@ -149,6 +149,19 @@ KEY_EVIDENCE.forEach(([label, file]) => {
 tracked.filter(p => p.startsWith('FULL-AUDIT/before-fix/'))
   .forEach(p => add('QUOTATION-DNC-REVIEW/EVIDENCE/before-fix/' + path.basename(p), blob(p)));
 
+// ── /docs/control ─────────────────────────────────────────────────────────
+/* The control files travel WITH the package, not only in the repository. A
+   reviewer holding the ZIP can then see what was protected, what this round
+   was allowed to touch, and which numbers are authoritative — without taking
+   any of that from the reports being reviewed. */
+const CONTROL = ['PROJECT-GUARDRAILS.md', 'ROUND-SCOPE.md',
+                 'CANONICAL-STATE.md', 'CANONICAL-STATE.json'];
+CONTROL.forEach(f => {
+  const p = 'docs/control/' + f;
+  if (!tracked.includes(p)) return missing.push(p);
+  add('QUOTATION-DNC-REVIEW/docs/control/' + f, blob(p));
+});
+
 // ── /LOGS ─────────────────────────────────────────────────────────────────
 LOGS.forEach(l => {
   const p = 'FULL-AUDIT/regression-evidence/' + l;
@@ -195,6 +208,9 @@ const man = [
   `TEST RUN             ${runTail}`,
   '',
   rule('-'), 'LAYOUT', rule('-'), '',
+  `  /docs/control/ ${pad(CONTROL.length + ' files', 10)} what is protected, what this round could touch,`,
+  '                 and the authoritative numbers everything is checked',
+  '                 against. Read these before the reports.',
   `  /SOURCE/     ${pad(srcFiles.length + ' files', 12)} the application, its tests, and what they need`,
   '               db.php and ai_config.php are ABSENT — server-only secrets',
   `               ${dropped.length} files of earlier-round delivery history were left out;`,
