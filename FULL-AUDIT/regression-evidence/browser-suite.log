@@ -1,6 +1,6 @@
   ok    size normalisation — model, screen and weight agree  (42 assertions)
   ok    imperial — the first token of a run is the size  (66 assertions)
-  ok    weight — every product, every input that moves it  (39 assertions)
+  ok    weight — every product, every input that moves it  (40 assertions)
   ok    pricing — nothing stale, nothing fabricated  (47 assertions)
   ok    pricing history — the rows we sent, and why they differed  (105 assertions)
   ok    mixed documents — a heading speaks only for its own rows  (37 assertions)
@@ -32,7 +32,9 @@
   ok    responsive — every width the brief names  (70 assertions)
   ok    rendered 中文 — the DOM, not the dictionary  (144 assertions)
   ok    compact row — the pricing summary, from the row's own state  (54 assertions)
+  ok    fast edit — one state, and everything it holds still  (77 assertions)
+  ok    diameter — the bar the weight is made of  (57 assertions)
 
-  34 suites, 3199 assertions, 0 failed
+  36 suites, 3334 assertions, 0 failed
 
-  656.2s
+  727.0s

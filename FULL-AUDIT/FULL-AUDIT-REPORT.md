@@ -5,17 +5,17 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` · **NOT DEPLOYED.**
+Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · **NOT DEPLOYED.**
 
 **P0 0 · P1 8 · P2 19 · P3 2 — 29 findings, all repaired.**
-**3,544 assertions, 0 failed, 0 skipped.**
+**3,679 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` is the last commit that changed the
+> **On SHAs.** `55b21c4df6c9a565572963d3ffdc4345471d37f7` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -241,7 +241,7 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **822 keys, 100% translated, nothing bypassing the
+The priority deliverable. **843 keys, 100% translated, nothing bypassing the
 translator, and no element relying on a hook that nothing applies** — up from
 512 keys with **129 strings that never reached it**, then a further ~210 the
 overnight checker could not see, then 36 more and 63 unapplied hooks that the
@@ -360,7 +360,7 @@ the layer that would have caught it.
 
 ## 29–32 · Evidence, test matrix, severity
 
-* `screenshots/` — 56 frames, plus `INDEX.txt`. The first 32 are the set the
+* `screenshots/` — 69 frames, plus `INDEX.txt`. The first 32 are the set the
   overnight brief asks for; 33–38 are the morning repair; **A–F** are the six
   the closing brief names, each captured from a page proved empty first;
   **P01–P12** are the UI-polish set — the renamed entry and modal in both
@@ -371,7 +371,7 @@ the layer that would have caught it.
 * `after-fix/` — the matching sixteen.
 * `regression-evidence/` — every suite's own log, plus the JSON.
 
-**TOTAL ASSERTIONS 3,544 · TOTAL FAILED 0 · SKIPPED 0.**
+**TOTAL ASSERTIONS 3,679 · TOTAL FAILED 0 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
@@ -390,7 +390,7 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green: 34 suites, 3,199 assertions, 0 failed in the browser matrix; 3,544
+re-exercised. Green: 36 suites, 3,334 assertions, 0 failed in the browser matrix; 3,679
 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth
@@ -519,9 +519,13 @@ the homepage entry names no product at all, in either language.
 **READY FOR REVIEW — NOT READY TO DEPLOY.**
 
 Two things need a person before this ships: the new Chinese strings need a
-native speaker, and two questions need a business answer — whether a quantity
-RANGE ("50 to 80") should be read as a range rather than as an unreadable count,
-and whether Quick Add should learn the other six products. Four earlier
-questions have since been decided and are no longer counted as open.
+native speaker, and two questions need a business answer — whether Quick Add should
+learn the other six products, and whether the diameter tables' missing M6/M14
+fullsize bars are intentional. Four earlier questions have since been decided
+and are no longer counted as open.
+
+The quantity-range wording ("50 to 80") reads as an unreadable count and the row
+says Needs Qty. That is deliberate and shipped; it is a possible enhancement, not
+a deployment blocker, and is not counted among the two.
 
 **ROUND STATUS: WAITING FOR NICHOLAS / CHATGPT REVIEW — NOT DEPLOYED**

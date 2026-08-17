@@ -2,9 +2,9 @@
 
 **Overnight full-system audit · morning repair · final closing repair · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` · **NOT DEPLOYED.**
+Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · **NOT DEPLOYED.**
 
-> **On SHAs.** `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` is the last commit that changed the
+> **On SHAs.** `55b21c4df6c9a565572963d3ffdc4345471d37f7` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -18,7 +18,7 @@ Final application SHA `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` · **NOT DEPLOY
 
 Eleven commits. **Eight P1 findings, nineteen P2, two P3, no P0 — 29 in all.**
 Every one was reproduced, given a failing regression, repaired, and re-proved.
-The full test matrix is green and 734 assertions larger than it was.
+The full test matrix is green and 869 assertions larger than it was.
 
 The two that matter most were both **silent** — the screen showed a complete,
 ordinary-looking, priceable row and the number in it was wrong:
@@ -53,8 +53,9 @@ with the calculator. It now agrees.
 Four of what were once counted as six open questions are now decided and are no
 longer counted: the printed quotation stays English for now, Thread Reference
 stays internal, the ambiguous-quantity rule is settled and shipped, and a bare
-`100,200,300` must not fuse into one number. What is left open is the range
-wording (`50 to 80`) and whether Quick Add should learn the other six products.
+`100,200,300` must not fuse into one number. What is left open is whether Quick
+Add should learn the other six products (§3) and whether the missing M6/M14
+fullsize bars are intentional (§5).
 
 ### The eight P1s
 
@@ -95,7 +96,7 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**822 keys, 100% translated, nothing bypassing the translator, and no element
+**843 keys, 100% translated, nothing bypassing the translator, and no element
 relying on a hook that nothing applies.** Proved by reading the rendered screen,
 not the dictionary.
 
@@ -172,9 +173,13 @@ the working tree is clean, and the evidence is complete.
 
 Not ready to deploy because two things need a person first: the new Chinese
 strings need a native speaker, and two questions still need a business answer —
-whether a quantity RANGE ("50 to 80") should be read as a range rather than as
-an unreadable count, and whether Quick Add should learn the other six products.
-Four earlier questions have since been answered and are no longer counted as
-open.
+whether Quick Add should learn the other six products, and whether the diameter
+tables' missing M6/M14 fullsize bars are intentional. Four earlier questions
+have since been answered and are no longer counted as open.
+
+A quantity RANGE — "50 to 80" — reads today as an unreadable count, and the row
+says Needs Qty. That is the shipped behaviour and it is deliberate; whether a
+range should one day be read AS a range is a possible enhancement, not one of
+the two questions holding this back, and it is not counted as one.
 
 **ROUND STATUS: WAITING FOR NICHOLAS / CHATGPT REVIEW — NOT DEPLOYED**

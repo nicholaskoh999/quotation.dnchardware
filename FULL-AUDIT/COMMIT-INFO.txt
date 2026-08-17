@@ -5,8 +5,8 @@ BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 FINAL APPLICATION SHA
-                d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2
-                "What a row is priced on, without opening it"
+                55b21c4df6c9a565572963d3ffdc4345471d37f7
+                "Expanded stops repeating what the grid already edits"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
@@ -35,7 +35,7 @@ repair. The manually verified case still answers what it answered:
 Evidence frame F states that calculation on one screen and FAILS the run if the
 answer ever stops being RM 10.97.
 
-AUDIT COMMITS (18, oldest first)
+AUDIT COMMITS (22, oldest first)
 --------------------------------
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
@@ -58,6 +58,10 @@ AUDIT COMMITS (18, oldest first)
            button
   7945bf9  The package, told from the polish SHA
   d4a4cd0  What a row is priced on, without opening it
+  04e4159  The package, told from the row-summary SHA
+  c008c88  A size is a thread; a diameter is a bar
+  6b94cd3  One edit state, three doors into it
+  55b21c4  Expanded stops repeating what the grid already edits
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made
@@ -129,34 +133,64 @@ AUDIT COMMITS (18, oldest first)
            because a requested second line changed the shape those numbers
            described.
 
+  c008c88  DIAMETER AUTHORITY. A size is a thread; a diameter is a bar, and
+           they are different numbers. A DIA column beside SIZE, showing the
+           diameter the weight was actually made of — read back OUT of the
+           calculator after the calculation, so it cannot be a claim about
+           what was used. A typed diameter outranks the table for that row and
+           drives the weight; size identity does not move, and Previous Price
+           still matches on M12. Changing size, size type or material drops
+           the override. No bar means a dash and Needs Diameter, never a
+           guess. The hidden 10.7-vs-10.6 split the brief asked about was
+           RATES.dia, already deleted in 8e1bfff — verified, not assumed.
+
+  6b94cd3  FAST EDIT. One edit state with three doors: the Edit button, a
+           value, or a "Needs X" tag. Every editable cell of every row becomes
+           an input at once. Missing may leave; invalid may not. Cancel
+           restores a snapshot. Eight protections while it is open —
+           Expanded, Add, History and Previous Price apply, Bulk Edit, Common
+           Fields, re-parse, Delete — gathered in one function so the list
+           stays readable.
+
+  55b21c4  EXPANDED without the duplicate Dimensions block, plus suites 35 and
+           36. Thread Reference keeps a Reference section; Calculation leads
+           with the Actual Diameter. Every expected weight in suite 36 is
+           computed from the number on the screen, with the constant checked
+           against pi/4 x 7.85e-6 rather than borrowed.
+
 FILES CHANGED (baseline -> final)
 ---------------------------------
-   companies.php                            |  240 ++--
-   index.php                                | 1850 ++++++++++++++++++++++--------
-   tests/audit-shots.js                     |  652 +++++++++++
-   tests/lib/dom-i18n.js                    |  243 ++++
-   tests/lib/harness.js                     |   74 +-
-   tests/suites/17-quickadd-layout.test.js  |   29 +-
-   tests/suites/18-quickadd-stress.test.js  |   25 +-
-   tests/suites/26-thread-reference.test.js |   60 +
-   tests/suites/29-quantity.test.js         |  372 ++++++
-   tests/suites/30-language.test.js         |  362 ++++++
-   tests/suites/31-size-system.test.js      |  246 ++++
-   tests/suites/32-responsive.test.js       |  124 ++
-   tests/suites/33-rendered-i18n.test.js    |  500 ++++++++
-   tests/suites/34-row-meta.test.js         |  248 ++++
-   tests/tools/check-translations.js        |  631 ++++++++++
-   15 files changed, 5080 insertions(+), 576 deletions(-)
+   companies.php                              |  240 ++-
+   index.php                                  | 2368 ++++++++++++++++++++++------
+   tests/audit-shots.js                       |  789 +++++++++
+   tests/lib/dom-i18n.js                      |  243 +++
+   tests/lib/harness.js                       |  108 +-
+   tests/suites/01-size-normalisation.test.js |    8 +-
+   tests/suites/03-weight.test.js             |    7 +-
+   tests/suites/08-panels.test.js             |    6 +-
+   tests/suites/17-quickadd-layout.test.js    |   29 +-
+   tests/suites/18-quickadd-stress.test.js    |   25 +-
+   tests/suites/26-thread-reference.test.js   |   69 +
+   tests/suites/29-quantity.test.js           |  378 +++++
+   tests/suites/30-language.test.js           |  362 +++++
+   tests/suites/31-size-system.test.js        |  246 +++
+   tests/suites/32-responsive.test.js         |  124 ++
+   tests/suites/33-rendered-i18n.test.js      |  500 ++++++
+   tests/suites/34-row-meta.test.js           |  248 +++
+   tests/suites/35-edit-mode.test.js          |  369 +++++
+   tests/suites/36-diameter.test.js           |  269 ++++
+   tests/tools/check-translations.js          |  631 ++++++++
+   20 files changed, 6406 insertions(+), 613 deletions(-)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
-  Browser suites            34 suites, 3,199 assertions, 0 failed   (656.2s)
+  Browser suites            36 suites, 3,334 assertions, 0 failed   (727.0s)
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      3,544
+  TOTAL ASSERTIONS                      3,679
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 
@@ -164,8 +198,8 @@ TEST MATRIX AT FINAL SHA
   Browser console errors      none, asserted per page at every viewport
   Rendered 中文 DOM           12 states, 0 English runs outside the allowlist
 
-  Baseline for comparison: 2,810 assertions, 0 failed.  +734 this round
-  (3,338 after the morning repair; +142 closing; +5 polish; +59 row summary).
+  Baseline for comparison: 2,810 assertions, 0 failed.  +869 this round
+  (3,338 morning; +142 closing; +5 polish; +59 row summary; +135 edit/diameter).
 
 FINDINGS
 --------

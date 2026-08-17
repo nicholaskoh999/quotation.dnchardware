@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` · not deployed.
+Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · not deployed.
 
 **Two questions are open. Four are decided and are recorded below as decided,
 not as open** — they were being counted as unanswered in earlier drafts of this
@@ -21,7 +21,7 @@ with the options laid out and what the code does today. The four decided ones
 are kept here so each decision has somewhere to live, and so nobody re-opens one
 by finding an old draft.
 
-> **On SHAs.** `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` is the last commit that changed the
+> **On SHAs.** `55b21c4df6c9a565572963d3ffdc4345471d37f7` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -86,8 +86,11 @@ Also covered: `qty 100/200`, `qty: 100 / 200`, `qty 100 or 200`,
 is untouched, because the ambiguity is in the QUANTITY wording and nowhere
 else.
 
-**Still open, if you want it different:** whether a RANGE ("50 to 80") should
-be treated as a range rather than as an unreadable count.
+**A possible enhancement, not an open blocker:** whether a RANGE ("50 to 80")
+should one day be read AS a range rather than as an unreadable count. Today it
+reads as unreadable and the row says Needs Qty, which is deliberate and shipped.
+It is not one of the two questions holding deployment, and is not counted as
+one — reopen it explicitly if you want it decided.
 
 ---
 

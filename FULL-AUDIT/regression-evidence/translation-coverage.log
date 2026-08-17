@@ -1,5 +1,5 @@
-  index.php        691 keys ·   100% translated · 0 missing zh · 0 undefined · 0 identical · 0 hard-coded · 0 unapplied hooks · 16 unused
+  index.php        712 keys ·   100% translated · 0 missing zh · 0 undefined · 0 identical · 0 hard-coded · 0 unapplied hooks · 21 unused
   companies.php    120 keys ·   100% translated · 0 missing zh · 0 undefined · 0 identical · 0 hard-coded · 0 unapplied hooks · 2 unused
   login.php         11 keys ·   100% translated · 0 missing zh · 0 undefined · 0 identical · 0 hard-coded · 0 unapplied hooks · 0 unused
 
-  ok    translation coverage — 822 keys, both languages  (15 assertions)
+  ok    translation coverage — 843 keys, both languages  (15 assertions)
