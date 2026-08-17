@@ -292,6 +292,44 @@ module.exports = async (browser, A) => {
   A.eq(p.truncated, false, 'a pasted message parsed afterwards is not a partial extraction');
   A.eq(p.shown, false, 'and carries no banner from the analysis before it');
 
+  /* ── F36 · an item number written as a word is not a dimension ───────────
+     "3." and "3)" were recognised as list numbering and dropped. "NO3",
+     "NO.3", "NO 3" and "#3" were not, so the number stayed on the line for
+     the dimension readers to find:
+
+         NO3 M12 L=1000 TL 70/70 - 3pcs   ->   length 3
+
+     A metre-long rod quoted at three millimetres, silently, because the
+     item's own numbering was read as its geometry. Named in the brief as a
+     known weak spot and reproduced exactly.                                */
+  {
+    const one = async msg => {
+      await quickAddPaste(page, msg, { expanded: false, settle: 800 });
+      return page.evaluate(() => wqa.rows.filter(r => !r.removed).map(r => ({
+        size: r.size, L: String(r.length || ''), q: String(r.qty || ''),
+        tl: [r.threadLen, r.threadLen2].filter(Boolean).join('/') })));
+    };
+
+    for (const prefix of ['NO3', 'NO.3', 'NO 3', 'no3', '#3', 'ITEM 3', '3.', '3)']) {
+      const rows = await one(`MS SAG ROD PL FULLSIZE\n${prefix} M12 L=1000 TL 70/70 - 3pcs`);
+      A.eq(rows.length, 1, `"${prefix}": one item`);
+      const r = rows[0] || {};
+      A.eq(r.L, '1000', `"${prefix}": the length is the length, not the item number`);
+      A.eq(r.size, 'M12', `"${prefix}": and the size is untouched`);
+      A.eq(r.tl, '70/70', `"${prefix}": and the thread`);
+      A.eq(r.q, '3', `"${prefix}": and the quantity is the quantity`);
+    }
+
+    /* The narrowness that keeps it safe: the marker word must be there, and
+       something must follow it. A line with no numbering is unchanged, and a
+       size that merely begins with a digit is not eaten. */
+    const plain = await one('MS SAG ROD PL FULLSIZE\nM12 L=1000 TL 70/70 - 3pcs');
+    A.eq((plain[0] || {}).L, '1000', 'a line with no numbering is unchanged');
+    const inch = await one('MS ANCHOR BOLT PL FULLSIZE\n1/2 UNC x 300 x 100 - 12pcs');
+    A.eq((inch[0] || {}).size, '1/2', 'an imperial size is not read as list numbering');
+    A.eq((inch[0] || {}).L, '300', 'and keeps its length');
+  }
+
   A.eq((page._dcErrors || []).join(' | '), '', 'and none of it threw');
   await page.close();
   return S;

@@ -222,7 +222,11 @@ module.exports = async (browser, A) => {
     await page.evaluate(() => wqaSetView('expanded'));
     await page.waitForTimeout(600);
     const g = await page.evaluate(GEOMETRY);
-    A.ok(g.edit.inside && g.hist.inside && g.del.inside, 'Expanded mode keeps all three actions reachable');
+    /* Details is deliberately absent in Expanded: every row is open BECAUSE
+       of the view, so a row-level Close could not close anything. The two
+       actions that still DO something stay, and stay reachable. */
+    A.eq(g.edit, null, 'Expanded offers no Details action, because it could not close the row');
+    A.ok(g.hist.inside && g.del.inside, 'Expanded keeps History and remove reachable');
     const after = (await rowState(page))[0];
     ['size', 'h', 'id', 's', 'thread', 'qty', 'weight', 'price'].forEach(k =>
       A.eq(String(after[k]), String(before[k]), `switching to Expanded left ${k} untouched`));

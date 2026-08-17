@@ -12264,6 +12264,21 @@ const WQA_SECTION_RE=/^(lengths?|sizes?|items?|list)\s*[:：]?\s*$/i;
    or a space before it) rather than a fraction. Stripping "4." turned a 4.5
    into a 5 silently, which the review screen cannot catch. */
 const WQA_LIST_NUM_RE=/^\s*\d+\s*(?:\)|\.(?=\s|\d{3}))\s*/;
+/* ── An item number written as a word ─────────────────────────────────────
+   "3." and "3)" were recognised as list numbering and dropped. "NO3", "NO.3",
+   "NO 3", "#3" and "ITEM 3" were not, so the number was left on the line for
+   the dimension readers to find:
+
+       NO3 M12 L=1000 TL 70/70 - 3pcs   ->   length 3
+
+   A thousand-millimetre rod quoted as three millimetres, with no warning,
+   because the item's own numbering was read as its geometry.
+
+   Kept deliberately narrow. The marker WORD must be there — a bare leading
+   number is still handled by the rule above, with its existing guards — and
+   there must be something after it, so a line that is nothing but "NO. 3" is
+   left alone rather than emptied. */
+const WQA_ITEM_NO_RE=/^\s*(?:no|item|#)\s*[.:]?\s*\d+\s*[-.:)]?\s+(?=\S)/i;
 
 /* A nominal diameter is a lookup in the existing size table, not a guess. */
 function wqaIsNominal(n){ return DIA_FULLSIZE['M'+String(n).replace(/\.0$/,'')]!==undefined; }
@@ -12513,7 +12528,7 @@ const WQA_QTY_AMBIG_INLINE_RE=new RegExp(
 /* opts.product lets a line be read with ITS product's vocabulary — see
    wqaProductDims. Without one, none of those letters mean anything. */
 function wqaExtractFields(rawLine,opts){
-  let s=wqaNorm(rawLine).replace(WQA_LIST_NUM_RE,'');
+  let s=wqaNorm(rawLine).replace(WQA_ITEM_NO_RE,'').replace(WQA_LIST_NUM_RE,'');
   /* The line as it arrived, kept whole: every reader below CONSUMES what it
      matches, so by the end there is nothing left to ask what the line said. */
   const s0=s;
