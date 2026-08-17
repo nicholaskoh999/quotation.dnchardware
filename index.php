@@ -2523,7 +2523,7 @@ input,select,textarea{
         </div>
 
         <button type="button" class="btn btn-outline wqa-open-btn" onclick="wqaOpen()">
-          <span class="wqa-open-ico">💬</span> WhatsApp Quick Add
+          <span class="wqa-open-ico">💬</span> <span data-i18n="wqaTitle">WhatsApp Quick Add</span>
           <span class="wqa-open-sub"><span data-i18n="wqaOpenSub">Paste customer text · Sag Rod / Stud / Anchor Bolt</span></span>
         </button>
 
@@ -2539,7 +2539,7 @@ input,select,textarea{
           <button class="type-btn" data-type="jbolt" onclick="switchType('jbolt')"><span class="t-name">J Bolt</span></button>
           <button class="type-btn" data-type="plate" onclick="switchType('plate')"><span class="t-name">Plate<span style="display:block;font-size:10.5px;opacity:.65;font-weight:600" data-i18n="glossPlate"></span></span></button>
           <button class="type-btn" data-type="was" onclick="switchType('was')"><span class="t-name">Welding Anchor Set<span class="was-type-zh" data-i18n="glossWAS"></span></span></button>
-          <button class="type-btn" data-type="others" onclick="switchType('others')"><span class="t-name">Others / Special Bolt<span class="was-type-zh" data-i18n="glossOthers"></span></span></button>
+          <button class="type-btn" data-type="others" onclick="switchType('others')"><span class="t-name"><span data-i18n="typeOthers">Others</span> / Special Bolt<span class="was-type-zh" data-i18n="glossOthers"></span></span></button>
         </div>
 
         <!-- SAG ROD -->
@@ -2971,9 +2971,9 @@ input,select,textarea{
 
           <!-- MS Plate Dimension Entry -->
           <div class="group-label full" id="plate-dim-group-ms" data-i18n="dimensionEntry">Dimension Entry</div>
-          <div class="field" id="plate-f-l"><label data-i18n="lblLength">Length</label><input type="number" id="plate-l" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-w"><label data-i18n="lblWidth">Width</label><input type="number" id="plate-w" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-t"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-t" placeholder="mm, e.g. 10" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-l"><label data-i18n="lblLength">Length</label><input type="number" id="plate-l" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-w"><label data-i18n="lblWidth">Width</label><input type="number" id="plate-w" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-t"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-t" data-i18n-ph="phEgMm10" placeholder="mm, e.g. 10" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <!-- Hole Option — MS Plate only -->
           <div class="field full" id="plate-f-hole">
             <label data-i18n="lblHoleOption">Hole Option</label>
@@ -3077,7 +3077,7 @@ input,select,textarea{
             <input type="number" id="was-ab-length" placeholder="600" step="1" min="1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label>
-            <input type="text" id="was-ab-threadLen" placeholder="e.g. 150">
+            <input type="text" id="was-ab-threadLen" data-i18n-ph="phEg150" placeholder="e.g. 150">
           </div>
           <div class="field"><label data-i18n="lblQtyPerSet">Qty per Set</label>
             <input type="number" id="was-ab-qty" value="1" min="1" step="1" oninput="calcWAS()">
@@ -3202,7 +3202,7 @@ input,select,textarea{
           <div><span data-i18n="lblFinalUnitPrice">Final Unit Price</span><strong id="pmPreviewFinal">RM 0.00</strong></div>
         </div>
         <div class="was-breakdown" id="wasBreakdown" aria-live="polite">
-          <div class="was-breakdown-title">Cost Breakdown <span class="zh">/ 成本拆分</span></div>
+          <div class="was-breakdown-title" data-i18n="wasCostBreakdown">Cost Breakdown</div>
           <div class="was-breakdown-row"><span class="was-breakdown-label">Anchor Bolt</span><span class="was-breakdown-value" id="wasBreakdownAnchor">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblBasePlate">Base Plate</span><span class="was-breakdown-value" id="wasBreakdownBasePlate">—</span></div>
           <div class="was-breakdown-row" id="wasBreakdownTriangleRow"><span class="was-breakdown-label" data-i18n="lblTrianglePlate">Triangle Plate</span><span class="was-breakdown-value" id="wasBreakdownTriangle">—</span></div>
@@ -3740,7 +3740,7 @@ input,select,textarea{
   <div class="modal" style="max-width:720px">
     <div class="modal-title"><span data-i18n="sidePricingGuide">Pricing Guide</span> <span class="zh" data-i18n="pricingGuideSub">Pricing guide</span> <button class="modal-close" onclick="closeModal('refModal')">✕</button></div>
     <div class="ref-tabs">
-      <button class="ref-tab active" onclick="switchRefTab('cost')">Cost Rate</button>
+      <button class="ref-tab active" onclick="switchRefTab('cost')" data-i18n="lblCostRate">Cost Rate</button>
       <button class="ref-tab" onclick="switchRefTab('addcost')" data-i18n="lblAdditionalCost">Additional Cost</button>
       <button class="ref-tab" onclick="switchRefTab('pricemode')" data-i18n="lblPriceMode">Price Mode</button>
       <button class="ref-tab" onclick="switchRefTab('examples')" data-i18n="mProductExamples">Product Examples</button>
@@ -3775,7 +3775,7 @@ input,select,textarea{
     </div>
     <div class="ref-panel" id="ref-examples">
       <div class="ref-note"><h4>Sag Rod / Stud / Anchor Bolt</h4>
-        <p>Material: MS &nbsp;·&nbsp; Cost Rate: RM/kg</p>
+        <p data-i18n="pgSagRodEg">Material: MS &nbsp;·&nbsp; Cost Rate: RM/kg</p>
         <p class="cn" data-i18n="pgThreadAffects">Thread Length may automatically affect Additional Cost.</p></div>
       <div class="ref-note"><h4>U-Bolt / SQ U-Bolt / L Bolt / J Bolt</h4>
         <p data-i18n="pgRateManual">Cost Rate is usually entered manually.</p>
@@ -4048,7 +4048,7 @@ input,select,textarea{
     </div>
     <div class="dp-empty" id="dsEmpty" style="display:none" data-i18n="dsEmptyNone">No custom diameter rules yet. Add a rule above to override built-in defaults.</div>
     <div style="margin-top:10px">
-      <button class="btn btn-ghost btn-sm" onclick="if(confirm('Delete all custom diameter rules?')){clearAllDSRules();}" data-i18n="mResetAllRules">Reset All Rules</button>
+      <button class="btn btn-ghost btn-sm" onclick="if(confirm(dcT('cfmResetAllRules'))){clearAllDSRules();}" data-i18n="mResetAllRules">Reset All Rules</button>
     </div>
   </div>
 </div>
@@ -4313,6 +4313,50 @@ const I18N={
     prevQuotedPrices:'Pricing History', checkPrevPrices:'Show Pricing History',
     lblManualWeight:'Manual Weight', lblDiaXLength:'Diameter × Length',
     lblUnitWeight:'Unit Weight', lblBasePrice:'Base Price',
+    /* The preview's line note, kept as one sentence so the two figures cannot
+       drift apart from the words around them. */
+    cpLineNote:'+ {acc} accessories = {line}/pc',
+    /* The item card's two price pills: what the bolt costs, or what the line
+       costs when accessories are on it. */
+    qiBoltPill:'Bolt', qiUnitPill:'Unit', phBoltUnitPrice:'Bolt Unit Price',
+    /* ── The dialogs ────────────────────────────────────────────────────────
+       confirm() is the only place this application asks before doing something
+       it cannot undo. Every one of them was English in both modes. */
+    cfmResetAllRules:'Delete all custom diameter rules?',
+    cfmDeleteDiaRule:'Delete this diameter rule?',
+    cfmDeleteDefaultPrice:'Delete this default price rule?',
+    cfmClearItems:'Clear all items in this quotation?',
+    cfmNewQuotation:'Start a new quotation? Current unsaved draft will be cleared.',
+    cfmEditSaved:'Edit this saved quotation?',
+    cfmDiscardChanges:'This saved quotation has unsaved changes. Continue and discard them?',
+    /* Labels that were written as both languages at once — the pattern the
+       switch replaced, still on the review header and the mobile save button. */
+    lblLocked:'Locked', lblEditing:'Editing', btnUpdate:'Update', btnSave:'Save',
+    btnUpdateQuotation:'Update Quotation', btnSaveQuotation:'Save Quotation',
+    lblCustomColon:'Custom:', lblSavedColon:'Saved:', lblRemarksColon:'Remarks:',
+    mOverrideSystemDefault:'Override System Default', mEditRule:'Edit Rule',
+    tNotNegative:'{f} cannot be negative', tNotANumber:'{f} is not a valid number',
+    tMustBePositive:'{f} must be greater than 0',
+    tWaCopied:'WhatsApp text copied.',
+    tWaCopyFailed:'Copy failed. Please copy manually.',
+    tWaCopyFailedPreview:'Copy failed. Please copy manually from WhatsApp Message preview.',
+    tTemplateReset:'Reset to default template', tTemplateResetLocal:'Reset locally to default',
+    tQuoteUpdatedLocked:'Quotation updated and locked', tQuoteSavedLocked:'Quotation saved and locked',
+    tRuleUpdated:'Rule updated', tRuleSaved:'Rule saved',
+    lblDescription:'Description', pgSagRodEg:'Material: MS · Cost Rate: RM/kg',
+    /* Both settings screens counted in two languages at once, which is the
+       pattern the switch replaced. */
+    mShowingNofM:'Showing {n} of {m} rules',
+    lblHideDebug:'Hide Debug', wasCostBreakdown:'Cost Breakdown',
+    typeOthers:'Others',
+    phEgMm200:'mm, e.g. 200', phEgMm10:'mm, e.g. 10', phEg150:'e.g. 150',
+    phEgDimensionText:'e.g. M16 x L 120 x ID 35',
+    phLineWas:'(quotation line was {v})',
+    wqaThreadHintPair:'one value, or both ends as 50/110',
+    wqaThreadHintOne:'one value',
+    /* The trade names stay as the customer wrote them; the sentence around
+       them is what a person has to read and act on. */
+    wqaAccMention:'Document mentions: {n} — accessories are never added automatically. Add them yourself if this quotation includes them.',
     lblFinalUnitPrice:'Final Unit Price', lblRawPrice:'Raw Price',
     mCompany:'Company', mRemarks:'Remarks', mNoCompanyStandalone:'— No company (standalone) —',
     mRestoreTitle:'Restore unsaved draft?',
@@ -4664,7 +4708,7 @@ const I18N={
     wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
     notSet:'未设置', none:'无',
     pmAutoRound:'自动进位', pmNoRound:'不进位', pmManualPrice:'手动价格',
-    sizeTypeRequired:'{p} 需要选择 Size Type — 信息里没有写明，所以不作猜测。',
+    sizeTypeRequired:'{p} 需要选择尺寸类型 — 信息里没有写明，所以不作猜测。',
     wqaMsgUnsupported:'识别为 {p} — 快速添加暂不支持。请手动添加。',
     wqaTextAnalyzing:'正在识别这段内容…',
     wqaCannotRead:'无法可靠识别这段内容。请编辑粘贴文字，或手动输入产品。',
@@ -4738,6 +4782,37 @@ const I18N={
     prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
     lblManualWeight:'手动重量', lblDiaXLength:'直径 × 长度',
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
+    cpLineNote:'+ {acc} 配件 = {line}/件',
+    qiBoltPill:'螺栓', qiUnitPill:'单价', phBoltUnitPrice:'螺栓单价',
+    cfmResetAllRules:'确定删除所有自定义直径规则吗？',
+    cfmDeleteDiaRule:'确定删除此直径规则吗？',
+    cfmDeleteDefaultPrice:'确定删除此默认价格规则吗？',
+    cfmClearItems:'确定清空本报价单的所有项目吗？',
+    cfmNewQuotation:'开始新报价单？当前未保存的草稿将被清除。',
+    cfmEditSaved:'编辑已保存报价？',
+    cfmDiscardChanges:'此已保存报价有未保存更改。继续会放弃更改，确定吗？',
+    lblLocked:'已锁定', lblEditing:'正在编辑', btnUpdate:'更新', btnSave:'保存',
+    btnUpdateQuotation:'更新报价单', btnSaveQuotation:'保存报价单',
+    lblCustomColon:'自定义：', lblSavedColon:'已保存：', lblRemarksColon:'备注：',
+    mOverrideSystemDefault:'覆盖系统默认', mEditRule:'编辑规则',
+    tNotNegative:'{f} 不能为负数', tNotANumber:'{f} 不是有效数字',
+    tMustBePositive:'{f} 必须大于 0',
+    tWaCopied:'已复制 WhatsApp 文本。',
+    tWaCopyFailed:'复制失败，请手动复制。',
+    tWaCopyFailedPreview:'复制失败，请从 WhatsApp 消息预览手动复制。',
+    tTemplateReset:'已重置为默认模板', tTemplateResetLocal:'已在本机重置为默认',
+    tQuoteUpdatedLocked:'报价单已更新并锁定', tQuoteSavedLocked:'报价单已保存并锁定',
+    tRuleUpdated:'规则已更新', tRuleSaved:'规则已保存',
+    lblDescription:'说明', pgSagRodEg:'材料：MS · 每公斤成本：RM/kg',
+    mShowingNofM:'显示 {n} / {m} 条规则',
+    lblHideDebug:'隐藏调试信息', wasCostBreakdown:'成本拆分',
+    typeOthers:'其他',
+    phEgMm200:'毫米，例如 200', phEgMm10:'毫米，例如 10', phEg150:'例如 150',
+    phEgDimensionText:'例如 M16 x L 120 x ID 35',
+    phLineWas:'（报价行为 {v}）',
+    wqaThreadHintPair:'填一个值，或两端写成 50/110',
+    wqaThreadHintOne:'填一个值',
+    wqaAccMention:'文件提到：{n}；配件不会自动加入，如本报价需要这些配件，请自行添加。',
     lblFinalUnitPrice:'最终单价', lblRawPrice:'原始价格',
     mCompany:'公司', mRemarks:'备注', mNoCompanyStandalone:'— 不指定公司（独立）—',
     mRestoreTitle:'要恢复未保存的草稿吗？',
@@ -4762,7 +4837,7 @@ const I18N={
     waTemplateSub:'WhatsApp 文字模板',
     mRestoreTitleZh:'恢复未保存草稿？',
     mRestoreSubZh:'您有一份未保存的报价草稿。要恢复还是删除？',
-    mCostRateExplain:'Cost Rate（每公斤成本）= 材料每公斤的成本。', mRefOnly:'仅供参考，不会改变价格',
+    mCostRateExplain:'每公斤成本 = 材料每公斤的成本。', mRefOnly:'仅供参考，不会改变价格',
     mSavedToMysql:'已保存到 MySQL', mStatus:'状态', mClear:'清除',
     mSrcCustom:'自定义', mSrcSystem:'系统', mSrcAll:'全部',
     mShowingRules:'显示规则', mDsHelp:'自定义直径规则优先于内置默认值。尺寸留空则匹配该产品类型的所有尺寸。',
@@ -5164,7 +5239,7 @@ function dcCustomDimsLine(item){
    translated either, so its label is not read from the UI language. */
 function dcCustomDimsPrintLine(item){
   const t=dcCustomDimsText(item&&item.customDimensions);
-  return t ? 'Custom: '+t : '';
+  return t ? dcT('lblCustomColon')+' '+t : '';
 }
 let currentType='sagrod';
 let uboltDebugEnabled=false;
@@ -5368,7 +5443,7 @@ function checkUnsavedDraftOnLoad(){
     const savedDate=new Date(savedLabel);
     if(!Number.isNaN(savedDate.getTime())) savedLabel=savedDate.toLocaleString();
   }
-  el('draftRecoveryTime').textContent=savedLabel?'Saved: '+savedLabel:'';
+  el('draftRecoveryTime').textContent=savedLabel?dcT('lblSavedColon')+' '+savedLabel:'';
   openModal('draftRecoveryModal');
   return true;
 }
@@ -5456,7 +5531,7 @@ function updateQuoteLockUI(){
   const reviewLabel=el('reviewLockLabel');
   if(reviewLabel){
     reviewLabel.classList.toggle('show',loadedSavedQuote);
-    reviewLabel.textContent=locked?'Locked / 已锁定':'Editing / 正在编辑';
+    reviewLabel.textContent=dcT(locked?'lblLocked':'lblEditing');
   }
   ['qi-customer','qi-phone','qi-date','qi-prepby','qi-remarks'].forEach(id=>{ const e=el(id); if(e) e.disabled=locked; });
   document.querySelectorAll('.item-form input,.item-form select,.type-picker button').forEach(e=>{ e.disabled=locked; });
@@ -5466,7 +5541,7 @@ function updateQuoteLockUI(){
   document.querySelectorAll('.qi-edit-btn').forEach(b=>{ b.disabled=locked; b.style.display=locked?'none':''; });
   const saveText=editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation');
   const saveBtn=el('saveQuoteBtn'); if(saveBtn) saveBtn.innerHTML=saveText;
-  const mobileSave=el('mobileSaveBtn'); if(mobileSave) mobileSave.textContent=editingQuoteId?'Update / 更新':'Save / 保存';
+  const mobileSave=el('mobileSaveBtn'); if(mobileSave) mobileSave.textContent=dcT(editingQuoteId?'btnUpdate':'btnSave');
 }
 function setQuoteLockState(locked,mode){
   quoteLocked=!!locked;
@@ -5475,14 +5550,14 @@ function setQuoteLockState(locked,mode){
 }
 function unlockSavedQuotation(){
   if(!loadedSavedQuote || !quoteLocked) return;
-  if(!confirm('Edit this saved quotation?\\n编辑已保存报价？')) return;
+  if(!confirm(dcT('cfmEditSaved'))) return;
   setQuoteLockState(false,'editing');
   renderQuote();
   showToast(dcT('tUnlocked'));
 }
 function confirmDiscardUnsavedChanges(){
   if(!savedQuoteDirty) return true;
-  return confirm('This saved quotation has unsaved changes. Continue and discard them?\\n此已保存报价有未保存更改。继续会放弃更改，确定吗？');
+  return confirm(dcT('cfmDiscardChanges'));
 }
 
 /* ── Rate tables (unchanged from production) ── */
@@ -5649,8 +5724,8 @@ function validateRateEntry(type,field,label){
   const raw=(fv(type,field)||'').trim();
   if(raw==='') return 0;
   const v=evalExpr(raw);
-  if(v<0){ showToast(label+' cannot be negative / '+label+' 不能为负数'); return null; }
-  if(v===0 && !/^[0\s.+\-*/,]*$/.test(raw)){ showToast(label+' is not a valid number / '+label+' 不是有效数字'); return null; }
+  if(v<0){ showToast(dcT('tNotNegative').replace('{f}',label)); return null; }
+  if(v===0 && !/^[0\s.+\-*/,]*$/.test(raw)){ showToast(dcT('tNotANumber').replace('{f}',label)); return null; }
   return v;
 }
 /* Does this text read as a number at all? Shared by the rate guard above and by
@@ -5666,7 +5741,7 @@ function isReadableAmount(raw){
 function validateDims(dims){
   for(const label in dims){
     const n=parseFloat(dims[label]);
-    if(!isFinite(n)||n<=0){ showToast(label+' must be greater than 0 / '+label+' 必须大于 0'); return false; }
+    if(!isFinite(n)||n<=0){ showToast(dcT('tMustBePositive').replace('{f}',label)); return false; }
   }
   return true;
 }
@@ -5695,7 +5770,8 @@ function getPriceMode(type){
   const value=fv(type,'priceMode');
   return ['auto','no_round','manual'].includes(value)?value:'auto';
 }
-function getPriceModeLabel(mode){return mode==='manual'?'Manual Price':mode==='no_round'?'No Round':'Auto Round'}
+function getPriceModeKey(mode){return mode==='manual'?'pmManualPrice':mode==='no_round'?'pmNoRound':'pmAutoRound'}
+function getPriceModeLabel(mode){return dcT(getPriceModeKey(mode))}
 function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost=0){
   const mode=getPriceMode(type);
   const manualRaw=fv(type,'manualUnitPrice').trim();
@@ -5765,7 +5841,11 @@ function updatePriceModePreview(type){
   const state=priceCalcState[type]||{};
   const raw=el('pmPreviewRaw'),mode=el('pmPreviewMode'),final=el('pmPreviewFinal');
   if(raw) raw.textContent=fmt(Number(state.rawUnitPrice)||0);
-  if(mode) mode.textContent=getPriceModeLabel(state.priceMode||getPriceMode(type));
+  if(mode){
+    const k=getPriceModeKey(state.priceMode||getPriceMode(type));
+    mode.dataset.i18nLive=k;
+    mode.textContent=dcT(k);
+  }
   if(final) final.textContent=fmt(Number(state.finalUnitPrice)||0);
 }
 function onPriceModeChange(type){
@@ -6138,9 +6218,20 @@ function syncDSModeButtons(){
   [['dsModeCustom','custom'],['dsModeSystem','system'],['dsModeAll','all']].forEach(([id,key])=>{const b=el(id); if(b)b.classList.toggle('active',mode===key);});
 }
 function updateSettingsCount(id,shown,total){
-  const e=el(id); if(e)e.textContent=`Showing ${shown} of ${total} rules / 显示 ${shown} / ${total} 条规则`;
+  /* Both languages at once was the pattern the switch replaced. The counts
+     are kept on the node so a switch can rewrite the sentence around them. */
+  const e=el(id); if(!e) return;
+  e.dataset.shown=shown; e.dataset.total=total;
+  e.textContent=dcT('mShowingNofM').replace('{n}',shown).replace('{m}',total);
 }
 
+dcOnRelabel(()=>{
+  ['dpCountText','dsCountText'].forEach(id=>{
+    const e=el(id);
+    if(e && e.dataset.total!==undefined)
+      e.textContent=dcT('mShowingNofM').replace('{n}',e.dataset.shown).replace('{m}',e.dataset.total);
+  });
+});
 function findDSRule(type,material,sizeType,size){
   const rules=loadDSRules();
   const noST=DS_TYPES_NO_SIZETYPE.includes(type);
@@ -6212,7 +6303,7 @@ function editDSRule(id){
   el('dsFormTitle').textContent=dcT('editDiameterRule');
 }
 async function deleteDSRule(id){
-  if(!confirm('Delete this diameter rule?')) return;
+  if(!confirm(dcT('cfmDeleteDiaRule'))) return;
   const res=await api('delete_diameter_setting',{id},'POST');
   if(!res.ok){showToast(dcT('tDeleteFailed'));return}
   await refreshDSRules();
@@ -6439,11 +6530,35 @@ function recalcCurrent(skipAuto){
   else if(currentType==='was') calcWAS();
   else if(currentType==='others') calcOthers();
 }
+/* ── The preview panel's own re-label ──────────────────────────────────────
+   Both of these are COMPUTED text, written over markup that carried a
+   data-i18n. The attribute scan cannot help them: the first write destroys the
+   hook, and after that the label is whatever language it was first drawn in.
+   The Accessories heading sat in English on a 中文 screen for exactly that
+   reason. Nothing here reads a rate, a weight or a price — the numbers are
+   read back from the node they were already written to. */
+function dcSetPreviewThirdLabel(key){
+  const l=document.querySelector('.cp-acc label');
+  if(!l) return;
+  l.dataset.i18nLive=key;
+  l.textContent=dcT(key);
+}
+function dcWritePreviewLineNote(){
+  const n=el('cpLine');
+  if(!n || !n.dataset.acc) return;
+  n.textContent=dcT('cpLineNote').replace('{acc}',n.dataset.acc).replace('{line}',n.dataset.line);
+}
+dcOnRelabel(()=>{
+  const l=document.querySelector('.cp-acc label');
+  if(l && l.dataset.i18nLive) l.textContent=dcT(l.dataset.i18nLive);
+  const m=el('pmPreviewMode');
+  if(m && m.dataset.i18nLive) m.textContent=dcT(m.dataset.i18nLive);
+  dcWritePreviewLineNote();
+});
 function updatePreview(weight,base,final){
   const breakdown=el('wasBreakdown');
   if(breakdown) breakdown.classList.remove('show');
-  const thirdLabel=document.querySelector('.cp-acc label');
-  if(thirdLabel) thirdLabel.textContent=dcT('accessories');
+  dcSetPreviewThirdLabel('accessories');
   el('cpWeight').textContent = weight>0 ? weight.toFixed(4)+' kg' : '—';
   /* Publish the weight this calculation just produced so other views (the
      Quick Add review) can display it without owning a second formula. */
@@ -6466,14 +6581,17 @@ function updatePreview(weight,base,final){
   if(lineNote){
     const bolt=resolved?Number(resolved.finalUnitPrice)||0:final;
     lineNote.hidden=!(priced && accTotal>0);
-    lineNote.textContent='+ '+fmt(accTotal)+' accessories = '+fmt(roundMoney2(bolt+accTotal))+'/pc';
+    /* The figures are kept beside the text so a language switch can rewrite
+       the sentence without re-running a single calculation. */
+    lineNote.dataset.acc=fmt(accTotal);
+    lineNote.dataset.line=fmt(roundMoney2(bolt+accTotal));
+    dcWritePreviewLineNote();
   }
   syncCostRateWarning(currentType);
   updatePriceModePreview(currentType);
 }
 function updateWASPreview(calc){
-  const thirdLabel=document.querySelector('.cp-acc label');
-  if(thirdLabel) thirdLabel.textContent=dcT('lblAdditionalCost');
+  dcSetPreviewThirdLabel('lblAdditionalCost');
   el('cpWeight').textContent=calc.weights.setWeight>0?calc.weights.setWeight.toFixed(4)+' kg':'—';
   el('cpBase').textContent=fmt(calc.basePrice);
   el('cpAcc').textContent=calc.addCost?fmt(calc.addCost):'—';
@@ -6872,8 +6990,9 @@ function syncUBoltDebugVisibility(){
   const wrap=el('uboltDebugWrap'),panel=el('uboltDebugPanel'),button=el('uboltDebugToggle');
   if(wrap) wrap.style.display=currentType==='ubolt'?'block':'none';
   if(panel) panel.classList.toggle('show',uboltDebugEnabled&&currentType==='ubolt');
-  if(button) button.textContent=uboltDebugEnabled?'Hide Debug':'Show Debug';
+  if(button) button.textContent=dcT(uboltDebugEnabled?'lblHideDebug':'lblShowDebug');
 }
+dcOnRelabel(()=>{ try{ syncUBoltDebugVisibility(); }catch(e){} });
 function toggleUBoltDebug(){
   uboltDebugEnabled=!uboltDebugEnabled;
   syncUBoltDebugVisibility();
@@ -8040,8 +8159,8 @@ function renderQuote(newIdx){
       <div class="qi-item-bottom">
         <div class="qi-meta">
           ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiUnitWeight'))} <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>${parseInt(item.qty,10)>1?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiTotalPill'))} <strong>${(parseFloat(item.weight)*parseInt(item.qty,10)).toFixed(3)}kg</strong></span>`:``}`:''}
-          <span class="qi-meta-pill">Qty <strong>${parseInt(item.qty,10)||0}</strong></span>
-          <span class="qi-meta-pill">${dcItemAccUnit(item)>0?'Bolt':'Unit'} <strong>${fmt(item.finalUnitPrice)}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
+          <span class="qi-meta-pill">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
+          <span class="qi-meta-pill">${escHtml(dcT(dcItemAccUnit(item)>0?'qiBoltPill':'qiUnitPill'))} <strong>${fmt(item.finalUnitPrice)}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
           ${dcItemAccUnit(item)>0?`<span class="qi-meta-pill qi-acc-pill">${escHtml(dcT('qiAccessories'))} <strong>${fmt(dcItemAccUnit(item))}/pc</strong></span>`:''}
         </div>
         <div class="qi-price-group">
@@ -8069,7 +8188,7 @@ function removeItem(i){
 function clearAllItems(){
   if(!quoteItems.length) return;
   if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
-  if(!confirm('Clear all items in this quotation?')) return;
+  if(!confirm(dcT('cfmClearItems'))) return;
   quoteItems=[];
   setItemEditMode(null);
   if(!editingQuoteId) quoteItemsSnapshotAtSave=null;
@@ -8082,7 +8201,7 @@ function clearAllItems(){
 function startNewQuotation(){
   const dirtyAlreadyPrompted=savedQuoteDirty;
   if(!confirmDiscardUnsavedChanges()) return;
-  if(!dirtyAlreadyPrompted&&!loadedSavedQuote&&hasMeaningfulDraft(buildUnsavedDraft())&&!confirm('Start a new quotation? Current unsaved draft will be cleared.')) return;
+  if(!dirtyAlreadyPrompted&&!loadedSavedQuote&&hasMeaningfulDraft(buildUnsavedDraft())&&!confirm(dcT('cfmNewQuotation'))) return;
   clearUnsavedDraft();
   productEntryTouchedFields.clear();
   resetAllAccPanels();          // New Quotation starts with zero accessories everywhere
@@ -8204,7 +8323,7 @@ async function quickOpen(){
     const rows=hits.map(h=>{
       const who=h.customer_name||h.company_name||'—';
       const rawWhen=h.quote_date||(h.created_at||'').slice(0,10);
-      const when=rawWhen?formatPrintDate(rawWhen):'—';   // "29 Jun 2026"
+      const when=rawWhen?fmtDateShort(rawWhen):'—';      // "29 Jun 2026", or 中文"
       const amt=parseFloat(h.total_amount||0).toFixed(2);
       const prev=h.matched_previous&&h.previous_ref_no
         ? '<span class="qo-hit-prev">'+qoEsc(dcT('qoFormerly').replace('{r}',h.previous_ref_no))+'</span>' : '';
@@ -8522,7 +8641,7 @@ async function copyTextToClipboard(text){
 async function copyWhatsApp(){
   if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return}
   const ok=await copyTextToClipboard(buildQuoteText());
-  showToast(ok?'WhatsApp text copied.':'Copy failed. Please copy manually from WhatsApp Message preview.');
+  showToast(dcT(ok?'tWaCopied':'tWaCopyFailedPreview'));
 }
 function openWhatsApp(){
   if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return}
@@ -8572,12 +8691,12 @@ async function resetWATemplate(){
   waTemplateCache=WA_DEFAULT_TPL;
   el('waTemplateInput').value=WA_DEFAULT_TPL;
   refreshWAPreview();
-  showToast(res.ok?'Reset to default template':'Reset locally to default');
+  showToast(dcT(res.ok?'tTemplateReset':'tTemplateResetLocal'));
 }
 async function copyWATemplatePreview(){
   const text=el('waTemplatePreview').textContent;
   const ok=await copyTextToClipboard(text);
-  showToast(ok?'WhatsApp text copied.':'Copy failed. Please copy manually.');
+  showToast(dcT(ok?'tWaCopied':'tWaCopyFailed'));
 }
 window.addEventListener('beforeprint',()=>{
   const qi=getQI();
@@ -8622,7 +8741,7 @@ window.addEventListener('beforeprint',()=>{
   const remarks=(qi.remarks||'').trim();
   const remarksEl=el('printRemarks');
   remarksEl.hidden=!remarks;
-  remarksEl.textContent=remarks?'Remarks: '+remarks:'';
+  remarksEl.textContent=remarks?dcT('lblRemarksColon')+' '+remarks:'';
 });
 window.addEventListener('afterprint',()=>{
   el('printSummary').style.display='none';
@@ -8777,14 +8896,14 @@ function phRecordHtml(rec,onUse,extra){
     <div class="ph-rec-spec">${escHtml(spec)}</div>
     <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · ${escHtml(dcT('phQtyLabel').replace('{n}',parseInt(rec.qty,10)||0))}</div>
     <div class="ph-rec-nums">
-      <span><label data-i18n="lblUnitWeight">Unit Weight</label>${phWeight(rec.weight)}</span>
-      <span><label data-i18n="lblCostRate">Cost Rate</label>${phMoney(rec.costRate)}</span>
+      <span><label data-i18n="lblUnitWeight">${escHtml(dcT('lblUnitWeight'))}</label>${phWeight(rec.weight)}</span>
+      <span><label data-i18n="lblCostRate">${escHtml(dcT('lblCostRate'))}</label>${phMoney(rec.costRate)}</span>
       <span><label>${escHtml(dcT('lblAddCostShort'))}</label>${phMoney(rec.addCost)}</span>
       <span><label>${escHtml(dcT('lblMarkup'))}</label>${phPct(rec.markup)}</span>
-      <span><label data-i18n="lblPriceMode">Price Mode</label>${escHtml(phPriceMode(rec))}</span>
-      <span class="ph-rec-unit"><label>${bolt===null?'Unit Price':'Bolt Unit Price'}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
+      <span><label data-i18n="lblPriceMode">${escHtml(dcT('lblPriceMode'))}</label>${escHtml(phPriceMode(rec))}</span>
+      <span class="ph-rec-unit"><label>${escHtml(dcT(bolt===null?'lblUnitPrice':'phBoltUnitPrice'))}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
     </div>
-    ${acc>0?`<div class="ph-rec-acc">${escHtml(dcT('phAccSeparately'))} ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)+')'}</div>`:''}
+    ${acc>0?`<div class="ph-rec-acc">${escHtml(dcT('phAccSeparately'))} ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' '+escHtml(dcT('phLineWas').replace('{v}',phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)))}</div>`:''}
     <div class="ph-rec-foot">${tags.join('')}${useBtn}${extra||''}</div>
   </div>`;
 }
@@ -8887,7 +9006,7 @@ function findMatchingCompanyByName(name){
 }
 async function loadCompaniesIntoSelect(){
   await loadCompaniesCache();
-  const sel=el('sv-company'); sel.innerHTML='<option value="" data-i18n="mNoCompanyStandalone">— No company (standalone) —</option>';
+  const sel=el('sv-company'); sel.innerHTML='<option value="">'+escHtml(dcT('mNoCompanyStandalone'))+'</option>';
   companiesCache.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=(c.short_code?c.short_code+' — ':'')+c.name; sel.appendChild(o); });
 }
 
@@ -8912,7 +9031,7 @@ async function openSaveModal(){
   el('sv-remarks').value=qi.remarks||'';
   el('saveModalTitle').innerHTML = (editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation')) + ' <button class="modal-close" onclick="closeModal(\'saveModal\')">✕</button>';
   const submit=el('saveModalSubmitBtn');
-  if(submit) submit.textContent=editingQuoteId?'Update Quotation':'Save Quotation';
+  if(submit) submit.textContent=dcT(editingQuoteId?'btnUpdateQuotation':'btnSaveQuotation');
   openModal('saveModal');
 }
 async function doSaveQuotation(){
@@ -8969,7 +9088,7 @@ async function doSaveQuotation(){
   if(refWasReassigned){
     showToast(dcT('tSavedAsTaken').replace('{a}',el('qi-refno').value).replace('{b}',ref));
   } else {
-    showToast(updatingExisting?'Quotation updated and locked':'Quotation saved and locked');
+    showToast(dcT(updatingExisting?'tQuoteUpdatedLocked':'tQuoteSavedLocked'));
   }
   refreshWorkflow();
 }
@@ -9272,7 +9391,7 @@ async function saveDPRule(){
   const res=await api(action,rule,'POST');
   if(!res.ok){showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
   await refreshDPRules();
-  showToast(rule.id ? 'Rule updated' : 'Rule saved');
+  showToast(dcT(rule.id ? 'tRuleUpdated' : 'tRuleSaved'));
   resetDPForm();
   renderDPList();
   applyDefaultPrice();
@@ -9291,7 +9410,7 @@ function editDPRule(id){
   el('dp-addCost').value=rule.addCost;
   el('dp-markup').value=rule.markup;
   el('dp-active').value=rule.active;
-  el('dpFormTitle').textContent=rule.source==='system'?'Override System Default':'Edit Rule';
+  el('dpFormTitle').textContent=dcT(rule.source==='system'?'mOverrideSystemDefault':'mEditRule');
   el('dpModal').scrollTop=0;
 }
 
@@ -9306,7 +9425,7 @@ async function toggleDPRule(id){
 }
 
 async function deleteDPRule(id){
-  if(!confirm('Delete this default price rule?')) return;
+  if(!confirm(dcT('cfmDeleteDefaultPrice'))) return;
   const res=await api('delete_default_price',{id},'POST');
   if(!res.ok){showToast(dcT('tDeleteFailed'));return}
   await refreshDPRules();
@@ -9470,41 +9589,41 @@ function ensureOthersForm(){
   form.id='form-others';
   form.dataset.type='others';
   form.innerHTML=`
-    <div class="group-label full" data-i18n="lblProductDetails">Product Details</div>
-    <div class="field"><label data-i18n="lblProductName">Product Name</label><input type="text" id="others-productName" data-i18n-ph="phEgEyeBolt" placeholder="e.g. EYE BOLT" style="text-transform:uppercase" oninput="upperOthersProductName();calcOthers()" onblur="upperOthersProductName()"></div>
-    <div class="field"><label data-i18n="lblMaterial">Material</label>
+    <div class="group-label full" data-i18n="lblProductDetails">${escHtml(dcT('lblProductDetails'))}</div>
+    <div class="field"><label data-i18n="lblProductName">${escHtml(dcT('lblProductName'))}</label><input type="text" id="others-productName" data-i18n-ph="phEgEyeBolt" placeholder="${escHtml(dcT('phEgEyeBolt'))}" style="text-transform:uppercase" oninput="upperOthersProductName();calcOthers()" onblur="upperOthersProductName()"></div>
+    <div class="field"><label data-i18n="lblMaterial">${escHtml(dcT('lblMaterial'))}</label>
       <select id="others-material" onchange="onMaterialSizeChange('others')">
-        <option value="" selected data-i18n="optNone">— none —</option>
+        <option value="" selected data-i18n="optNone">${escHtml(dcT('optNone'))}</option>
         <option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option>
         <option value="4140_HARDEN_G10_9">4140 QT + HARDEN = G10.9</option><option value="4140_PLAIN">4140</option><option value="4340">4340 QT</option><option value="SS304">SS304</option><option value="SS316">SS316</option><option value="Y_BAR">Y BAR</option>
       </select>
     </div>
-    <div class="field"><label data-i18n="lblSizeType">Size Type</label><select id="others-sizeType" onchange="calcOthers()"><option value="" selected data-i18n="optNone">— none —</option><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
-    <div class="field full finish-field"><label data-i18n="lblFinish">Finish</label>
+    <div class="field"><label data-i18n="lblSizeType">${escHtml(dcT('lblSizeType'))}</label><select id="others-sizeType" onchange="calcOthers()"><option value="" selected data-i18n="optNone">${escHtml(dcT('optNone'))}</option><option value="FULLSIZE">Fullsize</option><option value="UNDERSIZE">Undersize</option></select></div>
+    <div class="field full finish-field"><label data-i18n="lblFinish">${escHtml(dcT('lblFinish'))}</label>
       <div class="finish-pills" id="others-finishPills">
-        <label class="finish-pill" id="others-pill-NA" data-i18n-title="ttNotApplicable" title="Not applicable"><input type="radio" name="others-finish" value="" onchange="onFinishChange('others')"><span class="fp-code">N/A</span></label>
-        <label class="finish-pill" id="others-pill-PL" data-i18n-title="ttPlain" title="Plain"><input type="radio" name="others-finish" value="PL" onchange="onFinishChange('others')"><span class="fp-code">PL</span></label>
-        <label class="finish-pill selected-ZP" id="others-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="others-finish" value="ZP" checked onchange="onFinishChange('others')"><span class="fp-code">ZP</span></label>
-        <label class="finish-pill" id="others-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="others-finish" value="HDG" onchange="onFinishChange('others')"><span class="fp-code">HDG</span></label>
+        <label class="finish-pill" id="others-pill-NA" data-i18n-title="ttNotApplicable" title="${escHtml(dcT('ttNotApplicable'))}"><input type="radio" name="others-finish" value="" onchange="onFinishChange('others')"><span class="fp-code">N/A</span></label>
+        <label class="finish-pill" id="others-pill-PL" data-i18n-title="ttPlain" title="${escHtml(dcT('ttPlain'))}"><input type="radio" name="others-finish" value="PL" onchange="onFinishChange('others')"><span class="fp-code">PL</span></label>
+        <label class="finish-pill selected-ZP" id="others-pill-ZP" data-i18n-title="ttZincPlated" title="${escHtml(dcT('ttZincPlated'))}"><input type="radio" name="others-finish" value="ZP" checked onchange="onFinishChange('others')"><span class="fp-code">ZP</span></label>
+        <label class="finish-pill" id="others-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="${escHtml(dcT('ttHotDipGalvanized'))}"><input type="radio" name="others-finish" value="HDG" onchange="onFinishChange('others')"><span class="fp-code">HDG</span></label>
       </div>
     </div>
-    <div class="field full"><label data-i18n="lblDimensionText">Dimension Text</label><textarea id="others-dimensionText" rows="2" placeholder="e.g. M16 x L 120 x ID 35" oninput="calcOthers()"></textarea></div>
+    <div class="field full"><label data-i18n="lblDimensionText">${escHtml(dcT('lblDimensionText'))}</label><textarea id="others-dimensionText" rows="2" data-i18n-ph="phEgDimensionText" placeholder="${escHtml(dcT('phEgDimensionText'))}" oninput="calcOthers()"></textarea></div>
     <div class="others-weight-row">
       <!-- A fresh form defaults to Diameter x Length. The inline styles below match
            that default so the first paint is already correct; init() then calls
            onOthersWeightModeChange() which keeps them in sync from then on.
            Load & Edit and draft restore both override the mode from saved data. -->
-      <div class="field"><label data-i18n="lblWeightMode">Weight Mode</label><select id="others-weightMode" onchange="onOthersWeightModeChange(true)"><option value="manual" data-i18n="lblManualWeight">Manual Weight</option><option value="length" selected data-i18n="lblDiaXLength">Diameter × Length</option></select></div>
-      <div class="field" id="others-unitWeightField" style="display:none"><label><span data-i18n="lblUnitWeight">Unit Weight</span> <span class="hint">(kg)</span><span class="field-zh">单件重量</span></label><input type="number" id="others-unitWeight" min="0" step="0.0001" placeholder="kg" oninput="calcOthers()"></div>
-      <div class="field" id="others-diameterField"><label><span data-i18n="lblDiameter">Diameter</span> <span class="hint">(mm)</span></label><input type="number" id="others-diameter" min="0" step="0.01" placeholder="mm" oninput="calcOthers()"></div>
-      <div class="field" id="others-lengthField"><label><span data-i18n="lblLength">Length</span> <span class="hint">(mm)</span></label><input type="number" id="others-length" min="0" step="0.1" placeholder="mm" oninput="calcOthers()"></div>
+      <div class="field"><label data-i18n="lblWeightMode">${escHtml(dcT('lblWeightMode'))}</label><select id="others-weightMode" onchange="onOthersWeightModeChange(true)"><option value="manual" data-i18n="lblManualWeight">${escHtml(dcT('lblManualWeight'))}</option><option value="length" selected data-i18n="lblDiaXLength">${escHtml(dcT('lblDiaXLength'))}</option></select></div>
+      <div class="field" id="others-unitWeightField" style="display:none"><label><span data-i18n="lblUnitWeight">${escHtml(dcT('lblUnitWeight'))}</span> <span class="hint">(kg)</span></label><input type="number" id="others-unitWeight" min="0" step="0.0001" placeholder="kg" oninput="calcOthers()"></div>
+      <div class="field" id="others-diameterField"><label><span data-i18n="lblDiameter">${escHtml(dcT('lblDiameter'))}</span> <span class="hint">(mm)</span></label><input type="number" id="others-diameter" min="0" step="0.01" placeholder="mm" oninput="calcOthers()"></div>
+      <div class="field" id="others-lengthField"><label><span data-i18n="lblLength">${escHtml(dcT('lblLength'))}</span> <span class="hint">(mm)</span></label><input type="number" id="others-length" min="0" step="0.1" placeholder="mm" oninput="calcOthers()"></div>
     </div>
     ${accessoriesHtml}
-    <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-    <div class="field"><label><span data-i18n="lblCostRate">Cost Rate</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
-    <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="others-addCost" placeholder="0.00" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
-    <div class="field"><label><span data-i18n="lblMarkup">Markup</span> <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
-    <div class="field"><label data-i18n="lblQty">Qty</label><input type="number" id="others-qty" value="1" min="1" step="1" oninput="calcOthers()"></div>`;
+    <div class="group-label full" data-i18n="pricingEntry">${escHtml(dcT('pricingEntry'))}</div>
+    <div class="field"><label><span data-i18n="lblCostRate">${escHtml(dcT('lblCostRate'))}</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" data-i18n-ph="phEnterRate" placeholder="${escHtml(dcT('phEnterRate'))}" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
+    <div class="field"><label data-i18n="lblAdditionalCost">${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" class="hl" id="others-addCost" placeholder="0.00" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
+    <div class="field"><label><span data-i18n="lblMarkup">${escHtml(dcT('lblMarkup'))}</span> <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
+    <div class="field"><label data-i18n="lblQty">${escHtml(dcT('lblQty'))}</label><input type="number" id="others-qty" value="1" min="1" step="1" oninput="calcOthers()"></div>`;
   source.insertAdjacentElement('afterend',form);
 }
 
@@ -9512,16 +9631,24 @@ function ensurePriceModeControls(){
   Object.keys(ITEM_TYPES).forEach(type=>{
     const form=el('form-'+type);
     if(!form||el(type+'-priceMode')) return;
-    const pricingLabel=[...form.querySelectorAll('.group-label')].find(node=>node.textContent.includes('Pricing'));
+    /* Found by its translation key, never by its English text. Looked up by
+       the word "Pricing" this returned nothing the moment the page opened in
+       中文 — and ten of the eleven forms lost their Price Mode control
+       altogether, so No Round and Manual Price were unreachable with nothing
+       on screen to say why. A key does not change when the language does. */
+    const pricingLabel=[...form.querySelectorAll('.group-label')].find(node=>{
+      const k=node.getAttribute('data-i18n');
+      return k==='pricingEntry' || k==='pricing';   // the Welding Anchor Set form names it the shorter way
+    });
     if(!pricingLabel) return;
     const modeField=document.createElement('div');
     modeField.className='field price-mode-field';
-    modeField.innerHTML=`<label data-i18n="lblPriceMode">Price Mode</label><select id="${type}-priceMode" onchange="onPriceModeChange('${type}')"><option value="auto" data-i18n="pmAutoRound">Auto Round</option><option value="no_round" data-i18n="pmNoRound">No Round</option><option value="manual" data-i18n="pmManualPrice">Manual Price</option></select>`;
+    modeField.innerHTML=`<label data-i18n="lblPriceMode">${escHtml(dcT('lblPriceMode'))}</label><select id="${type}-priceMode" onchange="onPriceModeChange('${type}')"><option value="auto" data-i18n="pmAutoRound">${escHtml(dcT('pmAutoRound'))}</option><option value="no_round" data-i18n="pmNoRound">${escHtml(dcT('pmNoRound'))}</option><option value="manual" data-i18n="pmManualPrice">${escHtml(dcT('pmManualPrice'))}</option></select>`;
     const manualField=document.createElement('div');
     manualField.className='field manual-price-field';
     manualField.id=type+'-manualUnitPriceField';
     manualField.style.display='none';
-    manualField.innerHTML=`<label data-i18n="lblManualUnitPrice">Manual Unit Price (RM)</label><input type="number" id="${type}-manualUnitPrice" min="0" step="0.01" placeholder="0.00" disabled oninput="recalcCurrent()"><small class="manual-price-guide">${escHtml(dcT('pmManualGuide'))}<span>${escHtml(dcT('pmManualGuideEg'))}</span></small>`;
+    manualField.innerHTML=`<label data-i18n="lblManualUnitPrice">${escHtml(dcT('lblManualUnitPrice'))}</label><input type="number" id="${type}-manualUnitPrice" min="0" step="0.01" placeholder="0.00" disabled oninput="recalcCurrent()"><small class="manual-price-guide">${escHtml(dcT('pmManualGuide'))}<span>${escHtml(dcT('pmManualGuideEg'))}</span></small>`;
     const qtyField=el(type+'-qty')?.closest('.field');
     (qtyField||pricingLabel).insertAdjacentElement('afterend',modeField);
     modeField.insertAdjacentElement('afterend',manualField);
@@ -9835,9 +9962,9 @@ function wqaScopeSwitch(){
   const sel=wqa.applyScope==='selected';
   return `<div class="wqa-view-toggle wqa-scope" role="group">
       <button type="button" class="wqa-view-btn${sel?'':' is-on'}" onclick="wqaSetApplyScope('all')"
-              data-i18n="wqaScopeAll">${escHtml(dcT('wqaScopeAll'))}</button>
+              >${escHtml(dcT('wqaScopeAll'))}</button>
       <button type="button" class="wqa-view-btn${sel?' is-on':''}" onclick="wqaSetApplyScope('selected')"
-              data-i18n="wqaScopeSelected">${escHtml(dcT('wqaScopeSelected'))}</button>
+              >${escHtml(dcT('wqaScopeSelected'))}</button>
     </div>`;
 }
 /* The scope rides in the title, so a COLLAPSED panel still says where its Apply
@@ -10190,7 +10317,7 @@ function wqaAccEditor(a,h){
     </div>
     <div class="wqa-acc-line">
       <label class="wqa-acc-en"><input type="checkbox" ${a.custom.enabled?'checked':''} onchange="${h('custom','enabled','this.checked')}"> ${escHtml(dcT('lblCustom'))}</label>
-      <label class="wqa-acc-f wqa-acc-wide"><span>Description</span><input type="text" value="${escHtml(a.custom.text||'')}" ${off(a.custom.enabled)} oninput="${h('custom','text','this.value')}"></label>
+      <label class="wqa-acc-f wqa-acc-wide"><span>${escHtml(dcT('lblDescription'))}</span><input type="text" value="${escHtml(a.custom.text||'')}" ${off(a.custom.enabled)} oninput="${h('custom','text','this.value')}"></label>
       <label class="wqa-acc-f"><span>${escHtml(dcT('lblUnitPriceShort'))}</span><input type="number" min="0" step="0.01" value="${a.custom.unitPrice}" ${off(a.custom.enabled)} oninput="${h('custom','unitPrice','this.value')}"></label>
     </div>
   </div>`;
@@ -10209,7 +10336,7 @@ function wqaSetAccField(a,group,field,value){
    weight, so two different lengths keep two different prices. Manual is the one
    mode where a final price can legitimately be shared, and it has its own
    separate button so it can never happen by accident. */
-const WQA_PRICE_MODES=[{v:'auto',label:'Auto Round'},{v:'no_round',label:'No Round'},{v:'manual',label:'Manual Price'}];
+const WQA_PRICE_MODES=[{v:'auto',k:'pmAutoRound'},{v:'no_round',k:'pmNoRound'},{v:'manual',k:'pmManualPrice'}];
 function wqaEmptyPrice(){ return {costRate:'',addCost:'',markup:'',priceMode:'auto',manualUnitPrice:''}; }
 /* Looked up so the summary follows the UI language; the underlying values
    (auto / no_round / manual) never change. */
@@ -10224,7 +10351,7 @@ function wqaRenderCommonPrice(force){
   if(!force && wqaTypingIn(el('wqaCommonPrice'))){ wqaPatchPricePanel(); wqaDeferRender('price'); return; }
   const c=wqa.commonPrice||(wqa.commonPrice=wqaEmptyPrice());
   const manual=c.priceMode==='manual';
-  const opts=WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${m.v===c.priceMode?' selected':''}>${m.label}</option>`).join('');
+  const opts=WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${m.v===c.priceMode?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('');
   const entered=[c.costRate!==''?'Cost Rate '+c.costRate:'',c.addCost!==''?'Add Cost '+c.addCost:'',
                  c.markup!==''?'Markup '+c.markup+'%':'',wqaPriceModeLabel(c.priceMode)].filter(Boolean).join('  ·  ');
   el('wqaCommonPrice').innerHTML=
@@ -10235,7 +10362,7 @@ function wqaRenderCommonPrice(force){
        <label class="wqa-acc-f"><span>${escHtml(dcT('lblCostRate'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.costRate)}" oninput="wqaEditCommonPrice('costRate',this.value)"></label>
        <label class="wqa-acc-f"><span>${escHtml(dcT('lblAdditionalCost'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.addCost)}" oninput="wqaEditCommonPrice('addCost',this.value)"></label>
        <label class="wqa-acc-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="number" step="0.1" value="${escHtml(c.markup)}" oninput="wqaEditCommonPrice('markup',this.value)"></label>
-       <label class="wqa-acc-f"><span data-i18n="lblPriceMode">Price Mode</span><select onchange="wqaEditCommonPrice('priceMode',this.value)">${opts}</select></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblPriceMode'))}</span><select onchange="wqaEditCommonPrice('priceMode',this.value)">${opts}</select></label>
      </div>
      ${manual?`<div class="wqa-price-line wqa-price-manual">
        <label class="wqa-acc-f"><span>${escHtml(dcT('lblManualUnitPrice'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.manualUnitPrice)}" oninput="wqaEditCommonPrice('manualUnitPrice',this.value)"></label>
@@ -10366,7 +10493,7 @@ function wqaRenderCommonAcc(force){
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyAccToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
-         <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()" data-i18n="lblClearAllAcc">Clear All Accessories</button>
+         <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()">${escHtml(dcT('lblClearAllAcc'))}</button>
          <span class="wqa-acc-sum">${escHtml(dcT('lblCurrentColon').replace('{v}',wqaAccSummary(a)))}</span>
        </div>
      </div>`);
@@ -10888,7 +11015,7 @@ function wqaRowSpecText(r){
      word, in front of the material, so the compact list stays a list. */
   if(wqaIsMixed('product')){
     const p=wqaProductByType(wqaRowProduct(r));
-    bits.push(p?p.label:dcT('needs').replace('{f}','Product'));
+    bits.push(p?p.label:dcT('needs').replace('{f}',dcT('fieldProduct')));
   }
   const m=wqaRowSpec(r,'material'); if(m) bits.push(materialLabel(m));
   else bits.push(dcT('needs').replace('{f}',dcT('fieldMaterial')));
@@ -11081,7 +11208,7 @@ function wqaRowBadges(r){
   if(r.finishSeen) out.push({t:dcT('wqaFinishDropped').replace('{v}',r.finishSeen)
                                                      .replace('{m}',String(r.material||'')),k:'info'});
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
-  (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn'}));
+  (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn',quoted:f}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
   /* Where the price came from used to be one more grey pill in a row of them,
      which is where it got lost. It has its own line under the row now — see
@@ -11091,7 +11218,15 @@ function wqaRowBadges(r){
   return out;
 }
 function wqaBadgeHtml(r){
-  return wqaRowBadges(r).map(b=>`<span class="wqa-pill wqa-pill-${b.k}${b.w?' wqa-pill-why':''}">${escHtml(b.t)}</span>`).join('');
+  return wqaRowBadges(r).map(b=>{
+    const cls=`wqa-pill wqa-pill-${b.k}${b.w?' wqa-pill-why':''}`;
+    if(!b.quoted) return `<span class="${cls}">${escHtml(b.t)}</span>`;
+    /* Split the sentence around the quotation so the quoted half carries the
+       marker and the half this application wrote does not. */
+    const i=b.t.indexOf(b.quoted);
+    if(i<0) return `<span class="${cls}">${escHtml(b.t)}</span>`;
+    return `<span class="${cls}">${escHtml(b.t.slice(0,i))}<span data-i18n-skip>${escHtml(b.quoted)}</span>${escHtml(b.t.slice(i+b.quoted.length))}</span>`;
+  }).join('');
 }
 /* ── Partial extraction ─────────────────────────────────────────────────────
    Said in a banner at the top of Review, with the number of rows that actually
@@ -12971,6 +13106,14 @@ function wqaParseText(text,forceProduct){
    source and to nothing else, so every fresh Parse and every fresh Analyze
    throws it away before reading the new one. Leaving it behind is how a
    previous drawing's "5 Nuts + 2 FW" came to sit over an unrelated inquiry. */
+/* A stored warning is {k} or {k,v}: the key names the sentence, the value is
+   the customer's own wording dropped into it. Rendered here, at the moment it
+   is shown, so a language switch rewrites it. */
+function wqaWarnText(w){
+  if(!w) return '';
+  if(typeof w==='string') return w;
+  return w.v===undefined ? dcT(w.k) : dcT(w.k).replace('{n}',w.v).replace('{v}',w.v);
+}
 function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null;
   wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; }
 
@@ -13664,9 +13807,12 @@ async function wqaAiApply(d, msgTarget, meta){
      because a call that fails or returns nothing usable never reaches this line
      — the badge reflects a result that was USED, not merely a request sent. */
   wqa.aiAssisted = true;
-  wqa.aiWarnings = d.note
-    ? ['Document mentions: '+d.note+' — accessories are never added automatically. Add them yourself if this quotation includes them.']
-    : [];
+  /* Held as a key and its value, not as a finished sentence: a warning built
+     at extraction time and stored as text is frozen in whatever language the
+     screen happened to be in, and this one is on screen for as long as the
+     review is. The note itself is the customer's wording and is never
+     translated. */
+  wqa.aiWarnings = d.note ? [{k:'wqaAccMention',v:d.note}] : [];
   /* The answer stopped before the document did. The rows that arrived are
      whole — the one the cut landed in was discarded rather than half-read —
      but the list may be short, and a short list looks exactly like a complete
@@ -13687,10 +13833,10 @@ async function wqaAiApply(d, msgTarget, meta){
        the normaliser does at the end of its own pass. */
     WQA_ROW_SPEC.forEach(k=>{ const v=wqaRowsCommonValueOf(norm.rows,k);
                               if(v!==WQA_MIXED) norm.common[k]=v; });
-    if(res.applied) wqa.aiWarnings.push(dcT('wqaNoteUsed').replace('{n}',res.applied));
+    if(res.applied) wqa.aiWarnings.push({k:'wqaNoteUsed',v:res.applied});
     /* Typed and used by nothing: said once, plainly, rather than left to be
        discovered when the quotation is already out. */
-    if(res.skipped.length) wqa.aiWarnings.push(dcT('wqaNoteUnused'));
+    if(res.skipped.length) wqa.aiWarnings.push({k:'wqaNoteUnused'});
   }
   /* A pasted message that the parser handed to the AI is still the customer's
      own words, so it stays a TEXT source. An upload has no trustworthy
@@ -14040,11 +14186,11 @@ function wqaRenderSource(force){
     const f=wqa.fileSource;
     box.hidden=false;
     box.innerHTML=`<div class="wqa-file-src">
-        <span class="wqa-file-lbl" data-i18n="wqaSourceFile">${escHtml(dcT('wqaSourceFile'))}</span>
+        <span class="wqa-file-lbl" >${escHtml(dcT('wqaSourceFile'))}</span>
         <span class="wqa-file-chip">${escHtml(f.pdf?'PDF':dcT('wqaImage'))}</span>
         <span class="wqa-file-name">${escHtml(f.name||'')}</span>
         <button type="button" class="btn btn-outline btn-sm" onclick="wqaBackToPaste()"
-                data-i18n="wqaBackToUpload">${escHtml(dcT('wqaBackToUpload'))}</button>
+                >${escHtml(dcT('wqaBackToUpload'))}</button>
       </div>`;
     if(back) back.hidden=true;
     return;
@@ -14070,7 +14216,7 @@ function wqaRenderSource(force){
           <pre class="wqa-source-text">${escHtml(txt)}</pre>
           <div class="wqa-source-actions">
             <button type="button" class="btn btn-outline btn-sm" onclick="wqaBackToPaste()"
-                    data-i18n="wqaSourceEdit">${escHtml(dcT('wqaSourceEdit'))}</button>
+                    >${escHtml(dcT('wqaSourceEdit'))}</button>
           </div>
         </div>`);
 }
@@ -14209,7 +14355,7 @@ function wqaRenderCommon(){
   const aiNote=(wqa.aiMeta
     ? `<div class="wqa-flag wqa-flag-def">${escHtml(dcT('wqaCustomerLabel').replace('{s}',wqa.aiMeta.src).replace('{d}',wqa.aiMeta.det))}</div>` : '')
     + (wqa.aiWarnings&&wqa.aiWarnings.length
-    ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(w)}</div>`).join('') : '');
+    ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(wqaWarnText(w))}</div>`).join('') : '');
   el('wqaCommon').innerHTML=`
     <div class="wqa-common-grid">
       <div class="field"><label>${escHtml(dcT('fieldProduct'))}${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</label>
@@ -14745,7 +14891,7 @@ function wqaRenderRows(force){
      aside for an active caret. */
   if(!force && wqaTypingIn(el('wqaRows'))){ wqaPatchRows(); wqaDeferRender('rows'); return; }
   const live=wqa.rows.filter(r=>!r.removed);
-  el('wqaRowsCount').textContent=live.length+(live.length===1?' item':' items');
+  el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',live.length);
   const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
   const cols=wqaListCols();
   el('wqaRows').innerHTML=wqa.rows.map((r,i)=>{
@@ -14795,12 +14941,12 @@ function wqaRenderRows(force){
                  onchange="wqaEditSize(${i},this,true)"></div>
         <!-- Beside the size, never inside it. Optional, clearable, and read by
              nothing that computes. -->
-        <div class="field wqa-f-tref"><label data-i18n="wqaThreadRef">${escHtml(dcT('wqaThreadRef'))}</label>
+        <div class="field wqa-f-tref"><label >${escHtml(dcT('wqaThreadRef'))}</label>
           <input type="text" class="wqa-tref-in" value="${escHtml(r.threadRef||'')}"
                  placeholder="${escHtml(dcThreadRefHint(r.size))}"
                  oninput="wqaEdit(${i},'threadRef',this.value)"
                  onchange="wqaEditThreadRef(${i},this)">
-          <small class="wqa-hint-sm" data-i18n="wqaThreadRefNote">${escHtml(dcT('wqaThreadRefNote'))}</small></div>
+          <small class="wqa-hint-sm" >${escHtml(dcT('wqaThreadRefNote'))}</small></div>
         ${(rprod.dims||[]).filter(d=>d!=='size'&&d!=='threadLen').map(d=>`
         <div class="field"><label>${escHtml(wqaDimLabel(rprod.type,d))} (mm)</label>
           <input type="text" inputmode="decimal" value="${escHtml(r[d]==null?'':r[d])}"
@@ -14809,7 +14955,7 @@ function wqaRenderRows(force){
                  onkeydown="if(event.key==='Enter'){event.preventDefault();wqaCalcField(this,${i},'${d}');}"></div>`).join('')}
         ${rprod.dims.includes('threadLen')?`<div class="field"><label>${escHtml(wqaDimLabel(rprod.type,'threadLen'))} (mm)</label>
           <input type="text" value="${escHtml(wqaThreadValue(r))}" placeholder="${rprod.threadEnds===2?'50/110':'100'}" oninput="wqaEditThread(${i},this.value)">
-          <small class="wqa-hint-sm">${rprod.threadEnds===2?'one value, or both ends as 50/110':'one value'}</small></div>`:''}
+          <small class="wqa-hint-sm">${escHtml(dcT(rprod.threadEnds===2?'wqaThreadHintPair':'wqaThreadHintOne'))}</small></div>`:''}
         <div class="field"><label>${escHtml(dcT('lblQty'))}</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
       </div>
       <div class="wqa-row-grid">
@@ -14818,7 +14964,7 @@ function wqaRenderRows(force){
             <option value=""${wqaRowProduct(r)?'':' selected'}>${escHtml(dcT('optRequired'))}</option>
             ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===wqaRowProduct(r)?' selected':''}>${p.label}</option>`).join('')}
           </select></div>
-        ${r.bodyDia?`<div class="field"><label data-i18n="wqaBodyDia">${escHtml(dcT('wqaBodyDia'))}</label>
+        ${r.bodyDia?`<div class="field"><label >${escHtml(dcT('wqaBodyDia'))}</label>
           <input type="text" inputmode="decimal" value="${escHtml(r.bodyDia)}"
                  oninput="wqaEdit(${i},'bodyDia',this.value)"
                  onblur="wqaCalcField(this,${i},'bodyDia')"
@@ -14826,31 +14972,31 @@ function wqaRenderRows(force){
         ${r.radius?`<div class="field"><label>${escHtml(dcT('wqaRadius'))}</label>
           <input type="text" value="${escHtml(r.radius)}" disabled>
           <small class="wqa-hint-sm">${escHtml(dcT('wqaEvidenceOnly'))}</small></div>`:''}
-        <div class="field"><label data-i18n="fieldMaterial">Material</label>
+        <div class="field"><label>${escHtml(dcT('fieldMaterial'))}</label>
           <select onchange="wqaEditRowSpec(${i},'material',this.value)">${wqaMaterialOptions(wqaRowSpec(r,'material'),wqaRowProduct(r))}</select></div>
         <div class="field"><label>${escHtml(dcT('lblFinish'))}</label>
           <select onchange="wqaEditRowSpec(${i},'finish',this.value)"${wqaNoFinish(wqaRowSpec(r,'material'))?' disabled':''}>
             ${(wqaNoFinish(wqaRowSpec(r,'material'))?['']:['','PL','ZP','HDG'])
                .map(v=>`<option value="${v}"${wqaRowSpec(r,'finish')===v?' selected':''}>${v||'N/A'}</option>`).join('')}
           </select></div>
-        ${(rprod.needSizeType && dcProductHasSizeType(wqaRowProduct(r)))?`<div class="field"><label data-i18n="fieldSizeType">Size Type</label>
+        ${(rprod.needSizeType && dcProductHasSizeType(wqaRowProduct(r)))?`<div class="field"><label>${escHtml(dcT('fieldSizeType'))}</label>
           <select onchange="wqaEditRowSpec(${i},'sizeType',this.value)">
             ${[['','—'],['FULLSIZE','Fullsize'],['UNDERSIZE','Undersize']].map(o=>`<option value="${o[0]}"${wqaRowSpec(r,'sizeType')===o[0]?' selected':''}>${escHtml(o[1])}</option>`).join('')}
           </select></div>`:''}
       </div>
       <div class="wqa-row-grid wqa-price-grid">
-        <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></div>
-        <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></div>
+        <div class="field"><label>${escHtml(dcT('lblCostRate'))}</label><input type="text" value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></div>
+        <div class="field"><label>${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></div>
         <div class="field"><label>${escHtml(dcT('lblMarkup'))} (%)</label><input type="number" value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></div>
-        <div class="field"><label data-i18n="lblPriceMode">Price Mode</label>
+        <div class="field"><label>${escHtml(dcT('lblPriceMode'))}</label>
           <select onchange="wqaEditRowMode(${i},this.value)">${
-            WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${m.label}</option>`).join('')
+            WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')
           }</select></div>
         ${(r.priceMode||'auto')==='manual'?`<div class="field"><label>${escHtml(dcT('lblManualUnitPrice'))}</label>
           <input type="number" min="0" step="0.01" value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></div>`:''}
       </div>
       <div class="wqa-weight-line">
-        <span class="wqa-w-item"><span class="wqa-w-lbl" data-i18n="lblUnitWeight">Unit Weight</span>
+        <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('lblUnitWeight'))}</span>
           <span class="wqa-w-val wqa-uw-full">${wqaFmtWeight(calc.weight)}</span></span>
         <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('lblTotalWeight'))}</span>
           <span class="wqa-w-val wqa-tw">${wqaFmtTotalWeight(calc.weight,r.qty)}</span></span>
@@ -14944,7 +15090,18 @@ function wqaProvOpen(i){
   if(!r.histOpen) wqaHistToggle(i);
   else wqaRenderRows(true);
 }
-function fmtDateShort(d){ return formatPrintDate(d); }
+/* The printed quotation keeps its English date — that document's language is
+   an open business question and is deliberately not decided here. This is the
+   SCREEN's date, and the screen follows the operator. */
+function fmtDateShort(d){
+  if(dcLang()!=='zh') return formatPrintDate(d);
+  const parts=String(d==null?'':d).trim().split(/[ T]/)[0].split('-');
+  if(parts.length===3){
+    const y=parts[0],m=Number(parts[1]),day=Number(parts[2]);
+    if(/^\d{4}$/.test(y)&&m>=1&&m<=12&&day>=1&&day<=31) return `${y}年${m}月${day}日`;
+  }
+  return formatPrintDate(d);
+}
 
 /* What a person has corrected on this row, so nothing later throws it away
    without knowing it is there. Field names, not values: the values are on the

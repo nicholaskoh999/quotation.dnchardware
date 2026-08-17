@@ -24,6 +24,44 @@ const shot = async (page, name, sel) => {
   console.log('  ' + name + '.png');
 };
 
+/* ── Evidence starts from a state somebody wrote down ───────────────────────
+   Playwright gives each page its own context, so nothing carries over between
+   frames by itself — but "nothing carried over" is a claim, and a claim in an
+   evidence run should be checked rather than assumed. This proves the page
+   opened with no saved draft, no stored language and no handed-over quotation,
+   and says so loudly if it did not. */
+const assertClean = async (page, frame) => {
+  const dirty = await page.evaluate(() => {
+    const ls = Object.keys(localStorage || {});
+    const ss = Object.keys(sessionStorage || {});
+    return { ls, ss, rows: (typeof wqa !== 'undefined' && wqa.rows) ? wqa.rows.length : 0,
+             items: (typeof quoteItems !== 'undefined') ? quoteItems.length : 0 };
+  });
+  const stale = dirty.ls.filter(k => k !== 'dc_lang');
+  if (stale.length || dirty.ss.length || dirty.rows || dirty.items) {
+    throw new Error(`${frame}: the page did not start clean — `
+      + `localStorage ${JSON.stringify(stale)} sessionStorage ${JSON.stringify(dirty.ss)} `
+      + `${dirty.rows} quick-add rows, ${dirty.items} quotation items`);
+  }
+};
+
+/* ── Type the rates, the way a person does ──────────────────────────────────
+   wqaEditPrice() writes the value into the row's state and recomputes, and the
+   re-render deliberately does NOT write it back into the box — because while
+   somebody is typing, the box already holds what they typed and overwriting it
+   would move the caret. Called from a script, that leaves the SCREEN showing
+   the old figure beside a price worked out from the new one: an evidence frame
+   printing "Markup 0" over a price that includes 4%. So evidence types. */
+const typePrice = async (page, row, field, value) => {
+  const nth = { costRate: 1, addCost: 2, markup: 3 }[field];
+  const sel = `[data-wqa-row="${row}"] .wqa-price-grid .field:nth-child(${nth}) input`;
+  await page.click(sel, { clickCount: 3 });
+  await page.keyboard.press('Backspace');
+  await page.type(sel, String(value), { delay: 15 });
+  await page.$eval(sel, el => el.blur());
+  await page.waitForTimeout(400);
+};
+
 const setLang = async (page, l) => {
   await page.evaluate(x => dcSetLang(x), l);
   await page.waitForTimeout(350);
@@ -352,13 +390,23 @@ const historyApi = records => ({
     }
 
     /* 34 · the comma in a LENGTH, after. The before-evidence for this shows
-           the same message quoted as a 1mm rod at RM 0.60. */
+           the same message quoted as a 1mm rod at RM 0.60.
+
+           The rates typed here are the ones verified by hand — 2.80 and 0.60
+           with 4% markup — so the price on this frame is the price a person
+           checked: 3.5513 kg × 2.80 + 0.60 = 10.5436, +4% = 10.9653, rounded
+           up to RM 10.97. An earlier version of this frame typed 6.20 and
+           2.40, borrowed from the pricing-history helper above, and printed a
+           correct RM 24.42 that read as a pricing fault. */
     {
       const page = await openApp(browser, { viewport: V });
+      await assertClean(page, '34-comma-length-after');
       await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM24 x 1,000 x tl 65/65 - 20pcs',
         { settle: 1000 });
-      await page.evaluate(() => { wqaEditPrice(0, 'costRate', '6.20'); wqaEditPrice(0, 'addCost', '2.40'); });
-      await page.waitForTimeout(900);
+      await typePrice(page, 0, 'costRate', '2.80');
+      await typePrice(page, 0, 'addCost', '0.60');
+      await typePrice(page, 0, 'markup', '4');
+      await page.waitForTimeout(600);
       await shot(page, '34-comma-length-after', '#wqaStep2');
       await page.close();
     }
@@ -397,6 +445,110 @@ const historyApi = records => ({
       const page = await openCompanies(browser, { viewport: V, lang: 'zh' });
       await page.waitForTimeout(800);
       await shot(page, '38-companies-chinese-dynamic');
+      await page.close();
+    }
+
+    // ══ FINAL CLOSING — the six frames the closing brief names ════════════
+    /* A · Companies in 中文 with a company selected, which is where the
+           English helper line lived. */
+    {
+      const page = await openCompanies(browser, { viewport: V, lang: 'zh' });
+      await page.waitForTimeout(700);
+      await page.evaluate(() => { const c = document.querySelector('.company-card,.company-card-compact'); if (c) c.click(); });
+      await page.waitForTimeout(900);
+      await shot(page, 'A-companies-chinese-clean');
+      await page.close();
+    }
+
+    /* B · an IMAGE extraction in 中文, carrying the accessory note. This is
+           the frame the review named: "Document mentions 3 NUTS + 2 FLAT
+           WASHER — accessories are never added automatically…" */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await assertClean(page, 'B-image-quickadd-chinese');
+      await setLang(page, 'zh');
+      await page.evaluate(async d => { wqaOpen(); await wqaAiApply(d); }, {
+        product: 'ANCHOR_BOLT', material: 'MS', finish: 'HDG', sizeType: 'Fullsize',
+        threadEnds: 1, note: '3 NUTS + 2 FLAT WASHER',
+        items: [
+          { M: 'M20', L: 600, W: null, TL: 60, qty: 10, Bmid: null, material: null, finish: null,
+            sizeType: null, unclear: null, product: null, threadEnds: null, bodyDia: null,
+            H: null, ID: null, S: null, R: null },
+          { M: 'M24', L: 1000, W: null, TL: 80, qty: 25, Bmid: null, material: null, finish: null,
+            sizeType: null, unclear: null, product: null, threadEnds: null, bodyDia: null,
+            H: null, ID: null, S: null, R: null },
+        ],
+      });
+      await page.evaluate(() => wqaSetView('expanded'));
+      await page.waitForTimeout(1100);
+      await shot(page, 'B-image-quickadd-chinese', '#wqaStep2');
+      await setLang(page, 'en');
+      await page.close();
+    }
+
+    /* C · two items in 中文: 2 项 on the footer, 2 项 on the button, and every
+           generated label beside them translated. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await assertClean(page, 'C-quickadd-chinese-two-items');
+      await quickAddPaste(page, 'MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs\nM16 x 850 x 100/100 - 20pcs',
+        { settle: 1000 });
+      await setLang(page, 'zh');
+      await page.waitForTimeout(600);
+      await shot(page, 'C-quickadd-chinese-two-items', '#wqaModal');
+      await setLang(page, 'en');
+      await page.close();
+    }
+
+    /* D and E · one saved quotation, each language on its own. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await assertClean(page, 'D-saved-quote-chinese');
+      await page.evaluate(() => { selectedCompanyId = 7; });
+      await quickAddPaste(page, 'MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs', { settle: 900 });
+      await typePrice(page, 0, 'costRate', '2.80');
+      await typePrice(page, 0, 'addCost', '0.60');
+      await typePrice(page, 0, 'markup', '4');
+      await page.evaluate(() => wqaAddAll());
+      await page.waitForTimeout(1200);
+      await setLang(page, 'zh');
+      await page.waitForTimeout(600);
+      await shot(page, 'D-saved-quote-chinese', '#step3Card');
+      await setLang(page, 'en');
+      await page.waitForTimeout(600);
+      await shot(page, 'E-saved-quote-english', '#step3Card');
+      await page.close();
+    }
+
+    /* F · the verified pricing, stated in full on one screen, from a page
+           proved empty before it started.
+
+             M24 x 1000   unit weight 3.5513 kg/pc
+             Cost Rate 2.80 · Additional Cost 0.60 · Markup 4%
+             3.5513 × 2.80 = 9.9436  + 0.60 = 10.5436  + 4% = 10.9653
+             Auto Round                                 => RM 10.97          */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await assertClean(page, 'F-m24-pricing-verified');
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM24 x 1000 x tl 65/65 - 20pcs',
+        { settle: 1000 });
+      await typePrice(page, 0, 'costRate', '2.80');
+      await typePrice(page, 0, 'addCost', '0.60');
+      await typePrice(page, 0, 'markup', '4');
+      await page.waitForTimeout(600);
+      const priced = await page.evaluate(() => ({
+        weight: wqa.rows[0].calc ? wqa.rows[0].calc.weight : null,
+        price: wqa.rows[0].calc ? wqa.rows[0].calc.finalUnitPrice : null,
+      }));
+      /* Stated in the run's own output, so the frame and the number cannot
+         drift apart without the run saying so. */
+      console.log(`      F · M24 x 1000 · ${Number(priced.weight).toFixed(4)} kg/pc `
+                + `· Cost Rate 2.80 · Add 0.60 · Markup 4% => RM ${Number(priced.price).toFixed(2)}`);
+      if (Number(priced.price).toFixed(2) !== '10.97') {
+        throw new Error('F: the verified price changed — expected RM 10.97, got RM '
+          + Number(priced.price).toFixed(2));
+      }
+      await shot(page, 'F-m24-pricing-verified', '#wqaStep2');
       await page.close();
     }
   } finally {

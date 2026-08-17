@@ -917,6 +917,8 @@ const I18N={
        buttons under each quotation, the loading and end-of-list lines. Built
        in script on every render, so none of it reached the attribute scan. */
     cpLoadingRecent:'Loading recent quotations…', cpNoMoreQuotes:'No more quotations',
+    cpShowingNewest:'(showing the newest {n})', cpNoItems:'No items',
+    msgError:'Error', cpManyMatch:'{n} quotations match {r} — use search',
     cpLoad:'📂 Load', cpDuplicate:'📄 Duplicate', cpDelete:'🗑️ Delete',
     cpNoQuotationMatch:'No quotation “{t}”',
     cpFormerly:'Formerly {r}',
@@ -985,6 +987,8 @@ const I18N={
     cpGrandTotalNote:'ℹ️ 报价总额仅供参考，实际订购数量可能不同。',
     cpReferenceTotal:'参考总额', cpViewQuotation:'查看报价单',
     cpLoadingRecent:'正在载入最新报价…', cpNoMoreQuotes:'没有更多报价',
+    cpShowingNewest:'（仅显示最新 {n} 条）', cpNoItems:'没有项目',
+    msgError:'错误', cpManyMatch:'有 {n} 张报价单匹配 {r} — 请使用搜索',
     cpLoad:'📂 载入', cpDuplicate:'📄 复制', cpDelete:'🗑️ 删除',
     cpNoQuotationMatch:'没有符合「{t}」的报价单',
     cpFormerly:'原单号 {r}',
@@ -1041,14 +1045,16 @@ dcOnRelabel(()=>{
   try{ if(typeof renderCompanies==='function') renderCompanies(); }catch(e){}
   try{ if(typeof renderRecentQuotes==='function') renderRecentQuotes(); }catch(e){}
   try{ if(typeof renderSummary==='function') renderSummary(); }catch(e){}
-  dcApplyLang();
+  /* The detail panel is built inside selectCompany, so re-selecting the same
+     company is what re-labels it. That is the same read-only fetch clicking
+     the card already makes — no company, quotation or remark is written. */
+  try{ if(selectedCompanyId!==null) selectCompany(selectedCompanyId); }catch(e){}
 });
 function dcSetLang(l){
   if(DC_LANGS.indexOf(l)<0) return;
-  const before=dcLang();
   try{ localStorage.setItem(DC_LANG_KEY,l); }catch(e){}
   dcApplyLang();
-  if(before!==l) dcRelabel();
+  dcRelabel();
 }
 
 dcApplyLang();
@@ -1154,10 +1160,10 @@ function renderRecentQuotations(){
     <div class="card" style="margin-bottom:12px">
       <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>${dcT('secRecentQuotations')}</div>
     </div>
-    <div class="q-helper" data-i18n="cpSelectCompany">ℹ️ Select a company on the left to view all saved quotations for that company.</div>
+    <div class="q-helper">${esc(dcT('cpSelectCompany'))}</div>
     ${cardsHtml}
     <div id="recentQuotesMoreWrap" style="display:${recentQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">
-      <button class="btn btn-ghost" id="recentQuotesMoreBtn" onclick="loadMoreRecentQuotations()" data-i18n="msgLoadMore">Load More Quotations</button>
+      <button class="btn btn-ghost" id="recentQuotesMoreBtn" onclick="loadMoreRecentQuotations()">${esc(dcT('msgLoadMore'))}</button>
     </div>
     <div id="recentQuotesDone" class="q-helper" style="display:${!recentQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">${esc(dcT("cpNoMoreQuotes"))}</div>
   `;
@@ -1301,7 +1307,7 @@ function cpSearchSubmit(){
 
 function cpBusyPanel(){
   const b=document.getElementById('cpSearchResult');
-  b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span data-i18n="msgLookingUp">Looking up quotation…</span></div>';
+  b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span>'+esc(dcT('msgLookingUp'))+'</span></div>';
   b.hidden=false;
 }
 function cpNotFoundPanel(term){
@@ -1351,14 +1357,14 @@ function itemSearchSubmit(){
 }
 function itemBusyPanel(){
   const b=document.getElementById('itemSearchResult');
-  b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span data-i18n="msgSearchingHistory">Searching quotation history…</span></div>';
+  b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span>'+esc(dcT('msgSearchingHistory'))+'</span></div>';
   b.hidden=false;
 }
 function itemEmptyPanel(term){
   const b=document.getElementById('itemSearchResult');
   b.innerHTML='<div class="cp-empty"><div class="cp-empty-icon">🔍</div>'
     +'<p class="cp-empty-main">'+esc(dcT('cpNoItemsMatch').replace('{t}',term))+'</p>'
-    +'<p class="cp-empty-sub"><span data-i18n="msgTryFewer">Try fewer words, or a size and product like “M16 J BOLT”.</span></p></div>';
+    +'<p class="cp-empty-sub"><span>'+esc(dcT('msgTryFewer'))+'</span></p></div>';
   b.hidden=false;
 }
 async function itemRunSearch(term){
@@ -1418,10 +1424,10 @@ function renderCpItemHits(hits,term,meta){
         <span class="ih-qty">${esc(dcT('cpQty'))} ${qty}</span>
         <span class="ih-price">${esc(dcT('cpUnitPrice'))} <strong>RM ${unit}</strong></span>
       </div>
-      <button type="button" class="btn btn-primary ih-view" onclick="itemSearchClear();viewQuote(${parseInt(h.quotation_id,10)})" data-i18n="cpViewQuotation">View Quotation</button>
+      <button type="button" class="btn btn-primary ih-view" onclick="itemSearchClear();viewQuote(${parseInt(h.quotation_id,10)})">${esc(dcT('cpViewQuotation'))}</button>
     </div>`;
   }).join('');
-  const more=meta&&meta.truncated?` (showing the newest ${hits.length})`:'';
+  const more=meta&&meta.truncated?' '+dcT('cpShowingNewest').replace('{n}',hits.length):'';
   const b=document.getElementById('itemSearchResult');
   b.innerHTML=`<div class="cp-hit-msg">${esc(dcT('cpHistMatch').replace('{n}',hits.length).replace('{t}',term).replace('{more}',more))}</div>
                <div class="ih-list">${rows}</div>`;
@@ -1457,7 +1463,7 @@ function renderCompanyCards(){
   document.getElementById('companyCount').textContent = list.length;
 
   if(!allCompaniesCache.length){
-    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p>'+dcT('msgNoCompanies')+' <span class="sub" data-i18n="msgNoCompanies">No companies yet</span></p></div>';
+    document.getElementById('companyList').innerHTML='<div class="empty-state"><div class="icon">🏢</div><p><span class="sub">'+esc(dcT('msgNoCompanies'))+'</span></p></div>';
     return;
   }
   if(!list.length){
@@ -1531,7 +1537,7 @@ async function addCompany(){
     showToast(dcT('msgCompanyAdded'));
     closeAddCompanyForm();
     loadCompanies();
-  } else showToast('❌ '+(res.error||'Error'));
+  } else showToast('❌ '+(res.error||dcT('msgError')));
 }
 
 function openEditCompany(id,name,code,phone,addr){
@@ -1554,14 +1560,14 @@ async function saveEditCompany(){
     address:document.getElementById('ec-addr').value.trim()
   },'POST');
   if(res.ok){showToast(dcT('msgUpdated'));closeModal('editCompanyModal');loadCompanies()}
-  else showToast('❌ '+(res.error||'Error'));
+  else showToast('❌ '+(res.error||dcT('msgError')));
 }
 
 async function deleteCompany(id,name){
   if(!confirm(dcT('cpConfirmDeleteCompany').replace('{n}',name)))return;
   const res=await api('delete_company',{id},'POST');
   if(res.ok){showToast(dcT('msgDeleted'));if(selectedCompanyId==id){selectedCompanyId=null;}loadCompanies();}
-  else showToast('❌ '+(res.error||'Error'));
+  else showToast('❌ '+(res.error||dcT('msgError')));
 }
 
 /* ── Quotations ── */
@@ -1586,7 +1592,7 @@ function renderCompanyQuoteCard(q){
           ${q.prepared_by?`<span>👤 ${esc(q.prepared_by)}</span>`:''}
           <span>${esc(dcT('cpItemCount').replace('{n}',items.length))}</span>
         </div>
-        <div class="q-preview">${previewHtml || '<span style="opacity:.6">No items</span>'}</div>
+        <div class="q-preview">${previewHtml || `<span style="opacity:.6">${esc(dcT('cpNoItems'))}</span>`}</div>
         ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
       </div>
       <div class="q-card-bottom">
@@ -1647,7 +1653,7 @@ async function selectCompany(id){
           ${q.prepared_by?`<span>👤 ${esc(q.prepared_by)}</span>`:''}
           <span>${esc(dcT('cpItemCount').replace('{n}',items.length))}</span>
         </div>
-        <div class="q-preview">${previewHtml || '<span style="opacity:.6">No items</span>'}</div>
+        <div class="q-preview">${previewHtml || `<span style="opacity:.6">${esc(dcT('cpNoItems'))}</span>`}</div>
         <div class="ref-total">
           <span class="ref-total-label">${esc(dcT('cpReferenceTotal'))}</span><br>
           <b>${fmtMoneyCP(q.total_amount)}</b>
@@ -1686,10 +1692,10 @@ async function selectCompany(id){
       <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span><span>${esc(dcT('secSavedQuotations'))}</span></div>
       <span class="list-count">${totalQuotesForCompany}</span>
     </div>
-    <div class="q-helper" data-i18n="cpGrandTotalNote">ℹ️ Grand total is for quotation reference only. Actual order quantity may change.</div>
+    <div class="q-helper">${esc(dcT('cpGrandTotalNote'))}</div>
     <div id="companyQuotesList">${quotesHtml}</div>
     <div id="companyQuotesMoreWrap" style="display:${quotes.length&&companyQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">
-      <button class="btn btn-ghost" id="companyQuotesMoreBtn" onclick="loadMoreCompanyQuotations()" data-i18n="msgLoadMore">Load More Quotations</button>
+      <button class="btn btn-ghost" id="companyQuotesMoreBtn" onclick="loadMoreCompanyQuotations()">${esc(dcT('msgLoadMore'))}</button>
     </div>
     <div id="companyQuotesDone" class="q-helper" style="display:${quotes.length&&!companyQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">${esc(dcT("cpNoMoreQuotes"))}</div>
   `;
@@ -1734,6 +1740,10 @@ function clearCompanySelection(){
   if(window.innerWidth<=980) switchMobTab('recent');
 }
 
+/* This is the SCREEN's date. The printed quotation's date is formatted in
+   index.php and deliberately stays English — which language a CUSTOMER's
+   document is written in is an open business question, and is not the same
+   question as which language the operator works in. */
 function fmtDate(d){
   if(!d)return'\u2014';
   const s=String(d).trim();
@@ -1745,7 +1755,7 @@ function fmtDate(d){
     const m=Number(parts[1]);
     const day=Number(parts[2]);
     if(/^\d{4}$/.test(y) && m>=1 && m<=12 && day>=1 && day<=31){
-      return `${day} ${months[m-1]} ${y}`;
+      return dcLang()==='zh' ? `${y}年${m}月${day}日` : `${day} ${months[m-1]} ${y}`;
     }
   }
   return s;
@@ -1905,7 +1915,7 @@ async function openByRefFromUrl(){
        this number as its CURRENT ref, open that one; otherwise fall back to search. */
     const current=hits.filter(h=>!h.matched_previous);
     if(current.length===1){ viewQuote(current[0].id); return; }
-    showToast(hits.length+' quotations match '+ref+' — use search'); document.getElementById('searchInput').value=ref; renderCompanyCards();
+    showToast(dcT('cpManyMatch').replace('{n}',hits.length).replace('{r}',ref)); document.getElementById('searchInput').value=ref; renderCompanyCards();
   }
 }
 

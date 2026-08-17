@@ -199,6 +199,77 @@ function keysReferenced(src, allKeys) {
   return out;
 }
 
+/* ── 5 · a hook that nothing will ever apply ────────────────────────────────
+   This is the rule that explains BOTH false-greens, and it is worth stating
+   plainly because every earlier pass in this file gets it wrong in the same
+   way: they see a data-i18n on an element and skip it, on the reasoning that
+   dcApplyLang rewrites it on every switch.
+
+   That reasoning holds for markup that is IN the document. It does not hold
+   for markup a renderer builds, because dcApplyLang is an attribute scan over
+   the document as it stands — it runs, it finishes, and it does not come back.
+   Markup created afterwards keeps whatever the template wrote into it, in
+   whatever language the template wrote it, for as long as the element lives.
+
+       panel.innerHTML = `
+         <div class="q-helper" data-i18n="cpSelectCompany">
+           ℹ️ Select a company on the left to view all saved quotations…
+         </div>`;
+
+   That is real, it shipped, and it was on screen in English in 中文 mode while
+   this file reported the page fully translated. The key existed. The Chinese
+   existed. Nothing ever asked for it.
+
+   So: inside a <script>, a data-i18n is not a hook. The element must resolve
+   its own text through dcT at the moment it is built. Keeping the attribute
+   as well is right — it is what re-labels the element on a later switch, for
+   markup that is built once and then lives on — but it is never enough on its
+   own, and this pass is what says so.                                        */
+function scriptRanges(src) {
+  const out = [];
+  const re = /<script\b[^>]*>/gi;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const end = src.indexOf('</script>', m.index);
+    out.push([m.index + m[0].length, end < 0 ? src.length : end]);
+  }
+  return out;
+}
+
+const HOOK_ATTR = { 'data-i18n': null, 'data-i18n-ph': 'placeholder',
+                    'data-i18n-title': 'title', 'data-i18n-aria': 'aria-label',
+                    'data-i18n-alt': 'alt' };
+
+function unappliedHooks(src, code) {
+  const ranges = scriptRanges(src);
+  const inScript = i => ranges.some(([a, b]) => i > a && i < b);
+  const hits = [];
+  const tagRe = /<([a-zA-Z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>/g;
+  let tag;
+  while ((tag = tagRe.exec(code)) !== null) {
+    if (!inScript(tag.index)) continue;               // real markup: the scan reaches it
+    const attrs = tag[2] || '';
+    for (const [hook, mirrors] of Object.entries(HOOK_ATTR)) {
+      const has = new RegExp('\\b' + hook + '\\s*=\\s*["\']([A-Za-z0-9_]+)["\']').exec(attrs);
+      if (!has) continue;
+      if (mirrors) {
+        /* an attribute hook: the attribute it mirrors must be built by dcT */
+        const m = new RegExp('(?<![-\\w])' + mirrors + '="([^"]*)"').exec(attrs)
+               || new RegExp("(?<![-\\w])" + mirrors + "='([^']*)'").exec(attrs);
+        if (m && /\bdcT\(/.test(m[1])) continue;
+        hits.push({ line: lineAt(code, tag.index), kind: 'unapplied ' + hook, text: has[1] });
+      } else {
+        /* a text hook: the element's own content must be built by dcT */
+        const close = code.indexOf('<', tag.index + tag[0].length);
+        const body = code.slice(tag.index + tag[0].length, close < 0 ? tag.index + tag[0].length : close);
+        if (/\bdcT\(/.test(body)) continue;
+        hits.push({ line: lineAt(code, tag.index), kind: 'unapplied ' + hook, text: has[1] });
+      }
+    }
+  }
+  return hits;
+}
+
 /* ── 4 · strings that never reach dcT ──────────────────────────────────────
    Only the places a person actually reads: a toast, a title attribute, a
    placeholder, an aria-label, and text sitting between tags in generated
@@ -281,8 +352,9 @@ function isHooked(code, text) {
   return seen > 0;
 }
 
-function hardCoded(src, code, dictRange) {
+function hardCoded(src, code, dictRange, dictKeys) {
   const hits = [];
+  const DICT_KEYS = dictKeys || new Set();
   /* An interpolation is not text a person reads; the English AROUND it is. */
   const stripInterp = t => String(t)
     /* `${…}` in a template literal … */
@@ -293,12 +365,33 @@ function hardCoded(src, code, dictRange) {
        AND the variable name beside it. */
     .replace(/'\s*\+[^+]*\+\s*'/g, ' ')
     .replace(/`\s*\+[^+]*\+\s*`/g, ' ');
+  /* ── What a string has to be before it counts as prose ────────────────────
+     Reading whole statements catches every label a ternary can hide, and it
+     also catches a great deal that is not text at all: a CSS class, an element
+     id, an option VALUE, a dictionary key passed by name, a fragment of an
+     inline handler. None of those is shown to anybody.
+
+     These are shape rules, not a word list. A run of lowercase identifiers is
+     a value; a name that is a key in this file's own dictionary is a key; a
+     string carrying a call or an interpolation is code. Anything a person
+     reads breaks all three: it has a capital, or a space between real words,
+     or punctuation that belongs to a sentence. */
+  const isIdentifierish = t =>
+    /^[a-z][a-z0-9_]*$/.test(t) ||                       // auto, no_round, custom
+    /^[a-z][\w-]*(?:\s+[a-z][\w-]*)*$/.test(t) ||        // cp-hit-msg, ph-rec-own
+    /^[a-z]+(?:[A-Z][a-z0-9]*)+$/.test(t);               // sizeType, priceMode
+  const isCallish = t => /[$][{]|\(\s*[)$]|\)\s*$|=>|\bfunction\b/.test(t);
   const push = (line, kind, text) => {
     const t = String(text).trim();
     if (!t || !ENGLISH_RE.test(t)) return;
     if (SKIP_TEXT.some(r => r.test(t))) return;
     if (isCode(t)) return;
     if (/\bdcT\(/.test(t)) return;                  // it is translated
+    if (DICT_KEYS.has(t)) return;                   // a key passed by name
+    if (isIdentifierish(t)) return;
+    if (isCallish(t)) return;
+    /* A markup fragment with no words between its tags is structure. */
+    if (/<[a-zA-Z/]/.test(t) && !ENGLISH_RE.test(t.replace(/<[^<>]*>/g, ' ').replace(/&[a-z]+;/g, ' '))) return;
     hits.push({ line, kind, text: t.slice(0, 90) });
   };
 
@@ -313,19 +406,51 @@ function hardCoded(src, code, dictRange) {
       /* Each quote style on its own: an attribute value may legitimately
          contain the OTHER quote inside an interpolation, and a pattern that
          stops at either one reports half an expression as a label. */
-      const m = new RegExp('\\b' + attr + '="([^"]*)"').exec(t)
-             || new RegExp("\\b" + attr + "='([^']*)'").exec(t);
+      const m = new RegExp('(?<![-\\w])' + attr + '="([^"]*)"').exec(t)
+             || new RegExp("(?<![-\\w])" + attr + "='([^']*)'").exec(t);
       if (m) push(line, attr, stripInterp(m[1]));
     }
   }
 
-  /* ── toasts and text nodes written from script ───────────────────────── */
-  code.split('\n').forEach((ln, i) => {
+  /* ── everything a script writes onto the screen ──────────────────────────
+     Not just the shapes that were easy to match. A label reaches a person by
+     any of these routes, and each one has hidden a real leak:
+
+       showToast('Enter Diameter')            every refusal in the app
+       confirm('Delete this quotation?')      two dialogs on Companies
+       el.textContent = on ? 'Hide' : 'Show'  the U-Bolt debug toggle
+       {v:'auto', label:'Auto Round'}         the Quick Add price modes
+       return mode==='manual' ? 'Manual…'     getPriceModeLabel
+
+     The first four are read as WHOLE STATEMENTS rather than as a single
+     literal after an `=`, because a ternary puts the English on the far side
+     of a `?` where a one-literal pattern never looks.                       */
+  const WRITE_RE = /\.(?:textContent|innerText|innerHTML|placeholder|title|value)\s*=\s*([^;\n]+)/g;
+  const CALL_RE  = /\b(?:showToast|confirm|alert|prompt)\(\s*([^;\n]+)/g;
+  const SETATTR_RE = /\.setAttribute\(\s*['"](?:title|alt|placeholder|aria-label)['"]\s*,\s*([^;\n)]+)/g;
+  /* A property that NAMES a thing on screen. `label:'Auto Round'` is a label
+     however far it sits from the markup that draws it. */
+  const PROP_RE = /\b(?:label|title|text|note|hint|msg|message|caption|heading|placeholder)\s*:\s*(['"][^'"]*['"])/g;
+  const RETURN_RE = /\breturn\s+([^;\n]*\?[^;\n]*:[^;\n]*)/g;
+  const literalsIn = expr => {
+    const out = [];
+    const re = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g;
     let m;
-    const reToast = /\bshowToast\(\s*['"`]([^'"`]+)['"`]/g;
-    while ((m = reToast.exec(ln)) !== null) push(i + 1, 'showToast', m[1]);
-    const reText = /\.textContent\s*=\s*['"]([^'"]+)['"]/g;
-    while ((m = reText.exec(ln)) !== null) push(i + 1, 'textContent', m[1]);
+    while ((m = re.exec(expr)) !== null) out.push(m[1] !== undefined ? m[1] : m[2]);
+    return out;
+  };
+  code.split('\n').forEach((ln, i) => {
+    /* A line that resolves through dcT is translated, whatever else is on it. */
+    for (const [re, kind] of [[WRITE_RE, 'write'], [CALL_RE, 'call'],
+                              [SETATTR_RE, 'setAttribute'], [PROP_RE, 'property'],
+                              [RETURN_RE, 'returned label']]) {
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(ln)) !== null) {
+        if (/\bdcT\(/.test(m[1])) continue;
+        literalsIn(m[1]).forEach(t => push(i + 1, kind, t));
+      }
+    }
   });
 
   /* ── prose sitting BETWEEN tags in generated markup ──────────────────────
@@ -443,13 +568,15 @@ for (const file of FILES) {
     zh[k] !== undefined && String(zh[k]) === String(en[k])
     && !isCode(en[k]) && !isDeliberateZh(k));
   const unused     = enKeys.filter(k => !referenced.has(k));
-  const raw        = hardCoded(src, code, dictRangeOf(src));
+  const raw        = hardCoded(src, code, dictRangeOf(src),
+                               new Set(enKeys.concat(Object.keys(zh))));
+  const unapplied  = unappliedHooks(src, code);
 
   report.files[file] = {
     enKeys: enKeys.length, zhKeys: Object.keys(zh).length,
     coverage: enKeys.length
       ? +(100 * (enKeys.length - missingZh.length) / enKeys.length).toFixed(1) : 100,
-    missingZh, missingKey, identical, unused, hardCoded: raw,
+    missingZh, missingKey, identical, unused, hardCoded: raw, unappliedHooks: unapplied,
   };
 
   ok(!missingZh.length,
@@ -461,16 +588,21 @@ for (const file of FILES) {
   ok(!raw.length,
     `${file}: no user-visible string bypasses dcT — ${raw.length}: `
     + raw.slice(0, 6).map(h => `L${h.line} ${h.kind} ${JSON.stringify(h.text)}`).join(' · '));
+  ok(!unapplied.length,
+    `${file}: no generated element relies on a data-i18n nothing will apply — ${unapplied.length}: `
+    + unapplied.slice(0, 6).map(h => `L${h.line} ${h.kind} ${JSON.stringify(h.text)}`).join(' · '));
 }
 
 const lines = [];
 let tKeys = 0, tMissing = 0, tRaw = 0;
 for (const [file, r] of Object.entries(report.files)) {
   if (r.note) { lines.push(`  ${file}: ${r.note}`); continue; }
-  tKeys += r.enKeys; tMissing += r.missingZh.length; tRaw += r.hardCoded.length;
+  tKeys += r.enKeys; tMissing += r.missingZh.length;
+  tRaw += r.hardCoded.length + r.unappliedHooks.length;
   lines.push(`  ${file.padEnd(15)} ${String(r.enKeys).padStart(4)} keys · ${String(r.coverage).padStart(5)}% translated`
     + ` · ${r.missingZh.length} missing zh · ${r.missingKey.length} undefined`
-    + ` · ${r.identical.length} identical · ${r.hardCoded.length} hard-coded · ${r.unused.length} unused`);
+    + ` · ${r.identical.length} identical · ${r.hardCoded.length} hard-coded`
+    + ` · ${r.unappliedHooks.length} unapplied hooks · ${r.unused.length} unused`);
 }
 report.totals = { keys: tKeys, missingZh: tMissing, hardCoded: tRaw };
 console.log(lines.join('\n'));
