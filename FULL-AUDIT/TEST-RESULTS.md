@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `3696f59d684392914f58e6ac2ad44422c1f3f3df`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `dd15663cc391546ae4cac34026b00e23cd083358`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,12 +8,13 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
-> application or its tests — it is what the numbers in this package were
-> measured against. The commits after it write this package, and a report
-> cannot name the commit it is inside without changing it. The exact HEAD
-> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
-> generated at build time and is not committed.
+> **On SHAs.** `dd15663cc391546ae4cac34026b00e23cd083358` is the last commit that changed the
+> application or its tests — it is the ONE SHA every number in this package was
+> measured against, and it is the only application SHA any of these documents
+> names. The commits after it write this package, and a report cannot name the
+> commit it is inside without changing it; the exact HEAD the archive was built
+> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> is not committed.
 
 ---
 
@@ -21,21 +22,23 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 32 | **2,996** | **0** |
+| Browser suites (`node tests/run.js`) | 33 | **3,105** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **161** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
-| Translation coverage (`tests/tools/check-translations.js`) | 1 | **12** | **0** |
+| Translation coverage (`tests/tools/check-translations.js`) | 1 | **15** | **0** |
 
 ## TOTAL
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **3,338** |
+| **TOTAL ASSERTIONS** | **3,450** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+528 assertions**, all of
-them new coverage over defects found this round.
+Baseline for comparison: 2,810 assertions, 0 failed. **+640 assertions**, all
+of them new coverage over defects found this round — 3,338 after the morning
+repair, and 112 more added by the closing one (109 in the new rendered-DOM
+suite, 3 in the source checker).
 
 **Skipped or environment-limited: none.** Every suite named in the brief ran to
 completion and is counted above.
@@ -45,40 +48,41 @@ completion and is counted above.
 ## Browser suites, in full
 
 ```
-  ok  size normalisation — model, screen and weight agree              42
-  ok  imperial — the first token of a run is the size                  66
-  ok  weight — every product, every input that moves it                39
-  ok  pricing — nothing stale, nothing fabricated                      47
-  ok  pricing history — the rows we sent, and why they differed       105
-  ok  mixed documents — a heading speaks only for its own rows         37
-  ok  save / reload / output — no value drift, no internal costs       65
-  ok  common fields and Correct Items — a blank never clears an answer 61
-  ok  dense table — 29 rows, merged cells, metric beside imperial     170
-  ok  engineering drawing — five parts, five lengths                   73
-  ok  company rules — a size type with a reason                        68
-  ok  quick add safety — corrections, item numbers, partial extraction 60
-  ok  company history — a legacy description reads as words            40
-  ok  accessories — charged beside the bolt, never inside it           41
-  ok  dimension schema and drawing association                         71
-  ok  quick add — each row's own pricing history, on the row           85
-  ok  quick add layout — every product reachable at every width       280
-  ok  quick add — twenty items, which is the ordinary case             30
-  ok  engineering documents — geometry, merged cells, scope           148
-  ok  add to quotation — the button at the end of the review          160
-  ok  stainless — SS304 and SS316 carry no finish, on every screen    119
-  ok  materials — four identities, one vocabulary, one answer         236
-  ok  previous price — a recipe, not a number                          73
-  ok  pricing history — whose price is this                            61
-  ok  size type — unknown is not fullsize                              71
-  ok  thread reference — a note about the thread                      100
-  ok  previous price — applied to the items it describes               79
-  ok  quick add — a review screen, not a settings page                 66
-  ok  quantity — fifteen thousand, one, and the ones we must not guess 136
-  ok  English / 中文 — the screen, not the dictionary                   165
-  ok  size system — one rod, one diameter, whichever way written      132
-  ok  responsive — every width the brief names                         70
+  ok    size normalisation — model, screen and weight agree                            42
+  ok    imperial — the first token of a run is the size                                66
+  ok    weight — every product, every input that moves it                              39
+  ok    pricing — nothing stale, nothing fabricated                                    47
+  ok    pricing history — the rows we sent, and why they differed                     105
+  ok    mixed documents — a heading speaks only for its own rows                       37
+  ok    save / reload / output — no value drift, no internal costs on the page         65
+  ok    common fields and Correct Items — a blank never clears an answer               61
+  ok    dense table — 29 rows, merged cells, metric beside imperial                   170
+  ok    engineering drawing — five parts, five lengths, no borrowed dimensions         73
+  ok    company rules — a size type with a reason, a diameter with one source          68
+  ok    quick add safety — corrections, item numbers, partial extraction               60
+  ok    company history — a legacy description reads as words, not as a stored value   40
+  ok    accessories — charged beside the bolt, never inside it                         41
+  ok    dimension schema and drawing association                                       71
+  ok    quick add — each row's own pricing history, on the row                         85
+  ok    quick add layout — every product reachable at every width                     280
+  ok    quick add — twenty items, which is the ordinary case                           30
+  ok    engineering documents — geometry, merged cells and specification scope        148
+  ok    add to quotation — the button at the end of the review                        160
+  ok    stainless — SS304 and SS316 carry no finish, on every screen                  119
+  ok    materials — four identities, one vocabulary, one answer                       236
+  ok    previous price — a recipe, not a number                                        73
+  ok    pricing history — whose price is this                                          61
+  ok    size type — unknown is not fullsize                                            71
+  ok    thread reference — a note about the thread                                    100
+  ok    previous price — applied to the items it describes                             79
+  ok    quick add — a review screen, not a settings page                               66
+  ok    quantity — fifteen thousand, one, and the ones we must not guess              136
+  ok    English / 中文 — the screen, not the dictionary                                 165
+  ok    size system — one rod, one diameter, whichever way it was written             132
+  ok    responsive — every width the brief names                                       70
+  ok    rendered 中文 — the DOM, not the dictionary                                     109
 
-  32 suites, 2996 assertions, 0 failed          598.9s
+  33 suites, 3105 assertions, 0 failed                                                    632.5s
 ```
 
 ---
@@ -154,8 +158,9 @@ paints, which is the behaviour under test.
 
 | Check | Result |
 |---|---|
-| `php -l` over all 13 PHP files | clean |
-| Translation coverage | 756 keys, 100%, 0 bypassing `dcT` |
+| `php -l` over every PHP file | clean |
+| Translation coverage | 808 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
+| Rendered 中文 DOM | 11 states scanned, 0 English runs outside the trade allowlist |
 | Browser console errors | asserted per-page in suites 30, 31 and 32 (`page._dcErrors` empty at every viewport) |
 | Pricing workbook contains no business values | 62 assertions, clean |
 

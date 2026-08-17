@@ -1,24 +1,27 @@
 # FULL AUDIT REPORT — QUOTATION.DNC
 
-Overnight autonomous full-system audit and repair loop, plus the morning
-repair that closed what external review found.
+Overnight autonomous full-system audit and repair loop, the morning repair that
+closed what external review found, and the final closing repair that read the
+RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `40e56d6951d7832a19e5b7fd121877faecf7f54a` · **NOT DEPLOYED.**
+Final application SHA `dd15663cc391546ae4cac34026b00e23cd083358` · **NOT DEPLOYED.**
 
-**P0 0 · P1 7 · P2 15 · P3 2 — 24 findings, all repaired.**
-**3,338 assertions, 0 failed, 0 skipped.**
+**P0 0 · P1 8 · P2 19 · P3 2 — 29 findings, all repaired.**
+**3,450 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
-`BUSINESS-DECISIONS-NEEDED.md` has the six questions that were not guessed at.
+`BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
+that have since been decided.
 
-> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
-> application or its tests — it is what the numbers in this package were
-> measured against. The commits after it write this package, and a report
-> cannot name the commit it is inside without changing it. The exact HEAD
-> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
-> generated at build time and is not committed.
+> **On SHAs.** `dd15663cc391546ae4cac34026b00e23cd083358` is the last commit that changed the
+> application or its tests — it is the ONE SHA every number in this package was
+> measured against, and it is the only application SHA any of these documents
+> names. The commits after it write this package, and a report cannot name the
+> commit it is inside without changing it; the exact HEAD the archive was built
+> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> is not committed.
 
 ---
 
@@ -30,8 +33,9 @@ Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 | Production data touched | **None.** Every test drives the shipped code against a controlled `api.php` in a local Chromium. No live database was read or written. |
 | Destructive operations | None. |
 | Pre-existing failures hidden | None — the baseline was green (2,810 assertions) and is recorded. |
+| Pricing engine | **Untouched.** The pricing formula, Auto Round, the weight formula, Cost Rate, Additional Cost, Markup and Previous Price are byte-for-byte unchanged this round. M24 x 1000 · 3.5513 kg/pc · rate 2.80 · additional 0.60 · markup 4% still answers **RM 10.97**, and the evidence run fails loudly if it ever stops doing so. |
 | Tests skipped or environment-limited | None. Every suite the brief names ran to completion. |
-| Assertions weakened to get green | None. Four suites were added and one extended; nothing was relaxed. |
+| Assertions weakened to get green | None. Five suites were added and one extended; nothing was relaxed. Three suites failed after the closing repair because a label key was chosen wrongly; the KEY was corrected, not the assertion. |
 | Working tree at final commit | Clean. |
 
 ---
@@ -237,10 +241,13 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **756 keys, 100% translated, nothing bypassing the
-translator**, up from 512 keys with **129 strings that never reached it** — and
-then a further ~210 that the overnight checker could not see, found the morning
-after by a stricter one. See §34 and F17–F22.
+The priority deliverable. **808 keys, 100% translated, nothing bypassing the
+translator, and no element relying on a hook that nothing applies** — up from
+512 keys with **129 strings that never reached it**, then a further ~210 the
+overnight checker could not see, then 36 more and 63 unapplied hooks that the
+morning one could not see either. The last of those were found by reading the
+RENDERED screen, which is the only check that measured anything on a screen.
+See §34, §35, F17–F22 and F25–F29.
 
 Full detail in `TRANSLATION-AUDIT.md`, including the list of what is
 deliberately not translated and why, and the caveat that the new Chinese strings
@@ -353,20 +360,24 @@ the layer that would have caught it.
 
 ## 29–32 · Evidence, test matrix, severity
 
-* `screenshots/` — the 32 frames the brief asks for, plus `INDEX.txt`.
+* `screenshots/` — 44 frames, plus `INDEX.txt`. The first 32 are the set the
+  overnight brief asks for; 33–38 are the morning repair; **A–F** are the six
+  the closing brief names, each captured from a page proved empty first.
 * `before-fix/` — six frames from the baseline commit, same inputs.
-* `after-fix/` — the matching four.
+* `after-fix/` — the matching sixteen.
 * `regression-evidence/` — every suite's own log, plus the JSON.
 
-**TOTAL ASSERTIONS 3,338 · TOTAL FAILED 0 · SKIPPED 0.**
+**TOTAL ASSERTIONS 3,450 · TOTAL FAILED 0 · SKIPPED 0.**
 
-Every log the package claims exists is in `regression-evidence/`:
+Every log the package claims exists is in `regression-evidence/`, and the list
+below was checked against the directory rather than written from memory:
 `browser-suite.log` (and `.json`), `pricing-history-php.log`,
 `ai-extract-php.log`, `pricing-workbook.log`, `translation-coverage.log` (and
 `.json`), `php-lint.log`, `responsive-matrix.log`, `quantity-suite.log`,
-`language-suite.log`. An earlier draft named a `final-re-audit.log` that had
-been superseded; the browser-suite log IS the final run and there is no longer
-a claim to a file that does not exist.
+`language-suite.log`, `rendered-i18n-suite.log`. **Twelve files, twelve claims.**
+An earlier draft named a `final-re-audit.log` that had been superseded; the
+browser-suite log IS the final run and there is no longer a claim to a file that
+does not exist.
 
 ---
 
@@ -375,7 +386,8 @@ a claim to a file that does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green: 32 suites, 2,996 assertions, 0 failed.
+re-exercised. Green: 33 suites, 3,105 assertions, 0 failed in the browser matrix; 3,450
+across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth
 naming because both were self-inflicted:
@@ -395,9 +407,74 @@ wipe the item count to 0 项 with two rows on screen.
 
 That is recorded as F22, at the same severity as the leaks it hid, because a
 check that passes while the defect is visible is worse than no check: it
-converts "not looked at" into "looked at and fine". The checker now strips
-interpolations, holds every label to one word, reads markup built inside
-strings, and verifies each finding against the source before reporting it.
+converts "not looked at" into "looked at and fine".
+
+It then happened a second time. The hardened checker reported green while the
+Companies helper line, the accessory warning and the saved quotation's own Qty
+and Unit were still English on the screen — recorded as **F26**.
+
+---
+
+## 35 · The closing round, and why it needed a different kind of check
+
+Both false-greens have one cause, and it is worth stating on its own because
+every source-reading check in this project got it wrong in the same way.
+
+`dcApplyLang()` is an attribute scan over the document **as it stands**. It
+runs, it finishes, and it does not come back. Markup a renderer builds
+afterwards keeps whatever the template wrote into it, in whatever language the
+template wrote it, for as long as the element lives. So a `data-i18n` on
+generated markup is not a hook — it is a note to nobody. Sixty-three elements
+were built that way, and every check in this repository read them as translated.
+
+No amount of source reading fixes that, because whether a hook is ever applied
+depends on WHEN the element came into being. So the closing round added a check
+that reads the other end: `tests/lib/dom-i18n.js` switches the application to
+中文, walks eleven reachable states, collects every visible run of text and
+every visible placeholder, title, aria-label and alt, subtracts ONE explicit
+table of trade vocabulary, and reports what is left.
+
+The table is the whole design. It holds material codes, sizes, finishes, product
+names, units and registered entities — and no verbs, and no prose. "the", "is",
+"to", "please", "select", "never", "automatically" are not in it and never will
+be, so no English sentence can pass it. Adding a word to it is a visible edit to
+a short list; a pattern like "allow anything capitalised" would have swallowed
+whole sentences silently.
+
+Its first run found **thirty-eight** leaks on a screen the previous round had
+signed off as fully translated — including all four the review had named by
+hand — and one defect that is not about language at all: ten of the eleven
+product forms lost their Price Mode control when the application opened in 中文,
+because the injector looked its anchor up by the English word "Pricing" (F25).
+
+The source checker learned the same rule afterwards, so it now catches the cause
+as well as the screen catching the symptom: inside a `<script>`, a `data-i18n`
+is not a hook unless the element also resolves through `dcT`. It also reads
+whole STATEMENTS rather than one literal after an `=`, which is how seven
+`confirm()` dialogs, a dozen ternaries, four side-by-side `'Locked / 已锁定'`
+pairs and an object literal of price-mode labels had stayed English (F27).
+
+### The evidence, and the number that looked wrong
+
+One screenshot in the previous package printed **RM 24.42** where manual
+verification says **RM 10.97**. The pricing engine was not at fault and has not
+been changed. The frame typed 6.20 and 2.40 into the row — values borrowed from
+the pricing-history helper further up the same file, where they exist so a
+stored record differs visibly from a fresh calculation — and 3.5513 kg × 6.20 +
+2.40 is 24.4179 exactly. The arithmetic was right; the FIXTURE was uncontrolled,
+so the evidence was unreadable.
+
+Three changes, none of them to pricing:
+
+* every pricing frame now types the verified rates — 2.80, 0.60, 4% — the way a
+  person does, into the real inputs. Calling `wqaEditPrice()` from a script set
+  the state and recomputed but deliberately did not write the value back into
+  the box (that is correct: overwriting a box somebody is typing in would move
+  the caret), so the frame had shown "Markup 0" beside a price that included 4%;
+* every evidence page proves its storage is empty before it captures anything,
+  and throws by name if it is not;
+* frame F states the whole calculation on one screen and **fails the run** if
+  the answer is not RM 10.97.
 
 ---
 
@@ -406,8 +483,9 @@ strings, and verifies each finding against the source before reporting it.
 **READY FOR REVIEW — NOT READY TO DEPLOY.**
 
 Two things need a person before this ships: the new Chinese strings need a
-native speaker, and six questions need a business answer — chief among them
-whether the printed quotation a CUSTOMER receives should follow the operator's
-language.
+native speaker, and two questions need a business answer — whether a quantity
+RANGE ("50 to 80") should be read as a range rather than as an unreadable count,
+and whether Quick Add should learn the other six products. Four earlier
+questions have since been decided and are no longer counted as open.
 
 **ROUND STATUS: WAITING FOR NICHOLAS / CHATGPT REVIEW — NOT DEPLOYED**

@@ -1,12 +1,14 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `40e56d6951d7832a19e5b7fd121877faecf7f54a` · Not deployed.
+Final application SHA `dd15663cc391546ae4cac34026b00e23cd083358` · Not deployed.
 
-**P0 0 · P1 7 · P2 15 · P3 2 · 24 total, all repaired.**
-F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came
-out of external review the following morning and are marked *(morning
-repair)*.
+**P0 0 · P1 8 · P2 19 · P3 2 · 29 total, all repaired.**
+F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
+external review the following morning and are marked *(morning repair)*.
+F25–F29 came out of the review after that and are marked *(final closing
+repair)*; every one of them was found by reading the RENDERED SCREEN in 中文
+rather than by reading source, which is the point of them.
 
 Severity follows the brief: **P0** wrong customer / data corruption / catastrophic
 pricing · **P1** wrong price, weight, quantity, material, finish, Previous Price
@@ -16,12 +18,13 @@ usability failure · **P3** cosmetic.
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
 
-> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
-> application or its tests — it is what the numbers in this package were
-> measured against. The commits after it write this package, and a report
-> cannot name the commit it is inside without changing it. The exact HEAD
-> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
-> generated at build time and is not committed.
+> **On SHAs.** `dd15663cc391546ae4cac34026b00e23cd083358` is the last commit that changed the
+> application or its tests — it is the ONE SHA every number in this package was
+> measured against, and it is the only application SHA any of these documents
+> names. The commits after it write this package, and a report cannot name the
+> commit it is inside without changing it; the exact HEAD the archive was built
+> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> is not committed.
 
 ---
 
@@ -272,16 +275,143 @@ The remaining static-markup labels the one-word threshold surfaced.
 
 ---
 
+---
+
+## P1 — HIGH *(final closing repair)*
+
+### F25 · Opening the application in 中文 removed the Price Mode control from ten of the eleven product forms
+`ensurePriceModeControls()` finds each form's pricing heading and inserts the
+Price Mode select after it. It found that heading by looking for the English
+word **"Pricing"** in its text:
+
+```js
+const pricingLabel = [...form.querySelectorAll('.group-label')]
+  .find(node => node.textContent.includes('Pricing'));
+if (!pricingLabel) return;
+```
+
+Opened in 中文 that heading reads 价格资料. The lookup returned nothing, the
+function returned early, and the control was never built. Counted on a real
+page: **English 11 selects, 中文 1.** No Round and Manual Price were
+unreachable, and nothing on the screen said why — the field simply was not
+there.
+
+Pricing itself was never touched by this. The default mode is Auto Round and
+the arithmetic is identical; what was lost was the operator's ability to
+choose. It is graded P1 because the choice is a priced one: Manual Price is how
+a quoted figure is entered by hand.
+
+*Repair* — the heading is found by its translation key, which does not change
+when the language does. Both `pricingEntry` and `pricing` are accepted, because
+the Welding Anchor Set form names it the shorter way and would otherwise have
+been the one form left out.
+*Regression* — suite 33 §2 counts the selects in both languages and asserts
+they match, that the count is eleven, and that all three modes are selectable
+in 中文. *Found by* — the rendered-DOM scan, not by reading source.
+
+---
+
+## P2 — MEDIUM *(final closing repair)*
+
+### F26 · A `data-i18n` inside generated markup is a hook nothing ever applies
+This is the single defect behind both false-green rounds, and it is worth
+stating precisely because every earlier check got it wrong the same way.
+
+`dcApplyLang()` is an attribute scan over the document as it stands. It runs,
+it finishes, and it does not come back. Markup a renderer builds AFTERWARDS
+keeps whatever the template wrote into it — in whatever language the template
+wrote it — for as long as the element lives:
+
+```js
+panel.innerHTML = `
+  <div class="q-helper" data-i18n="cpSelectCompany">
+    ℹ️ Select a company on the left to view all saved quotations for that company.
+  </div>`;
+```
+
+The key existed. The Chinese existed. Nothing ever asked for it. That exact
+line was on screen in English, in 中文 mode, and was named in review.
+
+**63 elements** were built this way — 54 in `index.php`, 9 in `companies.php`.
+Between them they covered the Companies helper lines and its Load More buttons,
+its two loading panels and both empty ones, the whole Others form, the Price
+Mode and Manual Price fields injected into every product form, the
+pricing-history record card, and the Quick Add row's own labels.
+
+*Repair* — generated markup resolves its own text through `dcT()` at the moment
+it is built. Markup that is built ONCE and then lives on keeps the `data-i18n`
+as well, because that is what re-labels it on a later switch; markup that is
+re-rendered by a `dcOnRelabel` hook does not need it. Text that is COMPUTED —
+a counter, a price, a mode name read off live state — gets neither: it keeps
+its figures on the node and a hook rewrites the sentence around them, because
+a `data-i18n` on computed text writes a constant over a real value.
+*Regression* — `check-translations.js` now reports an `unapplied hook` for any
+`data-i18n` inside a `<script>` whose element does not also resolve through
+`dcT`, and suite 33 reads the rendered DOM in eleven states.
+
+### F27 · Thirty-six more strings that never reached the translator
+Found by reading whole STATEMENTS rather than one literal after an `=`. Every
+one of them put its English somewhere the old patterns did not look:
+
+* **seven `confirm()` dialogs** — the only places this application asks before
+  doing something it cannot undo. "Delete all custom diameter rules?",
+  "Clear all items in this quotation?", "Start a new quotation? Current unsaved
+  draft will be cleared.", "Delete this default price rule?" and three more,
+  English in both modes;
+* **ternaries**, where the English sits past the `?`: `editingQuoteId ? 'Update
+  Quotation' : 'Save Quotation'`, `ok ? 'WhatsApp text copied.' : 'Copy failed…'`,
+  `rule.source === 'system' ? 'Override System Default' : 'Edit Rule'`;
+* **side-by-side pairs**, both languages at once, which is the pattern the
+  language switch was introduced to replace: `'Locked / 已锁定'`,
+  `'Editing / 正在编辑'`, `'Update / 更新'`, `'Save / 保存'`, and three
+  validation messages built as `label + ' cannot be negative / ' + label + ' 不能为负数'`;
+* **an object literal holding labels** — `{v:'auto', label:'Auto Round'}` — which
+  is how the Quick Add row's three price modes stayed English;
+* **a function returning bare English** — `getPriceModeLabel()`, which fed the
+  pricing preview.
+
+*Repair* — all thirty-six now resolve through `dcT`, and the mode table holds a
+translation KEY beside each mode CODE so the code never moves.
+*Regression* — `check-translations.js` reads `.textContent=`, `.innerHTML=`,
+`.placeholder=`, `.title=`, `.value=`, `setAttribute`, `showToast`, `confirm`,
+`alert`, `prompt`, label-ish object properties and ternary returns as whole
+statements, and collects every literal in each.
+
+### F28 · The screen's dates stayed English in 中文
+`14 Feb 2026` on the Companies cards, the summary tiles, the detail panel and
+the pricing-history record card. The PRINTED quotation's date is deliberately
+left alone — which language a customer's document is written in is the open
+question in BUSINESS-DECISIONS-NEEDED.md §1 — so the two formatters were
+separated rather than merged: `formatPrintDate` is untouched, and the screen's
+`fmtDateShort` / `fmtDate` answer `2026年2月14日` in 中文.
+*Regression* — suite 33 §7 scans the Companies page and its detail panel.
+
+### F29 · `dcSetLang` on companies.php still skipped the re-render
+The morning round fixed this in `index.php` — pressing the button for the
+language already in force must still re-render, because `dcApplyLang` writes a
+dictionary CONSTANT over every computed value it can reach — and left
+`companies.php` with the old `if (before !== l)` guard. Its relabel hook also
+called `dcApplyLang()` a second time AFTER re-rendering, which is the same
+constant-over-a-value mistake one layer up. Both corrected; the detail panel is
+now re-labelled too, by re-selecting the company that is already selected.
+
+---
+
 ## Found, examined, NOT repaired
 
 These are recorded rather than changed, with the reason.
 
-### N1 · A conflicting quantity produces a spurious row
-`qty 100 / 200` on a line of its own is read as quantity 100 with 200 left over,
-which becomes a second row with a length and no size. That row cannot be added —
-it is flagged Needs Size — so the outcome is visible rather than silent, which
-is the safe direction. What it SHOULD do is a business question: see
-BUSINESS-DECISIONS-NEEDED.md.
+### N1 · A conflicting quantity produces a spurious row — **RESOLVED BY F7**
+This described the behaviour before the morning repair: `qty 100 / 200` read as
+quantity 100 with 200 left over, and the leftover became a second row.
+
+It is no longer open, and it is no longer a business question — the rule was
+decided and implemented. Neither number is taken, no second row is produced,
+and the item says Needs Qty. See **F7**, and BUSINESS-DECISIONS-NEEDED.md §2
+for the decision itself.
+
+Kept here rather than deleted so the finding number still resolves for anyone
+reading an earlier draft.
 
 ### N2 · Quick Add reads five of the eleven products
 U-Bolt, SQ U-Bolt, L Bolt 45DEG, Plate, Welding Anchor Set and Others are not

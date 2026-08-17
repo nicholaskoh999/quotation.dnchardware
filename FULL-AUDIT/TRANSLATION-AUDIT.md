@@ -1,43 +1,53 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `3696f59d684392914f58e6ac2ad44422c1f3f3df`.
-Tooling: `tests/tools/check-translations.js`
-(static, reads the shipped source) and `tests/suites/30-language.test.js`
-(browser, switches the language the way the button does and reads the SCREEN).
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `dd15663cc391546ae4cac34026b00e23cd083358`.
 
-> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
-> application or its tests — it is what the numbers in this package were
-> measured against. The commits after it write this package, and a report
-> cannot name the commit it is inside without changing it. The exact HEAD
-> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
-> generated at build time and is not committed.
+Three tools, and the third exists because the first two were not enough:
+
+* `tests/tools/check-translations.js` — static, reads the shipped source;
+* `tests/suites/30-language.test.js` — browser, switches the language the way
+  the button does and reads the SCREEN;
+* `tests/lib/dom-i18n.js` + `tests/suites/33-rendered-i18n.test.js` — browser,
+  walks the RENDERED DOM of eleven reachable states and reports any English
+  that is not in one explicit table of trade vocabulary.
+
+> **On SHAs.** `dd15663cc391546ae4cac34026b00e23cd083358` is the last commit that changed the
+> application or its tests — it is the ONE SHA every number in this package was
+> measured against, and it is the only application SHA any of these documents
+> names. The commits after it write this package, and a report cannot name the
+> commit it is inside without changing it; the exact HEAD the archive was built
+> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> is not committed.
 
 ---
 
 ## Coverage
 
-| File | Keys | Translated | Missing zh | Undefined | Identical (non-code) | Bypassing dcT |
-|---|---:|---:|---:|---:|---:|---:|
-| index.php | 629 | 100% | 0 | 0 | 0 | 0 |
-| companies.php | 116 | 100% | 0 | 0 | 0 | 0 |
-| login.php | 11 | 100% | 0 | 0 | 0 | 0 |
-| **Total** | **756** | **100%** | **0** | **0** | **0** | **0** |
+| File | Keys | Translated | Missing zh | Undefined | Identical (non-code) | Bypassing dcT | Unapplied hooks |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| index.php | 677 | 100% | 0 | 0 | 0 | 0 | 0 |
+| companies.php | 120 | 100% | 0 | 0 | 0 | 0 | 0 |
+| login.php | 11 | 100% | 0 | 0 | 0 | 0 | 0 |
+| **Total** | **808** | **100%** | **0** | **0** | **0** | **0** | **0** |
 
-Regenerated from the final SHA. The overnight figure of 658 is superseded and
-should not be quoted.
+Regenerated from the final SHA. The overnight figure of 658 and the morning
+figure of 756 are both superseded and should not be quoted.
 
 At baseline the dictionary already read 100% translated. That number was not
 false, but it was not the whole picture: **a string with no key is not a missing
 translation, it is not a translation at all**, and 129 of those were on screen.
 
-| | baseline | overnight | final |
-|---|---:|---:|---:|
-| dictionary keys | 512 | 658 | **756** |
-| dictionary coverage | 100% | 100% | **100%** |
-| strings bypassing `dcT`, as the checker then saw it | 129 | 0 | **0** |
-| strings bypassing `dcT`, as the CURRENT checker sees it | — | **~210** | **0** |
+| | baseline | overnight | morning | final |
+|---|---:|---:|---:|---:|
+| dictionary keys | 512 | 658 | 756 | **808** |
+| dictionary coverage | 100% | 100% | 100% | **100%** |
+| strings bypassing `dcT`, as the checker THEN saw it | 129 | 0 | 0 | **0** |
+| strings bypassing `dcT`, as the CURRENT checker sees it | — | ~210 | **36** | **0** |
+| generated elements relying on an unapplied hook | — | 63 | 63 | **0** |
+| English runs visible in the RENDERED 中文 DOM | — | — | **38** | **0** |
 
-That last row is the important one. **The overnight checker was false-green.**
+The last two rows are the important ones, and the last one is the only one that
+was ever measured on a screen. **The checker was false-green twice.**
 It reported zero while the Quick Add column headers, its row buttons, its panel
 labels, the accessory panels, the pricing-history record card, Quick Open and
 almost the whole Companies page were still English in 中文. See §"What the
@@ -189,10 +199,71 @@ claim from being well written.
 
 ---
 
+## What the source could not see, and the screen could
+
+The morning round closed three blind spots in the source checker and reported
+green. Four leaks named by hand in review were still on the screen. The cause
+was one rule that no source check had:
+
+**`dcApplyLang` is an attribute scan over the document as it stands.** It runs,
+it finishes, and it does not come back. Markup a renderer builds afterwards
+keeps whatever the template wrote into it, in whatever language the template
+wrote it. So this —
+
+```js
+panel.innerHTML = `<div class="q-helper" data-i18n="cpSelectCompany">
+  ℹ️ Select a company on the left to view all saved quotations for that company.
+</div>`;
+```
+
+— has a key, has a Chinese translation, reads as fully hooked to anything
+scanning the source, and is English on the screen forever. **63 elements** were
+built that way.
+
+The answer is a check that reads the other end. `tests/lib/dom-i18n.js` switches
+to 中文, walks eleven reachable states, collects every visible run of text and
+every visible `placeholder`, `title`, `aria-label` and `alt`, subtracts one
+explicit table of trade vocabulary, and reports what is left. Its first run
+found **38** leaks:
+
+| | |
+|---|---|
+| Companies helper prose, both lines | named in review |
+| the accessory warning, in full | named in review |
+| the saved quotation's `Qty` and `Unit` | named in review |
+| the whole Others form, every label and both placeholders | new |
+| the Quick Add row's Material / Size Type / Additional Cost / Price Mode | new |
+| `Auto Round` / `No Round` / `Manual Price`, everywhere they appear | new |
+| the accessory editor's `Description` | new |
+| `Cost Breakdown`, `Show Debug`, `Others / Special Bolt`, `Accessories` | new |
+| both settings screens' `Showing 0 of 165 rules / 显示 0 / 165 条规则` | new |
+| `14 Feb 2026` on every screen that prints a date | new |
+
+And one that is not about language at all: **the Price Mode control vanished
+from ten of the eleven product forms in 中文**, because its injector looked its
+anchor up by the English word "Pricing". See FINDINGS.md F25.
+
+The source checker learned the same rule afterwards, so the cause is caught as
+well as the symptom: inside a `<script>`, a `data-i18n` is not a hook unless the
+element also resolves through `dcT`.
+
+---
+
 ## Regression
 
-* `tests/tools/check-translations.js` — 12 assertions, run as part of the test
-  matrix. Reports all four failure modes and the deliberate exclusions.
+* `tests/tools/check-translations.js` — 15 assertions, run as part of the test
+  matrix. Reports all four failure modes, the unapplied-hook rule above, and the
+  deliberate exclusions.
+* `tests/suites/33-rendered-i18n.test.js` — 109 assertions. The rendered-DOM
+  scan above, run over eleven states: every product form, five modals and all
+  four Pricing Guide tabs, Quick Add from pasted text and from an IMAGE
+  extraction, its history, accessory and Bulk Edit panels, both apply scopes,
+  a row short of a quantity and a row with an unsupported product, Companies in
+  four states including empty and failed, a reopened saved quotation in both
+  languages, the Version Updates chrome, Quick Open's not-found panel, and a
+  drawing whose quantity could not be read. It also holds the counts across
+  EN→中文→EN→中文 at 0, 1, 2 and 4 rows, in both directions, and with the same
+  button pressed twice.
 * `tests/suites/30-language.test.js` — 165 assertions. Switches the language,
   reads the rendered screen, presses real buttons and reads real toasts,
   confirms trade vocabulary survives, and asserts no key name is ever shown raw.
@@ -206,6 +277,14 @@ claim from being well written.
 `screenshots/25-main-page-english.png` · `26-main-page-chinese.png` ·
 `27-quickadd-chinese.png` · `28-companies-chinese.png` ·
 `29-calculator-chinese.png` · `30-validation-message-chinese.png`
+
+Final closing: `after-fix/A-companies-chinese-clean.png` (the helper line, in
+Chinese, with a company selected) · `B-image-quickadd-chinese.png` (the
+accessory warning as 文件提到：3 NUTS + 2 FLAT WASHER；配件不会自动加入…) ·
+`C-quickadd-chinese-two-items.png` (2 项 on the footer and the button) ·
+`D-saved-quote-chinese.png` (编辑 / 删除, 数量, 单价 — no English label, no mixed
+one) · `E-saved-quote-english.png` (the same quotation, English only) ·
+`F-m24-pricing-verified.png`.
 
 Morning repair: `after-fix/35-quickadd-chinese-item-count.png` (2 项 on the
 header and the footer, 添加 2 项到报价单 on the button, every dynamic header

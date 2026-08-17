@@ -36,3 +36,9 @@
 36  36-saved-quote-english.png
 37  37-saved-quote-chinese.png
 38  38-companies-chinese-dynamic.png
+39  A-companies-chinese-clean.png
+40  B-image-quickadd-chinese.png
+41  C-quickadd-chinese-two-items.png
+42  D-saved-quote-chinese.png
+43  E-saved-quote-english.png
+44  F-m24-pricing-verified.png

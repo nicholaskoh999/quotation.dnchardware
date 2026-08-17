@@ -1,12 +1,12 @@
-QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT + MORNING REPAIR
-============================================================
+QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT + MORNING REPAIR + FINAL CLOSING
+===========================================================================
 
 BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 FINAL APPLICATION SHA
-                40e56d6951d7832a19e5b7fd121877faecf7f54a
-                "An ambiguous count is not a count, and a switch is not a\n                 re-render"
+                dd15663cc391546ae4cac34026b00e23cd083358
+                "The screen, read in 中文, and the hook nothing ever applied"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
@@ -15,26 +15,40 @@ WORKING TREE    clean at the final commit
 
 There is exactly ONE final application SHA and it is the one above: the last
 commit that changed index.php, companies.php, the API or the tests. Every
-report in this package quotes it, and every number in this package was measured
-against it.
+report in this package quotes it and no other, and every number in this package
+was measured against it.
 
 The commits after it write this package. A report cannot name the commit it is
 inside without changing that commit, so the exact HEAD the archive was built
 from is recorded in ZIP-MANIFEST.txt, generated at build time and not committed.
 
-Earlier drafts quoted 8724894, 1f41833 and a10e92c as "final"; those are audit
-commits in the list below, and that inconsistency is what this correction
-removes.
+PRICING — UNCHANGED THIS ROUND
+------------------------------
+The pricing formula, Auto Round, the weight formula, Cost Rate, Additional
+Cost, Markup and Previous Price are byte-for-byte unchanged by the closing
+repair. The manually verified case still answers what it answered:
 
-AUDIT COMMITS (7, oldest first)
--------------------------------
+    M24 x 1000 · 3.5513 kg/pc · Cost Rate 2.80 · Additional Cost 0.60
+    Markup 4%   ->  3.5513 x 2.80 = 9.9436  + 0.60 = 10.5436
+                    + 4% = 10.9653   Auto Round  =>  RM 10.97
+
+Evidence frame F states that calculation on one screen and FAILS the run if the
+answer ever stops being RM 10.97.
+
+AUDIT COMMITS (11, oldest first)
+--------------------------------
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
-  8e1bfff  The screens the language switch never reached, and a reference that was markup
+  8e1bfff  The screens the language switch never reached, and a reference that
+           was markup
   1f41833  The evidence, and the widths it was checked at
   a10e92c  The re-audit, and the archive that is the commit
   40e56d6  An ambiguous count is not a count, and a switch is not a re-render
-3696f59  The package, told from one SHA
+  3696f59  The package, told from one SHA
+  a764134  The final SHA is the one that includes this line
+  772716f  The SHA a report can honestly name
+  82ddc1d  The manifest names the commit, so it cannot be in it
+  dd15663  The screen, read in 中文, and the hook nothing ever applied
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made
@@ -66,49 +80,74 @@ AUDIT COMMITS (7, oldest first)
            they read "Edit / 编辑". The translation checker that reported zero
            while all of that was on screen — and everything it then found.
 
+  dd15663  FINAL CLOSING REPAIR. The rendered-DOM scan, and what it found on a
+           screen two rounds had signed off: 38 English runs in 中文 mode,
+           including all four the review named by hand. Behind almost all of
+           them, one defect — a data-i18n on generated markup is a hook that
+           nothing will ever apply, because dcApplyLang is an attribute scan
+           that runs once and does not come back. 63 elements were built that
+           way. And one that is not about language at all: ten of the eleven
+           product forms lost their Price Mode control in 中文, because the
+           injector looked its anchor up by the English word "Pricing".
+
 FILES CHANGED (baseline -> final)
 ---------------------------------
-   companies.php                            |  200 +++--
-   index.php                                | 1283 +++++++++++++++++++++---------
-   tests/audit-shots.js                     |  409 ++++++++++
+   companies.php                            |  240 +++--
+   index.php                                | 1608 +++++++++++++++++++++-------
+   tests/audit-shots.js                     |  561 +++++++++++
+   tests/lib/dom-i18n.js                    |  243 +++++
    tests/lib/harness.js                     |   74 +-
    tests/suites/26-thread-reference.test.js |   60 ++
-   tests/suites/29-quantity.test.js         |  372 +++++++++
-   tests/suites/30-language.test.js         |  362 +++++++++
-   tests/suites/31-size-system.test.js      |  246 ++++++
+   tests/suites/29-quantity.test.js         |  372 +++++++
+   tests/suites/30-language.test.js         |  362 +++++++
+   tests/suites/31-size-system.test.js      |  246 +++++
    tests/suites/32-responsive.test.js       |  124 +++
-   tests/tools/check-translations.js        |  485 +++++++++++
-   10 files changed, 3182 insertions(+), 433 deletions(-)
+   tests/suites/33-rendered-i18n.test.js    |  402 ++++++++
+   tests/tools/check-translations.js        |  617 ++++++++++++
+   12 files changed, 4377 insertions(+), 532 deletions(-)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
-  Browser suites            32 suites, 2,996 assertions, 0 failed   (598.9s)
+  Browser suites            33 suites, 3,105 assertions, 0 failed   (632.5s)
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
-  Translation coverage                    12 assertions, 0 failed
+  Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      3,338
+  TOTAL ASSERTIONS                      3,450
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 
-  php -l over 13 files      clean
-  Browser console errors    none, asserted per page at every viewport
+  php -l over every PHP file  clean
+  Browser console errors      none, asserted per page at every viewport
+  Rendered 中文 DOM           11 states, 0 English runs outside the allowlist
 
-  Baseline for comparison: 2,810 assertions, 0 failed.  +528 this round.
+  Baseline for comparison: 2,810 assertions, 0 failed.  +640 this round
+  (3,338 after the morning repair; +112 in the closing one).
 
 FINDINGS
 --------
   P0  0
-  P1  7   all repaired
-  P2  15  all repaired
+  P1  8   all repaired
+  P2  19  all repaired
   P3  2   all repaired
   ---------------------
-  24 total, 24 repaired.  6 recorded-not-repaired with reasons.
-  6 questions need a business answer.
+  29 total, 29 repaired.  6 recorded-not-repaired with reasons.
+  2 questions still need a business answer; 4 earlier ones are now decided
+  and are recorded as decided rather than counted as open.
+
+EVIDENCE
+--------
+  screenshots/          44 frames + INDEX.txt
+  before-fix/            6 frames from the baseline commit, same inputs
+  after-fix/            16 frames, the matching after
+  regression-evidence/  12 files — every log the reports claim, checked
+                        against the directory rather than written from memory
 
 LINE ENDINGS
 ------------
   index.php and companies.php are uniformly CRLF at the final commit, as they
-  were at the baseline. Checked before committing; the one earlier lapse
-  (LF conversion by a bulk-edit script) was caught and restored in 8e1bfff.
+  were at the baseline. Checked before every commit; the one earlier lapse
+  (LF conversion by a bulk-edit script) was caught and restored in 8e1bfff,
+  and every edit script in the closing round normalises its own patterns to
+  CRLF before matching so it cannot repeat.

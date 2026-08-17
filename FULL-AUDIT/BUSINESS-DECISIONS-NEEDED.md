@@ -1,21 +1,44 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `40e56d6951d7832a19e5b7fd121877faecf7f54a` · not deployed.
+Final application SHA `dd15663cc391546ae4cac34026b00e23cd083358` · not deployed.
 
-Each of these would change price, quantity, size identity, quotation output or
-what a customer receives. None was guessed at. Every one is a single question
-with the options laid out and what the code does today.
+**Two questions are open. Four are decided and are recorded below as decided,
+not as open** — they were being counted as unanswered in earlier drafts of this
+package and are not any more.
 
-> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
-> application or its tests — it is what the numbers in this package were
-> measured against. The commits after it write this package, and a report
-> cannot name the commit it is inside without changing it. The exact HEAD
-> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
-> generated at build time and is not committed.
+| | |
+|---|---|
+| §1 The printed quotation's language | **DECIDED — stays English for now** |
+| §2 A conflicting quantity | **DECIDED — refuse both, mark Needs Qty** |
+| §3 Should Quick Add learn the other six products? | **OPEN** |
+| §4 A bare comma-separated list of numbers | **DECIDED — stays a list** |
+| §5 Sizes with no fullsize bar | **OPEN** — a yes/no confirmation |
+| §6 Thread Reference on customer output | **DECIDED — stays internal** |
+
+The two open ones would change price, quantity, size identity, quotation output
+or what a customer receives. Neither was guessed at. Each is a single question
+with the options laid out and what the code does today. The four decided ones
+are kept here so each decision has somewhere to live, and so nobody re-opens one
+by finding an old draft.
+
+> **On SHAs.** `dd15663cc391546ae4cac34026b00e23cd083358` is the last commit that changed the
+> application or its tests — it is the ONE SHA every number in this package was
+> measured against, and it is the only application SHA any of these documents
+> names. The commits after it write this package, and a report cannot name the
+> commit it is inside without changing it; the exact HEAD the archive was built
+> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> is not committed.
 
 ---
 
-## 1 · Should the printed quotation be translated?
+## 1 · Should the printed quotation be translated? — **DECIDED: stays English for now**
+
+Recorded as answered. The audit does not change it, and the closing round's
+translation work stops at the operator's screen: `formatPrintDate` and the whole
+print template are untouched, and the screen's own date formatter was separated
+from the document's rather than merged with it.
+
+Kept below because the OPTIONS still stand if it is ever revisited.
 
 **Today** the operator's SCREEN switches between English and 中文 completely.
 The printed quotation and the WhatsApp text do not: the column headings
@@ -39,12 +62,14 @@ option.
 
 ---
 
-## 2 · A conflicting quantity — ANSWERED, and implemented
+## 2 · A conflicting quantity — **DECIDED, and implemented**
 
 `qty 100 / 200` on a line of its own.
 
 This was an open question after the overnight round. It has since been answered
-by instruction and implemented: **read neither number, no phantom row, mark the
+by instruction and implemented. FINDINGS.md **N1** described the old behaviour
+and is now marked RESOLVED BY F7; it is not an open question and is not counted
+as one: **read neither number, no phantom row, mark the
 item Needs Qty.** That is option (a) as it was put.
 
 Recorded here rather than deleted so the decision has somewhere to live. What
@@ -84,7 +109,7 @@ Welding Anchor Set is three parts with three cost rates.
 
 ---
 
-## 4 · A bare comma-separated list of numbers
+## 4 · A bare comma-separated list of numbers — **DECIDED: stays a list**
 
 **Today** `M24 x 1,000` is a metre-long rod (fixed this run — it used to be
 1 mm). A line that is NOTHING BUT comma-separated numbers, such as `100,200,300`
@@ -93,7 +118,8 @@ on its own, is left as a LIST and not fused into one number.
 That boundary is a judgement: `100,200,300` could be three lengths or one
 absurd number, and leaving it as a list preserves what the app did before.
 
-**Please confirm** the boundary is right, or say which way it should read.
+Confirmed by instruction: a standalone `100,200,300` must NOT fuse into
+`100200300`. Pinned by suite 29.
 
 ---
 
@@ -113,11 +139,13 @@ change made.
 
 ---
 
-## 6 · Thread Reference on customer output
+## 6 · Thread Reference on customer output — **DECIDED: stays internal**
 
 **Today** Thread Reference is internal reference metadata. It does not reach the
 printed quotation or the WhatsApp text, and the audit did not add it there —
 the brief was explicit about that.
 
-If it should appear on customer output, say where: beside the size, on its own
-line, or only when it was actually stated.
+Recorded as answered: Thread Reference is internal reference metadata and does
+not reach the printed quotation or the WhatsApp text. The options below stand if
+it is ever revisited — beside the size, on its own line, or only when it was
+actually stated.

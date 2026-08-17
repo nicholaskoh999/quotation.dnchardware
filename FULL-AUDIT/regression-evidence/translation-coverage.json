@@ -1,8 +1,8 @@
 {
   "files": {
     "index.php": {
-      "enKeys": 629,
-      "zhKeys": 629,
+      "enKeys": 677,
+      "zhKeys": 677,
       "coverage": 100,
       "missingZh": [],
       "missingKey": [],
@@ -25,11 +25,12 @@
         "lblCutHeight",
         "qiTotal"
       ],
-      "hardCoded": []
+      "hardCoded": [],
+      "unappliedHooks": []
     },
     "companies.php": {
-      "enKeys": 116,
-      "zhKeys": 116,
+      "enKeys": 120,
+      "zhKeys": 120,
       "coverage": 100,
       "missingZh": [],
       "missingKey": [],
@@ -38,7 +39,8 @@
         "language",
         "cpLoadMore"
       ],
-      "hardCoded": []
+      "hardCoded": [],
+      "unappliedHooks": []
     },
     "login.php": {
       "enKeys": 11,
@@ -48,11 +50,12 @@
       "missingKey": [],
       "identical": [],
       "unused": [],
-      "hardCoded": []
+      "hardCoded": [],
+      "unappliedHooks": []
     }
   },
   "totals": {
-    "keys": 756,
+    "keys": 808,
     "missingZh": 0,
     "hardCoded": 0
   }

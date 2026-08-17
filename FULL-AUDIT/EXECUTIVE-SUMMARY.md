@@ -1,23 +1,24 @@
 # EXECUTIVE SUMMARY
 
-**Overnight full-system audit + morning repair · QUOTATION.DNC**
+**Overnight full-system audit · morning repair · final closing repair · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `40e56d6951d7832a19e5b7fd121877faecf7f54a` · **NOT DEPLOYED.**
+Final application SHA `dd15663cc391546ae4cac34026b00e23cd083358` · **NOT DEPLOYED.**
 
-> **On SHAs.** `40e56d6951d7832a19e5b7fd121877faecf7f54a` is the last commit that changed the
-> application or its tests — it is what the numbers in this package were
-> measured against. The commits after it write this package, and a report
-> cannot name the commit it is inside without changing it. The exact HEAD
-> the archive was built from is recorded in `ZIP-MANIFEST.txt`, which is
-> generated at build time and is not committed.
+> **On SHAs.** `dd15663cc391546ae4cac34026b00e23cd083358` is the last commit that changed the
+> application or its tests — it is the ONE SHA every number in this package was
+> measured against, and it is the only application SHA any of these documents
+> names. The commits after it write this package, and a report cannot name the
+> commit it is inside without changing it; the exact HEAD the archive was built
+> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> is not committed.
 
 ---
 
 ## The short version
 
-Six commits. **Seven P1 findings, fifteen P2, two P3, no P0 — 24 in all.**
+Eleven commits. **Eight P1 findings, nineteen P2, two P3, no P0 — 29 in all.**
 Every one was reproduced, given a failing regression, repaired, and re-proved.
-The full test matrix is green and 528 assertions larger than it was.
+The full test matrix is green and 640 assertions larger than it was.
 
 The two that matter most were both **silent** — the screen showed a complete,
 ordinary-looking, priceable row and the number in it was wrong:
@@ -43,13 +44,19 @@ with the calculator. It now agrees.
 | | Count | Repaired |
 |---|---:|---:|
 | **P0** critical | 0 | — |
-| **P1** high | 7 | 7 |
-| **P2** medium | 15 | 15 |
+| **P1** high | 8 | 8 |
+| **P2** medium | 19 | 19 |
 | **P3** low | 2 | 2 |
 | Recorded, not repaired (with reasons) | 6 | — |
-| Needs a business decision | 6 | — |
+| Needs a business decision | **2** | — |
 
-### The seven P1s
+Four of what were once counted as six open questions are now decided and are no
+longer counted: the printed quotation stays English for now, Thread Reference
+stays internal, the ambiguous-quantity rule is settled and shipped, and a bare
+`100,200,300` must not fuse into one number. What is left open is the range
+wording (`50 to 80`) and whether Quick Add should learn the other six products.
+
+### The eight P1s
 
 1. A comma-grouped **quantity** read as its first group — 15,000 → 15.
 2. A comma-grouped **dimension** read as its first group — 1,000 mm → 1 mm,
@@ -69,6 +76,13 @@ with the calculator. It now agrees.
    handed the first number to a phantom row and left the real item to fall
    through to the absent-quantity default. The count nobody could read became
    a confident 1. *(morning repair)*
+8. **Opening the application in 中文 removed the Price Mode control from ten of
+   the eleven product forms.** The injector found each form's pricing heading by
+   looking for the English word "Pricing"; in 中文 that heading reads 价格资料,
+   so the select was never built. No Round and Manual Price were unreachable,
+   with nothing on the screen to say why. Pricing itself was untouched — the
+   default is Auto Round and the arithmetic is identical — but the operator's
+   ability to choose was gone. *(final closing repair)*
 
 ### The translation work
 
@@ -81,18 +95,35 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**756 keys, 100% translated, nothing bypassing the translator.** Proved by
-reading the rendered screen, not the dictionary.
+**808 keys, 100% translated, nothing bypassing the translator, and no element
+relying on a hook that nothing applies.** Proved by reading the rendered screen,
+not the dictionary.
 
-That figure is from the morning, and it is larger than the overnight one for a
-reason worth stating plainly: **the overnight checker was false-green.** It
+That figure is from the closing round, and it is larger than the two before it
+for a reason worth stating plainly: **the checker was false-green twice.** It
 reported zero hard-coded strings while the Quick Add column headers, its row
 buttons, its panel labels and almost the whole Companies page were still
 English in 中文. It refused to look at any run containing `$` or `{`, so every
 label with an interpolation beside its English was invisible to it — which is
-most dynamic markup. The checker now strips interpolations, holds every label
-to one word, reads markup built inside strings, and verifies each finding
-against the source before reporting it.
+most dynamic markup. The checker was hardened, and reported green again — while the Companies
+helper line, the accessory warning and the saved quotation's own Qty and Unit
+were still English on the screen.
+
+The second blind spot was one rule, and it explains both rounds. `dcApplyLang`
+is an attribute scan over the document as it stands: it runs, it finishes, and
+it does not come back. Markup a renderer builds AFTERWARDS keeps whatever the
+template wrote into it, in whatever language the template wrote it — so a
+`data-i18n` on generated markup is a hook nobody will ever apply. Sixty-three
+elements were built that way.
+
+The lesson is that no source check can stand in for the screen. There is now a
+**rendered-DOM scan**: it switches to 中文, walks eleven reachable states, reads
+every visible run of text and every visible placeholder, title, aria-label and
+alt, subtracts one explicit table of trade vocabulary, and reports what is left.
+The table holds material codes, sizes, finishes, product names, units and
+registered entities; it holds no verbs and no prose, so no English sentence can
+pass it. Its first run found thirty-eight leaks on a screen the previous round
+had signed off.
 
 Two more of the same shape came with it: pressing the language button for the
 language already in force wiped the Quick Add item count to **0 项 with two rows
@@ -118,9 +149,10 @@ escaped like everything else.
 * **Nothing was tested against production data.** Every test runs the shipped
   code against a controlled API, which is how the suite has always worked. No
   live database was read or written.
-* **The morning round was driven by external review, not by the overnight
-  audit's own checks.** The overnight translation tooling passed while real
-  leaks were on screen; that is recorded as F22 rather than glossed.
+* **Two of the three rounds were driven by external review, not by the audit's
+  own checks.** The translation tooling passed twice while real leaks were on
+  screen; that is recorded as F22 and F26 rather than glossed, and the answer
+  to it is a check that reads the rendered DOM instead of the source.
 * **Sections 9–19 were audited through the existing suites and targeted probes,
   not re-derived from scratch.** Bulk apply, the pricing engine, accessories,
   the quotation flow, companies, default prices, diameter settings and the
@@ -139,8 +171,10 @@ Ready for review because every finding is reproduced, repaired and re-proved,
 the working tree is clean, and the evidence is complete.
 
 Not ready to deploy because two things need a person first: the new Chinese
-strings need a native speaker, and six questions need a business answer — chief
-among them whether the printed quotation a CUSTOMER receives should follow the
-operator's language. That one was deliberately not decided inside an audit.
+strings need a native speaker, and two questions still need a business answer —
+whether a quantity RANGE ("50 to 80") should be read as a range rather than as
+an unreadable count, and whether Quick Add should learn the other six products.
+Four earlier questions have since been answered and are no longer counted as
+open.
 
 **ROUND STATUS: WAITING FOR NICHOLAS / CHATGPT REVIEW — NOT DEPLOYED**
