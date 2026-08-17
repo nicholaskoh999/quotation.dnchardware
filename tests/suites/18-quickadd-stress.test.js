@@ -98,7 +98,9 @@ module.exports = async (browser, A) => {
         const r = n.getBoundingClientRect();
         return r.width > 8 && r.left >= lb.left - 0.5 && r.right <= lb.right + 0.5; });
     });
-    return { n: cards.length, heights, sums, status, subs, actionsOk,
+    const metas = cards.map(c => { const n = c.querySelector('.wqa-meta');
+                                   return n ? Math.round(n.getBoundingClientRect().height) : 0; });
+    return { n: cards.length, heights, sums, status, subs, metas, actionsOk,
              total: Math.round(list.height),
              pageWide: document.documentElement.scrollWidth <= window.innerWidth + 1 };
   });
@@ -113,13 +115,22 @@ module.exports = async (browser, A) => {
   A.eq(shape.status, shape.n, 'a mixed enquiry names the product of every row');
   A.ok(Math.max(...shape.subs) <= 26,
     `on one thin strip apiece (tallest ${Math.max(...shape.subs)}px)`);
-  /* One data line, one thin strip, and the row's controls — which are now
-     32px, because a control a finger cannot land on is not a control. That is
-     what took the ceiling from 68 to 72; the shape it protects is unchanged
-     and every other measurement above is unmoved. A card would be over 100. */
-  A.ok(Math.max(...shape.heights) <= 72,
+  /* One data line, one thin strip, the read-only pricing summary, and the
+     row's controls — 32px each, because a control a finger cannot land on is
+     not a control.
+
+     The ceiling moved 72 -> 120 for ONE reason, and it is a requested feature
+     rather than drift: every row now carries a two-line pricing summary so an
+     operator can see what a row is priced on without opening it. Each part is
+     still measured separately and tightly — the data line at 46, the identity
+     strip at 26, the summary at 40 — so a row that grows anything else still
+     fails here, and the card budget is the sum of the parts rather than a
+     number chosen to make the suite pass. */
+  A.ok(Math.max(...shape.metas) <= 40,
+    `each row's pricing summary is two thin lines (tallest ${Math.max(...shape.metas)}px)`);
+  A.ok(Math.max(...shape.heights) <= 120,
     `so no item is two full rows tall (tallest ${Math.max(...shape.heights)}px)`);
-  A.ok(shape.total <= shape.n * 72,
+  A.ok(shape.total <= shape.n * 120,
     `twenty rows stay compact overall: ${shape.total}px for ${shape.n} rows`);
   /* And the controls really are the size they are meant to be. */
   const targets = await page.evaluate(() =>

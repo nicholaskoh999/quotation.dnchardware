@@ -2322,7 +2322,32 @@ input,select,textarea{
 
 /* ── Where this price came from ────────────────────────────────────────────
    Secondary to the item and to its price, and still impossible to miss. */
-.wqa-prov-line{padding:0 12px 7px 46px}
+/* ── The metadata area ──────────────────────────────────────────────────────
+   Two columns under the compact row, indented to the row's own text, no card
+   and no border — the row above stays exactly as dense as it was. On a narrow
+   screen the right column wraps under the left and nothing is squeezed. */
+.wqa-meta{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
+  gap:2px 22px;padding:0 12px 6px 46px;font-size:11px;line-height:1.45;color:var(--text-muted)}
+.wqa-meta:empty{display:none}
+.wqa-meta-l,.wqa-meta-r{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wqa-meta-l:empty,.wqa-meta-r:empty{display:none}
+.wqa-meta-r{align-items:flex-end;text-align:right;max-width:100%}
+.wqa-meta-r .wqa-meta-line{display:inline-flex;flex-wrap:wrap;align-items:baseline;
+  gap:0 5px;justify-content:flex-end}
+.wqa-meta-line{font-weight:650;color:var(--text-muted)}
+.wqa-meta-line b{font-weight:750;color:var(--text-2)}
+.wqa-meta-pricing{font-size:9.5px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--accent-2);opacity:.85}
+.wqa-meta-f{font-weight:600;white-space:nowrap}
+.wqa-meta-f b{font-weight:800;color:var(--text-2);font-variant-numeric:tabular-nums}
+.wqa-row.is-open>.wqa-meta{background:var(--surface2)}
+/* Narrower: the pricing block drops under the left column and reads
+   left-to-right like everything else. The compact row above is untouched. */
+@media (max-width:820px){
+  .wqa-meta{padding-left:12px}
+  .wqa-meta-r{align-items:flex-start;text-align:left}
+  .wqa-meta-r .wqa-meta-line{justify-content:flex-start}
+}
 .wqa-prov{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:2px 10px;
   border:1px dashed var(--accent-mid);border-radius:var(--pill-r);background:var(--accent-light);
   font-family:inherit;font-size:11px;font-weight:750;color:var(--accent-2);cursor:pointer;
@@ -4353,6 +4378,11 @@ const I18N={
     secPricing:'Pricing', wqaNeedsAttention:'Needs attention',
     wqaCompleteFirst:'Complete the required fields before adding.',
     wqaApplyTo:'Apply to:', nActive:'{n} active',
+    /* The compact row's read-only pricing summary. Its own keys: the brief
+       names this vocabulary — 成本率 / 附加成本 / 加成 — and the expanded
+       form's fuller labels stay as they are. */
+    sumPricing:'Pricing', sumSizeType:'Size Type:',
+    sumCostRate:'Cost Rate', sumAddCost:'Additional Cost', sumMarkup:'Markup',
     wqaOneFileUsing:'One file per analysis — using {f}.',
     /* ── The dialogs ────────────────────────────────────────────────────────
        confirm() is the only place this application asks before doing something
@@ -4778,7 +4808,7 @@ const I18N={
     wqaToastPriceApplied:'价格设置已应用到全部项目',
     wqaProductKept:'已更改 {n} 个项目的产品。您的修改已保留 —— 未重新解析原文。',
     phCheckFailed:'无法查询过往价格 —— 这不等于没有记录。请检查连线或重新登入后再试。',
-    wqaStCompany:'尺寸类型：公司预设',
+    wqaStCompany:'尺寸类型：公司默认',
     wqaStConfigured:'尺寸类型：取自直径设置',
     wqaToastAccNothing:'此面板未设置配件 —— 未套用任何内容。若要清除各行配件，请使用「清除全部配件」。',
     wqaToastLastPriceOff:'{n} 行的上次价格已关闭',
@@ -4824,6 +4854,8 @@ const I18N={
     secPricing:'价格', wqaNeedsAttention:'需要检查',
     wqaCompleteFirst:'请先完成需要检查的项目。',
     wqaApplyTo:'应用范围：', nActive:'{n} 项启用',
+    sumPricing:'价格参数', sumSizeType:'尺寸类型：',
+    sumCostRate:'成本率', sumAddCost:'附加成本', sumMarkup:'加成',
     wqaOneFileUsing:'每次分析一个文件 — 使用 {f}。',
     cfmResetAllRules:'确定删除所有自定义直径规则吗？',
     cfmDeleteDiaRule:'确定删除此直径规则吗？',
@@ -11003,6 +11035,11 @@ function wqaPatchRows(){
        while that line still read "MS · ZP" — the row disagreeing with itself. */
     const spec=card.querySelector('.wqa-row-spec');
     if(spec){ const t=wqaRowSpecText(r); spec.textContent=t; spec.hidden=!t; }
+    /* The pricing summary reads the same r.calc the inputs above just edited,
+       so patching it here is what makes "type 2.80 in the expanded form" and
+       "press Use on a record" change the line without a re-render. */
+    const meta=card.querySelector('.wqa-meta');
+    if(meta) meta.innerHTML=wqaRowMetaInner(r,i);
     /* A row that has just been answered loses its strip; one that has just lost
        a value gains it. Neither may leave an empty band behind. */
     const sub=card.querySelector('.wqa-row-sub');
@@ -15123,7 +15160,7 @@ function wqaRenderRows(force){
         </span>
       </div>
       ${wqaRowStatusLine(r)}
-      ${wqaProvenanceHtml(r,i)}
+      ${wqaRowMetaHtml(r,i)}
       ${body}
       ${histHtml}
     </div>`;
@@ -15149,17 +15186,78 @@ function wqaHistCountLabel(r){
    It says PREVIOUS PRICE, never a quotation number of its own: the reference
    on it belongs to the record, not to the item and not to the document being
    built. */
-function wqaProvenanceHtml(r,i){
+/* ── The metadata area under the compact row ────────────────────────────────
+   Two columns, read-only, visible without pressing Edit:
+
+     Size Type: company default        PRICING · Cost Rate RM2.80 ·
+     ← Previous Price · Q-2026-0430    Additional Cost RM0.60 · Markup 4%
+
+   Every value is READ off the row's live state — wqaRowSpec for the size
+   type, r.calc for the three pricing fields, r.usedHistoryRef for the record
+   a price was reused from. Nothing is computed here: r.calc is the same
+   object the expanded form's inputs edit and the calculator fills, so this
+   area cannot disagree with the price beside it, and a second formula for
+   display would be the only way to make it able to. */
+function wqaMetaMoney(v){
+  const s=String(v==null?'':v).trim();
+  if(!s) return '—';
+  const n=Number(s);
+  /* A value that is a number is shown the way money is shown everywhere else
+     on this screen. One that is not — an expression mid-type — is shown as
+     itself rather than lied about. */
+  return isFinite(n) ? 'RM'+n.toFixed(2) : s;
+}
+function wqaMetaPct(v){
+  const s=String(v==null?'':v).trim();
+  if(!s) return '—';
+  const n=Number(s);
+  return isFinite(n) ? n+'%' : s;
+}
+function wqaMetaSizeTypeHtml(r){
+  /* A product with no size type — a Plate has none — gets no line, not a
+     dash: the row is not missing anything. */
+  if(!dcProductHasSizeType(wqaRowProduct(r))) return '';
+  /* A defaulted size type keeps its full sentence — "Size Type: company
+     default" — because WHERE the answer came from is the information; the
+     value itself is already in the summary columns above. An answer the
+     document or a person gave shows as the value. */
+  if(r.stDefaulted)
+    return `<span class="wqa-meta-line">${escHtml(dcT(r.stWhy==='configured'?'wqaStConfigured':'wqaStCompany'))}</span>`;
+  const st=wqaRowSpec(r,'sizeType');
+  const v=st==='FULLSIZE'?'Fullsize':st==='UNDERSIZE'?'Undersize':'—';
+  return `<span class="wqa-meta-line">${escHtml(dcT('sumSizeType'))} <b>${escHtml(v)}</b></span>`;
+}
+function wqaProvBtnHtml(r,i){
   const ref=String(r.usedHistoryRef||'').trim();
   if(!ref) return '';
-  return `<div class="wqa-prov-line"><button type="button" class="wqa-prov"
+  return `<button type="button" class="wqa-prov"
       title="${escHtml(dcT('wqaProvOpen'))}"
       onclick="event.stopPropagation();wqaProvOpen(${i})">
-      <span class="wqa-prov-arrow">↳</span>
-      <span class="wqa-prov-lbl">${escHtml(dcT('wqaPrevPriceFrom'))}</span>
+      <span class="wqa-prov-arrow">←</span>
+      <span class="wqa-prov-lbl">${escHtml(dcT('wqaPrevPriceFrom'))}</span> ·
       <span class="wqa-prov-ref">${escHtml(ref)}</span>
       ${r.usedHistoryRecipe?'':`<span class="wqa-prov-tag">${escHtml(dcT('wqaProvStated'))}</span>`}
-    </button></div>`;
+    </button>`;
+}
+function wqaRowMetaInner(r,i){
+  const calc=r.calc||{};
+  return `<div class="wqa-meta-l">
+      ${wqaMetaSizeTypeHtml(r)}
+      ${wqaProvBtnHtml(r,i)}
+    </div>
+    <div class="wqa-meta-r">
+      <span class="wqa-meta-line">
+        <span class="wqa-meta-pricing">${escHtml(dcT('sumPricing'))}</span> ·
+        <span class="wqa-meta-f">${escHtml(dcT('sumCostRate'))} <b>${escHtml(wqaMetaMoney(calc.costRate))}</b></span> ·
+      </span>
+      <span class="wqa-meta-line">
+        <span class="wqa-meta-f">${escHtml(dcT('sumAddCost'))} <b>${escHtml(wqaMetaMoney(calc.addCost))}</b></span> ·
+        <span class="wqa-meta-f">${escHtml(dcT('sumMarkup'))} <b>${escHtml(wqaMetaPct(calc.markup))}</b></span>
+      </span>
+    </div>`;
+}
+function wqaRowMetaHtml(r,i){
+  return `<div class="wqa-meta">${wqaRowMetaInner(r,i)}</div>`;
 }
 function wqaProvOpen(i){
   const r=wqa.rows[i]; if(!r) return;

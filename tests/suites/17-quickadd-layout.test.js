@@ -55,6 +55,8 @@ const GEOMETRY = () => {
     fits: sum.scrollWidth <= sum.clientWidth + 1,
     rowHeight: Math.round(card.getBoundingClientRect().height),
     sumHeight: Math.round(sum.getBoundingClientRect().height),
+    metaHeight: (() => { const n = card.querySelector('.wqa-meta');
+                         return n ? Math.round(n.getBoundingClientRect().height) : 0; })(),
     statusShown: !!card.querySelector('.wqa-row-sub:not([hidden])'),
     statusText: (card.querySelector('.wqa-row-sub') || {}).textContent || '',
     headers: [...document.querySelectorAll('#wqaListHead .wqa-h-dim')].map(n => n.textContent),
@@ -101,7 +103,24 @@ module.exports = async (browser, A) => {
     await quickAddPaste(page, FIXTURES.sagrod.msg, { expanded: false, settle: 700 });
     const clean = await page.evaluate(GEOMETRY);
     A.eq(clean.statusShown, 'false', 'a clean row carries no status line');
-    A.ok(clean.rowHeight <= 46, `a clean row is one compact line (${clean.rowHeight}px)`);
+    /* ── What these budgets protect, and what changed ────────────────────────
+       Every row now carries a read-only pricing summary under it — where its
+       size type came from, and the three figures it is priced on — so that an
+       operator can see what a row is priced ON without opening it. That is a
+       deliberate second line, asked for by name, and it costs about 34px.
+
+       The property these numbers exist to protect is NOT "a card is under
+       46px". It is "the DATA line stays one compact line, and nothing below it
+       grows without being noticed". So the data line keeps its original
+       ceiling to the pixel, the status strip keeps its own, the summary is
+       given a ceiling of its own rather than being allowed to hide inside a
+       looser card budget, and the card is measured against the sum of them.
+       A row that grows a third line still fails here. */
+    A.ok(clean.sumHeight <= 46, `a clean row's data line is one compact line (${clean.sumHeight}px)`);
+    A.ok(clean.metaHeight <= 40,
+      `and its pricing summary is two thin lines, not a panel (${clean.metaHeight}px)`);
+    A.ok(clean.rowHeight <= 86,
+      `so a clean row is one line plus its summary (${clean.rowHeight}px)`);
 
     /* A J Bolt has no automatic rate, so it asks for one. */
     await quickAddPaste(page, FIXTURES.jbolt.msg, { expanded: false, settle: 700 });
@@ -109,7 +128,9 @@ module.exports = async (browser, A) => {
     A.eq(warned.statusShown, 'true', 'a row that needs something says so on its own line');
     A.ok(warned.sumHeight <= 46,
       `and its data line stays exactly as compact (${warned.sumHeight}px)`);
-    A.ok(warned.rowHeight <= 80,
+    A.ok(warned.metaHeight <= 40,
+      `its pricing summary stays two thin lines (${warned.metaHeight}px)`);
+    A.ok(warned.rowHeight <= 120,
       `with the status line adding one thin strip, not a second row (${warned.rowHeight}px)`);
     A.includes(warned.statusText, 'Needs', 'and the warning is on it');
 
@@ -125,7 +146,9 @@ module.exports = async (browser, A) => {
     await page.waitForTimeout(900);
     const answered = await page.evaluate(GEOMETRY);
     A.eq(answered.statusShown, 'false', 'answering it takes the line away');
-    A.ok(answered.rowHeight <= 46, 'and the row is one line again');
+    A.ok(answered.sumHeight <= 46, 'and the data line is one line again');
+    A.ok(answered.rowHeight <= 86,
+      `leaving the row at one line plus its summary (${answered.rowHeight}px)`);
     await page.close();
   }
 
