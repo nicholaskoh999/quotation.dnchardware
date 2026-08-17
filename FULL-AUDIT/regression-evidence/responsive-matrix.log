@@ -1,5 +1,6 @@
+Sliced from the full matrix run recorded in browser-suite.log.
+Same run, same tree — not a separate invocation.
+
   ok    responsive — every width the brief names  (70 assertions)
 
-  1 suites, 70 assertions, 0 failed
-
-  10.0s
+  37 suites, 3454 assertions, 0 failed

@@ -10744,6 +10744,7 @@ function wqaRenderCommonPrice(force){
                onclick="wqaApplyPriceToAll()">${escHtml(wqaApplyLabel('wqaApplyPriceAll','wqaApplyPriceSelected'))}</button>
        ${manual?`<button type="button" class="btn btn-outline btn-sm wqa-manual-btn" data-wqa-apply="wqaApplyManualAll|wqaApplyManualSelected"
                onclick="wqaApplyManualPriceToAll()">${escHtml(wqaApplyLabel('wqaApplyManualAll','wqaApplyManualSelected'))}</button>`:''}
+       <span class="wqa-none-sel" hidden>${escHtml(dcT('wqaNoneSelected'))}</span>
        <span class="wqa-acc-sum">${escHtml(entered)}</span>
      </div>
      ${manual?`<div class="wqa-price-warn">${escHtml(dcT('wqaManualWarn'))}</div>`:''}
@@ -10866,6 +10867,7 @@ function wqaRenderCommonAcc(force){
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyAccToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
          <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()">${escHtml(dcT('lblClearAllAcc'))}</button>
+         <span class="wqa-none-sel" hidden>${escHtml(dcT('wqaNoneSelected'))}</span>
          <span class="wqa-acc-sum">${escHtml(dcT('lblCurrentColon').replace('{v}',wqaAccSummary(a)))}</span>
        </div>
      </div>`);
@@ -15014,7 +15016,7 @@ function wqaMsg(id,text,warn){
 }
 
 /* Everything the COMMON panels were holding for the previous message. Back
-   then Parse skipped wqaResetState entirely, so a Correct Items queued for
+   then Parse skipped wqaResetState entirely, so a bulk correction queued for
    message A — Product Sag Rod, Material SS316 — opened over message B's rows
    one click from being written across a different customer's list. */
 function wqaClearCommonPanels(){

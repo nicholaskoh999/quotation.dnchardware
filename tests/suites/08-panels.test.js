@@ -16,7 +16,7 @@ const MSG = [
 ].join('\n');
 
 module.exports = async (browser, A) => {
-  const S = A.suite('common fields and Correct Items — a blank never clears an answer');
+  const S = A.suite('bulk fields — a blank never clears an answer');
   const page = await openApp(browser);
 
   await quickAddPaste(page, MSG, { settle: 900 });

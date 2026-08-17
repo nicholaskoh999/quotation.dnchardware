@@ -7,7 +7,7 @@ RENDERED screen rather than the source.
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
 Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · **NOT DEPLOYED.**
 
-**P0 0 · P1 8 · P2 19 · P3 2 — 29 findings, all repaired.**
+**P0 0 · P1 10 · P2 21 · P3 2 — 33 findings, all repaired.**
 **3,679 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
@@ -47,8 +47,9 @@ regression that states the expected behaviour → find the root cause → make t
 smallest repair that removes the cause → run the focused suite → run the full
 matrix → capture evidence → re-audit the surrounding area.
 
-Six commits, each a coherent group of repairs with its own regression. The
-sixth is the morning repair, driven by external review rather than by the
+Each commit is a coherent group of repairs with its own regression; they are
+listed in `COMMIT-INFO.txt`, which is the one place a count belongs. One of
+them is the morning repair, driven by external review rather than by the
 audit's own checks — which is itself a finding, recorded as F22.
 
 ---

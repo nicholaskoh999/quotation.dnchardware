@@ -3,12 +3,15 @@
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
 Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · Not deployed.
 
-**P0 0 · P1 8 · P2 19 · P3 2 · 29 total, all repaired.**
+**P0 0 · P1 10 · P2 21 · P3 2 · 33 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
 external review the following morning and are marked *(morning repair)*.
 F25–F29 came out of the review after that and are marked *(final closing
 repair)*; every one of them was found by reading the RENDERED SCREEN in 中文
-rather than by reading source, which is the point of them.
+rather than by reading source, which is the point of them. F30–F33 came out of
+the workflow polish round and are marked *(workflow polish round)*: F30 was
+reported by external review, F31 and F32 were found while separating the three
+editing mechanisms, and F33 was found by the rendered-DOM 中文 suite.
 
 Severity follows the brief: **P0** wrong customer / data corruption / catastrophic
 pricing · **P1** wrong price, weight, quantity, material, finish, Previous Price
@@ -394,6 +397,67 @@ dictionary CONSTANT over every computed value it can reach — and left
 called `dcApplyLang()` a second time AFTER re-rendering, which is the same
 constant-over-a-value mistake one layer up. Both corrected; the detail panel is
 now re-labelled too, by re-selecting the company that is already selected.
+
+---
+
+### F30 · Escape restored a diameter's VALUE but not where it came from — *(workflow polish round)*
+**P1.** A diameter is two facts: the number, and whether a person chose it.
+Escape in a Fast Edit cell restored the first by handing the snapshot's value
+to `wqaEditDia`, whose entire job is to record that somebody typed this. So
+pressing Escape over a default 10.6 returned 10.6 and announced it as an
+override.
+
+Not cosmetic. Provenance decides whether the diameter table may answer again
+for the next size, so the row was left in a state it had never occupied: the
+following size change would have dropped an override nobody ever made.
+
+Reported by external review, reproduced first as a failing assertion, then
+repaired. Both fields are restored together now, and the mark is made visible
+on the box while an edit is open — previously the one mode where provenance
+could change was the one place you could not see it. The diameter calculator
+is untouched.
+*Regression: suite 36 §Escape — default 10.6 → 10.7 → Esc ⇒ 10.6 AND Default;
+manual 10.7 → 11.0 → Esc ⇒ 10.7 AND Manual; the weight recomputed from the
+restored bar in both directions and the price following it.*
+
+### F31 · A bulk identity change left a Previous Price card crediting a record that no longer described the row — *(workflow polish round)*
+**P1.** A row priced from a historical MS / UNDERSIZE / ZP record, then
+bulk-changed to FULLSIZE, re-priced correctly to RM3.20 — and went on
+displaying `← Previous Price · Q-2026-0430`, an Undersize quotation. The
+matching itself was already right (`wqaHistFor` re-keys on product, material,
+size type, finish, size and dimensions, and `wqaHistStale` reloads); what
+survived was the CLAIM.
+
+Present in the single-row path as well as the bulk one, so both go through one
+guard, keyed on the same identity function the matcher uses — the card is
+dropped exactly when the match would stop returning that record, and never
+because something unrelated was edited.
+
+Only the reference goes. The rates the record contributed stay: they are the
+row's own pricing entry by then, and dropping them would move the price a
+second time for a reason nobody asked for.
+*Regression: suite 37 §28 — apply a record, bulk-change the size type, assert
+the reference is empty, the card carries no Q-number, and the row still prices
+on the identity it actually has.*
+
+### F32 · Two Details forms could stand open at once — *(workflow polish round)*
+**P2.** A row's form is tall. Two of them stacked pushed the list they describe
+off the screen — the same objection that keeps Bulk Edit and Details apart,
+applied to Details against itself. Opening one now closes the other.
+*Regression: suite 37 §43.*
+
+### F33 · Clearing a selection left an impossible Apply enabled — *(workflow polish round)*
+**P2.** "Selected Items" with nothing selected must refuse rather than widen to
+every row. The refusal was wired to the tick handler but not to Clear Selection
+— so the one path that takes a scope from one item to none left an enabled
+Apply behind it. Every path that redraws a panel now re-reads the refusal.
+
+Found by the rendered-DOM 中文 suite rather than by source reading, which also
+caught a mixed-language leak beside it: the pricing note told a Chinese reader
+that "Auto Round 与 No Round" items recompute, naming two controls by names
+they do not have on that screen — the buttons two lines below say 自动进位 and
+不进位.
+*Regression: suite 33 §13 and suite 37 §13.*
 
 ---
 

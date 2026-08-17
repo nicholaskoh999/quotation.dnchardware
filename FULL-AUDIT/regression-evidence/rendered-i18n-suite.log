@@ -1,5 +1,6 @@
-  ok    rendered 中文 — the DOM, not the dictionary  (144 assertions)
+Sliced from the full matrix run recorded in browser-suite.log.
+Same run, same tree — not a separate invocation.
 
-  1 suites, 144 assertions, 0 failed
+  ok    rendered 中文 — the DOM, not the dictionary  (166 assertions)
 
-  36.2s
+  37 suites, 3454 assertions, 0 failed

@@ -1,5 +1,6 @@
+Sliced from the full matrix run recorded in browser-suite.log.
+Same run, same tree — not a separate invocation.
+
   ok    English / 中文 — the screen, not the dictionary  (165 assertions)
 
-  1 suites, 165 assertions, 0 failed
-
-  30.0s
+  37 suites, 3454 assertions, 0 failed

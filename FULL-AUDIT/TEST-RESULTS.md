@@ -22,7 +22,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 36 | **3,334** | **0** |
+| Browser suites (`node tests/run.js`) | 37 | **3,454** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **161** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -32,16 +32,27 @@ against itself.
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **3,679** |
+| **TOTAL ASSERTIONS** | **3,799** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+869 assertions**, all
+Baseline for comparison: 2,810 assertions, 0 failed. **+989 assertions**, all
 of them new coverage — 3,338 after the morning repair, 142 from the closing
-round, 5 from the UI polish, 59 from the compact row's pricing summary, and 135
-from Fast Edit and the diameter contract (suites 35 and 36).
+round, 5 from the UI polish, 59 from the compact row's pricing summary, 135
+from Fast Edit and the diameter contract (suites 35 and 36), and 120 from the
+workflow polish round: suite 37 is new at 78, and suites 33 and 36 grew by the
+assertions that hold the Escape provenance fix and the 中文 coverage of the
+new surfaces.
 
 **Skipped or environment-limited: none.** Every suite named in the brief ran to
-completion and is counted above.
+completion and is counted above. The pricing-workbook check takes the workbook
+as an argument (`tests/tools/check-pricing-workbook.py
+quotation-dnc-final/pricing-engine-v2-input.xlsx`); it was run that way and
+passed, and is counted as a pass for that reason and no other.
+
+**On the per-suite logs.** `regression-evidence/*-suite.log` are slices of the
+single full-matrix run recorded in `browser-suite.log` — the same run against
+the same tree, not separate invocations that might each have seen something
+different. Each slice says so in its first two lines.
 
 ---
 

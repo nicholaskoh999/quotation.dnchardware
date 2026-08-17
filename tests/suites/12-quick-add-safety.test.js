@@ -98,7 +98,7 @@ module.exports = async (browser, A) => {
   A.eq(rows[0].w, '100', 'and the same 100 is read as an L Bolt\'s short leg — the re-read still happens');
   A.eq(rows[0].length, '1000', 'with the length unchanged');
 
-  /* A correction made from a PANEL is a correction too. The Correct Items,
+  /* A correction made from a PANEL is a correction too. Common Item Fields,
      Common Fields, Pricing and Accessories panels all write into the rows, and
      a re-read discards what they wrote just as thoroughly as it discards a
      typed length — more quietly, because filling only the blanks leaves the
@@ -118,7 +118,7 @@ module.exports = async (browser, A) => {
   });
   await page.waitForTimeout(800);
   A.eq(panelApplied.finishes.join(','), 'HDG,-',
-    'Correct Items galvanises the mild steel row and refuses the stainless one');
+    'Common Item Fields galvanises the mild steel row and refuses the stainless one');
   A.eq(panelApplied.header, 'PL',
     'so the header still reads PL — it cannot carry the correction through a re-read');
 

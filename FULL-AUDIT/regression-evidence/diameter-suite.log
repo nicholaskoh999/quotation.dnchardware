@@ -1,5 +1,6 @@
-  ok    diameter — the bar the weight is made of  (57 assertions)
+Sliced from the full matrix run recorded in browser-suite.log.
+Same run, same tree — not a separate invocation.
 
-  1 suites, 57 assertions, 0 failed
+  ok    diameter — the bar the weight is made of  (78 assertions)
 
-  22.2s
+  37 suites, 3454 assertions, 0 failed

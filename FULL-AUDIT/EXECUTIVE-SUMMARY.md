@@ -16,7 +16,8 @@ Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · **NOT DEPLOY
 
 ## The short version
 
-Eleven commits. **Eight P1 findings, nineteen P2, two P3, no P0 — 29 in all.**
+**Ten P1 findings, twenty-one P2, two P3, no P0 — 33 in all.**
+The audit and repair commits are listed, one by one, in `COMMIT-INFO.txt`.
 Every one was reproduced, given a failing regression, repaired, and re-proved.
 The full test matrix is green and 869 assertions larger than it was.
 

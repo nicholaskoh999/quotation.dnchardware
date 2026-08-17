@@ -1,5 +1,6 @@
+Sliced from the full matrix run recorded in browser-suite.log.
+Same run, same tree — not a separate invocation.
+
   ok    quantity — fifteen thousand, one, and the ones we must not guess  (136 assertions)
 
-  1 suites, 136 assertions, 0 failed
-
-  11.3s
+  37 suites, 3454 assertions, 0 failed
