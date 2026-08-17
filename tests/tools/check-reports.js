@@ -203,7 +203,12 @@ check(missing.length === 0, `every evidence file named by a report exists${
    cannot drift. --write rewrites them; without it, they are checked. */
 function commitInfoBlocks() {
   const baseline = 'f96714e33795e80b581b1d03deb9d04db1d94b8d';
-  const list = git('log', '--reverse', '--format=%h\t%s', baseline + '..HEAD')
+  /* Ranged to the APPLICATION commit, not to HEAD. Ranging to HEAD made this
+     document stale in the instant it was committed — the commit that wrote
+     the list became a member of the list — and the checker then flagged a
+     drift the commit itself had created. The application commit does not move
+     when only reports change, so the block is stable. */
+  const list = git('log', '--reverse', '--format=%h\t%s', baseline + '..' + APP_SHA)
     .split('\n').filter(Boolean)
     .map(l => { const [h, ...rest] = l.split('\t'); return `  ${h}  ${rest.join('\t')}`; });
   const runTail = (runLog.match(/^\s*(\d+) suites, (\d+) assertions, (\d+) failed.*$/m) || [''])[0].trim();
@@ -219,11 +224,13 @@ function commitInfoBlocks() {
       `                The last commit that changed application or test code.`,
       `                Every figure in this package was measured against it.`,
       `PACKAGE / HEAD COMMIT`,
-      `                ${HEAD}`,
-      `                "${git('log', '-1', '--format=%s')}"`,
-      `                Carries this package. A report cannot name the commit it`,
-      `                is inside, so the exact HEAD an archive was built from is`,
-      `                also recorded in the archive's own manifest.`,
+      `                Not named here, and deliberately. The commits after the`,
+      `                application one carry this package, and a document`,
+      `                cannot name the commit it is inside without changing`,
+      `                it. The exact HEAD an archive was built from is recorded`,
+      `                in that archive's own MANIFEST, which is generated at`,
+      `                build time and never committed — the one place that can`,
+      `                honestly state it.`,
       `DEPLOYED        NO — nothing was deployed, and nothing was run against`,
       `                production data. Every test drives the shipped code`,
       `                against a controlled API in a local browser.`,

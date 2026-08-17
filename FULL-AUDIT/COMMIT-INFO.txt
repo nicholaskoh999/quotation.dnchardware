@@ -11,11 +11,13 @@ APPLICATION COMMIT
                 The last commit that changed application or test code.
                 Every figure in this package was measured against it.
 PACKAGE / HEAD COMMIT
-                c5ec93e9b41b44ac9d3b5f251b17bbeb57145bae
-                "The reports, agreeing with the commit that produced them"
-                Carries this package. A report cannot name the commit it
-                is inside, so the exact HEAD an archive was built from is
-                also recorded in the archive's own manifest.
+                Not named here, and deliberately. The commits after the
+                application one carry this package, and a document
+                cannot name the commit it is inside without changing
+                it. The exact HEAD an archive was built from is recorded
+                in that archive's own MANIFEST, which is generated at
+                build time and never committed — the one place that can
+                honestly state it.
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code
                 against a controlled API in a local browser.
@@ -91,7 +93,6 @@ AUDIT COMMITS (oldest first — this list is the count)
   414ea18  An item number written as a word is not a dimension
   d027535  One archive, laid out for a reviewer, and nine frames that prove the repairs
   6d751d1  The package, told from the closing-repair SHA
-  c5ec93e  The reports, agreeing with the commit that produced them
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
