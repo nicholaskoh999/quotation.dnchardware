@@ -37,9 +37,10 @@ try {
 }
 
 const HEAD = gitText('rev-parse', 'HEAD');
-const APP_PATHS = ['index.php', 'companies.php', 'login.php', 'api.php', 'auth.php',
-                   'ai_extract.php', 'pricing_history.php', 'tests'];
-const APP_SHA = gitText('log', '-1', '--format=%H', '--', ...APP_PATHS);
+/* Pinned, and shared with the checker. Deriving it from `git log` moved it
+   three times in one round: every commit touching tests/ shifted it out from
+   under the reports that had just named it. */
+const APP_SHA = require('./authoritative').APP_SHA;
 const tracked = gitText('ls-files').split('\n').filter(Boolean);
 const blob = p => git('show', 'HEAD:' + p);
 

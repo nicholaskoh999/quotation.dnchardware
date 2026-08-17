@@ -32,23 +32,10 @@ const AUDIT = path.join(ROOT, 'FULL-AUDIT');
 const git = (...a) => execFileSync('git', a, { cwd: ROOT, maxBuffer: 1 << 28 }).toString('utf8').trim();
 
 // ══ THE AUTHORITATIVE VALUES ══════════════════════════════════════════════
-/* Pinned, not derived. Change these deliberately when a round closes; never
-   to make a check pass. */
-const AUTH = {
-  APP_SHA: '7f5bc977197a658d6d4db995ee2c9bb5e106e21b',
-  BASELINE: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
-
-  SUITES: 37,
-  BROWSER: 3613,
-  TOTAL: 3958,
-  FAILED: 0,
-  SKIPPED: 0,
-  SIDE: { 'pricing-history-php.log': 161, 'ai-extract-php.log': 107,
-          'pricing-workbook.log': 62, 'translation-coverage.log': 15 },
-
-  KEYS: 862, COVERAGE: 100,
-  P1: 13, P2: 24, P3: 2, P0: 0, FINDINGS: 39,
-};
+/* One file, shared with the package builder, so a figure cannot be right in
+   one tool and wrong in the other. See tests/tools/authoritative.js for why
+   they are pinned rather than derived. */
+const AUTH = require('./authoritative');
 
 /* Values and phrases that were true in an earlier round and must not appear
    as current claims anywhere. A line may still carry one when it says so —
