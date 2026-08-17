@@ -1025,6 +1025,183 @@ const historyApi = records => ({
       await shot(page, 'R17-esc-restores-provenance');
       await page.close();
     }
+    /* ══ C · the closing repairs, each photographed saying the truth ═══════ */
+
+    /* C01 · a Selected apply that names the count, in both languages.
+       C02 · the same apply at All Items, where "all items" is honest. */
+    {
+      const page = await openApp(browser);
+      await quickAddPaste(page, TWENTY, { expanded: false, settle: 1800 });
+      const toast = () => page.evaluate(() =>
+        (document.getElementById('toast') || {}).textContent || '');
+
+      await page.evaluate(() => {
+        [1, 2, 5, 8].forEach(i => wqaToggleRowSel(i));
+        wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('price');
+        wqaSetApplyScope('selected');
+        wqaEditCommonPrice('markup', '5'); wqaApplyPriceToAll();
+      });
+      await page.waitForTimeout(1200);
+      const t1 = (await toast()).trim();
+      if (!/4/.test(t1) || /all items/i.test(t1))
+        throw new Error(`C01: Selected apply said "${t1}"`);
+      console.log(`      C01 · Selected apply says "${t1}"`);
+      await shot(page, 'C01-selected-apply-message');
+
+      await page.evaluate(() => {
+        wqaClearSel(); wqaSetApplyScope('all');
+        wqaEditCommonPrice('markup', '2'); wqaApplyPriceToAll();
+      });
+      await page.waitForTimeout(1200);
+      const t2 = (await toast()).trim();
+      if (!/all items/i.test(t2)) throw new Error(`C02: All Items apply said "${t2}"`);
+      console.log(`      C02 · All Items apply says "${t2}"`);
+      await shot(page, 'C02-all-items-apply-message');
+
+      /* C03 · and the same sentence in 中文, naming the count. */
+      await setLang(page, 'zh');
+      await page.evaluate(() => {
+        wqaSetApplyScope('selected');
+        [0, 3].forEach(i => wqaToggleRowSel(i));
+        wqaEditCommonPrice('markup', '6'); wqaApplyPriceToAll();
+      });
+      await page.waitForTimeout(1200);
+      const t3 = (await toast()).trim();
+      if (!/2/.test(t3) || /全部项目/.test(t3))
+        throw new Error(`C03: the 中文 Selected apply said "${t3}"`);
+      console.log(`      C03 · 中文 Selected apply says "${t3}"`);
+      await shot(page, 'C03-selected-apply-message-chinese');
+      await page.close();
+    }
+
+    /* C04 · Accessories with nothing selected: both actions refused. */
+    {
+      const page = await openApp(browser);
+      await quickAddPaste(page, TWENTY, { expanded: false, settle: 1800 });
+      await page.evaluate(() => {
+        wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('acc');
+        wqaEditCommonAcc('nut', 'enabled', true); wqaApplyAccToAll();
+      });
+      await page.waitForTimeout(1400);
+      await page.evaluate(() => { wqaSetApplyScope('selected'); wqaClearSel(); });
+      await page.waitForTimeout(900);
+      const g = await page.evaluate(() => {
+        const clear = document.querySelector('#wqaCommonAcc [data-wqa-needsel]');
+        const apply = document.querySelector('#wqaCommonAcc [data-wqa-apply]');
+        const msg = document.querySelector('#wqaCommonAcc .wqa-none-sel');
+        return { clear: !!clear && clear.disabled, apply: !!apply && apply.disabled,
+                 msg: msg && !msg.hidden ? msg.textContent.trim() : '',
+                 kept: wqa.rows.filter(r => wqaAccHas(r.acc)).length };
+      });
+      if (!g.clear || !g.apply) throw new Error('C04: an accessory action is still pressable');
+      if (!g.msg) throw new Error('C04: nothing explains why');
+      console.log(`      C04 · Apply and Clear both disabled · "${g.msg}" · ${g.kept} rows keep their accessory`);
+      await shot(page, 'C04-accessories-zero-selected');
+      await page.close();
+    }
+
+    /* C05 · Expanded, with no Close that could not close. */
+    {
+      const page = await openApp(browser);
+      await quickAddPaste(page, 'MS SAG ROD ZP UNDERSIZE\nM12 x 853 x 70/70 - 4pcs\nM16 x 500 x 70/70 - 2pcs',
+        { expanded: false, settle: 1200 });
+      const compact = await page.evaluate(() =>
+        document.querySelectorAll('#wqaRows .wqa-row-details').length);
+      await page.evaluate(() => wqaSetView('expanded'));
+      await page.waitForTimeout(900);
+      const g = await page.evaluate(() => ({
+        details: document.querySelectorAll('#wqaRows .wqa-row-details').length,
+        open: wqa.rows.filter(r => wqaRowIsOpen(r)).length,
+        hist: document.querySelectorAll('#wqaRows .wqa-row-hist').length,
+      }));
+      if (compact !== 2) throw new Error(`C05: Compact offered ${compact} Details, expected 2`);
+      if (g.details !== 0) throw new Error(`C05: Expanded still renders ${g.details} Details`);
+      console.log(`      C05 · Compact offers ${compact} Details · Expanded offers 0, with ${g.open} rows open and History intact`);
+      await shot(page, 'R11-expanded-no-fake-close');
+      await page.close();
+    }
+
+    /* C06 · a bulk identity change drops the Previous Price card. */
+    {
+      const page = await openApp(browser, { api: historyApi([rec({ exactDims: true })]) });
+      await page.evaluate(() => { selectedCompanyId = 7; });
+      await quickAddPaste(page, 'MS SAG ROD PL UNDERSIZE\nM12 x 1000 x tl 100/100 - 40pcs',
+        { expanded: false, settle: 1200 });
+      await page.evaluate(() => wqaHistToggle(0));
+      await page.waitForTimeout(1300);
+      await page.evaluate(() => wqaHistUse(0, 0));
+      await page.waitForTimeout(1300);
+      const used = await page.evaluate(() => wqa.rows[0].usedHistoryRef);
+      if (!used) throw new Error('C06: the record did not apply');
+      await page.evaluate(() => {
+        wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('fix');
+        wqaEditFix('sizeType', 'FULLSIZE'); wqaApplyFixToAll();
+      });
+      await page.waitForTimeout(1600);
+      const after = await page.evaluate(() => ({
+        ref: wqa.rows[0].usedHistoryRef, st: wqa.rows[0].sizeType,
+        card: (document.querySelector('[data-wqa-row="0"] .wqa-meta') || {}).textContent || '',
+      }));
+      if (after.ref) throw new Error(`C06: the reference survived as ${after.ref}`);
+      if (after.card.includes('Q-2026')) throw new Error('C06: a stale card is still on the row');
+      console.log(`      C06 · ${used} applied, then Undersize -> ${after.st}: reference dropped`);
+      await shot(page, 'C06-previous-price-invalidated');
+      await page.close();
+    }
+
+    /* C07 · an inline ambiguous quantity is refused, not resolved. */
+    {
+      const page = await openApp(browser);
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM24 x 300 x tl 65/65 qty 100 / 200',
+        { expanded: false, settle: 1200 });
+      const g = await page.evaluate(() => {
+        const r = wqa.rows[0];
+        return { qty: String(r.qty || ''), len: String(r.length || ''),
+                 miss: wqaRowMissing(r).join('+'), rows: wqa.rows.filter(x => !x.removed).length };
+      });
+      if (g.qty !== '') throw new Error(`C07: the quantity resolved to ${g.qty}`);
+      if (g.len !== '300') throw new Error(`C07: the length became ${g.len}`);
+      console.log(`      C07 · "qty 100 / 200" inline: qty blank, length ${g.len} kept, needs ${g.miss}`);
+      await shot(page, 'C07-inline-ambiguous-qty');
+      await page.close();
+    }
+
+    /* C08 · an item number written as a word is not a length. */
+    {
+      const page = await openApp(browser);
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nNO3 M12 L=1000 TL 70/70 - 3pcs\nNO5 M16 L=1200 TL 70/70 - 5pcs',
+        { expanded: false, settle: 1200 });
+      const g = await page.evaluate(() => wqa.rows.filter(r => !r.removed)
+        .map(r => `${r.size}/L${r.length}/q${r.qty}`));
+      if (g.join(' ') !== 'M12/L1000/q3 M16/L1200/q5')
+        throw new Error(`C08: read as ${g.join(' ')}`);
+      console.log(`      C08 · NO3 / NO5 read as ${g.join('  ')}`);
+      await shot(page, 'C08-item-number-not-a-length');
+      await page.close();
+    }
+
+    /* C09 · a size nothing recognises shows no bar. */
+    {
+      const page = await openApp(browser);
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 10pcs',
+        { expanded: false, settle: 1000 });
+      await page.evaluate(() => wqaEditStart(0, 'size'));
+      await page.waitForTimeout(500);
+      await typeCell(page, 0, 'size', 'M23');
+      const g = await page.evaluate(() => {
+        const r = wqa.rows[0];
+        const c = document.querySelector('[data-wqa-row="0"] .wqa-c-dia');
+        const inp = c && c.querySelector('input');
+        return { size: r.size, dia: String(r.diaMm || ''),
+                 shown: inp ? inp.value : (c ? c.textContent.trim() : ''),
+                 miss: wqaRowMissing(r).join('+') };
+      });
+      if (g.dia !== '' || g.shown !== '')
+        throw new Error(`C09: M23 still shows a ${g.shown || g.dia}mm bar`);
+      console.log(`      C09 · ${g.size} shows no bar at all · needs ${g.miss}`);
+      await shot(page, 'C09-unknown-size-no-bar');
+      await page.close();
+    }
   } finally {
     await browser.close();
   }
