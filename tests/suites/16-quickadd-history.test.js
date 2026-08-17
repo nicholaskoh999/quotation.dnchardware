@@ -98,8 +98,12 @@ module.exports = async (browser, A) => {
              collapsed: !card.classList.contains('is-open'),
              editorOpen: !!card.querySelector('.wqa-row-body') };
   });
-  A.eq(actions.labels.join(' | '), 'Edit | History | ✕', 'the row offers Edit, History and remove');
-  /* Controls that look and behave like controls: Edit was a bare span, which
+  /* Details, not Edit. Two controls said "Edit" and meant different things:
+     this one opens ONE row's form, while the toolbar's opens a grid over
+     every row. The row action was never an editor of that kind. */
+  A.eq(actions.labels.join(' | '), 'Details | History | ✕',
+       'the row offers Details, History and remove — and never a second "Edit"');
+  /* Controls that look and behave like controls: it was a bare span, which
      no keyboard could reach and no finger could aim at. */
   A.eq(actions.tags.join(' '), 'BUTTON BUTTON BUTTON', 'and all three are buttons');
   A.ok(actions.tall.every(h => h >= 32),

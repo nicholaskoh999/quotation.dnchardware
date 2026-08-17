@@ -38,15 +38,22 @@ module.exports = async (browser, A) => {
       bulkOpen: !!wqa.bulkOpen,
       bodyHidden: el('wqaBulkBody').hidden,
       heads: [...document.querySelectorAll('#wqaBulkHead .wqa-panel-title')].map(n => n.textContent),
-      /* The four panels still exist, closed, with their values intact. */
-      panels: ['wqaCommonFix', 'wqaCommonItem', 'wqaCommonPrice', 'wqaCommonAcc']
+      /* The shared-value sections exist, closed, with their values intact.
+         The geometry section is deliberately NOT among them: it renders only
+         when rows are actually missing a size or a thread, and these three
+         have both. */
+      panels: ['wqaCommonFix', 'wqaCommonPrice', 'wqaCommonAcc']
                 .map(id => !!el(id) && el(id).innerHTML.length > 0),
+      geom: !!el('wqaCommonItem') && el('wqaCommonItem').innerHTML.length > 0,
       scopes: document.querySelectorAll('.wqa-scope').length,
     }));
     A.eq(String(shut.bulkOpen), 'false', 'the bulk-edit group starts shut');
-    A.eq(String(shut.bodyHidden), 'true', 'so its four forms are not on the screen');
-    A.eq(shut.heads.join(','), 'Bulk Edit', 'one heading, not four');
-    A.eq(shut.panels.join(','), 'true,true,true,true', 'and all four panels still exist behind it');
+    A.eq(String(shut.bodyHidden), 'true', 'so its forms are not on the screen');
+    A.eq(shut.heads.join(','), 'Bulk Edit', 'one heading, not several');
+    A.eq(shut.panels.join(','), 'true,true,true',
+      'and the three shared-value sections still exist behind it');
+    A.eq(String(shut.geom), 'false',
+      'while the geometry section is absent entirely — every row already has a size and a thread');
     A.eq(shut.scopes, 1, 'with ONE scope selector for all of them, not one each');
 
     /* The items are visible without scrolling past a form. */
@@ -74,8 +81,8 @@ module.exports = async (browser, A) => {
     }));
     A.eq(String(open.hidden), 'false', 'pressing the heading opens the group');
     A.eq(open.titles.join(' · '),
-      'Correct Items · Common Item Fields · Pricing Entry · Accessories',
-      'showing the four, each with a title of its own and no repeated scope');
+      'Common Item Fields · Pricing Entry · Accessories',
+      'showing the shared-value sections, each with a title of its own and no repeated scope');
     A.eq(open.scopes, 1, 'and the scope is still stated once');
     await page.close();
   }
@@ -86,20 +93,25 @@ module.exports = async (browser, A) => {
     await page.evaluate(() => { selectedCompanyId = 7; });
     await quickAddPaste(page, 'MS SAG ROD ZP UNDERSIZE\nM12 x 853 x 70/70 - 4pcs',
       { expanded: false, settle: 1000 });
-    await page.evaluate(() => { wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('item'); });
+    await page.evaluate(() => { wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('price'); });
     await page.waitForTimeout(400);
-    await page.evaluate(() => { el('wqaCommonSize').value = 'M20'; wqaEditCommonItem('size', 'M20'); });
+    /* Set the box AND the state, exactly as a keystroke does — calling the
+       handler alone leaves the DOM untouched, which is deliberate elsewhere
+       (it protects the caret) but would make this assertion meaningless. */
+    await page.evaluate(() => { el('wqaCommonMarkup').value = '9'; wqaEditCommonPrice('markup', '9'); });
     await page.waitForTimeout(400);
     /* Shut the group, open it again — the typed value is still there. */
     await page.evaluate(() => wqaToggleBulk());
     await page.waitForTimeout(300);
     await page.evaluate(() => wqaToggleBulk());
     await page.waitForTimeout(400);
-    A.eq(await page.evaluate(() => wqa.commonItem.size), 'M20',
+    await page.evaluate(() => { if (!wqa.panels.price) wqaTogglePanel('price'); });
+    await page.waitForTimeout(600);
+    A.eq(await page.evaluate(() => String(wqa.commonPrice.markup)), '9',
       'a value typed into a bulk form survives the group being shut');
-    A.eq(await page.evaluate(() => (el('wqaCommonSize') || {}).value), 'M20',
+    A.eq(await page.evaluate(() => (el('wqaCommonMarkup') || {}).value), '9',
       'and is still in the box when it comes back');
-    A.eq((await rowState(page))[0].size, 'M12',
+    A.eq(await page.evaluate(() => String(wqa.rows[0].priceOverride.markup || '')), '',
       'and it was never applied to a row on its own — Apply is still a press');
     await page.close();
   }
@@ -117,14 +129,17 @@ module.exports = async (browser, A) => {
 
     A.eq(await page.evaluate(() => el('wqaSelBar').hidden), true,
       'with nothing selected there is no selection bar');
-    A.eq(await page.evaluate(() => document.querySelectorAll('.wqa-pick').length), 0,
-      'and no tick boxes cluttering the rows');
+    /* The ticks are there from the start. They used to appear only once the
+       scope said "Selected", so the way to choose rows was to first promise
+       to use a selection you had not been able to make yet. */
+    A.eq(await page.evaluate(() =>
+      document.querySelectorAll('#wqaRows .wqa-pick').length), 3,
+      'but every row carries a tick box, unasked');
 
     await page.evaluate(() => wqaSetApplyScope('selected'));
     await page.waitForTimeout(500);
-    A.eq(await page.evaluate(() => document.querySelectorAll('.wqa-pick').length), 3,
-      'switching to Selected Items puts a tick box on every row');
-    A.eq(await page.evaluate(() => el('wqaSelBar').hidden), false, 'and shows the selection bar');
+    A.eq(await page.evaluate(() => el('wqaSelBar').hidden), false,
+      'switching to Selected Items shows the selection bar');
     A.includes(await page.evaluate(() => el('wqaSelBar').textContent), '0 selected',
       'counting nothing yet');
 
@@ -144,22 +159,26 @@ module.exports = async (browser, A) => {
       (await rowState(page)).map(r => String(r.price)).join(','),
       'and a selection on its own alters no calculation');
 
-    /* Scope All applies to everything; scope Selected only to the ticked. */
-    await page.evaluate(() => { wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('item'); });
+    /* Scope All applies to everything; scope Selected only to the ticked.
+       Proved on a SHARED field — finish — because that is what Bulk Edit is
+       for. Geometry differs per row and belongs to Fast Edit. */
+    await page.evaluate(() => { wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('fix'); });
     await page.waitForTimeout(400);
-    await page.evaluate(() => { wqaEditCommonItem('thread', '55/55'); wqaApplyItemToAll(); });
+    await page.evaluate(() => { wqaEditFix('finish', 'HDG'); wqaApplyFixToAll(); });
     await page.waitForTimeout(1400);
-    const afterSel = await rowState(page);
-    A.eq(afterSel.map(r => r.thread).join(','), '55/55,70/70,55/55',
+    A.eq(await page.evaluate(() => wqa.rows.map(r => r.finish).join(',')), 'HDG,ZP,HDG',
       'Selected Items writes to the ticked rows and to nothing else');
 
+    /* The ticks SURVIVE the scope switch. They used to be wiped by it, which
+       made comparing "all" against "these two" quietly destructive — you lost
+       the two by looking at the alternative. */
     await page.evaluate(() => wqaSetApplyScope('all'));
     await page.waitForTimeout(500);
-    A.eq(await page.evaluate(() => wqaSelCount()), 0, 'leaving Selected drops the ticks');
-    A.eq(await page.evaluate(() => el('wqaSelBar').hidden), true, 'and the bar with them');
-    await page.evaluate(() => { wqaEditCommonItem('thread', '65/65'); wqaApplyItemToAll(); });
+    A.eq(await page.evaluate(() => wqaSelCount()), 2,
+      'leaving Selected keeps the ticks — a selection is a set a person built, not a mode');
+    await page.evaluate(() => { wqaEditFix('finish', 'PL'); wqaApplyFixToAll(); });
     await page.waitForTimeout(1400);
-    A.eq((await rowState(page)).map(r => r.thread).join(','), '65/65,65/65,65/65',
+    A.eq(await page.evaluate(() => wqa.rows.map(r => r.finish).join(',')), 'PL,PL,PL',
       'All Items writes to every row');
     A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
     await page.close();
@@ -176,7 +195,7 @@ module.exports = async (browser, A) => {
       const card = document.querySelector('[data-wqa-row="0"]');
       const b = s => card.querySelector(s);
       const st = n => n ? getComputedStyle(n) : null;
-      const edit = b('.wqa-row-edit'), hist = b('.wqa-row-hist');
+      const edit = b('.wqa-row-details'), hist = b('.wqa-row-hist');
       return {
         editText: edit.textContent.trim(),
         editOn: edit.classList.contains('is-on'),
@@ -194,7 +213,7 @@ module.exports = async (browser, A) => {
     });
 
     const shut = await read();
-    A.eq(shut.editText, 'Edit', 'the row offers Edit');
+    A.eq(shut.editText, 'Details', 'the row offers Details — the toolbar owns the word Edit');
     A.ok(shut.editH >= 32 && shut.histH >= 32 && shut.delH >= 32,
       `all three at a real click target (${shut.editH}/${shut.histH}/${shut.delH}px)`);
     A.ok(shut.delLabel.length > 0, 'and the remove button says what it removes to a screen reader');
@@ -202,7 +221,7 @@ module.exports = async (browser, A) => {
     A.eq(shut.histExpanded, 'false', 'and History reports itself shut');
 
     /* Open state is visible, not merely recorded. */
-    await page.evaluate(() => document.querySelector('[data-wqa-row="0"] .wqa-row-edit').click());
+    await page.evaluate(() => document.querySelector('[data-wqa-row="0"] .wqa-row-details').click());
     await page.waitForTimeout(500);
     const opened = await read();
     A.eq(opened.editText, 'Close', 'pressing Edit opens the row and the control says so');

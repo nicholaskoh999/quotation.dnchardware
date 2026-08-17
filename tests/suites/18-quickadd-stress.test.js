@@ -93,7 +93,7 @@ module.exports = async (browser, A) => {
                                   return n ? Math.round(n.getBoundingClientRect().height) : 0; });
     const list = document.querySelector('.wqa-rows').getBoundingClientRect();
     const actionsOk = cards.every(c => {
-      const lb = list, sel = ['.wqa-row-edit', '.wqa-row-hist', '.wqa-row-del'];
+      const lb = list, sel = ['.wqa-row-details', '.wqa-row-hist', '.wqa-row-del'];
       return sel.every(s => { const n = c.querySelector(s); if (!n) return false;
         const r = n.getBoundingClientRect();
         return r.width > 8 && r.left >= lb.left - 0.5 && r.right <= lb.right + 0.5; });

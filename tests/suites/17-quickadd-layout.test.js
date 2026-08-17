@@ -47,7 +47,7 @@ const GEOMETRY = () => {
   };
   const overlap = (a, b) => !!a && !!b &&
     !(a.r <= b.l + 0.5 || b.r <= a.l + 0.5 || a.b <= b.t + 0.5 || b.b <= a.t + 0.5);
-  const edit = box('.wqa-row-edit'), hist = box('.wqa-row-hist'), del = box('.wqa-row-del');
+  const edit = box('.wqa-row-details'), hist = box('.wqa-row-hist'), del = box('.wqa-row-del');
   const sum = card.querySelector('.wqa-sum');
   return {
     edit, hist, del,

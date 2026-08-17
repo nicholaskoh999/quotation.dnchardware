@@ -1989,8 +1989,22 @@ input,select,textarea{
 .wqa-row.is-open>.wqa-sum{background:var(--surface2);border-bottom:1px solid var(--border)}
 .wqa-row.wqa-row-block>.wqa-sum:hover{background:var(--amber-mid)}
 /* plain number, no pill */
-.wqa-sum-no{font-size:11.5px;font-weight:700;color:var(--accent-num);
+/* The number and its tick, in the one track the number used to have. Stacked,
+   so adding selection costs the row no width — the compact list has to stay
+   as dense at 1366 as it was before there was anything to tick. */
+.wqa-sum-no{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-size:11.5px;font-weight:700;color:var(--accent-num);
   font-variant-numeric:tabular-nums;text-align:center}
+.wqa-sum-n{line-height:1}
+.wqa-pick-all{margin:0 auto;display:block}
+/* A ticked row is worth seeing from across the list, and worth seeing that a
+   bulk apply is about to land on it. */
+.wqa-row.is-picked>.wqa-sum{background:var(--accent-light)}
+.wqa-row.is-picked{box-shadow:inset 3px 0 0 var(--accent)}
+.wqa-bulk-seln{font-size:11.5px;font-weight:900;color:var(--accent-2);
+  padding:2px 8px;border-radius:var(--pill-r);background:var(--accent-light);white-space:nowrap}
+/* The refusal, where the Apply it refuses is. */
+.wqa-none-sel{font-size:11px;font-weight:750;color:var(--amber-2,#b45309)}
 .wqa-c{font-weight:600;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums;
   overflow:hidden;text-overflow:ellipsis;text-align:center}
 .wqa-c-size {font-weight:700;color:var(--text)}
@@ -2296,14 +2310,20 @@ input,select,textarea{
 
 /* ── Pricing history ─────────────────────────────────────────────────────── */
 .ph-list{max-height:none}
-.ph-count{font-size:11px;font-weight:700;color:var(--text-muted);margin:6px 0 8px;letter-spacing:.02em}
+/* Sticky within the history panel's own scroll, not the modal's — a person
+   reading down 688 records keeps the count and the split in view without the
+   panel taking over the page. */
+.ph-count{position:sticky;top:0;z-index:2;font-size:11px;font-weight:700;color:var(--text-muted);
+  margin:0 0 8px;padding:7px 0 6px;letter-spacing:.02em;
+  background:var(--surface);border-bottom:1px solid var(--border)}
+.wqa-hist-panel .ph-count{background:var(--surface2)}
 /* ── The records ───────────────────────────────────────────────────────────
    These were written against a palette this application does not have:
    --surface-2, --surface-3 and --brand are not declared anywhere, so every one
    of them fell back to nothing. The cards had no fill, this customer's own
    records had no accent, and the neutral tags were transparent — which is most
    of why the panel read as a wall of text. */
-.ph-scroll{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px}
+.ph-scroll{max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:4px}
 .ph-rec{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface)}
 /* This customer's own price is the answer; anybody else's is a reference. */
 .ph-rec-own{border-color:var(--accent-mid);box-shadow:inset 3px 0 0 var(--accent)}
@@ -2337,7 +2357,8 @@ input,select,textarea{
 .wqa-hist-panel{padding:0 12px 10px 46px;background:var(--surface2);border:none;
   border-left:3px solid var(--accent-mid)}
 .wqa-row.is-open .wqa-hist-panel{background:var(--surface2)}
-.wqa-hist-bar{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;cursor:pointer;
+.wqa-hist-bar{position:sticky;top:0;z-index:3;
+  display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;cursor:pointer;
   background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:left;
   transition:border-color .14s ease,background .14s ease}
 .wqa-hist-bar:hover{border-color:var(--accent-mid)}
@@ -2364,7 +2385,15 @@ input,select,textarea{
 .wqa-row-act:active{background:var(--accent-light);transform:translateY(.5px)}
 .wqa-row-act:focus-visible{outline:2px solid var(--accent-mid);outline-offset:2px}
 .wqa-row-act.is-on{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent-2)}
-.wqa-row-edit{font-weight:800}
+.wqa-row-details{font-weight:800}
+/* The word in front of the view pair. Deliberately small and grey: it is a
+   label on a choice, not a control, and it exists to stop Edit reading as a
+   third tab in the same group. */
+.wqa-view-lbl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text-muted);margin-left:6px;padding-right:2px;white-space:nowrap}
+/* Edit is an action and keeps the space around it; the pair beside it is one
+   control. At the narrow end the word goes and the gap carries the meaning. */
+@media (max-width:900px){ .wqa-view-lbl{display:none} }
 .wqa-row-actn{display:inline-block;min-width:16px;padding:0 4px;border-radius:var(--pill-r);
   background:var(--accent-light);color:var(--accent-2);font-size:10.5px;font-weight:800;text-align:center}
 .wqa-row-act.is-on .wqa-row-actn{background:var(--surface)}
@@ -3832,6 +3861,7 @@ input,select,textarea{
                   onclick="wqaEditRequestCancel()" hidden data-i18n="cancel">Cancel</button>
         </span>
         <span class="wqa-edit-note" id="wqaEditNote" hidden></span>
+        <span class="wqa-view-lbl" data-i18n="lblView">View</span>
         <span class="wqa-view-toggle" role="group" data-i18n-aria="wqaAriaView" aria-label="View">
           <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')" data-i18n="wqaCompact">Compact</button>
           <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')" data-i18n="wqaExpanded">Expanded</button>
@@ -4307,12 +4337,21 @@ const I18N={
     phSelectItemsTitle:'Apply Previous Price', phApplyPrevious:'Apply Previous Price',
     phReusable:'Reusable', phReference:'References',
     wqaCompatible:'compatible', wqaNSelected:'{n} selected',
+    /* Selection is a persistent set of rows; scope is a choice about where an
+       Apply lands. Different things, so different words. */
+    wqaSelectAll:'Select all items', wqaSelectItem:'Select item {n}',
+    wqaNoneSelected:'Select at least one item.',
+    wqaGeomNote:'Size and TL only, and only where the document stated neither. Everything else about a row is edited in Edit.',
+    wqaBulkWillAffect:'{f} → {v} · {n} items',
+    wqaBulkWillAffectNone:'Nothing selected',
+    wqaToastPrevPriceOff:'Previous Price reference cleared on {n} — the item no longer matches that record',
+    lblView:'View',
     wqaIncompatProduct:'different product', wqaIncompatMaterial:'different material',
     wqaIncompatSizeType:'different size type', wqaIncompatSize:'different size',
     wqaIncompatFinish:'different finish', wqaIncompatUnknown:'item not complete yet',
     wqaBulkApplied:'{r} applied to {n} items — each repriced from its own weight',
     wqaBulkSkipped:'{n} skipped', wqaBulkNone:'Nothing to apply — no compatible item was selected',
-    wqaBulkEdit:'Bulk Edit', wqaBulkEditSum:'Correct · Fields · Pricing · Accessories',
+    wqaBulkEdit:'Bulk Edit', wqaBulkEditSum:'One shared value, many items',
     wqaPrevPriceFrom:'Previous Price', wqaClearSel:'Clear Selection',
     wqaProvOpen:'Show the quotation this price came from',
     wqaProvStated:'stated price',
@@ -4363,7 +4402,10 @@ const I18N={
     wqaCannotRead:'Could not confidently read this message. Please edit the pasted text or enter the items manually.',
     errNoText:'No text was supplied.',
     errTextTooLong:'That message is too long to analyze. Trim it and try again.',
-    wqaCommonItemTitle:'Common Item Fields', wqaApplyToAll:'Apply to All',
+    /* Geometry, and the ONE case for it in a bulk panel — see wqaFixNote
+       and the comment above wqaRenderCommonItem. Named for what it does
+       rather than claiming the generic title, which belongs next door. */
+    wqaCommonItemTitle:'Fill Missing Size / TL', wqaApplyToAll:'Apply to All',
     wqaApplyToSelected:'Apply to Selected', wqaScopeAll:'All Items',
     wqaScopeSelected:'Selected Items', wqaNIncomplete:'{n} incomplete',
     wqaApplyAll:'Apply to All Items', wqaApplySelected:'Apply to {n} Selected Items',
@@ -4371,7 +4413,10 @@ const I18N={
     wqaApplyManualAll:'Apply Manual Unit Price to All',
     wqaApplyManualSelected:'Apply Manual Unit Price to {n} Selected',
     wqaToastNoneSelected:'Tick at least one item first',
-    wqaCommonFixTitle:'Correct Items', wqaFixKeep:'— Keep existing —',
+    /* Product, Material, Finish, Size Type: the shared identity fields. One
+       value, many rows — which is what Bulk Edit is for, so this is the panel
+       that carries the generic name. */
+    wqaCommonFixTitle:'Common Item Fields', wqaFixKeep:'— Keep existing —',
     wqaFixNone:'Keep existing',
     wqaFixNothingYet:'Nothing chosen yet — Apply would change nothing',
     wqaFixWillSet:'Will set: {f}', wqaFixWillFill:'Will fill where blank: {f}',
@@ -4452,6 +4497,7 @@ const I18N={
     hdrDiaMm:'DIA (MM)', lblDiameterMm:'Diameter (mm)',
     fieldDiameter:'Diameter', diaDefault:'Default', diaManual:'Manual',
     btnDone:'Done',
+    editLockDetails:'Finish or cancel the edit to open item details.',
     editLockExpanded:'Finish editing before opening Expanded.',
     editLockAdd:'Finish editing before adding to the quotation.',
     editLockHistory:'Finish editing before applying a previous price.',
@@ -4673,6 +4719,9 @@ const I18N={
        script on every render, so they never reached the attribute scan and
        stayed English while everything around them switched. */
     lblWeight:'Weight', lblActions:'Actions', btnHistory:'History', hdrNo:'#',
+    /* The ROW action. Not btnEdit -- that word now belongs to the toolbar
+       action that opens the grid, and one word cannot mean both. */
+    btnDetails:'Details',
     /* Accessory panels, the U-Bolt breakdown, the history panel and the
        Others form: all built in script, none of them ever switched. */
     lblCustomText:'Text', lblAccessories:'Accessories', lblCustom:'Custom',
@@ -4807,12 +4856,19 @@ const I18N={
     phSelectItemsTitle:'应用历史价格', phApplyPrevious:'应用历史价格',
     phReusable:'可重用', phReference:'参考',
     wqaCompatible:'相符', wqaNSelected:'已选 {n} 项',
+    wqaSelectAll:'全选项目', wqaSelectItem:'选择第 {n} 项',
+    wqaNoneSelected:'请至少选择一个项目。',
+    wqaGeomNote:'仅限尺寸与 TL，且仅在文件两者都未注明时使用。行的其他内容请在「编辑」中修改。',
+    wqaBulkWillAffect:'{f} → {v} · {n} 个项目',
+    wqaBulkWillAffectNone:'未选择任何项目',
+    wqaToastPrevPriceOff:'{n} 个项目的历史价格引用已清除 — 项目已不再符合该记录',
+    lblView:'视图',
     wqaIncompatProduct:'产品不同', wqaIncompatMaterial:'材质不同',
     wqaIncompatSizeType:'尺寸类型不同', wqaIncompatSize:'尺寸不同',
     wqaIncompatFinish:'表面处理不同', wqaIncompatUnknown:'项目资料尚未齐全',
     wqaBulkApplied:'{r} 已应用到 {n} 项 — 每项按本身重量重新计算',
     wqaBulkSkipped:'跳过 {n} 项', wqaBulkNone:'没有可应用的项目 — 未选择相符项目',
-    wqaBulkEdit:'批量编辑', wqaBulkEditSum:'批量修正 · 通用参数 · 价格 · 配件',
+    wqaBulkEdit:'批量编辑', wqaBulkEditSum:'同一数值，应用到多个项目',
     wqaPrevPriceFrom:'历史价格', wqaClearSel:'清除选择',
     wqaProvOpen:'显示价格来源的报价单',
     wqaProvStated:'固定价格',
@@ -4863,7 +4919,7 @@ const I18N={
     wqaCannotRead:'无法可靠识别这段内容。请编辑粘贴文字，或手动输入产品。',
     errNoText:'没有提供文字。',
     errTextTooLong:'这段内容太长，无法分析。请精简后再试。',
-    wqaCommonItemTitle:'通用项目参数', wqaApplyToAll:'应用到全部',
+    wqaCommonItemTitle:'填写缺失的尺寸 / TL', wqaApplyToAll:'应用到全部',
     wqaApplyToSelected:'应用到选定', wqaScopeAll:'全部项目',
     wqaScopeSelected:'选定项目', wqaNIncomplete:'{n} 项待补',
     wqaApplyAll:'应用到全部项目', wqaApplySelected:'应用到 {n} 个选定项目',
@@ -4871,7 +4927,7 @@ const I18N={
     wqaApplyManualAll:'手动单价应用到全部',
     wqaApplyManualSelected:'手动单价应用到 {n} 个选定项目',
     wqaToastNoneSelected:'请先勾选至少一个项目',
-    wqaCommonFixTitle:'批量修正', wqaFixKeep:'— 保持不变 —',
+    wqaCommonFixTitle:'通用项目字段', wqaFixKeep:'— 保持不变 —',
     wqaFixNone:'保持不变',
     wqaFixNothingYet:'尚未选择——按下应用不会有任何改动',
     wqaFixWillSet:'将设为：{f}', wqaFixWillFill:'仅填补空白：{f}',
@@ -4942,6 +4998,7 @@ const I18N={
     hdrDiaMm:'直径 (MM)', lblDiameterMm:'直径 (mm)',
     fieldDiameter:'直径', diaDefault:'默认', diaManual:'手动',
     btnDone:'完成',
+    editLockDetails:'请先完成或取消编辑，再打开项目详情。',
     editLockExpanded:'请先完成编辑后再打开展开模式。',
     editLockAdd:'请先完成编辑后再加入报价单。',
     editLockHistory:'请先完成编辑后再应用历史价格。',
@@ -5131,6 +5188,7 @@ const I18N={
     lblClearAllAcc:'清除所有配件', lblLoadMore:'载入更多', lblShowDebug:'显示调试信息',
     lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
     lblWeight:'重量', lblActions:'操作', btnHistory:'历史价格', hdrNo:'#',
+    btnDetails:'详情',
     lblCustomText:'文字', lblAccessories:'配件', lblCustom:'自定义',
     lblTotalWeight:'总重量', lblAccessoriesColon:'配件：',
     lblCurrentColon:'当前：{v}',
@@ -9125,8 +9183,16 @@ function phListHtml(state,onUse,onMore,extraFor){
   } else {
     body=state.records.map(cell).join('');
   }
+  /* Sticky, so scrolling six hundred records never loses which list this is
+     or how much of it has been loaded. The count sits IN the sticky bar for
+     the same reason: "Showing 20 of 688" is the thing a person is checking
+     when they reach for Load More. */
+  const split = state.ownTotal!==undefined
+    ? ' · '+dcT('phThisCustomer').replace('{n}',state.ownTotal)
+      +' · '+dcT('phOther').replace('{n}',state.otherTotal)
+    : '';
   return `<div class="ph-count">${escHtml(dcT('phShowingOf').replace('{a}',shown).replace('{b}',total))}`
-       + (state.ownTotal!==undefined?` · ${state.ownTotal} this customer, ${state.otherTotal} other`:'')
+       + escHtml(split)
        + `</div><div class="ph-scroll">` + body + `</div>${more}`;
 }
 
@@ -10013,12 +10079,22 @@ const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPr
 /* Both common sections start COLLAPSED at every width, so the parsed items are
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
-function wqaTogglePanel(which){ wqa.panels[which]=!wqa.panels[which];
-  if(which==='source')     wqaRenderSource(true);
-  else if(which==='fix')   wqaRenderCommonFix(true);
-  else if(which==='item')  wqaRenderCommonItem(true);
-  else if(which==='price') wqaRenderCommonPrice(true);
-  else                     wqaRenderCommonAcc(true); }
+/* ── One at a time ─────────────────────────────────────────────────────────
+   Four sections standing open made Bulk Edit taller than the items it was
+   meant to correct, and pushed the list off the screen. Opening one closes
+   the others; the values are untouched either way, because collapsing only
+   hides an editor and every field lives in wqa.common*. The source panel is
+   not part of the group and keeps its own independent state. */
+const WQA_BULK_PANELS=['fix','item','price','acc'];
+function wqaTogglePanel(which){
+  const want=!wqa.panels[which];
+  if(which!=='source' && want) WQA_BULK_PANELS.forEach(k=>{ if(k!==which) wqa.panels[k]=false; });
+  wqa.panels[which]=want;
+  if(which==='source'){ wqaRenderSource(true); return; }
+  wqaRenderCommonFix(true); wqaRenderCommonItem(true);
+  wqaRenderCommonPrice(true); wqaRenderCommonAcc(true);
+  wqaPatchApplyLabels();
+}
 function wqaPanelHead(which,title,summary,badge){
   const open=!!wqa.panels[which];
   return `<button type="button" class="wqa-panel-head${open?' open':''}" onclick="wqaTogglePanel('${which}')"
@@ -10045,21 +10121,75 @@ function wqaApplyTargets(){
 function wqaSelCount(){ return wqa.rows.filter(r=>!r.removed&&r.sel).length; }
 function wqaSetApplyScope(s){
   wqa.applyScope = s==='selected' ? 'selected' : 'all';
-  /* Leaving Selected drops the ticks: a hidden selection that a later Apply
-     would silently obey is worse than starting again. */
-  if(wqa.applyScope==='all') wqa.rows.forEach(r=>{ r.sel=false; });
+  /* The ticks STAY. They used to be cleared on leaving Selected, which made
+     the scope switch quietly destructive: a person comparing "all" against
+     "these four" lost the four by looking. Selection is a set a person built
+     and owns; scope is a sentence about where the next Apply lands. Nothing
+     hidden can be obeyed either way, because zero selected now BLOCKS an
+     Apply rather than falling back to everything. */
   wqaRenderBulk();
   wqaRenderCommonFix(true);
   wqaRenderCommonItem(true); wqaRenderCommonPrice(true); wqaRenderCommonAcc(true);
   wqaRenderRows(true);
+  /* The scope decides whether an Apply is possible at all, so the buttons are
+     re-read after the panels that hold them are redrawn. */
+  wqaPatchApplyLabels();
 }
 function wqaToggleRowSel(i){
   const r=wqa.rows[i]; if(!r) return;
   r.sel=!r.sel;
   const card=el('wqaRows')&&el('wqaRows').querySelector('[data-wqa-row="'+i+'"]');
   if(card) card.classList.toggle('is-picked',!!r.sel);
-  wqaPatchApplyLabels();          // only the button labels move; no panel rebuild
+  wqaAfterSelChange();
+}
+/* All, or none. Second press releases — the same control, so there is one
+   place to take the whole list and one place to give it back. */
+function wqaToggleSelAll(){
+  const live=wqa.rows.filter(r=>!r.removed);
+  const want=!(live.length>0 && live.every(r=>r.sel));
+  live.forEach(r=>{ r.sel=want; });
+  wqaRenderRows(true);
+  wqaAfterSelChange();
+}
+/* Everything a changed selection moves — and NOT a panel rebuild, so a
+   half-typed markup survives ticking a row. */
+function wqaAfterSelChange(){
+  wqaPatchApplyLabels();
   wqaRenderSelBar();
+  wqaPatchBulkHead();
+  wqaPatchSelAll();
+  wqaPatchBulkIntents();
+}
+function wqaPatchSelAll(){
+  const box=el('wqaListHead')&&el('wqaListHead').querySelector('.wqa-pick-all');
+  if(!box) return;
+  const live=wqa.rows.filter(r=>!r.removed);
+  box.checked = live.length>0 && live.every(r=>r.sel);
+  box.indeterminate = !box.checked && live.some(r=>r.sel);
+}
+/* The count, on the group heading, without rebuilding what is under it. */
+function wqaPatchBulkHead(){
+  const n=el('wqaBulkSelN'); if(!n) return;
+  const c=wqaSelCount();
+  n.textContent = c ? dcT('wqaNSelected').replace('{n}',c) : '';
+  n.hidden = !c;
+}
+/* The sentence under every Apply: what field, what value, how many rows. The
+   count is the live selection, so a person reads "Markup 5% · 4 items" before
+   pressing rather than counting rows afterwards. */
+function wqaBulkIntent(field,value){
+  const v=String(value==null?'':value).trim();
+  if(!v) return '';
+  if(wqaApplyBlocked()) return dcT('wqaBulkWillAffectNone');
+  return dcT('wqaBulkWillAffect').replace('{f}',field).replace('{v}',v)
+         .replace('{n}',wqaApplyTargets().length);
+}
+function wqaPatchBulkIntents(){
+  const step=el('wqaStep2'); if(!step) return;
+  step.querySelectorAll('[data-wqa-intent]').forEach(n=>{
+    const parts=String(n.getAttribute('data-wqa-intent')).split('|');
+    n.textContent=wqaBulkIntent(parts[0],parts[1]);
+  });
 }
 /* What a panel's Apply button says it will do, in the language of the moment. */
 function wqaApplyLabel(allKey,selKey){
@@ -10067,12 +10197,23 @@ function wqaApplyLabel(allKey,selKey){
     ? dcT(selKey).replace('{n}',wqaSelCount())
     : dcT(allKey);
 }
+/* Scope "Selected" with nothing selected is not a quiet "all". It is an
+   instruction with no object, and the only honest response is to refuse and
+   say why — silently widening it to every row is how twenty items get a
+   markup meant for four. */
+function wqaApplyBlocked(){
+  return wqa.applyScope==='selected' && wqaSelCount()===0;
+}
 function wqaPatchApplyLabels(){
   const step=el('wqaStep2'); if(!step) return;
+  const blocked=wqaApplyBlocked();
   step.querySelectorAll('[data-wqa-apply]').forEach(btn=>{
     const k=String(btn.getAttribute('data-wqa-apply')).split('|');
     btn.textContent=wqaApplyLabel(k[0],k[1]);
+    btn.disabled=blocked;
+    btn.title=blocked?dcT('wqaNoneSelected'):'';
   });
+  step.querySelectorAll('.wqa-none-sel').forEach(n=>{ n.hidden=!blocked; });
 }
 /* ── The bulk-edit group ───────────────────────────────────────────────────
    One heading, one scope, four panels underneath it — and shut unless
@@ -10087,13 +10228,18 @@ function wqaBulkNeeds(){
   try{ return wqaItemNeedCount(); }catch(e){ return 0; }
 }
 function wqaToggleBulk(){
-  wqa.bulkOpen=!wqa.bulkOpen;
+  const want=!wqa.bulkOpen;
+  /* The other way round from wqaToggleRow, and for the same reason. */
+  const closed = want ? wqaCloseAllDetails() : false;
+  wqa.bulkOpen=want;
   wqaRenderBulk();
+  if(closed) wqaRenderRows(true);
 }
 function wqaRenderBulk(){
   const head=el('wqaBulkHead'), body=el('wqaBulkBody');
   if(!head||!body) return;
   const need=wqaBulkNeeds();
+  const sel=wqaSelCount();
   const open=!!wqa.bulkOpen;
   body.hidden=!open;
   head.innerHTML=`<div class="wqa-bulk-bar${open?' open':''}">
@@ -10107,9 +10253,11 @@ function wqaRenderBulk(){
       </span>
       <span class="wqa-panel-badge"${need?'':' hidden'}>${need?escHtml(dcT('wqaNIncomplete').replace('{n}',need)):''}</span>
     </button>
+    <span class="wqa-bulk-seln" id="wqaBulkSelN"${sel?'':' hidden'}>${sel?escHtml(dcT('wqaNSelected').replace('{n}',sel)):''}</span>
     ${wqaScopeSwitch()}
   </div>`;
   wqaRenderSelBar();
+  wqaPatchApplyLabels();
 }
 /* ── The selection bar ─────────────────────────────────────────────────────
    Only while a selection exists, and only saying what can be done with one.
@@ -10118,7 +10266,7 @@ function wqaRenderBulk(){
 function wqaRenderSelBar(){
   const bar=el('wqaSelBar'); if(!bar) return;
   const n=wqaSelCount();
-  const on=wqa.applyScope==='selected';
+  const on=n>0 || wqa.applyScope==='selected';
   bar.hidden=!on;
   if(!on){ bar.innerHTML=''; return; }
   bar.innerHTML=`<span class="wqa-selbar-n">${escHtml(dcT('wqaNSelected').replace('{n}',n))}</span>
@@ -10131,7 +10279,9 @@ function wqaRenderSelBar(){
 }
 function wqaOpenBulkFor(){
   if(wqaEditing()){ showToast(dcT('editLockBulk')); return; }
+  const closed=wqaCloseAllDetails();
   wqa.bulkOpen=true; wqaRenderBulk();
+  if(closed) wqaRenderRows(true);
 }
 function wqaClearSel(){
   wqa.rows.forEach(r=>{ r.sel=false; });
@@ -10202,11 +10352,31 @@ function wqaItemNeedCount(){
     (!String(r.size||'').trim() ||
      (wqaThreadEnds(wqaRowProduct(r))>0 && !wqaThreadValue(r)))).length;
 }
+/* ── The one geometry exception, and why it is allowed to exist ───────────
+   Everything a row's geometry needs is edited in Fast Edit, one row at a
+   time, because rows differ. This panel is the single case where they do not
+   differ and cannot be recovered per row: a shorthand document that states
+   lengths and quantities and never states the size or the thread at all.
+
+       1068 - 38pcs / 1430 - 148pcs / 1295 - 34pcs / under size / ZP
+
+   The extractor is forbidden from inventing either, so thirty rows arrive
+   with the same two blanks. Typing M12 thirty times is not a workflow.
+
+   It is confined to that case in three ways: it is titled for the job rather
+   than claiming the generic name, it fills BLANKS and never overwrites a
+   stated value, and — below — it is not rendered at all unless rows are
+   actually missing one. When nothing is missing, Bulk Edit is exactly the
+   three shared-value sections and this is not on the screen. */
 function wqaRenderCommonItem(force){
   const box=el('wqaCommonItem'); if(!box) return;
   if(!force && wqaTypingIn(box)){ wqaPatchItemPanel(); wqaDeferRender('item'); return; }
   const c=wqa.commonItem||(wqa.commonItem=wqaEmptyItem());
   const need=wqaItemNeedCount();
+  /* Not merely collapsed — absent. A section offering to bulk-fill a size
+     that every row already has is the overlap this round exists to remove. */
+  box.hidden = need===0;
+  if(need===0){ box.innerHTML=''; wqa.panels.item=false; return; }
   /* A Stud is threaded over its whole length by definition, so there is no
      thread for a customer to state and none to ask for here. Sag Rod wants the
      pair, Anchor Bolt the single value — the placeholder says which. */
@@ -10218,7 +10388,7 @@ function wqaRenderCommonItem(force){
                           need?dcT('wqaNIncomplete').replace('{n}',need):'');
   box.innerHTML = head + (!wqa.panels.item ? '' :
     `<div class="wqa-panel-body">
-       <div class="wqa-acc-note">${escHtml(dcT('wqaCopyNoteBlank'))}</div>
+       <div class="wqa-acc-note">${escHtml(dcT('wqaGeomNote'))}</div>
        <div class="wqa-item-grid${ends?'':' wqa-item-grid-1'}">
          <label class="wqa-acc-f"><span>${escHtml(dcT('lblSize'))}</span>
            <input type="text" id="wqaCommonSize" value="${escHtml(c.size)}" placeholder="M12"
@@ -10230,6 +10400,7 @@ function wqaRenderCommonItem(force){
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyItemToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
+         <span class="wqa-none-sel" hidden>${escHtml(dcT('wqaNoneSelected'))}</span>
          <span class="wqa-acc-sum">${escHtml(dcT('lblCurrentColon').replace('{v}',wqaItemSummary(c)))}</span>
        </div>
      </div>`);
@@ -10382,6 +10553,7 @@ function wqaRenderCommonFix(force){
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyFixToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
+         <span class="wqa-none-sel" hidden>${escHtml(dcT('wqaNoneSelected'))}</span>
          <span class="wqa-acc-sum">${escHtml(wqaFixIntent(f))}</span>
        </div>
      </div>`);
@@ -10408,9 +10580,14 @@ function wqaApplyFixToAll(){
   if(!set.length){ showToast(dcT('wqaToastFixNothing')); return; }
   const live=wqaApplyTargets();
   if(!live.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
-  let changed=0;
+  let changed=0, dropped=0;
   live.forEach(r=>{
     let did=false;
+    /* One guard around the whole row's worth of changes rather than one per
+       field: product, material, finish and size type are applied in order and
+       it is the row's identity AFTER all of them that decides whether the
+       record still describes it. */
+    if(wqaHistIdentityGuard(r,()=>{
     set.forEach(k=>{
       const v=f[k];
       /* Fill blanks only: a field that already says something is left saying
@@ -10448,6 +10625,7 @@ function wqaApplyFixToAll(){
         r.sizeType=v; r.stDefaulted=false; did=true; return;
       }
     });
+    })) dropped++;
     if(did){ changed++; set.forEach(k=>wqaMarkEdited(r,k)); }
   });
   /* The header is a summary of the rows, so it follows them. */
@@ -10461,9 +10639,10 @@ function wqaApplyFixToAll(){
   wqaRenderCommon(); wqaRenderCommonFix(true);
   wqa.panels.item=wqaItemNeedCount()>0; wqaRenderCommonItem(true);
   wqaRecomputeAll('force');
-  showToast(changed
+  showToast((changed
     ? dcT('wqaToastFixApplied').replace('{n}',changed)
-    : dcT('wqaToastFixNoChange'));
+    : dcT('wqaToastFixNoChange'))
+    + (dropped?' · '+dcT('wqaToastPrevPriceOff').replace('{n}',dropped):''));
 }
 
 /* Accessory shape is the EXISTING one used by getAccessories() /
@@ -10551,9 +10730,9 @@ function wqaRenderCommonPrice(force){
     (!wqa.panels.price ? '' : `<div class="wqa-panel-body">
        <div class="wqa-acc-note">${escHtml(dcT('wqaEntryOnly'))}</div>
      <div class="wqa-price-line">
-       <label class="wqa-acc-f"><span>${escHtml(dcT('lblCostRate'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.costRate)}" oninput="wqaEditCommonPrice('costRate',this.value)"></label>
-       <label class="wqa-acc-f"><span>${escHtml(dcT('lblAdditionalCost'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.addCost)}" oninput="wqaEditCommonPrice('addCost',this.value)"></label>
-       <label class="wqa-acc-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="number" step="0.1" value="${escHtml(c.markup)}" oninput="wqaEditCommonPrice('markup',this.value)"></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblCostRate'))}</span><input type="number" id="wqaCommonCostRate" min="0" step="0.01" value="${escHtml(c.costRate)}" oninput="wqaEditCommonPrice('costRate',this.value)"></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblAdditionalCost'))}</span><input type="number" id="wqaCommonAddCost" min="0" step="0.01" value="${escHtml(c.addCost)}" oninput="wqaEditCommonPrice('addCost',this.value)"></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="number" id="wqaCommonMarkup" step="0.1" value="${escHtml(c.markup)}" oninput="wqaEditCommonPrice('markup',this.value)"></label>
        <label class="wqa-acc-f"><span>${escHtml(dcT('lblPriceMode'))}</span><select onchange="wqaEditCommonPrice('priceMode',this.value)">${opts}</select></label>
      </div>
      ${manual?`<div class="wqa-price-line wqa-price-manual">
@@ -11196,7 +11375,27 @@ function wqaFmtTotalWeight(w,qty){
    The summary line carries everything needed to check a row at a glance, so the
    full controls only exist in the DOM when a row is actually being edited. */
 function wqaRowIsOpen(r){ return wqa.view==='expanded' || !!r.open; }
-function wqaToggleRow(i){ const r=wqa.rows[i]; if(!r) return; r.open=!wqaRowIsOpen(r); wqaRenderRows(true); }
+/* ── Details ───────────────────────────────────────────────────────────────
+   One row's form. It is not a second Fast Edit and it must not stand beside
+   a Bulk Edit: two large editors over the same rows, stacked, is how a
+   person loses track of which one their next keystroke belongs to. So
+   opening Details shuts Bulk Edit, and opening Bulk Edit shuts Details. */
+function wqaToggleRow(i){
+  const r=wqa.rows[i]; if(!r) return;
+  const want=!wqaRowIsOpen(r);
+  if(want && wqa.bulkOpen){ wqa.bulkOpen=false; wqaRenderBulk(); }
+  /* One at a time. A row's form is tall, and two of them stacked push the
+     list they describe off the screen — which is the same objection that
+     keeps Bulk Edit and Details apart, applied to Details against itself. */
+  if(want) wqa.rows.forEach(o=>{ if(o!==r) o.open=false; });
+  r.open=want;
+  wqaRenderRows(true);
+}
+function wqaCloseAllDetails(){
+  let any=false;
+  wqa.rows.forEach(r=>{ if(wqaRowIsOpen(r)){ r.open=false; any=true; } });
+  return any;
+}
 function wqaSetView(v){
   /* Compact dimension editing and Expanded editing are two write surfaces over
      one row. The button is disabled; this is the same rule for anything that
@@ -11352,15 +11551,18 @@ function wqaSyncEditLocks(){
   const rows=el('wqaRows');
   if(rows){
     rows.querySelectorAll('.wqa-row-del').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockDelete'); });
-    /* The per-row Edit button opens ONE row's expanded form, which is the
-       other write surface. While the grid is open it is disabled — which also
-       keeps it out of the Tab order, so tabbing off the last cell of a row
-       lands on the first cell of the next one rather than on a control. */
-    rows.querySelectorAll('.wqa-row-edit').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockExpanded'); });
+    /* Details opens ONE row's form, which is the other write surface. While
+       the grid is open it is disabled — which also keeps it out of the Tab
+       order, so tabbing off the last cell of a row lands on the first cell of
+       the next one rather than on a control. */
+    rows.querySelectorAll('.wqa-row-details').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockDetails'); });
+    rows.querySelectorAll('.wqa-pick').forEach(b=>{ b.disabled=on; });
     rows.querySelectorAll('.wqa-row-hist').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockHistory'); });
     rows.querySelectorAll('.ph-rec-use,.ph-more,.wqa-prov').forEach(b=>{ b.disabled=on; });
     rows.querySelectorAll('.wqa-hist-panel').forEach(p=>p.classList.toggle('is-muted',on));
   }
+  const headPick=el('wqaListHead')&&el('wqaListHead').querySelector('.wqa-pick-all');
+  if(headPick) headPick.disabled=on;
   const note=el('wqaEditNote');
   if(note){ note.hidden=!on; note.textContent=on?dcT('editHistRefresh'):''; }
   const list=el('wqaRows'); if(list) list.classList.toggle('is-editing',on);
@@ -11450,6 +11652,7 @@ function wqaEditStart(rowIdx,field){
        row, not strand you in a list you did not choose. */
     wqa.edit={ snap:wqaEditSnapshot(), fromView:wqa.view };
     wqa.bulkOpen=false;
+    wqaCloseAllDetails();
     if(wqa.view!=='compact'){ wqa.view='compact'; }
   }
   wqaRenderBulk();
@@ -11678,8 +11881,12 @@ function wqaRenderListHead(){
   /* One header, two layouts. Desktop lets these fall into its columns in order;
      the tablet rules narrow them. Each label sits directly over its own value
      because both are built from the SAME column list. */
+  const live2=wqa.rows.filter(r=>!r.removed);
+  const allSel=live2.length>0 && live2.every(r=>r.sel);
   head.innerHTML=
-      '<span class="wqa-h wqa-h-no">'+escHtml(dcT('hdrNo'))+'</span>'
+      `<span class="wqa-h wqa-h-no"><input type="checkbox" class="wqa-pick wqa-pick-all"${
+        allSel?' checked':''}${wqaEditing()?' disabled':''} onchange="wqaToggleSelAll()"
+        title="${escHtml(dcT('wqaSelectAll'))}" aria-label="${escHtml(dcT('wqaSelectAll'))}"></span>`
     + '<span class="wqa-h wqa-h-size">'+escHtml(dcT('lblSize'))+'</span>'
     + '<span class="wqa-h wqa-h-num wqa-h-dia">'+escHtml(dcT('hdrDiaMm'))+'</span>'
     + wqaListCols().map(c=>`<span class="wqa-h wqa-h-num wqa-h-dim">${escHtml(c.lbl)}</span>`).join('')
@@ -15149,8 +15356,10 @@ function wqaEditRowSpec(i,k,v){
   if(k==='sizeType') r.stDefaulted=false;
   wqaMarkEdited(r,k);
   wqaDropNoteCredit(r,k);
-  r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
-                              r.finish=wqaFinishFor(v,r.finish); }
+  wqaHistIdentityGuard(r,()=>{
+    r[k]=v; if(k==='material'){ r.matDefaulted=false; r.matFrom='';
+                                r.finish=wqaFinishFor(v,r.finish); }
+  });
   wqaRenderCommon();                       // the header summary may have moved
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250);
 }
@@ -15615,10 +15824,10 @@ function wqaRenderRows(force){
            cell of the next one, not on the row it just left. -->
       <div class="wqa-sum" role="button" tabindex="${wqaEditing()?-1:0}" aria-expanded="${open?'true':'false'}"
            onclick="wqaToggleRow(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wqaToggleRow(${i});}">
-        <span class="wqa-sum-no">${wqa.applyScope==='selected'
-          ? `<input type="checkbox" class="wqa-pick"${r.sel?' checked':''} onclick="event.stopPropagation()"
-                    onchange="wqaToggleRowSel(${i})" aria-label="${escHtml(dcT('ariaSelectItem').replace('{n}',i+1))}">`
-          : (i+1)}</span>
+        <span class="wqa-sum-no"><input type="checkbox" class="wqa-pick"${r.sel?' checked':''}
+                 onclick="event.stopPropagation()" ${wqaEditing()?'disabled':''}
+                 onchange="wqaToggleRowSel(${i})"
+                 aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}"><span class="wqa-sum-n">${i+1}</span></span>
         ${wqaCompactCells(r,cols)}
         <!-- Slack lives here, so the actions sit at the right edge whatever a
              product's dimensions come to. -->
@@ -15633,9 +15842,9 @@ function wqaRenderRows(force){
              row underneath. All three are buttons now, at a size a finger can
              actually land on, with hover, pressed, focus and open states. -->
         <span class="wqa-sum-actions">
-          <button type="button" class="wqa-row-act wqa-row-edit${open?' is-on':''}"
+          <button type="button" class="wqa-row-act wqa-row-details${open?' is-on':''}"
                   aria-expanded="${open?'true':'false'}"
-                  onclick="event.stopPropagation();wqaToggleRow(${i})">${escHtml(dcT(open?'close':'btnEdit'))}</button>
+                  onclick="event.stopPropagation();wqaToggleRow(${i})">${escHtml(dcT(open?'close':'btnDetails'))}</button>
           <button type="button" class="wqa-row-act wqa-row-hist${r.histOpen?' is-on':''}"
                   title="${escHtml(dcT('tipItemHistory'))}" aria-expanded="${r.histOpen?'true':'false'}"
                   onclick="event.stopPropagation();wqaHistToggle(${i})">${escHtml(dcT('btnHistory'))}${
@@ -16117,6 +16326,25 @@ function wqaHistFor(r){
 }
 function wqaHistStale(r){
   return !r || r.hist===undefined || r.histFor!==wqaHistFor(r);
+}
+/* ── The card outlives the match unless something drops it ─────────────────
+   Run around an identity change: it notes what the row WAS, lets the caller
+   change it, then drops the Previous Price reference if the row is no longer
+   the thing that record was found for.
+
+   Only the reference goes. The rates the record contributed stay on the row,
+   because they are now the row's own pricing entry and re-running the formula
+   from them is what "the reused recipe re-prices on the current weight" has
+   always meant. Dropping them here would move the price a second time for a
+   reason nobody asked for. What is removed is the sentence claiming a
+   provenance that has stopped being true. */
+function wqaHistIdentityGuard(r,change){
+  if(!r){ change(); return false; }
+  const was=r.usedHistoryRef ? wqaHistFor(r) : null;
+  change();
+  if(!was || wqaHistFor(r)===was) return false;
+  r.usedHistoryRef=''; r.usedHistoryRecipe=false;
+  return true;
 }
 /* One row's lookup. The identity is shared, so two rows of the same
    specification wait on ONE request; the ranking is each row's own, because

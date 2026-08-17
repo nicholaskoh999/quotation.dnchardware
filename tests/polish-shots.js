@@ -94,7 +94,7 @@ const open = async (browser, records, msg, h) => {
   // ── 4 · the row's own controls, open and shut ────────────────────────────
   {
     const page = await open(browser, [REC({})]);
-    await page.evaluate(() => document.querySelector('[data-wqa-row="1"] .wqa-row-edit').click());
+    await page.evaluate(() => document.querySelector('[data-wqa-row="1"] .wqa-row-details').click());
     await page.waitForTimeout(500);
     await shot(page, '4-row-controls', '#wqaRows');
     await page.close();
