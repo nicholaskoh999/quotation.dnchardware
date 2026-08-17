@@ -25,3 +25,7 @@ audit-out/
 Thumbs.db
 *.swp
 *~
+
+# Generated when the release archive is built: it names the commit it was
+# built FROM, which is a thing a committed file cannot do about itself.
+ZIP-MANIFEST.txt
