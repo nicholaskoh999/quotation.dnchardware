@@ -5,8 +5,9 @@ BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 FINAL APPLICATION SHA
-                dd15663cc391546ae4cac34026b00e23cd083358
-                "The screen, read in 中文, and the hook nothing ever applied"
+                4210c1b764293c6a028d94574e644134f718de0a
+                "Quick Add is called Quick Add, and its scope is the one the
+                 parser has"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
@@ -35,7 +36,7 @@ repair. The manually verified case still answers what it answered:
 Evidence frame F states that calculation on one screen and FAILS the run if the
 answer ever stops being RM 10.97.
 
-AUDIT COMMITS (11, oldest first)
+AUDIT COMMITS (13, oldest first)
 --------------------------------
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
@@ -49,6 +50,10 @@ AUDIT COMMITS (11, oldest first)
   772716f  The SHA a report can honestly name
   82ddc1d  The manifest names the commit, so it cannot be in it
   dd15663  The screen, read in 中文, and the hook nothing ever applied
+  d2069c2  The closing round, told from one SHA and one set of counts
+  4907667  The logs the reports name, actually inside the package
+  4210c1b  Quick Add is called Quick Add, and its scope is the one the
+           parser has
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made
@@ -90,21 +95,29 @@ AUDIT COMMITS (11, oldest first)
            product forms lost their Price Mode control in 中文, because the
            injector looked its anchor up by the English word "Pricing".
 
+  4210c1b  UI COPY. The homepage entry called "WhatsApp Quick Add" when a
+           photograph, a screenshot, a drawing and a PDF go through the same
+           door — renamed Quick Add / 快速添加, with a subtitle that says what
+           actually goes in. And the product scope, which named three products
+           while WQA_PRODUCTS reads five: off the button, stated once inside
+           the modal beside the box it describes, and complete. Suite 33 §2b
+           asserts that list against WQA_PRODUCTS itself, not a copy.
+
 FILES CHANGED (baseline -> final)
 ---------------------------------
    companies.php                            |  240 +++--
-   index.php                                | 1608 +++++++++++++++++++++-------
-   tests/audit-shots.js                     |  561 +++++++++++
-   tests/lib/dom-i18n.js                    |  243 +++++
-   tests/lib/harness.js                     |   74 +-
-   tests/suites/26-thread-reference.test.js |   60 ++
-   tests/suites/29-quantity.test.js         |  372 +++++++
-   tests/suites/30-language.test.js         |  362 +++++++
-   tests/suites/31-size-system.test.js      |  246 +++++
-   tests/suites/32-responsive.test.js       |  124 +++
-   tests/suites/33-rendered-i18n.test.js    |  402 ++++++++
-   tests/tools/check-translations.js        |  617 ++++++++++++
-   12 files changed, 4377 insertions(+), 532 deletions(-)
+    index.php                                | 1622 +++++++++++++++++++++---------
+    tests/audit-shots.js                     |  561 +++++++++++
+    tests/lib/dom-i18n.js                    |  243 +++++
+    tests/lib/harness.js                     |   74 +-
+    tests/suites/26-thread-reference.test.js |   60 ++
+    tests/suites/29-quantity.test.js         |  372 +++++++
+    tests/suites/30-language.test.js         |  362 +++++++
+    tests/suites/31-size-system.test.js      |  246 +++++
+    tests/suites/32-responsive.test.js       |  124 +++
+    tests/suites/33-rendered-i18n.test.js    |  476 +++++++++
+    tests/tools/check-translations.js        |  617 ++++++++++++
+    12 files changed, 4459 insertions(+), 538 deletions(-)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
