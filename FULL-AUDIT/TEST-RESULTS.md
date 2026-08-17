@@ -13,7 +13,7 @@ against itself.
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
 > commit it is inside without changing it; the exact HEAD the archive was built
-> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> from is recorded in `MANIFEST/MANIFEST.txt`, which is generated at build time and
 > is not committed.
 
 ---
@@ -35,13 +35,17 @@ against itself.
 | **TOTAL ASSERTIONS** | **3,958** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+1,148 assertions**, all
-of them new coverage — 3,338 after the morning repair, 142 from the closing
-round, 5 from the UI polish, 59 from the compact row's pricing summary, 135
-from Fast Edit and the diameter contract (suites 35 and 36), and 120 from the
-workflow polish round: suite 37 is new at 78, and suites 33 and 36 grew by the
-assertions that hold the Escape provenance fix and the 中文 coverage of the
-new surfaces.
+| | |
+|---|---:|
+| Baseline | 2,810 assertions |
+| Final | 3,958 assertions |
+| Delta | **+1,148 assertions** |
+
+Every one of those is new coverage over a defect this audit reproduced. The
+per-round breakdown that used to sit here has been removed rather than
+corrected: it mixed absolute totals with increments and no longer reconciled
+to anything, and a sum that does not add up is worse than no sum. The commits
+are listed one by one in `COMMIT-INFO.txt`, each naming what it added.
 
 **Skipped or environment-limited: none.** Every suite named in the brief ran to
 completion and is counted above. The pricing-workbook check takes the workbook

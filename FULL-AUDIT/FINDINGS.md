@@ -32,7 +32,7 @@ repaired. The regression that reproduces it is named against each one.
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
 > commit it is inside without changing it; the exact HEAD the archive was built
-> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> from is recorded in `MANIFEST/MANIFEST.txt`, which is generated at build time and
 > is not committed.
 
 ---

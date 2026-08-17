@@ -62,8 +62,13 @@ const HISTORICAL = /historical|superseded|baseline|previously|earlier|former|no 
 /* A line stating a DIFFERENCE is not stating a current total. "1,148
    assertions larger than it was" and "up from 512 keys" are both true and
    both about growth, so the figure in them is deliberately not the current
-   one — flagging those would push a report towards saying less. */
-const DELTA = /\blarger than\b|\bup from\b|\bgrew\b|\bmore than it was\b|\+\d/i;
+   one — flagging those would push a report towards saying less.
+
+   `\+\d` used to be in this list, and that was a hole: it exempted ANY line
+   carrying a +number, which is exactly the shape a stale delta has. "+869
+   this round" sailed through on the strength of its own plus sign. Deltas are
+   checked explicitly below instead of being waved past here. */
+const DELTA = /\blarger than\b|\bup from\b|\bgrew\b|\bmore than it was\b/i;
 
 const REPORTS = ['EXECUTIVE-SUMMARY.md', 'FULL-AUDIT-REPORT.md', 'FINDINGS.md',
                  'TEST-RESULTS.md', 'TRANSLATION-AUDIT.md', 'BUSINESS-DECISIONS-NEEDED.md'];
@@ -89,7 +94,7 @@ for (const f of REPORTS) {
     if (HISTORICAL.test(line)) return;
     for (const h of (line.match(shaRe) || [])) {
       if (!/[a-f]/.test(h)) continue;
-      if (AUTH.APP_SHA.startsWith(h) || AUTH.BASELINE.startsWith(h)) continue;
+      if (AUTH.APP_SHA.startsWith(h) || AUTH.BASELINE_SHA.startsWith(h)) continue;
       fail.push(`FAIL ${f}:${i + 1} presents ${h} as current\n       ${line.trim().slice(0, 96)}`);
     }
   });
@@ -110,6 +115,17 @@ for (const f of ALL_DOCS.concat(ARTIFACTS)) {
   });
 }
 check(true, `${STALE.length} stale patterns swept across ${ALL_DOCS.length + ARTIFACTS.length} artifacts`);
+
+/* The package's manifest lives at MANIFEST/MANIFEST.txt. It was called
+   ZIP-MANIFEST.txt when there were two archives, and the reports went on
+   pointing a reviewer at a filename the package no longer contains. */
+for (const f of ALL_DOCS) {
+  read(f).split('\n').forEach((line, i) => {
+    if (/ZIP-MANIFEST\.txt/.test(line))
+      fail.push(`FAIL ${f}:${i + 1} points at ZIP-MANIFEST.txt — the package has MANIFEST/MANIFEST.txt`);
+  });
+}
+check(true, 'no report points at the retired ZIP-MANIFEST.txt');
 
 // ══ 3 · findings ══════════════════════════════════════════════════════════
 const findings = read('FINDINGS.md');
@@ -163,7 +179,10 @@ for (const f of ALL_DOCS) {
   const t = read(f);
   t.split('\n').forEach((line, i) => {
     if (HISTORICAL.test(line) || DELTA.test(line)) return;
-    for (const m of line.matchAll(/(\d[\d,]{3,})\s+assertions/g)) {
+    /* A figure preceded by "+" is a DELTA and is checked as one, against the
+       arithmetic, a few lines below. Reading it here as a total would flag
+       the correct "+1,148 assertions" for not being a grand total. */
+    for (const m of line.matchAll(/(?<![+\d,])(\d[\d,]{3,})\s+assertions/g)) {
       const n = Number(m[1].replace(/,/g, ''));
       if (n !== AUTH.BROWSER && n !== AUTH.TOTAL)
         fail.push(`FAIL ${f}:${i + 1} says "${m[0]}" — the run is ${fmt(AUTH.BROWSER)} / ${fmt(AUTH.TOTAL)}`);
@@ -171,6 +190,32 @@ for (const f of ALL_DOCS) {
     for (const m of line.matchAll(/(\d+) suites/g)) {
       if (Number(m[1]) !== AUTH.SUITES)
         fail.push(`FAIL ${f}:${i + 1} says "${m[0]}" — the run had ${AUTH.SUITES}`);
+    }
+  });
+}
+
+// ══ 4b · the delta, and the arithmetic that has to hold ══════════════════
+/* Three numbers that must reconcile: where the matrix started, where it is,
+   and the distance between. Checked as arithmetic rather than as three
+   independent claims, because the way this went wrong was a delta drifting
+   away from totals that were themselves correct. */
+check(AUTH.BASELINE + AUTH.DELTA === AUTH.TOTAL,
+  `${fmt(AUTH.BASELINE)} baseline + ${fmt(AUTH.DELTA)} delta = ${fmt(AUTH.TOTAL)} final`);
+
+for (const f of ALL_DOCS) {
+  read(f).split('\n').forEach((line, i) => {
+    /* every "+N assertions" claim, and every "+N this round" */
+    for (const m of line.matchAll(/\+\s?(\d[\d,]*)\s*(?:assertions|this round)/gi)) {
+      const n = Number(m[1].replace(/,/g, ''));
+      if (n !== AUTH.DELTA)
+        fail.push(`FAIL ${f}:${i + 1} claims a delta of ${m[0]} — it is +${fmt(AUTH.DELTA)}`
+          + `\n       ${line.trim().slice(0, 96)}`);
+    }
+    /* and every baseline figure quoted as the comparison point */
+    for (const m of line.matchAll(/[Bb]aseline[^.]{0,40}?(\d[\d,]{3,})\s+assertions/g)) {
+      const n = Number(m[1].replace(/,/g, ''));
+      if (n !== AUTH.BASELINE)
+        fail.push(`FAIL ${f}:${i + 1} quotes a baseline of ${m[1]} — it is ${fmt(AUTH.BASELINE)}`);
     }
   });
 }
@@ -226,14 +271,14 @@ check(missing.length === 0, `every evidence file a report names exists${
    wrote the list became a member of the list. */
 const dirCount = d => fs.readdirSync(path.join(AUDIT, d)).filter(n => !n.startsWith('.')).length;
 function blocks() {
-  const list = git('log', '--reverse', '--format=%h\t%s', AUTH.BASELINE + '..' + AUTH.APP_SHA)
+  const list = git('log', '--reverse', '--format=%h\t%s', AUTH.BASELINE_SHA + '..' + AUTH.APP_SHA)
     .split('\n').filter(Boolean)
     .map(l => { const [h, ...r] = l.split('\t'); return `  ${h}  ${r.join('\t')}`; });
   return {
     HEADER: [
       `BRANCH          ${git('rev-parse', '--abbrev-ref', 'HEAD')}`,
-      `BASELINE SHA    ${AUTH.BASELINE}`,
-      `                "${git('log', '-1', '--format=%s', AUTH.BASELINE)}"`,
+      `BASELINE SHA    ${AUTH.BASELINE_SHA}`,
+      `                "${git('log', '-1', '--format=%s', AUTH.BASELINE_SHA)}"`,
       `APPLICATION COMMIT`,
       `                ${AUTH.APP_SHA}`,
       `                "${git('log', '-1', '--format=%s', AUTH.APP_SHA)}"`,
@@ -249,9 +294,9 @@ function blocks() {
       `                application one carry this package, and a document`,
       `                cannot name the commit it is inside without changing`,
       `                it. The exact HEAD an archive was built from is recorded`,
-      `                in that archive's own MANIFEST, generated at build time`,
-      `                and never committed — the one place that can honestly`,
-      `                state it.`,
+      `                in that archive's own MANIFEST/MANIFEST.txt, generated`,
+      `                at build time and never committed — the one place that`,
+      `                can honestly state it.`,
       `DEPLOYED        NO — nothing was deployed, and nothing was run against`,
       `                production data. Every test drives the shipped code`,
       `                against a controlled API in a local browser.`,
@@ -285,6 +330,10 @@ function blocks() {
       `  TOTAL ASSERTIONS                     ${fmt(AUTH.TOTAL).padStart(6)}`,
       `  TOTAL FAILED                              ${AUTH.FAILED}`,
       `  SKIPPED / ENVIRONMENT-LIMITED             ${AUTH.SKIPPED}`,
+      ``,
+      `  Baseline:  ${fmt(AUTH.BASELINE).padStart(6)} assertions`,
+      `  Final:     ${fmt(AUTH.TOTAL).padStart(6)} assertions`,
+      `  Delta:     ${('+' + fmt(AUTH.DELTA)).padStart(6)} assertions`,
     ].join('\n'),
   };
 }

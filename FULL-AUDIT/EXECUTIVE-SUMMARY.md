@@ -9,7 +9,7 @@ Final application SHA `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` · **NOT DEPLOY
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
 > commit it is inside without changing it; the exact HEAD the archive was built
-> from is recorded in `ZIP-MANIFEST.txt`, which is generated at build time and
+> from is recorded in `MANIFEST/MANIFEST.txt`, which is generated at build time and
 > is not committed.
 
 ---

@@ -16,13 +16,21 @@
 
 module.exports = {
   APP_SHA:  '7f5bc977197a658d6d4db995ee2c9bb5e106e21b',
-  BASELINE: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
+  BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 37,
   BROWSER: 3613,
   TOTAL: 3958,
   FAILED: 0,
   SKIPPED: 0,
+
+  /* Where this started, and how far it moved. Stated as three numbers whose
+     arithmetic the checker verifies — BASELINE + DELTA must equal TOTAL — so
+     a delta cannot drift away from the totals it sits between. The older
+     per-round breakdowns are gone: they mixed absolutes with increments and
+     stopped reconciling to anything. */
+  BASELINE: 2810,
+  DELTA: 1148,
   SIDE: { 'pricing-history-php.log': 161, 'ai-extract-php.log': 107,
           'pricing-workbook.log': 62, 'translation-coverage.log': 15 },
 

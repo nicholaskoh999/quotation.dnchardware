@@ -20,9 +20,9 @@ PACKAGE / HEAD COMMIT
                 application one carry this package, and a document
                 cannot name the commit it is inside without changing
                 it. The exact HEAD an archive was built from is recorded
-                in that archive's own MANIFEST, generated at build time
-                and never committed — the one place that can honestly
-                state it.
+                in that archive's own MANIFEST/MANIFEST.txt, generated
+                at build time and never committed — the one place that
+                can honestly state it.
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code
                 against a controlled API in a local browser.
@@ -30,14 +30,14 @@ DEPLOYED        NO — nothing was deployed, and nothing was run against
 
 WORKING TREE    clean at the final commit
 
-There is exactly ONE final application SHA and it is the one above: the last
-commit that changed index.php, companies.php, the API or the tests. Every
-report in this package quotes it and no other, and every number in this package
-was measured against it.
+There is exactly ONE application SHA and it is the one above. Every report in
+this package quotes it and no other, and every number in this package was
+measured against it.
 
 The commits after it write this package. A report cannot name the commit it is
 inside without changing that commit, so the exact HEAD the archive was built
-from is recorded in ZIP-MANIFEST.txt, generated at build time and not committed.
+from is recorded in the archive's own MANIFEST/MANIFEST.txt, generated at build
+time and never committed.
 
 PRICING — UNCHANGED THIS ROUND
 ------------------------------
@@ -266,14 +266,15 @@ TEST MATRIX AT FINAL SHA
   TOTAL ASSERTIONS                      3,958
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
+
+  Baseline:   2,810 assertions
+  Final:      3,958 assertions
+  Delta:     +1,148 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
   Browser console errors      none, asserted per page at every viewport
   Rendered 中文 DOM           12 states, 0 English runs outside the allowlist
-
-  Baseline for comparison: 2,810 assertions, 0 failed.  +869 this round
-  (3,338 morning; +142 closing; +5 polish; +59 row summary; +135 edit/diameter).
 
 FINDINGS
 --------

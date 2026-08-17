@@ -1075,23 +1075,34 @@ const historyApi = records => ({
     }
 
     /* C04 · Accessories with nothing selected: both actions refused.
-       The first capture of this was misleading — it still carried the toast
-       from the setup step that had just applied an accessory to every row, so
-       a frame meant to prove a REFUSAL displayed the words "Accessories
-       applied to all items". The success message was true when it appeared
-       and false about what the frame was showing.
+       Two earlier attempts at this frame were unconvincing, in two different
+       ways, and both are worth naming because they are the two ways evidence
+       goes wrong.
 
-       So the toast is cleared and its transition allowed to finish before the
-       shutter, and the frame asserts that the screen carries no success
-       message at the moment it is taken. Both languages, because the refusal
-       is one of the strings a 中文 reader most needs. */
-    for (const [lang, want, name] of [
-      ['en', 'Select at least one item.',  'C04-accessories-zero-selected'],
-      ['zh', '请至少选择一个项目。',        'C04b-accessories-zero-selected-chinese'],
+       The first carried the toast from the setup step that had just applied
+       an accessory to every row, so a frame meant to prove a REFUSAL showed
+       the words "Accessories applied to all items". The message was true when
+       it appeared and false about what the frame was showing.
+
+       The second cleared the toast and asserted the refusal through the DOM —
+       and a DOM assertion is not a screenshot. The reviewer looks at the
+       picture. So this run now measures every element the frame is supposed
+       to prove and refuses to save unless each one is INSIDE the captured
+       rectangle: the scope on Selected Items, the count reading zero, both
+       accessory actions visibly dimmed, and the refusal sentence itself.
+
+       A taller viewport and a scroll into view, because "it is in the DOM
+       somewhere below the fold" is exactly the claim this is meant to end. */
+    for (const [lang, want, scopeWord, name] of [
+      ['en', 'Select at least one item.', 'Selected Items',
+       'C04-accessories-zero-selected'],
+      ['zh', '请至少选择一个项目。', '选定项目',
+       'C04b-accessories-zero-selected-chinese'],
     ]) {
-      const page = await openApp(browser);
+      const page = await openApp(browser, { viewport: { width: 1500, height: 1400 } });
       await setLang(page, lang);
-      await quickAddPaste(page, TWENTY, { expanded: false, settle: 1800 });
+      await quickAddPaste(page, 'MS SAG ROD ZP UNDERSIZE\nM12 x 853 x 70/70 - 4pcs\nM16 x 500 x 70/70 - 2pcs\nM20 x 620 x 70/70 - 3pcs',
+        { expanded: false, settle: 1400 });
       await page.evaluate(() => {
         wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('acc');
         wqaEditCommonAcc('nut', 'enabled', true); wqaApplyAccToAll();
@@ -1100,41 +1111,76 @@ const historyApi = records => ({
       await page.evaluate(() => { wqaSetApplyScope('selected'); wqaClearSel(); });
       await page.waitForTimeout(900);
 
-      /* Clear the setup's own confirmation and let it finish fading, so the
-         frame shows the state and nothing about how it was reached. */
+      /* The setup's own confirmation, cleared and given time to finish fading,
+         so the frame shows the state and nothing about how it was reached. */
       await page.evaluate(() => {
-        const t = el('toast');
-        t.classList.remove('show'); t.textContent = '';
+        const t = el('toast'); t.classList.remove('show'); t.textContent = '';
       });
       await page.waitForTimeout(500);
 
+      /* Bring the refusal into view, then let the scroll settle. */
+      await page.evaluate(() => {
+        const n = document.querySelector('#wqaCommonAcc .wqa-none-sel');
+        if (n && n.scrollIntoView) n.scrollIntoView({ block: 'center' });
+      });
+      await page.waitForTimeout(600);
+
       const g = await page.evaluate(() => {
-        const clear = document.querySelector('#wqaCommonAcc [data-wqa-needsel]');
-        const apply = document.querySelector('#wqaCommonAcc [data-wqa-apply]');
-        const msg = document.querySelector('#wqaCommonAcc .wqa-none-sel');
+        const q = s => document.querySelector(s);
+        const seen = n => {
+          if (!n) return null;
+          const r = n.getBoundingClientRect();
+          const st = getComputedStyle(n);
+          return {
+            inFrame: r.width > 0 && r.height > 0 && r.top >= 0 && r.left >= 0
+                  && r.bottom <= window.innerHeight && r.right <= window.innerWidth,
+            text: (n.textContent || '').replace(/\s+/g, ' ').trim(),
+            opacity: Number(st.opacity),
+            disabled: !!n.disabled,
+          };
+        };
         const scopeOn = [...document.querySelectorAll('.wqa-scope .wqa-view-btn')]
-          .filter(n => n.classList.contains('is-on')).map(n => n.textContent.trim()).join('');
+          .find(n => n.classList.contains('is-on'));
         const t = el('toast');
         return {
-          clear: !!clear && clear.disabled, apply: !!apply && apply.disabled,
-          msg: msg && !msg.hidden ? msg.textContent.trim() : '',
-          scopeOn, sel: wqaSelCount(),
-          bar: (el('wqaSelBar') || {}).textContent.replace(/\s+/g, ' ').trim() || '',
+          scope:  seen(scopeOn),
+          bar:    seen(q('#wqaSelBar')),
+          apply:  seen(q('#wqaCommonAcc [data-wqa-apply]')),
+          clear:  seen(q('#wqaCommonAcc [data-wqa-needsel]')),
+          refuse: seen(q('#wqaCommonAcc .wqa-none-sel')),
+          sel: wqaSelCount(),
           toast: (t.textContent || '').trim(),
           toastShown: t.classList.contains('show'),
           kept: wqa.rows.filter(r => wqaAccHas(r.acc)).length,
         };
       });
-      if (!g.clear || !g.apply)
-        throw new Error(`C04 ${lang}: an accessory action is still pressable`);
-      if (g.msg !== want)
-        throw new Error(`C04 ${lang}: the refusal reads "${g.msg}", expected "${want}"`);
-      if (g.sel !== 0) throw new Error(`C04 ${lang}: ${g.sel} rows are selected, expected 0`);
+
+      const must = { scope: g.scope, 'selection bar': g.bar, Apply: g.apply,
+                     Clear: g.clear, refusal: g.refuse };
+      for (const [what, m] of Object.entries(must)) {
+        if (!m) throw new Error(`C04 ${lang}: the ${what} is not on the page at all`);
+        if (!m.inFrame) throw new Error(`C04 ${lang}: the ${what} is outside the captured frame`);
+      }
+      if (g.sel !== 0) throw new Error(`C04 ${lang}: ${g.sel} rows selected, expected 0`);
+      if (!g.scope.text.includes(scopeWord))
+        throw new Error(`C04 ${lang}: the scope reads "${g.scope.text}", expected ${scopeWord}`);
+      if (!/\b0\b|^0|零/.test(g.bar.text))
+        throw new Error(`C04 ${lang}: the bar reads "${g.bar.text}" and does not show a zero count`);
+      if (g.refuse.text !== want)
+        throw new Error(`C04 ${lang}: the refusal reads "${g.refuse.text}", expected "${want}"`);
+      /* Disabled has to be visible, not merely true: the stylesheet takes a
+         disabled button to 45% opacity, so a reviewer can see it is dead. */
+      for (const [what, m] of [['Apply', g.apply], ['Clear', g.clear]]) {
+        if (!m.disabled) throw new Error(`C04 ${lang}: ${what} is still pressable`);
+        if (!(m.opacity < 0.9))
+          throw new Error(`C04 ${lang}: ${what} is disabled but drawn at full strength (${m.opacity})`);
+      }
       if (g.toast || g.toastShown)
         throw new Error(`C04 ${lang}: a stale message is still on screen — "${g.toast}"`);
-      console.log(`      C04 ${lang} · scope "${g.scopeOn}" · ${g.sel} selected · `
-        + `Apply and Clear disabled · "${g.msg}" · no message on screen · `
-        + `${g.kept} rows keep their accessory`);
+
+      console.log(`      C04 ${lang} · all five in frame · scope "${g.scope.text}" · `
+        + `"${g.bar.text}" · Apply and Clear disabled at ${g.apply.opacity} opacity · `
+        + `"${g.refuse.text}" · no message on screen · ${g.kept} rows keep their accessory`);
       await shot(page, name);
       await page.close();
     }
