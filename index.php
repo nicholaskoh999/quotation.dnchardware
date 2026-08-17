@@ -2470,7 +2470,7 @@ input,select,textarea{
           <div class="nm" id="qiName">No customer yet</div>
           <div class="meta summary-meta">
             <span class="sum-chip" id="qiRefDisp">Quotation No. —</span>
-            <span class="sum-chip" id="qiDateDisp">Date —</span>
+            <span class="sum-chip" id="qiDateDisp" data-i18n="lblDateDash">Date —</span>
           </div>
           <div class="quote-status-row">
             <span class="quote-status-badge draft" id="quoteStatusBadge">New Draft</span>
@@ -2589,7 +2589,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="sagrod-customEnabled"><input type="checkbox" id="sagrod-customEnabled" onchange="onAccChange('sagrod')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="sagrod-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('sagrod')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="sagrod-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('sagrod')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="sagrod-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('sagrod')"></div>
               </div>
             </div>
@@ -2644,7 +2644,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="stud-customEnabled"><input type="checkbox" id="stud-customEnabled" onchange="onAccChange('stud')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="stud-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('stud')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="stud-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('stud')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="stud-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('stud')"></div>
               </div>
             </div>
@@ -2704,7 +2704,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="anchorbolt-customEnabled"><input type="checkbox" id="anchorbolt-customEnabled" onchange="onAccChange('anchorbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="anchorbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('anchorbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="anchorbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('anchorbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="anchorbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('anchorbolt')"></div>
               </div>
             </div>
@@ -2759,7 +2759,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="ubolt-customEnabled"><input type="checkbox" id="ubolt-customEnabled" onchange="onAccChange('ubolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="ubolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('ubolt')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="ubolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('ubolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="ubolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('ubolt')"></div>
               </div>
             </div>
@@ -2814,7 +2814,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="squbolt-customEnabled"><input type="checkbox" id="squbolt-customEnabled" onchange="onAccChange('squbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="squbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('squbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="squbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('squbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="squbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('squbolt')"></div>
               </div>
             </div>
@@ -2869,7 +2869,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="lbolt-customEnabled"><input type="checkbox" id="lbolt-customEnabled" onchange="onAccChange('lbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="lbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('lbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="lbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('lbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="lbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('lbolt')"></div>
               </div>
             </div>
@@ -2925,7 +2925,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="jbolt-customEnabled"><input type="checkbox" id="jbolt-customEnabled" onchange="onAccChange('jbolt')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="jbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('jbolt')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="jbolt-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('jbolt')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="jbolt-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('jbolt')"></div>
               </div>
             </div>
@@ -2978,10 +2978,10 @@ input,select,textarea{
           <div class="field full" id="plate-f-hole">
             <label data-i18n="lblHoleOption">Hole Option</label>
             <div class="hole-pills">
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="none" checked onchange="onHoleOptionChange()"><span class="hole-pill-main">No Hole</span><span class="hole-pill-zh">无洞</span></label>
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="center" onchange="onHoleOptionChange()"><span class="hole-pill-main">Center Hole</span><span class="hole-pill-zh">中间开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="corners" onchange="onHoleOptionChange()"><span class="hole-pill-main">4 Corner Holes</span><span class="hole-pill-zh">四角开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="custom" onchange="onHoleOptionChange()"><span class="hole-pill-main">Custom Holes</span><span class="hole-pill-zh">自定义洞口</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="none" checked onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeNone">No Hole</span><span class="hole-pill-zh">无洞</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="center" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCenter">Center Hole</span><span class="hole-pill-zh">中间开洞</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="corners" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCorners">4 Corner Holes</span><span class="hole-pill-zh">四角开洞</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="custom" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCustom">Custom Holes</span><span class="hole-pill-zh">自定义洞口</span></label>
             </div>
           </div>
           <div class="field" id="plate-f-hd" style="display:none"><label data-i18n="lblHoleDia">Hole Dia.</label><input type="number" id="plate-hd" placeholder="mm, e.g. 30" step="0.1" min="0.1" oninput="calcPlate()"></div>
@@ -3020,7 +3020,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="plate-customEnabled"><input type="checkbox" id="plate-customEnabled" onchange="onAccChange('plate')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="plate-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('plate')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="plate-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('plate')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="plate-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('plate')"></div>
               </div>
             </div>
@@ -3097,10 +3097,10 @@ input,select,textarea{
           <div class="field full">
             <label data-i18n="lblHoleOption">Hole Option</label>
             <div class="hole-pills">
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="none" checked onchange="onWASHoleChange()"><span class="hole-pill-main">No Hole</span><span class="hole-pill-zh">无洞</span></label>
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="center" onchange="onWASHoleChange()"><span class="hole-pill-main">Center Hole</span><span class="hole-pill-zh">中间开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="corners" onchange="onWASHoleChange()"><span class="hole-pill-main">4 Corner Holes</span><span class="hole-pill-zh">四角开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="custom" onchange="onWASHoleChange()"><span class="hole-pill-main">Custom Holes</span><span class="hole-pill-zh">自定义洞口</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="none" checked onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeNone">No Hole</span><span class="hole-pill-zh">无洞</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="center" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCenter">Center Hole</span><span class="hole-pill-zh">中间开洞</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="corners" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCorners">4 Corner Holes</span><span class="hole-pill-zh">四角开洞</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="custom" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCustom">Custom Holes</span><span class="hole-pill-zh">自定义洞口</span></label>
             </div>
           </div>
           <div class="field" id="was-bp-hd-wrap" style="display:none"><label data-i18n="lblHoleDiaMm">Hole Dia.</label>
@@ -3159,7 +3159,7 @@ input,select,textarea{
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="was-customEnabled"><input type="checkbox" id="was-customEnabled" onchange="onAccChange('was')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label">Text</span><input type="text" id="was-customText" data-i18n-ph="phEgWelding" placeholder="e.g. welding" disabled oninput="onAccChange('was')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="was-customText" data-i18n-ph="phEgWelding" placeholder="e.g. welding" disabled oninput="onAccChange('was')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="was-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('was')"></div>
               </div>
             </div>
@@ -3198,7 +3198,7 @@ input,select,textarea{
         </div>
         <div class="price-mode-preview" id="priceModePreview">
           <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
-          <div><span data-i18n="lblPriceMode">Price Mode</span><strong id="pmPreviewMode">Auto Round</strong></div>
+          <div><span data-i18n="lblPriceMode">Price Mode</span><strong id="pmPreviewMode" data-i18n="pmAutoRound">Auto Round</strong></div>
           <div><span data-i18n="lblFinalUnitPrice">Final Unit Price</span><strong id="pmPreviewFinal">RM 0.00</strong></div>
         </div>
         <div class="was-breakdown" id="wasBreakdown" aria-live="polite">
@@ -3207,28 +3207,28 @@ input,select,textarea{
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblBasePlate">Base Plate</span><span class="was-breakdown-value" id="wasBreakdownBasePlate">—</span></div>
           <div class="was-breakdown-row" id="wasBreakdownTriangleRow"><span class="was-breakdown-label" data-i18n="lblTrianglePlate">Triangle Plate</span><span class="was-breakdown-value" id="wasBreakdownTriangle">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblAdditionalCost">Additional Cost</span><span class="was-breakdown-value" id="wasBreakdownAdditional">—</span></div>
-          <div class="was-breakdown-row"><span class="was-breakdown-label">Accessories</span><span class="was-breakdown-value" id="wasBreakdownAccessories">—</span></div>
+          <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblAccessories">Accessories</span><span class="was-breakdown-value" id="wasBreakdownAccessories">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblBasePrice">Base Price</span><span class="was-breakdown-value was-breakdown-total" id="wasBreakdownBasePrice">—</span></div>
           <div class="was-breakdown-row"><span class="was-breakdown-label" data-i18n="lblFinalUnitPrice">Final Unit Price</span><span class="was-breakdown-value was-breakdown-total" id="wasBreakdownFinal">—</span></div>
         </div>
         <div class="ubolt-debug-wrap" id="uboltDebugWrap">
           <div class="ubolt-debug-head">
-            <div class="ubolt-debug-title">U-Bolt Price Debug <span>Internal only</span></div>
+            <div class="ubolt-debug-title"><span data-i18n="ubDebugTitle">U-Bolt Price Debug</span> <span data-i18n="ubDebugInternal">Internal only</span></div>
             <button type="button" class="ubolt-debug-toggle" id="uboltDebugToggle" onclick="toggleUBoltDebug()" data-i18n="lblShowDebug">Show Debug</button>
           </div>
           <div class="ubolt-debug-panel" id="uboltDebugPanel">
             <div class="ubolt-debug-cell">Diameter<strong id="ubDebugDiameter">—</strong></div>
             <div class="ubolt-debug-cell">ID<strong id="ubDebugId">—</strong></div>
             <div class="ubolt-debug-cell">IH<strong id="ubDebugIh">—</strong></div>
-            <div class="ubolt-debug-cell">Thread Length<strong id="ubDebugThreadLen">—</strong></div>
-            <div class="ubolt-debug-cell">Total Length<strong id="ubDebugTotalLen">—</strong></div>
-            <div class="ubolt-debug-cell">Unit Weight<strong id="ubDebugWeight">—</strong></div>
-            <div class="ubolt-debug-cell">Cost Rate<strong id="ubDebugCostRate">—</strong></div>
-            <div class="ubolt-debug-cell">Additional Cost<strong id="ubDebugAddCost">—</strong></div>
-            <div class="ubolt-debug-cell">Markup<strong id="ubDebugMarkup">—</strong></div>
-            <div class="ubolt-debug-cell">Base Price<strong id="ubDebugBase">—</strong></div>
-            <div class="ubolt-debug-cell">Before Rounding<strong id="ubDebugBeforeRound">—</strong></div>
-            <div class="ubolt-debug-cell">After Rounding<strong id="ubDebugAfterRound">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="lblThreadLength">Thread Length</span><strong id="ubDebugThreadLen">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="ubTotalLength">Total Length</span><strong id="ubDebugTotalLen">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="lblUnitWeight">Unit Weight</span><strong id="ubDebugWeight">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="lblCostRate">Cost Rate</span><strong id="ubDebugCostRate">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="lblAdditionalCost">Additional Cost</span><strong id="ubDebugAddCost">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="lblMarkup">Markup</span><strong id="ubDebugMarkup">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="lblBasePrice">Base Price</span><strong id="ubDebugBase">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="ubBeforeRounding">Before Rounding</span><strong id="ubDebugBeforeRound">—</strong></div>
+            <div class="ubolt-debug-cell"><span data-i18n="ubAfterRounding">After Rounding</span><strong id="ubDebugAfterRound">—</strong></div>
           </div>
         </div>
         <div class="dp-status" id="dpStatus">
@@ -3750,15 +3750,15 @@ input,select,textarea{
         <p data-i18n="pgCostRateIs">Cost Rate = material cost per kg.</p>
         <p class="cn" data-i18n="mCostRateExplain">Cost Rate = the material cost per kilogram.</p></div>
       <div class="ref-note"><h4 data-i18n="mExample">Example</h4>
-        <div class="ref-mini"><span data-i18n="mWeight2kg">Weight 2 kg</span><span>Cost Rate RM3.50/kg</span></div>
+        <div class="ref-mini"><span data-i18n="mWeight2kg">Weight 2 kg</span><span data-i18n="pgCostRateEg">Cost Rate RM3.50/kg</span></div>
         <p><strong><span data-i18n="mMatCostEg">Material Cost = 2 × 3.50 = RM7.00</span></strong></p></div>
     </div>
     <div class="ref-panel" id="ref-addcost">
       <div class="ref-note"><h4 data-i18n="lblAdditionalCost">Additional Cost</h4>
         <p data-i18n="pgUsedForExtra">Used for extra work, such as:</p>
-        <div class="ref-mini"><span>Thread processing</span><span>Drilling</span><span>Welding</span><span>Special process</span><span>Extra customer requirement</span></div></div>
+        <div class="ref-mini"><span data-i18n="pgThreadProcessing">Thread processing</span><span data-i18n="pgDrilling">Drilling</span><span data-i18n="pgWelding">Welding</span><span data-i18n="pgSpecialProcess">Special process</span><span data-i18n="pgExtraRequirement">Extra customer requirement</span></div></div>
       <div class="ref-note"><h4 data-i18n="mExample">Example</h4>
-        <div class="ref-mini"><span>Material Cost RM7.00</span><span>Additional Cost RM2.00</span></div>
+        <div class="ref-mini"><span data-i18n="pgMaterialCostEg">Material Cost RM7.00</span><span data-i18n="pgAddCostEg">Additional Cost RM2.00</span></div>
         <p><strong data-i18n="pgBasePriceEg">Base Price = RM7.00 + RM2.00 = RM9.00</strong></p></div>
     </div>
     <div class="ref-panel" id="ref-pricemode">
@@ -3767,11 +3767,11 @@ input,select,textarea{
         <div class="ref-mini"><span data-i18n="pgCalculated">Calculated RM3.47</span><span data-i18n="pgFinalByRule">→ Final Price by rounding rule</span></div></div>
       <div class="ref-note"><h4 data-i18n="pmNoRound">No Round</h4>
         <p data-i18n="pgNoRound">Keep the calculated price exactly as it is — no rounding applied.</p>
-        <div class="ref-mini"><span>Calculated RM3.47</span><span>Final RM3.47</span></div></div>
+        <div class="ref-mini"><span data-i18n="pgCalculatedEg">Calculated RM3.47</span><span data-i18n="pgFinalEg">Final RM3.47</span></div></div>
       <div class="ref-note"><h4 data-i18n="pmManualPrice">Manual Price</h4>
         <p data-i18n="pgManualPrice">Staff enters the final customer selling price directly.</p>
-        <div class="ref-mini"><span>Calculated RM3.47</span><span>Customer Price RM4.00</span></div>
-        <p><strong>System uses: RM4.00</strong></p></div>
+        <div class="ref-mini"><span data-i18n="pgCalculatedEg">Calculated RM3.47</span><span data-i18n="pgCustomerPriceEg">Customer Price RM4.00</span></div>
+        <p><strong data-i18n="pgSystemUsesEg">System uses: RM4.00</strong></p></div>
     </div>
     <div class="ref-panel" id="ref-examples">
       <div class="ref-note"><h4>Sag Rod / Stud / Anchor Bolt</h4>
@@ -3782,7 +3782,7 @@ input,select,textarea{
         <p data-i18n="pgAddCostUses">Additional Cost is used for: Nut, FW, extra processing.</p></div>
       <div class="ref-note"><h4>Plate</h4>
         <p data-i18n="pgHoleCost">Hole drilling / punching / laser cutting cost goes into Additional Cost.</p>
-        <div class="ref-mini"><span>Plate RM10.00</span><span>Drilling RM2.00</span></div>
+        <div class="ref-mini"><span data-i18n="pgPlateEg">Plate RM10.00</span><span data-i18n="pgDrillingEg">Drilling RM2.00</span></div>
         <p><strong data-i18n="pgBaseEg2">Base = RM10.00 + RM2.00 = RM12.00</strong></p></div>
     </div>
   </div>
@@ -3924,7 +3924,7 @@ input,select,textarea{
 <div class="modal-overlay" id="waTemplateModal">
   <div class="modal" style="max-width:680px">
     <div class="modal-title">
-      WhatsApp Message Template
+      <span data-i18n="waTemplateTitle">WhatsApp Message Template</span>
       <span style="display:block;font-size:11.5px;font-weight:600;color:var(--text-muted);margin-top:2px" data-i18n="waTemplateSub">WhatsApp message template</span>
       <button class="modal-close" onclick="closeModal('waTemplateModal')" style="align-self:flex-start">✕</button>
     </div>
@@ -4476,6 +4476,52 @@ const I18N={
     lblDimensionText:'Dimension Text', lblWeightMode:'Weight Mode',
     lblClearAllAcc:'Clear All Accessories', lblLoadMore:'Load more', lblShowDebug:'Show Debug',
     lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
+    /* The Quick Add review's own column headers and row controls. Built in
+       script on every render, so they never reached the attribute scan and
+       stayed English while everything around them switched. */
+    lblWeight:'Weight', lblActions:'Actions', btnHistory:'History', hdrNo:'#',
+    /* Accessory panels, the U-Bolt breakdown, the history panel and the
+       Others form: all built in script, none of them ever switched. */
+    lblCustomText:'Text', lblAccessories:'Accessories', lblCustom:'Custom',
+    lblTotalWeight:'Total Weight', lblAccessoriesColon:'Accessories:',
+    lblCurrentColon:'Current: {v}',
+    holeNone:'No Hole', holeCenter:'Center Hole', holeCorners:'4 Corner Holes',
+    holeCustom:'Custom Holes',
+    ubDebugTitle:'U-Bolt Price Debug', ubDebugInternal:'Internal only',
+    ubTotalLength:'Total Length', ubBeforeRounding:'Before Rounding',
+    ubAfterRounding:'After Rounding',
+    phLoading:'Loading pricing history…', phTitle:'Pricing History',
+    phRecordCount:'{n} record', phRecordCountPlural:'{n} records',
+    phThisCustomer:'{n} this customer', phOther:'{n} other',
+    impImported:'Imported: {n} rows',
+    wqaSkippedLines:'{n} line(s) not read as items (header/notes). They are ignored.',
+    wqaCustomerLabel:'Customer label: “{s}” · Detected as: {d}',
+    lblDateDash:'Date —',
+    /* The saved-quotation item card, the pricing-history record card and
+       Quick Open. All three build their own markup on every render. */
+    qiUnitWeight:'Unit Weight', qiTotal:'Total', qiAccessories:'Accessories',
+    qoSearching:'Searching…', qoFormerly:'Formerly {r}',
+    phOtherCustomer:'Other customer reference', phSameDims:'Same dimensions',
+    phDimsNotComparable:'Dimensions not comparable', phDiffersBy:'Differs by {d}',
+    phLegacyRecord:'Legacy record', phAccNotSeparable:'Accessories not separable',
+    phDiffFinish:'Different finish — quoted {f} · reference only',
+    phQtyLabel:'Qty {n}', phAccSeparately:'Accessories, separately:',
+    phShowingOf:'Showing {a} of {b} matching records',
+    waTemplateTitle:'WhatsApp Message Template',
+    /* The Pricing Guide's worked examples. The RM figures are numbers and
+       stay; the words beside them are words. */
+    pgCostRateEg:'Cost Rate RM3.50/kg', pgThreadProcessing:'Thread processing',
+    pgDrilling:'Drilling', pgWelding:'Welding', pgSpecialProcess:'Special process',
+    pgExtraRequirement:'Extra customer requirement',
+    pgMaterialCostEg:'Material Cost RM7.00', pgAddCostEg:'Additional Cost RM2.00',
+    pgCalculatedEg:'Calculated RM3.47', pgFinalEg:'Final RM3.47',
+    pgCustomerPriceEg:'Customer Price RM4.00', pgSystemUsesEg:'System uses: RM4.00',
+    pgPlateEg:'Plate RM10.00', pgDrillingEg:'Drilling RM2.00',
+    qiTotalPill:'Total',
+    lblUnitPriceShort:'Unit Price',
+    /* Written in Chinese only, so an English reader could not read it. */
+    pmManualGuide:'Manual Price is the final customer unit price — accessories are not added on top again.',
+    pmManualGuideEg:'Example: Bolt RM1.80 + accessories RM0.20 → enter Manual Price RM2.00',
     wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
   },
   zh:{
@@ -4835,6 +4881,42 @@ const I18N={
     lblDimensionText:'尺寸说明', lblWeightMode:'重量模式',
     lblClearAllAcc:'清除所有配件', lblLoadMore:'载入更多', lblShowDebug:'显示调试信息',
     lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
+    lblWeight:'重量', lblActions:'操作', btnHistory:'历史价格', hdrNo:'#',
+    lblCustomText:'文字', lblAccessories:'配件', lblCustom:'自定义',
+    lblTotalWeight:'总重量', lblAccessoriesColon:'配件：',
+    lblCurrentColon:'当前：{v}',
+    holeNone:'不开孔', holeCenter:'中心孔', holeCorners:'四角孔',
+    holeCustom:'自定义孔',
+    ubDebugTitle:'U-Bolt 价格明细', ubDebugInternal:'仅供内部查看',
+    ubTotalLength:'总长度', ubBeforeRounding:'进位前',
+    ubAfterRounding:'进位后',
+    phLoading:'正在载入历史价格…', phTitle:'历史价格',
+    phRecordCount:'{n} 条记录', phRecordCountPlural:'{n} 条记录',
+    phThisCustomer:'{n} 条本客户', phOther:'{n} 条其他客户',
+    impImported:'已导入：{n} 行',
+    wqaSkippedLines:'{n} 行未读作产品（标题／备注），已忽略。',
+    wqaCustomerLabel:'客户写的是「{s}」· 判定为：{d}',
+    lblDateDash:'日期 —',
+    qiUnitWeight:'单件重量', qiTotal:'合计', qiAccessories:'配件',
+    qoSearching:'搜索中…', qoFormerly:'原单号 {r}',
+    phOtherCustomer:'其他客户参考', phSameDims:'尺寸相同',
+    phDimsNotComparable:'尺寸无法比较', phDiffersBy:'相差 {d}',
+    phLegacyRecord:'旧记录', phAccNotSeparable:'配件无法拆分',
+    phDiffFinish:'表面处理不同 — 当时为 {f} · 仅供参考',
+    phQtyLabel:'数量 {n}', phAccSeparately:'配件（另计）：',
+    phShowingOf:'显示 {b} 条符合记录中的 {a} 条',
+    waTemplateTitle:'WhatsApp 消息模板',
+    pgCostRateEg:'每公斤成本 RM3.50/kg', pgThreadProcessing:'车牙加工',
+    pgDrilling:'钻孔', pgWelding:'焊接', pgSpecialProcess:'特殊加工',
+    pgExtraRequirement:'客户额外要求',
+    pgMaterialCostEg:'材料成本 RM7.00', pgAddCostEg:'额外加工费 RM2.00',
+    pgCalculatedEg:'计算结果 RM3.47', pgFinalEg:'最终 RM3.47',
+    pgCustomerPriceEg:'客户售价 RM4.00', pgSystemUsesEg:'系统采用：RM4.00',
+    pgPlateEg:'铁板 RM10.00', pgDrillingEg:'钻孔 RM2.00',
+    qiTotalPill:'合计',
+    lblUnitPriceShort:'单价',
+    pmManualGuide:'Manual Price 是最终客户单价，配件不会再另外加一次。',
+    pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → Manual Price 填 RM2.00',
     wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
   },
 };
@@ -4869,10 +4951,20 @@ function dcApplyLang(){
 }
 function dcSetLang(l){
   if(DC_LANGS.indexOf(l)<0) return;
-  const before=dcLang();
   try{ localStorage.setItem(DC_LANG_KEY,l); }catch(e){}   // private mode: session-only, still switches
   dcApplyLang();
-  if(before!==l) dcRelabel();
+  /* ── Always, even when the language did not change ────────────────────────
+     dcApplyLang writes each data-i18n element's text from the dictionary. For
+     an element whose text is COMPUTED that constant is a lie — "0 items" on a
+     counter showing 2 — and dcRelabel is what puts the real value back.
+
+     This used to be skipped when the chosen language was the one already in
+     force, which is exactly what pressing the active EN or 中文 button does.
+     The attribute scan then ran on its own and the Quick Add footer went to
+     "0 项" with two rows on the screen, the Add button losing its count with
+     it. Eighteen elements in this file have computed text and a constant
+     declared beside it; this is the one line that keeps all of them honest. */
+  dcRelabel();
 }
 /* Screens that build their own markup cannot be re-labelled by the attribute
    scan above, so each localisation commit registers its renderer here. One
@@ -7228,8 +7320,11 @@ dcOnRelabel(()=>{
     try{ wqaRenderCommonAcc(true); }catch(e){}
     try{ wqaRenderBulk(); }catch(e){}
     try{ wqaRenderRows(true); }catch(e){}
-    try{ wqaUpdateAddButton(); }catch(e){}
   }
+  /* Outside the guard on purpose: the count and the button are what the
+     attribute scan just overwrote, and an empty review has to say "0 项" in
+     Chinese as much as a full one has to say "2 项". */
+  try{ wqaUpdateAddButton(); }catch(e){}
 });
 function editItem(i){
   if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
@@ -7924,8 +8019,8 @@ function renderQuote(newIdx){
     const markupTag=markupValue>0?`<span class="qi-markup">⭐ +${markupValue}%</span>`:'';
     const itemPriceMode=item.priceMode||item.formData?.priceMode||'auto';
     const priceModeTag=itemPriceMode==='manual'
-      ? '<span class="price-mode-badge">Manual Price</span>'
-      : itemPriceMode==='no_round' ? '<span class="price-mode-badge">No Round</span>' : '';
+      ? '<span class="price-mode-badge">'+escHtml(dcT('pmManualPrice'))+'</span>'
+      : itemPriceMode==='no_round' ? '<span class="price-mode-badge">'+escHtml(dcT('pmNoRound'))+'</span>' : '';
     const cwLine=item.itemType==='was'?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
     const cdLine=dcCustomDimsLine(item);
     const displaySize=item.itemType==='was'?wasDisplayData(item).size:item.size;
@@ -7940,17 +8035,17 @@ function renderQuote(newIdx){
             <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${cwLine?`<span style="display:block;font-size:11.5px;color:var(--text-muted);margin-top:2px;white-space:pre-line">${escHtml(cwLine)}</span>`:''}${uboltDebugHtml}</div>
           </div>
         </div>
-        ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">Edit / 编辑</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">Delete / 删除</button></div>`}
+        ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
         <div class="qi-meta">
-          ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">Unit Weight <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>${parseInt(item.qty,10)>1?`<span class="qi-meta-pill qi-weight-pill">Total <strong>${(parseFloat(item.weight)*parseInt(item.qty,10)).toFixed(3)}kg</strong></span>`:``}`:''}
+          ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiUnitWeight'))} <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>${parseInt(item.qty,10)>1?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiTotalPill'))} <strong>${(parseFloat(item.weight)*parseInt(item.qty,10)).toFixed(3)}kg</strong></span>`:``}`:''}
           <span class="qi-meta-pill">Qty <strong>${parseInt(item.qty,10)||0}</strong></span>
           <span class="qi-meta-pill">${dcItemAccUnit(item)>0?'Bolt':'Unit'} <strong>${fmt(item.finalUnitPrice)}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
-          ${dcItemAccUnit(item)>0?`<span class="qi-meta-pill qi-acc-pill">Accessories <strong>${fmt(dcItemAccUnit(item))}/pc</strong></span>`:''}
+          ${dcItemAccUnit(item)>0?`<span class="qi-meta-pill qi-acc-pill">${escHtml(dcT('qiAccessories'))} <strong>${fmt(dcItemAccUnit(item))}/pc</strong></span>`:''}
         </div>
         <div class="qi-price-group">
-          <span class="qi-unit">Total</span>
+          <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
           <span class="qi-total">${fmt(item.totalAmount)}</span>
         </div>
       </div>`;
@@ -8092,7 +8187,7 @@ async function quickOpen(){
   qoBusy=true;
   const btn=el('qoBtn'); const label=btn.textContent;
   btn.textContent='…'; btn.disabled=true;
-  qoShow('<div class="qo-msg info">Searching… / 搜索中…</div>');
+  qoShow('<div class="qo-msg info">'+escHtml(dcT('qoSearching'))+'</div>');
   try{
     const res=await api('find_quotation&ref='+encodeURIComponent(raw));
     if(!res||!res.ok){ qoShow('<div class="qo-msg err">'+escHtml(dcT('qoLookupFailed'))+'</div>'); return; }
@@ -8112,7 +8207,7 @@ async function quickOpen(){
       const when=rawWhen?formatPrintDate(rawWhen):'—';   // "29 Jun 2026"
       const amt=parseFloat(h.total_amount||0).toFixed(2);
       const prev=h.matched_previous&&h.previous_ref_no
-        ? '<span class="qo-hit-prev">Formerly '+qoEsc(h.previous_ref_no)+'</span>' : '';
+        ? '<span class="qo-hit-prev">'+qoEsc(dcT('qoFormerly').replace('{r}',h.previous_ref_no))+'</span>' : '';
       return '<button type="button" class="qo-hit" onclick="qoGoId('+encodeURIComponent(h.id)+')">'
         +'<span class="qo-hit-main"><span class="qo-hit-ref">'+qoEsc(h.ref_no)+'</span>'
         +'<span class="qo-hit-sub">'+qoEsc(who)+' · '+qoEsc(when)+'</span>'+prev+'</span>'
@@ -8654,23 +8749,23 @@ function phRecordHtml(rec,onUse,extra){
   const spec=[materialLabel(rec.material),rec.sizeType,rec.productType,rec.finish?'('+rec.finish+')':'']
              .filter(Boolean).join(' ');
   const tags=[];
-  if(!own) tags.push('<span class="ph-rec-tag ph-rec-other">Other customer reference</span>');
+  if(!own) tags.push('<span class="ph-rec-tag ph-rec-other">'+escHtml(dcT('phOtherCustomer'))+'</span>');
   /* Same, near, or unknown — and by how much, because "why was that one
      dearer" is usually answered by a number of millimetres. */
   const dist=(rec.dimDistance===null||rec.dimDistance===undefined)?null:Number(rec.dimDistance);
   tags.push(rec.exactDims
-    ? '<span class="ph-rec-tag ph-rec-exact">Same dimensions</span>'
+    ? '<span class="ph-rec-tag ph-rec-exact">'+escHtml(dcT('phSameDims'))+'</span>'
     : (dist===null
-       ? '<span class="ph-rec-tag">Dimensions not comparable</span>'
-       : `<span class="ph-rec-tag">Differs by ${escHtml(phDimText(dist))}</span>`));
-  if(rec.legacy) tags.push('<span class="ph-rec-tag">Legacy record</span>');
-  if(rec.accessoryAmbiguous) tags.push('<span class="ph-rec-tag ph-rec-warn">Accessories not separable</span>');
+       ? '<span class="ph-rec-tag">'+escHtml(dcT('phDimsNotComparable'))+'</span>'
+       : `<span class="ph-rec-tag">${escHtml(dcT('phDiffersBy').replace('{d}',phDimText(dist)))}</span>`));
+  if(rec.legacy) tags.push('<span class="ph-rec-tag">'+escHtml(dcT('phLegacyRecord'))+'</span>');
+  if(rec.accessoryAmbiguous) tags.push('<span class="ph-rec-tag ph-rec-warn">'+escHtml(dcT('phAccNotSeparable'))+'</span>');
   /* The same rod in another coating. Shown, because it is the same rod and a
      person wants to see what it went out at — and labelled, because a coating
      is what changes the cost rate. It is a reference, so it is not offered as
      a recipe to reuse. */
   const otherFinish = rec.finishMatch===false;
-  if(otherFinish) tags.push(`<span class="ph-rec-tag ph-rec-warn">Different finish — quoted ${escHtml(rec.finish||'—')} · reference only</span>`);
+  if(otherFinish) tags.push(`<span class="ph-rec-tag ph-rec-warn">${escHtml(dcT('phDiffFinish').replace('{f}',rec.finish||'—'))}</span>`);
   const useBtn = onUse && phRecordReusable(rec)
     ? `<button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="${onUse}">${escHtml(dcT('phUseOnThis'))}</button>` : '';
   return `<div class="ph-rec${own?' ph-rec-own':''}">
@@ -8680,16 +8775,16 @@ function phRecordHtml(rec,onUse,extra){
       <span class="ph-rec-date">${escHtml(fmtDateShort(rec.date))}</span>
     </div>
     <div class="ph-rec-spec">${escHtml(spec)}</div>
-    <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · Qty ${parseInt(rec.qty,10)||0}</div>
+    <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · ${escHtml(dcT('phQtyLabel').replace('{n}',parseInt(rec.qty,10)||0))}</div>
     <div class="ph-rec-nums">
       <span><label data-i18n="lblUnitWeight">Unit Weight</label>${phWeight(rec.weight)}</span>
       <span><label data-i18n="lblCostRate">Cost Rate</label>${phMoney(rec.costRate)}</span>
       <span><label>${escHtml(dcT('lblAddCostShort'))}</label>${phMoney(rec.addCost)}</span>
-      <span><label>Markup</label>${phPct(rec.markup)}</span>
+      <span><label>${escHtml(dcT('lblMarkup'))}</label>${phPct(rec.markup)}</span>
       <span><label data-i18n="lblPriceMode">Price Mode</label>${escHtml(phPriceMode(rec))}</span>
       <span class="ph-rec-unit"><label>${bolt===null?'Unit Price':'Bolt Unit Price'}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
     </div>
-    ${acc>0?`<div class="ph-rec-acc">Accessories, separately: ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)+')'}</div>`:''}
+    ${acc>0?`<div class="ph-rec-acc">${escHtml(dcT('phAccSeparately'))} ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' (quotation line was '+phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)+')'}</div>`:''}
     <div class="ph-rec-foot">${tags.join('')}${useBtn}${extra||''}</div>
   </div>`;
 }
@@ -8737,7 +8832,7 @@ function phListHtml(state,onUse,onMore,extraFor){
   } else {
     body=state.records.map(cell).join('');
   }
-  return `<div class="ph-count">Showing ${shown} of ${total} matching records`
+  return `<div class="ph-count">${escHtml(dcT('phShowingOf').replace('{a}',shown).replace('{b}',total))}`
        + (state.ownTotal!==undefined?` · ${state.ownTotal} this customer, ${state.otherTotal} other`:'')
        + `</div><div class="ph-scroll">` + body + `</div>${more}`;
 }
@@ -9286,7 +9381,7 @@ function mdtCancelImport(kind){
 function mdtRenderPreview(kind,res){
   const cfg=MDT_CONFIG[kind];
   el(cfg.previewId).style.display='block';
-  const parts=['Imported: <strong>'+res.validCount+' rows</strong>'];
+  const parts=['<strong>'+escHtml(dcT('impImported').replace('{n}',res.validCount))+'</strong>'];
   if(res.duplicateCount) parts.push('<span class="warn">'+escHtml(dcT('impWarnings').replace('{n}',res.duplicateCount))+'</span>');
   if(res.errorCount) parts.push('<span class="err">'+escHtml(dcT('impErrors').replace('{n}',res.errorCount))+'</span>');
   el(cfg.summaryId).innerHTML=parts.join(' &nbsp;·&nbsp; ');
@@ -9377,7 +9472,7 @@ function ensureOthersForm(){
   form.innerHTML=`
     <div class="group-label full" data-i18n="lblProductDetails">Product Details</div>
     <div class="field"><label data-i18n="lblProductName">Product Name</label><input type="text" id="others-productName" data-i18n-ph="phEgEyeBolt" placeholder="e.g. EYE BOLT" style="text-transform:uppercase" oninput="upperOthersProductName();calcOthers()" onblur="upperOthersProductName()"></div>
-    <div class="field"><label>Material <span class="field-zh">材料</span></label>
+    <div class="field"><label data-i18n="lblMaterial">Material</label>
       <select id="others-material" onchange="onMaterialSizeChange('others')">
         <option value="" selected data-i18n="optNone">— none —</option>
         <option value="MS">MS</option><option value="S45C">S45C</option><option value="S45C_HARDEN_G8_8">S45C + HARDEN = G8.8</option><option value="4140">4140 QT</option>
@@ -9401,14 +9496,14 @@ function ensureOthersForm(){
            Load & Edit and draft restore both override the mode from saved data. -->
       <div class="field"><label data-i18n="lblWeightMode">Weight Mode</label><select id="others-weightMode" onchange="onOthersWeightModeChange(true)"><option value="manual" data-i18n="lblManualWeight">Manual Weight</option><option value="length" selected data-i18n="lblDiaXLength">Diameter × Length</option></select></div>
       <div class="field" id="others-unitWeightField" style="display:none"><label><span data-i18n="lblUnitWeight">Unit Weight</span> <span class="hint">(kg)</span><span class="field-zh">单件重量</span></label><input type="number" id="others-unitWeight" min="0" step="0.0001" placeholder="kg" oninput="calcOthers()"></div>
-      <div class="field" id="others-diameterField"><label>Diameter <span class="hint">(mm)</span><span class="field-zh">直径</span></label><input type="number" id="others-diameter" min="0" step="0.01" placeholder="mm" oninput="calcOthers()"></div>
-      <div class="field" id="others-lengthField"><label>Length <span class="hint">(mm)</span><span class="field-zh">长度</span></label><input type="number" id="others-length" min="0" step="0.1" placeholder="mm" oninput="calcOthers()"></div>
+      <div class="field" id="others-diameterField"><label><span data-i18n="lblDiameter">Diameter</span> <span class="hint">(mm)</span></label><input type="number" id="others-diameter" min="0" step="0.01" placeholder="mm" oninput="calcOthers()"></div>
+      <div class="field" id="others-lengthField"><label><span data-i18n="lblLength">Length</span> <span class="hint">(mm)</span></label><input type="number" id="others-length" min="0" step="0.1" placeholder="mm" oninput="calcOthers()"></div>
     </div>
     ${accessoriesHtml}
     <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
     <div class="field"><label><span data-i18n="lblCostRate">Cost Rate</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
     <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="others-addCost" placeholder="0.00" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
-    <div class="field"><label>Markup <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
+    <div class="field"><label><span data-i18n="lblMarkup">Markup</span> <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
     <div class="field"><label data-i18n="lblQty">Qty</label><input type="number" id="others-qty" value="1" min="1" step="1" oninput="calcOthers()"></div>`;
   source.insertAdjacentElement('afterend',form);
 }
@@ -9426,7 +9521,7 @@ function ensurePriceModeControls(){
     manualField.className='field manual-price-field';
     manualField.id=type+'-manualUnitPriceField';
     manualField.style.display='none';
-    manualField.innerHTML=`<label data-i18n="lblManualUnitPrice">Manual Unit Price (RM)</label><input type="number" id="${type}-manualUnitPrice" min="0" step="0.01" placeholder="0.00" disabled oninput="recalcCurrent()"><small class="manual-price-guide">Manual Price 是最终客户单价，配件不会再另外加一次。<span>例子：Bolt RM1.80 + 配件 RM0.20 → Manual Price 填 RM2.00</span></small>`;
+    manualField.innerHTML=`<label data-i18n="lblManualUnitPrice">Manual Unit Price (RM)</label><input type="number" id="${type}-manualUnitPrice" min="0" step="0.01" placeholder="0.00" disabled oninput="recalcCurrent()"><small class="manual-price-guide">${escHtml(dcT('pmManualGuide'))}<span>${escHtml(dcT('pmManualGuideEg'))}</span></small>`;
     const qtyField=el(type+'-qty')?.closest('.field');
     (qtyField||pricingLabel).insertAdjacentElement('afterend',modeField);
     modeField.insertAdjacentElement('afterend',manualField);
@@ -9806,7 +9901,7 @@ function wqaRenderCommonItem(force){
     `<div class="wqa-panel-body">
        <div class="wqa-acc-note">${escHtml(dcT('wqaCopyNoteBlank'))}</div>
        <div class="wqa-item-grid${ends?'':' wqa-item-grid-1'}">
-         <label class="wqa-acc-f"><span>Size</span>
+         <label class="wqa-acc-f"><span>${escHtml(dcT('lblSize'))}</span>
            <input type="text" id="wqaCommonSize" value="${escHtml(c.size)}" placeholder="M12"
                   oninput="wqaEditCommonItem('size',this.value)"></label>
          ${ends?`<label class="wqa-acc-f"><span>TL</span>
@@ -9816,7 +9911,7 @@ function wqaRenderCommonItem(force){
        <div class="wqa-acc-actions">
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyItemToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
-         <span class="wqa-acc-sum">Current: ${escHtml(wqaItemSummary(c))}</span>
+         <span class="wqa-acc-sum">${escHtml(dcT('lblCurrentColon').replace('{v}',wqaItemSummary(c)))}</span>
        </div>
      </div>`);
 }
@@ -10083,20 +10178,20 @@ function wqaAccEditor(a,h){
   return `<div class="wqa-acc-editor">
     <div class="wqa-acc-line">
       <label class="wqa-acc-en"><input type="checkbox" ${a.nut.enabled?'checked':''} onchange="${h('nut','enabled','this.checked')}"> Nut</label>
-      <label class="wqa-acc-f"><span>Qty</span><input type="number" min="1" step="1" value="${a.nut.qty}" ${off(a.nut.enabled)} oninput="${h('nut','qty','this.value')}"></label>
-      <label class="wqa-acc-f"><span>Finish</span><select ${off(a.nut.enabled)} onchange="${h('nut','finish','this.value')}">${fin(a.nut.finish)}</select></label>
-      <label class="wqa-acc-f"><span>Unit Price</span><input type="number" min="0" step="0.01" value="${a.nut.unitPrice}" ${off(a.nut.enabled)} oninput="${h('nut','unitPrice','this.value')}"></label>
+      <label class="wqa-acc-f"><span>${escHtml(dcT('lblQty'))}</span><input type="number" min="1" step="1" value="${a.nut.qty}" ${off(a.nut.enabled)} oninput="${h('nut','qty','this.value')}"></label>
+      <label class="wqa-acc-f"><span>${escHtml(dcT('lblFinish'))}</span><select ${off(a.nut.enabled)} onchange="${h('nut','finish','this.value')}">${fin(a.nut.finish)}</select></label>
+      <label class="wqa-acc-f"><span>${escHtml(dcT('lblUnitPriceShort'))}</span><input type="number" min="0" step="0.01" value="${a.nut.unitPrice}" ${off(a.nut.enabled)} oninput="${h('nut','unitPrice','this.value')}"></label>
     </div>
     <div class="wqa-acc-line">
       <label class="wqa-acc-en"><input type="checkbox" ${a.fw.enabled?'checked':''} onchange="${h('fw','enabled','this.checked')}"> FW</label>
-      <label class="wqa-acc-f"><span>Qty</span><input type="number" min="1" step="1" value="${a.fw.qty}" ${off(a.fw.enabled)} oninput="${h('fw','qty','this.value')}"></label>
-      <label class="wqa-acc-f"><span>Finish</span><select ${off(a.fw.enabled)} onchange="${h('fw','finish','this.value')}">${fin(a.fw.finish)}</select></label>
-      <label class="wqa-acc-f"><span>Unit Price</span><input type="number" min="0" step="0.01" value="${a.fw.unitPrice}" ${off(a.fw.enabled)} oninput="${h('fw','unitPrice','this.value')}"></label>
+      <label class="wqa-acc-f"><span>${escHtml(dcT('lblQty'))}</span><input type="number" min="1" step="1" value="${a.fw.qty}" ${off(a.fw.enabled)} oninput="${h('fw','qty','this.value')}"></label>
+      <label class="wqa-acc-f"><span>${escHtml(dcT('lblFinish'))}</span><select ${off(a.fw.enabled)} onchange="${h('fw','finish','this.value')}">${fin(a.fw.finish)}</select></label>
+      <label class="wqa-acc-f"><span>${escHtml(dcT('lblUnitPriceShort'))}</span><input type="number" min="0" step="0.01" value="${a.fw.unitPrice}" ${off(a.fw.enabled)} oninput="${h('fw','unitPrice','this.value')}"></label>
     </div>
     <div class="wqa-acc-line">
-      <label class="wqa-acc-en"><input type="checkbox" ${a.custom.enabled?'checked':''} onchange="${h('custom','enabled','this.checked')}"> Custom</label>
+      <label class="wqa-acc-en"><input type="checkbox" ${a.custom.enabled?'checked':''} onchange="${h('custom','enabled','this.checked')}"> ${escHtml(dcT('lblCustom'))}</label>
       <label class="wqa-acc-f wqa-acc-wide"><span>Description</span><input type="text" value="${escHtml(a.custom.text||'')}" ${off(a.custom.enabled)} oninput="${h('custom','text','this.value')}"></label>
-      <label class="wqa-acc-f"><span>Unit Price</span><input type="number" min="0" step="0.01" value="${a.custom.unitPrice}" ${off(a.custom.enabled)} oninput="${h('custom','unitPrice','this.value')}"></label>
+      <label class="wqa-acc-f"><span>${escHtml(dcT('lblUnitPriceShort'))}</span><input type="number" min="0" step="0.01" value="${a.custom.unitPrice}" ${off(a.custom.enabled)} oninput="${h('custom','unitPrice','this.value')}"></label>
     </div>
   </div>`;
 }
@@ -10137,9 +10232,9 @@ function wqaRenderCommonPrice(force){
     (!wqa.panels.price ? '' : `<div class="wqa-panel-body">
        <div class="wqa-acc-note">${escHtml(dcT('wqaEntryOnly'))}</div>
      <div class="wqa-price-line">
-       <label class="wqa-acc-f"><span>Cost Rate</span><input type="number" min="0" step="0.01" value="${escHtml(c.costRate)}" oninput="wqaEditCommonPrice('costRate',this.value)"></label>
-       <label class="wqa-acc-f"><span>Additional Cost</span><input type="number" min="0" step="0.01" value="${escHtml(c.addCost)}" oninput="wqaEditCommonPrice('addCost',this.value)"></label>
-       <label class="wqa-acc-f"><span>Markup (%)</span><input type="number" step="0.1" value="${escHtml(c.markup)}" oninput="wqaEditCommonPrice('markup',this.value)"></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblCostRate'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.costRate)}" oninput="wqaEditCommonPrice('costRate',this.value)"></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblAdditionalCost'))}</span><input type="number" min="0" step="0.01" value="${escHtml(c.addCost)}" oninput="wqaEditCommonPrice('addCost',this.value)"></label>
+       <label class="wqa-acc-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="number" step="0.1" value="${escHtml(c.markup)}" oninput="wqaEditCommonPrice('markup',this.value)"></label>
        <label class="wqa-acc-f"><span data-i18n="lblPriceMode">Price Mode</span><select onchange="wqaEditCommonPrice('priceMode',this.value)">${opts}</select></label>
      </div>
      ${manual?`<div class="wqa-price-line wqa-price-manual">
@@ -10272,7 +10367,7 @@ function wqaRenderCommonAcc(force){
          <button type="button" class="btn btn-outline btn-sm" data-wqa-apply="wqaApplyAll|wqaApplySelected"
                  onclick="wqaApplyAccToAll()">${escHtml(wqaApplyLabel('wqaApplyAll','wqaApplySelected'))}</button>
          <button type="button" class="btn btn-ghost btn-sm" onclick="wqaClearAllAcc()" data-i18n="lblClearAllAcc">Clear All Accessories</button>
-         <span class="wqa-acc-sum">Current: ${escHtml(wqaAccSummary(a))}</span>
+         <span class="wqa-acc-sum">${escHtml(dcT('lblCurrentColon').replace('{v}',wqaAccSummary(a)))}</span>
        </div>
      </div>`);
 }
@@ -10924,14 +11019,14 @@ function wqaRenderListHead(){
      the tablet rules narrow them. Each label sits directly over its own value
      because both are built from the SAME column list. */
   head.innerHTML=
-      '<span class="wqa-h wqa-h-no">#</span>'
-    + '<span class="wqa-h wqa-h-size">Size</span>'
+      '<span class="wqa-h wqa-h-no">'+escHtml(dcT('hdrNo'))+'</span>'
+    + '<span class="wqa-h wqa-h-size">'+escHtml(dcT('lblSize'))+'</span>'
     + wqaListCols().map(c=>`<span class="wqa-h wqa-h-num wqa-h-dim">${escHtml(c.lbl)}</span>`).join('')
-    + '<span class="wqa-h wqa-h-num wqa-h-qty">Qty</span>'
-    + '<span class="wqa-h wqa-h-num wqa-h-w">Weight</span>'
-    + '<span class="wqa-h wqa-h-num wqa-h-price">Price</span>'
+    + '<span class="wqa-h wqa-h-num wqa-h-qty">'+escHtml(dcT('lblQty'))+'</span>'
+    + '<span class="wqa-h wqa-h-num wqa-h-w">'+escHtml(dcT('lblWeight'))+'</span>'
+    + '<span class="wqa-h wqa-h-num wqa-h-price">'+escHtml(dcT('fieldPrice'))+'</span>'
     + '<span class="wqa-h wqa-h-slack"></span>'
-    + '<span class="wqa-h wqa-h-act">Actions</span>';
+    + '<span class="wqa-h wqa-h-act">'+escHtml(dcT('lblActions'))+'</span>';
 }
 function wqaFmtPrice(v){ const n=Number(v)||0; return n>0 ? 'RM'+n.toFixed(2) : 'RM—'; }
 /* A price worked out from a material nobody chose is not this item's price, and
@@ -11424,6 +11519,15 @@ function wqaProductDims(s,type){
    to state a count and did not, which is not the same as never mentioning one.
    See f.qtyOpen at the foot of wqaExtractFields. */
 const WQA_QTY_WORD_RE=/\b(?:qty|quantity)\b/i;
+/* A quantity stated twice, and differently: "qty 100 / 200", "qty 100 or 200",
+   "qty 100 - 200", "quantity 50 to 80". The wording has to be there and the
+   line has to be nothing else, because a slash between two numbers is a thread
+   pair everywhere else in this trade. No semantics are invented for it — the
+   line is refused, not interpreted. See wqaExtractFields. */
+const WQA_QTY_AMBIG_RE=new RegExp(
+  '^\\s*(?:qty|quantity)\\s*[:=]?\\s*'
+  + '\\d+(?:\\.\\d+)?\\s*(?:\\/|\\bor\\b|\\bto\\b|~|-|–)\\s*\\d+(?:\\.\\d+)?'
+  + '\\s*(?:pcs?|nos?|no\\.|sets?|units?|items?)?\\s*[.,]?\\s*$','i');
 
 /* ── Field recognisers ──────────────────────────────────────────────────────
    Each one consumes what it matches, so a consumed qty token can never be
@@ -11446,6 +11550,25 @@ function wqaExtractFields(rawLine,opts){
   f.threadEnds=ev.explicitEndCount;
   f.fullyThreaded=ev.fullyThreaded;
   s=wqaStripSpecWords(s);
+  /* ── Two numbers is not a quantity ───────────────────────────────────────
+     "qty 100 / 200" states a count and then states a different one. There is
+     no reading of that which is not a guess, so nothing is read.
+
+     It has to be settled HERE, before any reader below touches the line,
+     because every one of them would take the first number and leave the
+     second behind. That is what used to happen: the marker took 100, the
+     leftover 200 became a phantom item carrying a length — and the REAL item,
+     never told anything was wrong, took the absent-quantity default and went
+     out at ONE PIECE. An ambiguous count silently became 1, which is the
+     exact substitution the absent-quantity rule exists to keep separate.
+
+     The whole line must be the wording and the two numbers, so a rod that
+     happens to carry a thread pair — "M24 x 300 x 100/200" — is untouched:
+     the ambiguity is in the QUANTITY wording and nowhere else. The line is
+     then emptied, so it is not an item, carries no dimensions, and reaches
+     the continuation reader as what it is: an unanswered count belonging to
+     the row above it. */
+  if(WQA_QTY_AMBIG_RE.test(s)){ f.qtyOpen=true; s=''; }
   /* "2k pcs" is two thousand pieces. Taken out first so the 2 never becomes a
      dimension, and only ever where the count context is written. */
   const qk=WQA_QTY_K_RE.exec(s);
@@ -13952,6 +14075,12 @@ function wqaRenderSource(force){
         </div>`);
 }
 /* Language switches redraw it, so the title and the line count follow. */
+/* The quotation's own item cards are built once, when an item is added, and
+   nothing rebuilt them on a language switch — so a card added in English kept
+   its English labels while the page around it changed. Every renderer that
+   writes its own markup has to be registered here; that is what this list is
+   for. */
+dcOnRelabel(()=>{ try{ if(typeof quoteItems!=='undefined' && quoteItems.length) renderQuote(); }catch(e){} });
 dcOnRelabel(()=>{ try{ if(el('wqaStep2')&&!el('wqaStep2').hidden) wqaRenderSource(true); }catch(e){} });
 
 /* The flag is the single source of truth, so a deterministic parse simply
@@ -14074,30 +14203,30 @@ function wqaRenderCommon(){
   const matNeeded=!!wqa.product && !wqaIsMixed('material') &&
                   (live.length ? live.some(x=>!wqaRowSpec(x,'material')) : !c.material);
   const skipNote=(wqa.skipped&&wqa.skipped.length)
-    ? `<div class="wqa-flag">${wqa.skipped.length} line(s) not read as items (header/notes). They are ignored.</div>` : '';
+    ? `<div class="wqa-flag">${escHtml(dcT('wqaSkippedLines').replace('{n}',wqa.skipped.length))}</div>` : '';
   /* Geometry-first classification: when the customer's own wording disagrees
      with the detected product, say so — never hide the conflict. */
   const aiNote=(wqa.aiMeta
-    ? `<div class="wqa-flag wqa-flag-def">Customer label: “${escHtml(wqa.aiMeta.src)}” · Detected as: ${escHtml(wqa.aiMeta.det)}</div>` : '')
+    ? `<div class="wqa-flag wqa-flag-def">${escHtml(dcT('wqaCustomerLabel').replace('{s}',wqa.aiMeta.src).replace('{d}',wqa.aiMeta.det))}</div>` : '')
     + (wqa.aiWarnings&&wqa.aiWarnings.length
     ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(w)}</div>`).join('') : '');
   el('wqaCommon').innerHTML=`
     <div class="wqa-common-grid">
-      <div class="field"><label>Product${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</label>
+      <div class="field"><label>${escHtml(dcT('fieldProduct'))}${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</label>
         <select id="wqaProduct" class="${(prodMixed||wqa.product)?'':'wqa-needed'}" onchange="wqaChangeProduct(this.value)">
           ${prodMixed?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           ${(prodMixed||wqa.product)?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`}
           ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${!prodMixed&&p.type===wqa.product?' selected':''}>${p.label}</option>`).join('')}
         </select></div>
-      <div class="field"><label>Material${matNeeded?' <span class="wqa-req">*</span>':''}</label>
+      <div class="field"><label>${escHtml(dcT('lblMaterial'))}${matNeeded?' <span class="wqa-req">*</span>':''}</label>
         <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)">${wqaMaterialOptions(shownMat)}</select></div>
-      <div class="field"><label>Finish</label>
+      <div class="field"><label>${escHtml(dcT('lblFinish'))}</label>
         <select id="wqaFinish" onchange="wqaSetCommon('finish',this.value)"${allSS?' disabled':''}>
           ${shownFin===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownFin===''?' selected':''}>N/A</option>
           ${allSS?'':['PL','ZP','HDG'].map(v=>`<option value="${v}"${shownFin===v?' selected':''}>${v}</option>`).join('')}
         </select></div>
-      <div class="field"><label>Size Type${(prod.needSizeType&&!allNoSt)?' <span class="wqa-req">*</span>':''}</label>
+      <div class="field"><label>${escHtml(dcT('lblSizeType'))}${(prod.needSizeType&&!allNoSt)?' <span class="wqa-req">*</span>':''}</label>
         <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)"${allNoSt?' disabled':''}>
           ${shownSt===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownSt===''?' selected':''}>${escHtml(allNoSt?'N/A':dcT(prod.needSizeType?'optRequired':'optNone'))}</option>
@@ -14638,7 +14767,7 @@ function wqaRenderRows(force){
     if(!r.histOpen){
       histHtml='';
     } else if(hist===undefined){
-      histHtml='<div class="wqa-hist">Loading pricing history…</div>';
+      histHtml='<div class="wqa-hist">'+escHtml(dcT('phLoading'))+'</div>';
     } else if(hist && hist.failed){
       histHtml='<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
     } else if(!hist || !hist.records || !hist.records.length){
@@ -14648,8 +14777,8 @@ function wqaRenderRows(force){
       histHtml=`<div class="wqa-hist wqa-hist-panel">
         <button type="button" class="wqa-hist-bar" onclick="wqaHistToggle(${i})">
           <span class="wqa-hist-arrow">${r.histOpen?'▾':'▸'}</span>
-          <span class="wqa-hist-lbl">Pricing History</span>
-          <span class="wqa-hist-count">${hist.total||hist.records.length} record${(hist.total||1)===1?'':'s'}${own?' · '+own+' this customer':''}${other?' · '+other+' other':''}</span>
+          <span class="wqa-hist-lbl">${escHtml(dcT('phTitle'))}</span>
+          <span class="wqa-hist-count">${escHtml(dcT((hist.total||hist.records.length)===1?'phRecordCount':'phRecordCountPlural').replace('{n}',hist.total||hist.records.length))}${own?' · '+escHtml(dcT('phThisCustomer').replace('{n}',own)):''}${other?' · '+escHtml(dcT('phOther').replace('{n}',other)):''}</span>
         </button>
         ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,
                      (rec,n)=>wqaHistRecExtra(i,n,rec))}
@@ -14661,7 +14790,7 @@ function wqaRenderRows(force){
     const rprod=wqaProductByType(wqaRowProduct(r))||prod;
     const body = !open ? '' : `<div class="wqa-row-body">
       <div class="wqa-row-grid">
-        <div class="field"><label>Size</label><input type="text" value="${escHtml(r.size)}"
+        <div class="field"><label>${escHtml(dcT('lblSize'))}</label><input type="text" value="${escHtml(r.size)}"
                  oninput="wqaEditSize(${i},this,false)"
                  onchange="wqaEditSize(${i},this,true)"></div>
         <!-- Beside the size, never inside it. Optional, clearable, and read by
@@ -14681,10 +14810,10 @@ function wqaRenderRows(force){
         ${rprod.dims.includes('threadLen')?`<div class="field"><label>${escHtml(wqaDimLabel(rprod.type,'threadLen'))} (mm)</label>
           <input type="text" value="${escHtml(wqaThreadValue(r))}" placeholder="${rprod.threadEnds===2?'50/110':'100'}" oninput="wqaEditThread(${i},this.value)">
           <small class="wqa-hint-sm">${rprod.threadEnds===2?'one value, or both ends as 50/110':'one value'}</small></div>`:''}
-        <div class="field"><label>Qty</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
+        <div class="field"><label>${escHtml(dcT('lblQty'))}</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
       </div>
       <div class="wqa-row-grid">
-        <div class="field"><label>Product</label>
+        <div class="field"><label>${escHtml(dcT('fieldProduct'))}</label>
           <select onchange="wqaEditRowProduct(${i},this.value)">
             <option value=""${wqaRowProduct(r)?'':' selected'}>${escHtml(dcT('optRequired'))}</option>
             ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===wqaRowProduct(r)?' selected':''}>${p.label}</option>`).join('')}
@@ -14699,7 +14828,7 @@ function wqaRenderRows(force){
           <small class="wqa-hint-sm">${escHtml(dcT('wqaEvidenceOnly'))}</small></div>`:''}
         <div class="field"><label data-i18n="fieldMaterial">Material</label>
           <select onchange="wqaEditRowSpec(${i},'material',this.value)">${wqaMaterialOptions(wqaRowSpec(r,'material'),wqaRowProduct(r))}</select></div>
-        <div class="field"><label>Finish</label>
+        <div class="field"><label>${escHtml(dcT('lblFinish'))}</label>
           <select onchange="wqaEditRowSpec(${i},'finish',this.value)"${wqaNoFinish(wqaRowSpec(r,'material'))?' disabled':''}>
             ${(wqaNoFinish(wqaRowSpec(r,'material'))?['']:['','PL','ZP','HDG'])
                .map(v=>`<option value="${v}"${wqaRowSpec(r,'finish')===v?' selected':''}>${v||'N/A'}</option>`).join('')}
@@ -14712,7 +14841,7 @@ function wqaRenderRows(force){
       <div class="wqa-row-grid wqa-price-grid">
         <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></div>
         <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></div>
-        <div class="field"><label>Markup (%)</label><input type="number" value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></div>
+        <div class="field"><label>${escHtml(dcT('lblMarkup'))} (%)</label><input type="number" value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></div>
         <div class="field"><label data-i18n="lblPriceMode">Price Mode</label>
           <select onchange="wqaEditRowMode(${i},this.value)">${
             WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${m.label}</option>`).join('')
@@ -14723,13 +14852,13 @@ function wqaRenderRows(force){
       <div class="wqa-weight-line">
         <span class="wqa-w-item"><span class="wqa-w-lbl" data-i18n="lblUnitWeight">Unit Weight</span>
           <span class="wqa-w-val wqa-uw-full">${wqaFmtWeight(calc.weight)}</span></span>
-        <span class="wqa-w-item"><span class="wqa-w-lbl">Total Weight</span>
+        <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('lblTotalWeight'))}</span>
           <span class="wqa-w-val wqa-tw">${wqaFmtTotalWeight(calc.weight,r.qty)}</span></span>
       </div>
       <div class="wqa-row-acc">
         <button type="button" class="wqa-acc-bar" onclick="wqaToggleAccOpen(${i})">
           <span class="wqa-acc-arrow">${r.accOpen?'▾':'▸'}</span>
-          <span class="wqa-acc-bar-lbl">Accessories:</span>
+          <span class="wqa-acc-bar-lbl">${escHtml(dcT('lblAccessoriesColon'))}</span>
           <span class="wqa-acc-bar-sum${wqaAccHas(r.acc)?' has':''}">${escHtml(wqaAccShortSummary(r.acc))}</span>
           ${accAddon(r.acc)>0?`<span class="wqa-acc-bar-money">+ ${escHtml(fmt(accAddon(r.acc)))}/pc</span>`:''}
           <span class="wqa-panel-badge"${wqaAccActiveCount(r.acc)?'':' hidden'}>${wqaAccActiveCount(r.acc)?wqaAccActiveCount(r.acc)+' active':''}</span>
@@ -14762,10 +14891,10 @@ function wqaRenderRows(force){
         <span class="wqa-sum-actions">
           <button type="button" class="wqa-row-act wqa-row-edit${open?' is-on':''}"
                   aria-expanded="${open?'true':'false'}"
-                  onclick="event.stopPropagation();wqaToggleRow(${i})">${open?'Close':'Edit'}</button>
+                  onclick="event.stopPropagation();wqaToggleRow(${i})">${escHtml(dcT(open?'close':'btnEdit'))}</button>
           <button type="button" class="wqa-row-act wqa-row-hist${r.histOpen?' is-on':''}"
                   title="${escHtml(dcT('tipItemHistory'))}" aria-expanded="${r.histOpen?'true':'false'}"
-                  onclick="event.stopPropagation();wqaHistToggle(${i})">History${
+                  onclick="event.stopPropagation();wqaHistToggle(${i})">${escHtml(dcT('btnHistory'))}${
                     wqaHistCountLabel(r)}<span class="wqa-row-caret">${r.histOpen?'▲':''}</span></button>
           <button type="button" class="wqa-row-act wqa-row-del" title="${escHtml(dcT('btnRemove'))}" aria-label="${escHtml(dcT('ariaRemoveItem').replace('{n}',i+1))}"
                   onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>

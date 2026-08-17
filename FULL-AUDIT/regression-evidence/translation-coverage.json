@@ -1,8 +1,8 @@
 {
   "files": {
     "index.php": {
-      "enKeys": 564,
-      "zhKeys": 564,
+      "enKeys": 629,
+      "zhKeys": 629,
       "coverage": 100,
       "missingZh": [],
       "missingKey": [],
@@ -22,20 +22,21 @@
         "phCheckFailed",
         "costRateSub",
         "lblCutLength",
-        "lblCutHeight"
+        "lblCutHeight",
+        "qiTotal"
       ],
       "hardCoded": []
     },
     "companies.php": {
-      "enKeys": 83,
-      "zhKeys": 83,
+      "enKeys": 116,
+      "zhKeys": 116,
       "coverage": 100,
       "missingZh": [],
       "missingKey": [],
       "identical": [],
       "unused": [
         "language",
-        "secSavedQuotations"
+        "cpLoadMore"
       ],
       "hardCoded": []
     },
@@ -51,7 +52,7 @@
     }
   },
   "totals": {
-    "keys": 658,
+    "keys": 756,
     "missingZh": 0,
     "hardCoded": 0
   }

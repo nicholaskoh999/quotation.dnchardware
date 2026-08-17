@@ -50,6 +50,8 @@ const CODE_WORDS = [
   'Sag\\s*Rod', 'Stud', 'Anchor\\s*Bolt', 'U-?Bolt', 'SQ\\s*U-?Bolt',
   'L\\s*Bolt(?:\\s*45DEG)?', 'J\\s*Bolt', 'Base\\s*Plate', 'Triangle\\s*Plate',
   'Welding\\s*Anchor(?:\\s*Set)?', 'Plate', 'Nut', 'FW',
+  /* Size-type vocabulary, same reasoning as the material codes. */
+  'Fullsize', 'Undersize', 'Full\\s*size', 'Under\\s*size',
 ];
 const CODE_RE = new RegExp(
   '^(?:' + CODE_WORDS.join('|') + '|[-+*/×·|,.:;()\\[\\]{}%#@&=<>~^"\'\\s\\d]+)+$', 'i');
@@ -86,6 +88,28 @@ function dictOf(src, file) {
   if (end < 0) throw new Error(`${file}: I18N literal is not balanced`);
   // eslint-disable-next-line no-new-func
   return new Function('return ' + src.slice(open, end + 1))();
+}
+
+/* Where the I18N literal sits in the file, so the markup scan can step over
+   it: a dictionary value is a translation, not a string that needs one. */
+function dictRangeOf(src) {
+  const at = src.indexOf('const I18N={');
+  if (at < 0) return null;
+  const open = src.indexOf('{', at);
+  let depth = 0, inStr = null, esc = false;
+  for (let i = open; i < src.length; i++) {
+    const c = src[i];
+    if (inStr) {
+      if (esc) { esc = false; continue; }
+      if (c === '\\') { esc = true; continue; }
+      if (c === inStr) inStr = null;
+      continue;
+    }
+    if (c === "'" || c === '"' || c === '`') { inStr = c; continue; }
+    if (c === '{') depth++;
+    else if (c === '}') { depth--; if (!depth) return [open, i]; }
+  }
+  return null;
 }
 
 /* Comments out, strings kept. The file documents its own conventions with
@@ -220,11 +244,20 @@ const SKIP_TEXT = [
      take inside an audit, so the print template is left exactly as it is and
      the question is recorded instead. See BUSINESS-DECISIONS-NEEDED.md. */
   /^(?:Quotation No\.|Prepared By|Size \/ Dimension|Unit Price|Grand Total|Description|Qty|Amount)$/i,
-  /^(?:NO\.?\s*\d|LOT\s|OFF\s+JALAN|JALAN\s|TAMAN\s|\d{5}\s)/i,
+  /^(?:NO\.?\s*\d|\d+\s+LOT\b|LOT\s|OFF\s+JALAN|JALAN\s|TAMAN\s|\d{5}\s)/i,
   /^This is a computer-generated quotation/i,
   /^-\s/,                                        // a changelog bullet
   /^v\d+\.\d+/,                                  // a changelog version heading
-  /^Sign In\s*·/i,                               // the page title
+  /* The page <title>s carry the brand and the version. */
+  /^Sign In\s*·/i,
+  /^Der-Cheng Quotation\b/i,
+  /* Version Updates: a heading, a bullet, or one of the section labels the
+     page groups its entries under. */
+  /^(?:Changed|Fixed|Added|Improved|New|Removed):$/i,
+  /* The printed quotation — see BUSINESS-DECISIONS-NEEDED.md §1. Its own
+     labels, its letterhead, its address and its contact lines. */
+  /^(?:Total|Date|Customer|No\.)$/,
+  /^(?:Email|Tel|Fax):/i,
 ];
 /* An attribute written as a literal is fine when the SAME element also carries
    the matching data-i18n-* hook: the literal is the English default that ships
@@ -234,8 +267,32 @@ const HOOK_FOR = { title: 'data-i18n-title', placeholder: 'data-i18n-ph',
                    'aria-label': 'data-i18n-aria', alt: 'data-i18n-alt' };
 const lineAt = (src, index) => src.slice(0, index).split('\n').length;
 
-function hardCoded(src, code) {
+/* Does every occurrence of this text sit inside an element that already
+   carries a data-i18n hook? Read off the source itself. */
+function isHooked(code, text) {
+  let at = code.indexOf(text), seen = 0;
+  while (at >= 0) {
+    seen++;
+    const open = code.lastIndexOf('<', at);
+    const tag = open >= 0 ? code.slice(open, code.indexOf('>', open) + 1) : '';
+    if (!/\bdata-i18n\b/.test(tag)) return false;
+    at = code.indexOf(text, at + 1);
+  }
+  return seen > 0;
+}
+
+function hardCoded(src, code, dictRange) {
   const hits = [];
+  /* An interpolation is not text a person reads; the English AROUND it is. */
+  const stripInterp = t => String(t)
+    /* `${…}` in a template literal … */
+    .replace(/\$\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, ' ')
+    /* … and the older `' + expr + '` concatenation, which is the same thing
+       written the other way. Without this, half an expression reads as a
+       label: `'Formerly '+qoEsc(h.previous_ref_no)+'` reported "Formerly"
+       AND the variable name beside it. */
+    .replace(/'\s*\+[^+]*\+\s*'/g, ' ')
+    .replace(/`\s*\+[^+]*\+\s*`/g, ' ');
   const push = (line, kind, text) => {
     const t = String(text).trim();
     if (!t || !ENGLISH_RE.test(t)) return;
@@ -253,8 +310,12 @@ function hardCoded(src, code) {
     const line = lineAt(src, tag.index);
     for (const [attr, hook] of Object.entries(HOOK_FOR)) {
       if (t.includes(hook)) continue;               // the switch rewrites it
-      const m = new RegExp('\\b' + attr + '=["\']([^"\'$][^"\']*)["\']').exec(t);
-      if (m) push(line, attr, m[1]);
+      /* Each quote style on its own: an attribute value may legitimately
+         contain the OTHER quote inside an interpolation, and a pattern that
+         stops at either one reports half an expression as a label. */
+      const m = new RegExp('\\b' + attr + '="([^"]*)"').exec(t)
+             || new RegExp("\\b" + attr + "='([^']*)'").exec(t);
+      if (m) push(line, attr, stripInterp(m[1]));
     }
   }
 
@@ -280,27 +341,84 @@ function hardCoded(src, code) {
      data-i18n has its textContent replaced on every switch — the literal in
      the markup is the English default, not a leak. Same rule as the attribute
      scan above. */
-  /* An element whose whole job is to name something is a label however short
-     it is: "Additional Cost" on a Pricing Guide tab and on a cost breakdown
-     row are two words each, and both stayed English through the switch. So
-     these tags are held to two words, and everything else to four — below
-     which a run of English is usually a code, a unit or a product name. */
-  const LABEL_TAG = /^(?:label|h[1-6]|button|option|legend|caption|th)$/i;
-  const LABEL_CLASS = /\b(?:[\w-]*-label|ref-tab|group-label|acc-title-txt|t-name)\b/;
+  /* ── Text between tags, with the interpolations taken out ────────────────
+     This is where the checker was blind, and the blindness had a shape: the
+     old scan refused any run containing `$` or `{`, so every label that had
+     an interpolation NEXT TO its English was invisible.
 
-  const between = /<([a-zA-Z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>([^<>{}$]{4,})</g;
+         <label>Product${req ? ' *' : ''}</label>
+         <span class="wqa-h wqa-h-size">Size</span>
+         >${open ? 'Close' : 'Edit'}<
+
+     The first two are hard-coded English on the Quick Add review; the third
+     is two of them. All three read as "no match" and the file reported zero.
+
+     So the interpolations are STRIPPED and what is left is the literal a
+     person actually reads. A label built entirely from `${dcT(...)}` strips
+     to nothing and is correctly silent; a label with one English word left
+     standing is reported, however short it is — "Size", "Qty", "Price",
+     "Edit", "History" are exactly the ones that were missed.
+
+     One word is the threshold everywhere now. That is only workable because
+     isCode() already knows the trade's vocabulary: M12, PL, SS304, 4140 QT,
+     Sag Rod and the rest are not reported, because they are not words to
+     translate. */
+  const between = /<([a-zA-Z][\w-]*)((?:[^<>"']|"[^"]*"|'[^']*')*)>([^<>]{2,})</g;
   let t;
   while ((t = between.exec(code)) !== null) {
-    const tag = t[1], attrs = t[2] || '';
+    const attrs = t[2] || '';
     if (/\bdata-i18n\b/.test(attrs)) continue;          // the switch rewrites it
-    const text = t[3].replace(/\s+/g, ' ').trim();
-    /* Arrow functions and statements also sit between a > and a <. */
-    if (/[;{}]|=>|\(\)/.test(text)) continue;
-    const words = text.split(' ').filter(x => /[A-Za-z]{2,}/.test(x)).length;
-    const isLabel = LABEL_TAG.test(tag) || LABEL_CLASS.test(attrs);
-    if (words < (isLabel ? 2 : 4)) continue;
-    push(lineAt(code, t.index), isLabel ? 'label' : 'markup text', text);
+    const text = stripInterp(t[3]).replace(/\s+/g, ' ').trim();
+    if (!text) continue;
+    /* Statements and arrow functions also sit between a > and a <. */
+    if (/[;{}]|=>|\(\)|\|\||&&/.test(text)) continue;
+    if (!text.split(' ').some(x => /[A-Za-z]{2,}/.test(x))) continue;
+    push(lineAt(code, t.index), 'label', text);
   }
+
+  /* ── Markup built inside a STRING, not written as markup ─────────────────
+     `Saved quotes: <b>${n}</b> · Latest: …` is assigned to a variable and put
+     into innerHTML later, so the tag scan above never sees it as an element —
+     the English sits before and after a tag rather than between two of them.
+     Any literal that contains an HTML tag is markup, so the tags and the
+     interpolations come out and whatever English is left is a label. */
+  const litRe = /`(?:[^`\\]|\\.)*`|'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g;
+  let lit;
+  while ((lit = litRe.exec(code)) !== null) {
+    /* The dictionary is data, not markup: its values ARE the translations. */
+    if (dictRange && lit.index >= dictRange[0] && lit.index <= dictRange[1]) continue;
+    const body = lit[0].slice(1, -1);
+    if (!/<[a-zA-Z/]/.test(body)) continue;             // not markup
+    /* A template literal may contain another one inside an interpolation, and
+       this tokenizer cannot see that nesting: the inner backtick closes the
+       outer literal early and the body that comes out starts mid-expression.
+       An unclosed `${` is the tell, and a body the tokenizer could not read
+       is one it must not report on. */
+    if (/\$\{/.test(stripInterp(body))) continue;
+    const cleaned = stripInterp(body)
+      /* An element inside the string that carries the hook is already
+         translated; take the whole element out before the rest is read. */
+      .replace(/<([a-zA-Z][\w-]*)[^<>]*\bdata-i18n\b[^<>]*>[^<>]*<\/\1>/g, '<>')
+      .replace(/<[^<>]*\bdata-i18n\b[^<>]*>/g, '<>')
+      .replace(/<[^<>]*$/, '<>');                       // a tag split across strings
+    /* Each run BETWEEN tags is its own label. Joining them would hand isCode
+       one long string — "MS S45C 4140 QT SS304 …" — that is nothing but trade
+       vocabulary and would still read as prose. */
+    for (const run of cleaned.split(/<[^<>]*>/)) {
+      const text = run.replace(/\s+/g, ' ').trim();
+      if (!text) continue;
+      if (/[;{}]|=>|\|\||&&/.test(text)) continue;
+      if (!text.split(' ').some(x => /[A-Za-z]{2,}/.test(x))) continue;
+      /* Checked against the SOURCE, not against this pass's own tokenizing.
+         A template literal may nest another one inside an interpolation, and
+         the tokenizer above cannot see that — so before reporting, look the
+         text up where it really sits and see whether the element holding it
+         carries the hook after all. */
+      if (isHooked(code, text)) continue;
+      push(lineAt(code, lit.index), 'markup in string', text);
+    }
+  }
+
   return hits;
 }
 
@@ -325,7 +443,7 @@ for (const file of FILES) {
     zh[k] !== undefined && String(zh[k]) === String(en[k])
     && !isCode(en[k]) && !isDeliberateZh(k));
   const unused     = enKeys.filter(k => !referenced.has(k));
-  const raw        = hardCoded(src, code);
+  const raw        = hardCoded(src, code, dictRangeOf(src));
 
   report.files[file] = {
     enKeys: enKeys.length, zhKeys: Object.keys(zh).length,

@@ -803,7 +803,7 @@ input,select,textarea{
     <div id="rightPanel">
       <div class="empty-state empty-state-compact">
         <div class="icon">📋</div>
-        <p>Loading recent quotations…</p>
+        <p data-i18n="cpLoadingRecent">Loading recent quotations…</p>
       </div>
     </div>
     </div><!-- /mobPaneRecent -->
@@ -913,6 +913,26 @@ const I18N={
     cpBackRecent:'← Back to Recent Quotations',
     cpGrandTotalNote:'ℹ️ Grand total is for quotation reference only. Actual order quantity may change.',
     cpReferenceTotal:'Reference Total', cpViewQuotation:'View Quotation',
+    /* Everything this page draws from data — the cards, the badges, the
+       buttons under each quotation, the loading and end-of-list lines. Built
+       in script on every render, so none of it reached the attribute scan. */
+    cpLoadingRecent:'Loading recent quotations…', cpNoMoreQuotes:'No more quotations',
+    cpLoad:'📂 Load', cpDuplicate:'📄 Duplicate', cpDelete:'🗑️ Delete',
+    cpNoQuotationMatch:'No quotation “{t}”',
+    cpFormerly:'Formerly {r}',
+    cpHistMatch:'{n} historical item(s) match “{t}”{more} — newest first:',
+    cpBadgeActive:'Active', cpBadgeNoQuotes:'No Quotes', cpBadgeRecent:'Recent',
+    cpBadgeRemarks:'Has Remarks',
+    cpMoreItems:'+{n} more item(s)', cpDateLabel:'Date:', cpItemCount:'📦 {n} item(s)',
+    cpRemarksLabel:'Remarks:', cpMoreRemarks:'(+{n} more quote(s) with remarks)',
+    cpContact:'Contact', cpRefLabel:'Ref:', cpCustomerLabel:'Customer:',
+    cpPhoneLabel:'Phone:', cpTotalLabel:'Total:',
+    cpView:'👁️ View', cpLoadMore:'📋 Load More Quotations',
+    cpQty:'Qty', cpUnitPrice:'Unit Price', cpQtyCaps:'QTY',
+    cpNoPhone:'No phone on file',
+    cpConfirmDeleteCompany:'Delete company “{n}”?\nAll linked quotations will be unlinked.',
+    cpConfirmDeleteQuote:'Delete this quotation?', cpSignedOut:'Signed out',
+    cpSavedQuotes:'Saved quotes: {n} · Latest: {d}', cpNoSavedQuotes:'No saved quotations',
     cpLastUpdated:'Last Updated', cpLatestProduct:'Latest Product',
   },
   zh:{
@@ -964,6 +984,23 @@ const I18N={
     cpBackRecent:'← 返回最新报价',
     cpGrandTotalNote:'ℹ️ 报价总额仅供参考，实际订购数量可能不同。',
     cpReferenceTotal:'参考总额', cpViewQuotation:'查看报价单',
+    cpLoadingRecent:'正在载入最新报价…', cpNoMoreQuotes:'没有更多报价',
+    cpLoad:'📂 载入', cpDuplicate:'📄 复制', cpDelete:'🗑️ 删除',
+    cpNoQuotationMatch:'没有符合「{t}」的报价单',
+    cpFormerly:'原单号 {r}',
+    cpHistMatch:'{n} 项历史记录符合「{t}」{more} — 最新优先：',
+    cpBadgeActive:'使用中', cpBadgeNoQuotes:'尚无报价', cpBadgeRecent:'最近',
+    cpBadgeRemarks:'有备注',
+    cpMoreItems:'另有 {n} 项产品', cpDateLabel:'日期：', cpItemCount:'📦 {n} 项产品',
+    cpRemarksLabel:'备注：', cpMoreRemarks:'（另有 {n} 张报价单有备注）',
+    cpContact:'联系方式', cpRefLabel:'单号：', cpCustomerLabel:'客户：',
+    cpPhoneLabel:'电话：', cpTotalLabel:'合计：',
+    cpView:'👁️ 查看', cpLoadMore:'📋 载入更多报价',
+    cpQty:'数量', cpUnitPrice:'单价', cpQtyCaps:'数量',
+    cpNoPhone:'未登记电话',
+    cpConfirmDeleteCompany:'确定删除公司「{n}」？\n所有关联的报价单将会解除关联。',
+    cpConfirmDeleteQuote:'确定删除此报价单？', cpSignedOut:'已退出登录',
+    cpSavedQuotes:'已保存报价：{n} · 最新：{d}', cpNoSavedQuotes:'尚无已保存报价',
     cpLastUpdated:'最后更新', cpLatestProduct:'最新产品',
   },
 };
@@ -1051,7 +1088,7 @@ async function api(action,data={},method='GET'){
   /* Session expired (or signed out in another tab) — go to login, then back. */
   if(r.status===401){
     location.href='login.php?next='+encodeURIComponent(location.pathname+location.search);
-    return {ok:false,error:'Signed out'};
+    return {ok:false,error:dcT('cpSignedOut')};
   }
   return r.json();
 }
@@ -1104,10 +1141,10 @@ function renderRecentQuotations(){
           <div class="rq-preview">${esc(previewText)}</div>
         </div>
         <div class="rq-card-bot">
-          <div class="rq-total"><span class="ref-total-label" data-i18n="cpReferenceTotal">Reference Total</span> <b>${fmtMoneyCP(q.total_amount)}</b></div>
+          <div class="rq-total"><span class="ref-total-label">${esc(dcT('cpReferenceTotal'))}</span> <b>${fmtMoneyCP(q.total_amount)}</b></div>
           <div class="rq-actions">
-            <button class="btn btn-primary" onclick="viewQuote(${q.id})">👁️ View</button>
-            <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">📂 Load</button>
+            <button class="btn btn-primary" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
+            <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
           </div>
         </div>
       </div>`;
@@ -1120,9 +1157,9 @@ function renderRecentQuotations(){
     <div class="q-helper" data-i18n="cpSelectCompany">ℹ️ Select a company on the left to view all saved quotations for that company.</div>
     ${cardsHtml}
     <div id="recentQuotesMoreWrap" style="display:${recentQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">
-      <button class="btn btn-ghost" id="recentQuotesMoreBtn" onclick="loadMoreRecentQuotations()">Load More Quotations / 加载更多报价</button>
+      <button class="btn btn-ghost" id="recentQuotesMoreBtn" onclick="loadMoreRecentQuotations()" data-i18n="msgLoadMore">Load More Quotations</button>
     </div>
-    <div id="recentQuotesDone" class="q-helper" style="display:${!recentQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">No more quotations / 没有更多报价</div>
+    <div id="recentQuotesDone" class="q-helper" style="display:${!recentQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">${esc(dcT("cpNoMoreQuotes"))}</div>
   `;
 }
 
@@ -1270,7 +1307,7 @@ function cpBusyPanel(){
 function cpNotFoundPanel(term){
   const b=document.getElementById('cpSearchResult');
   b.innerHTML='<div class="cp-empty"><div class="cp-empty-icon">🔍</div>'
-    +'<p class="cp-empty-main">No quotation “'+esc(term)+'”</p>'
+    +'<p class="cp-empty-main">'+esc(dcT('cpNoQuotationMatch').replace('{t}',term))+'</p>'
     +'<p class="cp-empty-sub">'+esc(dcT('cpPastPriceHint'))+'</p></div>';
   b.hidden=false;
 }
@@ -1349,7 +1386,7 @@ function renderCpSearchHits(hits,term){
     const when=fmtDate(h.quote_date||(h.created_at||'').slice(0,10));
     const amt=parseFloat(h.total_amount||0).toFixed(2);
     const prev=h.matched_previous&&h.previous_ref_no
-      ? `<span class="cp-hit-prev">Formerly ${esc(h.previous_ref_no)}</span>` : '';
+      ? `<span class="cp-hit-prev">${esc(dcT('cpFormerly').replace('{r}',h.previous_ref_no))}</span>` : '';
     return `<button type="button" class="cp-hit" onclick="cpSearchClear();viewQuote(${parseInt(h.id,10)})">
         <span class="cp-hit-main"><span class="cp-hit-ref">${esc(h.ref_no)}</span>
         <span class="cp-hit-sub">${esc(who)} · ${esc(when)}</span>${prev}</span>
@@ -1372,21 +1409,21 @@ function renderCpItemHits(hits,term,meta){
     const unit=parseFloat(h.unit_price||0).toFixed(2);
     const qty=parseInt(h.qty,10)||0;
     const finish=h.finish?` <span class="ih-finish">${esc(h.finish)}</span>`:'';
-    const prev=h.previous_ref_no?`<span class="ih-prev">Formerly ${esc(h.previous_ref_no)}</span>`:'';
+    const prev=h.previous_ref_no?`<span class="ih-prev">${esc(dcT('cpFormerly').replace('{r}',h.previous_ref_no))}</span>`:'';
     return `<div class="ih-card">
       <div class="ih-desc">${esc(displayItemDesc(h)||'—')}${finish}</div>
       <div class="ih-size">${esc(h.size||'')}</div>
       <div class="ih-meta">${esc(h.customer||'—')} · ${esc(when)} · <strong>${esc(h.ref_no)}</strong>${prev}</div>
       <div class="ih-foot">
-        <span class="ih-qty">Qty ${qty}</span>
-        <span class="ih-price">Unit Price <strong>RM ${unit}</strong></span>
+        <span class="ih-qty">${esc(dcT('cpQty'))} ${qty}</span>
+        <span class="ih-price">${esc(dcT('cpUnitPrice'))} <strong>RM ${unit}</strong></span>
       </div>
       <button type="button" class="btn btn-primary ih-view" onclick="itemSearchClear();viewQuote(${parseInt(h.quotation_id,10)})" data-i18n="cpViewQuotation">View Quotation</button>
     </div>`;
   }).join('');
   const more=meta&&meta.truncated?` (showing the newest ${hits.length})`:'';
   const b=document.getElementById('itemSearchResult');
-  b.innerHTML=`<div class="cp-hit-msg">${hits.length} historical item${hits.length===1?'':'s'} match “${esc(term)}”${more} — newest first:</div>
+  b.innerHTML=`<div class="cp-hit-msg">${esc(dcT('cpHistMatch').replace('{n}',hits.length).replace('{t}',term).replace('{more}',more))}</div>
                <div class="ih-list">${rows}</div>`;
   b.hidden=false;
 }
@@ -1437,15 +1474,15 @@ function renderCompanyCards(){
     const isRecent = lastDate && daysSinceCP(lastDate) <= 14;
     const hasRemarks = quotesForCompany(c.id).some(q=>q.remarks && q.remarks.trim().length>0);
 
-    let badge = '<span class="status-badge badge-norecent">Active</span>';
-    if(!lastDate || qCount === 0) badge = '<span class="status-badge badge-norecent">No Quotes</span>';
-    else if(isRecent) badge = '<span class="status-badge badge-recent">Recent</span>';
-    else if(hasRemarks) badge = '<span class="status-badge badge-remarks">Has Remarks</span>';
+    let badge = '<span class="status-badge badge-norecent">'+esc(dcT('cpBadgeActive'))+'</span>';
+    if(!lastDate || qCount === 0) badge = '<span class="status-badge badge-norecent">'+esc(dcT('cpBadgeNoQuotes'))+'</span>';
+    else if(isRecent) badge = '<span class="status-badge badge-recent">'+esc(dcT('cpBadgeRecent'))+'</span>';
+    else if(hasRemarks) badge = '<span class="status-badge badge-remarks">'+esc(dcT('cpBadgeRemarks'))+'</span>';
 
     const phoneLine = c.phone ? esc(c.phone) : '—';
     const quoteLine = qCount === 0
-      ? 'No saved quotations'
-      : `Saved quotes: <b>${qCount}</b> · Latest: ${lastDate ? fmtDate(lastDate) : '—'}`;
+      ? esc(dcT('cpNoSavedQuotes'))
+      : esc(dcT('cpSavedQuotes').replace('{n}',qCount).replace('{d}',lastDate ? fmtDate(lastDate) : '—'));
 
     return `
       <div class="company-card company-card-compact ${selectedCompanyId==c.id?'selected':''}" onclick="selectCompany(${c.id})">
@@ -1521,7 +1558,7 @@ async function saveEditCompany(){
 }
 
 async function deleteCompany(id,name){
-  if(!confirm('Delete company "'+name+'"?\nAll linked quotations will be unlinked.'))return;
+  if(!confirm(dcT('cpConfirmDeleteCompany').replace('{n}',name)))return;
   const res=await api('delete_company',{id},'POST');
   if(res.ok){showToast(dcT('msgDeleted'));if(selectedCompanyId==id){selectedCompanyId=null;}loadCompanies();}
   else showToast('❌ '+(res.error||'Error'));
@@ -1534,7 +1571,7 @@ function renderCompanyQuoteCard(q){
   const moreCount = items.length - previewItems.length;
   const previewHtml = previewItems.map(it=>`
     <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}${esc(dcAccNote(it))}</span></div>
-  `).join('') + (moreCount>0 ? `<div class="item-more">+${moreCount} more item${moreCount===1?'':'s'}</div>` : '');
+  `).join('') + (moreCount>0 ? `<div class="item-more">${esc(dcT('cpMoreItems').replace('{n}',moreCount))}</div>` : '');
 
   return `
     <div class="q-card" data-quote-id="${q.id}">
@@ -1542,26 +1579,26 @@ function renderCompanyQuoteCard(q){
         <div class="q-top">
           <div>
             <div class="q-no">${esc(q.ref_no||'(No Ref)')}</div>
-            <div class="q-dates">Date: ${fmtDate(q.quote_date)}</div>
+            <div class="q-dates">${esc(dcT('cpDateLabel'))} ${fmtDate(q.quote_date)}</div>
           </div>
         </div>
         <div class="q-meta">
           ${q.prepared_by?`<span>👤 ${esc(q.prepared_by)}</span>`:''}
-          <span>📦 ${items.length} item${items.length===1?'':'s'}</span>
+          <span>${esc(dcT('cpItemCount').replace('{n}',items.length))}</span>
         </div>
         <div class="q-preview">${previewHtml || '<span style="opacity:.6">No items</span>'}</div>
         ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
       </div>
       <div class="q-card-bottom">
         <div class="ref-total">
-          <span class="ref-total-label" data-i18n="cpReferenceTotal">Reference Total</span><br>
+          <span class="ref-total-label">${esc(dcT('cpReferenceTotal'))}</span><br>
           <b>${fmtMoneyCP(q.total_amount)}</b>
         </div>
         <div class="quote-actions">
-          <button class="btn btn-primary" onclick="viewQuote(${q.id})">👁️ View</button>
-          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">📂 Load</button>
-          <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">📄 Duplicate</button>
-          <button class="btn btn-danger" onclick="deleteQuote(${q.id})">🗑️ Delete</button>
+          <button class="btn btn-primary" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
+          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
+          <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">${esc(dcT('cpDuplicate'))}</button>
+          <button class="btn btn-danger" onclick="deleteQuote(${q.id})">${esc(dcT('cpDelete'))}</button>
         </div>
       </div>
     </div>`;
@@ -1588,7 +1625,7 @@ async function selectCompany(id){
   const lastDate = quotes.length ? (quotes[0].quote_date||quotes[0].created_at) : null;
   const latestProduct = (quotes.length && quotes[0].items && quotes[0].items[0]) ? displayItemDesc(quotes[0].items[0]) : '—';
   const remarksList = quotes.filter(q=>q.remarks && q.remarks.trim().length>0).map(q=>q.remarks);
-  const remarksHtml = remarksList.length ? `<div class="sp-remarks"><b>Remarks:</b> ${esc(remarksList[0])}${remarksList.length>1?` <span style="opacity:.7">(+${remarksList.length-1} more quote${remarksList.length-1===1?'':'s'} with remarks)</span>`:''}</div>` : '';
+  const remarksHtml = remarksList.length ? `<div class="sp-remarks"><b>${esc(dcT('cpRemarksLabel'))}</b> ${esc(remarksList[0])}${remarksList.length>1?` <span style="opacity:.7">${esc(dcT('cpMoreRemarks').replace('{n}',remarksList.length-1))}</span>`:''}</div>` : '';
 
   let quotesHtml = quotes.length ? quotes.map(q=>{
     const items = q.items||[];
@@ -1596,31 +1633,31 @@ async function selectCompany(id){
     const moreCount = items.length - previewItems.length;
     const previewHtml = previewItems.map(it=>`
       <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}${esc(dcAccNote(it))}</span></div>
-    `).join('') + (moreCount>0 ? `<div class="item-more">+${moreCount} more item${moreCount===1?'':'s'}</div>` : '');
+    `).join('') + (moreCount>0 ? `<div class="item-more">${esc(dcT('cpMoreItems').replace('{n}',moreCount))}</div>` : '');
 
     return `
       <div class="q-card">
         <div class="q-top">
           <div>
             <div class="q-no">${esc(q.ref_no||'(No Ref)')}</div>
-            <div class="q-dates">Date: ${fmtDate(q.quote_date)}</div>
+            <div class="q-dates">${esc(dcT('cpDateLabel'))} ${fmtDate(q.quote_date)}</div>
           </div>
         </div>
         <div class="q-meta">
           ${q.prepared_by?`<span>👤 ${esc(q.prepared_by)}</span>`:''}
-          <span>📦 ${items.length} item${items.length===1?'':'s'}</span>
+          <span>${esc(dcT('cpItemCount').replace('{n}',items.length))}</span>
         </div>
         <div class="q-preview">${previewHtml || '<span style="opacity:.6">No items</span>'}</div>
         <div class="ref-total">
-          <span class="ref-total-label" data-i18n="cpReferenceTotal">Reference Total</span><br>
+          <span class="ref-total-label">${esc(dcT('cpReferenceTotal'))}</span><br>
           <b>${fmtMoneyCP(q.total_amount)}</b>
         </div>
         ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
         <div class="quote-actions">
-          <button class="btn btn-primary" onclick="viewQuote(${q.id})">👁️ View</button>
-          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">📂 Load</button>
-          <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">📄 Duplicate</button>
-          <button class="btn btn-danger" onclick="deleteQuote(${q.id})">🗑️ Delete</button>
+          <button class="btn btn-primary" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
+          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
+          <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">${esc(dcT('cpDuplicate'))}</button>
+          <button class="btn btn-danger" onclick="deleteQuote(${q.id})">${esc(dcT('cpDelete'))}</button>
         </div>
       </div>`;
   }).join('') : '<div class="empty-state"><div class="icon">📭</div><p>'+dcT('msgNoSavedQuotes')+'</p></div>';
@@ -1632,29 +1669,29 @@ async function selectCompany(id){
       <div class="sp-top">
         <div>
           <div class="sp-name">${esc(c.name)}${c.short_code?` <span class="company-code">${esc(c.short_code)}</span>`:''}</div>
-          <div class="sp-phone">${c.phone?esc(c.phone):'No phone on file'}</div>
+          <div class="sp-phone">${c.phone?esc(c.phone):esc(dcT('cpNoPhone'))}</div>
         </div>
-        <button class="cp-back-btn" onclick="clearCompanySelection()" data-i18n="cpBackRecent">← Back to Recent Quotations</button>
+        <button class="cp-back-btn" onclick="clearCompanySelection()">${esc(dcT('cpBackRecent'))}</button>
       </div>
       <div class="sp-stats">
-        <div class="sp-stat"><div class="sp-stat-label" data-i18n="cardSavedQuotations">Saved Quotations</div><div class="sp-stat-value">${totalQuotesForCompany}</div></div>
-        <div class="sp-stat"><div class="sp-stat-label" data-i18n="cpLastUpdated">Last Updated</div><div class="sp-stat-value">${lastDate?fmtDate(lastDate):'—'}</div></div>
-        <div class="sp-stat"><div class="sp-stat-label">Contact</div><div class="sp-stat-value" style="font-size:12.5px">${c.phone?esc(c.phone):'—'}</div></div>
-        <div class="sp-stat"><div class="sp-stat-label" data-i18n="cpLatestProduct">Latest Product</div><div class="sp-stat-value" style="font-size:11px;line-height:1.4">${esc(latestProduct)}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label">${esc(dcT('cardSavedQuotations'))}</div><div class="sp-stat-value">${totalQuotesForCompany}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label">${esc(dcT('cpLastUpdated'))}</div><div class="sp-stat-value">${lastDate?fmtDate(lastDate):'—'}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label">${esc(dcT('cpContact'))}</div><div class="sp-stat-value" style="font-size:12.5px">${c.phone?esc(c.phone):'—'}</div></div>
+        <div class="sp-stat"><div class="sp-stat-label">${esc(dcT('cpLatestProduct'))}</div><div class="sp-stat-value" style="font-size:11px;line-height:1.4">${esc(latestProduct)}</div></div>
       </div>
       ${remarksHtml}
     </div>
 
     <div class="list-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>Saved Quotations <span class="sub">报价记录</span></div>
+      <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span><span>${esc(dcT('secSavedQuotations'))}</span></div>
       <span class="list-count">${totalQuotesForCompany}</span>
     </div>
     <div class="q-helper" data-i18n="cpGrandTotalNote">ℹ️ Grand total is for quotation reference only. Actual order quantity may change.</div>
     <div id="companyQuotesList">${quotesHtml}</div>
     <div id="companyQuotesMoreWrap" style="display:${quotes.length&&companyQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">
-      <button class="btn btn-ghost" id="companyQuotesMoreBtn" onclick="loadMoreCompanyQuotations()">Load More Quotations / 加载更多报价</button>
+      <button class="btn btn-ghost" id="companyQuotesMoreBtn" onclick="loadMoreCompanyQuotations()" data-i18n="msgLoadMore">Load More Quotations</button>
     </div>
-    <div id="companyQuotesDone" class="q-helper" style="display:${quotes.length&&!companyQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">No more quotations / 没有更多报价</div>
+    <div id="companyQuotesDone" class="q-helper" style="display:${quotes.length&&!companyQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">${esc(dcT("cpNoMoreQuotes"))}</div>
   `;
   // Mobile: switch to Recent Quotations tab now that company panel is ready
   if(window.innerWidth<=980) switchMobTab('recent');
@@ -1726,21 +1763,21 @@ async function viewQuote(id){
       <span>${esc(i.size)}</span>
     </div>
     <div class="q-detail-item" style="background:var(--surface2);padding:4px 8px;border-radius:var(--r-xs);font-size:12px">
-      <span style="color:var(--text-muted)">QTY ${parseInt(i.qty,10)||0} × RM ${parseFloat(i.finalUnitPrice||0).toFixed(2)}${esc(dcAccNote(i))}</span>
+      <span style="color:var(--text-muted)">${esc(dcT('cpQtyCaps'))} ${parseInt(i.qty,10)||0} × RM ${parseFloat(i.finalUnitPrice||0).toFixed(2)}${esc(dcAccNote(i))}</span>
       <span style="font-weight:700;color:var(--green)">RM ${parseFloat(i.totalAmount||0).toFixed(2)}</span>
     </div>
   `).join('');
   document.getElementById('viewModalBody').innerHTML=`
     <div style="background:var(--surface2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:14px;font-size:13px">
-      ${q.ref_no?`<div><strong>Ref:</strong> ${esc(q.ref_no)}</div>`:''}
-      ${q.customer_name?`<div><strong>Customer:</strong> ${esc(q.customer_name)}</div>`:''}
-      ${q.customer_phone?`<div><strong>Phone:</strong> ${esc(q.customer_phone)}</div>`:''}
-      ${q.quote_date?`<div><strong>Date:</strong> ${fmtDate(q.quote_date)}</div>`:''}
+      ${q.ref_no?`<div><strong>${esc(dcT('cpRefLabel'))}</strong> ${esc(q.ref_no)}</div>`:''}
+      ${q.customer_name?`<div><strong>${esc(dcT('cpCustomerLabel'))}</strong> ${esc(q.customer_name)}</div>`:''}
+      ${q.customer_phone?`<div><strong>${esc(dcT('cpPhoneLabel'))}</strong> ${esc(q.customer_phone)}</div>`:''}
+      ${q.quote_date?`<div><strong>${esc(dcT('cpDateLabel'))}</strong> ${fmtDate(q.quote_date)}</div>`:''}
       ${q.prepared_by?`<div><strong>By:</strong> ${esc(q.prepared_by)}</div>`:''}
-      ${q.remarks?`<div><strong>Remarks:</strong> ${esc(q.remarks)}</div>`:''}
+      ${q.remarks?`<div><strong>${esc(dcT('cpRemarksLabel'))}</strong> ${esc(q.remarks)}</div>`:''}
     </div>
     <div>${rows}</div>
-    <div style="text-align:right;margin-top:12px;font-size:18px;font-weight:800;color:var(--green)">Total: RM ${parseFloat(q.total_amount||0).toFixed(2)}</div>
+    <div style="text-align:right;margin-top:12px;font-size:18px;font-weight:800;color:var(--green)">${esc(dcT('cpTotalLabel'))} RM ${parseFloat(q.total_amount||0).toFixed(2)}</div>
   `;
   openModal('viewModal');
 }
@@ -1783,7 +1820,7 @@ async function duplicateQuote(id){
 }
 
 async function deleteQuote(id){
-  if(!confirm('Delete this quotation?'))return;
+  if(!confirm(dcT('cpConfirmDeleteQuote')))return;
   const res=await api('delete_quotation',{id},'POST');
   if(res.ok){showToast(dcT('msgDeleted'));await loadAllQuotations();renderSummary();renderCompanyCards();selectCompany(selectedCompanyId);}
   else showToast(dcT('msgFailed'));

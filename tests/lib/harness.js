@@ -208,7 +208,13 @@ function defaultCompaniesApi() {
                   quote_date: '2026-02-14', created_at: '2026-02-14 09:15:00',
                   customer_name: 'Alpha Steel Sdn Bhd', company_id: 7,
                   company_name: 'Alpha Steel Sdn Bhd', prepared_by: 'Nicholas',
-                  total_amount: 18450.75, remarks: '', items: '[]' };
+                  total_amount: 18450.75, remarks: '',
+                  /* An array, as the endpoint returns it: the page maps over
+                     these to build each card's preview line. */
+                  items: [{ itemType: 'sagrod', description: 'MS FULLSIZE SAG ROD',
+                            size: 'M12', cleanSize: 'M12', material: 'MS', finish: 'ZP',
+                            sizeType: 'FULLSIZE', dimensions: 'M12 x L 1000 x TL 100/100mm',
+                            qty: 40, finalUnitPrice: 7.9, weight: 0.8878 }] };
   return {
     get_companies:   { ok: true, data: [company] },
     get_quotations:  { ok: true, data: [quote] },

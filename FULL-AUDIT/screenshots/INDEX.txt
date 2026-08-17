@@ -30,3 +30,9 @@
 30  28-companies-chinese.png
 31  31-saved-quotation.png
 32  32-whatsapp-preview.png
+33  33-ambiguous-qty-needs-qty.png
+34  34-comma-length-after.png
+35  35-quickadd-chinese-item-count.png
+36  36-saved-quote-english.png
+37  37-saved-quote-chinese.png
+38  38-companies-chinese-dynamic.png

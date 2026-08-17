@@ -339,6 +339,66 @@ const historyApi = records => ({
       await shot(page, '32-whatsapp-preview', opened ? null : '#step4Actions');
       await page.close();
     }
+
+    // ══ MORNING REPAIR ═══════════════════════════════════════════════════
+    /* 33 · an ambiguous quantity: neither number taken, no phantom row, and
+           the item asking for its count by name. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM24 x 300 x tl 65/65\nqty 100 / 200',
+        { settle: 1000 });
+      await shot(page, '33-ambiguous-qty-needs-qty', '#wqaStep2');
+      await page.close();
+    }
+
+    /* 34 · the comma in a LENGTH, after. The before-evidence for this shows
+           the same message quoted as a 1mm rod at RM 0.60. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM24 x 1,000 x tl 65/65 - 20pcs',
+        { settle: 1000 });
+      await page.evaluate(() => { wqaEditPrice(0, 'costRate', '6.20'); wqaEditPrice(0, 'addCost', '2.40'); });
+      await page.waitForTimeout(900);
+      await shot(page, '34-comma-length-after', '#wqaStep2');
+      await page.close();
+    }
+
+    /* 35 · two rows in 中文, with the count on the footer and on the button. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs\nM16 x 850 x 100/100 - 20pcs',
+        { expanded: false, settle: 1000 });
+      await setLang(page, 'zh');
+      await page.waitForTimeout(500);
+      await shot(page, '35-quickadd-chinese-item-count', '#wqaModal');
+      await setLang(page, 'en');
+      await page.close();
+    }
+
+    /* 36 · the saved quotation's own controls, one language at a time. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await page.evaluate(() => { selectedCompanyId = 7; });
+      await quickAddPaste(page, 'MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs', { settle: 900 });
+      await page.evaluate(() => { wqaEditPrice(0, 'costRate', '6.20'); wqaEditPrice(0, 'addCost', '2.40'); });
+      await page.waitForTimeout(700);
+      await page.evaluate(() => wqaAddAll());
+      await page.waitForTimeout(1200);
+      await shot(page, '36-saved-quote-english', '#step3Card');
+      await setLang(page, 'zh');
+      await page.waitForTimeout(500);
+      await shot(page, '37-saved-quote-chinese', '#step3Card');
+      await setLang(page, 'en');
+      await page.close();
+    }
+
+    /* 38 · the Companies page in 中文, drawn from data. */
+    {
+      const page = await openCompanies(browser, { viewport: V, lang: 'zh' });
+      await page.waitForTimeout(800);
+      await shot(page, '38-companies-chinese-dynamic');
+      await page.close();
+    }
   } finally {
     await browser.close();
   }

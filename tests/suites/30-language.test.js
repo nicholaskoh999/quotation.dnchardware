@@ -18,7 +18,7 @@
    well is a person's call; that the box is not still saying "Thread Reference"
    is this file's.                                                           */
 'use strict';
-const { openApp, quickAddPaste } = require('../lib/harness');
+const { openApp, openCompanies, quickAddPaste } = require('../lib/harness');
 
 /* Everything a person can read right now — the whole page, or one part of it.
    Scoping matters for the product forms: the Version Updates page keeps its
@@ -222,6 +222,138 @@ module.exports = async (browser, A) => {
       }
     }
     await setLang(page, 'en');
+  }
+
+
+  // ══ 7 · THE ITEM COUNT SURVIVES THE SWITCH ═════════════════════════════
+  /* dcApplyLang writes every data-i18n element's text from the dictionary. On
+     a COUNTER that constant is a lie — "0 items" on a review holding two — and
+     dcRelabel is what puts the real number back. dcSetLang used to skip
+     dcRelabel when the chosen language was the one already in force, which is
+     exactly what pressing the active EN or 中文 button does: the footer went to
+     "0 项" with two rows on the screen, and the Add button lost its count. */
+  {
+    const counts = () => page.evaluate(() => ({
+      foot: (document.getElementById('wqaFootTotal') || {}).textContent || '',
+      head: (document.getElementById('wqaRowsCount') || {}).textContent || '',
+      add:  (document.getElementById('wqaAddBtn') || {}).textContent || '',
+      rows: wqa.rows.filter(r => !r.removed).length,
+      cards: document.querySelectorAll('[data-wqa-row]').length,
+      view: wqa.view || '',
+    }));
+
+    for (const [msg, n] of [
+      ['MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs', 1],
+      ['MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs\nM16 x 850 x 100/100 - 20pcs', 2],
+      ['MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs\nM16 x 850 x 100/100 - 20pcs'
+       + '\nM20 x 3000 x 150/150 - 8pcs\nM24 x 500 x 100/100 - 4pcs', 4],
+    ]) {
+      await setLang(page, 'en');
+      await quickAddPaste(page, msg, { expanded: false, settle: 900 });
+      const en = await counts();
+      A.eq(en.rows, n, `English: ${n} row(s) parsed`);
+      A.includes(en.foot, String(n), `English: the footer counts ${n}`);
+      A.includes(en.add, String(n), `English: the Add button counts ${n}`);
+
+      await setLang(page, 'zh');
+      const zh = await counts();
+      A.eq(zh.rows, n, `中文: the rows are still there (${n})`);
+      A.eq(zh.cards, n, `中文: and so are their cards`);
+      A.eq(zh.view, en.view, '中文: compact/expanded is unchanged');
+      A.includes(zh.foot, String(n), `中文: the footer still counts ${n}, not 0`);
+      A.includes(zh.foot, '项', '中文: and counts it in Chinese');
+      A.includes(zh.add, String(n), `中文: the Add button keeps its count`);
+      A.excludes(zh.add, 'Add', '中文: and is translated');
+
+      /* Pressing the button for the language ALREADY in force. This is the
+         path that used to wipe the count, because nothing re-rendered. */
+      await setLang(page, 'zh');
+      const again = await counts();
+      A.includes(again.foot, String(n), `中文 pressed twice: the footer still counts ${n}`);
+      A.includes(again.add, String(n), `中文 pressed twice: and so does the Add button`);
+      A.eq(again.rows, n, '中文 pressed twice: the rows are untouched');
+
+      await setLang(page, 'en');
+      const back = await counts();
+      A.includes(back.foot, String(n), `back to English: the footer counts ${n}`);
+      A.includes(back.add, String(n), 'back to English: and the Add button');
+      A.eq(back.rows, n, 'back to English: rows intact');
+    }
+
+    /* And an EMPTY review says zero in the language it is in. */
+    await page.evaluate(() => wqaHardClose());
+    await page.waitForTimeout(300);
+    await setLang(page, 'zh');
+    await page.evaluate(() => wqaOpen());
+    await page.waitForTimeout(400);
+    const empty = await counts();
+    A.eq(empty.rows, 0, 'an empty review holds no rows');
+    A.includes(empty.foot, '项', '中文: and says so in Chinese');
+    A.excludes(empty.foot, 'items', '中文: not in English');
+    await page.evaluate(() => wqaHardClose());
+    await setLang(page, 'en');
+  }
+
+  // ══ 8 · THE SAVED QUOTATION'S OWN CONTROLS ═════════════════════════════
+  /* One language at a time. These two buttons read "Edit / 编辑" and
+     "Delete / 删除" — both languages at once, in either mode. */
+  {
+    await quickAddPaste(page, 'MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs', { settle: 900 });
+    await page.evaluate(() => { wqaEditPrice(0, 'costRate', '6.20'); wqaEditPrice(0, 'addCost', '2.40'); });
+    await page.waitForTimeout(700);
+    await page.evaluate(() => wqaAddAll());
+    await page.waitForTimeout(1200);
+
+    await setLang(page, 'en');
+    const en = await visibleText(page, '#quoteItemList');
+    A.includes(en, 'Edit', 'English: the item card offers Edit');
+    A.excludes(en, '编辑', 'English: and not 编辑 beside it');
+    A.excludes(en, '删除', 'English: nor 删除');
+
+    await setLang(page, 'zh');
+    const zh = await visibleText(page, '#quoteItemList');
+    A.includes(zh, '编辑', '中文: the item card offers 编辑');
+    A.includes(zh, '删除', '中文: and 删除');
+    A.excludes(zh, 'Edit /', '中文: never "Edit / 编辑"');
+    A.excludes(zh, 'Delete /', '中文: never "Delete / 删除"');
+    A.excludes(zh, 'Unit Weight', '中文: the weight pill is translated');
+    A.excludes(zh, 'Accessories', '中文: and the accessories pill');
+    await setLang(page, 'en');
+  }
+
+
+  // ══ 9 · THE COMPANIES PAGE ═════════════════════════════════════════════
+  /* Almost all of this page is drawn from data, so almost none of it reached
+     the attribute scan: the loading line, the status badges, the buttons under
+     every quotation, the card meta, the detail panel. */
+  {
+    const cp = await openCompanies(browser, { lang: 'zh' });
+    await cp.waitForTimeout(700);
+    const zh = await visibleText(cp);
+
+    for (const gone of [
+      'Loading recent quotations', 'Active', 'No Quotes', 'Has Remarks',
+      'Saved quotes:', 'Latest:', 'Reference Total', 'View Quotation',
+      'Load More Quotations', 'No more quotations', 'Last Updated',
+      'Latest Product', 'Contact', 'No phone on file', 'Saved Quotations',
+    ]) {
+      A.excludes(zh, gone, `中文 Companies: "${gone}" is translated`);
+    }
+    A.excludes(zh, '📂 Load', '中文 Companies: the Load button is translated');
+    A.excludes(zh, '📄 Duplicate', '中文 Companies: and Duplicate');
+    A.excludes(zh, '🗑️ Delete', '中文 Companies: and Delete');
+    A.ok(/[一-鿿]/.test(zh), '中文 Companies: the page is in Chinese');
+    A.ok(!cp._dcErrors.length, 'no script error on the Companies page: ' + cp._dcErrors.join(' | '));
+    await cp.close();
+
+    /* And the same page in English still reads English. */
+    const cpEn = await openCompanies(browser, { lang: 'en' });
+    await cpEn.waitForTimeout(700);
+    const en = await visibleText(cpEn);
+    A.includes(en, 'Total Companies', 'English Companies: the cards are named in English');
+    A.includes(en, 'Reference Total', 'English Companies: and so is the quotation total');
+    A.excludes(en, '参考总额', 'English Companies: and not also in Chinese');
+    await cpEn.close();
   }
 
   A.ok(!page._dcErrors.length, 'no script error while switching language: ' + page._dcErrors.join(' | '));
