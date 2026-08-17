@@ -182,17 +182,41 @@ module.exports = async (browser, A) => {
       await setLang(page, lang);
       await page.evaluate(() => { try { wqaHardClose(); } catch (e) {} wqaOpen(); });
       await page.waitForTimeout(350);
-      /* By its key, not by its class — the modal has several hints and the
-         first one asks how the customer sent the request. */
+      /* By its id — the modal has several hints and the first one asks how
+         the customer sent the request. */
       const hint = await page.evaluate(() =>
-        (document.querySelector('[data-i18n="wqaPasteHint"]') || {}).textContent || '');
+        (document.getElementById('wqaPasteHintLine') || {}).textContent || '');
       for (const p of PARSED) {
         A.includes(hint, p, `${lang}: the modal's scope names ${p}, which the parser reads`);
       }
       if (lang === 'zh') A.ok(/[一-鿿]/.test(hint), '中文: and the sentence around them is Chinese');
+      /* the modal's own title matches the button that opened it */
+      const title = await page.evaluate(() =>
+        (document.querySelector('#wqaModal .modal-title') || {}).textContent || '');
+      A.includes(title, lang === 'zh' ? '快速添加' : 'Quick Add',
+        `${lang}: the modal is titled Quick Add`);
+      A.excludes(title, 'WhatsApp', `${lang}: with no WhatsApp in the name`);
       await page.evaluate(() => { try { wqaHardClose(); } catch (e) {} });
       await page.waitForTimeout(200);
     }
+
+    /* The hint is GENERATED from WQA_PRODUCTS, not copied from it. Proved by
+       teaching the live table a product that does not exist and watching the
+       sentence grow — in the page only, nothing on disk. A future sixth
+       product therefore cannot leave the helper stale: there is no second
+       list to forget. */
+    const grown = await page.evaluate(() => {
+      WQA_PRODUCTS.push({ type: 'zzztest', token: 'ZZZ', label: 'Zzz Bolt',
+                          aliases: [], dims: ['size', 'length'], map: {},
+                          threadEnds: 0, needSizeType: false });
+      wqaWritePasteHint();
+      const t = (document.getElementById('wqaPasteHintLine') || {}).textContent || '';
+      WQA_PRODUCTS.pop();
+      wqaWritePasteHint();
+      return t;
+    });
+    A.includes(grown, 'Zzz Bolt',
+      'a product added to WQA_PRODUCTS appears in the hint with no other edit');
 
     await setLang(page, 'zh');
     await page.evaluate(() => wqaOpen());

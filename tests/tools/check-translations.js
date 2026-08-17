@@ -121,7 +121,21 @@ function stripComments(src) {
   const out = src.split('');
   let inStr = null, esc = false, inLine = false, inBlock = false, inRe = false;
   let prev = '', prev2 = '';           // the last two significant characters
+  /* Only SCRIPT is tokenized. An apostrophe in HTML prose — "the customer's
+     message" — is not a string delimiter, and treating it as one leaves the
+     tokenizer's state depending on how many apostrophes the page's copy
+     happens to contain: editing one sentence of markup once flipped the
+     parity and un-stripped a documentation comment three thousand lines
+     later. Outside a <script>, characters pass through untouched. */
+  const scripts = scriptRanges(src);
+  let si = 0;
   for (let i = 0; i < src.length; i++) {
+    while (si < scripts.length && i > scripts[si][1]) si++;
+    if (!(si < scripts.length && i > scripts[si][0] && i < scripts[si][1])) {
+      inStr = null; esc = false; inLine = false; inBlock = false; inRe = false;
+      prev = ''; prev2 = '';
+      continue;
+    }
     const c = src[i], n = src[i + 1];
     if (inLine) { if (c === '\n') inLine = false; else out[i] = ' '; continue; }
     if (inBlock) {
@@ -426,7 +440,7 @@ function hardCoded(src, code, dictRange, dictKeys) {
      literal after an `=`, because a ternary puts the English on the far side
      of a `?` where a one-literal pattern never looks.                       */
   const WRITE_RE = /\.(?:textContent|innerText|innerHTML|placeholder|title|value)\s*=\s*([^;\n]+)/g;
-  const CALL_RE  = /\b(?:showToast|confirm|alert|prompt)\(\s*([^;\n]+)/g;
+  const CALL_RE  = /\b(?:showToast|confirm|alert|prompt|wqaMsg)\(\s*([^;\n]+)/g;
   const SETATTR_RE = /\.setAttribute\(\s*['"](?:title|alt|placeholder|aria-label)['"]\s*,\s*([^;\n)]+)/g;
   /* A property that NAMES a thing on screen. `label:'Auto Round'` is a label
      however far it sits from the markup that draws it. */

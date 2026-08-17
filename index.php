@@ -236,7 +236,9 @@ input,select,textarea{font-family:inherit}
    button marked hidden kept its space. Quick Add relies on it for the
    Parse / Analyze swap and for the upload-only Back control. */
 .btn[hidden]{display:none}
-.btn:active{filter:brightness(.95)}
+.btn:active{filter:brightness(.95);transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--accent-mid);outline-offset:2px}
+.btn[disabled]:active{transform:none}
 .btn-primary{background:var(--accent); color:#fff}
 .btn-primary:hover{background:var(--accent-2)}
 .btn-outline{background:var(--surface); color:var(--accent); border-color:var(--accent-mid)}
@@ -1710,8 +1712,15 @@ input,select,textarea{
 .wqa-row-del{flex:0 0 auto;background:none;border:none;color:var(--text-muted);font-size:15px;cursor:pointer;
   padding:2px 6px;border-radius:var(--r-xs)}
 .wqa-row-del:hover{color:var(--red);background:var(--red-light)}
-.wqa-row-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-.wqa-price-grid{margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+.wqa-row-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
+.wqa-price-grid{margin-top:0}
+/* §6 — light hierarchy: a small muted label above each group of fields, and
+   nothing else. No nested cards, no extra borders — the label and the space
+   above it are the whole device. */
+.wqa-sec-lbl{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--text-muted);margin:14px 0 7px}
+.wqa-row-body>.wqa-sec-lbl:first-child{margin-top:0}
+.wqa-sec-pricing{margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
 .wqa-final{display:flex;align-items:center;min-height:var(--control-h);font-size:15px;font-weight:800;color:var(--green)}
 .wqa-final-tag{margin-left:6px;font-size:10.5px;font-weight:700;color:var(--text-muted)}
 /* The accessory charge, beside the accessories and never inside the bolt price. */
@@ -1769,6 +1778,8 @@ input,select,textarea{
    is a label and not a document. */
 .wqa-file-src{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:9px 12px}
 .wqa-file-lbl{font-size:12.5px;font-weight:800;color:var(--text)}
+.wqa-file-name{min-width:0;max-width:34ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12px;font-weight:600;color:var(--text-2)}
 .wqa-file-chip{font-size:11px;font-weight:800;padding:2px 8px;border-radius:var(--pill-r);
   background:var(--accent-light);border:1px solid var(--accent-mid);color:var(--accent-2)}
 .wqa-file-name{font-size:12.5px;font-weight:700;color:var(--text-2);
@@ -1845,7 +1856,9 @@ input,select,textarea{
 .wqa-panel-head{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;cursor:pointer;
   background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-xs);
   font-family:inherit;color:var(--text);text-align:left;min-height:var(--control-h-lg)}
+.wqa-panel-head{transition:border-color .14s ease,background .14s ease}
 .wqa-panel-head:hover{border-color:var(--accent-mid)}
+.wqa-panel-head:focus-visible{outline:2px solid var(--accent-mid);outline-offset:2px}
 .wqa-panel-head.open{border-color:var(--accent-mid);background:var(--surface)}
 .wqa-panel-arrow{font-size:10px;color:var(--text-muted);flex:0 0 auto}
 .wqa-panel-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;line-height:1.25}
@@ -1906,7 +1919,11 @@ input,select,textarea{
 /* Quick Add — compact review: one scannable line per item */
 .wqa-view-toggle{display:inline-flex;border:1px solid var(--border);border-radius:var(--pill-r);overflow:hidden;background:var(--surface)}
 .wqa-view-btn{border:0;background:transparent;font-family:inherit;font-size:11.5px;font-weight:800;
-  padding:5px 12px;cursor:pointer;color:var(--text-muted);min-height:30px}
+  padding:5px 12px;cursor:pointer;color:var(--text-muted);min-height:32px;
+  transition:background .14s ease,color .14s ease}
+.wqa-view-btn:hover:not(.is-on){background:var(--surface2);color:var(--text-2)}
+.wqa-view-btn:focus-visible{outline:2px solid var(--accent-mid);outline-offset:-2px}
+.wqa-view-btn:active{transform:translateY(.5px)}
 .wqa-view-btn.is-on{background:var(--accent-light);color:var(--accent-2)}
 /* No card per row: just a divider. (overflow:hidden would let a flex item shrink
    below its own content, so the basis is pinned.) */
@@ -2019,7 +2036,12 @@ input,select,textarea{
    column above hides its overflow and a half-shown sentence tells staff less
    than nothing. The column still cannot widen: only this pill gets taller. */
 .wqa-pill-why{white-space:normal;overflow-wrap:anywhere;text-align:left;line-height:1.35;max-width:100%}
-.wqa-pill-req{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
+/* One filled badge says the row needs a person; the tags after it only name
+   the fields. Outline, not filled — the row is already pale amber and the
+   footer already counts, so a third loud element was alarm without
+   information. */
+.wqa-pill-attn{background:var(--amber-light);border-color:var(--amber);color:var(--amber);font-weight:800}
+.wqa-pill-req{background:transparent;border-color:var(--amber-mid);color:var(--amber);font-weight:700}
 .wqa-pill-warn{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
 .wqa-pill-info{background:var(--accent-light);color:var(--accent-2)}
 /* ── The actions ───────────────────────────────────────────────────────────
@@ -2033,7 +2055,7 @@ input,select,textarea{
 .wqa-row-del{background:transparent;border:0;color:var(--text-muted);cursor:pointer;
   font-size:12px;width:26px;height:26px;border-radius:var(--r-xs);justify-self:center}
 .wqa-row-del:hover{background:var(--surface);color:var(--danger,#b91c1c)}
-.wqa-row-body{padding:11px 12px;min-width:0;overflow-wrap:anywhere;background:var(--surface)}
+.wqa-row-body{padding:13px 16px 15px;min-width:0;overflow-wrap:anywhere;background:var(--surface)}
 .wqa-row-raw-full{margin-top:8px;font-size:11px;color:var(--text-muted);font-family:ui-monospace,Menlo,Consolas,monospace;
   overflow-wrap:anywhere}
 .wqa-hint-sm{display:block;margin-top:3px;font-size:10px;font-weight:650;color:var(--text-muted)}
@@ -2055,6 +2077,8 @@ input,select,textarea{
 .wqa-foot-need{font-size:11px;font-weight:800;padding:2px 8px;border-radius:var(--pill-r);
   background:var(--amber-light);border:1px solid var(--amber-mid);color:var(--amber)}
 .wqa-foot-need[hidden]{display:none}
+.wqa-foot-help{font-size:11.5px;font-weight:650;color:var(--text-muted)}
+.wqa-foot-help[hidden]{display:none}
 /* ── Tablet 600–1023: single-line tablet grid ─────────────────────────────
    The two-row item is gone: every value sits on ONE horizontal row, exactly as
    on desktop, so nothing looks high-low. That is achieved by narrowing the
@@ -2243,12 +2267,12 @@ input,select,textarea{
   gap:7px 12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
 .ph-rec-nums span{display:flex;flex-direction:column;min-width:0}
 .ph-rec-nums label{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:700}
-.ph-rec-unit{font-weight:800;color:var(--green)}
+.ph-rec-unit{font-weight:800;color:var(--green);font-size:14.5px;line-height:1.25}
 .ph-rec-acc{margin-top:7px;font-size:11px;line-height:1.5;color:var(--text-muted);
   background:var(--surface2);border-radius:var(--r-xs);padding:5px 8px}
 .ph-rec-foot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
-.ph-rec-tag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  padding:2px 7px;border-radius:99px;background:var(--surface2);color:var(--text-muted);
+.ph-rec-tag{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:1px 6px;border-radius:99px;background:transparent;color:var(--text-muted);
   border:1px solid var(--border)}
 .ph-rec-exact{background:rgba(52,168,110,.16);color:#1f7a4d}
 .ph-rec-other{background:rgba(120,120,140,.18)}
@@ -2262,7 +2286,9 @@ input,select,textarea{
   border-left:3px solid var(--accent-mid)}
 .wqa-row.is-open .wqa-hist-panel{background:var(--surface2)}
 .wqa-hist-bar{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;cursor:pointer;
-  background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:left}
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:left;
+  transition:border-color .14s ease,background .14s ease}
+.wqa-hist-bar:hover{border-color:var(--accent-mid)}
 .wqa-hist-arrow{font-size:10px;color:var(--text-muted)}
 .wqa-hist-lbl{font-weight:700;font-size:12px}
 .wqa-hist-count{margin-left:auto;font-size:11px;color:var(--text-muted)}
@@ -2309,6 +2335,9 @@ input,select,textarea{
 
 /* ── Bulk edit, as one group ───────────────────────────────────────────────*/
 .wqa-bulk-bar{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+.wqa-scope-lbl{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--text-muted);margin-left:auto}
+.wqa-bulk-bar .wqa-scope{margin-top:0}
 .wqa-bulk-btn{flex:1 1 240px}
 .wqa-bulk-body{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;
   padding:9px 9px 1px;border:1px solid var(--border);border-left:3px solid var(--accent-mid);
@@ -3603,7 +3632,7 @@ input,select,textarea{
         </div>
       </div>
     </div>
-    <div class="modal-title"><span data-i18n="wqaTitle">WhatsApp Quick Add</span>
+    <div class="modal-title"><span data-i18n="wqaTitle">Quick Add</span>
       <button class="modal-close" onclick="wqaRequestClose()">✕</button></div>
 
     <!-- STEP 1 — paste text OR upload a photo / PDF -->
@@ -3631,7 +3660,7 @@ input,select,textarea{
       </div>
 
       <div id="wqaPastePane">
-        <p class="wqa-hint" data-i18n="wqaPasteHint">Paste the customer's WhatsApp message. Sag Rod &middot; Stud &middot; Anchor Bolt &middot; L Bolt &middot; J Bolt are read.</p>
+        <p class="wqa-hint" id="wqaPasteHintLine">Paste customer text or upload an image / PDF. Supported: Sag Rod &middot; Stud &middot; Anchor Bolt &middot; L Bolt &middot; J Bolt.</p>
         <textarea id="wqaInput" class="wqa-input" rows="9" spellcheck="false"
           placeholder="ms hdg sag rod&#10;&#10;1. m12 x 1000 x 100 - 1&#10;2. m12 x 1070 x 100 - 2pc&#10;3. m12 x 1120 x 100 - 3pcs"></textarea>
       </div>
@@ -3728,7 +3757,8 @@ input,select,textarea{
       </div><!-- /.wqa-scroll -->
       <div class="wqa-actions wqa-sticky-actions">
         <span class="wqa-foot-count"><span id="wqaFootTotal" data-i18n="wqaZeroItems">0 items</span><span
-          class="wqa-foot-need" id="wqaFootNeed" hidden></span></span>
+          class="wqa-foot-need" id="wqaFootNeed" hidden></span><span
+          class="wqa-foot-help" id="wqaFootHelp" hidden></span></span>
         <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel">Cancel</button>
         <button class="btn btn-primary" id="wqaAddBtn" onclick="wqaAddAll()" data-i18n="wqaAddItems">Add Items to Quotation</button>
       </div>
@@ -4169,7 +4199,7 @@ const I18N={
     wqaHistMoved:'This item has changed — that record no longer describes it. Open its history again.',
     wqaHistOtherFinish:'That record is a different finish — a reference, not a recipe to reuse',
     badgeHistRecipe:'pricing', badgeHistPrice:'price',
-    wqaTitle:'WhatsApp Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
+    wqaTitle:'Quick Add', wqaAriaMethod:'Input method', wqaAriaView:'View',
     wqaDiscardTitle:'Discard Quick Add changes?',
     wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
     wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
@@ -4224,7 +4254,7 @@ const I18N={
     cdimAdd:'+ Add Dimension', cdimLabelPh:'Dimension', cdimValuePh:'Value',
     cdimRemove:'Remove this dimension', cdimPrefix:'Custom:',
     cdimHint:"Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.",
-    wqaPasteHint:"Paste the customer's WhatsApp message. Sag Rod · Stud · Anchor Bolt · L Bolt · J Bolt are read.",
+    wqaPasteHint:'Paste customer text or upload an image / PDF. Supported: {products}.',
     wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
     wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
     wqaNoFile:'No file selected', wqaAnalyzing:'Analyzing document…',
@@ -4319,6 +4349,11 @@ const I18N={
     /* The item card's two price pills: what the bolt costs, or what the line
        costs when accessories are on it. */
     qiBoltPill:'Bolt', qiUnitPill:'Unit', phBoltUnitPrice:'Bolt Unit Price',
+    secDimensions:'Dimensions', secSpecification:'Specification',
+    secPricing:'Pricing', wqaNeedsAttention:'Needs attention',
+    wqaCompleteFirst:'Complete the required fields before adding.',
+    wqaApplyTo:'Apply to:', nActive:'{n} active',
+    wqaOneFileUsing:'One file per analysis — using {f}.',
     /* ── The dialogs ────────────────────────────────────────────────────────
        confirm() is the only place this application asks before doing something
        it cannot undo. Every one of them was English in both modes. */
@@ -4641,7 +4676,7 @@ const I18N={
     wqaHistMoved:'此项目已更改 —— 该记录已不符合，请重新打开历史价格。',
     wqaHistOtherFinish:'该记录表面处理不同 —— 仅供参考，不可直接沿用计价方式',
     badgeHistRecipe:'计价方式', badgeHistPrice:'单价',
-    wqaTitle:'WhatsApp 快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
+    wqaTitle:'快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
     wqaDiscardTitle:'要放弃快速添加的内容吗？',
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
@@ -4695,7 +4730,7 @@ const I18N={
     cdimAdd:'+ 新增尺寸', cdimLabelPh:'尺寸名称', cdimValuePh:'数值',
     cdimRemove:'删除此尺寸', cdimPrefix:'自定义：',
     cdimHint:'选填。图纸上的额外尺寸，例如 A 120。不参与任何重量或价格计算，也不能代替产品本身的尺寸字段。',
-    wqaPasteHint:'粘贴客户的 WhatsApp 信息。可识别 Sag Rod · Stud · Anchor Bolt · L Bolt · J Bolt。',
+    wqaPasteHint:'粘贴客户文字或上传图片 / PDF。支持识别：{products}。',
     wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
     wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
     wqaNoFile:'未选择文件', wqaAnalyzing:'正在分析文件…',
@@ -4785,6 +4820,11 @@ const I18N={
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
     cpLineNote:'+ {acc} 配件 = {line}/件',
     qiBoltPill:'螺栓', qiUnitPill:'单价', phBoltUnitPrice:'螺栓单价',
+    secDimensions:'尺寸', secSpecification:'规格',
+    secPricing:'价格', wqaNeedsAttention:'需要检查',
+    wqaCompleteFirst:'请先完成需要检查的项目。',
+    wqaApplyTo:'应用范围：', nActive:'{n} 项启用',
+    wqaOneFileUsing:'每次分析一个文件 — 使用 {f}。',
     cfmResetAllRules:'确定删除所有自定义直径规则吗？',
     cfmDeleteDiaRule:'确定删除此直径规则吗？',
     cfmDeleteDefaultPrice:'确定删除此默认价格规则吗？',
@@ -9722,6 +9762,21 @@ const WQA_STD_RE=new RegExp(WQA_PRODUCTS.filter(p=>p.std).map(p=>p.std.source).j
    of lengths and counts). The review still opens so the user can see the rows
    and choose; this stand-in keeps every renderer safe until they do. */
 const WQA_NO_PRODUCT={type:'',token:'',label:'—',dims:['size','length'],map:{},threadEnds:0,needSizeType:false};
+/* ── The paste hint says what the PARSER says ───────────────────────────────
+   The supported-product list is read off WQA_PRODUCTS at the moment the hint
+   is written, so there is no second copy to fall out of date: teach the parser
+   a sixth product and this sentence grows with it. The dictionary holds the
+   sentence with a {products} slot; the names themselves are trade vocabulary
+   and are never translated. Registered for relabel so a language switch
+   rewrites the sentence around the same list. */
+function wqaWritePasteHint(){
+  const n=el('wqaPasteHintLine');
+  if(!n) return;
+  const list=WQA_PRODUCTS.filter(p=>p&&p.type).map(p=>p.label).join(' \u00b7 ');
+  n.textContent=dcT('wqaPasteHint').replace('{products}',list);
+}
+wqaWritePasteHint();
+dcOnRelabel(wqaWritePasteHint);
 
 /* A grade number and a measurement can be the same number. What tells them
    apart is the word in front of it, so this is tested against the text
@@ -9962,7 +10017,7 @@ function wqaSelPrevPrice(){
    view toggle already uses — so it is one component, responsive already. */
 function wqaScopeSwitch(){
   const sel=wqa.applyScope==='selected';
-  return `<div class="wqa-view-toggle wqa-scope" role="group">
+  return `<span class="wqa-scope-lbl">${escHtml(dcT('wqaApplyTo'))}</span><div class="wqa-view-toggle wqa-scope" role="group">
       <button type="button" class="wqa-view-btn${sel?'':' is-on'}" onclick="wqaSetApplyScope('all')"
               >${escHtml(dcT('wqaScopeAll'))}</button>
       <button type="button" class="wqa-view-btn${sel?' is-on':''}" onclick="wqaSetApplyScope('selected')"
@@ -11182,8 +11237,16 @@ function wqaRowBadges(r){
   if(r.noteApplied&&r.noteApplied.length)
     out.push({t:dcT('wqaNoteBadge')+' '+[...new Set(r.noteApplied)].join(' · '),k:'info'});
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
-     either language instead of a translated word glued to an English one. */
-  wqaRowMissing(r).forEach(m=>out.push({t:dcT('needs').replace('{f}',
+     either language instead of a translated word glued to an English one.
+
+     ONE primary badge carries the state; the field names hang off it as
+     smaller outline tags. Five equally bright pills said "emergency" five
+     times about one unfilled box — the row is already pale amber and the
+     footer already counts it, so the detail tags only need to name the
+     fields, not to shout. */
+  const missing=wqaRowMissing(r);
+  if(missing.length) out.push({t:dcT('wqaNeedsAttention'),k:'attn'});
+  missing.forEach(m=>out.push({t:dcT('needs').replace('{f}',
     dcT('field'+m.replace(/\s/g,''),m)),k:'req'}));
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
   if(String(r.size).trim() && !isKnownSize(r.size))
@@ -11272,6 +11335,14 @@ function wqaUpdateAddButton(){
   if(fn){ const why = blocked ? dcT('needAttention').replace('{n}',blocked)
                     : (needAck ? dcT('wqaPartialBlocked') : '');
           fn.textContent=why; fn.hidden=!why; }
+  /* A greyed button is a fact without a reason. When rows exist and every one
+     is blocked, this line says what to do about it — and it is DERIVED from
+     the same test that disabled the button, so it can never show while Add is
+     live or stay behind once the rows are complete. The truncation case keeps
+     its own, more specific banner. */
+  const fh=el('wqaFootHelp');
+  if(fh){ const stuck = live.length>0 && blocked>=live.length && !needAck;
+          fh.textContent=stuck?dcT('wqaCompleteFirst'):''; fh.hidden=!stuck; }
   /* Keeps the "N incomplete" badge live as rows are edited, without ever
      re-rendering the panel out from under a caret. */
   wqaPatchItemPanel();
@@ -13262,7 +13333,7 @@ function wqaDrop(e){
      queued, and a second drop replaces the first selection outright. */
   const many=files.length>1;
   wqaAcceptFile(files[0]);
-  if(many && wqa.aiFile) wqaMsg('wqaAiMsg','One file per analysis — using '+wqa.aiFile.name+'.',false);
+  if(many && wqa.aiFile) wqaMsg('wqaAiMsg',dcT('wqaOneFileUsing').replace('{f}',wqa.aiFile.name),false);
 }
 /* Rejection is shared so the picker and the drop zone fail identically. */
 function wqaRejectFile(msg){
@@ -14190,7 +14261,7 @@ function wqaRenderSource(force){
     box.innerHTML=`<div class="wqa-file-src">
         <span class="wqa-file-lbl" >${escHtml(dcT('wqaSourceFile'))}</span>
         <span class="wqa-file-chip">${escHtml(f.pdf?'PDF':dcT('wqaImage'))}</span>
-        <span class="wqa-file-name">${escHtml(f.name||'')}</span>
+        <span class="wqa-file-name" title="${escHtml(f.name||'')}">${escHtml(f.name||'')}</span>
         <button type="button" class="btn btn-outline btn-sm" onclick="wqaBackToPaste()"
                 >${escHtml(dcT('wqaBackToUpload'))}</button>
       </div>`;
@@ -14937,6 +15008,7 @@ function wqaRenderRows(force){
     /* This row's product decides which dimensions it is asked for. */
     const rprod=wqaProductByType(wqaRowProduct(r))||prod;
     const body = !open ? '' : `<div class="wqa-row-body">
+      <div class="wqa-sec-lbl">${escHtml(dcT('secDimensions'))}</div>
       <div class="wqa-row-grid">
         <div class="field"><label>${escHtml(dcT('lblSize'))}</label><input type="text" value="${escHtml(r.size)}"
                  oninput="wqaEditSize(${i},this,false)"
@@ -14960,6 +15032,7 @@ function wqaRenderRows(force){
           <small class="wqa-hint-sm">${escHtml(dcT(rprod.threadEnds===2?'wqaThreadHintPair':'wqaThreadHintOne'))}</small></div>`:''}
         <div class="field"><label>${escHtml(dcT('lblQty'))}</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
       </div>
+      <div class="wqa-sec-lbl">${escHtml(dcT('secSpecification'))}</div>
       <div class="wqa-row-grid">
         <div class="field"><label>${escHtml(dcT('fieldProduct'))}</label>
           <select onchange="wqaEditRowProduct(${i},this.value)">
@@ -14986,6 +15059,7 @@ function wqaRenderRows(force){
             ${[['','—'],['FULLSIZE','Fullsize'],['UNDERSIZE','Undersize']].map(o=>`<option value="${o[0]}"${wqaRowSpec(r,'sizeType')===o[0]?' selected':''}>${escHtml(o[1])}</option>`).join('')}
           </select></div>`:''}
       </div>
+      <div class="wqa-sec-lbl wqa-sec-pricing">${escHtml(dcT('secPricing'))}</div>
       <div class="wqa-row-grid wqa-price-grid">
         <div class="field"><label>${escHtml(dcT('lblCostRate'))}</label><input type="text" value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></div>
         <div class="field"><label>${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></div>
@@ -15009,7 +15083,7 @@ function wqaRenderRows(force){
           <span class="wqa-acc-bar-lbl">${escHtml(dcT('lblAccessoriesColon'))}</span>
           <span class="wqa-acc-bar-sum${wqaAccHas(r.acc)?' has':''}">${escHtml(wqaAccShortSummary(r.acc))}</span>
           ${accAddon(r.acc)>0?`<span class="wqa-acc-bar-money">+ ${escHtml(fmt(accAddon(r.acc)))}/pc</span>`:''}
-          <span class="wqa-panel-badge"${wqaAccActiveCount(r.acc)?'':' hidden'}>${wqaAccActiveCount(r.acc)?wqaAccActiveCount(r.acc)+' active':''}</span>
+          <span class="wqa-panel-badge"${wqaAccActiveCount(r.acc)?'':' hidden'}>${wqaAccActiveCount(r.acc)?escHtml(dcT('nActive').replace('{n}',wqaAccActiveCount(r.acc))):''}</span>
         </button>
         ${r.accOpen?wqaAccEditor(r.acc||wqaEmptyAcc(),(g,f,v)=>`wqaEditAcc(${i},'${g}','${f}',${v})`):''}
       </div>

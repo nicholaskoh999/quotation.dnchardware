@@ -551,6 +551,97 @@ const historyApi = records => ({
       await shot(page, 'F-m24-pricing-verified', '#wqaStep2');
       await page.close();
     }
+
+    // ══ UI/UX POLISH — the twelve frames the polish brief names ═══════════
+    /* P01/P02 · the homepage entry, both languages. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await shot(page, 'P01-quickadd-homepage-en', '#step2Card');
+      await setLang(page, 'zh');
+      await shot(page, 'P02-quickadd-homepage-zh', '#step2Card');
+      await setLang(page, 'en');
+      await page.close();
+    }
+    /* P03/P04 · the modal itself, retitled, with the generated scope hint. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await page.evaluate(() => wqaOpen());
+      await page.waitForTimeout(400);
+      await shot(page, 'P03-quickadd-modal-en', '#wqaModal .modal');
+      await setLang(page, 'zh');
+      await page.waitForTimeout(300);
+      await shot(page, 'P04-quickadd-modal-zh', '#wqaModal .modal');
+      await setLang(page, 'en');
+      await page.close();
+    }
+    /* P05–P08 · compact, expanded with section labels, History, Bulk Edit. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await assertClean(page, 'P05-compact-two-items');
+      await quickAddPaste(page, 'MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs\nM16 x 850 x 100/100 - 20pcs',
+        { expanded: false, settle: 900 });
+      await shot(page, 'P05-compact-two-items', '#wqaStep2');
+      await page.evaluate(() => wqaSetView('expanded'));
+      await page.waitForTimeout(500);
+      await shot(page, 'P06-expanded-item', '#wqaStep2');
+      /* History is captured in compact view, where the panel sits directly
+         under its one-line row instead of under a whole expanded form. */
+      await page.evaluate(() => wqaSetView('compact'));
+      await page.waitForTimeout(300);
+      await page.evaluate(() => { const b = document.querySelector('.wqa-row-hist'); if (b) b.click(); });
+      await page.waitForTimeout(700);
+      await shot(page, 'P07-history-open', '#wqaStep2');
+      await page.evaluate(() => { wqaHistToggle(0); wqaOpenBulkFor(); });
+      await page.waitForTimeout(400);
+      await shot(page, 'P08-bulk-edit-open', '#wqaStep2');
+      await page.close();
+    }
+    /* P09/P10 · every row blocked with the footer helper, then the same list
+       complete and addable — the helper must be gone. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'M24 x 300 x tl 65/65\nqty 100 / 200', { expanded: false, settle: 900 });
+      await shot(page, 'P09-blocked-needs-attention', '#wqaStep2');
+      await page.close();
+      const ok = await openApp(browser, { viewport: V });
+      await quickAddPaste(ok, 'MS SAG ROD PL FULLSIZE\nM24 x 1000 x tl 65/65 - 20pcs', { settle: 900 });
+      await typePrice(ok, 0, 'costRate', '2.80');
+      await typePrice(ok, 0, 'addCost', '0.60');
+      await typePrice(ok, 0, 'markup', '4');
+      await ok.waitForTimeout(400);
+      await shot(ok, 'P10-valid-addable', '#wqaStep2');
+      await ok.close();
+    }
+    /* P11 · an uploaded image's review, with the source header. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await page.evaluate(async d => {
+        wqaOpen();
+        wqa.aiFile = { name: 'site-photo-anchor-bolts-liew-construction-feb-2026.jpg', size: 482133 };
+        wqa.aiIsPdf = false;
+        await wqaAiApply(d);
+      }, {
+        product: 'ANCHOR_BOLT', material: 'MS', finish: 'HDG', sizeType: 'Fullsize',
+        threadEnds: 1, note: null,
+        items: [{ M: 'M20', L: 600, W: null, TL: 60, qty: 10, Bmid: null, material: null,
+                  finish: null, sizeType: null, unclear: null, product: null, threadEnds: null,
+                  bodyDia: null, H: null, ID: null, S: null, R: null }],
+      });
+      await page.waitForTimeout(900);
+      await shot(page, 'P11-image-upload-review', '#wqaStep2');
+      await page.close();
+    }
+    /* P12 · the same review on a narrower desktop. */
+    {
+      const page = await openApp(browser, { viewport: { width: 1366, height: 900 } });
+      await quickAddPaste(page, 'MS SAG ROD ZP FULLSIZE\nM12 x 1000 x 100/100 - 40pcs\nM16 x 850 x 100/100 - 20pcs',
+        { expanded: false, settle: 900 });
+      const wide = await page.evaluate(() =>
+        document.documentElement.scrollWidth > document.documentElement.clientWidth);
+      if (wide) throw new Error('P12: the page scrolls horizontally at 1366px');
+      await shot(page, 'P12-narrow-desktop-1366');
+      await page.close();
+    }
   } finally {
     await browser.close();
   }
