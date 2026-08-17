@@ -129,9 +129,35 @@ function historicalTableLines(text) {
   });
   return out;
 }
+
+/* ── A section that declares itself historical ────────────────────────────
+   A line-level rule cannot see a heading. `## SUPERSEDED VALUES` is a promise
+   about everything under it, and the file whose job is to LIST retired
+   figures was being told not to name them — the registry failing its own
+   rule. Headings are read, and their scope runs to the next heading of the
+   same or higher level. Narrow on purpose: the heading itself must say so. */
+const HIST_HEADING = /^#{1,6}\s+.*\b(superseded|historical|history|previous|earlier|retired|no longer current)\b/i;
+function historicalSections(text) {
+  const out = new Set();
+  let depth = 0;
+  text.split('\n').forEach((line, i) => {
+    const h = line.match(/^(#{1,6})\s/);
+    if (h) {
+      const d = h[1].length;
+      if (HIST_HEADING.test(line)) { depth = d; out.add(i); return; }
+      if (depth && d <= depth) depth = 0;      // the section ended
+    }
+    if (depth) out.add(i);
+  });
+  return out;
+}
 const HIST_LINES = new Map();
 const histLines = (f, text) => {
-  if (!HIST_LINES.has(f)) HIST_LINES.set(f, historicalTableLines(text));
+  if (!HIST_LINES.has(f)) {
+    const set = historicalTableLines(text);
+    historicalSections(text).forEach(i => set.add(i));
+    HIST_LINES.set(f, set);
+  }
   return HIST_LINES.get(f);
 };
 const exempt = (line, f, i, text) =>
@@ -220,7 +246,13 @@ const CELL_RULES = [
    that says it would have caught them. */
 function scanTable(text) {
   const out = [];
+  let inFence = false;
   text.split('\n').forEach((line, i) => {
+    /* A fence is quoted material, not a rendered table. ROUND-SCOPE writes
+       down the exact stale row this must reject; reading that illustration as
+       a claim would make the guard impossible to document. */
+    if (/^\s*```/.test(line)) { inFence = !inFence; return; }
+    if (inFence) return;
     if (!/^\s*\|/.test(line)) return;
     const cells = line.split('|').slice(1, -1).map(c => c.trim());
     if (!cells.length) return;

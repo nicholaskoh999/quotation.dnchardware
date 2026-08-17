@@ -41,7 +41,7 @@
   },
   "history": {
     "note": "Superseded values, listed so a checker can recognise them as stale rather than having them re-derived. Never quote these as current.",
-    "supersededAssertionTotals": [2810, 3334, 3482, 3679, 3799, 3827],
+    "supersededAssertionTotals": [3334, 3482, 3679, 3799, 3827],
     "supersededTranslationKeys": [512, 658, 756, 843, 853],
     "supersededFindingTotals": [29, 33],
     "supersededDeltas": [734, 869, 989, 1017],

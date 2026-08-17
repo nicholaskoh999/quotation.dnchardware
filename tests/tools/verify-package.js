@@ -148,13 +148,39 @@ else {
   const T = C.tests, F = C.findings, TR = C.translation;
   const HIST = /historical|superseded|baseline|previously|earlier|no longer|used to|before this|resolved by|up from|larger than|and should not be quoted|oldest first|\| *baseline *\||overnight *\| *morning/i;
   let hits = 0;
-  const docs = names.filter(n => /\/(REPORTS|docs)\//.test(n) && /\.(md|txt|json)$/.test(n));
+  /* CANONICAL-STATE.json is the registry of retired values — naming them is
+     its entire purpose, and it holds no prose a reader could mistake for a
+     current claim. Its arithmetic, and its agreement with the .md, are checked
+     separately; its history block is not scanned for the very figures it
+     exists to record. */
+  const docs = names.filter(n => /\/(REPORTS|docs)\//.test(n) && /\.(md|txt|json)$/.test(n)
+    && !n.endsWith('CANONICAL-STATE.json'));
   for (const n of docs) {
     const text = entries.get(n).toString('utf8');
-    /* header-declared history tables, same allowance the checker makes */
+    /* Header-declared history tables and self-declared historical SECTIONS —
+       the same two allowances the checker makes, written separately here so a
+       mistake in one does not silently excuse the other.
+
+       The section rule earned itself immediately: without it, the file whose
+       job is to LIST retired figures was told not to name them. A registry
+       failing its own rule is a scanner problem, not a document problem. */
     const lines = text.split('\n');
-    let inHist = false;
+    let inHist = false, sectionDepth = 0, inFence = false;
     lines.forEach((line, i) => {
+      const h = line.match(/^(#{1,6})\s/);
+      if (h) {
+        const d = h[1].length;
+        if (/^#{1,6}\s+.*\b(superseded|historical|history|previous|earlier|retired|no longer current)\b/i.test(line)) {
+          sectionDepth = d; return;
+        }
+        if (sectionDepth && d <= sectionDepth) sectionDepth = 0;
+      }
+      if (sectionDepth) return;
+      /* A fence is quoted material. ROUND-SCOPE documents the exact stale row
+         the checker must reject — reading that illustration as a claim would
+         make it impossible to write down what is being guarded against. */
+      if (/^\s*```/.test(line)) { inFence = !inFence; return; }
+      if (inFence) return;
       const isRow = /^\s*\|/.test(line);
       if (!isRow) inHist = false;
       else if (!inHist && /\|\s*(?:baseline|overnight|morning|before|previous|old|was|then)\s*\|/i.test(line)) { inHist = true; return; }
