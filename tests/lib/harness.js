@@ -157,7 +157,13 @@ async function rowState(page) {
       missing: wqaRowMissing(r),
       badges: (card && card.querySelector('.wqa-sum-badges') || {}).textContent || '',
       shownSize: q('.wqa-c-size'),
-      shownSizeInput: q('.wqa-row-body input'),
+      /* The size box is the inline edit grid's; when no edit is open there is
+         no box, and the compact cell is what a person reads. */
+      shownSizeInput: (card && card.querySelector('[data-ef="size"]'))
+                        ? card.querySelector('[data-ef="size"]').value
+                        : ((card && card.querySelector('.wqa-c-size'))
+                            ? card.querySelector('.wqa-c-size').childNodes[0].textContent.trim()
+                            : null),
       shownUnitWeight: q('.wqa-uw-full'),
       shownTotalWeight: q('.wqa-tw'),
       shownPrice: (card && card.querySelector('.wqa-fin') || {}).textContent || '',
@@ -172,14 +178,34 @@ async function rowState(page) {
 
 /* Type into a Quick Add row's size box without leaving it: no Enter, no blur.
    This is the whole point of the P0 case — the value must be right while the
-   caret is still in the field. */
+   caret is still in the field.
+
+   The size box is the inline edit grid's now: Expanded no longer carries a
+   second copy of the dimensions, because the same field editable in two places
+   is one place too many. So this opens the edit the way a person does and
+   types in the SIZE cell, which is the same live path it always exercised. */
 async function typeRowSize(page, index, text, opts = {}) {
-  const sel = `[data-wqa-row="${index}"] .wqa-row-body input`;
+  await page.evaluate(i => { if (!wqa.edit) wqaEditStart(i, 'size'); }, index);
+  await page.waitForTimeout(350);
+  const sel = `[data-wqa-row="${index}"] [data-ef="size"]`;
   await page.click(sel, { clickCount: 3 });
   await page.keyboard.press('Backspace');
   await page.type(sel, text, { delay: opts.delay === undefined ? 15 : opts.delay });
   await page.waitForTimeout(opts.settle || 600);
-  if (opts.blur) { await page.$eval(sel, el => el.blur()); await page.waitForTimeout(400); }
+  /* The row's own state is already updated — that is the P0 case, and it is
+     true while the caret is still in the box. What happens next is only about
+     what the SCREEN is showing: an open edit turns the row into a grid of
+     inputs, so the expanded weight line and the read-only cells are not there
+     to be read. Callers that want to read them get the edit finished, which is
+     what a person does; pass keepEdit to stay in it. */
+  /* The blur is allowed to finish before anything re-renders: closing the
+     edit from inside a blur handler replaces the node the browser is still
+     working on. */
+  if (opts.blur) { await page.$eval(sel, el => el.blur()); await page.waitForTimeout(200); }
+  if (!opts.keepEdit) {
+    await page.evaluate(() => { try { wqaEditDone(); } catch (e) {} });
+    await page.waitForTimeout(500);
+  }
 }
 
 /* ── The Companies page, served the same way ────────────────────────────────

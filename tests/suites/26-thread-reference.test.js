@@ -54,12 +54,21 @@ module.exports = async (browser, A) => {
     A.excludes(metric, 'BSW', 'and never offered BSW');
 
     /* And it follows the size when the size is corrected on the screen. */
+    /* Correcting a size on the screen is done in the inline edit grid now,
+       which is how a person does it: press Edit, type in the SIZE cell. */
+    await page.evaluate(() => wqaEditStart(0, 'size'));
+    await page.waitForTimeout(400);
     await page.evaluate(() => {
       const card = document.querySelector('[data-wqa-row="0"]');
-      const box = card.querySelector('input[oninput^="wqaEditSize"]');
+      const box = card.querySelector('[data-ef="size"]');
       box.value = '1/2';
       wqaEditSize(0, box, true);
     });
+    await page.waitForTimeout(500);
+    /* Thread Reference lives in Expanded's REFERENCE section — it is a note
+       about the thread, not one of the numbers the weight is made of — so the
+       edit is finished and the row reopened to read what it now suggests. */
+    await page.evaluate(() => { wqaEditDone(); wqaSetView('expanded'); });
     await page.waitForTimeout(500);
     A.eq(await hintOf(page, 0), 'UNC / BSW',
       'retyping the size to 1/2" changes what the box suggests');

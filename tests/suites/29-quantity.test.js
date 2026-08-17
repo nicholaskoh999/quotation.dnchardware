@@ -164,12 +164,18 @@ module.exports = async (browser, A) => {
        summary and holds no inputs, so this is the expanded card. */
     await page.evaluate(() => wqaSetView('expanded'));
     await page.waitForTimeout(400);
+    /* The quantity box is the inline edit grid's, since Expanded no longer
+       carries a second copy of it. */
+    await page.evaluate(() => wqaEditStart(0, 'qty'));
+    await page.waitForTimeout(400);
     const shown = await page.evaluate(() => {
       const card = document.querySelector('[data-wqa-row="0"]');
-      const box = card && card.querySelector('input[oninput*="\'qty\'"]');
+      const box = card && card.querySelector('[data-ef="qty"]');
       return box ? box.value : null;
     });
     A.eq(shown, '15000', 'the quantity box on the card reads 15000');
+    await page.evaluate(() => wqaEditDone());
+    await page.waitForTimeout(300);
   }
 
   // ══ 8 · A DEFAULTED ONE IS ADDABLE; AN UNREADABLE ONE IS NOT ═══════════

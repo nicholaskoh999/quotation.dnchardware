@@ -102,7 +102,9 @@ module.exports = async (browser, A) => {
   await page.waitForTimeout(300);
   const compact = await page.evaluate(() => ({
     model: wqa.rows[0].size,
-    cell: document.querySelector('[data-wqa-row="0"] .wqa-c-size').textContent,
+    cell: (() => { const c = document.querySelector('[data-wqa-row="0"] .wqa-c-size');
+                   const i = c.querySelector('input');
+                   return i ? i.value : c.childNodes[0].textContent.trim(); })(),
   }));
   A.eq(compact.model, 'M24', 'switching to compact does not change the value');
   A.eq(compact.cell, 'M24', 'and compact shows what the model holds');
@@ -110,7 +112,9 @@ module.exports = async (browser, A) => {
   await page.waitForTimeout(300);
   const expanded = await page.evaluate(() => ({
     model: wqa.rows[0].size,
-    box: document.querySelector('[data-wqa-row="0"] .wqa-row-body input').value,
+    box: (document.querySelector('[data-wqa-row="0"] [data-ef="size"]')
+            || document.querySelector('[data-wqa-row="0"] .wqa-c-size')).value
+         || document.querySelector('[data-wqa-row="0"] .wqa-c-size').childNodes[0].textContent.trim(),
   }));
   A.eq(expanded.model, 'M24', 'switching back does not change it either');
   A.eq(expanded.box, 'M24', 'and expanded shows the same thing compact did');

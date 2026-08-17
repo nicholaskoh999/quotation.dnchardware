@@ -4434,7 +4434,8 @@ const I18N={
        costs when accessories are on it. */
     qiBoltPill:'Bolt', qiUnitPill:'Unit', phBoltUnitPrice:'Bolt Unit Price',
     secDimensions:'Dimensions', secSpecification:'Specification',
-    secPricing:'Pricing', wqaNeedsAttention:'Needs attention',
+    secPricing:'Pricing', secCalculation:'Calculation', secReference:'Reference',
+    wqaNeedsAttention:'Needs attention',
     wqaCompleteFirst:'Complete the required fields before adding.',
     wqaApplyTo:'Apply to:', nActive:'{n} active',
     /* The compact row's read-only pricing summary. Its own keys: the brief
@@ -4928,7 +4929,8 @@ const I18N={
     cpLineNote:'+ {acc} 配件 = {line}/件',
     qiBoltPill:'螺栓', qiUnitPill:'单价', phBoltUnitPrice:'螺栓单价',
     secDimensions:'尺寸', secSpecification:'规格',
-    secPricing:'价格', wqaNeedsAttention:'需要检查',
+    secPricing:'价格', secCalculation:'计算结果', secReference:'参考',
+    wqaNeedsAttention:'需要检查',
     wqaCompleteFirst:'请先完成需要检查的项目。',
     wqaApplyTo:'应用范围：', nActive:'{n} 项启用',
     sumPricing:'价格参数', sumSizeType:'尺寸类型：',
@@ -11103,18 +11105,39 @@ function wqaPatchRows(){
     if(fin2) fin2.textContent=wqaFmtPrice(wqaShownPrice(r));
     const badges=card.querySelector('.wqa-sum-badges');
     if(badges) badges.innerHTML=wqaBadgeHtml(r);
-    const cQty=card.querySelector('.wqa-c-qty');
-    if(cQty) cQty.textContent=r.qty||'—';
-    const cDia=card.querySelector('.wqa-c-dia');
-    if(cDia) cDia.outerHTML=wqaDiaCellHtml(r);
-    /* The dimension cells are whatever this list's columns turned out to be,
-       so they are refreshed from that same list rather than by name. */
-    const dims=card.querySelectorAll('.wqa-sum .wqa-c-dim');
-    wqaListCols().forEach((c,k)=>{ if(dims[k]) dims[k].textContent=wqaRowDimCell(r,c.k)||'—'; });
+    /* ── While an edit is open, these cells are INPUTS ─────────────────────
+       A patch rewrites the value cells from state, which is right for a
+       read-only row and destructive for an editable one: replacing the
+       diameter cell replaces the box a person is typing in, and the caret with
+       it. The derived read-only figures below — weight, price, the badges —
+       are patched either way, because those are the numbers an edit is being
+       made to move. */
+    if(wqaEditing()){
+      /* One box does have to follow: changing the size drops a manual
+         diameter, and the box a person typed 10.7 into must then show the new
+         size's own bar rather than the number that no longer applies. Only
+         when it is NOT the box being typed in, and only when the override has
+         gone — everything else a person is holding is left alone. */
+      const dIn=card.querySelector('[data-ef="dia"]');
+      if(dIn && !r.diaManual && document.activeElement!==dIn){
+        const want=String(r.diaMm==null?'':r.diaMm);
+        if(dIn.value!==want) dIn.value=want;
+      }
+    }
+    if(!wqaEditing()){
+      const cQty=card.querySelector('.wqa-c-qty');
+      if(cQty) cQty.textContent=r.qty||'—';
+      const cDia=card.querySelector('.wqa-c-dia');
+      if(cDia) cDia.outerHTML=wqaDiaCellHtml(r);
+      /* The dimension cells are whatever this list's columns turned out to be,
+         so they are refreshed from that same list rather than by name. */
+      const dims=card.querySelectorAll('.wqa-sum .wqa-c-dim');
+      wqaListCols().forEach((c,k)=>{ if(dims[k]) dims[k].textContent=wqaRowDimCell(r,c.k)||'—'; });
+    }
     /* The size cell carries the thread reference under it, so it is rebuilt
        rather than have its text replaced — textContent alone would delete the
        note every time a row was patched. */
-    const cSize=card.querySelector('.wqa-c-size');
+    const cSize=wqaEditing()?null:card.querySelector('.wqa-c-size');
     if(cSize){
       const tref=String(r.threadRef||'').trim();
       cSize.classList.toggle('has-tref',!!tref);
@@ -11320,6 +11343,11 @@ function wqaSyncEditLocks(){
   const rows=el('wqaRows');
   if(rows){
     rows.querySelectorAll('.wqa-row-del').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockDelete'); });
+    /* The per-row Edit button opens ONE row's expanded form, which is the
+       other write surface. While the grid is open it is disabled — which also
+       keeps it out of the Tab order, so tabbing off the last cell of a row
+       lands on the first cell of the next one rather than on a control. */
+    rows.querySelectorAll('.wqa-row-edit').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockExpanded'); });
     rows.querySelectorAll('.wqa-row-hist').forEach(b=>{ b.disabled=on; if(on) b.title=dcT('editLockHistory'); });
     rows.querySelectorAll('.ph-rec-use,.ph-more,.wqa-prov').forEach(b=>{ b.disabled=on; });
     rows.querySelectorAll('.wqa-hist-panel').forEach(p=>p.classList.toggle('is-muted',on));
@@ -11408,9 +11436,12 @@ function wqaEditDirty(){
 function wqaEditStart(rowIdx,field){
   if(!wqa.rows.filter(r=>!r.removed).length) return;
   if(!wqa.edit){
-    wqa.edit={ snap:wqaEditSnapshot() };
+    /* Where we came FROM, so leaving puts it back. Pressing Edit while reading
+       an expanded row and then pressing Done should return to the expanded
+       row, not strand you in a list you did not choose. */
+    wqa.edit={ snap:wqaEditSnapshot(), fromView:wqa.view };
     wqa.bulkOpen=false;
-    if(wqa.view!=='compact') wqaSetView('compact');
+    if(wqa.view!=='compact'){ wqa.view='compact'; }
   }
   wqaRenderBulk();
   wqaRenderRows(true);
@@ -11438,7 +11469,9 @@ function wqaEditDone(){
     wqaEditFocus(bad[0].row,bad[0].field);
     return false;
   }
+  const back=wqa.edit.fromView;
   wqa.edit=null;
+  if(back && back!==wqa.view) wqaSetView(back);
   wqaRenderBulk();
   /* The row's identity may have moved under the history it was matched on, so
      the existing matcher is re-run against the NEW state rather than left
@@ -11451,7 +11484,9 @@ function wqaEditCancel(){
   let snap=[];
   try{ snap=JSON.parse(wqa.edit.snap); }catch(e){ snap=[]; }
   snap.forEach((s,i)=>{ const r=wqa.rows[i]; if(!r) return; Object.assign(r,s); });
+  const back=wqa.edit.fromView;
   wqa.edit=null;
+  if(back && back!==wqa.view) wqaSetView(back);
   wqaRenderBulk();
   wqaRecomputeAll('force');
 }
@@ -11495,11 +11530,19 @@ function wqaEditKey(ev,i,f){
 function wqaEditCellHtml(r,i,f,cls){
   const v=wqaEditCellValue(r,f);
   const err=wqaEditCellError(r,f);
+  /* The SIZE cell goes through wqaEditSize, exactly as the box it replaces
+     did: it normalises what was typed — 22, m22, M 22 and 22mm are all M22 —
+     and writes the answer back into the box AS it is typed, keeping the caret
+     where the next keystroke belongs. Every other cell is plain millimetres
+     and gains nothing from being rewritten under the hand. */
+  const handler = f.kind==='size'
+    ? `oninput="wqaEditSize(${i},this,false)" onchange="wqaEditSize(${i},this,true)"`
+    : `oninput="wqaEditCell(${i},'${f.k}',this.value)"`;
   return `<span class="wqa-c wqa-ec ${cls}"><input class="wqa-ei${err?' is-bad':''}" type="text"
     data-ef="${f.k}" value="${escHtml(String(v==null?'':v))}"
     ${err?`title="${escHtml(err)}" aria-invalid="true"`:''}
     onclick="event.stopPropagation()"
-    oninput="wqaEditCell(${i},'${f.k}',this.value)"
+    ${handler}
     onkeydown="wqaEditKey(event,${i},'${f.k}')"></span>`;
 }
 function wqaCompactCells(r,cols){
@@ -15454,29 +15497,26 @@ function wqaRenderRows(force){
     /* This row's product decides which dimensions it is asked for. */
     const rprod=wqaProductByType(wqaRowProduct(r))||prod;
     const body = !open ? '' : `<div class="wqa-row-body">
-      <div class="wqa-sec-lbl">${escHtml(dcT('secDimensions'))}</div>
+      <!-- ── No DIMENSIONS block here ──────────────────────────────────
+           Size, the diameter, every dimension the product has and the quantity
+           are all edited inline, on the compact row, across every row at once.
+           Repeating them here made the same value editable in two places and
+           the modal twice as long as it needed to be.
+
+           This applies to the five products Quick Add reads. A future product
+           whose geometry does not fit an inline row needs an inline design
+           BEFORE its fallback is taken away — see the note by WQA_PRODUCTS. -->
+      <div class="wqa-sec-lbl">${escHtml(dcT('secReference'))}</div>
       <div class="wqa-row-grid">
-        <div class="field"><label>${escHtml(dcT('lblSize'))}</label><input type="text" value="${escHtml(r.size)}"
-                 oninput="wqaEditSize(${i},this,false)"
-                 onchange="wqaEditSize(${i},this,true)"></div>
-        <!-- Beside the size, never inside it. Optional, clearable, and read by
-             nothing that computes. -->
-        <div class="field wqa-f-tref"><label >${escHtml(dcT('wqaThreadRef'))}</label>
+        <!-- Reference-only, and it stays: beside the size, never inside it,
+             read by nothing that computes. It has no place on a row of
+             numbers that all feed the weight, so it lives here. -->
+        <div class="field wqa-f-tref"><label>${escHtml(dcT('wqaThreadRef'))}</label>
           <input type="text" class="wqa-tref-in" value="${escHtml(r.threadRef||'')}"
                  placeholder="${escHtml(dcThreadRefHint(r.size))}"
                  oninput="wqaEdit(${i},'threadRef',this.value)"
                  onchange="wqaEditThreadRef(${i},this)">
-          <small class="wqa-hint-sm" >${escHtml(dcT('wqaThreadRefNote'))}</small></div>
-        ${(rprod.dims||[]).filter(d=>d!=='size'&&d!=='threadLen').map(d=>`
-        <div class="field"><label>${escHtml(wqaDimLabel(rprod.type,d))} (mm)</label>
-          <input type="text" inputmode="decimal" value="${escHtml(r[d]==null?'':r[d])}"
-                 oninput="wqaEdit(${i},'${d}',this.value)"
-                 onblur="wqaCalcField(this,${i},'${d}')"
-                 onkeydown="if(event.key==='Enter'){event.preventDefault();wqaCalcField(this,${i},'${d}');}"></div>`).join('')}
-        ${rprod.dims.includes('threadLen')?`<div class="field"><label>${escHtml(wqaDimLabel(rprod.type,'threadLen'))} (mm)</label>
-          <input type="text" value="${escHtml(wqaThreadValue(r))}" placeholder="${rprod.threadEnds===2?'50/110':'100'}" oninput="wqaEditThread(${i},this.value)">
-          <small class="wqa-hint-sm">${escHtml(dcT(rprod.threadEnds===2?'wqaThreadHintPair':'wqaThreadHintOne'))}</small></div>`:''}
-        <div class="field"><label>${escHtml(dcT('lblQty'))}</label><input type="number" min="1" step="1" value="${escHtml(r.qty)}" oninput="wqaEdit(${i},'qty',this.value)"></div>
+          <small class="wqa-hint-sm">${escHtml(dcT('wqaThreadRefNote'))}</small></div>
       </div>
       <div class="wqa-sec-lbl">${escHtml(dcT('secSpecification'))}</div>
       <div class="wqa-row-grid">
@@ -15517,7 +15557,11 @@ function wqaRenderRows(force){
         ${(r.priceMode||'auto')==='manual'?`<div class="field"><label>${escHtml(dcT('lblManualUnitPrice'))}</label>
           <input type="number" min="0" step="0.01" value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></div>`:''}
       </div>
+      <div class="wqa-sec-lbl">${escHtml(dcT('secCalculation'))}</div>
       <div class="wqa-weight-line">
+        <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('fieldDiameter'))}</span>
+          <span class="wqa-w-val wqa-actual-dia">${escHtml(wqaDiaText(r))}${
+            r.diaManual&&String(r.diaMm||'').trim()!==''?' · '+escHtml(dcT('diaManual')):''}</span></span>
         <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('lblUnitWeight'))}</span>
           <span class="wqa-w-val wqa-uw-full">${wqaFmtWeight(calc.weight)}</span></span>
         <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('lblTotalWeight'))}</span>
@@ -15537,7 +15581,11 @@ function wqaRenderRows(force){
     </div>`;
 
     return `<div class="wqa-row${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}" data-wqa-row="${i}">
-      <div class="wqa-sum" role="button" tabindex="0" aria-expanded="${open?'true':'false'}"
+      <!-- The row itself is a button that opens its expanded form. While the
+           edit grid is open that is the other write surface, so it leaves the
+           tab order: tabbing off the last cell of a row must land on the first
+           cell of the next one, not on the row it just left. -->
+      <div class="wqa-sum" role="button" tabindex="${wqaEditing()?-1:0}" aria-expanded="${open?'true':'false'}"
            onclick="wqaToggleRow(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wqaToggleRow(${i});}">
         <span class="wqa-sum-no">${wqa.applyScope==='selected'
           ? `<input type="checkbox" class="wqa-pick"${r.sel?' checked':''} onclick="event.stopPropagation()"

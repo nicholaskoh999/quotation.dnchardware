@@ -62,6 +62,15 @@ const typePrice = async (page, row, field, value) => {
   await page.waitForTimeout(400);
 };
 
+/* Type into an inline edit cell, the way a person does. */
+const typeCell = async (page, row, field, value) => {
+  const sel = `[data-wqa-row="${row}"] [data-ef="${field}"]`;
+  await page.click(sel, { clickCount: 3 });
+  await page.keyboard.press('Backspace');
+  await page.type(sel, String(value), { delay: 15 });
+  await page.waitForTimeout(650);
+};
+
 const setLang = async (page, l) => {
   await page.evaluate(x => dcSetLang(x), l);
   await page.waitForTimeout(350);
@@ -631,6 +640,134 @@ const historyApi = records => ({
       await shot(page, 'P11-image-upload-review', '#wqaStep2');
       await page.close();
     }
+    // ══ FAST EDIT + DIAMETER — the thirteen frames this brief names ══════
+    /* E01 · compact with the DIA column, showing Size, DIA and Weight on one
+             line so the contract can be read off a single frame. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await assertClean(page, 'E01-compact-with-dia');
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 10pcs\nM24 x 1000 x tl 65/65 - 20pcs',
+        { expanded: false, settle: 900 });
+      await shot(page, 'E01-compact-with-dia', '#wqaStep2');
+      /* E02 · Edit mode, Sag Rod: every cell of every row an input at once. */
+      await page.evaluate(() => wqaEditStart());
+      await page.waitForTimeout(500);
+      await shot(page, 'E02-edit-mode-sagrod', '#wqaStep2');
+      /* E08 · the same frame proves Expanded / Add / History / Delete locked. */
+      await shot(page, 'E08-edit-locks', '#wqaStep2');
+      await page.evaluate(() => wqaEditCancel());
+      await page.waitForTimeout(500);
+      await page.close();
+    }
+    /* E03 · Edit mode on a J Bolt — its own four dimensions, not a universal
+             geometry. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'J BOLT MS PL\nM16 H 530 ID 125 S 180 TL 200 - 10pcs',
+        { expanded: false, settle: 1000 });
+      await page.evaluate(() => wqaEditStart());
+      await page.waitForTimeout(500);
+      await shot(page, 'E03-edit-mode-jbolt', '#wqaStep2');
+      await page.close();
+    }
+    /* E04/E05/E06 · the two M12 bars, and one chosen by hand. Size, DIA and
+             Weight together on each frame. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await assertClean(page, 'E04-m12-fullsize-12');
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 10pcs',
+        { expanded: false, settle: 900 });
+      const full = await page.evaluate(() => ({ d: wqa.rows[0].diaMm, w: wqa.rows[0].calc.weight }));
+      console.log(`      E04 · M12 FULLSIZE  · DIA ${full.d} · ${Number(full.w).toFixed(4)} kg/pc`);
+      await shot(page, 'E04-m12-fullsize-12', '#wqaStep2');
+
+      await page.evaluate(() => wqaEditRowSpec(0, 'sizeType', 'UNDERSIZE'));
+      await page.waitForTimeout(900);
+      const under = await page.evaluate(() => ({ d: wqa.rows[0].diaMm, w: wqa.rows[0].calc.weight }));
+      console.log(`      E05 · M12 UNDERSIZE · DIA ${under.d} · ${Number(under.w).toFixed(4)} kg/pc`);
+      await shot(page, 'E05-m12-undersize-10_6', '#wqaStep2');
+
+      await page.evaluate(() => wqaEditStart(0, 'dia'));
+      await page.waitForTimeout(450);
+      await typeCell(page, 0, 'dia', '10.7');
+      const man = await page.evaluate(() => ({ s: wqa.rows[0].size, d: wqa.rows[0].diaMm,
+                                               m: !!wqa.rows[0].diaManual, w: wqa.rows[0].calc.weight }));
+      console.log(`      E06 · ${man.s} MANUAL DIA ${man.d} · ${Number(man.w).toFixed(4)} kg/pc`);
+      if (!(man.m && String(man.d) === '10.7')) throw new Error('E06: the manual diameter did not take');
+      await shot(page, 'E06-manual-dia-10_7', '#wqaStep2');
+      await page.close();
+    }
+    /* E07 · a warning tag pressed, and the field it names focused. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'J BOLT MS PL\nM16 H 530 S 180 TL 200 - 10pcs',
+        { expanded: false, settle: 1000 });
+      await page.evaluate(() => {
+        const b = [...document.querySelectorAll('.wqa-pill-go')][0];
+        if (b) b.click();
+      });
+      await page.waitForTimeout(600);
+      await shot(page, 'E07-warning-tag-to-field', '#wqaStep2');
+      await page.close();
+    }
+    /* E09 · Cancel restores — the frame after a cancelled session. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 10pcs',
+        { expanded: false, settle: 900 });
+      const was = await page.evaluate(() => ({ d: wqa.rows[0].diaMm, w: wqa.rows[0].calc.weight }));
+      await page.evaluate(() => wqaEditStart(0, 'dia'));
+      await page.waitForTimeout(450);
+      await typeCell(page, 0, 'dia', '19.5');
+      await page.evaluate(() => wqaEditCancel());
+      await page.waitForTimeout(800);
+      const now = await page.evaluate(() => ({ d: wqa.rows[0].diaMm, w: wqa.rows[0].calc.weight }));
+      if (String(now.d) !== String(was.d) || Math.abs(now.w - was.w) > 1e-9)
+        throw new Error('E09: Cancel did not restore the row');
+      console.log(`      E09 · cancelled 19.5 -> restored DIA ${now.d} · ${Number(now.w).toFixed(4)} kg/pc`);
+      await shot(page, 'E09-cancel-restored', '#wqaStep2');
+      await page.close();
+    }
+    /* E10/E11 · Expanded with no duplicate dimensions, and its four sections. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 10pcs',
+        { settle: 1000 });
+      const secs = await page.evaluate(() =>
+        [...document.querySelectorAll('[data-wqa-row="0"] .wqa-sec-lbl')].map(n => n.textContent));
+      console.log('      E10 · Expanded sections: ' + secs.join(' · '));
+      if (secs.some(t => /Dimension/i.test(t))) throw new Error('E10: a Dimensions block is still there');
+      await shot(page, 'E10-expanded-no-duplicate-dims', '#wqaStep2');
+      await shot(page, 'E11-expanded-sections', '[data-wqa-row="0"] .wqa-row-body');
+      await page.close();
+    }
+    /* E12 · Edit mode in 中文. */
+    {
+      const page = await openApp(browser, { viewport: V });
+      await setLang(page, 'zh');
+      await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x tl 100/100 - 10pcs\nM24 x 1000 x tl 65/65 - 20pcs',
+        { expanded: false, settle: 900 });
+      await page.evaluate(() => wqaEditStart());
+      await page.waitForTimeout(600);
+      await shot(page, 'E12-edit-mode-chinese', '#wqaStep2');
+      await page.evaluate(() => wqaEditCancel());
+      await setLang(page, 'en');
+      await page.close();
+    }
+    /* E13 · the DIA column at a narrower desktop, with no sideways scroll. */
+    {
+      const page = await openApp(browser, { viewport: { width: 1366, height: 900 } });
+      await quickAddPaste(page, 'J BOLT MS PL\nM16 H 530 ID 125 S 180 TL 200 - 10pcs',
+        { expanded: false, settle: 900 });
+      await page.evaluate(() => wqaEditStart());
+      await page.waitForTimeout(500);
+      const wide = await page.evaluate(() =>
+        document.documentElement.scrollWidth > document.documentElement.clientWidth);
+      if (wide) throw new Error('E13: the page scrolls horizontally at 1366px in Edit');
+      await shot(page, 'E13-edit-narrow-1366');
+      await page.close();
+    }
+
     /* P12 · the same review on a narrower desktop. */
     {
       const page = await openApp(browser, { viewport: { width: 1366, height: 900 } });

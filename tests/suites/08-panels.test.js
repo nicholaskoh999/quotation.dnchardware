@@ -198,9 +198,13 @@ module.exports = async (browser, A) => {
   }));
   await page.evaluate(() => wqaSetView('expanded'));
   await page.waitForTimeout(300);
+  /* The size box lives in the inline edit grid now, not in a second copy
+     inside Expanded — the same field was editable in two places and only one
+     of them could be right. What is asserted is unchanged: switching view
+     moves no value, and the size a person sees is the same either way. */
   const expanded = await page.evaluate(() => ({
     model: JSON.stringify(wqa.rows.map(r => [r.size, r.length, r.qty])),
-    size: document.querySelector('[data-wqa-row="0"] .wqa-row-body input').value,
+    size: (document.querySelector('[data-wqa-row="0"] .wqa-c-size') || {}).textContent.trim(),
   }));
   A.eq(expanded.model, compact.model, 'switching view does not change a single value');
   A.eq(expanded.size, compact.size, 'and both views show the same size');
