@@ -2,9 +2,9 @@
 
 **Overnight full-system audit · morning repair · final closing repair · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `4210c1b764293c6a028d94574e644134f718de0a` · **NOT DEPLOYED.**
+Final application SHA `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` · **NOT DEPLOYED.**
 
-> **On SHAs.** `4210c1b764293c6a028d94574e644134f718de0a` is the last commit that changed the
+> **On SHAs.** `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -18,7 +18,7 @@ Final application SHA `4210c1b764293c6a028d94574e644134f718de0a` · **NOT DEPLOY
 
 Eleven commits. **Eight P1 findings, nineteen P2, two P3, no P0 — 29 in all.**
 Every one was reproduced, given a failing regression, repaired, and re-proved.
-The full test matrix is green and 670 assertions larger than it was.
+The full test matrix is green and 675 assertions larger than it was.
 
 The two that matter most were both **silent** — the screen showed a complete,
 ordinary-looking, priceable row and the number in it was wrong:
@@ -95,7 +95,7 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**809 keys, 100% translated, nothing bypassing the translator, and no element
+**817 keys, 100% translated, nothing bypassing the translator, and no element
 relying on a hook that nothing applies.** Proved by reading the rendered screen,
 not the dictionary.
 

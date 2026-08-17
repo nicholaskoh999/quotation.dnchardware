@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `4210c1b764293c6a028d94574e644134f718de0a`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `50787d19f6ba8173b5eef3696971ebb39f2bcbdd`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,7 +8,7 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `4210c1b764293c6a028d94574e644134f718de0a` is the last commit that changed the
+> **On SHAs.** `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -22,7 +22,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 33 | **3,135** | **0** |
+| Browser suites (`node tests/run.js`) | 33 | **3,140** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **161** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -32,13 +32,14 @@ against itself.
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **3,480** |
+| **TOTAL ASSERTIONS** | **3,485** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+670 assertions**, all
+Baseline for comparison: 2,810 assertions, 0 failed. **+675 assertions**, all
 of them new coverage over defects found this round — 3,338 after the morning
-repair, and 142 more added by the closing one (139 in the new rendered-DOM
-suite, 3 in the source checker).
+repair, 142 more from the closing one, and 5 more from the UI polish (the
+generated paste hint, the retitled modal, and the proof that a product taught
+to the parser grows the hint by itself).
 
 **Skipped or environment-limited: none.** Every suite named in the brief ran to
 completion and is counted above.
@@ -80,9 +81,9 @@ completion and is counted above.
   ok    English / 中文 — the screen, not the dictionary                                 165
   ok    size system — one rod, one diameter, whichever way it was written             132
   ok    responsive — every width the brief names                                       70
-  ok    rendered 中文 — the DOM, not the dictionary                                     139
+  ok    rendered 中文 — the DOM, not the dictionary                                     144
 
-  33 suites, 3135 assertions, 0 failed                                                    634.6s
+  33 suites, 3140 assertions, 0 failed                                                    634.7s
 ```
 
 ---
@@ -159,7 +160,7 @@ paints, which is the behaviour under test.
 | Check | Result |
 |---|---|
 | `php -l` over every PHP file | clean |
-| Translation coverage | 809 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
+| Translation coverage | 817 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
 | Rendered 中文 DOM | 12 states scanned, 0 English runs outside the trade allowlist |
 | Browser console errors | asserted per-page in suites 30, 31 and 32 (`page._dcErrors` empty at every viewport) |
 | Pricing workbook contains no business values | 62 assertions, clean |

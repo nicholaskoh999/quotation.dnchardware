@@ -1,7 +1,7 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `4210c1b764293c6a028d94574e644134f718de0a` · Not deployed.
+Final application SHA `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` · Not deployed.
 
 **P0 0 · P1 8 · P2 19 · P3 2 · 29 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
@@ -18,7 +18,7 @@ usability failure · **P3** cosmetic.
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
 
-> **On SHAs.** `4210c1b764293c6a028d94574e644134f718de0a` is the last commit that changed the
+> **On SHAs.** `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the

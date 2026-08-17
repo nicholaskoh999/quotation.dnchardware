@@ -5,17 +5,17 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `4210c1b764293c6a028d94574e644134f718de0a` · **NOT DEPLOYED.**
+Final application SHA `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` · **NOT DEPLOYED.**
 
 **P0 0 · P1 8 · P2 19 · P3 2 — 29 findings, all repaired.**
-**3,480 assertions, 0 failed, 0 skipped.**
+**3,485 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `4210c1b764293c6a028d94574e644134f718de0a` is the last commit that changed the
+> **On SHAs.** `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -241,7 +241,7 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **809 keys, 100% translated, nothing bypassing the
+The priority deliverable. **817 keys, 100% translated, nothing bypassing the
 translator, and no element relying on a hook that nothing applies** — up from
 512 keys with **129 strings that never reached it**, then a further ~210 the
 overnight checker could not see, then 36 more and 63 unapplied hooks that the
@@ -360,14 +360,18 @@ the layer that would have caught it.
 
 ## 29–32 · Evidence, test matrix, severity
 
-* `screenshots/` — 44 frames, plus `INDEX.txt`. The first 32 are the set the
+* `screenshots/` — 56 frames, plus `INDEX.txt`. The first 32 are the set the
   overnight brief asks for; 33–38 are the morning repair; **A–F** are the six
-  the closing brief names, each captured from a page proved empty first.
+  the closing brief names, each captured from a page proved empty first;
+  **P01–P12** are the UI-polish set — the renamed entry and modal in both
+  languages, compact and expanded, History, Bulk Edit, the blocked state with
+  its footer helper, the addable state, an uploaded image's review, and the
+  1366px desktop, which is also asserted not to scroll horizontally.
 * `before-fix/` — six frames from the baseline commit, same inputs.
 * `after-fix/` — the matching sixteen.
 * `regression-evidence/` — every suite's own log, plus the JSON.
 
-**TOTAL ASSERTIONS 3,480 · TOTAL FAILED 0 · SKIPPED 0.**
+**TOTAL ASSERTIONS 3,485 · TOTAL FAILED 0 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
@@ -386,7 +390,7 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green: 33 suites, 3,135 assertions, 0 failed in the browser matrix; 3,480
+re-exercised. Green: 33 suites, 3,140 assertions, 0 failed in the browser matrix; 3,485
 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth

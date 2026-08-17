@@ -5,9 +5,9 @@ BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 FINAL APPLICATION SHA
-                4210c1b764293c6a028d94574e644134f718de0a
-                "Quick Add is called Quick Add, and its scope is the one the
-                 parser has"
+                50787d19f6ba8173b5eef3696971ebb39f2bcbdd
+                "ERP polish: hierarchy, states and one sentence under a grey
+                 button"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
@@ -36,7 +36,7 @@ repair. The manually verified case still answers what it answered:
 Evidence frame F states that calculation on one screen and FAILS the run if the
 answer ever stops being RM 10.97.
 
-AUDIT COMMITS (13, oldest first)
+AUDIT COMMITS (16, oldest first)
 --------------------------------
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
@@ -54,6 +54,9 @@ AUDIT COMMITS (13, oldest first)
   4907667  The logs the reports name, actually inside the package
   4210c1b  Quick Add is called Quick Add, and its scope is the one the
            parser has
+  2aaceb1  The package, told from the SHA that includes the copy change
+  50787d1  ERP polish: hierarchy, states and one sentence under a grey
+           button
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made
@@ -103,31 +106,41 @@ AUDIT COMMITS (13, oldest first)
            the modal beside the box it describes, and complete. Suite 33 §2b
            asserts that list against WQA_PRODUCTS itself, not a copy.
 
+  50787d1  UI/UX POLISH. The modal retitled Quick Add / 快速添加 to match its
+           button; the paste hint GENERATED from WQA_PRODUCTS so no second
+           list can fall out of date. Section labels give the expanded form a
+           readable hierarchy; the warnings become one filled badge plus
+           outline field tags; a blocked footer says what to do about it; the
+           scope toggle joins Bulk Edit under "Apply to:"; buttons gain press
+           and focus states; filenames truncate with the full name in the
+           tooltip; History leads with the RM price. No calculated value,
+           parser result, quantity, weight or price is touched.
+
 FILES CHANGED (baseline -> final)
 ---------------------------------
    companies.php                            |  240 +++--
-    index.php                                | 1622 +++++++++++++++++++++---------
-    tests/audit-shots.js                     |  561 +++++++++++
-    tests/lib/dom-i18n.js                    |  243 +++++
-    tests/lib/harness.js                     |   74 +-
-    tests/suites/26-thread-reference.test.js |   60 ++
-    tests/suites/29-quantity.test.js         |  372 +++++++
-    tests/suites/30-language.test.js         |  362 +++++++
-    tests/suites/31-size-system.test.js      |  246 +++++
-    tests/suites/32-responsive.test.js       |  124 +++
-    tests/suites/33-rendered-i18n.test.js    |  476 +++++++++
-    tests/tools/check-translations.js        |  617 ++++++++++++
-    12 files changed, 4459 insertions(+), 538 deletions(-)
+   index.php                                | 1736 ++++++++++++++++++++++--------
+   tests/audit-shots.js                     |  652 +++++++++++
+   tests/lib/dom-i18n.js                    |  243 +++++
+   tests/lib/harness.js                     |   74 +-
+   tests/suites/26-thread-reference.test.js |   60 ++
+   tests/suites/29-quantity.test.js         |  372 +++++++
+   tests/suites/30-language.test.js         |  362 +++++++
+   tests/suites/31-size-system.test.js      |  246 +++++
+   tests/suites/32-responsive.test.js       |  124 +++
+   tests/suites/33-rendered-i18n.test.js    |  500 +++++++++
+   tests/tools/check-translations.js        |  631 +++++++++++
+   12 files changed, 4682 insertions(+), 558 deletions(-)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
-  Browser suites            33 suites, 3,135 assertions, 0 failed   (634.6s)
+  Browser suites            33 suites, 3,140 assertions, 0 failed   (634.7s)
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      3,480
+  TOTAL ASSERTIONS                      3,485
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 
@@ -135,8 +148,8 @@ TEST MATRIX AT FINAL SHA
   Browser console errors      none, asserted per page at every viewport
   Rendered 中文 DOM           12 states, 0 English runs outside the allowlist
 
-  Baseline for comparison: 2,810 assertions, 0 failed.  +670 this round
-  (3,338 after the morning repair; +142 in the closing one).
+  Baseline for comparison: 2,810 assertions, 0 failed.  +675 this round
+  (3,338 after the morning repair; +142 in the closing one; +5 in the polish).
 
 FINDINGS
 --------
@@ -151,7 +164,7 @@ FINDINGS
 
 EVIDENCE
 --------
-  screenshots/          44 frames + INDEX.txt
+  screenshots/          56 frames + INDEX.txt (P01-P12 are the UI-polish set)
   before-fix/            6 frames from the baseline commit, same inputs
   after-fix/            16 frames, the matching after
   regression-evidence/  12 files — every log the reports claim, checked

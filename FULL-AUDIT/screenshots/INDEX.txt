@@ -42,3 +42,15 @@
 42  D-saved-quote-chinese.png
 43  E-saved-quote-english.png
 44  F-m24-pricing-verified.png
+45  P01-quickadd-homepage-en.png
+46  P02-quickadd-homepage-zh.png
+47  P03-quickadd-modal-en.png
+48  P04-quickadd-modal-zh.png
+49  P05-compact-two-items.png
+50  P06-expanded-item.png
+51  P07-history-open.png
+52  P08-bulk-edit-open.png
+53  P09-blocked-needs-attention.png
+54  P10-valid-addable.png
+55  P11-image-upload-review.png
+56  P12-narrow-desktop-1366.png

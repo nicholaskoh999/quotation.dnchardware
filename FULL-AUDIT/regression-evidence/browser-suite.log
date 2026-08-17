@@ -30,8 +30,8 @@
   ok    English / 中文 — the screen, not the dictionary  (165 assertions)
   ok    size system — one rod, one diameter, whichever way it was written  (132 assertions)
   ok    responsive — every width the brief names  (70 assertions)
-  ok    rendered 中文 — the DOM, not the dictionary  (139 assertions)
+  ok    rendered 中文 — the DOM, not the dictionary  (144 assertions)
 
-  33 suites, 3135 assertions, 0 failed
+  33 suites, 3140 assertions, 0 failed
 
-  634.6s
+  634.7s

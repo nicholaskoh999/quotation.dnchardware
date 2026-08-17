@@ -1,6 +1,6 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `4210c1b764293c6a028d94574e644134f718de0a`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `50787d19f6ba8173b5eef3696971ebb39f2bcbdd`.
 
 Three tools, and the third exists because the first two were not enough:
 
@@ -11,7 +11,7 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `4210c1b764293c6a028d94574e644134f718de0a` is the last commit that changed the
+> **On SHAs.** `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -25,10 +25,10 @@ Three tools, and the third exists because the first two were not enough:
 
 | File | Keys | Translated | Missing zh | Undefined | Identical (non-code) | Bypassing dcT | Unapplied hooks |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| index.php | 678 | 100% | 0 | 0 | 0 | 0 | 0 |
+| index.php | 686 | 100% | 0 | 0 | 0 | 0 | 0 |
 | companies.php | 120 | 100% | 0 | 0 | 0 | 0 | 0 |
 | login.php | 11 | 100% | 0 | 0 | 0 | 0 | 0 |
-| **Total** | **809** | **100%** | **0** | **0** | **0** | **0** | **0** |
+| **Total** | **817** | **100%** | **0** | **0** | **0** | **0** | **0** |
 
 Regenerated from the final SHA. The overnight figure of 658 and the morning
 figure of 756 are both superseded and should not be quoted.
@@ -39,7 +39,7 @@ translation, it is not a translation at all**, and 129 of those were on screen.
 
 | | baseline | overnight | morning | final |
 |---|---:|---:|---:|---:|
-| dictionary keys | 512 | 658 | 756 | **809** |
+| dictionary keys | 512 | 658 | 756 | **817** |
 | dictionary coverage | 100% | 100% | 100% | **100%** |
 | strings bypassing `dcT`, as the checker THEN saw it | 129 | 0 | 0 | **0** |
 | strings bypassing `dcT`, as the CURRENT checker sees it | — | ~210 | **36** | **0** |
