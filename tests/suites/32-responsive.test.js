@@ -116,6 +116,31 @@ module.exports = async (browser, A) => {
     const ov2 = await pageOverflow(page);
     A.ok(ov2.doc <= 2, `${width}px: the review does not make the page scroll sideways (${ov2.doc}px)`);
 
+    /* ── The ticks, added to every compact row this round ──────────────────
+       A selection control is useless if it cannot be aimed at, and adding a
+       column is exactly the change that quietly costs a narrow layout its
+       last usable width. So each one is measured, not merely counted: it has
+       a box, it is inside the window, and the list it sits in still does not
+       scroll sideways. */
+    const picks = await page.evaluate(() => {
+      const boxes = [...document.querySelectorAll('#wqaRows .wqa-pick')];
+      const list = document.getElementById('wqaRows');
+      const W = document.documentElement.clientWidth;
+      return {
+        n: boxes.length,
+        tiny: boxes.filter(b => { const r = b.getBoundingClientRect();
+                                  return r.width < 12 || r.height < 12; }).length,
+        outside: boxes.filter(b => b.getBoundingClientRect().right > W + 2).length,
+        head: !!document.querySelector('#wqaListHead .wqa-pick-all'),
+        listOver: list ? list.scrollWidth - list.clientWidth : 0,
+      };
+    });
+    A.eq(picks.n, 3, `${width}px: every row still carries its tick`);
+    A.eq(picks.tiny, 0, `${width}px: and every tick is still big enough to aim at`);
+    A.eq(picks.outside, 0, `${width}px: and none is pushed off the right edge`);
+    A.ok(picks.listOver <= 1,
+      `${width}px: the row list itself does not scroll sideways (${picks.listOver}px)`);
+
     A.ok(!page._dcErrors.length, `${width}px: no script error — ${page._dcErrors.join(' | ')}`);
     await page.close();
   }
