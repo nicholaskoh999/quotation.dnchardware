@@ -14,8 +14,8 @@
   ok    accessories — charged beside the bolt, never inside it  (41 assertions)
   ok    dimension schema and drawing association  (71 assertions)
   ok    quick add — each row's own pricing history, on the row  (85 assertions)
-  ok    quick add layout — every product reachable at every width  (280 assertions)
-  ok    quick add — twenty items, which is the ordinary case  (30 assertions)
+  ok    quick add layout — every product reachable at every width  (284 assertions)
+  ok    quick add — twenty items, which is the ordinary case  (31 assertions)
   ok    engineering documents — geometry, merged cells and specification scope  (148 assertions)
   ok    add to quotation — the button at the end of the review  (160 assertions)
   ok    stainless — SS304 and SS316 carry no finish, on every screen  (119 assertions)
@@ -31,7 +31,8 @@
   ok    size system — one rod, one diameter, whichever way it was written  (132 assertions)
   ok    responsive — every width the brief names  (70 assertions)
   ok    rendered 中文 — the DOM, not the dictionary  (144 assertions)
+  ok    compact row — the pricing summary, from the row's own state  (54 assertions)
 
-  33 suites, 3140 assertions, 0 failed
+  34 suites, 3199 assertions, 0 failed
 
-  634.7s
+  656.2s

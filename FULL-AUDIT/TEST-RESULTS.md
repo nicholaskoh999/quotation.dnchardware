@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `50787d19f6ba8173b5eef3696971ebb39f2bcbdd`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,7 +8,7 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` is the last commit that changed the
+> **On SHAs.** `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -22,7 +22,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 33 | **3,140** | **0** |
+| Browser suites (`node tests/run.js`) | 34 | **3,199** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **161** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -32,14 +32,14 @@ against itself.
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **3,485** |
+| **TOTAL ASSERTIONS** | **3,544** |
 | **TOTAL FAILED** | **0** |
 
-Baseline for comparison: 2,810 assertions, 0 failed. **+675 assertions**, all
+Baseline for comparison: 2,810 assertions, 0 failed. **+734 assertions**, all
 of them new coverage over defects found this round — 3,338 after the morning
-repair, 142 more from the closing one, and 5 more from the UI polish (the
-generated paste hint, the retitled modal, and the proof that a product taught
-to the parser grows the hint by itself).
+repair, 142 more from the closing one, 5 from the UI polish, and 59 from the
+compact row's pricing summary (suite 34, plus the per-part shape ceilings that
+replaced two whole-card budgets in suites 17 and 18).
 
 **Skipped or environment-limited: none.** Every suite named in the brief ran to
 completion and is counted above.
@@ -65,8 +65,8 @@ completion and is counted above.
   ok    accessories — charged beside the bolt, never inside it                         41
   ok    dimension schema and drawing association                                       71
   ok    quick add — each row's own pricing history, on the row                         85
-  ok    quick add layout — every product reachable at every width                     280
-  ok    quick add — twenty items, which is the ordinary case                           30
+  ok    quick add layout — every product reachable at every width                     284
+  ok    quick add — twenty items, which is the ordinary case                           31
   ok    engineering documents — geometry, merged cells and specification scope        148
   ok    add to quotation — the button at the end of the review                        160
   ok    stainless — SS304 and SS316 carry no finish, on every screen                  119
@@ -82,8 +82,9 @@ completion and is counted above.
   ok    size system — one rod, one diameter, whichever way it was written             132
   ok    responsive — every width the brief names                                       70
   ok    rendered 中文 — the DOM, not the dictionary                                     144
+  ok    compact row — the pricing summary, from the row's own state                    54
 
-  33 suites, 3140 assertions, 0 failed                                                    634.7s
+  34 suites, 3199 assertions, 0 failed                                                    656.2s
 ```
 
 ---
@@ -160,7 +161,7 @@ paints, which is the behaviour under test.
 | Check | Result |
 |---|---|
 | `php -l` over every PHP file | clean |
-| Translation coverage | 817 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
+| Translation coverage | 822 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
 | Rendered 中文 DOM | 12 states scanned, 0 English runs outside the trade allowlist |
 | Browser console errors | asserted per-page in suites 30, 31 and 32 (`page._dcErrors` empty at every viewport) |
 | Pricing workbook contains no business values | 62 assertions, clean |

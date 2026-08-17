@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` · not deployed.
+Final application SHA `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` · not deployed.
 
 **Two questions are open. Four are decided and are recorded below as decided,
 not as open** — they were being counted as unanswered in earlier drafts of this
@@ -21,7 +21,7 @@ with the options laid out and what the code does today. The four decided ones
 are kept here so each decision has somewhere to live, and so nobody re-opens one
 by finding an old draft.
 
-> **On SHAs.** `50787d19f6ba8173b5eef3696971ebb39f2bcbdd` is the last commit that changed the
+> **On SHAs.** `d4a4cd0b76d570e4bf4cae0a3b873abcdb103ad2` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
