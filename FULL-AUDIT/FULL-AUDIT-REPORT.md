@@ -5,7 +5,7 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `d0275356e7dee1d32781cb78a137ce95e607153f` · **NOT DEPLOYED.**
+Final application SHA `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d` · **NOT DEPLOYED.**
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
 **3,958 assertions, 0 failed, 0 skipped.**
@@ -15,7 +15,7 @@ Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `d0275356e7dee1d32781cb78a137ce95e607153f` is the last commit that changed the
+> **On SHAs.** `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -389,7 +389,13 @@ the layer that would have caught it.
   pricing change landing on those four alone, the refusal when none are
   selected, History with its sticky header and loaded count, the same three
   surfaces in 中文, 1366px with the ticks added, and Escape restoring both a
-  diameter and its provenance.
+  diameter and its provenance. **C01–C09** are the closing repair and the
+  overnight audit — the Selected apply naming its four rows in both languages,
+  the All Items apply where "all items" is honest, both accessory actions
+  refused over an empty selection, Expanded with no Close that could not close,
+  a Previous Price card dropped when the identity moved under it, an inline
+  ambiguous quantity refused, NO3 / NO5 read as item numbers rather than
+  lengths, and an unrecognised size showing no bar at all.
 * `before-fix/` — six frames from the baseline commit, same inputs.
 * `after-fix/` — the matching set, 46 frames.
 * `regression-evidence/` — the full-matrix log, the per-suite slices taken from

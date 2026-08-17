@@ -2,9 +2,9 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `d0275356e7dee1d32781cb78a137ce95e607153f` · **NOT DEPLOYED.**
+Final application SHA `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d` · **NOT DEPLOYED.**
 
-> **On SHAs.** `d0275356e7dee1d32781cb78a137ce95e607153f` is the last commit that changed the
+> **On SHAs.** `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
