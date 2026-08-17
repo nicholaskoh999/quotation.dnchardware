@@ -5,7 +5,7 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d` · **NOT DEPLOYED.**
+Final application SHA `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` · **NOT DEPLOYED.**
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
 **3,958 assertions, 0 failed, 0 skipped.**
@@ -15,7 +15,7 @@ Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d` is the last commit that changed the
+> **On SHAs.** `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the

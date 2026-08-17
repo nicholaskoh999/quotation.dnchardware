@@ -1,6 +1,6 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`.
 
 Three tools, and the third exists because the first two were not enough:
 
@@ -11,7 +11,7 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `6d751d1ea53a9104c13a3dfbafdea94e7ef1853d` is the last commit that changed the
+> **On SHAs.** `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
