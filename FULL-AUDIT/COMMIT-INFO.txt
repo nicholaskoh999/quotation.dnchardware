@@ -4,9 +4,8 @@ QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT + MORNING REPAIR
 BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
-FINAL SHA       40e56d6951d7832a19e5b7fd121877faecf7f54a
-                "An ambiguous count is not a count, and a switch is not a
-                 re-render"
+FINAL SHA       3696f59d684392914f58e6ac2ad44422c1f3f3df
+                "The package, told from one SHA"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
@@ -18,7 +17,7 @@ package quotes it. Earlier drafts of these reports quoted intermediate commits
 (8724894, 1f41833, a10e92c); those are audit commits in the list below, not
 final SHAs.
 
-AUDIT COMMITS (6, oldest first)
+AUDIT COMMITS (7, oldest first)
 -------------------------------
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
@@ -26,6 +25,7 @@ AUDIT COMMITS (6, oldest first)
   1f41833  The evidence, and the widths it was checked at
   a10e92c  The re-audit, and the archive that is the commit
   40e56d6  An ambiguous count is not a count, and a switch is not a re-render
+3696f59  The package, told from one SHA
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made

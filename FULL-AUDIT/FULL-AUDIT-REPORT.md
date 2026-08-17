@@ -4,7 +4,7 @@ Overnight autonomous full-system audit and repair loop, plus the morning
 repair that closed what external review found.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final `40e56d6951d7832a19e5b7fd121877faecf7f54a` · **NOT DEPLOYED.**
+Final `3696f59d684392914f58e6ac2ad44422c1f3f3df` · **NOT DEPLOYED.**
 
 **P0 0 · P1 7 · P2 15 · P3 2 — 24 findings, all repaired.**
 **3,338 assertions, 0 failed, 0 skipped.**

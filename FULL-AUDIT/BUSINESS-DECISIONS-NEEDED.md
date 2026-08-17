@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final `40e56d6951d7832a19e5b7fd121877faecf7f54a` · not deployed.
+Final `3696f59d684392914f58e6ac2ad44422c1f3f3df` · not deployed.
 
 Each of these would change price, quantity, size identity, quotation output or
 what a customer receives. None was guessed at. Every one is a single question

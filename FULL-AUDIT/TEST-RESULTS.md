@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `40e56d6951d7832a19e5b7fd121877faecf7f54a`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `3696f59d684392914f58e6ac2ad44422c1f3f3df`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
