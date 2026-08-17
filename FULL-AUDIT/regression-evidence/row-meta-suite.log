@@ -3,4 +3,4 @@ Same run, same tree — not a separate invocation.
 
   ok    compact row — the pricing summary, from the row's own state  (54 assertions)
 
-  37 suites, 3454 assertions, 0 failed
+  37 suites, 3482 assertions, 0 failed

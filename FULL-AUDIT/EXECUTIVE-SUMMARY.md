@@ -1,10 +1,10 @@
 # EXECUTIVE SUMMARY
 
-**Overnight full-system audit · morning repair · final closing repair · QUOTATION.DNC**
+**Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · **NOT DEPLOYED.**
+Final application SHA `409f66442780151a6f691b924e2b50a3150ca863` · **NOT DEPLOYED.**
 
-> **On SHAs.** `55b21c4df6c9a565572963d3ffdc4345471d37f7` is the last commit that changed the
+> **On SHAs.** `409f66442780151a6f691b924e2b50a3150ca863` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -19,7 +19,20 @@ Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · **NOT DEPLOY
 **Ten P1 findings, twenty-one P2, two P3, no P0 — 33 in all.**
 The audit and repair commits are listed, one by one, in `COMMIT-INFO.txt`.
 Every one was reproduced, given a failing regression, repaired, and re-proved.
-The full test matrix is green and 869 assertions larger than it was.
+The full test matrix is green and 1,017 assertions larger than it was.
+
+The last round separated the three ways a Quick Add row can be written to,
+which had genuinely overlapped: two controls both said "Edit", and the two
+panels inside Bulk Edit had each other's names — the one called "Correct
+Items" held the shared identity fields, and the one called "Common Item
+Fields" bulk-edited geometry. Fast Edit is now the spreadsheet (many rows,
+different values), Bulk Edit the stamp (many rows, one shared value), and
+Details the form (one row, everything about it). Four defects came out of that
+work: a diameter whose Escape restored its value but not its provenance
+(reported by external review), a Previous Price card that went on crediting a
+record after the row had been bulk-changed off the identity it described, two
+Details forms that could stack, and a refusal that one path forgot to
+refresh.
 
 The two that matter most were both **silent** — the screen showed a complete,
 ordinary-looking, priceable row and the number in it was wrong:
@@ -97,7 +110,7 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**843 keys, 100% translated, nothing bypassing the translator, and no element
+**853 keys, 100% translated, nothing bypassing the translator, and no element
 relying on a hook that nothing applies.** Proved by reading the rendered screen,
 not the dictionary.
 

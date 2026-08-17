@@ -1,6 +1,6 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `55b21c4df6c9a565572963d3ffdc4345471d37f7`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `409f66442780151a6f691b924e2b50a3150ca863`.
 
 Three tools, and the third exists because the first two were not enough:
 
@@ -11,7 +11,7 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `55b21c4df6c9a565572963d3ffdc4345471d37f7` is the last commit that changed the
+> **On SHAs.** `409f66442780151a6f691b924e2b50a3150ca863` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -25,13 +25,14 @@ Three tools, and the third exists because the first two were not enough:
 
 | File | Keys | Translated | Missing zh | Undefined | Identical (non-code) | Bypassing dcT | Unapplied hooks |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| index.php | 712 | 100% | 0 | 0 | 0 | 0 | 0 |
+| index.php | 722 | 100% | 0 | 0 | 0 | 0 | 0 |
 | companies.php | 120 | 100% | 0 | 0 | 0 | 0 | 0 |
 | login.php | 11 | 100% | 0 | 0 | 0 | 0 | 0 |
-| **Total** | **843** | **100%** | **0** | **0** | **0** | **0** | **0** |
+| **Total** | **853** | **100%** | **0** | **0** | **0** | **0** | **0** |
 
-Regenerated from the final SHA. The overnight figure of 658 and the morning
-figure of 756 are both superseded and should not be quoted.
+Regenerated from the final SHA. The overnight figure of 658, the morning figure
+of 756 and the closing figure of 843 are all superseded and should not be
+quoted.
 
 At baseline the dictionary already read 100% translated. That number was not
 false, but it was not the whole picture: **a string with no key is not a missing
@@ -39,12 +40,20 @@ translation, it is not a translation at all**, and 129 of those were on screen.
 
 | | baseline | overnight | morning | final |
 |---|---:|---:|---:|---:|
-| dictionary keys | 512 | 658 | 756 | **843** |
+| dictionary keys | 512 | 658 | 756 | **853** |
 | dictionary coverage | 100% | 100% | 100% | **100%** |
 | strings bypassing `dcT`, as the checker THEN saw it | 129 | 0 | 0 | **0** |
 | strings bypassing `dcT`, as the CURRENT checker sees it | — | ~210 | **36** | **0** |
 | generated elements relying on an unapplied hook | — | 63 | 63 | **0** |
 | English runs visible in the RENDERED 中文 DOM | — | — | **38** | **0** |
+
+The workflow polish round added ten keys and the rendered-DOM suite found two
+more things a source scan could not: a pricing note that told a Chinese reader
+"Auto Round 与 No Round" while the buttons two lines below it said 自动进位 and
+不进位, and a history count line that built "N this customer, N other" by
+concatenation and so stayed English in both halves — both of which already had
+keys. Suite 33 now scans Details, the row ticks, the selected count, the scope
+switch, the refusal and Fast Edit, in 中文, after four language switches.
 
 The last two rows are the important ones, and the last one is the only one that
 was ever measured on a screen. **The checker was false-green twice.**

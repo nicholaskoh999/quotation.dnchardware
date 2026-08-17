@@ -5,17 +5,17 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `55b21c4df6c9a565572963d3ffdc4345471d37f7` · **NOT DEPLOYED.**
+Final application SHA `409f66442780151a6f691b924e2b50a3150ca863` · **NOT DEPLOYED.**
 
 **P0 0 · P1 10 · P2 21 · P3 2 — 33 findings, all repaired.**
-**3,679 assertions, 0 failed, 0 skipped.**
+**3,827 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `55b21c4df6c9a565572963d3ffdc4345471d37f7` is the last commit that changed the
+> **On SHAs.** `409f66442780151a6f691b924e2b50a3150ca863` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
 > measured against, and it is the only application SHA any of these documents
 > names. The commits after it write this package, and a report cannot name the
@@ -242,13 +242,23 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **843 keys, 100% translated, nothing bypassing the
+The priority deliverable. **853 keys, 100% translated, nothing bypassing the
 translator, and no element relying on a hook that nothing applies** — up from
 512 keys with **129 strings that never reached it**, then a further ~210 the
 overnight checker could not see, then 36 more and 63 unapplied hooks that the
 morning one could not see either. The last of those were found by reading the
 RENDERED screen, which is the only check that measured anything on a screen.
 See §34, §35, F17–F22 and F25–F29.
+
+The rendered-DOM suite has now found something a source scan could not on
+three separate rounds. The third: a pricing note telling a Chinese reader that
+"Auto Round 与 No Round" items recompute, while the two buttons below it read
+自动进位 and 不进位 — a sentence naming controls by names they do not have on
+that screen; and a history count line assembled by concatenation, so "N this
+customer, N other" stayed English although both halves already had keys.
+Suite 33 now also scans the surfaces this round added: Details, the row ticks,
+the selected count, the scope switch, the refusal, and Fast Edit — each after
+four language switches, because a re-render is where a label goes missing.
 
 Full detail in `TRANSLATION-AUDIT.md`, including the list of what is
 deliberately not translated and why, and the caveat that the new Chinese strings
@@ -263,8 +273,16 @@ Suite 32 (new, 70 assertions) runs the seven widths the brief names — 1920,
 does not scroll sideways, nothing is pushed past the right edge (boxes that are
 deliberately scrollable excepted, which is how a wide item list is meant to
 behave), every menu entry is reachable or has the control that opens it, and the
-Add button has a box and sits inside the window. All green. Suite 17 (280
+Add button has a box and sits inside the window. All green. Suite 17 (284
 assertions) already covered every product being reachable at every width.
+
+**The selection ticks were measured at all seven, not counted.** Adding a
+column is exactly the change that quietly costs a narrow layout its last usable
+width, so at each one the suite asserts that every row still carries its tick,
+that no tick is under 12×12 (which is a control nobody can aim at), that none
+is pushed past the right edge, and that the row list itself does not scroll
+sideways. Frame R16 does the same at 1366 with twenty items on screen and
+prints the measurement it checked.
 
 No brand changes. No new motion was added, so `prefers-reduced-motion` has
 nothing new to honour.
@@ -361,25 +379,42 @@ the layer that would have caught it.
 
 ## 29–32 · Evidence, test matrix, severity
 
-* `screenshots/` — 69 frames, plus `INDEX.txt`. The first 32 are the set the
+* `screenshots/` — 86 frames, plus `INDEX.txt`. The first 32 are the set the
   overnight brief asks for; 33–38 are the morning repair; **A–F** are the six
   the closing brief names, each captured from a page proved empty first;
-  **P01–P12** are the UI-polish set — the renamed entry and modal in both
-  languages, compact and expanded, History, Bulk Edit, the blocked state with
-  its footer helper, the addable state, an uploaded image's review, and the
-  1366px desktop, which is also asserted not to scroll horizontally.
+  **P01–P12** are the UI-polish set; **E01–E13** are Fast Edit and the diameter
+  contract; **R01–R17** are the workflow polish round — twenty items with their
+  ticks and DIA cells, the renamed row action, one Details open, Fast Edit over
+  every row, the three Bulk Edit sections one at a time, four selected, a
+  pricing change landing on those four alone, the refusal when none are
+  selected, History with its sticky header and loaded count, the same three
+  surfaces in 中文, 1366px with the ticks added, and Escape restoring both a
+  diameter and its provenance.
 * `before-fix/` — six frames from the baseline commit, same inputs.
-* `after-fix/` — the matching sixteen.
-* `regression-evidence/` — every suite's own log, plus the JSON.
+* `after-fix/` — the matching set, 46 frames.
+* `regression-evidence/` — the full-matrix log, the per-suite slices taken from
+  it, and the PHP and checker logs.
 
-**TOTAL ASSERTIONS 3,679 · TOTAL FAILED 0 · SKIPPED 0.**
+**Frames that state a figure assert it.** E04, E05, E06, E09, E10, F and
+R01–R17 print what they claim and throw if it moves — R09 fails unless a bulk
+markup moves exactly the four selected rows and no others, and R17 fails unless
+Escape returns both the 10.6 and the word Default. R10 was tightened after it
+passed while the refusal text was empty: it now asserts the sentence, not only
+the disabled button.
+
+**TOTAL ASSERTIONS 3,827 · TOTAL FAILED 0 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
 `browser-suite.log` (and `.json`), `pricing-history-php.log`,
 `ai-extract-php.log`, `pricing-workbook.log`, `translation-coverage.log` (and
 `.json`), `php-lint.log`, `responsive-matrix.log`, `quantity-suite.log`,
-`language-suite.log`, `rendered-i18n-suite.log`. **Twelve files, twelve claims.**
+`language-suite.log`, `rendered-i18n-suite.log`, `row-meta-suite.log`,
+`edit-mode-suite.log`, `diameter-suite.log`, `roles-suite.log`.
+**Sixteen files, sixteen claims.** The per-suite logs are slices of the single
+full-matrix run in `browser-suite.log` — the same run against the same tree,
+not separate invocations that might each have seen something different — and
+each says so in its first two lines.
 An earlier draft named a `final-re-audit.log` that had been superseded; the
 browser-suite log IS the final run and there is no longer a claim to a file that
 does not exist.
@@ -391,7 +426,7 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green: 36 suites, 3,334 assertions, 0 failed in the browser matrix; 3,679
+re-exercised. Green: 37 suites, 3,482 assertions, 0 failed in the browser matrix; 3,827
 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth
@@ -512,6 +547,80 @@ Suite 33 §2b asserts the list against **`WQA_PRODUCTS` itself**, not against a
 copy of it — so teaching the parser a sixth product and forgetting the hint
 fails the suite rather than shipping a quiet inaccuracy. It also asserts that
 the homepage entry names no product at all, in either language.
+
+---
+
+## 37 · The three editing mechanisms, and the overlap between them
+
+A Quick Add row can be written to from three places. The polish round's finding
+was that the boundaries were not merely blurred in the UI — they were crossed
+in the naming.
+
+| | writes | shape |
+|---|---|---|
+| **Fast Edit** | many rows, **different** values | a spreadsheet |
+| **Bulk Edit** | many rows, **one shared** value | a stamp |
+| **Details** | one row, everything about it | a form |
+
+**Two controls said "Edit".** The toolbar's opened a grid over every row; the
+row's opened a form over one. The row action is **Details / 详情** now, reading
+**Close / 关闭** while open, and `btnEdit` stays where it was — Diameter
+Settings, the quotation items and Companies all use it and all still mean Edit.
+A quiet `VIEW` label sits in front of Compact/Expanded so Edit stops reading as
+a third tab in a group it was never part of.
+
+**The two Bulk Edit panels had each other's names.** This is worth stating
+plainly, because the brief for this round described them the other way round
+and the code disagreed with the brief:
+
+* `wqaCommonFix`, titled **"Correct Items"**, held Product, Material, Finish and
+  Size Type — one value stamped across many rows, which is the definition of a
+  bulk field, and exactly the list the brief assigns to "Common Item Fields".
+* `wqaCommonItem`, titled **"Common Item Fields"**, bulk-edited **Size and TL** —
+  geometry, which belongs to Fast Edit.
+
+So the names were put on the right panels rather than the panels rearranged to
+fit the labels.
+
+**The geometry panel was not deleted, and here is the documented reason.** The
+brief asks for no second place to bulk-edit geometry "unless there is a specific
+existing business rule that absolutely requires it", and allows the exception if
+it is documented instead of silently kept. There is one. A shorthand document
+routinely states lengths and quantities and states neither the size nor the
+thread:
+
+> 1068 - 38pcs / 1430 - 148pcs / 1295 - 34pcs / under size / ZP
+
+The extractor is deliberately forbidden from inventing either — a guessed M12
+would be silently wrong on every row — so thirty rows arrive with the same two
+blanks, and typing M12 thirty times is not a workflow. The exception is confined
+three ways: it is titled **Fill Missing Size / TL** rather than claiming the
+generic name, it fills blanks and never overwrites a stated value, and it is
+**not rendered at all** unless rows are actually missing one. When nothing is
+missing — the ordinary case — Bulk Edit is exactly the three shared-value
+sections and this panel is not on the screen. Suite 37 asserts both halves.
+
+**Sections open one at a time**, so Bulk Edit can no longer grow taller than the
+items it exists to correct.
+
+**Selection became a set a person owns.** Every row carries a tick from the
+start rather than only once the scope says "Selected" — the old order asked you
+to promise to use a selection before you could make one. The header takes or
+releases the whole list, the count rides on the Bulk Edit heading, and the ticks
+**survive the scope switch**: they used to be wiped by it, so comparing "all"
+against "these four" cost you the four by looking. Scope "Selected" with nothing
+selected now **refuses** — the Apply is disabled and says *Select at least one
+item.* / *请至少选择一个项目。* — rather than quietly widening to every row,
+which is how twenty items get a markup meant for four.
+
+**No two write surfaces at once.** Opening Details closes Bulk Edit and the
+reverse; Fast Edit outranks both, and freezes the ticks while it is open because
+the selection decides where a *bulk* apply lands.
+
+Four defects came out of this work and are recorded as F30–F33. F30 was reported
+by external review; F31 and F32 were found while separating the mechanisms; F33
+was found by the rendered-DOM 中文 suite rather than by reading source, which is
+the third time that suite has found something a source scan could not.
 
 ---
 

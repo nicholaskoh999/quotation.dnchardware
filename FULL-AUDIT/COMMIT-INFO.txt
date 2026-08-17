@@ -1,12 +1,12 @@
-QUOTATION.DNC — OVERNIGHT FULL-SYSTEM AUDIT + MORNING REPAIR + FINAL CLOSING
-===========================================================================
+QUOTATION.DNC — FULL-SYSTEM AUDIT, REPAIRS AND WORKFLOW POLISH
+==============================================================
 
 BRANCH          claude/new-session-ofny46
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 FINAL APPLICATION SHA
-                55b21c4df6c9a565572963d3ffdc4345471d37f7
-                "Expanded stops repeating what the grid already edits"
+                409f66442780151a6f691b924e2b50a3150ca863
+                "The refusal beside every Apply it refuses"
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code against a
                 controlled API in a local browser.
@@ -35,8 +35,18 @@ repair. The manually verified case still answers what it answered:
 Evidence frame F states that calculation on one screen and FAILS the run if the
 answer ever stops being RM 10.97.
 
-AUDIT COMMITS (22, oldest first)
---------------------------------
+PRICING — UNCHANGED BY THE WORKFLOW POLISH ROUND TOO
+----------------------------------------------------
+The polish round separated three editing mechanisms, added row selection and
+fixed four defects. It did not touch the pricing formula, the weight formula,
+Auto Round, Cost Rate, Additional Cost, Markup, the diameter tables or the
+parser. The one change that comes NEAR pricing is F31, and it removes a false
+claim rather than a number: a row bulk-changed off the identity its historical
+record described stops crediting that record. The rates the record contributed
+stay on the row, because by then they are the row's own pricing entry.
+
+AUDIT COMMITS (oldest first — this list is the count)
+-----------------------------------------------------
   1cea497  Fifteen thousand is not fifteen, and one is not none
   5591772  One rod, one diameter, and a product word that is a word
   8e1bfff  The screens the language switch never reached, and a reference that
@@ -62,6 +72,11 @@ AUDIT COMMITS (22, oldest first)
   c008c88  A size is a thread; a diameter is a bar
   6b94cd3  One edit state, three doors into it
   55b21c4  Expanded stops repeating what the grid already edits
+  822fe13  The package, told from the diameter-authority SHA
+  cc7f994  Escape gives back the bar and where it came from
+  7cc1ccf  Three mechanisms, three jobs, no overlap
+  0ac5fc5  The new surfaces, scanned in 中文 rather than assumed
+  409f664  The refusal beside every Apply it refuses
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
            them. Thousands separators in wqaNorm; the spec-header reader made
@@ -158,6 +173,38 @@ AUDIT COMMITS (22, oldest first)
            computed from the number on the screen, with the constant checked
            against pi/4 x 7.85e-6 rather than borrowed.
 
+  cc7f994  F30. Escape restored a diameter's value by handing the snapshot to
+           wqaEditDia, whose job is to record that a person typed it -- so
+           restoring the table's own 10.6 announced it as an override, and the
+           next size change would have dropped an override nobody made. Both
+           fields restored together; the mark made visible on the box, because
+           the one mode where provenance can change was the one place you
+           could not see it. The failing assertion was written first.
+
+  7cc1ccf  The three mechanisms separated. The row action became Details and
+           the toolbar action kept Edit. Inside Bulk Edit the two panels had
+           each other's names: "Correct Items" held Product, Material, Finish
+           and Size Type -- shared identity, the definition of a bulk field --
+           while "Common Item Fields" bulk-edited Size and TL, which is
+           geometry. Names put on the right panels; the geometry panel
+           confined to the documented case (a shorthand document that states
+           neither) and rendered only when rows are actually missing one.
+           Sections open one at a time. Selection became a persistent set: a
+           tick on every row, a select-all in the header, a count on the
+           heading, ticks that survive the scope switch, and a refusal instead
+           of a silent widening when "Selected" has nothing selected. F31 and
+           F32 found while wiring it.
+
+  0ac5fc5  F33 and one mixed-language leak, both found by scanning the
+           RENDERED DOM in 中文 rather than the source. Suite 33 grew a block
+           for every surface this round added.
+
+  409f664  The refusal put beside every Apply it refuses -- an evidence frame
+           caught two panels disabling a button and explaining nothing. That
+           frame now asserts the message, not only the disabled state.
+           Packaging became a script that reads every entry with
+           git show HEAD:<path> and writes full 64-character digests.
+
 FILES CHANGED (baseline -> final)
 ---------------------------------
    companies.php                              |  240 ++-
@@ -184,13 +231,13 @@ FILES CHANGED (baseline -> final)
 
 TEST MATRIX AT FINAL SHA
 ------------------------
-  Browser suites            36 suites, 3,334 assertions, 0 failed   (727.0s)
+  Browser suites            37 suites, 3,482 assertions, 0 failed   (795.8s)
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      3,679
+  TOTAL ASSERTIONS                      3,827
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 

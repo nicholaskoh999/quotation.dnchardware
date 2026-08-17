@@ -5,7 +5,7 @@
   ok    pricing history — the rows we sent, and why they differed  (105 assertions)
   ok    mixed documents — a heading speaks only for its own rows  (37 assertions)
   ok    save / reload / output — no value drift, no internal costs on the page  (65 assertions)
-  ok    common fields and Correct Items — a blank never clears an answer  (61 assertions)
+  ok    bulk fields — a blank never clears an answer  (61 assertions)
   ok    dense table — 29 rows, merged cells, metric beside imperial  (170 assertions)
   ok    engineering drawing — five parts, five lengths, no borrowed dimensions  (73 assertions)
   ok    company rules — a size type with a reason, a diameter with one source  (68 assertions)
@@ -29,13 +29,13 @@
   ok    quantity — fifteen thousand, one, and the ones we must not guess  (136 assertions)
   ok    English / 中文 — the screen, not the dictionary  (165 assertions)
   ok    size system — one rod, one diameter, whichever way it was written  (132 assertions)
-  ok    responsive — every width the brief names  (70 assertions)
+  ok    responsive — every width the brief names  (98 assertions)
   ok    rendered 中文 — the DOM, not the dictionary  (166 assertions)
   ok    compact row — the pricing summary, from the row's own state  (54 assertions)
   ok    fast edit — one state, and everything it holds still  (77 assertions)
   ok    diameter — the bar the weight is made of  (78 assertions)
   ok    roles — Fast Edit, Bulk Edit and Details do not overlap  (78 assertions)
 
-  37 suites, 3454 assertions, 0 failed
+  37 suites, 3482 assertions, 0 failed
 
-  794.4s
+  795.8s
