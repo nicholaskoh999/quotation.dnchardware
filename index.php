@@ -1954,7 +1954,7 @@ input,select,textarea{
    three WIDTHS; wqaSetListGrid composes --wqa-cols from them once the column
    count is known, because CSS repeat() cannot take that count from a variable. */
 .wqa-modal{
-  --wqa-lead: 32px 62px;                                    /* #  Size        */
+  --wqa-lead: 32px 62px 64px;                               /* #  Size  DIA   */
   --wqa-dim:  78px;                                         /* each dimension */
   /* A mixed list's one whole-spec cell has to hold a J Bolt's four dimensions
      — "H 1200 · ID 125 · S 180 · TL 200" — so it is sized for the longest
@@ -1994,6 +1994,13 @@ input,select,textarea{
 .wqa-c{font-weight:600;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums;
   overflow:hidden;text-overflow:ellipsis;text-align:center}
 .wqa-c-size {font-weight:700;color:var(--text)}
+/* The bar, beside the thread. Quiet by default — it is usually the table's
+   answer and needs no comment — and marked only when somebody overrode it. */
+.wqa-c-dia{font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.wqa-c-dia.is-manual{color:var(--accent-2)}
+.wqa-dia-tag{font-size:8.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--accent-2);opacity:.85}
 /* A thread reference is a note about the thread, so it reads as one: under the
    size, smaller, quieter, and never wide enough to move a column. */
 .wqa-c-size.has-tref{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.15}
@@ -2079,6 +2086,19 @@ input,select,textarea{
 .wqa-foot-need[hidden]{display:none}
 .wqa-foot-help{font-size:11.5px;font-weight:650;color:var(--text-muted)}
 .wqa-foot-help[hidden]{display:none}
+/* ── 1024–1199: the desktop shape, a few pixels tighter ────────────────────
+   Adding the DIA column gave the desktop tracks one more thing to fit, and at
+   exactly 1024 they came to 33px more than a 1024px viewport leaves for the
+   panel. The tablet rules below stop at 1023, so this was the one width with
+   no answer to that. Same layout and the same single line — only the number
+   columns give up a few pixels, and the row still fits its own box. */
+@media (min-width:1024px) and (max-width:1199px){
+  .wqa-modal{
+    --wqa-lead: 30px 58px 56px;
+    --wqa-dim:  70px;
+    --wqa-tail: 52px 98px 86px minmax(0,1fr) 148px;
+  }
+}
 /* ── Tablet 600–1023: single-line tablet grid ─────────────────────────────
    The two-row item is gone: every value sits on ONE horizontal row, exactly as
    on desktop, so nothing looks high-low. That is achieved by narrowing the
@@ -2089,7 +2109,7 @@ input,select,textarea{
   /*             #     Size          each dimension     Qty
                  Weight          Price         badges      Edit  ×          */
   .wqa-modal{
-    --wqa-lead: 22px minmax(40px,52px);
+    --wqa-lead: 22px minmax(40px,52px) minmax(38px,52px);
     --wqa-dim:  minmax(46px,62px);
     --wqa-dim-spec: minmax(190px,1.6fr);
     --wqa-tail: minmax(30px,42px) minmax(80px,100px) minmax(56px,72px)
@@ -4382,6 +4402,11 @@ const I18N={
        names this vocabulary — 成本率 / 附加成本 / 加成 — and the expanded
        form's fuller labels stay as they are. */
     sumPricing:'Pricing', sumSizeType:'Size Type:',
+    /* SIZE is the thread; DIA is the bar. Both are shown, because they are
+       different numbers and the weight is made of the second one. */
+    hdrDiaMm:'DIA (MM)', lblDiameterMm:'Diameter (mm)',
+    fieldDiameter:'Diameter', diaDefault:'Default', diaManual:'Manual',
+    diaDefaultShort:'Default', diaManualShort:'Manual',
     sumCostRate:'Cost Rate', sumAddCost:'Additional Cost', sumMarkup:'Markup',
     wqaOneFileUsing:'One file per analysis — using {f}.',
     /* ── The dialogs ────────────────────────────────────────────────────────
@@ -4855,6 +4880,9 @@ const I18N={
     wqaCompleteFirst:'请先完成需要检查的项目。',
     wqaApplyTo:'应用范围：', nActive:'{n} 项启用',
     sumPricing:'价格参数', sumSizeType:'尺寸类型：',
+    hdrDiaMm:'直径 (MM)', lblDiameterMm:'直径 (mm)',
+    fieldDiameter:'直径', diaDefault:'默认', diaManual:'手动',
+    diaDefaultShort:'默认', diaManualShort:'手动',
     sumCostRate:'成本率', sumAddCost:'附加成本', sumMarkup:'加成',
     wqaOneFileUsing:'每次分析一个文件 — 使用 {f}。',
     cfmResetAllRules:'确定删除所有自定义直径规则吗？',
@@ -11009,6 +11037,8 @@ function wqaPatchRows(){
     if(badges) badges.innerHTML=wqaBadgeHtml(r);
     const cQty=card.querySelector('.wqa-c-qty');
     if(cQty) cQty.textContent=r.qty||'—';
+    const cDia=card.querySelector('.wqa-c-dia');
+    if(cDia) cDia.outerHTML=wqaDiaCellHtml(r);
     /* The dimension cells are whatever this list's columns turned out to be,
        so they are refreshed from that same list rather than by name. */
     const dims=card.querySelectorAll('.wqa-sum .wqa-c-dim');
@@ -11157,6 +11187,19 @@ function wqaRowSpecLine(r){
 function wqaDimShort(product,k){
   return k==='spec' ? '' : wqaDimLabel(product,k);
 }
+/* The bar this row is cut from, beside the thread it is cut to. A dash is an
+   honest answer — there is no fullsize M14 in the tables and none is invented
+   — and the row says Needs Diameter beside it. */
+function wqaDiaText(r){
+  const d=String(r.diaMm==null?'':r.diaMm).trim();
+  return d===''?'—':d;
+}
+function wqaDiaCellHtml(r){
+  const manual=!!r.diaManual && String(r.diaMm||'').trim()!=='';
+  return `<span class="wqa-c wqa-c-dia${manual?' is-manual':''}"${
+    manual?` title="${escHtml(dcT('diaManual'))}"`:''}>${escHtml(wqaDiaText(r))}${
+    manual?`<span class="wqa-dia-tag">${escHtml(dcT('diaManualShort'))}</span>`:''}</span>`;
+}
 function wqaCompactCells(r,cols){
   const calc=r.calc||{};
   const cell=(cls,txt,lbl)=>`<span class="wqa-c ${cls}"${lbl?` data-lbl="${escHtml(lbl)}"`:''}>${escHtml(txt)}</span>`;
@@ -11167,6 +11210,7 @@ function wqaCompactCells(r,cols){
   const sizeCell=`<span class="wqa-c wqa-c-size${tref?' has-tref':''}">${escHtml(r.size||'—')}${
     tref?`<span class="wqa-tref" title="${escHtml(dcT('wqaThreadRefNote'))}">${escHtml(tref)}</span>`:''}</span>`;
   return sizeCell
+    + wqaDiaCellHtml(r)
     + (cols||wqaListCols()).map(c=>cell('wqa-c-dim wqa-c-'+c.k, wqaRowDimCell(r,c.k)||'—',
                                         wqaDimShort(wqaRowProduct(r),c.k))).join('')
     + cell('wqa-c-qty',  r.qty||'—')
@@ -11242,6 +11286,7 @@ function wqaRenderListHead(){
   head.innerHTML=
       '<span class="wqa-h wqa-h-no">'+escHtml(dcT('hdrNo'))+'</span>'
     + '<span class="wqa-h wqa-h-size">'+escHtml(dcT('lblSize'))+'</span>'
+    + '<span class="wqa-h wqa-h-num wqa-h-dia">'+escHtml(dcT('hdrDiaMm'))+'</span>'
     + wqaListCols().map(c=>`<span class="wqa-h wqa-h-num wqa-h-dim">${escHtml(c.lbl)}</span>`).join('')
     + '<span class="wqa-h wqa-h-num wqa-h-qty">'+escHtml(dcT('lblQty'))+'</span>'
     + '<span class="wqa-h wqa-h-num wqa-h-w">'+escHtml(dcT('lblWeight'))+'</span>'
@@ -14678,8 +14723,18 @@ function wqaDropNoteCredit(r,k){
   if(!label || !r.noteApplied || !r.noteApplied.length) return;
   r.noteApplied=r.noteApplied.filter(x=>x!==label);
 }
+/* ── A manual diameter belongs to the size it was typed for ────────────────
+   10.7 typed against an undersize M12 is a statement about THAT bar. Carried
+   into an M20, or into the fullsize M12 beside it, it is a number nobody
+   chose — so changing the size or the size type drops the override and lets
+   the table answer again. Never silently carried across an identity. */
+function wqaClearManualDia(r){
+  if(!r || !r.diaManual) return;
+  r.diaManual=false; r.diaMm='';
+}
 function wqaEditRowSpec(i,k,v){
   const r=wqa.rows[i]; if(!r) return;
+  if(k==='sizeType'||k==='material'||k==='product') wqaClearManualDia(r);
   if(k==='finish'   && wqaNoFinish(wqaRowSpec(r,'material'))) return;
   if(k==='sizeType' && !dcProductHasSizeType(wqaRowProduct(r))) return;
   /* Choosing a size type by hand also answers "this one is ours". */
@@ -14728,8 +14783,11 @@ function wqaRowMissing(r){
      so an undersized M24 rod cannot be weighed and must not be priced. Skipped
      while the size type itself is still an open question, because THAT is the
      question and a row should only ever be asked one thing at a time. */
+  /* The size is fine; the BAR is the problem. "Needs Valid Size" was the
+     wrong sentence for an M14 whose fullsize bar we do not stock — the size
+     is one we recognise, and what is missing is a diameter. */
   else if(r.noDia && !wqaSizeTypeOpen(r))
-                               miss.push('Valid Size');
+                               miss.push('Diameter');
   /* Each product asks for its own dimensions, by name: an L Bolt wants L and
      W, a J Bolt wants H, ID and S, and nothing is invented for the ones it
      does not have. */
@@ -14969,6 +15027,15 @@ async function wqaRecomputeAll(mode){
     if(!dimsOk){ r.calc=null; r.noDia=false; return; }
     switchType(t);
     wqaApplyRowToForm(r);
+    /* ── The diameter this row is weighed on ──────────────────────────────
+       A diameter a person typed outranks the table for THIS row, and it is
+       written into the same box the calculator reads — so the weight below is
+       made of the number on the screen and of no other number. Size identity
+       is untouched: an M12 given a 10.7mm bar is still an M12. */
+    if(r.diaManual && String(r.diaMm||'').trim()!==''){
+      setFieldValue(t,'diameter',r.diaMm);
+      recalcCurrent();
+    }
     /* And then the question the calculator actually answers: is there a
        diameter for this size AT this size type? M24 is a size we stock and
        there is no undersize M24 — the form comes back with an empty diameter,
@@ -14976,6 +15043,11 @@ async function wqaRecomputeAll(mode){
        on its own. Read from the form so this is the SAME rule the calculator
        used, custom Diameter Settings rules included. */
     r.noDia = !(fn(t,'diameter') > 0);
+    /* Read back, not written forward. Where the person has not overridden it,
+       the row's diameter IS whatever the calculator resolved a moment ago —
+       built-in table or a configured Diameter Settings rule, whichever won —
+       so the column and the weight cannot disagree about what a bar is. */
+    if(!r.diaManual) r.diaMm = r.noDia ? '' : String(fn(t,'diameter'));
     if(r.noDia){ r.calc=null; return; }
     r.calc=wqaReadFormPricing(t);
   });
@@ -15287,6 +15359,7 @@ function wqaEdit(i,k,v){
      are all M22 — so the row is validated and weighed against what the person
      meant, not against the keystrokes. Only the SIZE box: Length, TL, ID, S and
      W are plain millimetres and never gain an M. */
+  if(k==='size' && normalizeSizeValue(v)!==wqa.rows[i].size) wqaClearManualDia(wqa.rows[i]);
   wqa.rows[i][k] = (k==='size') ? normalizeSizeValue(v) : v;
   wqa.rows[i].issues=wqa.rows[i].issues.filter(x=>x!==k);
   /* An extractor's doubt is about what it read. Once a person has retyped the
@@ -15330,6 +15403,7 @@ function wqaEditSize(i,inp,commit){
   wqaMarkEdited(r,'size');
   const raw=inp.value;
   const norm=normalizeSizeValue(raw);
+  if(norm!==r.size) wqaClearManualDia(r);
   r.size=norm;
   r.issues=r.issues.filter(x=>x!=='size');
   r.aiUncertain=[];                 // the size was the doubt; it has been answered

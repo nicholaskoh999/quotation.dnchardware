@@ -138,7 +138,12 @@ module.exports = async (browser, A) => {
   row = (await rowState(page))[0];
   A.eq(row.weight, 'null', 'there is no undersize M30, so the row has no weight at all');
   A.eq(row.price, 'null', 'and therefore no price');
-  A.ok(row.missing.includes('Valid Size'), 'and it says the size is the problem');
+  /* The SIZE is one we recognise; what is missing is the BAR. "Needs Valid
+     Size" was the wrong sentence for an M30 whose undersize bar we do not
+     stock, and the row says Needs Diameter now — which is the thing a person
+     would have to supply. */
+  A.ok(row.missing.includes('Diameter'), 'and it says the diameter is the problem');
+  A.ok(!row.missing.includes('Valid Size'), 'not that the size is wrong, because it is not');
 
   await page.evaluate(() => wqaEditRowSpec(0, 'sizeType', 'FULLSIZE'));
   await page.waitForTimeout(600);
