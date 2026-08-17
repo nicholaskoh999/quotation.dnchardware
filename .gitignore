@@ -7,6 +7,10 @@ db.php
 # ── Production runtime output ────────────────────────────────────────────────
 error_log
 *.log
+# …except the audit package's own regression logs. The reports name each of
+# these file by file, and a report must never claim a file the package does not
+# contain — so they are tracked, and they ship inside the archive.
+!FULL-AUDIT/regression-evidence/*.log
 
 # ── Regenerable test output ─────────────────────────────────────────────────
 # Where tests/screenshots.js, tests/layout-shots.js and tests/extraction-shots.js
