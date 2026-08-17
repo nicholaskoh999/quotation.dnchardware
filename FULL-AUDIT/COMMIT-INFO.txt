@@ -8,16 +8,21 @@ BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
 APPLICATION COMMIT
                 7f5bc977197a658d6d4db995ee2c9bb5e106e21b
                 "COMMIT-INFO stops naming the commit it is inside"
-                The last commit that changed application or test code.
-                Every figure in this package was measured against it.
+                The commit the accepted implementation and its test
+                matrix were measured at. Every figure in this package
+                was produced by this tree.
+                Application SOURCE last changed one commit earlier, at
+                67d4980 — "COMMIT-INFO stops naming the commit it is inside".
+                Everything after it is evidence tooling and reports,
+                and no application behaviour has moved since.
 PACKAGE / HEAD COMMIT
                 Not named here, and deliberately. The commits after the
                 application one carry this package, and a document
                 cannot name the commit it is inside without changing
                 it. The exact HEAD an archive was built from is recorded
-                in that archive's own MANIFEST, which is generated at
-                build time and never committed — the one place that can
-                honestly state it.
+                in that archive's own MANIFEST, generated at build time
+                and never committed — the one place that can honestly
+                state it.
 DEPLOYED        NO — nothing was deployed, and nothing was run against
                 production data. Every test drives the shipped code
                 against a controlled API in a local browser.
@@ -252,16 +257,16 @@ FILES CHANGED (baseline -> final)
 TEST MATRIX AT FINAL SHA
 ------------------------
 <<<GENERATED:MATRIX>>>
-  37 suites, 3613 assertions, 0 failed   (835.7s)
-<<<END:MATRIX>>>
+  Browser suites            37 suites, 3,613 assertions, 0 failed
   Pricing-history PHP                    161 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      3,827
+  TOTAL ASSERTIONS                      3,958
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
+<<<END:MATRIX>>>
 
   php -l over every PHP file  clean
   Browser console errors      none, asserted per page at every viewport
@@ -272,22 +277,27 @@ TEST MATRIX AT FINAL SHA
 
 FINDINGS
 --------
+<<<GENERATED:FINDINGS>>>
   P0  0
-  P1  8   all repaired
-  P2  19  all repaired
+  P1  13  all repaired
+  P2  24  all repaired
   P3  2   all repaired
   ---------------------
-  29 total, 29 repaired.  6 recorded-not-repaired with reasons.
+  39 total, 39 repaired.  6 recorded-not-repaired with reasons.
   2 questions still need a business answer; 4 earlier ones are now decided
   and are recorded as decided rather than counted as open.
+<<<END:FINDINGS>>>
 
 EVIDENCE
 --------
-  screenshots/          56 frames + INDEX.txt (P01-P12 are the UI-polish set)
-  before-fix/            6 frames from the baseline commit, same inputs
-  after-fix/            16 frames, the matching after
-  regression-evidence/  12 files — every log the reports claim, checked
-                        against the directory rather than written from memory
+<<<GENERATED:EVIDENCE>>>
+  screenshots/          96 frames + INDEX.txt
+  before-fix/           6 frames from the baseline commit, same inputs
+  after-fix/            56 frames, the matching after
+  regression-evidence/  16 files — every log the reports claim,
+                        checked against the directory rather than written
+                        from memory
+<<<END:EVIDENCE>>>
 
 LINE ENDINGS
 ------------

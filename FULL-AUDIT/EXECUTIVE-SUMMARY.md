@@ -71,7 +71,7 @@ stays internal, the ambiguous-quantity rule is settled and shipped, and a bare
 Add should learn the other six products (§3) and whether the missing M6/M14
 fullsize bars are intentional (§5).
 
-### The eight P1s
+### The P1s
 
 1. A comma-grouped **quantity** read as its first group — 15,000 → 15.
 2. A comma-grouped **dimension** read as its first group — 1,000 mm → 1 mm,
@@ -110,7 +110,7 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**853 keys, 100% translated, nothing bypassing the translator, and no element
+**862 keys, 100% translated, nothing bypassing the translator, and no element
 relying on a hook that nothing applies.** Proved by reading the rendered screen,
 not the dictionary.
 

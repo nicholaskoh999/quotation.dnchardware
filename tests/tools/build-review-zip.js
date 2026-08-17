@@ -71,24 +71,25 @@ const KEY_EVIDENCE = [
   ['16 · the same message in 中文',             'C03-selected-apply-message-chinese.png'],
   ['17 · zero selected, refused',              'R10-zero-selected-refused.png'],
   ['18 · accessories refuse a zero selection', 'C04-accessories-zero-selected.png'],
-  ['19 · Details, one row',                    'R03-details-open.png'],
-  ['20 · Expanded, no fake Close',             'R11-expanded-no-fake-close.png'],
-  ['21 · History open',                        'R11-history-open.png'],
-  ['22 · History, sticky header and count',    'R12-history-sticky-header.png'],
-  ['23 · Previous Price identity invalidated', 'C06-previous-price-invalidated.png'],
-  ['24 · Qty absent becomes 1',                '04-absent-qty-defaults-to-1.png'],
-  ['25 · ambiguous Qty blocked, own line',     '33-ambiguous-qty-needs-qty.png'],
-  ['26 · ambiguous Qty blocked, inline',       'C07-inline-ambiguous-qty.png'],
-  ['27 · an item number is not a length',      'C08-item-number-not-a-length.png'],
-  ['28 · an unknown size shows no bar',        'C09-unknown-size-no-bar.png'],
-  ['29 · 中文 compact',                         'R13-chinese-compact.png'],
-  ['30 · 中文 Bulk Edit',                       'R14-chinese-bulk-edit.png'],
-  ['31 · 中文 Details',                         'R15-chinese-details.png'],
-  ['32 · narrow desktop, 1366',                'R16-selection-1366.png'],
-  ['33 · Companies',                           '22-company-list.png'],
-  ['34 · parser · imperial UNC',               '06-half-inch-unc.png'],
-  ['35 · parser · imperial BSW',               '07-half-inch-bsw.png'],
-  ['36 · the verified M24 calculation',        'F-m24-pricing-verified.png'],
+  ['19 · the same refusal in 中文',              'C04b-accessories-zero-selected-chinese.png'],
+  ['20 · Details, one row',                    'R03-details-open.png'],
+  ['21 · Expanded, no fake Close',             'R11-expanded-no-fake-close.png'],
+  ['22 · History open',                        'R11-history-open.png'],
+  ['23 · History, sticky header and count',    'R12-history-sticky-header.png'],
+  ['24 · Previous Price identity invalidated', 'C06-previous-price-invalidated.png'],
+  ['25 · Qty absent becomes 1',                '04-absent-qty-defaults-to-1.png'],
+  ['26 · ambiguous Qty blocked, own line',     '33-ambiguous-qty-needs-qty.png'],
+  ['27 · ambiguous Qty blocked, inline',       'C07-inline-ambiguous-qty.png'],
+  ['28 · an item number is not a length',      'C08-item-number-not-a-length.png'],
+  ['29 · an unknown size shows no bar',        'C09-unknown-size-no-bar.png'],
+  ['30 · 中文 compact',                         'R13-chinese-compact.png'],
+  ['31 · 中文 Bulk Edit',                       'R14-chinese-bulk-edit.png'],
+  ['32 · 中文 Details',                         'R15-chinese-details.png'],
+  ['33 · narrow desktop, 1366',                'R16-selection-1366.png'],
+  ['34 · Companies',                           '22-company-list.png'],
+  ['35 · parser · imperial UNC',               '06-half-inch-unc.png'],
+  ['36 · parser · imperial BSW',               '07-half-inch-bsw.png'],
+  ['37 · the verified M24 calculation',        'F-m24-pricing-verified.png'],
 ];
 
 const LOGS = ['browser-suite.log', 'browser-suite.json', 'pricing-history-php.log',
@@ -103,7 +104,25 @@ const add = (name, data) => entries.push([name, data]);
 const missing = [];
 
 // ── /SOURCE ───────────────────────────────────────────────────────────────
-const srcFiles = tracked.filter(p => !p.startsWith('FULL-AUDIT/'));
+/* The application, its tests and the files needed to reproduce them — and
+   nothing else. `quotation-dnc-final/` is a delivery folder from earlier
+   rounds: 103 files of superseded reports, root-cause notes and screenshot
+   packs, 7.3MB of history that a reviewer of THIS round has no use for. It is
+   left in the repository, where history belongs, and kept out of the package.
+
+   One file inside it is not history. pricing-engine-v2-input.xlsx is the
+   workbook the pricing-workbook check actually validates, and TEST-RESULTS
+   names the exact command that reads it — so the package would otherwise
+   document a check it could not reproduce. It travels at its repository path
+   so that command still works. */
+const HISTORICAL_DELIVERY = 'quotation-dnc-final/';
+const KEEP_ANYWAY = new Set(['quotation-dnc-final/pricing-engine-v2-input.xlsx']);
+const dropped = [];
+const srcFiles = tracked.filter(p => {
+  if (p.startsWith('FULL-AUDIT/')) return false;
+  if (p.startsWith(HISTORICAL_DELIVERY) && !KEEP_ANYWAY.has(p)) { dropped.push(p); return false; }
+  return true;
+});
 srcFiles.forEach(p => add('QUOTATION-DNC-REVIEW/SOURCE/' + p, blob(p)));
 
 // ── /REPORTS ──────────────────────────────────────────────────────────────
@@ -175,8 +194,12 @@ const man = [
   `TEST RUN             ${runTail}`,
   '',
   rule('-'), 'LAYOUT', rule('-'), '',
-  `  /SOURCE/     ${pad(srcFiles.length + ' files', 12)} the application, exactly as committed`,
+  `  /SOURCE/     ${pad(srcFiles.length + ' files', 12)} the application, its tests, and what they need`,
   '               db.php and ai_config.php are ABSENT — server-only secrets',
+  `               ${dropped.length} files of earlier-round delivery history were left out;`,
+  '               they remain in the repository, which is where history belongs.',
+  '               pricing-engine-v2-input.xlsx is kept from that folder because',
+  '               TEST-RESULTS names the command that reads it.',
   `  /REPORTS/    ${pad(REPORTS.length + ' files', 12)} the seven documents`,
   `  /EVIDENCE/   ${pad(evidenceIndex.length + ' frames', 12)} the proofs, numbered in reading order`,
   '               before-fix/  the defects as they were',

@@ -242,9 +242,9 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **853 keys, 100% translated, nothing bypassing the
-translator, and no element relying on a hook that nothing applies** — up from
-512 keys with **129 strings that never reached it**, then a further ~210 the
+The priority deliverable. **862 keys, 100% translated, nothing bypassing the
+translator, and no element relying on a hook that nothing applies**.
+That is up from 512 keys with **129 strings that never reached it**, then a further ~210 the
 overnight checker could not see, then 36 more and 63 unapplied hooks that the
 morning one could not see either. The last of those were found by reading the
 RENDERED screen, which is the only check that measured anything on a screen.
@@ -379,7 +379,7 @@ the layer that would have caught it.
 
 ## 29–32 · Evidence, test matrix, severity
 
-* `screenshots/` — 95 frames, plus `INDEX.txt`. The first 32 are the set the
+* `screenshots/` — 96 frames, plus `INDEX.txt`. The first 32 are the set the
   overnight brief asks for; 33–38 are the morning repair; **A–F** are the six
   the closing brief names, each captured from a page proved empty first;
   **P01–P12** are the UI-polish set; **E01–E13** are Fast Edit and the diameter

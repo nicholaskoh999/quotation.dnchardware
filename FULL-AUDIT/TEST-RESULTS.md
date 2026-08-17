@@ -174,7 +174,7 @@ paints, which is the behaviour under test.
 | Check | Result |
 |---|---|
 | `php -l` over every PHP file | clean |
-| Translation coverage | 853 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
+| Translation coverage | 862 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
 | Rendered 中文 DOM | 12 states scanned, 0 English runs outside the trade allowlist |
 | Browser console errors | asserted per-page in suites 30, 31 and 32 (`page._dcErrors` empty at every viewport) |
 | Pricing workbook contains no business values | 62 assertions, clean |

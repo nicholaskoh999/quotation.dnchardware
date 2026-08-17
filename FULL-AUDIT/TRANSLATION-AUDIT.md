@@ -25,14 +25,14 @@ Three tools, and the third exists because the first two were not enough:
 
 | File | Keys | Translated | Missing zh | Undefined | Identical (non-code) | Bypassing dcT | Unapplied hooks |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| index.php | 722 | 100% | 0 | 0 | 0 | 0 | 0 |
+| index.php | 731 | 100% | 0 | 0 | 0 | 0 | 0 |
 | companies.php | 120 | 100% | 0 | 0 | 0 | 0 | 0 |
 | login.php | 11 | 100% | 0 | 0 | 0 | 0 | 0 |
-| **Total** | **853** | **100%** | **0** | **0** | **0** | **0** | **0** |
+| **Total** | **862** | **100%** | **0** | **0** | **0** | **0** | **0** |
 
-Regenerated from the final SHA. The overnight figure of 658, the morning figure
-of 756 and the closing figure of 843 are all superseded and should not be
-quoted.
+Regenerated from the final SHA. Every earlier figure — 658 overnight, 756 in
+the morning, then 843 and 853 across the closing rounds — is superseded and
+should not be quoted.
 
 At baseline the dictionary already read 100% translated. That number was not
 false, but it was not the whole picture: **a string with no key is not a missing
@@ -40,7 +40,7 @@ translation, it is not a translation at all**, and 129 of those were on screen.
 
 | | baseline | overnight | morning | final |
 |---|---:|---:|---:|---:|
-| dictionary keys | 512 | 658 | 756 | **853** |
+| dictionary keys | 512 | 658 | 756 | **862** |
 | dictionary coverage | 100% | 100% | 100% | **100%** |
 | strings bypassing `dcT`, as the checker THEN saw it | 129 | 0 | 0 | **0** |
 | strings bypassing `dcT`, as the CURRENT checker sees it | — | ~210 | **36** | **0** |

@@ -1074,9 +1074,23 @@ const historyApi = records => ({
       await page.close();
     }
 
-    /* C04 · Accessories with nothing selected: both actions refused. */
-    {
+    /* C04 · Accessories with nothing selected: both actions refused.
+       The first capture of this was misleading — it still carried the toast
+       from the setup step that had just applied an accessory to every row, so
+       a frame meant to prove a REFUSAL displayed the words "Accessories
+       applied to all items". The success message was true when it appeared
+       and false about what the frame was showing.
+
+       So the toast is cleared and its transition allowed to finish before the
+       shutter, and the frame asserts that the screen carries no success
+       message at the moment it is taken. Both languages, because the refusal
+       is one of the strings a 中文 reader most needs. */
+    for (const [lang, want, name] of [
+      ['en', 'Select at least one item.',  'C04-accessories-zero-selected'],
+      ['zh', '请至少选择一个项目。',        'C04b-accessories-zero-selected-chinese'],
+    ]) {
       const page = await openApp(browser);
+      await setLang(page, lang);
       await quickAddPaste(page, TWENTY, { expanded: false, settle: 1800 });
       await page.evaluate(() => {
         wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('acc');
@@ -1085,18 +1099,43 @@ const historyApi = records => ({
       await page.waitForTimeout(1400);
       await page.evaluate(() => { wqaSetApplyScope('selected'); wqaClearSel(); });
       await page.waitForTimeout(900);
+
+      /* Clear the setup's own confirmation and let it finish fading, so the
+         frame shows the state and nothing about how it was reached. */
+      await page.evaluate(() => {
+        const t = el('toast');
+        t.classList.remove('show'); t.textContent = '';
+      });
+      await page.waitForTimeout(500);
+
       const g = await page.evaluate(() => {
         const clear = document.querySelector('#wqaCommonAcc [data-wqa-needsel]');
         const apply = document.querySelector('#wqaCommonAcc [data-wqa-apply]');
         const msg = document.querySelector('#wqaCommonAcc .wqa-none-sel');
-        return { clear: !!clear && clear.disabled, apply: !!apply && apply.disabled,
-                 msg: msg && !msg.hidden ? msg.textContent.trim() : '',
-                 kept: wqa.rows.filter(r => wqaAccHas(r.acc)).length };
+        const scopeOn = [...document.querySelectorAll('.wqa-scope .wqa-view-btn')]
+          .filter(n => n.classList.contains('is-on')).map(n => n.textContent.trim()).join('');
+        const t = el('toast');
+        return {
+          clear: !!clear && clear.disabled, apply: !!apply && apply.disabled,
+          msg: msg && !msg.hidden ? msg.textContent.trim() : '',
+          scopeOn, sel: wqaSelCount(),
+          bar: (el('wqaSelBar') || {}).textContent.replace(/\s+/g, ' ').trim() || '',
+          toast: (t.textContent || '').trim(),
+          toastShown: t.classList.contains('show'),
+          kept: wqa.rows.filter(r => wqaAccHas(r.acc)).length,
+        };
       });
-      if (!g.clear || !g.apply) throw new Error('C04: an accessory action is still pressable');
-      if (!g.msg) throw new Error('C04: nothing explains why');
-      console.log(`      C04 · Apply and Clear both disabled · "${g.msg}" · ${g.kept} rows keep their accessory`);
-      await shot(page, 'C04-accessories-zero-selected');
+      if (!g.clear || !g.apply)
+        throw new Error(`C04 ${lang}: an accessory action is still pressable`);
+      if (g.msg !== want)
+        throw new Error(`C04 ${lang}: the refusal reads "${g.msg}", expected "${want}"`);
+      if (g.sel !== 0) throw new Error(`C04 ${lang}: ${g.sel} rows are selected, expected 0`);
+      if (g.toast || g.toastShown)
+        throw new Error(`C04 ${lang}: a stale message is still on screen — "${g.toast}"`);
+      console.log(`      C04 ${lang} · scope "${g.scopeOn}" · ${g.sel} selected · `
+        + `Apply and Clear disabled · "${g.msg}" · no message on screen · `
+        + `${g.kept} rows keep their accessory`);
+      await shot(page, name);
       await page.close();
     }
 

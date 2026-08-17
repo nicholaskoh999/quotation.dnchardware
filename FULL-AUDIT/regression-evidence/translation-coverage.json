@@ -1,8 +1,8 @@
 {
   "files": {
     "index.php": {
-      "enKeys": 712,
-      "zhKeys": 712,
+      "enKeys": 731,
+      "zhKeys": 731,
       "coverage": 100,
       "missingZh": [],
       "missingKey": [],
@@ -21,13 +21,17 @@
         "wqaMsgNoLines",
         "phCheckFailed",
         "secDimensions",
-        "diaDefault",
         "diaDefaultShort",
         "wqaThreadHintPair",
         "wqaThreadHintOne",
         "costRateSub",
+        "tManualApplied",
+        "tAccApplied",
+        "ariaSelectItem",
         "lblCutLength",
         "lblCutHeight",
+        "wqaCopyNoteBlank",
+        "hdrNo",
         "qiTotal"
       ],
       "hardCoded": [],
@@ -60,7 +64,7 @@
     }
   },
   "totals": {
-    "keys": 843,
+    "keys": 862,
     "missingZh": 0,
     "hardCoded": 0
   }

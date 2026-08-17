@@ -88,8 +88,9 @@
 88  C02-all-items-apply-message.png
 89  C03-selected-apply-message-chinese.png
 90  C04-accessories-zero-selected.png
-91  R11-expanded-no-fake-close.png
-92  C06-previous-price-invalidated.png
-93  C07-inline-ambiguous-qty.png
-94  C08-item-number-not-a-length.png
-95  C09-unknown-size-no-bar.png
+91  C04b-accessories-zero-selected-chinese.png
+92  R11-expanded-no-fake-close.png
+93  C06-previous-price-invalidated.png
+94  C07-inline-ambiguous-qty.png
+95  C08-item-number-not-a-length.png
+96  C09-unknown-size-no-bar.png
