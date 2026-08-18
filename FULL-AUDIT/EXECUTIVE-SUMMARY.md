@@ -2,14 +2,15 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `33ae0da14a3bd3108e8b066d4796b1bcda2de428` · **NOT DEPLOYED.**
+Final application SHA `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` · **NOT DEPLOYED.**
 
-> **On SHAs.** `33ae0da14a3bd3108e8b066d4796b1bcda2de428` is the last commit that changed the
+> **On SHAs.** `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when UI POLISH 2 was accepted. Two application SHAs are superseded by it and
+> when STAGE 0B was accepted. Three application SHAs are superseded by it and
 > must never be quoted as current:
+> superseded — `33ae0da14a3bd3108e8b066d4796b1bcda2de428`, accepted for UI POLISH 2;
 > superseded — `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`, accepted for UI POLISH 1;
 > superseded — `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`, accepted before that round.
 > The commits after the
@@ -25,7 +26,7 @@ Final application SHA `33ae0da14a3bd3108e8b066d4796b1bcda2de428` · **NOT DEPLOY
 **Thirteen P1 findings, twenty-four P2, two P3, no P0 — 39 in all.**
 The audit and repair commits are listed, one by one, in `COMMIT-INFO.txt`.
 Every one was reproduced, given a failing regression, repaired, and re-proved.
-The full test matrix is green and 1,148 assertions larger than it was.
+The full test matrix is green and 1,260 assertions larger than it was.
 
 The last round separated the three ways a Quick Add row can be written to,
 which had genuinely overlapped: two controls both said "Edit", and the two

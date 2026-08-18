@@ -19,36 +19,37 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` |
+| Accepted application commit | `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` |
 | Application status | **ACCEPTED** |
-| Accepted round | UI POLISH 2 — Interaction / Micro UX Polish, **FINAL ACCEPTED** |
+| Accepted round | STAGE 0B — Accessory-Inclusive Final Unit Price, **FINAL ACCEPTED** |
 
-The accepted commit moved because UI POLISH 2 was accepted, and for no other
-reason. It is `33ae0da` because that is the last commit that changed an
-application file — proven from the file, not from a branch tip:
+The accepted commit moved because STAGE 0B was accepted, and for no other
+reason. It is `98a31e3` because that is the last commit that changed an
+application file — proven from the files, not from a branch tip:
 
 ```
-git merge-base --is-ancestor e3d659b 33ae0da   →  0   (e3d659b is an ancestor)
-git log e3d659b..HEAD -- '*.php'               →  33ae0da   (nothing else)
-git rev-parse 33ae0da:index.php                →  5d764b57353650853a7c14dfc807c55730cb8db4
-git rev-parse HEAD:index.php                   →  5d764b57353650853a7c14dfc807c55730cb8db4
-git diff --name-only 33ae0da..HEAD -- '*.php'  →  (empty)
+git merge-base --is-ancestor 33ae0da 98a31e3    →  0   (33ae0da is an ancestor)
+git log 33ae0da..HEAD -- '*.php'                →  98a31e3   (nothing else)
+git diff --name-only 33ae0da..98a31e3 -- '*.php'
+        →  index.php  companies.php  pricing_history.php
+           tests/php/pricing_history.test.php   (a test, declared as such)
+git diff --name-only 98a31e3..HEAD -- '*.php'   →  (empty)
 ```
 
-Every commit after `33ae0da` carries reports, control files, packaging tooling
-and evidence, and changes no application byte. `api.php`, `companies.php`,
-`ai_extract.php`, `auth.php`, `login.php`, `logout.php` and
-`pricing_history.php` are still identical to the commit before it, and
-`tests/suites/` and `tests/lib/` have not moved since it — so the recorded
-assertion matrix was measured on this tree.
+`api.php`, `ai_extract.php`, `auth.php`, `login.php` and `logout.php` are
+byte-identical to the commit before it. Every commit after `98a31e3` carries
+reports, control files and packaging, and changes no application byte.
 
-The accepted change is presentation only: 156 lines added to `index.php`, 0
-removed, in one block that ends immediately before `</style>`. No markup, no
-script, no PHP, no test.
+**This one is not presentation.** UI POLISH 1 and UI POLISH 2 changed how the
+application looked; STAGE 0B changed what it charges. The accepted business rule
+it carries is written into `PROJECT-GUARDRAILS.md` under *ACCESSORIES*, and is
+protected from here exactly as the pricing engine and the Previous Price rules
+are.
 
-Acceptance was bookkeeping, not a rerun: no application or test byte changed
-between the reviewed candidate and this promotion, so the 3,958-assertion
-matrix stands exactly as measured.
+Acceptance was bookkeeping over a tree that did not move: no application or test
+byte changed between the reviewed candidate and this promotion, so the
+4,070-assertion matrix below stands exactly as measured on `98a31e3` and was not
+re-run to promote it.
 
 ---
 
@@ -57,18 +58,18 @@ matrix stands exactly as measured.
 | | |
 |---|---:|
 | Baseline assertions | 2,810 |
-| Current final assertions | **3,958** |
-| Delta | **+1,148** |
+| Current final assertions | **4,070** |
+| Delta | **+1,260** |
 | Failed | 0 |
 | Skipped | 0 |
 | Browser suites | 37 |
-| Browser assertions | 3,613 |
+| Browser assertions | 3,714 |
 
 Other accepted assertion groups:
 
 | | |
 |---|---:|
-| Pricing / History | 161 |
+| Pricing / History | 172 |
 | AI Extraction / Parser | 107 |
 | Workbook | 62 |
 | Translation | 15 |
@@ -76,15 +77,21 @@ Other accepted assertion groups:
 **Arithmetic, which the checker performs itself rather than trusting:**
 
 ```
-  3,613   browser
-+   161   pricing / history
+  3,714   browser
++   172   pricing / history
 +   107   AI extraction / parser
 +    62   workbook
 +    15   translation
-= 3,958   final
+= 4,070   final
 
-  3,958 - 2,810 = 1,148
+  4,070 - 2,810 = 1,260
 ```
+
+The browser matrix grew by 101 and the pricing-history PHP suite by 11, both in
+STAGE 0B: the accessory suite was reframed around the rule that replaced the one
+it protected and grew from 41 assertions to 127, and the company, history and
+plate suites gained the cases the new rule needed. No suite was removed and no
+coverage was dropped.
 
 ---
 
@@ -154,14 +161,15 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 
 | | superseded |
 |---|---|
-| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 |
-| Deltas | +734 · +869 · +989 · +1,017 |
+| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 · 3,958 |
+| Deltas | +734 · +869 · +989 · +1,017 · +1,148 |
 | Translation keys | 512 · 658 · 756 · 843 · 853 |
 | Finding totals | 29 · 33 |
 | Suite counts | 34 · 36 · 38 |
 | Manifest filename | `ZIP-MANIFEST.txt` |
 | Application commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by `e3d659b` when UI POLISH 1 was accepted |
 | Application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — superseded by `33ae0da` when UI POLISH 2 was accepted |
+| Application commit | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` — superseded by `98a31e3` when STAGE 0B was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

@@ -34,6 +34,8 @@ Unless `ROUND-SCOPE.md` explicitly authorizes modification, **do not change**:
 - parser behaviour
 - extraction rules
 - pricing engine
+- **accessory pricing — accessories are inside the parent item's final customer
+  price, and the bolt / accessory breakdown is preserved (see ACCESSORIES below)**
 - weight formulas
 - diameter rules
 - Previous Price matching / reuse rules
@@ -131,6 +133,80 @@ the existing accepted exceptions remain protected.
 
 A product that has no size type at all (a Stud) is not the same thing as one
 whose size type is unknown, and must not be reported as missing it.
+
+### ACCESSORIES — INSIDE THE FINAL UNIT PRICE
+
+**All accessories belong to the parent item's final customer price.** Accepted
+in STAGE 0B, `98a31e3`. It supersedes the `bolt-separate` rule, under which an
+accessory was its own charge on the line — that rule is retired and must not be
+reinstated without the same explicit approval that replaced it.
+
+```
+Base / bolt price   RM 5.76
+Accessories         RM 2.00
+FINAL UNIT PRICE    RM 7.76      ← the ONE number quoted to the customer
+```
+
+The screen reads:
+
+```
+FINAL UNIT PRICE                 最终单价
+RM 7.76                          RM 7.76
+Includes accessories: RM 2.00    已含配件：RM 2.00
+```
+
+With no accessories the second line is **not rendered at all**. Nut, FW and
+Custom all follow this rule, and several accessories use their combined total,
+added **once**.
+
+**The breakdown is preserved, and that is not optional.** History compares a bolt
+against a bolt; a "bolt price" that were really bolt-plus-hardware would grow by
+its accessories every time it were reused. So every saved item carries both ends:
+
+| field | meaning |
+|---|---|
+| `boltUnitPrice` | internal bolt / base component |
+| `accessoryUnitPrice` | per-parent-item accessory total |
+| `finalUnitPrice` | **customer-facing inclusive unit price** |
+| `lineUnitPrice` | the same inclusive figure — compatibility alias |
+| `accessoryTotal` | `accessoryUnitPrice × Qty` |
+| `totalAmount` | `finalUnitPrice × Qty` |
+| `pricingModel` | `accessory-inclusive` |
+
+**Price mode decides which end is known, never whether accessories are charged.**
+
+| mode | |
+|---|---|
+| Auto Round · No Round | the **bolt** is calculated, and the accessories are **added** to reach the customer's price |
+| **Manual Price** | the **customer's** price is typed, so the accessories come **out** of it to leave the bolt component. RM10 typed with RM2 of nuts quotes **RM10**, reports RM2 of accessories, and leaves an RM8 bolt — never RM12 |
+
+**Customer-facing output carries no separate accessory charge.**
+
+- WhatsApp / copied text: `1. M12 x L 1000 x TL 100/100mm - RM7.76` then plain
+  `cw 2nut`. **Never** `- RM5.76` with `cw 2nut - RM2.00` beneath it.
+- Print / PDF: **one** priced row per parent item. Unit Price is the inclusive
+  Final Unit Price, Amount is that price × Qty, and the accessory wording is a
+  plain description in the dimension cell with no money in it.
+- The quotation item card's headline price is the inclusive one. The bolt and
+  accessory components may be shown beneath it as breakdown, and the bolt-only
+  figure must **never** be presented as the customer's unit price.
+
+**Three vintages of saved item, each read as it was written.** The money a
+customer already agreed to is not ours to move:
+
+| vintage | what it holds | what must happen |
+|---|---|---|
+| `accessory-inclusive` | `finalUnitPrice` already inclusive, bolt beside it | read as written |
+| `bolt-separate` | `finalUnitPrice` was the **bolt**, `lineUnitPrice` was the line | normalised once on load. **The total it was saved with wins.** A manual price folds **up** to the customer figure, so re-saving neither double-charges the accessories nor drops them |
+| legacy (no model) | one figure, the charge already inside it | already what this rule asks for. Read as written, and **no separation is invented** for it |
+
+**The amount of accessory money is not what changed.** Two nuts at RM1.00 are
+RM2.00 before and after. Only where that RM2.00 is *presented* moved. A change
+that quietly stopped charging for accessories would be a worse defect than the
+one this rule replaced.
+
+Protected by `tests/suites/14-accessory-inclusive-price.test.js` and the
+accessory sections of `tests/php/pricing_history.test.php`.
 
 ### HISTORY / PREVIOUS PRICE
 

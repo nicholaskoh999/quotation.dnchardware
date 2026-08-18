@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "33ae0da14a3bd3108e8b066d4796b1bcda2de428",
+    "acceptedCommit": "98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac",
     "status": "accepted",
-    "acceptedRound": "UI POLISH 2 — Interaction / Micro UX Polish (FINAL ACCEPTED)"
+    "acceptedRound": "STAGE 0B — Accessory-Inclusive Final Unit Price (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 3958,
-    "deltaAssertions": 1148,
+    "finalAssertions": 4070,
+    "deltaAssertions": 1260,
     "failed": 0,
     "skipped": 0,
     "browserSuites": 37,
-    "browserAssertions": 3613,
-    "pricingHistoryAssertions": 161,
+    "browserAssertions": 3714,
+    "pricingHistoryAssertions": 172,
     "aiExtractionAssertions": 107,
     "workbookAssertions": 62,
     "translationAssertions": 15
@@ -53,7 +53,8 @@
       3482,
       3679,
       3799,
-      3827
+      3827,
+      3958
     ],
     "supersededTranslationKeys": [
       512,
@@ -70,7 +71,8 @@
       734,
       869,
       989,
-      1017
+      1017,
+      1148
     ],
     "supersededSuiteCounts": [
       34,
@@ -93,6 +95,11 @@
         "sha": "e3d659bba1636cd4cfc74cb89be1b52cf92aff67",
         "supersededBy": "33ae0da14a3bd3108e8b066d4796b1bcda2de428",
         "reason": "UI POLISH 2 was accepted. 33ae0da is the only commit after e3d659b that changes an application file, and the interaction-state presentation change it carries in index.php is now part of the accepted application, so e3d659b is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "33ae0da14a3bd3108e8b066d4796b1bcda2de428",
+        "supersededBy": "98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac",
+        "reason": "STAGE 0B was accepted. Accessories now belong to the parent item’s final customer price, which is a business-rule change to index.php, companies.php and pricing_history.php, so 33ae0da is the previous accepted commit and must never be quoted as the current one. The assertion matrix moved with it: 3,714 browser and 4,070 in all, measured on 98a31e3."
       }
     ]
   }

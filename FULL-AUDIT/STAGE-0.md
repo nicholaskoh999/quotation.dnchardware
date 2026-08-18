@@ -7,7 +7,7 @@
 | | |
 |---|---|
 | **0A** | UI POLISH 2 accepted. Bookkeeping only — no application byte moved. |
-| **0B** | Accessories belong to the parent item's final customer price. An explicitly approved **business-rule change**, and a **candidate**. |
+| **0B** | Accessories belong to the parent item's final customer price. An explicitly approved **business-rule change**, reviewed and now **FINAL ACCEPTED**. |
 
 ---
 
@@ -272,9 +272,9 @@ onto this run** — the suite grew because the new rule needed more coverage tha
 the old one, and 862 held because every string this stage changed was an existing
 key reused rather than a new one added.
 
-`CANONICAL-STATE` still reads **3,958** and **`33ae0da`**, deliberately: Stage 0B
-is a candidate, and the canonical numbers move when Nicholas accepts it, as their
-own step.
+`CANONICAL-STATE` read **3,958** and **`33ae0da`** while this stage was under
+review, deliberately. Nicholas has since accepted it, and the canonical numbers
+moved as their own step — see §10.
 
 ### 9 · Evidence
 
@@ -290,10 +290,26 @@ WhatsApp / copied text · print preview · save and reopen · and the two migrat
 frames, in which a `bolt-separate` quotation reopens on **RM 307.00** and
 re-saves on **RM 307.00**.
 
-### 10 · Status
+### 10 · Status — ACCEPTED
 
-**CANDIDATE.** Not accepted, not canonical, not deployed. `CANONICAL-STATE.md`,
-`CANONICAL-STATE.json`, `PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js`
-are untouched by Stage 0B; `ROUND-SCOPE.md` declares `index.php`,
-`companies.php` and `pricing_history.php` by name, so the checker reports them as
-a declared candidate and any other application file still fails.
+**Nicholas accepted Stage 0B.** The promotion was performed as its own step, over
+a tree that did not move: no application byte and no test byte changed between
+the reviewed candidate and this promotion, so the browser regression was **not**
+re-run — it would have produced the same 3,714 assertions from the same source.
+
+| | |
+|---|---|
+| Accepted application commit | **`98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`** |
+| Previous accepted commit | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` — superseded |
+| `docs/control/CANONICAL-STATE.md` · `.json` | accepted commit → `98a31e3`, round → STAGE 0B FINAL ACCEPTED; 3,714 browser / 172 pricing-history / **4,070** total / **+1,260**; `33ae0da`, 3,958 and +1,148 recorded as superseded |
+| `docs/control/PROJECT-GUARDRAILS.md` | **the accessory-inclusive rule added** as an accepted, protected business rule, and named in PROTECTED / ACCEPTED AREAS |
+| `tests/tools/authoritative.js` | `APP_SHA` → `98a31e3`; `BROWSER` 3,714, `TOTAL` 4,070, `DELTA` 1,260, pricing-history 172 |
+| `docs/control/ROUND-SCOPE.md` | the `candidate-files` block **emptied** — the four declared files are no longer excused, and any drift from `98a31e3` fails again |
+| `FULL-AUDIT/regression-evidence/` | refreshed to the accepted run; the eight per-suite logs re-sliced from it, which is what they have always been — slices, not separate invocations |
+
+**Deploy: NO.** Acceptance is not deployment, and only Nicholas may approve that.
+
+This is the first of the three accepted rounds that changes **behaviour** rather
+than presentation, which is why its rule now lives in `PROJECT-GUARDRAILS.md`
+rather than only in this report. Changing accessory pricing again needs the same
+explicit approval that changed it this time.

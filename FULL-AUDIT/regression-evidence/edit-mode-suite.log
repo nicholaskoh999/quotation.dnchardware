@@ -3,4 +3,5 @@ Same run, same tree — not a separate invocation.
 
   ok    fast edit — one state, and everything it holds still  (77 assertions)
 
-  37 suites, 3613 assertions, 0 failed
+
+  37 suites, 3714 assertions, 0 failed
