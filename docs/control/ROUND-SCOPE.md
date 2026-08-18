@@ -2,125 +2,117 @@
 
 ## ROUND
 
-**Final Package Consistency Loop**
+**UI POLISH 1 — BASELINE RECOVERY / REAPPLY**
+Visual Density & Hierarchy
 
 ## APPLICATION STATUS
 
-**ACCEPTED.** This is not a development round.
+**ACCEPTED.** This is a presentation round on accepted application behaviour.
+
+---
+
+## WHY THIS ROUND EXISTS
+
+An earlier UI POLISH 1 attempt was implemented on the wrong baseline. It was
+made from `b549308`, which predates the accepted application commit by 71
+commits, and it is **NOT ACCEPTED**:
+
+| | |
+|---|---|
+| Rejected attempt | `e94fc25370d668bd2c357eb3b0e468ee4f1ba98e` |
+| Left where it was | branch `claude/new-session-ok8rwe`, not rewritten, not merged |
+
+Its **screenshots** were reviewed and the visual direction accepted. Its
+**implementation** is not reused: it is reapplied here, by hand, against the
+real accepted Quick Add.
+
+That attempt reported five accepted features as *"not present in this build"*
+and continued anyway — Fast Edit, the selection bar's Apply Previous Price and
+Clear Selection, the per-row Pricing Summary, and the single-group Bulk Edit.
+All five exist in the accepted source. The report was wrong because the
+checkout was wrong.
+
+---
+
+## BASELINE GATE — PASSED BEFORE ANY EDIT
+
+| Check | Evidence |
+|---|---|
+| Accepted commit exists | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`, found on `origin/claude/new-session-ofny46` after fetching all remote refs; it was absent from the working clone |
+| Accepted commit is an ancestor of HEAD | yes |
+| Application source == accepted baseline | `index.php`, `api.php`, `companies.php`, `ai_extract.php`, `auth.php`, `login.php`, `logout.php`, `pricing_history.php`, `manifest.webmanifest`, `php.ini` all byte-identical between `7f5bc97` and the branch head; the later commits touch only `FULL-AUDIT/`, `docs/` and `tests/` |
+| Control files existed before this round | all four, added by `e2e9e5d` on the accepted line |
+| Fast Edit present | `wqa.edit`, `wqaEditStart/Done/RequestCancel`, `.wqa-ei`, `wqaSyncEditLocks()` |
+| Selected Items present | `wqaSetApplyScope`, `wqaToggleRowSel`, `.wqa-pick`, `#wqaSelBar` |
+| History present | `wqaHistToggle/Use/More`, `phListHtml`, own / other record counts |
+| Previous Price present | the same history panel, plus `.wqa-prov` provenance |
+| Full accepted regression found and run | `tests/run.js` over 37 suites → **37 suites, 3,613 assertions, 0 failed** on the untouched source, matching `CANONICAL-STATE.json` exactly |
+
+Work branch: `claude/ui-polish-1-recovery`, cut from the accepted line. The
+rejected branch is not rewritten and its history is not merged in.
 
 ---
 
 ## ALLOWED TO CHANGE
 
-- `docs/control/*`
-- `FULL-AUDIT/*.md`, `FULL-AUDIT/*.txt` (the reports)
-- generated reporting metadata
-- current logs / reporting artifacts
-- manifest files
-- the report consistency checker
-- the package validation checker
-- the package build scripts
-- the evidence capture scripts
-- current evidence screenshots
-- the package inventory
-- the final `QUOTATION-DNC-REVIEW.zip`
+- presentation
+- layout
+- spacing
+- typography
+- visual hierarchy
+- border / background treatment
+- responsive modal sizing
+- non-functional row-action styling
+- `docs/control/ROUND-SCOPE.md` (this file)
+- evidence capture scripts and current evidence screenshots
+- the review package
 
 ---
 
 ## NOT ALLOWED TO CHANGE
 
-- application PHP behaviour
-- parser
-- extraction behaviour
-- pricing engine
-- Previous Price
-- weight
-- diameter behaviour
-- Qty behaviour
-- material mappings
-- finish rules
-- Size Type behaviour
-- History behaviour
-- Fast Edit
-- Bulk Edit
-- Details
-- accepted UI layout
-- database behaviour
+business logic · parser · extraction · pricing · weight · DIA · Previous Price
+logic · History identity · Qty behaviour · Material / Finish · Size Type rules ·
+selection behaviour · Fast Edit behaviour · Bulk Edit behaviour · Details
+behaviour · Accessories calculations · database · Add-to-quotation behaviour.
+
+No opportunistic refactoring. No fixes to the recorded N2–N6 observations.
 
 ---
 
-## CURRENT OBJECTIVE
+## ONE GUARDRAIL INTERACTION, RECORDED RATHER THAN TAKEN SILENTLY
 
-Resolve **only**:
+`PROJECT-GUARDRAILS.md` § *ACCEPTED COMPACT ROW* reads:
 
-- report contradictions
-- stale current numbers
-- stale internal references
-- evidence framing / proof problems
-- package consistency
-- checker blind spots
+> Keep DIA beside Size, **the current density**, and the Pricing Summary
+> directly under each compact row.
 
-If a real application defect is discovered: **do not fix it in this round.**
-Record it as
+The round brief asks, in §6C, for roughly a **48px** compact row — the density
+that was accepted from the previous attempt's screenshots — where the accepted
+source sets `min-height:38px`. The two cannot both hold, so this round treats
+the brief as the explicit approval the guardrail requires, and changes **only**
+that one clause:
 
-> **NEW APPLICATION FINDING — BLOCKED BY ROUND SCOPE**
+- DIA stays beside Size.
+- The Pricing Summary stays directly under each compact row.
+- Row height moves from 38px to 48px on desktop, and nowhere else.
 
-and stop application modification.
+If that is not what was intended, this is the line to reverse, and it is one
+CSS declaration.
 
----
-
-## CURRENT KNOWN FINAL ISSUES
-
-Two report issues remain from the Nicholas / ChatGPT review.
-
-**1 · The EXECUTIVE-SUMMARY severity table is stale.** It reads P1 = 8,
-P2 = 19, P3 = 2 while the authoritative values are P1 = 13, P2 = 24, P3 = 2.
-
-The checker missed it because it only ever read the prose form
-`P0 n · P1 n · P2 n · P3 n`, and this is a markdown table:
-
-```
-| **P1** high | 8 | 8 |          ← must FAIL
-| **P1** high | 13 | 13 |        ← must PASS
-```
-
-**2 · "Recorded, not repaired" still says 6.** N1 is already resolved by F7,
-so the current set is N2, N3, N4, N5, N6 — **five**. Every current reference
-must say five, and the wording must not read as *"39 repaired + 6 unresolved
-bugs."*
+`PROJECT-GUARDRAILS.md`, `CANONICAL-STATE.md` and `CANONICAL-STATE.json` are
+**not** modified by this round.
 
 ---
 
 ## STOP CONDITION
 
-Do **not** stop because "changes are done" or "the checker passed once".
+- the full accepted regression passes at or above the canonical counts, with
+  zero failures and zero skips
+- protected application behaviour is proven unchanged
+- the required screenshot evidence is captured on 10–20 realistic rows
+- ONE `QUOTATION-DNC-REVIEW.zip` is built and independently verified after
+  extraction
+- **no accepted feature has disappeared to make the UI cleaner**
 
-Stop only after:
-
-- the final ZIP is built
-- the final ZIP is extracted into a fresh verification directory
-- the **extracted** ZIP is checked independently — not the working tree
-- zero report contradictions
-- zero stale current values
-- all prose matches canonical facts
-- all markdown tables match canonical facts
-- COMMIT-INFO matches canonical facts
-- JSON / log current summaries match canonical facts
-- the manifest validates 100%
-- the evidence visually proves the required claims
-- the application PHP files are byte-identical to the accepted application commit
-- **two consecutive** full package verification passes return zero findings
-
-**Maximum loop attempts: 3.** If inconsistencies remain after three, stop and
-return `BLOCKED — CONSISTENCY PROCESS/CHECKER STILL HAS DEFECTS` with the exact
-remaining contradictions. Do not patch indefinitely.
-
----
-
-## AFTER THIS ROUND
-
-Do not delete the control files. For future rounds, normally only this file
-changes. `PROJECT-GUARDRAILS.md` changes only when Nicholas explicitly changes
-a permanent accepted rule; `CANONICAL-STATE` changes only when a newly accepted
-state supersedes the old one, and then both the `.md` and the `.json` are
-updated together and the reason recorded.
+Then STOP. Do not start UI POLISH 2. Do not deploy.

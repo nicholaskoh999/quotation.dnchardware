@@ -1,0 +1,17 @@
+01-compact-full
+10-table-scrolled
+02-expanded
+03-fast-edit-active
+04-bulk-collapsed
+05-bulk-open
+06-selected-items
+07-details
+08-history
+09-previous-price
+11a-desktop-1440
+11b-laptop-1280
+11c-laptop-1024
+11d-tablet-820
+11e-phone-430
+12-zh-compact
+12b-zh-bulk-open

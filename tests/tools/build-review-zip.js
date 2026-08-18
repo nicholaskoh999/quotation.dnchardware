@@ -3,7 +3,7 @@
    the thing he wants is where he would look for it:
 
        /SOURCE/     the application, exactly as committed
-       /REPORTS/    the seven documents
+       /REPORTS/    the audit documents, and the current round's report
        /EVIDENCE/   the frames worth looking at, before and after
        /LOGS/       the authoritative run, and the checkers
        /MANIFEST/   inventory, full SHA-256, build metadata
@@ -47,7 +47,11 @@ const blob = p => git('show', 'HEAD:' + p);
 // ── what goes where ───────────────────────────────────────────────────────
 const REPORTS = ['EXECUTIVE-SUMMARY.md', 'FULL-AUDIT-REPORT.md', 'FINDINGS.md',
                  'TEST-RESULTS.md', 'TRANSLATION-AUDIT.md',
-                 'BUSINESS-DECISIONS-NEEDED.md', 'COMMIT-INFO.txt'];
+                 'BUSINESS-DECISIONS-NEEDED.md', 'COMMIT-INFO.txt',
+                 /* A round that changes the application ships its own account
+                    of what it changed, beside the audit that accepted the
+                    state it started from. */
+                 'UI-POLISH-1.md'];
 
 /* The 25 proofs the brief names, mapped to the frames that carry them. Named
    explicitly rather than swept in by prefix, so a frame that stops existing
@@ -148,6 +152,15 @@ KEY_EVIDENCE.forEach(([label, file]) => {
 /* before/after pairs, kept whole because they are the argument */
 tracked.filter(p => p.startsWith('FULL-AUDIT/before-fix/'))
   .forEach(p => add('QUOTATION-DNC-REVIEW/EVIDENCE/before-fix/' + path.basename(p), blob(p)));
+/* UI POLISH 1 travels the same way, and for the same reason: a visual round is
+   argued in pairs, so the two directories ship whole rather than as a chosen
+   handful. Swept by prefix because the pair is the unit — a frame that stops
+   existing simply stops shipping, and its absence is visible in the manifest
+   count rather than hidden behind a name that no longer resolves. */
+const polishFrames = tracked.filter(p => p.startsWith('FULL-AUDIT/ui-polish-1/'));
+polishFrames.forEach(p => add(
+  'QUOTATION-DNC-REVIEW/EVIDENCE/ui-polish-1/' + p.slice('FULL-AUDIT/ui-polish-1/'.length),
+  blob(p)));
 
 // ── /docs/control ─────────────────────────────────────────────────────────
 /* The control files travel WITH the package, not only in the repository. A
@@ -217,8 +230,9 @@ const man = [
   '               they remain in the repository, which is where history belongs.',
   '               pricing-engine-v2-input.xlsx is kept from that folder because',
   '               TEST-RESULTS names the command that reads it.',
-  `  /REPORTS/    ${pad(REPORTS.length + ' files', 12)} the seven documents`,
+  `  /REPORTS/    ${pad(REPORTS.length + ' files', 12)} the audit documents and this round's report`,
   `  /EVIDENCE/   ${pad(evidenceIndex.length + ' frames', 12)} the proofs, numbered in reading order`,
+  `               ${pad(polishFrames.length + ' frames', 12)} ui-polish-1/, this round's before and after`,
   '               before-fix/  the defects as they were',
   `  /LOGS/       ${pad(LOGS.length + ' files', 12)} the authoritative run and the checkers`,
   '  /MANIFEST/   this file',

@@ -1691,7 +1691,8 @@ input,select,textarea{
 .wqa-msg-warn{background:var(--amber-light);color:var(--amber);border-color:var(--amber-mid)}
 .wqa-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:14px}
 .wqa-actions .btn{min-width:132px}
-.wqa-common{padding:12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);margin-bottom:12px}
+.wqa-common{padding:12px;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface2);margin-bottom:12px}
 .wqa-common-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .wqa-rows-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;
   font-size:12.5px;font-weight:800;color:var(--text-2);flex-wrap:wrap}
@@ -1702,7 +1703,7 @@ input,select,textarea{
 .wqa-rows-head>span:first-child{flex:1 1 auto;min-width:0}
 /* the table surface itself */
 .wqa-rows{display:flex;flex-direction:column;gap:0;min-width:0;
-  border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);overflow:hidden}
+  border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);overflow:hidden}
 .wqa-rows.has-head{border-top:0;border-radius:0 0 var(--r-sm) var(--r-sm)}
 .wqa-row{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 12px;background:var(--surface)}
 .wqa-row-block{background:var(--amber-light)}
@@ -1742,10 +1743,14 @@ input,select,textarea{
 .wqa-partial-ack{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding-top:9px;
   border-top:1px solid var(--amber-mid);font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer}
 .wqa-partial-ack input{width:16px;height:16px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--amber);cursor:pointer}
-.wqa-hist{margin:0 12px 10px 46px;padding:9px 10px;border-radius:var(--r-xs);font-size:12px;line-height:1.45;
-  background:var(--surface2);border:1px solid var(--border);color:var(--text-muted)}
-.wqa-hist-exact{background:var(--green-light);border-color:var(--green)}
-.wqa-hist-similar{background:var(--amber-light);border-color:var(--amber-mid)}
+/* Exact / similar / none is a STATUS, and a status reads off one marked edge
+   as well as off four. A tinted band with a coloured left edge, so an open row
+   carries no more rectangles than it has to. */
+.wqa-hist{margin:0 12px 10px 46px;padding:9px 12px;border-radius:0 var(--r-xs) var(--r-xs) 0;
+  font-size:12px;line-height:1.45;background:var(--surface2);
+  border:0;border-left:3px solid var(--border);color:var(--text-muted)}
+.wqa-hist-exact{background:var(--green-light);border-left-color:var(--green)}
+.wqa-hist-similar{background:var(--amber-light);border-left-color:var(--amber-mid)}
 .wqa-hist-none{opacity:.85}
 .wqa-hist-tag{font-weight:800;color:var(--text-2);margin-bottom:2px}
 .wqa-hist-line{overflow-wrap:anywhere}
@@ -1966,6 +1971,10 @@ input,select,textarea{
      layout, and how many dimensions a product has can never squeeze them. */
   --wqa-tail: 56px 104px 90px minmax(0,1fr) 152px;
   --wqa-cols: var(--wqa-lead) var(--wqa-dim) var(--wqa-tail);
+  /* Two weights of line, and only two. A HAIRLINE divides rows and groups
+     inside one surface; --border is the edge of the surface itself. Nothing in
+     the review draws a third kind. */
+  --wqa-hair: #e7ebf3;
   /* Composed by wqaSetListGrid from the column count: a Stud list stays the
      size it was, a J Bolt list is allowed the width its four dimensions need,
      and neither ever exceeds the viewport. */
@@ -1976,12 +1985,12 @@ input,select,textarea{
   grid-template-columns:var(--wqa-cols)}
 .wqa-list-head{position:sticky;top:0;z-index:3;background:var(--surface2);
   padding-top:7px;padding-bottom:7px;margin-bottom:0;
-  border:1.5px solid var(--border);border-radius:var(--r-sm) var(--r-sm) 0 0}
+  border:1px solid var(--border);border-radius:var(--r-sm) var(--r-sm) 0 0}
 .wqa-list-head[hidden]{display:none}
 .wqa-h{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .wqa-h-num,.wqa-h-act{text-align:center}
-.wqa-sum{padding-top:5px;padding-bottom:5px;cursor:pointer;min-height:38px;
+.wqa-sum{padding-top:7px;padding-bottom:7px;cursor:pointer;min-height:46px;
   background:transparent;font-size:12.5px}
 /* A stale second :hover rule used to override this one with plain grey; there is
    now one hover, and it reads clearly above both stripes. */
@@ -2001,7 +2010,7 @@ input,select,textarea{
    bulk apply is about to land on it. */
 .wqa-row.is-picked>.wqa-sum{background:var(--accent-light)}
 .wqa-row.is-picked{box-shadow:inset 3px 0 0 var(--accent)}
-.wqa-bulk-seln{font-size:11.5px;font-weight:900;color:var(--accent-2);
+.wqa-bulk-seln{display:none;font-size:11.5px;font-weight:900;color:var(--accent-2);
   padding:2px 8px;border-radius:var(--pill-r);background:var(--accent-light);white-space:nowrap}
 /* The refusal, where the Apply it refuses is. */
 .wqa-none-sel{font-size:11px;font-weight:750;color:var(--amber-2,#b45309)}
@@ -2053,14 +2062,20 @@ input,select,textarea{
 .wqa-tref{font-size:9.5px;font-weight:700;letter-spacing:.03em;color:var(--text-muted);
   text-transform:uppercase;white-space:nowrap}
 .wqa-f-tref input{font-variant-numeric:tabular-nums}
-.wqa-c-dim  {font-weight:800;color:var(--text)}      /* the values staff scan */
-.wqa-c-qty  {font-weight:800;color:var(--text)}
+/* LEVEL 1 — what the eye is looking for. Size, DIA, the dimensions and Qty are
+   one weight; Price sits one step above them, so the line reads left to right
+   and lands on the money. */
+.wqa-c-dim  {font-weight:700;color:var(--text)}      /* the values staff scan */
+.wqa-c-qty  {font-weight:700;color:var(--text)}
 .wqa-c-threadLen{font-weight:600;color:var(--text-muted)}
 /* A mixed list carries a whole spec in one cell, so that one may be narrower
    than its text and shows what it can. */
 .wqa-c-spec {font-weight:650;color:var(--text-2)}
 .wqa-c-w    {font-weight:600;color:var(--text-muted)}
-.wqa-c-price{font-weight:800;color:var(--accent-2)}
+/* The row's outcome — strongest on the line by weight and size rather than by
+   colour. Accent blue here competed with Details, History and every provenance
+   chip beside it, and a price is not a link. */
+.wqa-c-price{font-weight:800;color:var(--text);font-size:13.5px;letter-spacing:-.01em}
 /* The badge column is a pure slack column: min-width 0, hidden overflow and no
    flex-grow reaching outside it, so an "Asymmetric" pill can never widen the
    track or shift Price / Edit / ×. */
@@ -2132,6 +2147,41 @@ input,select,textarea{
 .wqa-foot-need[hidden]{display:none}
 .wqa-foot-help{font-size:11.5px;font-weight:650;color:var(--text-muted)}
 .wqa-foot-help[hidden]{display:none}
+/* ── Desktop ≥1200: the dialog takes the width the screen has ──────────────
+   Quick Add held a ten-column table inside a flat 900px panel. The columns paid
+   for it: the pricing summary under every row wrapped onto a second line purely
+   for want of horizontal room, so a clean item cost 83px of screen to say what
+   fits in one line. The panel now takes up to 1360px where the viewport allows
+   — written as min(), so there is no width at which it can exceed the screen —
+   and the extra goes into the tracks the values live in rather than into the
+   slack column. Everything below 1200px keeps the layout it already had.     */
+@media (min-width:1200px){
+  .wqa-modal{
+    width:min(1360px,calc(100vw - 64px));max-width:none;
+    --wqa-lead: 46px minmax(74px,.85fr) minmax(78px,.85fr);
+    --wqa-dim:  minmax(88px,1fr);
+    --wqa-dim-spec: minmax(280px,2.4fr);
+    --wqa-tail: minmax(62px,.7fr) minmax(116px,1.05fr) minmax(104px,1fr)
+                minmax(90px,1.15fr) 168px;
+  }
+  /* One rhythm down the table: the header, the values and the metadata under
+     them share a left edge, and the row gains the vertical room the round asks
+     for without the item block growing — the summary that used to wrap now
+     fits on the one line it was always meant to be. */
+  .wqa-list-head,.wqa-sum{gap:0 14px;padding-left:16px;padding-right:16px}
+  .wqa-list-head{padding-top:9px;padding-bottom:9px}
+  .wqa-row .wqa-meta{padding-left:52px;padding-right:16px}
+  .wqa-row .wqa-row-sub{padding-left:52px;padding-right:16px}
+  /* The pricing summary is two sentences that were stacked because a 900px
+     panel had nowhere to put them. It holds 219px of text in a 1316px row, so
+     at this width they sit side by side and a clean item costs one line plus
+     one summary line instead of one plus two. Nothing is removed, reworded or
+     reordered — they wrap back the moment the width stops allowing it.
+     Written against .wqa-meta because the base rules are declared several
+     hundred lines below this block and would otherwise win on order. */
+  .wqa-meta>.wqa-meta-r{flex-direction:row;flex-wrap:wrap;justify-content:flex-end;
+    align-items:baseline;column-gap:6px;row-gap:2px}
+}
 /* ── 1024–1199: the desktop shape, a few pixels tighter ────────────────────
    Adding the DIA column gave the desktop tracks one more thing to fit, and at
    exactly 1024 they came to 33px more than a 1024px viewport leaves for the
@@ -2181,7 +2231,7 @@ input,select,textarea{
   .wqa-modal{width:100%}
   /* No column header on a phone — the summary is its own shape there. */
   .wqa-list-head{display:none}
-  .wqa-rows.has-head{border-top:1.5px solid var(--border);border-radius:var(--r-sm)}
+  .wqa-rows.has-head{border-top:1px solid var(--border);border-radius:var(--r-sm)}
   /* And no fixed tracks: a J Bolt has four dimensions where a Stud has one, and
      a layout that names its cells by column number can only be right for one of
      them. The summary wraps instead — number, size and dimensions on the first
@@ -2398,7 +2448,11 @@ input,select,textarea{
   background:var(--accent-light);color:var(--accent-2);font-size:10.5px;font-weight:800;text-align:center}
 .wqa-row-act.is-on .wqa-row-actn{background:var(--surface)}
 .wqa-row-caret{font-size:8px;line-height:1}
-.wqa-row-act.wqa-row-del{min-width:32px;justify-content:center;padding:0 8px;font-size:12px}
+/* Delete keeps its box, its size and its place — it is simply not competing
+   with Details and History at rest. It gains the full red treatment the moment
+   it is pointed at, which is the only moment it has to be unmissable. */
+.wqa-row-act.wqa-row-del{min-width:32px;justify-content:center;padding:0 8px;font-size:12px;
+  margin-left:3px;border-color:var(--wqa-hair,#e7ebf3);color:var(--text-muted)}
 .wqa-row-act.wqa-row-del:hover{background:var(--red-light,#fee2e2);border-color:var(--red,#dc2626);color:var(--red,#dc2626)}
 
 /* ── Where this price came from ────────────────────────────────────────────
@@ -2407,18 +2461,21 @@ input,select,textarea{
    Two columns under the compact row, indented to the row's own text, no card
    and no border — the row above stays exactly as dense as it was. On a narrow
    screen the right column wraps under the left and nothing is squeezed. */
+/* LEVEL 3 — it explains the line above it and must never be read first. */
 .wqa-meta{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
-  gap:2px 22px;padding:0 12px 6px 46px;font-size:11px;line-height:1.45;color:var(--text-muted)}
+  gap:2px 22px;padding:0 12px 6px 46px;font-size:10.5px;line-height:1.45;color:var(--text-muted)}
 .wqa-meta:empty{display:none}
 .wqa-meta-l,.wqa-meta-r{display:flex;flex-direction:column;gap:2px;min-width:0}
 .wqa-meta-l:empty,.wqa-meta-r:empty{display:none}
 .wqa-meta-r{align-items:flex-end;text-align:right;max-width:100%}
 .wqa-meta-r .wqa-meta-line{display:inline-flex;flex-wrap:wrap;align-items:baseline;
   gap:0 5px;justify-content:flex-end}
-.wqa-meta-line{font-weight:650;color:var(--text-muted)}
-.wqa-meta-line b{font-weight:750;color:var(--text-2)}
+.wqa-meta-line{font-weight:600;color:var(--text-muted)}
+.wqa-meta-line b{font-weight:700;color:var(--text-2)}
+/* The word in front of the pricing summary: a label on metadata, not a third
+   accent competing with the actions on the same line. */
 .wqa-meta-pricing{font-size:9.5px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--accent-2);opacity:.85}
+  color:var(--text-muted);opacity:.9}
 .wqa-meta-f{font-weight:600;white-space:nowrap}
 .wqa-meta-f b{font-weight:800;color:var(--text-2);font-variant-numeric:tabular-nums}
 .wqa-row.is-open>.wqa-meta{background:var(--surface2)}
@@ -2445,10 +2502,13 @@ input,select,textarea{
   color:var(--text-muted);margin-left:auto}
 .wqa-bulk-bar .wqa-scope{margin-top:0}
 .wqa-bulk-btn{flex:1 1 240px}
+/* Open, and saying so: the accent edge and a tinted ground, with the four
+   sections inside it now surfaces rather than four more bordered cards. */
 .wqa-bulk-body{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;
-  padding:9px 9px 1px;border:1px solid var(--border);border-left:3px solid var(--accent-mid);
-  border-radius:var(--r-xs);background:var(--surface2)}
-.wqa-bulk-body>.wqa-common{margin-bottom:8px;background:var(--surface)}
+  padding:10px 10px 2px;border:1px solid var(--wqa-hair);border-left:3px solid var(--accent);
+  border-radius:0 var(--r-xs) var(--r-xs) 0;background:var(--surface2)}
+.wqa-bulk-body>.wqa-common{margin-bottom:8px;background:var(--surface);
+  border:0;border-radius:var(--r-xs)}
 .wqa-selbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;
   padding:7px 11px;border:1px solid var(--accent-mid);border-radius:var(--r-xs);
   background:var(--accent-light)}

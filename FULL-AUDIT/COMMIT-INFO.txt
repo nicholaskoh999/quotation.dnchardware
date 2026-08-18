@@ -2,7 +2,7 @@ QUOTATION.DNC — FULL-SYSTEM AUDIT, REPAIRS AND WORKFLOW POLISH
 ==============================================================
 
 <<<GENERATED:HEADER>>>
-BRANCH          claude/new-session-ofny46
+BRANCH          claude/ui-polish-1-recovery
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 APPLICATION COMMIT
