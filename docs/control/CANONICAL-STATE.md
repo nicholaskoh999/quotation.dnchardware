@@ -19,8 +19,28 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` |
+| Accepted application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` |
 | Application status | **ACCEPTED** |
+| Accepted round | UI POLISH 1 — Visual Density & Hierarchy, **FINAL ACCEPTED** |
+
+The accepted commit moved because UI POLISH 1 was accepted, and for no other
+reason. It is `e3d659b` because that is the last commit that changed an
+application file — proven from the file, not from a branch tip:
+
+```
+git log 7f5bc97..HEAD -- '*.php'      →  e3d659b, ca9fb71   (nothing else)
+git rev-parse e3d659b:index.php       →  a7ffeda1a8c9711583e6ba2502614237e5dc857c
+git rev-parse HEAD:index.php          →  a7ffeda1a8c9711583e6ba2502614237e5dc857c
+git diff --name-only e3d659b..HEAD -- '*.php'   →  (empty)
+```
+
+Every commit after `e3d659b` carries reports, control files and evidence, and
+changes no application byte. `api.php`, `companies.php`, `ai_extract.php`,
+`auth.php`, `login.php`, `logout.php` and `pricing_history.php` are still
+identical to the commit before it.
+
+The accepted change is presentation only: every diff hunk in `index.php` falls
+above `</style>`.
 
 ---
 
@@ -132,6 +152,7 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Finding totals | 29 · 33 |
 | Suite counts | 34 · 36 · 38 |
 | Manifest filename | `ZIP-MANIFEST.txt` |
+| Application commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by `e3d659b` when UI POLISH 1 was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

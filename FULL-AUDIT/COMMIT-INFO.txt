@@ -6,8 +6,8 @@ BRANCH          claude/ui-polish-1-recovery
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 APPLICATION COMMIT
-                7f5bc977197a658d6d4db995ee2c9bb5e106e21b
-                "COMMIT-INFO stops naming the commit it is inside"
+                e3d659bba1636cd4cfc74cb89be1b52cf92aff67
+                "A J Bolt names four dimensions, and its minimums are what have to fit"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -98,6 +98,15 @@ AUDIT COMMITS (oldest first — this list is the count)
   c5ec93e  The reports, agreeing with the commit that produced them
   67d4980  COMMIT-INFO stops naming the commit it is inside
   7f5bc97  COMMIT-INFO stops naming the commit it is inside
+  cb8f7c2  The reports, agreeing with the commit that produced them
+  06fd9ff  Closing: reports reconciled, evidence recaptured, package trimmed
+  29c5cd4  One file holds the authoritative values, and both tools read it
+  9690f15  Micro-close: the delta, the manifest name, and a frame that proves itself
+  e2e9e5d  Control files, and a checker that reads truth from outside the reports
+  7b375d4  Verify the ZIP that ships, not the tree it was built from
+  3751cf2  scanners learn three shapes they were wrong to reject
+  ca9fb71  The width the screen already had, and a row that costs less by being taller
+  e3d659b  A J Bolt names four dimensions, and its minimums are what have to fit
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind

@@ -1,7 +1,7 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` · Not deployed.
+Final application SHA `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` · Not deployed.
 
 **P0 0 · P1 13 · P2 24 · P3 2 · 39 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
@@ -27,13 +27,16 @@ usability failure · **P3** cosmetic.
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
 
-> **On SHAs.** `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` is the last commit that changed the
+> **On SHAs.** `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` is the last commit that changed the
 > application or its tests — it is the ONE SHA every number in this package was
-> measured against, and it is the only application SHA any of these documents
-> names. The commits after it write this package, and a report cannot name the
-> commit it is inside without changing it; the exact HEAD the archive was built
-> from is recorded in `MANIFEST/MANIFEST.txt`, which is generated at build time and
-> is not committed.
+> measured against, and it is the only current application SHA any of these
+> documents names. It became the accepted commit when UI POLISH 1 was accepted;
+> the superseded one, `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`, was accepted before that round and
+> must not be quoted as current. The commits after the application one write
+> this package, and a report cannot name the commit it is inside without
+> changing it; the exact HEAD the archive was built from is recorded in
+> `MANIFEST/MANIFEST.txt`, which is generated at build time and is not
+> committed.
 
 ---
 

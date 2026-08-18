@@ -30,7 +30,7 @@ missing features.
 
 | Check | Evidence |
 |---|---|
-| Accepted commit exists | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`. It was **absent from the working clone**; fetching all remote refs found it on `origin/claude/new-session-ofny46` |
+| Accepted commit exists | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — the accepted commit at the time this round opened, superseded by `e3d659b` when the round was accepted. It was **absent from the working clone**; fetching all remote refs found it on `origin/claude/new-session-ofny46` |
 | It is an ancestor of the work | yes |
 | Application source == accepted baseline | `index.php`, `api.php`, `companies.php`, `ai_extract.php`, `auth.php`, `login.php`, `logout.php`, `pricing_history.php`, `manifest.webmanifest`, `php.ini` — all byte-identical between `7f5bc97` and the branch head this round started from. The commits between them touch only `FULL-AUDIT/`, `docs/` and `tests/` |
 | Control files pre-existed | all four, added by `e2e9e5d`, read before implementation |
@@ -122,18 +122,26 @@ figure above is the canonical one, re-measured rather than restated.
 
 Translation: 862 keys, 100%, 0 missing, 0 hard-coded, 0 unapplied.
 
-## 6 · The one thing that is not green, and why
+## 6 · How the candidate was declared, and how it closed
 
-`tests/tools/verify-package.js` compares every shipped PHP file against the
-accepted commit `7f5bc97`. This round proposes a change to `index.php`, so that
-line reports **one file differing** — and it should. It is the honest signature
-of a candidate awaiting acceptance.
+While this round was under review, `tests/tools/verify-package.js` compared
+every shipped PHP file against the then-accepted commit, and `index.php`
+differed — as it should have. That is the honest signature of a candidate
+awaiting acceptance, and it was reported rather than hidden: the round declared
+`index.php` by name in `ROUND-SCOPE.md`, so a declared proposal could be told
+apart from an unnoticed drift, and an undeclared file still failed.
 
-`CANONICAL-STATE.md`, `CANONICAL-STATE.json`, `PROJECT-GUARDRAILS.md` and
-`tests/tools/authoritative.js` were **not** edited. Making that line green by
-moving the accepted SHA would assert that this round is already accepted, which
-is the one thing a review package must not do. If UI POLISH 1 is accepted, the
-canonical application commit is updated then, deliberately, as its own step.
+Throughout the review, `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
+`PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` were left untouched.
+Making that line green by moving the accepted SHA would have asserted that the
+round was already accepted, which is the one thing a review package must not
+do.
+
+**UI POLISH 1 is now FINAL ACCEPTED.** The accepted application commit moved to
+`e3d659bba1636cd4cfc74cb89be1b52cf92aff67` as its own deliberate step, the
+candidate declaration is closed and empty, and the shipped application is once
+again byte-identical to the accepted commit — with no exception declared and
+none needed.
 
 ## 7 · Guardrail interaction, recorded rather than taken quietly
 

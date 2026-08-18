@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "7f5bc977197a658d6d4db995ee2c9bb5e106e21b",
-    "status": "accepted"
+    "acceptedCommit": "e3d659bba1636cd4cfc74cb89be1b52cf92aff67",
+    "status": "accepted",
+    "acceptedRound": "UI POLISH 1 — Visual Density & Hierarchy (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
@@ -31,7 +32,13 @@
     "p3": 2,
     "total": 39,
     "recordedUnrepaired": 5,
-    "recordedUnrepairedIds": ["N2", "N3", "N4", "N5", "N6"]
+    "recordedUnrepairedIds": [
+      "N2",
+      "N3",
+      "N4",
+      "N5",
+      "N6"
+    ]
   },
   "package": {
     "filename": "QUOTATION-DNC-REVIEW.zip",
@@ -41,16 +48,47 @@
   },
   "history": {
     "note": "Superseded values, listed so a checker can recognise them as stale rather than having them re-derived. Never quote these as current.",
-    "supersededAssertionTotals": [3334, 3482, 3679, 3799, 3827],
-    "supersededTranslationKeys": [512, 658, 756, 843, 853],
-    "supersededFindingTotals": [29, 33],
-    "supersededDeltas": [734, 869, 989, 1017],
-    "supersededSuiteCounts": [34, 36, 38],
+    "supersededAssertionTotals": [
+      3334,
+      3482,
+      3679,
+      3799,
+      3827
+    ],
+    "supersededTranslationKeys": [
+      512,
+      658,
+      756,
+      843,
+      853
+    ],
+    "supersededFindingTotals": [
+      29,
+      33
+    ],
+    "supersededDeltas": [
+      734,
+      869,
+      989,
+      1017
+    ],
+    "supersededSuiteCounts": [
+      34,
+      36,
+      38
+    ],
     "retiredManifestName": "ZIP-MANIFEST.txt",
     "resolvedObservation": {
       "id": "N1",
       "resolvedBy": "F7",
       "note": "N1 described behaviour that F7 repaired. It is NOT part of the recorded-not-repaired count."
-    }
+    },
+    "supersededApplicationCommits": [
+      {
+        "sha": "7f5bc977197a658d6d4db995ee2c9bb5e106e21b",
+        "supersededBy": "e3d659bba1636cd4cfc74cb89be1b52cf92aff67",
+        "reason": "UI POLISH 1 was accepted. The presentation change to index.php that e3d659b carries is now part of the accepted application, so 7f5bc97 is the previous accepted commit and must never be quoted as the current one."
+      }
+    ]
   }
 }

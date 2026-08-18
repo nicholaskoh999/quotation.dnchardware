@@ -15,7 +15,10 @@
 'use strict';
 
 module.exports = {
-  APP_SHA:  '7f5bc977197a658d6d4db995ee2c9bb5e106e21b',
+  /* Moved once, when UI POLISH 1 was accepted. e3d659b is the last commit
+     that changed an application file; 7f5bc97 was the accepted commit before
+     it and is recorded as superseded in CANONICAL-STATE. */
+  APP_SHA:  'e3d659bba1636cd4cfc74cb89be1b52cf92aff67',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 37,

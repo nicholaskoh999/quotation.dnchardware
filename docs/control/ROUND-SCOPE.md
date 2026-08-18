@@ -7,7 +7,16 @@ Visual Density & Hierarchy
 
 ## APPLICATION STATUS
 
-**ACCEPTED.** This is a presentation round on accepted application behaviour.
+**UI POLISH 1 — FINAL ACCEPTED.**
+
+The presentation change this round proposed has been accepted by Nicholas and
+is now part of the accepted application.
+
+| | |
+|---|---|
+| Accepted application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` |
+| Previous accepted commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by this round |
+| Deploy | **NO** |
 
 ---
 
@@ -38,7 +47,7 @@ checkout was wrong.
 
 | Check | Evidence |
 |---|---|
-| Accepted commit exists | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`, found on `origin/claude/new-session-ofny46` after fetching all remote refs; it was absent from the working clone |
+| Accepted commit exists | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — the accepted commit at the time this round opened, since superseded — found on `origin/claude/new-session-ofny46` after fetching all remote refs; it was absent from the working clone |
 | Accepted commit is an ancestor of HEAD | yes |
 | Application source == accepted baseline | `index.php`, `api.php`, `companies.php`, `ai_extract.php`, `auth.php`, `login.php`, `logout.php`, `pricing_history.php`, `manifest.webmanifest`, `php.ini` all byte-identical between `7f5bc97` and the branch head; the later commits touch only `FULL-AUDIT/`, `docs/` and `tests/` |
 | Control files existed before this round | all four, added by `e2e9e5d` on the accepted line |
@@ -118,25 +127,23 @@ CSS declaration.
 
 ---
 
-## CANDIDATE APPLICATION CHANGE
+## CANDIDATE APPLICATION CHANGE — CLOSED
 
-This round proposes a change to the accepted application. It is declared here,
-by name, so that the report checker and the package verifier can tell a
-**declared candidate** apart from an **unnoticed drift** — and so that any file
-NOT on this list still fails, loudly, exactly as before.
+While this round was under review it declared `index.php` as a candidate here,
+by name, so the report checker and the package verifier could tell a declared
+proposal apart from an unnoticed drift. **That declaration is now closed.**
+
+The change was accepted, so the accepted commit moved to `e3d659b` and
+`index.php` is no longer a difference from it — there is nothing left to
+declare, and the empty block below says so:
 
 ```candidate-files
-index.php
 ```
 
-Nothing else may differ from `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`.
-
-The change is presentation only: every diff hunk in `index.php` falls above
-`</style>`. `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
-`PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` are **not** touched,
-because this round is a candidate and not yet an accepted state. If UI POLISH 1
-is accepted, the canonical application commit moves then — deliberately, as its
-own step, with this declaration removed.
+An empty block means **nothing may differ** from the accepted commit. Any
+application file that changes from here without a new declaration fails the
+report checker and the package verifier exactly as it did before, which is the
+whole point of the mechanism. It is not disabled; it is satisfied.
 
 ---
 
