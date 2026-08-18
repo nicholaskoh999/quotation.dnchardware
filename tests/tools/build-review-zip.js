@@ -195,16 +195,49 @@ const runTail = (runLog.match(/^\s*\d+ suites, \d+ assertions, \d+ failed.*$/m) 
 const rule = c => c.repeat(76);
 const pad = (s, n) => String(s).padEnd(n);
 
-const man = [
-  'QUOTATION.DNC — REVIEW PACKAGE', rule('='), '',
-  'One archive, laid out for a reviewer. GitHub carries the same commits as',
-  'history; nothing here needs to be fetched from it.', '',
+/* ── accepted, candidate, and the commit this archive was built from ───────
+   Three different things, and the manifest used to name only one of them —
+   calling the accepted commit "the last commit that changed application code"
+   and crediting it with every figure in the package. While a round is under
+   review neither is true: the last application-changing commit is the
+   candidate, and that is the tree the tests actually ran against. Derived from
+   the history of the files ROUND-SCOPE declares, so it cannot be asserted by
+   hand and cannot be forgotten when a round closes. */
+const scopeTxt = blob('docs/control/ROUND-SCOPE.md').toString('utf8');
+const candDecl = /```candidate-files\r?\n([\s\S]*?)```/.exec(scopeTxt);
+const candFiles = (candDecl ? candDecl[1] : '').split(/\r?\n/)
+  .map(l => l.trim()).filter(Boolean);
+const CAND = candFiles.length
+  ? gitText('log', '-1', '--format=%H', APP_SHA + '..HEAD', '--', ...candFiles) : '';
+const appLines = CAND ? [
+  `ACCEPTED APPLICATION ${APP_SHA}`,
+  `                     "${gitText('log', '-1', '--format=%s', APP_SHA)}"`,
+  '                     The accepted application. docs/control/CANONICAL-STATE',
+  '                     is the authority for it, and it has not moved.',
+  `CANDIDATE APPLICATION ${CAND}`,
+  `                     "${gitText('log', '-1', '--format=%s', CAND)}"`,
+  `                     NOT YET ACCEPTED. This round proposes a change to`,
+  `                     ${candFiles.join(', ')}, declared in ROUND-SCOPE.md.`,
+  '                     Every test figure in this package was measured on THIS',
+  '                     tree. The accepted commit above does not become this',
+  '                     one until the round is accepted.',
+] : [
   `APPLICATION COMMIT   ${APP_SHA}`,
   `                     "${gitText('log', '-1', '--format=%s', APP_SHA)}"`,
   '                     The last commit that changed application or test code.',
   '                     Every figure in every report was measured against it.',
+];
+
+const man = [
+  'QUOTATION.DNC — REVIEW PACKAGE', rule('='), '',
+  'One archive, laid out for a reviewer. GitHub carries the same commits as',
+  'history; nothing here needs to be fetched from it.', '',
+  ...appLines,
   `PACKAGE / HEAD       ${HEAD}`,
   `                     "${gitText('log', '-1', '--format=%s')}"`,
+  '                     The commit this archive was built from. It may sit',
+  '                     after the application commit above, carrying evidence,',
+  '                     reports and packaging only.',
   `BRANCH               ${gitText('rev-parse', '--abbrev-ref', 'HEAD')}`,
   `BUILT                ${gitText('log', '-1', '--format=%cI')}`,
   '',

@@ -166,6 +166,13 @@ const exempt = (line, f, i, text) =>
 
 // ══ 1 · the application commit ════════════════════════════════════════════
 const APP = C.application.acceptedCommit;
+/* Read once, here, so the drift check and the COMMIT-INFO header cannot
+   disagree about what this round declared. */
+const scopeText = fs.existsSync(path.join(L.control, 'ROUND-SCOPE.md'))
+  ? read(L.control, 'ROUND-SCOPE.md') : '';
+const candBlock = /```candidate-files\r?\n([\s\S]*?)```/.exec(scopeText);
+const declared = new Set((candBlock ? candBlock[1] : '')
+  .split(/\r?\n/).map(l => l.trim()).filter(Boolean));
 if (!EXTRACTED) {
   check(git('cat-file', '-t', APP) === 'commit',
     `application commit ${APP.slice(0, 7)} exists in this repository`);
@@ -184,11 +191,6 @@ if (!EXTRACTED) {
      was allowed to touch, and it cannot quietly grant itself permission —
      the declaration is prose a person can see. CANONICAL-STATE stays the
      authority on what has been ACCEPTED, and is not consulted here. */
-  const scopeText = fs.existsSync(path.join(L.control, 'ROUND-SCOPE.md'))
-    ? read(L.control, 'ROUND-SCOPE.md') : '';
-  const candBlock = /```candidate-files\r?\n([\s\S]*?)```/.exec(scopeText);
-  const declared = new Set((candBlock ? candBlock[1] : '')
-    .split(/\r?\n/).map(l => l.trim()).filter(Boolean));
   const changed = git('diff', '--name-only', APP + '..HEAD', '--', '*.php');
   const changedList = changed ? changed.split('\n').filter(Boolean) : [];
   const undeclared = changedList.filter(f => !declared.has(f));
@@ -511,18 +513,43 @@ if (!EXTRACTED) {
   const dirCount = d => fs.readdirSync(path.join(AUDIT, d)).filter(n => !n.startsWith('.')).length;
   const shots = fs.readdirSync(path.join(AUDIT, 'screenshots')).filter(n => n.endsWith('.png')).length;
   const BASE = 'f96714e33795e80b581b1d03deb9d04db1d94b8d';
+  /* The commit that actually carries a declared candidate, derived from the
+     history of the declared files rather than assumed to be HEAD. While a
+     round is under review this is NOT the accepted commit, and the figures in
+     this package were measured on ITS tree — saying otherwise would credit the
+     accepted baseline with a run it never had. Empty when nothing is declared,
+     and the header then reads exactly as it did before. */
+  const candidateFiles = [...declared];
+  const CAND = candidateFiles.length
+    ? git('log', '-1', '--format=%H', APP + '..HEAD', '--', ...candidateFiles) : '';
+  const acceptedLines = [
+      `                The commit the accepted implementation and its test`,
+      `                matrix were measured at. Every figure in this package`,
+      `                was produced by this tree, and docs/control/`,
+      `                CANONICAL-STATE.json is the authority for all of them.`,
+  ];
+  const candidateLines = [
+      `                The ACCEPTED application. docs/control/`,
+      `                CANONICAL-STATE.json is the authority for it.`,
+      `CANDIDATE APPLICATION COMMIT`,
+      `                ${CAND}`,
+      `                "${CAND ? git('log', '-1', '--format=%s', CAND) : ''}"`,
+      `                NOT YET ACCEPTED. A round under review proposes a`,
+      `                change to ${candidateFiles.join(', ')}, declared by name in`,
+      `                docs/control/ROUND-SCOPE.md. The test figures in this`,
+      `                package were measured on THIS tree, not on the accepted`,
+      `                one — the accepted commit above has not changed and does`,
+      `                not become this one until the round is accepted.`,
+  ];
   const blocks = () => ({
     HEADER: [
       `BRANCH          ${git('rev-parse', '--abbrev-ref', 'HEAD')}`,
       `BASELINE SHA    ${BASE}`,
       `                "${git('log', '-1', '--format=%s', BASE)}"`,
-      `APPLICATION COMMIT`,
+      `ACCEPTED APPLICATION COMMIT`,
       `                ${APP}`,
       `                "${git('log', '-1', '--format=%s', APP)}"`,
-      `                The commit the accepted implementation and its test`,
-      `                matrix were measured at. Every figure in this package`,
-      `                was produced by this tree, and docs/control/`,
-      `                CANONICAL-STATE.json is the authority for all of them.`,
+      ...(CAND ? candidateLines : acceptedLines),
       `PACKAGE / HEAD COMMIT`,
       `                Not named here, and deliberately. The commits after the`,
       `                application one carry this package, and a document`,
@@ -530,12 +557,14 @@ if (!EXTRACTED) {
       `                it. The exact HEAD an archive was built from is recorded`,
       `                in that archive's own MANIFEST/MANIFEST.txt, generated`,
       `                at build time and never committed — the one place that`,
-      `                can honestly state it.`,
+      `                can honestly state it. It may sit after the`,
+      `                application commit above, carrying evidence, reports`,
+      `                and packaging only.`,
       `DEPLOYED        NO — nothing was deployed, and nothing was run against`,
       `                production data. Every test drives the shipped code`,
       `                against a controlled API in a local browser.`,
     ].join('\n'),
-    COMMITS: git('log', '--reverse', '--format=%h\t%s', BASE + '..' + APP)
+    COMMITS: git('log', '--reverse', '--format=%h\t%s', BASE + '..' + (CAND || APP))
       .split('\n').filter(Boolean)
       .map(l => { const [h, ...r] = l.split('\t'); return `  ${h}  ${r.join('\t')}`; }).join('\n'),
     FINDINGS: [

@@ -18,7 +18,7 @@ a state appear.
 | 03 | **Fast Edit active** — the mode band, the ringed table, the disabled row actions | `03-fast-edit-active.png` |
 | 04 | Fast Edit, a cell focused | `04-fast-edit-input-focused.png` |
 | 05 | Five rows selected | `05-multiple-selected.png` |
-| 06 | Selected Items scope active, checkbox focused | `06-selected-scope-active.png` |
+| 06 | **Selected Items scope active** — the APPLY TO control, the active segment, the selection bar and the ticked rows, all in one frame | `06-selected-scope-active.png` |
 | 07 | Bulk Edit shut, header hovered | `07-bulk-collapsed-hover.png` |
 | 08 | Bulk Edit open, Pricing Entry expanded | `08-bulk-open.png` |
 | 09 | Details open | `09-details-open.png` |
@@ -30,6 +30,25 @@ a state appear.
 | 15 | Laptop 1280 | `15-laptop-1280.png` |
 | 16 | Tablet 820, phone 430 | `16a-tablet-820.png`, `16b-phone-430.png` |
 | 17 | **Reduced motion** — frame plus computed durations | `17-reduced-motion.png`, `17-reduced-motion.json` |
+
+## On frame 06 — a frame that asserts its own claim
+
+The first version of this frame proved nothing. Ticking a box scrolls it into
+view, so by the fifth tick the list had carried `APPLY TO` off the top of the
+shot — leaving a picture captioned *Selected Items scope active* in which the
+scope control was not visible at all.
+
+The body is returned to the top before the shot now, the window is tall enough
+to hold the scope control and the ticked rows together, and the four things the
+frame exists to show are **measured inside the captured box before it is
+written**: the `APPLY TO` label in frame, the active segment in frame and
+reading `Selected Items`, at least two ticked boxes visible, at least two
+selected-row states visible, and the selection bar in frame. If any of them is
+missing the script throws and no file is produced.
+
+Both sides of the pair were recaptured the same way — the `before/` frame from
+the accepted baseline's own `index.php`, restored and verified by blob
+afterwards — so the comparison is like for like.
 
 ## On frame 14 — why the CTA is disabled here and not elsewhere
 

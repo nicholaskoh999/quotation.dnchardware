@@ -96,7 +96,38 @@ Out of scope by instruction and untouched: dark mode, accessories carry-over,
 Print/WhatsApp item numbering, Companies mobile polish, the **430px `APPLY TO`
 clipping**, PHP 8.2, the DB UNIQUE deployment.
 
-## 7 · Candidate status
+## 7 · Three commits, and which is which
+
+| | |
+|---|---|
+| **Accepted application baseline** | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — canonical, unchanged by this round |
+| **UI POLISH 2 candidate application commit** | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` — the only commit since the baseline that touches an application file |
+| **Package HEAD** | the commit the archive was built from; it may sit after the candidate, carrying evidence, reports and packaging only |
+
+Proven from the history of the file itself, not from the branch tip:
+
+```
+git log --oneline e3d659b..HEAD -- index.php   →  33ae0da   (and nothing else)
+git log --oneline e3d659b..HEAD -- '*.php'     →  33ae0da   (and nothing else)
+git rev-parse e3d659b:index.php                →  a7ffeda1a8c9711583e6ba2502614237e5dc857c
+git rev-parse 33ae0da:index.php                →  5d764b57353650853a7c14dfc807c55730cb8db4
+git diff --name-only 33ae0da..HEAD -- '*.php'  →  (empty)
+```
+
+**The 37 / 3,613 / 3,958 regression was measured on the candidate tree**
+(`33ae0da`), not on the accepted baseline. `MANIFEST.txt` and `COMMIT-INFO.txt`
+previously carried accepted-state wording — *"the last commit that changed
+application code"*, *"every figure was measured against it"* — which was true
+before this round opened and is not true while it is under review. Both are
+generated, and both generators now derive the candidate from the declared files
+and name all three commits separately.
+
+The canonical accepted commit remains `e3d659b`. UI POLISH 2 is **not yet
+accepted**. `CANONICAL-STATE.md`, `CANONICAL-STATE.json` and
+`tests/tools/authoritative.js` are untouched, and acceptance bookkeeping has
+not been performed.
+
+## 8 · Candidate status
 
 This round is a **candidate**. `index.php` is declared by name in
 `ROUND-SCOPE.md`, so the report checker and package verifier report it as a

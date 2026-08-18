@@ -62,6 +62,10 @@ const shot = async (page, name, sel) => {
   log.push(name); console.log('  ✓ ' + name);
 };
 const DESK = { width: 1600, height: 1000 };
+const scrollTop = async page => {
+  await page.evaluate(() => { const b = document.querySelector('.wqa-scroll'); if (b) b.scrollTop = 0; });
+  await page.waitForTimeout(140);
+};
 const open = async (browser, vp, hist, opts) => {
   const o = opts || {};
   const page = await openApp(browser, { viewport: vp || DESK, api: hist ? database(HIST) : {} });
@@ -117,17 +121,56 @@ const open = async (browser, vp, hist, opts) => {
     await page.close();
   }
 
-  /* 05 · several rows selected   06 · Selected Items scope active */
+  /* 05 · several rows selected   06 · Selected Items scope active
+     Ticking a box scrolls it into view, so by the fifth tick the list had
+     carried APPLY TO off the top of the frame — and a frame that claims
+     "Selected Items scope active" while the scope control is out of shot
+     proves nothing. The body is returned to the top before the shot, the
+     window is tall enough to hold the scope control and the ticked rows at
+     once, and the frame is asserted before it is written. */
   {
-    const page = await open(browser);
+    const page = await open(browser, { width: 1600, height: 1180 });
     const boxes = page.locator('[data-wqa-row] .wqa-pick');
     for (const i of [0, 2, 4, 7, 9]) await boxes.nth(i).check();
     await page.waitForTimeout(400);
+    await scrollTop(page);
     await shot(page, '05-multiple-selected', '#wqaStep2');
+
     await page.evaluate(() => wqaSetApplyScope('selected'));
     await page.waitForTimeout(400);
+    await scrollTop(page);
     await boxes.nth(2).focus();                            // checkbox focus ring
-    await page.waitForTimeout(220);
+    await page.waitForTimeout(260);
+    /* The four things this frame exists to show, measured inside the captured
+       box before it is taken. */
+    const proof = await page.evaluate(() => {
+      const step = document.querySelector('#wqaStep2').getBoundingClientRect();
+      const inFrame = n => { if (!n) return false; const r = n.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.top >= step.top - 1 && r.bottom <= step.bottom + 1; };
+      const scopeLbl = [...document.querySelectorAll('#wqaModal .wqa-scope-lbl')][0];
+      const onSeg = [...document.querySelectorAll('#wqaModal .wqa-scope .wqa-view-btn')]
+        .find(b => b.classList.contains('is-on'));
+      const ticked = [...document.querySelectorAll('[data-wqa-row] .wqa-pick')].filter(b => b.checked);
+      return {
+        applyToLabelInFrame: inFrame(scopeLbl),
+        activeSegmentText: onSeg ? onSeg.textContent.trim() : null,
+        activeSegmentInFrame: inFrame(onSeg),
+        tickedTotal: ticked.length,
+        tickedVisibleInFrame: ticked.filter(inFrame).length,
+        pickedRowsInFrame: [...document.querySelectorAll('.wqa-row.is-picked')].filter(inFrame).length,
+        selBarInFrame: inFrame(document.querySelector('#wqaSelBar')),
+      };
+    });
+    console.log('    frame 06 proof ' + JSON.stringify(proof));
+    const fail = [];
+    if (!proof.applyToLabelInFrame)                 fail.push('APPLY TO label not in frame');
+    if (!proof.activeSegmentInFrame)                fail.push('active scope segment not in frame');
+    if (proof.activeSegmentText !== 'Selected Items') fail.push('active segment is ' + proof.activeSegmentText);
+    if (proof.tickedTotal < 2)                      fail.push('fewer than two rows ticked');
+    if (proof.tickedVisibleInFrame < 2)             fail.push('fewer than two ticked rows visible');
+    if (proof.pickedRowsInFrame < 2)                fail.push('fewer than two selected-row states visible');
+    if (!proof.selBarInFrame)                       fail.push('selection bar not in frame');
+    if (fail.length) throw new Error('frame 06 would not prove its claim: ' + fail.join('; '));
     await shot(page, '06-selected-scope-active', '#wqaStep2');
     await page.close();
   }
