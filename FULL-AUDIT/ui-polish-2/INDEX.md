@@ -2,8 +2,9 @@
 
 Every pair was captured by `tests/ui-polish-2-shots.js` driving the real Quick
 Add through the project's own harness, on the same 16-line Sag Rod enquiry.
-`before/` is the accepted source at `e3d659b`; `after/` is the same source with
-this round's interaction layer.
+`before/` is the source at `e3d659b`, the commit accepted before this round;
+`after/` is the same source with this round's interaction layer, now accepted as
+`33ae0da14a3bd3108e8b066d4796b1bcda2de428`.
 
 **Interaction states are performed, not painted.** A hover is a real pointer on
 the control, a focus ring is a real keyboard focus, the disabled CTA is a list

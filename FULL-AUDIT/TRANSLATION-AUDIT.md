@@ -1,6 +1,6 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `33ae0da14a3bd3108e8b066d4796b1bcda2de428`.
 
 Three tools, and the third exists because the first two were not enough:
 
@@ -11,16 +11,19 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` is the last commit that changed the
-> application or its tests — it is the ONE SHA every number in this package was
-> measured against, and it is the only current application SHA any of these
-> documents names. It became the accepted commit when UI POLISH 1 was accepted;
-> the superseded one, `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`, was accepted before that round and
-> must not be quoted as current. The commits after the application one write
-> this package, and a report cannot name the commit it is inside without
-> changing it; the exact HEAD the archive was built from is recorded in
-> `MANIFEST/MANIFEST.txt`, which is generated at build time and is not
-> committed.
+> **On SHAs.** `33ae0da14a3bd3108e8b066d4796b1bcda2de428` is the last commit that changed the
+> application, and no test suite has moved since it — it is the ONE SHA every
+> number in this package was measured against, and it is the only current
+> application SHA any of these documents names. It became the accepted commit
+> when UI POLISH 2 was accepted. Two application SHAs are superseded by it and
+> must never be quoted as current:
+> superseded — `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`, accepted for UI POLISH 1;
+> superseded — `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`, accepted before that round.
+> The commits after the
+> application one write this package, and a report cannot name the commit it is
+> inside without changing it; the exact HEAD the archive was built from is
+> recorded in `MANIFEST/MANIFEST.txt`, which is generated at build time and is
+> not committed.
 
 ---
 

@@ -2,23 +2,16 @@ QUOTATION.DNC — FULL-SYSTEM AUDIT, REPAIRS AND WORKFLOW POLISH
 ==============================================================
 
 <<<GENERATED:HEADER>>>
-BRANCH          claude/ui-polish-1-recovery
+BRANCH          claude/quotation-dnc-stage-0-w62kpt
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                e3d659bba1636cd4cfc74cb89be1b52cf92aff67
-                "A J Bolt names four dimensions, and its minimums are what have to fit"
-                The ACCEPTED application. docs/control/
-                CANONICAL-STATE.json is the authority for it.
-CANDIDATE APPLICATION COMMIT
                 33ae0da14a3bd3108e8b066d4796b1bcda2de428
                 "The control under the pointer should be the thing that changes"
-                NOT YET ACCEPTED. A round under review proposes a
-                change to index.php, declared by name in
-                docs/control/ROUND-SCOPE.md. The test figures in this
-                package were measured on THIS tree, not on the accepted
-                one — the accepted commit above has not changed and does
-                not become this one until the round is accepted.
+                The commit the accepted implementation and its test
+                matrix were measured at. Every figure in this package
+                was produced by this tree, and docs/control/
+                CANONICAL-STATE.json is the authority for all of them.
 PACKAGE / HEAD COMMIT
                 Not named here, and deliberately. The commits after the
                 application one carry this package, and a document

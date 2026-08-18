@@ -2,111 +2,89 @@
 
 ## ROUND
 
-**UI POLISH 2 — Interaction / Micro UX Polish**
+**UI POLISH 2 — Interaction / Micro UX Polish — FINAL ACCEPTED, CLOSED**
 
 ## APPLICATION STATUS
 
-Continues from **UI POLISH 1 — FINAL ACCEPTED**.
-
 | | |
 |---|---|
-| Accepted application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` |
-| Previous accepted commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by UI POLISH 1 |
-| This round | a **candidate**, not an accepted state |
+| Accepted application commit | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` |
+| Previous accepted commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — superseded by UI POLISH 2 |
+| This round | **accepted**, no longer a candidate |
 | Deploy | **NO** |
 
 ---
 
-## BASELINE GATE — PASSED BEFORE ANY EDIT
+## THE CANDIDATE DECLARATION IS CLOSED
 
-| Check | Evidence |
-|---|---|
-| Accepted commit exists and is an ancestor of HEAD | `e3d659b` |
-| Canonical and authoritative agree on it | `CANONICAL-STATE.json` and `tests/tools/authoritative.js` both read `e3d659b` |
-| No application php differs from it | `git diff --name-only e3d659b..HEAD -- '*.php'` → empty |
-| Control files present and read, not reconstructed | all four |
-| Fast Edit | `wqaEditing` · `wqaEditStart` · `wqaSyncEditLocks` |
-| Bulk Edit | `wqaRenderBulk` · `wqaToggleBulk` |
-| Compact / Expanded | `wqaSetView` |
-| Selected Items | `wqaSetApplyScope` · `wqaToggleRowSel` |
-| Details | `.wqa-row-details` · `.wqa-row-body` |
-| History | `wqaHistToggle` · `wqaHistMore` |
-| Previous Price | `wqaHistUse` · `.wqa-prov` |
-| Add-to-quotation | `wqaAddAll` |
-| Zero-selected protection | `.wqa-none-sel` and the refusal toast |
-
----
-
-## ALLOWED TO CHANGE
-
-Presentation of **interaction state** only:
-
-- hover, active/pressed, keyboard-focus and disabled styling
-- mode awareness for Fast Edit (how it *looks* while open)
-- selection feedback
-- the Compact / Expanded segmented control's states
-- Bulk Edit accordion header states and disclosure affordance
-- Details / History open-state feedback and panel-to-row relationship
-- Previous Price state clarity — available / applied / provenance / unavailable
-- primary-CTA enabled / disabled confidence
-- footer status vs secondary vs primary separation
-- subtle motion, 140–220ms, using the existing `--mo-*` tokens
-- `docs/control/ROUND-SCOPE.md` (this file)
-- evidence capture scripts and this round's evidence
-- the review package
-
----
-
-## NOT ALLOWED TO CHANGE
-
-parser · extraction · AI extraction semantics · pricing formulas · weight · DIA ·
-Previous Price matching · History identity · History ordering · Qty rules ·
-Material · Finish · Size Type · selection behaviour · Fast Edit behaviour ·
-Bulk Edit behaviour · Details behaviour · Accessories calculation · database ·
-Add-to-quotation logic · translation semantics.
-
-Also out of scope this round, by instruction: dark mode, accessories carry-over,
-Print/WhatsApp item numbering, Companies mobile polish, the 430px `APPLY TO`
-clipping, PHP 8.2, the DB UNIQUE deployment. No new keyboard shortcuts. No new
-asynchronous behaviour. No opportunistic refactoring.
-
-UI POLISH 1's outcomes — modal width, density, hierarchy, row spacing, border
-noise, Bulk Edit density — are **not** to be redesigned again.
-
----
-
-## CANDIDATE APPLICATION CHANGE
-
-This round proposes a change to the accepted application. It is declared here,
-by name, so the report checker and the package verifier can tell a **declared
-candidate** apart from an **unnoticed drift** — and so that any file NOT on this
-list still fails, loudly.
+While UI POLISH 2 was under review, this file declared `index.php` as a
+candidate change so the report checker and the package verifier could tell a
+**declared candidate** apart from an **unnoticed drift**. Nicholas accepted the
+round, so that declaration has done its job and is now closed:
 
 ```candidate-files
-index.php
 ```
 
-Nothing else may differ from `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`.
+The block is empty on purpose. Empty means *nothing may differ from the
+accepted commit* — the strictest state this control has — and any application
+PHP that now differs from `33ae0da` fails loudly, exactly as an undeclared
+change always did.
 
-The change is presentation only: every diff hunk in `index.php` must fall above
-`</style>`. `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
-`PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` are **not** touched
-while this round is a candidate. If UI POLISH 2 is accepted, the canonical
-application commit moves then — deliberately, as its own step, with this
-declaration closed.
+Closing it is what makes acceptance real. Leaving the file named here after the
+commit that carries it has been promoted would mean the checker permanently
+excused the one file it exists to watch.
 
 ---
+
+## WHAT WAS ACCEPTED, AND HOW IT WAS PROVEN
+
+Acceptance is bookkeeping over a tree that did not move, not a new measurement.
+Every claim below is read out of Git, not out of a report:
+
+```
+git merge-base --is-ancestor e3d659b 33ae0da   →  0   (e3d659b is an ancestor)
+git log e3d659b..HEAD -- '*.php'               →  33ae0da   (nothing else)
+git show --stat 33ae0da -- '*.php'             →  index.php | 156 +++ (1 file)
+git rev-parse 33ae0da:index.php                →  5d764b57353650853a7c14dfc807c55730cb8db4
+git rev-parse HEAD:index.php                   →  5d764b57353650853a7c14dfc807c55730cb8db4
+git diff --name-only 33ae0da..HEAD -- '*.php'  →  (empty)
+git diff --name-only 33ae0da..HEAD -- tests/suites tests/lib   →  (empty)
+```
+
+`33ae0da` is therefore the exact and only UI POLISH 2 application-changing
+commit, and no application byte and no test byte has changed between it and the
+package HEAD. The 37 suites / 3,613 browser / **3,958** total matrix was
+measured on that tree and is carried forward unchanged and unre-run — rerunning
+a browser regression against identical bytes would prove nothing it has not
+already proven.
+
+The accepted change is presentation only: 156 lines added, 0 removed, one block
+that ends immediately before `</style>`.
+
+---
+
+## BOOKKEEPING PERFORMED
+
+| | |
+|---|---|
+| `docs/control/CANONICAL-STATE.md` | accepted commit → `33ae0da`, round → UI POLISH 2 FINAL ACCEPTED, `e3d659b` added to SUPERSEDED VALUES |
+| `docs/control/CANONICAL-STATE.json` | same, plus a second `supersededApplicationCommits` entry recording `e3d659b → 33ae0da` and why |
+| `tests/tools/authoritative.js` | `APP_SHA` → `33ae0da` |
+| `docs/control/ROUND-SCOPE.md` | this file — candidate declaration closed |
+| `FULL-AUDIT/UI-POLISH-2.md` | candidate wording replaced with accepted wording |
+| `FULL-AUDIT/*.md`, `COMMIT-INFO.txt` | current application SHA moved; `e3d659b` retained only where the line labels it superseded |
+
+Test counts, translation counts and finding counts are **unchanged** by this
+step, because nothing that produces them changed.
+
+---
+
+## NO OPEN ROUND
+
+There is no candidate application change in flight under this file as written.
+The next round must rewrite this file first, declare its own scope, and name its
+own candidate files before any application byte is touched.
 
 ## STOP CONDITION
 
-- the full authoritative regression passes at or above the accepted counts,
-  with zero failures and zero skips, and **no accepted test modified** to
-  accommodate the candidate
-- protected behaviour proven unchanged
-- the required interaction evidence captured on 10–20 realistic rows, including
-  hover, focus, active and disabled states and a reduced-motion frame
-- ONE `QUOTATION-DNC-REVIEW.zip`, built and independently verified after
-  extraction
-- **no accepted control does anything different from what it did before**
-
-Then STOP. No deploy. No further round.
+Met. UI POLISH 2 is accepted and closed. No deploy.

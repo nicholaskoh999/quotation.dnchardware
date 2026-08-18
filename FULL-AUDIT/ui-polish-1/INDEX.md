@@ -4,9 +4,11 @@ Every pair was captured by one script (`tests/ui-polish-1-shots.js`) driving the
 **real accepted Quick Add** through the project's own test harness, on the same
 16-line Sag Rod enquiry (M12–M24, MS / ZP / Undersize, quantities 4–30).
 `before/` is the source at `7f5bc97`, the commit accepted before this round;
-`after/` is the same source with this round's stylesheet changes, now accepted
-as `e3d659b`. Desktop frames are 1600×1000; the image is the
-review panel itself.
+`after/` is the same source with this round's stylesheet changes, accepted at
+the time as `e3d659b` and since superseded by `33ae0da` when UI POLISH 2 was
+accepted — the frames still show what this round did, because UI POLISH 2 added
+to that stylesheet rather than reverting it. Desktop frames are 1600×1000; the
+image is the review panel itself.
 
 | # | Proof | File |
 |---|---|---|

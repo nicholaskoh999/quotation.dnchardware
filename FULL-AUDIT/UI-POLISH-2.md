@@ -1,8 +1,8 @@
 # UI POLISH 2 — INTERACTION / MICRO UX POLISH
 
-**Round:** UI POLISH 2 — Interaction / Micro UX Polish
-**Continues from:** UI POLISH 1 — FINAL ACCEPTED
-**Application status:** accepted baseline `e3d659b`, with a **candidate** presentation change
+**Round:** UI POLISH 2 — Interaction / Micro UX Polish — **FINAL ACCEPTED**
+**Continues from:** UI POLISH 1 — accepted at `e3d659b`, now the previous accepted commit
+**Application status:** **ACCEPTED** at `33ae0da14a3bd3108e8b066d4796b1bcda2de428`
 **Deploy:** NO
 **Scope:** `docs/control/ROUND-SCOPE.md`
 
@@ -12,7 +12,7 @@
 
 | Check | Evidence |
 |---|---|
-| Accepted commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`, an ancestor of HEAD |
+| Accepted commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — the commit accepted when this round opened, an ancestor of HEAD and of the commit that now supersedes it |
 | Canonical and authoritative agree | `CANONICAL-STATE.json` and `tests/tools/authoritative.js` both read it |
 | No application php differed from it at the start | `git diff --name-only e3d659b..HEAD -- '*.php'` → empty |
 | Control files present, read, not reconstructed | all four |
@@ -100,38 +100,56 @@ clipping**, PHP 8.2, the DB UNIQUE deployment.
 
 | | |
 |---|---|
-| **Accepted application baseline** | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — canonical, unchanged by this round |
-| **UI POLISH 2 candidate application commit** | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` — the only commit since the baseline that touches an application file |
-| **Package HEAD** | the commit the archive was built from; it may sit after the candidate, carrying evidence, reports and packaging only |
+| **Previous accepted commit** | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — the baseline this round opened on, superseded by acceptance |
+| **Accepted application commit** | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` — the only commit since that baseline that touches an application file, and now canonical |
+| **Package HEAD** | the commit the archive was built from; it sits after the application commit, carrying evidence, reports, packaging tooling and bookkeeping only |
 
 Proven from the history of the file itself, not from the branch tip:
 
 ```
+git merge-base --is-ancestor e3d659b 33ae0da   →  0   (e3d659b is an ancestor)
 git log --oneline e3d659b..HEAD -- index.php   →  33ae0da   (and nothing else)
 git log --oneline e3d659b..HEAD -- '*.php'     →  33ae0da   (and nothing else)
-git rev-parse e3d659b:index.php                →  a7ffeda1a8c9711583e6ba2502614237e5dc857c
+git show --stat 33ae0da -- '*.php'             →  index.php | 156 +++ (1 file)
 git rev-parse 33ae0da:index.php                →  5d764b57353650853a7c14dfc807c55730cb8db4
+git rev-parse HEAD:index.php                   →  5d764b57353650853a7c14dfc807c55730cb8db4
 git diff --name-only 33ae0da..HEAD -- '*.php'  →  (empty)
+git diff --name-only 33ae0da..HEAD -- tests/suites tests/lib   →  (empty)
 ```
 
-**The 37 / 3,613 / 3,958 regression was measured on the candidate tree**
-(`33ae0da`), not on the accepted baseline. `MANIFEST.txt` and `COMMIT-INFO.txt`
-previously carried accepted-state wording — *"the last commit that changed
-application code"*, *"every figure was measured against it"* — which was true
-before this round opened and is not true while it is under review. Both are
-generated, and both generators now derive the candidate from the declared files
-and name all three commits separately.
+**The 37 / 3,613 / 3,958 regression was measured on this tree** (`33ae0da`), and
+that tree is now the accepted one — so for the first time in this round the
+measured tree and the accepted tree are the same object. Nothing was re-run to
+achieve that, and nothing needed to be: no application byte and no test byte
+moved between the reviewed candidate and this promotion.
 
-The canonical accepted commit remains `e3d659b`. UI POLISH 2 is **not yet
-accepted**. `CANONICAL-STATE.md`, `CANONICAL-STATE.json` and
-`tests/tools/authoritative.js` are untouched, and acceptance bookkeeping has
-not been performed.
+While the round was under review, `MANIFEST.txt` and `COMMIT-INFO.txt` had to
+name the accepted commit and the candidate separately, because the figures
+belonged to the candidate and the accepted wording — *"the last commit that
+changed application code"*, *"every figure was measured against it"* — would
+have credited a tree that never had the run. Both are generated. With the
+candidate declaration closed, both now emit the plain accepted-state header
+again, and that header is true.
 
-## 8 · Candidate status
+## 8 · Accepted status
 
-This round is a **candidate**. `index.php` is declared by name in
-`ROUND-SCOPE.md`, so the report checker and package verifier report it as a
-declared candidate rather than as drift, and any undeclared application change
-still fails. `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
-`PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` are **not** touched —
-the accepted commit stays `e3d659b` until Nicholas accepts this round.
+**UI POLISH 2 is FINAL ACCEPTED.** Nicholas accepted the round; the acceptance
+was recorded as its own step, over a tree that did not move:
+
+| | |
+|---|---|
+| `docs/control/CANONICAL-STATE.md` | accepted commit → `33ae0da`, accepted round → UI POLISH 2, `e3d659b` recorded under SUPERSEDED VALUES |
+| `docs/control/CANONICAL-STATE.json` | the same, and a `supersededApplicationCommits` entry stating `e3d659b → 33ae0da` and why |
+| `tests/tools/authoritative.js` | `APP_SHA` → `33ae0da` |
+| `docs/control/ROUND-SCOPE.md` | the `candidate-files` block emptied — `index.php` is no longer excused, and any drift from `33ae0da` fails again |
+| this report and the reports beside it | current SHA moved; `e3d659b` kept only on lines that label it superseded |
+
+No browser regression was re-run for this acceptance, deliberately. The
+candidate tree and the accepted tree are the same bytes; a rerun would have
+produced the same 3,958 assertions from the same source and proved nothing the
+recorded run has not already proved. Test counts, translation counts and finding
+counts are therefore unchanged — the acceptance moved a pointer, not a
+measurement.
+
+The shipped application is once again byte-identical to the accepted commit,
+with no exception declared and none needed.

@@ -139,9 +139,15 @@ do.
 
 **UI POLISH 1 is now FINAL ACCEPTED.** The accepted application commit moved to
 `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` as its own deliberate step, the
-candidate declaration is closed and empty, and the shipped application is once
+candidate declaration is closed and empty, and the shipped application was once
 again byte-identical to the accepted commit — with no exception declared and
 none needed.
+
+> **Since superseded.** UI POLISH 2 was accepted afterwards and moved the
+> accepted commit on to `33ae0da14a3bd3108e8b066d4796b1bcda2de428`. This round's
+> acceptance is unaffected — its stylesheet changes are still in the shipped
+> application, carried forward inside `33ae0da` — but `e3d659b` is now the
+> previous accepted commit and must not be quoted as the current one.
 
 ## 7 · Guardrail interaction, recorded rather than taken quietly
 

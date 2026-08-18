@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "e3d659bba1636cd4cfc74cb89be1b52cf92aff67",
+    "acceptedCommit": "33ae0da14a3bd3108e8b066d4796b1bcda2de428",
     "status": "accepted",
-    "acceptedRound": "UI POLISH 1 — Visual Density & Hierarchy (FINAL ACCEPTED)"
+    "acceptedRound": "UI POLISH 2 — Interaction / Micro UX Polish (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
@@ -88,6 +88,11 @@
         "sha": "7f5bc977197a658d6d4db995ee2c9bb5e106e21b",
         "supersededBy": "e3d659bba1636cd4cfc74cb89be1b52cf92aff67",
         "reason": "UI POLISH 1 was accepted. The presentation change to index.php that e3d659b carries is now part of the accepted application, so 7f5bc97 is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "e3d659bba1636cd4cfc74cb89be1b52cf92aff67",
+        "supersededBy": "33ae0da14a3bd3108e8b066d4796b1bcda2de428",
+        "reason": "UI POLISH 2 was accepted. 33ae0da is the only commit after e3d659b that changes an application file, and the interaction-state presentation change it carries in index.php is now part of the accepted application, so e3d659b is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   }

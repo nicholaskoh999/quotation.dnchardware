@@ -19,28 +19,36 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` |
+| Accepted application commit | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` |
 | Application status | **ACCEPTED** |
-| Accepted round | UI POLISH 1 — Visual Density & Hierarchy, **FINAL ACCEPTED** |
+| Accepted round | UI POLISH 2 — Interaction / Micro UX Polish, **FINAL ACCEPTED** |
 
-The accepted commit moved because UI POLISH 1 was accepted, and for no other
-reason. It is `e3d659b` because that is the last commit that changed an
+The accepted commit moved because UI POLISH 2 was accepted, and for no other
+reason. It is `33ae0da` because that is the last commit that changed an
 application file — proven from the file, not from a branch tip:
 
 ```
-git log 7f5bc97..HEAD -- '*.php'      →  e3d659b, ca9fb71   (nothing else)
-git rev-parse e3d659b:index.php       →  a7ffeda1a8c9711583e6ba2502614237e5dc857c
-git rev-parse HEAD:index.php          →  a7ffeda1a8c9711583e6ba2502614237e5dc857c
-git diff --name-only e3d659b..HEAD -- '*.php'   →  (empty)
+git merge-base --is-ancestor e3d659b 33ae0da   →  0   (e3d659b is an ancestor)
+git log e3d659b..HEAD -- '*.php'               →  33ae0da   (nothing else)
+git rev-parse 33ae0da:index.php                →  5d764b57353650853a7c14dfc807c55730cb8db4
+git rev-parse HEAD:index.php                   →  5d764b57353650853a7c14dfc807c55730cb8db4
+git diff --name-only 33ae0da..HEAD -- '*.php'  →  (empty)
 ```
 
-Every commit after `e3d659b` carries reports, control files and evidence, and
-changes no application byte. `api.php`, `companies.php`, `ai_extract.php`,
-`auth.php`, `login.php`, `logout.php` and `pricing_history.php` are still
-identical to the commit before it.
+Every commit after `33ae0da` carries reports, control files, packaging tooling
+and evidence, and changes no application byte. `api.php`, `companies.php`,
+`ai_extract.php`, `auth.php`, `login.php`, `logout.php` and
+`pricing_history.php` are still identical to the commit before it, and
+`tests/suites/` and `tests/lib/` have not moved since it — so the recorded
+assertion matrix was measured on this tree.
 
-The accepted change is presentation only: every diff hunk in `index.php` falls
-above `</style>`.
+The accepted change is presentation only: 156 lines added to `index.php`, 0
+removed, in one block that ends immediately before `</style>`. No markup, no
+script, no PHP, no test.
+
+Acceptance was bookkeeping, not a rerun: no application or test byte changed
+between the reviewed candidate and this promotion, so the 3,958-assertion
+matrix stands exactly as measured.
 
 ---
 
@@ -153,6 +161,7 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Suite counts | 34 · 36 · 38 |
 | Manifest filename | `ZIP-MANIFEST.txt` |
 | Application commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by `e3d659b` when UI POLISH 1 was accepted |
+| Application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — superseded by `33ae0da` when UI POLISH 2 was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

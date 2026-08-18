@@ -15,10 +15,11 @@
 'use strict';
 
 module.exports = {
-  /* Moved once, when UI POLISH 1 was accepted. e3d659b is the last commit
-     that changed an application file; 7f5bc97 was the accepted commit before
-     it and is recorded as superseded in CANONICAL-STATE. */
-  APP_SHA:  'e3d659bba1636cd4cfc74cb89be1b52cf92aff67',
+  /* Moved twice, once per accepted polish round. 33ae0da is the last commit
+     that changed an application file, and carries UI POLISH 2; e3d659b carried
+     UI POLISH 1 and 7f5bc97 came before that. Both earlier ones are recorded
+     as superseded in CANONICAL-STATE and must not be quoted as current. */
+  APP_SHA:  '33ae0da14a3bd3108e8b066d4796b1bcda2de428',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 37,
