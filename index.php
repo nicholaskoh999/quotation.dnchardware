@@ -2571,6 +2571,162 @@ input,select,textarea{
   .wqa-row-act,.wqa-prov{transition:none}
   .wqa-row-act:active{transform:none}
 }
+
+/* ══ UI POLISH 2 — INTERACTION LAYER ═══════════════════════════════════════
+   One block, last in the sheet, and nothing in it changes what a control does.
+   Every rule here answers one of four questions a person asks without noticing
+   they are asking it: can I click this, am I on it, is it doing something, and
+   is it switched off.
+
+   Durations come from the --mo-* tokens the sheet already defines (140-220ms).
+   The global prefers-reduced-motion block above neutralises every one of them,
+   which is checked in the evidence rather than assumed.                     */
+
+/* ── One focus ring, everywhere ────────────────────────────────────────────
+   The sheet already focused most controls, at --accent-mid on white: present,
+   but pale enough that a keyboard user has to look for it. Same shape, one
+   step stronger, and now on the controls that had none — the row tick box and
+   the compact row itself, which is a role="button" with a tab stop. */
+#wqaModal .btn:focus-visible,
+#wqaModal .wqa-row-act:focus-visible,
+#wqaModal .wqa-view-btn:focus-visible,
+#wqaModal .wqa-panel-head:focus-visible,
+#wqaModal .wqa-acc-bar:focus-visible,
+#wqaModal .wqa-hist-bar:focus-visible,
+#wqaModal .wqa-row-hist:focus-visible,
+#wqaModal .wqa-prov:focus-visible,
+#wqaModal .wqa-pill-go:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+  box-shadow:0 0 0 4px var(--accent-light)}
+#wqaModal .wqa-view-btn:focus-visible{outline-offset:-2px}
+/* The tick box had no focus state at all. It is 16px, so the ring does the
+   work and the box itself does not move. */
+#wqaModal .wqa-pick:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+/* The compact row is reachable by keyboard and had nothing to show for it.
+   Inset, so a focused row cannot widen the list or nudge a column. */
+#wqaModal .wqa-sum:focus-visible{
+  outline:none;box-shadow:inset 0 0 0 2px var(--accent-mid);border-radius:2px}
+
+/* ── Row actions: the button, not just the row ─────────────────────────────
+   Hovering a row already tinted the whole line, which left Details and History
+   with nowhere to go — the strongest thing under the pointer was the row, so
+   the button a person was actually aiming at looked inert. The row keeps its
+   tint, at half strength; the control under the cursor is now the thing that
+   changes most. */
+#wqaModal .wqa-row>.wqa-sum:hover{background:var(--zebra)}
+#wqaModal .wqa-row-act{transition:background var(--mo-fast) var(--mo-ease),
+  border-color var(--mo-fast) var(--mo-ease),color var(--mo-fast) var(--mo-ease),
+  box-shadow var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-row-act:hover:not([disabled]){
+  background:var(--accent-light);border-color:var(--accent);color:var(--accent-2);
+  box-shadow:0 1px 2px rgba(20,25,40,.10)}
+#wqaModal .wqa-row-act:active:not([disabled]){box-shadow:none}
+/* Delete stays the quietest control on the row until it is aimed at, and then
+   it is unmistakable. Reaching it by keyboard says the same thing as reaching
+   it by mouse. */
+#wqaModal .wqa-row-act.wqa-row-del:hover:not([disabled]),
+#wqaModal .wqa-row-act.wqa-row-del:focus-visible{
+  background:var(--red-light,#fee2e2);border-color:var(--red,#dc2626);
+  color:var(--red,#dc2626);box-shadow:none}
+#wqaModal .wqa-row-act.wqa-row-del:focus-visible{
+  outline-color:var(--red,#dc2626);box-shadow:0 0 0 4px var(--red-light,#fee2e2)}
+
+/* ── Switched off should look switched off ─────────────────────────────────
+   Fast Edit disables Delete and the history controls while it is open, and a
+   dimmed control that still lifts and recolours under the pointer reads as
+   broken rather than as held. These stop responding, and say why with the
+   cursor. */
+#wqaModal .wqa-row-act[disabled],
+#wqaModal .wqa-row-act:disabled{
+  opacity:.4;cursor:not-allowed;box-shadow:none;
+  background:var(--surface);border-color:var(--border);color:var(--text-muted)}
+#wqaModal .wqa-row-act[disabled]:active{transform:none}
+#wqaModal .btn[disabled]:hover{filter:none}
+#wqaModal .wqa-view-btn.is-locked{cursor:not-allowed}
+#wqaModal .wqa-view-btn.is-locked:hover{background:transparent;color:var(--wqa-quiet)}
+#wqaModal .wqa-hist-panel.is-muted{cursor:not-allowed}
+
+/* ── Fast Edit reads as a mode, not as two extra buttons ───────────────────
+   Everything needed was already on screen — Done, Cancel, the cells, the lock
+   on Expanded — but nothing said "you are inside something". The toolbar
+   cluster takes a tinted band with a marker down its leading edge for as long
+   as the session is open, and the list it is editing picks up the same accent
+   on its own border. Both are colour only: no size, no position, no reflow. */
+#wqaModal .wqa-edit-actions{padding:3px 7px 3px 8px;border-radius:var(--pill-r);
+  transition:background var(--mo) var(--mo-ease),box-shadow var(--mo) var(--mo-ease)}
+#wqaModal .wqa-edit-actions:has(.wqa-edit-done:not([hidden])){
+  background:var(--accent-light);box-shadow:inset 3px 0 0 var(--accent)}
+#wqaModal .wqa-rows.is-editing{border-color:var(--accent-mid);
+  box-shadow:0 0 0 3px var(--accent-light)}
+#wqaModal .wqa-rows.is-editing,#wqaModal .wqa-edit-actions{
+  transition:border-color var(--mo) var(--mo-ease),box-shadow var(--mo) var(--mo-ease),
+             background var(--mo) var(--mo-ease)}
+/* An editable cell should look like one before it is touched, and like the one
+   being typed into after. */
+#wqaModal .wqa-ei{transition:border-color var(--mo-fast) var(--mo-ease),
+  box-shadow var(--mo-fast) var(--mo-ease),background var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-ei:hover:not(:focus){background:var(--accent-light)}
+#wqaModal .wqa-ei:focus{box-shadow:0 0 0 3px var(--accent-light)}
+/* The value you can click your way into, outside the mode. */
+#wqaModal .wqa-c-tap{transition:background var(--mo-fast) var(--mo-ease),
+  box-shadow var(--mo-fast) var(--mo-ease)}
+
+/* ── Selection: the tick and the row are one statement ─────────────────────
+   The row already carried the accent and the marker. What it did not do was
+   arrive — it snapped, so ticking six rows read as six unrelated repaints. */
+#wqaModal .wqa-row{transition:box-shadow var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-row>.wqa-sum{transition:background var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-pick{transition:box-shadow var(--mo-fast) var(--mo-ease)}
+/* The scope bar is the thing that says a selection is now the target of every
+   Apply, so it carries the same marker the open Bulk Edit body does. */
+#wqaModal .wqa-selbar{box-shadow:inset 3px 0 0 var(--accent)}
+
+/* ── A segmented control that looks segmented ──────────────────────────────
+   Compact / Expanded and All / Selected Items are the same component, and it
+   is a VIEW and a SCOPE — never a primary action. The chosen segment now sits
+   in a raised, filled cell instead of merely being tinted. */
+#wqaModal .wqa-view-btn.is-on{box-shadow:inset 0 0 0 1px var(--accent-mid),
+  0 1px 2px rgba(20,25,40,.08)}
+#wqaModal .wqa-view-toggle{transition:border-color var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-view-toggle:hover{border-color:var(--accent-mid)}
+
+/* ── Bulk Edit headers answer the pointer ──────────────────────────────────
+   A hover that moved only the border colour was easy to miss on a header the
+   width of the dialog. The surface answers now, and the open one keeps the
+   marker so shut and open cannot be confused at a glance. */
+#wqaModal .wqa-panel-head{transition:background var(--mo-fast) var(--mo-ease),
+  border-color var(--mo-fast) var(--mo-ease),box-shadow var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-panel-head:hover:not(.open){background:var(--surface3)}
+#wqaModal .wqa-panel-head.open{box-shadow:inset 3px 0 0 var(--accent)}
+#wqaModal .wqa-panel-head.open .wqa-panel-arrow{color:var(--accent-2)}
+#wqaModal .wqa-panel-arrow{transition:color var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-acc-bar,#wqaModal .wqa-hist-bar{
+  transition:background var(--mo-fast) var(--mo-ease),border-color var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-acc-bar:hover,#wqaModal .wqa-hist-bar:hover{background:var(--surface3)}
+
+/* ── An open row and its panel belong together ─────────────────────────────
+   Details and History open below the line that opened them, and at a glance
+   the panel could belong to the row above it. The open row carries a quiet
+   marker for as long as its panel is showing — the same device selection uses,
+   in the neutral tone, so the two states are readable side by side. */
+#wqaModal .wqa-row.is-open{box-shadow:inset 3px 0 0 var(--border-focus)}
+#wqaModal .wqa-row.is-picked.is-open{box-shadow:inset 3px 0 0 var(--accent)}
+
+/* ── Previous Price: available, applied, and out of reach ──────────────────
+   Provenance stays secondary — it is a note about where a number came from,
+   not a call to action — so it gains states without gaining weight. */
+#wqaModal .wqa-prov{transition:background var(--mo-fast) var(--mo-ease),
+  border-color var(--mo-fast) var(--mo-ease),color var(--mo-fast) var(--mo-ease)}
+#wqaModal .wqa-row-hist.is-on{box-shadow:inset 0 0 0 1px var(--accent-mid)}
+
+/* ── The primary action, and the moment it cannot be used ──────────────────
+   Add is the one filled control on the screen and stays that way. Held back,
+   it stops looking pressable at all: no lift, no shadow, no pointer. */
+#wqaModal .btn-primary:hover:not([disabled]){box-shadow:0 2px 8px rgba(37,71,208,.28)}
+#wqaModal .btn-primary:active:not([disabled]){box-shadow:none}
+#wqaModal .btn-primary[disabled]{box-shadow:none;filter:saturate(.45)}
+#wqaModal #wqaAddBtn[disabled]{cursor:not-allowed}
 </style>
 </head>
 <body>

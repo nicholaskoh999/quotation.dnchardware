@@ -51,7 +51,7 @@ const REPORTS = ['EXECUTIVE-SUMMARY.md', 'FULL-AUDIT-REPORT.md', 'FINDINGS.md',
                  /* A round that changes the application ships its own account
                     of what it changed, beside the audit that accepted the
                     state it started from. */
-                 'UI-POLISH-1.md'];
+                 'UI-POLISH-1.md', 'UI-POLISH-2.md'];
 
 /* The 25 proofs the brief names, mapped to the frames that carry them. Named
    explicitly rather than swept in by prefix, so a frame that stops existing
@@ -157,10 +157,9 @@ tracked.filter(p => p.startsWith('FULL-AUDIT/before-fix/'))
    handful. Swept by prefix because the pair is the unit — a frame that stops
    existing simply stops shipping, and its absence is visible in the manifest
    count rather than hidden behind a name that no longer resolves. */
-const polishFrames = tracked.filter(p => p.startsWith('FULL-AUDIT/ui-polish-1/'));
+const polishFrames = tracked.filter(p => /^FULL-AUDIT\/ui-polish-[0-9]+\//.test(p));
 polishFrames.forEach(p => add(
-  'QUOTATION-DNC-REVIEW/EVIDENCE/ui-polish-1/' + p.slice('FULL-AUDIT/ui-polish-1/'.length),
-  blob(p)));
+  'QUOTATION-DNC-REVIEW/EVIDENCE/' + p.slice('FULL-AUDIT/'.length), blob(p)));
 
 // ── /docs/control ─────────────────────────────────────────────────────────
 /* The control files travel WITH the package, not only in the repository. A
@@ -232,7 +231,7 @@ const man = [
   '               TEST-RESULTS names the command that reads it.',
   `  /REPORTS/    ${pad(REPORTS.length + ' files', 12)} the audit documents and this round's report`,
   `  /EVIDENCE/   ${pad(evidenceIndex.length + ' frames', 12)} the proofs, numbered in reading order`,
-  `               ${pad(polishFrames.length + ' frames', 12)} ui-polish-1/, this round's before and after`,
+  `               ${pad(polishFrames.length + ' frames', 12)} ui-polish-N/, each round's before and after`,
   '               before-fix/  the defects as they were',
   `  /LOGS/       ${pad(LOGS.length + ' files', 12)} the authoritative run and the checkers`,
   '  /MANIFEST/   this file',

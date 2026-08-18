@@ -1,0 +1,32 @@
+[
+ {
+  "sel": "#wqaAddBtn",
+  "transition": "1e-06s",
+  "animation": "1e-06s"
+ },
+ {
+  "sel": ".wqa-row-act",
+  "transition": "1e-06s",
+  "animation": "1e-06s"
+ },
+ {
+  "sel": ".wqa-view-btn",
+  "transition": "1e-06s",
+  "animation": "1e-06s"
+ },
+ {
+  "sel": ".wqa-panel-head",
+  "transition": "1e-06s",
+  "animation": "1e-06s"
+ },
+ {
+  "sel": ".wqa-sum",
+  "transition": "1e-06s",
+  "animation": "1e-06s"
+ },
+ {
+  "sel": ".wqa-pick",
+  "transition": "1e-06s",
+  "animation": "1e-06s"
+ }
+]

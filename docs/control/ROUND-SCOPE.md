@@ -2,44 +2,18 @@
 
 ## ROUND
 
-**UI POLISH 1 — BASELINE RECOVERY / REAPPLY**
-Visual Density & Hierarchy
+**UI POLISH 2 — Interaction / Micro UX Polish**
 
 ## APPLICATION STATUS
 
-**UI POLISH 1 — FINAL ACCEPTED.**
-
-The presentation change this round proposed has been accepted by Nicholas and
-is now part of the accepted application.
+Continues from **UI POLISH 1 — FINAL ACCEPTED**.
 
 | | |
 |---|---|
 | Accepted application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` |
-| Previous accepted commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by this round |
+| Previous accepted commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by UI POLISH 1 |
+| This round | a **candidate**, not an accepted state |
 | Deploy | **NO** |
-
----
-
-## WHY THIS ROUND EXISTS
-
-An earlier UI POLISH 1 attempt was implemented on the wrong baseline. It was
-made from `b549308`, which predates the accepted application commit by 71
-commits, and it is **NOT ACCEPTED**:
-
-| | |
-|---|---|
-| Rejected attempt | `e94fc25370d668bd2c357eb3b0e468ee4f1ba98e` |
-| Left where it was | branch `claude/new-session-ok8rwe`, not rewritten, not merged |
-
-Its **screenshots** were reviewed and the visual direction accepted. Its
-**implementation** is not reused: it is reapplied here, by hand, against the
-real accepted Quick Add.
-
-That attempt reported five accepted features as *"not present in this build"*
-and continued anyway — Fast Edit, the selection bar's Apply Previous Price and
-Clear Selection, the per-row Pricing Summary, and the single-group Bulk Edit.
-All five exist in the accepted source. The report was wrong because the
-checkout was wrong.
 
 ---
 
@@ -47,114 +21,92 @@ checkout was wrong.
 
 | Check | Evidence |
 |---|---|
-| Accepted commit exists | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — the accepted commit at the time this round opened, since superseded — found on `origin/claude/new-session-ofny46` after fetching all remote refs; it was absent from the working clone |
-| Accepted commit is an ancestor of HEAD | yes |
-| Application source == accepted baseline | `index.php`, `api.php`, `companies.php`, `ai_extract.php`, `auth.php`, `login.php`, `logout.php`, `pricing_history.php`, `manifest.webmanifest`, `php.ini` all byte-identical between `7f5bc97` and the branch head; the later commits touch only `FULL-AUDIT/`, `docs/` and `tests/` |
-| Control files existed before this round | all four, added by `e2e9e5d` on the accepted line |
-| Fast Edit present | `wqa.edit`, `wqaEditStart/Done/RequestCancel`, `.wqa-ei`, `wqaSyncEditLocks()` |
-| Selected Items present | `wqaSetApplyScope`, `wqaToggleRowSel`, `.wqa-pick`, `#wqaSelBar` |
-| History present | `wqaHistToggle/Use/More`, `phListHtml`, own / other record counts |
-| Previous Price present | the same history panel, plus `.wqa-prov` provenance |
-| Full accepted regression found and run | `tests/run.js` over 37 suites → **37 suites, 3,613 assertions, 0 failed** on the untouched source, matching `CANONICAL-STATE.json` exactly |
-
-Work branch: `claude/ui-polish-1-recovery`, cut from the accepted line. The
-rejected branch is not rewritten and its history is not merged in.
+| Accepted commit exists and is an ancestor of HEAD | `e3d659b` |
+| Canonical and authoritative agree on it | `CANONICAL-STATE.json` and `tests/tools/authoritative.js` both read `e3d659b` |
+| No application php differs from it | `git diff --name-only e3d659b..HEAD -- '*.php'` → empty |
+| Control files present and read, not reconstructed | all four |
+| Fast Edit | `wqaEditing` · `wqaEditStart` · `wqaSyncEditLocks` |
+| Bulk Edit | `wqaRenderBulk` · `wqaToggleBulk` |
+| Compact / Expanded | `wqaSetView` |
+| Selected Items | `wqaSetApplyScope` · `wqaToggleRowSel` |
+| Details | `.wqa-row-details` · `.wqa-row-body` |
+| History | `wqaHistToggle` · `wqaHistMore` |
+| Previous Price | `wqaHistUse` · `.wqa-prov` |
+| Add-to-quotation | `wqaAddAll` |
+| Zero-selected protection | `.wqa-none-sel` and the refusal toast |
 
 ---
 
 ## ALLOWED TO CHANGE
 
-- presentation
-- layout
-- spacing
-- typography
-- visual hierarchy
-- border / background treatment
-- responsive modal sizing
-- non-functional row-action styling
+Presentation of **interaction state** only:
+
+- hover, active/pressed, keyboard-focus and disabled styling
+- mode awareness for Fast Edit (how it *looks* while open)
+- selection feedback
+- the Compact / Expanded segmented control's states
+- Bulk Edit accordion header states and disclosure affordance
+- Details / History open-state feedback and panel-to-row relationship
+- Previous Price state clarity — available / applied / provenance / unavailable
+- primary-CTA enabled / disabled confidence
+- footer status vs secondary vs primary separation
+- subtle motion, 140–220ms, using the existing `--mo-*` tokens
 - `docs/control/ROUND-SCOPE.md` (this file)
-- evidence capture scripts and current evidence screenshots
+- evidence capture scripts and this round's evidence
 - the review package
 
 ---
 
 ## NOT ALLOWED TO CHANGE
 
-business logic · parser · extraction · pricing · weight · DIA · Previous Price
-logic · History identity · Qty behaviour · Material / Finish · Size Type rules ·
-selection behaviour · Fast Edit behaviour · Bulk Edit behaviour · Details
-behaviour · Accessories calculations · database · Add-to-quotation behaviour.
+parser · extraction · AI extraction semantics · pricing formulas · weight · DIA ·
+Previous Price matching · History identity · History ordering · Qty rules ·
+Material · Finish · Size Type · selection behaviour · Fast Edit behaviour ·
+Bulk Edit behaviour · Details behaviour · Accessories calculation · database ·
+Add-to-quotation logic · translation semantics.
 
-No opportunistic refactoring. No fixes to the recorded N2–N6 observations.
+Also out of scope this round, by instruction: dark mode, accessories carry-over,
+Print/WhatsApp item numbering, Companies mobile polish, the 430px `APPLY TO`
+clipping, PHP 8.2, the DB UNIQUE deployment. No new keyboard shortcuts. No new
+asynchronous behaviour. No opportunistic refactoring.
 
----
-
-## ONE GUARDRAIL INTERACTION, RECORDED RATHER THAN TAKEN SILENTLY
-
-`PROJECT-GUARDRAILS.md` § *ACCEPTED COMPACT ROW* reads:
-
-> Keep DIA beside Size, **the current density**, and the Pricing Summary
-> directly under each compact row.
-
-The accepted source sets `min-height:38px`, so any change to the compact row
-height touches that clause and needs the explicit approval the guardrail asks
-for. It got one — but not for the figure the brief opened with. The number was
-settled by three things in sequence:
-
-| | |
-|---|---|
-| **Requested** | approximately **48px**, brief §6C — the density accepted from the previous attempt's screenshots |
-| **Capped** | the accepted regression pins the compact data line at **≤ 46px**, in two independent suites: `tests/suites/17-quickadd-layout.test.js:119` (`clean.sumHeight <= 46`) and `tests/suites/34-row-meta.test.js:90` (`rowH <= 46`) |
-| **Approved** | Nicholas approved **46px** explicitly, and capped it there: *"46px is approved for UI POLISH 1. Do not increase it further."* |
-| **Implemented** | **46px** |
-
-46px is inside "approximately 48", it is a 21% increase on the 38px the source
-had, and it keeps both accepted assertions green. **No accepted test was
-modified to accommodate it** — the cap was found by reading the suite, and the
-implementation was fitted to it rather than the other way round.
-
-So this round changes **only** that one clause of the guardrail:
-
-- DIA stays beside Size.
-- The Pricing Summary stays directly under each compact row.
-- Row height moves from **38px to 46px** on desktop, and nowhere else.
-
-If that is not what was intended, this is the line to reverse, and it is one
-CSS declaration.
-
-`PROJECT-GUARDRAILS.md`, `CANONICAL-STATE.md` and `CANONICAL-STATE.json` are
-**not** modified by this round.
+UI POLISH 1's outcomes — modal width, density, hierarchy, row spacing, border
+noise, Bulk Edit density — are **not** to be redesigned again.
 
 ---
 
-## CANDIDATE APPLICATION CHANGE — CLOSED
+## CANDIDATE APPLICATION CHANGE
 
-While this round was under review it declared `index.php` as a candidate here,
-by name, so the report checker and the package verifier could tell a declared
-proposal apart from an unnoticed drift. **That declaration is now closed.**
-
-The change was accepted, so the accepted commit moved to `e3d659b` and
-`index.php` is no longer a difference from it — there is nothing left to
-declare, and the empty block below says so:
+This round proposes a change to the accepted application. It is declared here,
+by name, so the report checker and the package verifier can tell a **declared
+candidate** apart from an **unnoticed drift** — and so that any file NOT on this
+list still fails, loudly.
 
 ```candidate-files
+index.php
 ```
 
-An empty block means **nothing may differ** from the accepted commit. Any
-application file that changes from here without a new declaration fails the
-report checker and the package verifier exactly as it did before, which is the
-whole point of the mechanism. It is not disabled; it is satisfied.
+Nothing else may differ from `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`.
+
+The change is presentation only: every diff hunk in `index.php` must fall above
+`</style>`. `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
+`PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` are **not** touched
+while this round is a candidate. If UI POLISH 2 is accepted, the canonical
+application commit moves then — deliberately, as its own step, with this
+declaration closed.
 
 ---
 
 ## STOP CONDITION
 
-- the full accepted regression passes at or above the canonical counts, with
-  zero failures and zero skips
-- protected application behaviour is proven unchanged
-- the required screenshot evidence is captured on 10–20 realistic rows
-- ONE `QUOTATION-DNC-REVIEW.zip` is built and independently verified after
+- the full authoritative regression passes at or above the accepted counts,
+  with zero failures and zero skips, and **no accepted test modified** to
+  accommodate the candidate
+- protected behaviour proven unchanged
+- the required interaction evidence captured on 10–20 realistic rows, including
+  hover, focus, active and disabled states and a reduced-motion frame
+- ONE `QUOTATION-DNC-REVIEW.zip`, built and independently verified after
   extraction
-- **no accepted feature has disappeared to make the UI cleaner**
+- **no accepted control does anything different from what it did before**
 
-Then STOP. Do not start UI POLISH 2. Do not deploy.
+Then STOP. No deploy. No further round.
