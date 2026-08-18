@@ -161,9 +161,15 @@ module.exports = async (browser, A) => {
   A.includes(panel.text, 'Gamma Steel', 'who is named');
   A.includes(panel.text, 'Other customer reference', 'and labelled as a reference, not as this customer\'s price');
 
-  // ── accessories are a separate component ─────────────────────────────────
+  // ── the bolt, and the accessories that were on the same line ─────────────
+  /* Stage 0B: the customer's price includes the accessories, so the panel can no
+     longer say they were charged "separately" — but the BOLT price is exactly
+     what this panel exists to report, because that is what a reused recipe
+     reproduces. Both halves are still shown; only the false word is gone. */
   A.includes(panel.text, 'Bolt Unit Price', 'a record with accessories reports the BOLT price');
-  A.includes(panel.text, 'Accessories, separately', 'and the accessories separately');
+  A.includes(panel.text, 'Accessories on that line', 'and names the accessories that were on the same line');
+  A.excludes(panel.text, 'Accessories, separately',
+    'without claiming they were charged separately, which is no longer true of what we quote');
   A.includes(panel.text, '2 Nut PL + 1 FW PL', 'naming them');
   A.includes(panel.text, 'RM 0.70', 'and what they cost');
   A.includes(panel.text, 'quotation line was RM 30.70', 'while still reporting the line the customer received');

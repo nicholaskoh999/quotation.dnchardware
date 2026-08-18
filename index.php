@@ -529,8 +529,9 @@ input,select,textarea{font-family:inherit}
 }
 .qi-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .qi-meta-pill{font-size:13px;color:var(--text-2);font-weight:600}
-/* Accessories, beside the bolt's own price and never inside it. */
-.qi-acc-pill{color:var(--text-muted)}
+/* The two halves of the customer's unit price, shown as a breakdown BELOW it
+   and never in place of it. Both read as notes, not as charges. */
+.qi-acc-pill,.qi-bolt-pill{color:var(--text-muted)}
 /* Inside .cp-final, whose span rules are larger and greener — said explicitly
    so the note stays a note, and hidden means hidden. */
 .cp-item .cp-line-note,.calc-preview .cp-final span.cp-line-note{
@@ -912,9 +913,6 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
   .print-items-table .print-col-qty{width:14mm;text-align:center}
   .print-items-table .print-col-money{width:25mm;text-align:right;white-space:nowrap}
   .print-item-size{white-space:pre-line;overflow-wrap:anywhere}
-  /* The accessory row belongs to the item above it: same line, quieter. */
-  .print-acc-row td{color:#333;font-size:11px;padding-top:1px;border-top:none}
-  .print-acc-row td:nth-child(2){padding-left:14px}
   .print-items-table tbody tr{break-inside:avoid;page-break-inside:avoid}
   .print-items-table tfoot td{font-size:10pt;font-weight:800;background:#f5f5f5!important}
   .print-grand-label{text-align:right}
@@ -3545,7 +3543,7 @@ input,select,textarea{
           <div class="cp-item"><label data-i18n="lblUnitWeight">Unit Weight</label><span id="cpWeight">—</span></div>
           <div class="cp-item"><label data-i18n="lblBasePrice">Base Price</label><span id="cpBase">—</span></div>
           <div class="cp-item cp-acc"><label><span data-i18n="accessories">Accessories</span></label><span id="cpAcc">—</span></div>
-          <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Bolt Unit Price</label><span id="cpFinal">—</span><span id="cpLine" class="cp-line-note" hidden></span></div>
+          <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Final Unit Price</label><span id="cpFinal">—</span><span id="cpLine" class="cp-line-note" hidden></span></div>
         </div>
         <div class="price-mode-preview" id="priceModePreview">
           <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
@@ -4705,9 +4703,9 @@ const I18N={
     lblUnitWeight:'Unit Weight', lblBasePrice:'Base Price',
     /* The preview's line note, kept as one sentence so the two figures cannot
        drift apart from the words around them. */
-    cpLineNote:'+ {acc} accessories = {line}/pc',
-    /* The item card's two price pills: what the bolt costs, or what the line
-       costs when accessories are on it. */
+    cpLineNote:'Includes accessories: {acc}',
+    /* The item card's price pills: the customer's inclusive unit price, and
+       the two components of it shown underneath as internal breakdown. */
     qiBoltPill:'Bolt', qiUnitPill:'Unit', phBoltUnitPrice:'Bolt Unit Price',
     secDimensions:'Dimensions', secSpecification:'Specification',
     secPricing:'Pricing', secCalculation:'Calculation', secReference:'Reference',
@@ -4818,7 +4816,7 @@ const I18N={
     tLineNeg:'Line total is negative — check inputs',
     tIdIhNeg:'ID / IH cannot be negative', tItemUpdated:'Item updated',
     tOldNoRate:'Old item has no saved Cost Rate. Please confirm pricing.',
-    tLegacyAccSplit:'This item was priced before accessories were separated. {a} of accessories has been moved out of the manual price, leaving {b} for the item itself. The line total is unchanged.',
+    tLegacyAccSplit:'{n} manually-priced item(s) were saved when accessories were charged separately. Their accessories are now inside the Final Unit Price. The customer total is unchanged.',
     tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
     tSagRodAdded:'Sag Rod added', tStudAdded:'Stud added', tAnchorAdded:'Anchor Bolt added',
     /* ── Validation, status and the words on generated controls ────────────
@@ -4973,7 +4971,7 @@ const I18N={
     phDimsNotComparable:'Dimensions not comparable', phDiffersBy:'Differs by {d}',
     phLegacyRecord:'Legacy record', phAccNotSeparable:'Accessories not separable',
     phDiffFinish:'Different finish — quoted {f} · reference only',
-    phQtyLabel:'Qty {n}', phAccSeparately:'Accessories, separately:',
+    phQtyLabel:'Qty {n}', phAccSeparately:'Accessories on that line:',
     phShowingOf:'Showing {a} of {b} matching records',
     waTemplateTitle:'WhatsApp Message Template',
     /* The Pricing Guide's worked examples. The RM figures are numbers and
@@ -5221,7 +5219,7 @@ const I18N={
     prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
     lblManualWeight:'手动重量', lblDiaXLength:'直径 × 长度',
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
-    cpLineNote:'+ {acc} 配件 = {line}/件',
+    cpLineNote:'已含配件：{acc}',
     qiBoltPill:'螺栓', qiUnitPill:'单价', phBoltUnitPrice:'螺栓单价',
     secDimensions:'尺寸', secSpecification:'规格',
     secPricing:'价格', secCalculation:'计算结果', secReference:'参考',
@@ -5318,7 +5316,7 @@ const I18N={
     tLineNeg:'总额为负数，请检查输入',
     tIdIhNeg:'ID / IH 不能为负数', tItemUpdated:'产品已更新',
     tOldNoRate:'旧项目没有保存 Cost Rate，请确认价格。',
-    tLegacyAccSplit:'此项目在配件分开计价之前建立。已从手动价格中拆出配件 {a}，本体价格为 {b}，行总额不变。',
+    tLegacyAccSplit:'有 {n} 个手动定价项目建立于配件另计时期，其配件现已计入最终单价，客户总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
     /* Dimension letters (L、W、H、ID、S、OH)、产品名称与 RM 保持原有写法 —
@@ -5444,7 +5442,7 @@ const I18N={
     phDimsNotComparable:'尺寸无法比较', phDiffersBy:'相差 {d}',
     phLegacyRecord:'旧记录', phAccNotSeparable:'配件无法拆分',
     phDiffFinish:'表面处理不同 — 当时为 {f} · 仅供参考',
-    phQtyLabel:'数量 {n}', phAccSeparately:'配件（另计）：',
+    phQtyLabel:'数量 {n}', phAccSeparately:'该报价行配件：',
     phShowingOf:'显示 {b} 条符合记录中的 {a} 条',
     waTemplateTitle:'WhatsApp 消息模板',
     pgCostRateEg:'每公斤成本 RM3.50/kg', pgThreadProcessing:'车牙加工',
@@ -5931,7 +5929,12 @@ function restoreUnsavedDraft(){
   el('qi-issued-by').value=issuer;
   if(el('qi-issued-by').value!==issuer) el('qi-issued-by').value='';
   const draftItems=Array.isArray(draft.items)?draft.items.filter(item=>item&&typeof item==='object'):[];
-  quoteItems=JSON.parse(JSON.stringify(draftItems));
+  /* A draft written before the accessory rule changed carries bolt-separate
+     items, and it comes back through the same normalisation a saved
+     quotation does — otherwise recovering yesterday's draft would quote a
+     bolt-only price as the customer's. */
+  dcFoldedManualCount=0;
+  quoteItems=JSON.parse(JSON.stringify(draftItems)).map(dcMigrateItemPricing);
   if(draft.productEntry) restoreProductEntryDraft(draft.productEntry);
   /* The form was filled from an item that is already in the list. Recovering
      the values and forgetting that fact turned Update Item into Add to
@@ -5951,6 +5954,7 @@ function restoreUnsavedDraft(){
   scheduleDraftAutosave();
   goToStep(quoteItems.length?3:(hasMeaningfulProductEntry(draft.productEntry)?2:1));
   showToast(dcT('tDraftRestored'));
+  dcReportFoldedManuals();
 }
 function discardUnsavedDraft(){
   clearUnsavedDraft();
@@ -6242,18 +6246,37 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
   const mode=getPriceMode(type);
   const manualRaw=fv(type,'manualUnitPrice').trim();
   const manualUnitPrice=evalExpr(manualRaw);
-  /* The accessory charge is still passed in — the screen shows it, and the
-     line carries it — but it is no longer added to the bolt's own price. */
-  let finalUnitPrice;
-  if(mode==='manual') finalUnitPrice=manualUnitPrice;
-  else if(mode==='no_round') finalUnitPrice=roundMoney2(rawUnitPrice);
-  else finalUnitPrice=autoRoundedUnitPrice;
   const accUnit=roundMoney2(Number(accessoriesCost)||0);
+  /* ── Where the accessory charge lands, per price mode ────────────────────
+     The Final Unit Price is what the customer pays for one piece, accessories
+     included, in every mode. What differs is which end is known:
+
+       Auto Round / No Round   the BOLT is calculated, and the accessories are
+                               added to reach the customer's price.
+       Manual Price            the CUSTOMER'S price is typed — that is what a
+                               person means when they write RM10 on a quotation
+                               — so the accessories come OUT of it to leave the
+                               bolt component. Typing RM10 with RM2 of nuts
+                               quotes RM10, not RM12.
+
+     Both ends are recorded either way, because Previous Price compares bolts
+     against bolts and staff still need to see what the RM2.00 was.           */
+  let boltUnitPrice,finalUnitPrice;
+  if(mode==='manual'){
+    finalUnitPrice=roundMoney2(manualUnitPrice);
+    boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
+  }else{
+    boltUnitPrice=roundMoney2(mode==='no_round'?rawUnitPrice:autoRoundedUnitPrice);
+    finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
+  }
   priceCalcState[type]={
     priceMode:mode,manualUnitPrice:manualRaw,rawUnitPrice:Number(rawUnitPrice)||0,
     roundedUnitPrice:Number(autoRoundedUnitPrice)||0,accessoriesCost:accUnit,
+    boltUnitPrice:Number(boltUnitPrice)||0,
     finalUnitPrice:Number(finalUnitPrice)||0,
-    lineUnitPrice:roundMoney2((Number(finalUnitPrice)||0)+accUnit)
+    /* One number under two names: what the customer pays for a piece IS the
+       line's unit price now. Kept so nothing that reads the old name breaks. */
+    lineUnitPrice:Number(finalUnitPrice)||0
   };
   updatePriceModePreview(type);
   return priceCalcState[type].finalUnitPrice;
@@ -7040,17 +7063,18 @@ function updatePreview(weight,base,final){
      that a person typed themselves is theirs and still shows. */
   const priced = weight>0 || getPriceMode(currentType)==='manual';
   el('cpBase').textContent  = priced ? fmt(base) : '—';
+  /* The headline is the FINAL UNIT PRICE the customer is quoted: the item and
+     everything bolted to it, in one figure. */
   el('cpFinal').textContent = priced ? fmt(resolved?resolved.finalUnitPrice:final) : '—';
-  /* The bolt's price is the headline; the line total says what the customer is
-     charged once the accessories beside it are counted. */
+  /* And under it, what of that figure is accessories — a breakdown of the
+     headline, not a second charge beside it. Nothing to break down, no line. */
   const lineNote=el('cpLine');
   if(lineNote){
-    const bolt=resolved?Number(resolved.finalUnitPrice)||0:final;
     lineNote.hidden=!(priced && accTotal>0);
     /* The figures are kept beside the text so a language switch can rewrite
        the sentence without re-running a single calculation. */
     lineNote.dataset.acc=fmt(accTotal);
-    lineNote.dataset.line=fmt(roundMoney2(bolt+accTotal));
+    lineNote.dataset.line=fmt(resolved?Number(resolved.finalUnitPrice)||0:final);
     dcWritePreviewLineNote();
   }
   syncCostRateWarning(currentType);
@@ -7148,36 +7172,125 @@ function getAccessories(type){
     custom:{enabled:customEnabled,text:customText,unitPrice:customPrice}
   };
 }
-/* ── Bolt price and accessory price are two prices ──────────────────────────
-   The bolt's unit price is the bolt's: weight x cost rate + additional cost,
-   marked up and rounded. An accessory is its own component with its own cost,
-   and it is charged to the LINE — never folded into the bolt.
+/* ── The accessories are part of what the customer pays ─────────────────────
+   ONE price reaches the customer, and everything bolted to the item is inside
+   it. A rod at RM5.76 with two nuts at RM2.00 is quoted at RM7.76 — not at
+   RM5.76 with a second charge beside it — because RM7.76 is the number the
+   customer says back to us, the number on the printed row, and the number the
+   line total is made of.
 
-   Selecting two nuts used to turn a bolt quoted at RM12.00 into a bolt quoted
-   at RM12.50, so the figure staff read as "what this bolt costs" depended on
-   what was packed beside it, and the pricing history built from those figures
-   compared bolts against bolts-plus-hardware.
+   The breakdown is NOT thrown away, it stops being a customer-facing charge.
+   Every item saved from here carries its bolt component and its accessory
+   component separately, so Previous Price can still compare a bolt against a
+   bolt and staff can still see what the RM2.00 was for.
 
-   Items saved before this separation existed hold ONE number with the
-   accessory charge already inside it. They are read exactly as they were
-   written and marked legacy; no separation is invented for them. */
-const DC_PRICING_MODEL='bolt-separate';
-function dcItemIsSeparated(item){ return !!item && item.pricingModel===DC_PRICING_MODEL; }
-/* The accessory charge carried on the LINE, per piece. Zero for a legacy item
-   — not because it had none, but because what it had cannot be told apart from
-   the bolt price it was added into. */
-function dcItemAccUnit(item){ return dcItemIsSeparated(item) ? (Number(item.accessoryUnitPrice)||0) : 0; }
-function dcItemBoltUnit(item){ return Number(item&&item.finalUnitPrice)||0; }
+   THREE VINTAGES read back, and each is read as it was written:
+
+     accessory-inclusive   finalUnitPrice IS the customer's price; the bolt
+                           component is beside it.
+     bolt-separate         finalUnitPrice was the BOLT and lineUnitPrice was
+                           the customer's line. Migrated on load, so the
+                           customer total does not move and re-saving cannot
+                           charge the accessories a second time.
+     legacy (no model)     one figure with the charge already inside it — which
+                           is what this rule now asks for, so it is already
+                           right. No separation is invented for it. */
+const DC_PRICING_MODEL='accessory-inclusive';
+const DC_PRICING_MODEL_SEPARATE='bolt-separate';
+function dcItemIsInclusive(item){ return !!item && item.pricingModel===DC_PRICING_MODEL; }
+function dcItemIsSeparated(item){ return !!item && item.pricingModel===DC_PRICING_MODEL_SEPARATE; }
+/* The accessory total carried inside the parent item's price, per piece. Zero
+   for a legacy item — not because it had none, but because what it had cannot
+   be told apart from the figure it was folded into. */
+function dcItemAccUnit(item){
+  return (dcItemIsInclusive(item)||dcItemIsSeparated(item)) ? (Number(item.accessoryUnitPrice)||0) : 0;
+}
+/* What the customer is charged for one piece, whatever vintage the item is. */
+function dcItemFinalUnit(item){
+  if(!item) return 0;
+  if(dcItemIsSeparated(item)){
+    /* Its finalUnitPrice was the bolt; its LINE was the customer's price. */
+    const line=Number(item.lineUnitPrice);
+    return isFinite(line)&&line>0 ? roundMoney2(line)
+         : roundMoney2((Number(item.finalUnitPrice)||0)+(Number(item.accessoryUnitPrice)||0));
+  }
+  return roundMoney2(Number(item.finalUnitPrice)||0);
+}
+/* The internal bolt/base component — never shown as the customer's unit price,
+   and the figure Previous Price compares and reuses. */
+function dcItemBoltUnit(item){
+  if(!item) return 0;
+  if(dcItemIsSeparated(item)) return roundMoney2(Number(item.finalUnitPrice)||0);
+  if(dcItemIsInclusive(item)){
+    const bolt=Number(item.boltUnitPrice);
+    return isFinite(bolt) ? roundMoney2(bolt)
+         : roundMoney2((Number(item.finalUnitPrice)||0)-(Number(item.accessoryUnitPrice)||0));
+  }
+  /* Legacy: the one figure it has. Its accessory share is not separable, which
+     is exactly what dcItemAccUnit already reports by returning zero. */
+  return roundMoney2(Number(item.finalUnitPrice)||0);
+}
+/* How many manual prices the last load had to fold up. Reset by whoever is
+   about to migrate a list, read by them once afterwards. */
+let dcFoldedManualCount=0;
+function dcReportFoldedManuals(){
+  if(!dcFoldedManualCount) return;
+  const n=dcFoldedManualCount; dcFoldedManualCount=0;
+  showToast(dcT('tLegacyAccSplit').replace('{n}',String(n)));
+}
+/* ── An older saved item, read into the current model ───────────────────────
+   Applied on load, once, so that everything downstream — the card, the print
+   sheet, the message, the totals and a re-save — sees one shape. The money is
+   not touched: a bolt-separate item's totalAmount was already the inclusive
+   line, so the customer total it was sent with is the customer total it comes
+   back with.
+
+   A bolt-separate item priced BY HAND needs its typed figure folded up as well.
+   Manual Price used to mean the bolt; it now means the customer's price, so a
+   manual RM30.00 with RM0.70 of nuts becomes a manual RM30.70 — the same line
+   the customer agreed to, expressed in the way the form now reads it. */
+function dcMigrateItemPricing(item){
+  if(!item || !dcItemIsSeparated(item)) return item;
+  const acc=roundMoney2(Number(item.accessoryUnitPrice)||0);
+  const bolt=roundMoney2(Number(item.finalUnitPrice)||0);
+  const line=dcItemFinalUnit(item);
+  const qty=parseInt(item.qty,10)||0;
+  const out={...item, boltUnitPrice:bolt, accessoryUnitPrice:acc,
+             finalUnitPrice:line, lineUnitPrice:line,
+             accessoryTotal:roundMoney2(acc*qty),
+             /* The total it was SAVED with wins: it is the money that was
+                quoted. It is only recomputed when the record never carried
+                one. */
+             totalAmount:isFinite(Number(item.totalAmount))&&Number(item.totalAmount)>0
+                         ? roundMoney2(Number(item.totalAmount)) : roundMoney2(line*qty),
+             pricingModel:DC_PRICING_MODEL};
+  if(acc>0 && String(item.priceMode||(item.formData&&item.formData.priceMode)||'')==='manual'){
+    out.manualUnitPrice=line.toFixed(2);
+    if(item.formData) out.formData={...item.formData, manualUnitPrice:line.toFixed(2)};
+    /* The only part of this migration a person can SEE: the figure in the
+       Manual Price box moves. Counted rather than announced per item, so a
+       twenty-line quotation says it once. */
+    dcFoldedManualCount++;
+  }
+  return out;
+}
 /* One place where a line's money is settled, so the entry form, Quick Add and
-   the plate path cannot come to disagree about what a line costs. */
-function dcLineMoney(boltUnitPrice,acc,qty){
-  const bolt=roundMoney2(Number(boltUnitPrice)||0);
+   the plate path cannot come to disagree about what a line costs. It is handed
+   the CUSTOMER-FACING unit price — resolvePriceMode has already applied the
+   price mode's rule, including the manual one — and separates the bolt back
+   out of it for the record. */
+function dcLineMoney(finalUnitPrice,acc,qty){
   const accUnit=roundMoney2(accAddon(acc));
+  const final=roundMoney2(Number(finalUnitPrice)||0);
+  const bolt=roundMoney2(final-accUnit);
   const n=parseInt(qty,10)||0;
-  return {finalUnitPrice:bolt, accessoryUnitPrice:accUnit,
-          lineUnitPrice:roundMoney2(bolt+accUnit),
+  return {boltUnitPrice:bolt, accessoryUnitPrice:accUnit,
+          finalUnitPrice:final,
+          /* Kept, and kept equal: older code and older records read the line
+             price from here, and under this rule the two are one number. */
+          lineUnitPrice:final,
           accessoryTotal:roundMoney2(accUnit*n),
-          totalAmount:roundMoney2((bolt+accUnit)*n),
+          totalAmount:roundMoney2(final*n),
           pricingModel:DC_PRICING_MODEL};
 }
 function accAddon(acc){
@@ -7758,33 +7871,6 @@ function resolveItemType(item){
     .find(([,label])=>normalized.includes(label.replace(/[-\s]+/g,'')));
   return found ? found[0] : currentType;
 }
-/* ── Editing an item priced before accessories were separated ───────────────
-   A Manual Price used to BE the whole line: it replaced the calculation and
-   nothing was added to it, so an item manually priced at RM30.70 with RM0.70
-   of nuts beside it carried the nuts inside that figure. Re-saving it now
-   would charge the RM0.70 twice, and the customer's line would quietly rise.
-
-   So the manual figure is unfolded once, on the way into the form: the bolt's
-   share goes into the Manual Price box and the accessories are charged beside
-   it, exactly as they are for a new item. The LINE TOTAL is unchanged — that
-   is the number the customer agreed to, and it is the number this preserves.
-
-   Only Manual Price needs it. Auto Round and No Round recompute the bolt price
-   from the cost rate, additional cost and markup that are saved with the item,
-   and the accessory charge that used to be added on top is now added to the
-   line instead: same money, no unfolding required. */
-function dcUnfoldLegacyManualPrice(type,item){
-  if(!item || dcItemIsSeparated(item)) return;                 // already separate
-  const mode=String(item.priceMode || (item.formData&&item.formData.priceMode) || 'auto');
-  if(mode!=='manual') return;
-  const acc=accAddon((item.formData&&item.formData.accessories) || item.accessories);
-  if(!(acc>0)) return;
-  const line=Number(item.finalUnitPrice)||0;
-  const bolt=roundMoney2(line-acc);
-  if(!(bolt>0)) return;             // nothing sensible to unfold; leave it alone
-  setFieldValue(type,'manualUnitPrice',bolt.toFixed(2));
-  showToast(dcT('tLegacyAccSplit').replace('{a}',fmt(acc)).replace('{b}',fmt(bolt)));
-}
 function fillItemFormFromItem(item){
   formRestoreInProgress=true;
   try{ fillItemFormFromItemInner(item); } finally { formRestoreInProgress=false; }
@@ -7851,7 +7937,12 @@ function fillItemFormFromItemInner(item){
   if(hasSavedAddCost) markUserPriced(type,'addCost');
   setFinishValue(type,saved.finish ?? item.finish ?? '');
   loadAccIntoForm(type,saved.accessories || item.accessories);
-  dcUnfoldLegacyManualPrice(type,item);
+  /* Nothing to unfold on the way into the form. Manual Price now MEANS the
+     customer's Final Unit Price, so a legacy item — whose one figure always had
+     its accessories inside it — is already expressed the way this form reads,
+     and a bolt-separate one was folded up on load by dcMigrateItemPricing. The
+     previous rule needed the opposite operation here; taking the accessories
+     back out under this one would quietly cut the customer's price. */
   onPriceModeChange(type);
   if(type==='others') onOthersWeightModeChange();
   if(!hasSavedCostRate || !hasSavedAddCost){
@@ -8626,8 +8717,8 @@ function renderQuote(newIdx){
         <div class="qi-meta">
           ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiUnitWeight'))} <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>${parseInt(item.qty,10)>1?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiTotalPill'))} <strong>${(parseFloat(item.weight)*parseInt(item.qty,10)).toFixed(3)}kg</strong></span>`:``}`:''}
           <span class="qi-meta-pill">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
-          <span class="qi-meta-pill">${escHtml(dcT(dcItemAccUnit(item)>0?'qiBoltPill':'qiUnitPill'))} <strong>${fmt(item.finalUnitPrice)}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
-          ${dcItemAccUnit(item)>0?`<span class="qi-meta-pill qi-acc-pill">${escHtml(dcT('qiAccessories'))} <strong>${fmt(dcItemAccUnit(item))}/pc</strong></span>`:''}
+          <span class="qi-meta-pill">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
+          ${dcItemAccUnit(item)>0?`<span class="qi-meta-pill qi-bolt-pill">${escHtml(dcT('qiBoltPill'))} <strong>${fmt(dcItemBoltUnit(item))}/pc</strong></span><span class="qi-meta-pill qi-acc-pill">${escHtml(dcT('qiAccessories'))} <strong>${fmt(dcItemAccUnit(item))}/pc</strong></span>`:''}
         </div>
         <div class="qi-price-group">
           <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
@@ -8995,14 +9086,12 @@ function buildWAItemsText(emptyText='-'){
     const wasItem=item.itemType==='was';
     const wasDisplay=wasItem?wasDisplayData(item):null;
     const size=wasItem?wasDisplay.abLine:(item.size||'').trim();
-    const price=fmtWAUnitPrice(item.finalUnitPrice);
-    /* The accessory charge is the customer's to see: the bolt's price is the
-       bolt's, and the nuts beside it carry their own figure rather than
-       disappearing into it. A legacy item, whose charge is inside its unit
-       price, keeps the plain note it has always had. */
-    const accUnit=wasItem?0:dcItemAccUnit(item);
-    const cwText=wasItem?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
-    const cw=(accUnit>0&&cwText)?cwText+' - '+fmtWAUnitPrice(accUnit):cwText;
+    /* ONE price reaches the customer, and the accessories are inside it. The
+       message quotes M12 x L 1000 x TL 100/100mm at RM7.76 and then says
+       "cw 2nut" — a description of what is included, with no second RM figure
+       to add up, query or be charged twice for. */
+    const price=fmtWAUnitPrice(wasItem?item.finalUnitPrice:dcItemFinalUnit(item));
+    const cw=wasItem?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
     const wasComp=wasItem?wasDisplay.compLines:'';
     /* Two items are the same LINE only when everything the line shows is the
        same. The custom dimensions are part of what the line shows — the print
@@ -9177,30 +9266,22 @@ window.addEventListener('beforeprint',()=>{
   el('printPreparedBy').textContent=qi.prepby||'-';
   el('printItemsBody').innerHTML=quoteItems.map((item,index)=>{
     const qty=parseInt(item.qty,10)||0;
-    const unit=parseFloat(item.finalUnitPrice)||0;
-    const total=Number.isFinite(Number(item.totalAmount))?Number(item.totalAmount):qty*unit;
-    /* Accessories are their own component, so they are their own row: the
-       bolt's unit price times the quantity is the bolt's line, and the nuts and
-       washers are priced beside it. Quantity x unit price now reconciles on
-       every row, which it could not do while the two were one figure. */
-    const accUnit=dcItemAccUnit(item);
-    const boltTotal=accUnit>0?roundMoney2(unit*qty):total;
-    const accRow=accUnit>0?`<tr class="print-acc-row">
-      <td class="print-col-no"></td>
-      <td>${escHtml(accCWLabel(item.accessories||null)||'Accessories')}</td>
-      <td class="print-item-size"></td>
-      <td class="print-col-qty">${qty}</td>
-      <td class="print-col-money">${formatPrintMoney(accUnit)}</td>
-      <td class="print-col-money">${formatPrintMoney(roundMoney2(accUnit*qty))}</td>
-    </tr>`:'';
+    /* ── ONE priced row per item ────────────────────────────────────────────
+       The Unit Price column is the customer's Final Unit Price, accessories
+       included, and Amount is that price times the quantity — so Qty x Unit
+       reconciles on the row a customer reads, and the accessories appear as
+       wording ("cw 2nut") rather than as a charge of their own. There is no
+       second priced row: the nuts are already in the figure above. */
+    const unit=item.itemType==='was'?(parseFloat(item.finalUnitPrice)||0):dcItemFinalUnit(item);
+    const total=Number.isFinite(Number(item.totalAmount))?Number(item.totalAmount):roundMoney2(qty*unit);
     return `<tr>
       <td class="print-col-no">${index+1}</td>
       <td>${escHtml(getPrintItemDescription(item))}</td>
       <td class="print-item-size">${escHtml(getPrintItemDimension(item))}</td>
       <td class="print-col-qty">${qty}</td>
       <td class="print-col-money">${formatPrintMoney(unit)}${item.itemType==='was'?'/set':''}</td>
-      <td class="print-col-money">${formatPrintMoney(boltTotal)}</td>
-    </tr>${accRow}`;
+      <td class="print-col-money">${formatPrintMoney(total)}</td>
+    </tr>`;
   }).join('');
   const grand=quoteItems.reduce((sum,item)=>sum+(parseFloat(item.totalAmount)||0),0);
   el('printGrandTotal').textContent=formatPrintMoney(grand);
@@ -9233,13 +9314,12 @@ function getPrintItemDescription(item){
 }
 function getPrintItemDimension(item){
   const size=item.itemType==='was'?wasDisplayData(item).size:String(item.size||'');
-  /* An item whose accessories are priced separately names them on their own
-     row, with their own money beside them. Naming them here as well would
-     print the same nuts twice — once as a note, once as a charge. A legacy
-     item, whose accessory charge is inside its unit price and cannot be shown
-     on a row of its own, still carries the note it always did. */
+  /* The accessories are named here, on every item, because this is now the ONLY
+     place the print sheet mentions them: they are inside the Unit Price beside
+     it, so "cw 2nut" is a description of what the customer is getting for that
+     figure and not a charge waiting for a row of its own. */
   const accessories=item.itemType==='was' ? wasCWLabel(item.accessories||null)
-                  : (dcItemAccUnit(item)>0 ? '' : accCWLabel(item.accessories||null));
+                  : accCWLabel(item.accessories||null);
   /* Custom dimensions print with the dimension they annotate, above the
      accessory line. An item with none prints exactly as it did before. */
   return [size,dcCustomDimsPrintLine(item),accessories].filter(Boolean).join('\n');
@@ -9595,7 +9675,8 @@ function checkHandoff(){
      new items would not be a hard rule. Nothing else about the item is touched
      — its stored description, price and weight are the quotation as it was
      sent, and those are not ours to rewrite. */
-  quoteItems=(payload.items||[]).map(i=>({...i,
+  dcFoldedManualCount=0;
+  quoteItems=(payload.items||[]).map(i=>dcMigrateItemPricing({...i,
     sizeType:dcSizeTypeFor(resolveItemType(i||{}),i&&i.sizeType),
     /* Same reasoning as the size type beside it: a stainless item saved before
        the rule existed, or built through a path that did not apply it, comes
@@ -9620,6 +9701,7 @@ function checkHandoff(){
   Object.entries(accByType).forEach(([t,acc])=>{ try{loadAccIntoForm(t,acc);}catch(e){} });
   renderQuote();
   showToast(dcT('tLoadedQuote').replace('{r}',payload.ref_no||''));
+  dcReportFoldedManuals();
   goToStep(3);
   return true;
 }
@@ -16479,9 +16561,18 @@ function wqaHistApplyToRow(r,rec){
     return {ok:true,recipe:true,rate,add,mk,mode};
   }
   /* Priced by hand when it was quoted, or saved before the breakdown was
-     recorded. The figure IS the answer and there is nothing to recalculate. */
+     recorded. The figure IS the answer and there is nothing to recalculate.
+
+     What is reused is the record's BOLT component — that is what the previous
+     price of this rod was, and it is what boltUnitPrice has always meant on
+     both sides of the wire. Manual Price now means the CUSTOMER'S price, so
+     this row's own accessories are added to it: the bolt ends up exactly at the
+     record's bolt, which is the reuse this button has always performed, and the
+     customer's figure comes out inclusive like every other one on the screen.
+     A row with no accessories — which is nearly all of them — is unchanged. */
+  const rowAcc=roundMoney2(accAddon(r.acc));
   r.priceMode='manual';
-  r.manualPrice=String(bolt);
+  r.manualPrice=String(roundMoney2(bolt+rowAcc));
   r.usedHistoryRef=rec.refNo||'';
   r.usedHistoryRecipe=false;
   return {ok:true,recipe:false,bolt,mode};

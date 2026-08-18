@@ -244,23 +244,44 @@ function dc_history_record($item, $want, $meta) {
     $aCost = dc_acc_cost($acc);
     $hasAcc = dc_acc_has($acc);
 
-    /* Accessories are a separate component and a bolt's price is the bolt's.
+    /* ── What was the BOLT, and what did the customer pay? ──────────────────
+       Two different questions, and this is the one place that answers both for
+       every vintage of saved item. The screen shows the customer's line; the
+       reuse button reuses the BOLT — so mistaking one for the other would quote
+       a rod at the price of a rod plus its nuts, every time it were reused.
 
-       An item saved once the two were separated says so, and says both figures:
-       finalUnitPrice IS the bolt, accessoryUnitPrice IS the accessories, and
-       nothing has to be worked out.
+       accessory-inclusive
+           The current rule. finalUnitPrice IS what the customer paid, with the
+           accessories inside it, and boltUnitPrice is the component. Both are
+           saved, so nothing is worked out; a record written before that field
+           existed has the bolt derived by subtraction, which is exact because
+           the accessory figure beside it is exact.
 
-       Older rows carry one number with the accessory charge inside it. Where
-       such a row records how it was priced the two can still be told apart:
-       Auto Round and No Round added the accessory charge on top of the
-       calculated price, Manual Price replaced it and added nothing. Where the
-       row does not say, the separation is NOT invented — the record is
-       returned as it stands, marked ambiguous, and the screen says so. */
-    $separated = (string)($item['pricingModel'] ?? '') === 'bolt-separate';
-    if ($separated) {
+       bolt-separate
+           finalUnitPrice was the BOLT and the accessories were charged beside
+           it, so the customer's line is the two added together.
+
+       legacy — no model recorded
+           One number with the charge already inside it. Where such a row
+           records HOW it was priced the two can still be told apart: Auto Round
+           and No Round added the accessory charge on top of the calculated
+           price, Manual Price replaced it and added nothing. Where the row does
+           not say, the separation is NOT invented — the record is returned as
+           it stands, marked ambiguous, and the screen says so. */
+    $model = (string)($item['pricingModel'] ?? '');
+    if ($model === 'accessory-inclusive') {
+        $ambiguous = false;
+        $aCost     = round((float)($item['accessoryUnitPrice'] ?? 0), 4);
+        $bolt      = isset($item['boltUnitPrice']) && $item['boltUnitPrice'] !== ''
+                   ? round((float)$item['boltUnitPrice'], 4)
+                   : round($unit - $aCost, 4);
+        $line      = $unit;                        // the saved figure IS the line
+        $hasAcc    = $hasAcc || $aCost > 0;
+    } elseif ($model === 'bolt-separate') {
         $ambiguous = false;
         $bolt      = $unit;                                   // already the bolt's own
         $aCost     = round((float)($item['accessoryUnitPrice'] ?? 0), 4);
+        $line      = round($unit + $aCost, 4);
         $hasAcc    = $hasAcc || $aCost > 0;
     } else {
         $ambiguous = $hasAcc && $mode === '';
@@ -268,6 +289,7 @@ function dc_history_record($item, $want, $meta) {
         elseif  ($mode === 'manual') $bolt = $unit;
         elseif  ($mode !== '')       $bolt = round($unit - $aCost, 4);
         else                         $bolt = null;
+        $line = $unit;                             // the saved figure already WAS the line
     }
 
     $num = function ($v) { return ($v === null || $v === '') ? null : (float)$v; };
@@ -303,10 +325,10 @@ function dc_history_record($item, $want, $meta) {
         'dimDistance'  => $dist,
         'qty'          => (int)($item['qty'] ?? 0),
         'unitPrice'    => $unit,
-        /* What the customer's line actually came to. For a record saved once
-           the two were separated that is the bolt plus its accessories; for an
-           older one the saved figure already WAS the line. */
-        'lineUnitPrice' => $separated ? round($unit + $aCost, 4) : $unit,
+        /* What the customer's line actually came to, settled above per vintage:
+           inclusive and legacy records saved it directly, a bolt-separate one
+           is the bolt plus its accessories. */
+        'lineUnitPrice' => $line,
         'boltUnitPrice' => $bolt,
         'accessoryCost' => $aCost,
         'accessorySummary' => $hasAcc ? dc_acc_summary($acc) : '',

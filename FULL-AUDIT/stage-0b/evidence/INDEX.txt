@@ -1,0 +1,21 @@
+STAGE 0B — ACCESSORY-INCLUSIVE FINAL UNIT PRICE · EVIDENCE
+
+MS UNDERSIZE SAG ROD HDG · M12 x L1000 x TL100/100 · Qty 10
+  rod           RM  5.76
+  2 HDG nuts    RM  2.00
+  ------------------------
+  FINAL UNIT    RM  7.76      line total RM 77.60
+
+Every figure below was asserted by the capture script before its frame was
+written; the run fails if any of them moves.
+
+  01  01-calculator-no-accessories.png
+  02  02-calculator-inclusive-7.76.png
+  03  03-calculator-full-panel.png
+  04  04-calculator-chinese.png
+  05  05-quotation-item-card.png
+  06  06-whatsapp-copied-text.png
+  07  07-print-preview.png
+  08  08-saved-reopened.png
+  09  09-bolt-separate-reopened.png
+  10  10-bolt-separate-resaved.png

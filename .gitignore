@@ -11,6 +11,10 @@ error_log
 # these file by file, and a report must never claim a file the package does not
 # contain — so they are tracked, and they ship inside the archive.
 !FULL-AUDIT/regression-evidence/*.log
+# …and a stage's own run logs, for the same reason: the stage report and
+# its package manifest both name these figures, so the runs that produced
+# them travel with the commit that claims them.
+!FULL-AUDIT/stage-*/logs/*.log
 
 # ── Regenerable test output ─────────────────────────────────────────────────
 # Where tests/screenshots.js, tests/layout-shots.js and tests/extraction-shots.js

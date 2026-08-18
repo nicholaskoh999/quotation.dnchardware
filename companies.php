@@ -1576,7 +1576,7 @@ function renderCompanyQuoteCard(q){
   const previewItems = items.slice(0,2);
   const moreCount = items.length - previewItems.length;
   const previewHtml = previewItems.map(it=>`
-    <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}${esc(dcAccNote(it))}</span></div>
+    <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${dcItemFinalUnit(it).toFixed(2)}${esc(dcAccNote(it))}</span></div>
   `).join('') + (moreCount>0 ? `<div class="item-more">${esc(dcT('cpMoreItems').replace('{n}',moreCount))}</div>` : '');
 
   return `
@@ -1638,7 +1638,7 @@ async function selectCompany(id){
     const previewItems = items.slice(0,2);
     const moreCount = items.length - previewItems.length;
     const previewHtml = previewItems.map(it=>`
-      <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${parseFloat(it.finalUnitPrice||0).toFixed(2)}${esc(dcAccNote(it))}</span></div>
+      <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${dcItemFinalUnit(it).toFixed(2)}${esc(dcAccNote(it))}</span></div>
     `).join('') + (moreCount>0 ? `<div class="item-more">${esc(dcT('cpMoreItems').replace('{n}',moreCount))}</div>` : '');
 
     return `
@@ -1773,7 +1773,7 @@ async function viewQuote(id){
       <span>${esc(i.size)}</span>
     </div>
     <div class="q-detail-item" style="background:var(--surface2);padding:4px 8px;border-radius:var(--r-xs);font-size:12px">
-      <span style="color:var(--text-muted)">${esc(dcT('cpQtyCaps'))} ${parseInt(i.qty,10)||0} × RM ${parseFloat(i.finalUnitPrice||0).toFixed(2)}${esc(dcAccNote(i))}</span>
+      <span style="color:var(--text-muted)">${esc(dcT('cpQtyCaps'))} ${parseInt(i.qty,10)||0} × RM ${dcItemFinalUnit(i).toFixed(2)}${esc(dcAccNote(i))}</span>
       <span style="font-weight:700;color:var(--green)">RM ${parseFloat(i.totalAmount||0).toFixed(2)}</span>
     </div>
   `).join('');
@@ -1858,17 +1858,38 @@ function safeClassToken(s){return String(s||'').replace(/[^a-zA-Z0-9_-]/g,'')}
 
    It is a DISPLAY rewrite only: nothing is saved, no stored value is changed,
    and no price, size or weight is touched. */
-/* ── An item's own price, and the accessories charged beside it ─────────────
-   The same rule index.php prices by: the item's unit price is the item's, and
-   an accessory is a separate charge on the line. An item saved before the two
-   were separated carries one figure with the accessory charge already inside
-   it, and is shown exactly as it was written. */
+/* ── An item's price, and what is inside it ─────────────────────────────────
+   The same rule index.php prices by: everything bolted to an item is INSIDE its
+   final unit price, and the accessory figure is a breakdown of that price
+   rather than a charge beside it. These screens print "QTY 10 × RM 7.76", so
+   they have to reach the same RM 7.76 index.php does — for all three vintages
+   of saved item, which say it in three different ways:
+
+     accessory-inclusive   finalUnitPrice IS the customer's price.
+     bolt-separate         finalUnitPrice was the BOLT; lineUnitPrice was the
+                           customer's price. Read the line.
+     legacy (no model)     one figure, the charge already inside it — which is
+                           what this rule asks for, so it is read as written,
+                           and its accessory share stays unknowable.          */
+function dcItemPricingModel(item){ return String((item&&item.pricingModel)||''); }
 function dcItemAccUnit(item){
-  return (item && item.pricingModel==='bolt-separate') ? (Number(item.accessoryUnitPrice)||0) : 0;
+  const m=dcItemPricingModel(item);
+  return (m==='accessory-inclusive'||m==='bolt-separate') ? (Number(item.accessoryUnitPrice)||0) : 0;
 }
+function dcItemFinalUnit(item){
+  if(!item) return 0;
+  if(dcItemPricingModel(item)==='bolt-separate'){
+    const line=Number(item.lineUnitPrice);
+    return (isFinite(line)&&line>0) ? line
+         : (Number(item.finalUnitPrice)||0)+(Number(item.accessoryUnitPrice)||0);
+  }
+  return Number(item.finalUnitPrice)||0;
+}
+/* Named as what it IS — part of the figure printed beside it — so nobody adds
+   it on a second time. */
 function dcAccNote(item){
   const a=dcItemAccUnit(item);
-  return a>0 ? ` + RM${a.toFixed(2)} accessories` : '';
+  return a>0 ? ` (incl. RM${a.toFixed(2)} accessories)` : '';
 }
 function displayItemDesc(item){
   const desc=String(item&&item.desc?item.desc:'');

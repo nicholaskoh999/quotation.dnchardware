@@ -185,11 +185,15 @@ module.exports = async (browser, A) => {
   A.ok(shown.filter(x => x.sect === 'References').every(x => !x.canUse),
     'and no record filed as a reference does');
 
-  // ── 7 · the bolt price is the bolt's, accessories beside it ──────────────
+  // ── 7 · the bolt price, and the accessories on the same line ─────────────
+  /* Stage 0B: what a reused record reproduces is the BOLT, so that is the figure
+     the panel leads with — but the accessories are no longer a separate charge
+     to the customer, and the wording no longer says they were. */
   const panelText = await page.evaluate(() =>
     (document.querySelector('[data-wqa-row="0"] .ph-scroll') || {}).textContent || '');
   A.includes(panelText, 'Bolt Unit Price', 'the panel reports a bolt price');
-  A.includes(panelText, 'Accessories, separately', 'with the accessories stated apart from it');
+  A.includes(panelText, 'Accessories on that line', 'and names the accessories that were on the same line');
+  A.excludes(panelText, 'Accessories, separately', 'rather than calling them a separate charge');
   A.includes(panelText, 'RM 0.70', 'and what they came to');
   A.includes(panelText, 'quotation line was RM 12.70', 'beside the line the customer received');
   A.includes(panelText, 'Accessories not separable',
@@ -321,7 +325,7 @@ module.exports = async (browser, A) => {
   A.includes(formPanel.text, 'Bolt Unit Price', 'and rendering the same fields');
   A.includes(formPanel.text, 'Not recorded', 'with the same wording for what was never recorded');
   A.includes(formPanel.text, 'Legacy / Unknown', 'and the same wording for an unrecorded price mode');
-  A.includes(formPanel.text, 'Accessories, separately', 'with accessories apart from the bolt price here too');
+  A.includes(formPanel.text, 'Accessories on that line', 'and the same accessory wording here too');
 
   /* Same item, same identity, same records — one lookup, one set of matching
      rules, two screens. */

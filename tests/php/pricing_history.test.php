@@ -134,6 +134,13 @@ $none = dc_history_record(item(['accessories'=>null]), $WANT, $M);
 eq($none['boltUnitPrice'], 30.0, 'a bolt with no accessories is its own price');
 eq($none['accessoryCost'], 0.0, 'with nothing beside it');
 eq($none['accessorySummary'], '', 'and no wording');
+eq($none['lineUnitPrice'], 30.0, 'and its line is that same figure, whichever rule it was saved under');
+
+/* A legacy record's single figure already WAS the customer's line, which is
+   what the current rule asks for — so it needs no adjustment, and its
+   accessory share stays unknowable rather than being guessed at. */
+eq($ambiguous['lineUnitPrice'], 30.70,
+   'a legacy record\'s line is the figure it was saved with, accessories already inside it');
 
 // ── a legacy item, read from its description ────────────────────────────────
 $legacy = dc_history_record([
@@ -220,14 +227,44 @@ eq(implode(',', array_map(function ($r) { return $r['refNo']; }, $ranked)),
      '      history of the customer being quoted',
    ]));
 
-// ── an accessory charge that was recorded separately needs no working out ──
+// ── three vintages of saved item, and one answer each ─────────────────────
+/* Stage 0B. The customer is quoted ONE inclusive figure and the bolt component
+   is kept beside it — so the screen can show what the line came to while the
+   reuse button reuses the bolt. A record that confused the two would quote a
+   rod at the price of a rod plus somebody else's nuts, and would do it again,
+   larger, every time it were reused. */
+
+// the current rule: finalUnitPrice IS the customer's price, boltUnitPrice beside it
+$inc = dc_history_record(item(['accessories'=>$withAcc,'finalUnitPrice'=>30.70,
+                               'boltUnitPrice'=>30.00,'accessoryUnitPrice'=>0.70,
+                               'pricingModel'=>'accessory-inclusive',
+                               'lineUnitPrice'=>30.70,'priceMode'=>'auto']), $WANT, $M);
+eq($inc['boltUnitPrice'], 30.0, 'an inclusive record reports the bolt component as it was saved');
+eq($inc['accessoryCost'], 0.7, 'and the accessory total as it was saved');
+eq($inc['lineUnitPrice'], 30.70, 'its line IS its saved figure — RM30.70 is what the customer paid');
+eq($inc['unitPrice'], 30.70, 'and the unit price it reports is that same inclusive figure');
+eq($inc['accessoryAmbiguous'], false, 'with nothing left ambiguous');
+eq($inc['accessorySummary'], '2 Nut PL + 1 FW PL', 'and the wording is shown');
+
+// an inclusive record written before boltUnitPrice was stored: derived, exactly
+$incOld = dc_history_record(item(['accessories'=>$withAcc,'finalUnitPrice'=>30.70,
+                                  'accessoryUnitPrice'=>0.70,
+                                  'pricingModel'=>'accessory-inclusive',
+                                  'priceMode'=>'auto']), $WANT, $M);
+eq($incOld['boltUnitPrice'], 30.0,
+   'without a stored bolt component it is derived by subtraction, which is exact because the accessory figure beside it is');
+eq($incOld['lineUnitPrice'], 30.70, 'and its line is still the figure it was saved with');
+
+// the superseded rule: finalUnitPrice was the BOLT, the line was the two added
 $sep = dc_history_record(item(['accessories'=>$withAcc,'finalUnitPrice'=>30.00,
                                'accessoryUnitPrice'=>0.70,'pricingModel'=>'bolt-separate',
                                'lineUnitPrice'=>30.70,'priceMode'=>'auto']), $WANT, $M);
-eq($sep['boltUnitPrice'], 30.0, 'a separated record reports the bolt price as it was saved');
+eq($sep['boltUnitPrice'], 30.0, 'a bolt-separate record reports the bolt price as it was saved');
 eq($sep['accessoryCost'], 0.7, 'and the accessory charge as it was saved');
 eq($sep['accessoryAmbiguous'], false, 'with nothing left ambiguous');
-eq($sep['unitPrice'], 30.0, 'the bolt price IS the item price now — accessories are not inside it');
+eq($sep['lineUnitPrice'], 30.70,
+   'its LINE is the bolt plus its accessories — the RM30.70 the customer was actually charged');
+eq($sep['unitPrice'], 30.0, 'while the figure it stored under finalUnitPrice was the bolt, and is reported as that');
 
 // ── how the price was arrived at, in the words the screen uses ─────────────
 eq(dc_history_record(item(['priceMode'=>'auto']), $WANT, $M)['priceModeLabel'], 'Auto Round', 'auto round is named');

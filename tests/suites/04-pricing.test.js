@@ -220,7 +220,11 @@ module.exports = async (browser, A) => {
   A.includes(tl, '120.5=1', 'and 120.5 is in the upper one, not in a hole between them');
   A.includes(tl, '121=1', '121 too');
 
-  // ── Accessories are charged, and charged BESIDE the item's own price ─────
+  // ── Accessories are charged, and charged INSIDE the item's final price ───
+  /* Stage 0B superseded the rule this block used to assert. The money is the
+     same — two nuts at RM1.50 are still RM3.00 — but the customer is quoted one
+     figure with them in it, and the plate's own component is kept beside it as
+     internal breakdown rather than shown as the price. */
   const plate = await page.evaluate(() => {
     quoteItems.length = 0;
     switchType('plate');
@@ -243,22 +247,25 @@ module.exports = async (browser, A) => {
     addPlate();
     const it = quoteItems[0] || {};
     return { withoutAcc, withAcc: state.finalUnitPrice, line: state.lineUnitPrice,
-             addon: accAddon(getAccessories('plate')),
+             bolt: state.boltUnitPrice, addon: accAddon(getAccessories('plate')),
              item: { unit: it.finalUnitPrice, acc: it.accessoryUnitPrice,
-                     lineUnit: it.lineUnitPrice, total: it.totalAmount,
-                     model: it.pricingModel, qty: it.qty } };
+                     bolt: it.boltUnitPrice, lineUnit: it.lineUnitPrice,
+                     total: it.totalAmount, model: it.pricingModel, qty: it.qty } };
   });
   A.eq(plate.addon, '3', 'two nuts at RM1.50 is RM3.00 of accessories');
-  A.near(Number(plate.withAcc), Number(plate.withoutAcc), 0.001,
-    'selecting them does NOT change the plate\'s own unit price — a bolt price is the bolt\'s');
-  A.near(Number(plate.line) - Number(plate.withoutAcc), 3, 0.001,
-    'while the line price says what the customer is charged for the pair together');
-  A.near(plate.item.unit, plate.withoutAcc, 0.001, 'the saved item keeps the item\'s own price');
-  A.eq(plate.item.acc, '3', 'and records the accessory charge as its own figure');
-  A.near(plate.item.lineUnit, Number(plate.withoutAcc) + 3, 0.001, 'with the line price beside it');
+  A.near(Number(plate.withAcc) - Number(plate.withoutAcc), 3, 0.001,
+    'selecting them raises the plate\'s Final Unit Price by exactly their RM3.00 — the customer pays one figure');
+  A.near(Number(plate.bolt), Number(plate.withoutAcc), 0.001,
+    'while the plate\'s own component is unchanged underneath, which is what history compares');
+  A.near(Number(plate.line), Number(plate.withAcc), 0.001,
+    'the line unit price is that same inclusive figure, not a second one');
+  A.near(plate.item.unit, Number(plate.withoutAcc) + 3, 0.001, 'the saved item keeps the inclusive price');
+  A.eq(plate.item.acc, '3', 'and records the accessory total as its own breakdown figure');
+  A.near(plate.item.bolt, plate.withoutAcc, 0.001, 'with the plate component preserved beside it');
+  A.near(plate.item.lineUnit, Number(plate.withoutAcc) + 3, 0.001, 'lineUnitPrice agreeing with finalUnitPrice');
   A.near(plate.item.total, (Number(plate.withoutAcc) + 3) * 4, 0.001,
-    'and the line total still charges for both — separating them does not make them free');
-  A.eq(plate.item.model, 'bolt-separate', 'the item records which pricing model produced it');
+    'and the line total is that inclusive price times four — the same money as before, presented as one charge');
+  A.eq(plate.item.model, 'accessory-inclusive', 'the item records which pricing model produced it');
 
   A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
   await page.close();

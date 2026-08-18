@@ -1,0 +1,78 @@
+{
+  "bare": {
+    "bolt": 5.76,
+    "acc": 0,
+    "final": 5.76,
+    "shownFinal": "RM 5.76",
+    "shownAcc": "—",
+    "shownNote": "Includes accessories: RM 0.00",
+    "noteHidden": true,
+    "headline": "Final Unit Price"
+  },
+  "withNut": {
+    "bolt": 5.76,
+    "acc": 2,
+    "final": 7.76,
+    "shownFinal": "RM 7.76",
+    "shownAcc": "RM 2.00",
+    "shownNote": "Includes accessories: RM 2.00",
+    "noteHidden": false,
+    "headline": "Final Unit Price"
+  },
+  "zh": {
+    "note": "已含配件：RM 2.00",
+    "headline": "最终单价",
+    "final": "RM 7.76"
+  },
+  "item": {
+    "bolt": 5.76,
+    "acc": 2,
+    "final": 7.76,
+    "line": 7.76,
+    "accTotal": 20,
+    "total": 77.6,
+    "qty": 10,
+    "model": "accessory-inclusive",
+    "card": "\n      \n        \n          1\n          \n            MS UNDERSIZE SAG ROD HDG\n            M12 x L 1000 x TL 100/100mmcw 2nut\n          \n        \n        EditDelete\n      \n      \n        \n          Unit Weight 0.693kg/pcTotal 6.927kg\n          Qty 10\n          Unit RM 7.76 ⭐ +20% \n          Bolt RM 5.76/pcAccessories RM 2.00/pc\n        \n        \n          Total\n          RM 77.60\n        \n      "
+  },
+  "wa": "MS UNDERSIZE SAG ROD (HDG)\n1. M12 x L 1000 x TL 100/100mm - RM7.76\ncw 2nut",
+  "printed": {
+    "rows": [
+      [
+        "1",
+        "MS UNDERSIZE SAG ROD (HDG)",
+        "M12 x L 1000 x TL 100/100mm\ncw 2nut",
+        "10",
+        "RM 7.76",
+        "RM 77.60"
+      ]
+    ],
+    "grand": "RM 77.60"
+  },
+  "reopened": {
+    "bolt": 5.76,
+    "acc": 2,
+    "final": 7.76,
+    "total": 77.6,
+    "model": "accessory-inclusive",
+    "card": "\n      \n        \n          1\n          \n            MS UNDERSIZE SAG ROD HDG\n            M12 x L 1000 x TL 100/100mmcw 2nut\n          \n        \n        \n      \n      \n        \n          Unit Weight 0.693kg/pcTotal 6.927kg\n          Qty 10\n          Unit RM 7.76 ⭐ +20% \n          Bolt RM 5.76/pcAccessories RM 2.00/pc\n        \n        \n          Total\n          RM 77.60\n        \n      "
+  },
+  "migrated": {
+    "bolt": 30,
+    "acc": 0.7,
+    "final": 30.7,
+    "total": 307,
+    "model": "accessory-inclusive",
+    "manual": "30.70",
+    "card": "\n      \n        \n          1\n          \n            MS FULLSIZE SAG ROD PL\n            M20 x L 1000 x TL 100/100mmcw 2nut & 1fw\n          \n        \n        \n      \n      \n        \n          Unit Weight 2.466kg/pcTotal 24.662kg\n          Qty 10\n          Unit RM 30.70  Manual Price\n          Bolt RM 30.00/pcAccessories RM 0.70/pc\n        \n        \n          Total\n          RM 307.00\n        \n      "
+  },
+  "resaved": {
+    "boxValue": "30.70",
+    "count": 1,
+    "bolt": 30,
+    "acc": 0.7,
+    "final": 30.7,
+    "total": 307,
+    "card": "\n      \n        \n          1\n          \n            MS FULLSIZE SAG ROD PL\n            M20 x L 1000 x TL 100/100mmcw 2nut & 1fw\n          \n        \n        EditDelete\n      \n      \n        \n          Unit Weight 2.466kg/pcTotal 24.662kg\n          Qty 10\n          Unit RM 30.70  Manual Price\n          Bolt RM 30.00/pcAccessories RM 0.70/pc\n        \n        \n          Total\n          RM 307.00\n        \n      "
+  }
+}

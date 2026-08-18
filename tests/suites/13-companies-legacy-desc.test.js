@@ -100,21 +100,48 @@ module.exports = async (browser, A) => {
   A.includes(api, "'material'        => (string)($it['material'] ?? '')",
     'and the item search returns the material the rule needs');
 
-  /* ── An item's price is the item's here too ──────────────────────────────
-     The company screens print "QTY 10 × RM 12.00" beside a line total. Once
-     the accessory charge left the unit price, those two figures stopped
-     reconciling on any item that has accessories — unless the accessories are
-     named here as well. */
+  /* ── One customer price, read the same way on both screens ───────────────
+     The company screens print "QTY 10 × RM 30.70" beside a line total, and that
+     RM30.70 has to be the same figure index.php shows for the same item. Stage
+     0B made the customer's price inclusive, and the three vintages of saved
+     item say it in three different ways — so the reader here has to know all
+     three, or a bolt-separate quotation would read RM30.00 on one screen and
+     RM30.70 on the other for the same line. */
   const accSplit = extract('companies.php', 'dcItemAccUnit');
   A.ok(!!accSplit, 'the company screens know what an accessory charge is');
-  const accRun = run(accSplit, 'dcItemAccUnit');
+  const modelFn = extract('companies.php', 'dcItemPricingModel');
+  A.ok(!!modelFn, 'and which pricing model an item was saved under');
+  const accRun = run(modelFn + '\n' + accSplit, 'dcItemAccUnit');
+  A.eq(accRun({ pricingModel: 'accessory-inclusive', accessoryUnitPrice: 0.7 }), 0.7,
+    'an item saved under the current rule reports the accessories inside its price');
   A.eq(accRun({ pricingModel: 'bolt-separate', accessoryUnitPrice: 0.7 }), 0.7,
-    'a separately-priced item reports its accessory charge');
+    'one saved under the superseded rule still reports the figure it recorded');
   A.eq(accRun({ accessoryUnitPrice: 0.7 }), 0,
-    'while an item saved before the separation reports none — its charge is inside its unit price and cannot be told apart');
+    'while a legacy item reports none — its charge is inside its one figure and cannot be told apart');
   A.eq(accRun({}), 0, 'and an item with no accessories reports nothing');
+
+  const finalFn = extract('companies.php', 'dcItemFinalUnit');
+  A.ok(!!finalFn, 'the company screens can state what the customer pays for one piece');
+  const finalRun = run(modelFn + '\n' + finalFn, 'dcItemFinalUnit');
+  A.eq(finalRun({ pricingModel: 'accessory-inclusive', finalUnitPrice: 30.7,
+                  boltUnitPrice: 30, accessoryUnitPrice: 0.7 }), 30.7,
+    'an inclusive item is read as written — RM30.70');
+  A.eq(finalRun({ pricingModel: 'bolt-separate', finalUnitPrice: 30,
+                  accessoryUnitPrice: 0.7, lineUnitPrice: 30.7 }), 30.7,
+    'a bolt-separate one is read from its LINE, so it shows the RM30.70 the customer was charged and not the RM30.00 rod');
+  A.eq(finalRun({ pricingModel: 'bolt-separate', finalUnitPrice: 30, accessoryUnitPrice: 0.7 }), 30.7,
+    'and is reconstructed from bolt plus accessories where no line was recorded');
+  A.eq(finalRun({ finalUnitPrice: 30.7 }), 30.7,
+    'a legacy item\'s single figure already IS the customer price');
+  A.eq((html.match(/dcItemFinalUnit\(/g) || []).length, 4,
+    'all three places that print a unit price on the company screens use it — plus the function itself');
   A.eq((html.match(/esc\(dcAccNote\(/g) || []).length, 3,
-    'all three places that print a unit price on the company screens say what is charged beside it');
+    'and all three say what of that price is accessories');
+  A.excludes(html, 'accessories`', 'the note no longer reads as a charge added beside the figure');
+  const noteRun = run(modelFn + '\n' + accSplit + '\n' + extract('companies.php', 'dcAccNote'), 'dcAccNote');
+  A.includes(noteRun({ pricingModel: 'accessory-inclusive', accessoryUnitPrice: 0.7 }), 'incl.',
+    'it says the accessories are INCLUDED in the price beside it, so nobody adds them a second time');
+  A.eq(noteRun({}), '', 'and says nothing at all when there are none');
 
   return S;
 };
