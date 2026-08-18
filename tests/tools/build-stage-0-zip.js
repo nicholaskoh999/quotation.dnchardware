@@ -1,10 +1,11 @@
-/* ── ONE archive for Stage 0, and nothing that is not Stage 0 ───────────────
+/* ── ONE archive for Stage 0, accepted, and nothing that is not Stage 0 ─────
    Nicholas asked for a single package covering this stage only:
 
        /docs/control/  the four control files, as they now stand
        /SOURCE/        the application files this stage changed, and the tests
                        that prove them
-       /REPORTS/       Stage 0A's acceptance record and Stage 0B's report
+       /REPORTS/       Stage 0A's acceptance record, Stage 0B's report, and
+                       the test results the logs reconcile to
        /EVIDENCE/      the accessory frames, and the facts each one asserts
        /LOGS/          the runs, as they were produced
        /MANIFEST/      inventory, full SHA-256, build metadata
@@ -33,7 +34,7 @@ const gitText = (...a) => git(...a).toString('utf8').trim();
 const sha256 = b => crypto.createHash('sha256').update(b).digest('hex');
 const blob = p => git('show', 'HEAD:' + p);
 
-const NAME = 'QUOTATION-DNC-STAGE-0-FINAL';
+const NAME = 'QUOTATION-DNC-STAGE-0-FINAL-ACCEPTED';
 const HEAD = gitText('rev-parse', 'HEAD');
 const APP_SHA = require('./authoritative').APP_SHA;      // the ACCEPTED commit
 
@@ -85,8 +86,10 @@ const SOURCE = [
   'tests/tools/build-stage-0-zip.js',
 ];
 
+/* TEST-RESULTS.md travels because its per-suite listing is what the LOGS in
+   this archive reconcile against — a reviewer can add the column up. */
 const REPORTS = ['FULL-AUDIT/STAGE-0.md', 'FULL-AUDIT/UI-POLISH-2.md',
-                 'FULL-AUDIT/COMMIT-INFO.txt'];
+                 'FULL-AUDIT/TEST-RESULTS.md', 'FULL-AUDIT/COMMIT-INFO.txt'];
 
 const EVIDENCE_DIR = 'FULL-AUDIT/stage-0b/evidence';
 const evidence = [...tracked].filter(p => p.startsWith(EVIDENCE_DIR + '/')).sort();
@@ -134,15 +137,22 @@ const rule = c => c.repeat(76);
 const pad = (s, n) => String(s).padEnd(n);
 
 const man = [
-  'QUOTATION.DNC — STAGE 0 PACKAGE', rule('='), '',
-  'ONE archive, covering Stage 0 and nothing else.', '',
+  'QUOTATION.DNC — STAGE 0 PACKAGE · ACCEPTED', rule('='), '',
+  'ONE archive, covering Stage 0 and nothing else. Both sub-stages are',
+  'ACCEPTED and the application commit below is canonical.', '',
   '  STAGE 0A   UI POLISH 2 accepted, and the bookkeeping that records it.',
   '  STAGE 0B   Accessories are inside the customer\'s Final Unit Price.',
-  '             A CANDIDATE. Not accepted, not canonical, not deployed.', '',
+  '             ACCEPTED. The rule is now written into PROJECT-GUARDRAILS',
+  '             under ACCESSORIES and is protected from here.', '',
   `ACCEPTED APPLICATION ${APP_SHA}`,
   `                     "${gitText('log', '-1', '--format=%s', APP_SHA)}"`,
-  '                     UI POLISH 2, accepted in Stage 0A. docs/control/',
+  '                     STAGE 0B, accepted. The last commit that changed an',
+  '                     application file, and the tree every figure in this',
+  '                     package was measured on. docs/control/',
   '                     CANONICAL-STATE is the authority for it.',
+  '                     Superseded by it, and never to be quoted as current:',
+  '                     33ae0da (UI POLISH 2), e3d659b (UI POLISH 1),',
+  '                     7f5bc97 (before that).',
   ...(CAND ? [
   `CANDIDATE APPLICATION ${CAND}`,
   `                     "${gitText('log', '-1', '--format=%s', CAND)}"`,
@@ -153,7 +163,10 @@ const man = [
   '                     The accepted commit above does not become this one',
   '                     until Nicholas accepts the stage.',
   ] : [
-  'CANDIDATE APPLICATION none declared.',
+  'CANDIDATE APPLICATION none declared. The candidate-files block in',
+  '                     ROUND-SCOPE.md is empty, which is the strictest state',
+  '                     that control has: nothing may differ from the accepted',
+  '                     commit, and any drift fails.',
   ]),
   `PACKAGE / HEAD       ${HEAD}`,
   `                     "${gitText('log', '-1', '--format=%s')}"`,
@@ -161,7 +174,8 @@ const man = [
   `BRANCH               ${gitText('rev-parse', '--abbrev-ref', 'HEAD')}`,
   `BUILT                ${gitText('log', '-1', '--format=%cI')}`,
   '',
-  'DEPLOY               NO. Nothing has been deployed.',
+  'DEPLOY               NO. Accepted is not deployed. Nothing has been',
+  '                     deployed, and only Nicholas may approve that.',
   '',
   'METHOD               every source, report and evidence file read with',
   '                     git show HEAD:<path>, so nothing uncommitted and',
@@ -183,7 +197,8 @@ const man = [
   `  /SOURCE/       ${pad(SOURCE.length + ' files', 10)} the three application files this stage changed,`,
   '                 and the tests and tools that prove them',
   `  /REPORTS/      ${pad(REPORTS.length + ' files', 10)} the Stage 0 report, the UI POLISH 2 acceptance`,
-  '                 record, and the generated commit facts',
+  '                 record, the test results the LOGS reconcile to, and the',
+  '                 generated commit facts',
   `  /EVIDENCE/     ${pad((evidence.length + 1) + ' files', 10)} the accessory frames and the facts each asserts`,
   `  /LOGS/         ${pad(logsPresent.length + ' files', 10)} the runs, as they were produced`,
   '  /MANIFEST/     this file',
