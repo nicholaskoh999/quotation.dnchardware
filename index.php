@@ -1679,9 +1679,15 @@ input,select,textarea{
 .wqa-msg-warn{background:var(--amber-light);color:var(--amber);border-color:var(--amber-mid)}
 .wqa-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:14px}
 .wqa-actions .btn{min-width:132px}
-.wqa-common{padding:12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);margin-bottom:12px}
+.wqa-common{padding:11px 12px;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface2);margin-bottom:var(--wqa-s3)}
 .wqa-common-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.wqa-rows-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;
+/* Three different things live on this bar, and they used to look alike: what
+   the list IS (count, selection, AI), what you can DO (edit the message) and
+   how you LOOK at it (Compact / Expanded). The count leads, the status sits
+   quietly beside it, and the view control is labelled as one. */
+.wqa-rows-head{display:flex;align-items:center;gap:var(--wqa-s2);
+  margin:0 0 var(--wqa-s2);
   font-size:12.5px;font-weight:800;color:var(--text-2);flex-wrap:wrap}
 /* On a phone the same bar can carry four things — the count, the AI badge, the
    view toggle and Back to upload — and the toggle was the one being squeezed to
@@ -1690,7 +1696,7 @@ input,select,textarea{
 .wqa-rows-head>span:first-child{flex:1 1 auto;min-width:0}
 /* the table surface itself */
 .wqa-rows{display:flex;flex-direction:column;gap:0;min-width:0;
-  border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface);overflow:hidden}
+  border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);overflow:hidden}
 .wqa-rows.has-head{border-top:0;border-radius:0 0 var(--r-sm) var(--r-sm)}
 .wqa-row{border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 12px;background:var(--surface)}
 .wqa-row-block{background:var(--amber-light)}
@@ -1701,7 +1707,8 @@ input,select,textarea{
   padding:2px 6px;border-radius:var(--r-xs)}
 .wqa-row-del:hover{color:var(--red);background:var(--red-light)}
 .wqa-row-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-.wqa-price-grid{margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+.wqa-price-grid{padding-top:var(--wqa-s2);border-top:1px solid var(--wqa-hair)}
+.wqa-row-body .wqa-row-grid+.wqa-row-grid{margin-top:var(--wqa-s3)}
 .wqa-final{display:flex;align-items:center;min-height:var(--control-h);font-size:15px;font-weight:800;color:var(--green)}
 .wqa-final-tag{margin-left:6px;font-size:10.5px;font-weight:700;color:var(--text-muted)}
 .wqa-acc-toggle{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer}
@@ -1711,14 +1718,19 @@ input,select,textarea{
 .wqa-flag-req{background:var(--amber-light);color:var(--amber);border-color:var(--amber-mid)}
 .wqa-req{color:var(--red)}
 .wqa-needed{border-color:var(--amber-mid)!important;background:var(--amber-light)}
-.wqa-hist{margin-top:9px;padding:9px 10px;border-radius:var(--r-xs);font-size:12px;line-height:1.45;
-  background:var(--surface2);border:1px solid var(--border);color:var(--text-muted)}
-.wqa-hist-exact{background:var(--green-light);border-color:var(--green)}
-.wqa-hist-similar{background:var(--amber-light);border-color:var(--amber-mid)}
-.wqa-hist-none{opacity:.85}
-.wqa-hist-tag{font-weight:800;color:var(--text-2);margin-bottom:2px}
+/* Exact / similar / none is a STATUS, and a status reads off one marked edge
+   at least as well as off four. One tinted band with a coloured left edge, so
+   an open row carries no more rectangles than it has to. */
+.wqa-hist{margin-top:var(--wqa-s2);padding:9px 12px;border-radius:0 var(--r-xs) var(--r-xs) 0;
+  font-size:12px;line-height:1.45;background:var(--surface2);
+  border:0;border-left:3px solid var(--border);color:var(--wqa-quiet)}
+.wqa-hist-exact{background:var(--green-light);border-left-color:var(--green)}
+.wqa-hist-similar{background:var(--amber-light);border-left-color:var(--amber-mid)}
+.wqa-hist-none{opacity:.9}
+.wqa-hist-tag{font-weight:700;color:var(--text-2);margin-bottom:2px}
 .wqa-hist-line{overflow-wrap:anywhere}
-.wqa-hist-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px;flex-wrap:wrap}
+.wqa-hist-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:var(--wqa-s2);flex-wrap:wrap}
 .wqa-hist-price{font-size:14px;font-weight:800;color:var(--green)}
 @media (max-width:820px){
   .wqa-modal{max-width:100%}
@@ -1756,7 +1768,10 @@ input,select,textarea{
 /* Quick Add — accessories (common panel + per-item editor share this markup) */
 .wqa-acc-common{background:var(--surface);margin-bottom:12px}
 .wqa-acc-head{font-size:12.5px;font-weight:800;margin-bottom:8px}
-.wqa-acc-note{display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-top:2px}
+/* Explanatory copy — LEVEL 3 everywhere it appears. Light, small, and it owns
+   the gap under itself so no panel body needs a margin of its own. */
+.wqa-acc-note{display:block;font-size:11px;font-weight:500;color:var(--wqa-quiet);
+  line-height:1.5;margin:0 0 var(--wqa-s2)}
 .wqa-acc-editor{display:flex;flex-direction:column;gap:7px}
 .wqa-acc-line{display:grid;grid-template-columns:104px repeat(3,minmax(0,1fr));gap:8px;align-items:end}
 .wqa-acc-en{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;min-height:var(--control-h)}
@@ -1767,13 +1782,13 @@ input,select,textarea{
    fix .field select already uses, so the four columns line up. */
 .wqa-acc-f input,.wqa-acc-f select{min-height:var(--control-h)}
 .wqa-acc-f select{height:var(--control-h)}
-.wqa-acc-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;
-  padding-top:9px;border-top:1px solid var(--border)}
-.wqa-acc-sum{font-size:11.5px;font-weight:700;color:var(--text-muted)}
-.wqa-row-acc{margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+.wqa-acc-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:var(--wqa-s3);
+  padding-top:var(--wqa-s2);border-top:1px solid var(--wqa-hair)}
+.wqa-acc-sum{font-size:11.5px;font-weight:600;color:var(--wqa-quiet)}
+.wqa-row-acc{margin-top:var(--wqa-s2);padding-top:var(--wqa-s2);border-top:1px solid var(--wqa-hair)}
 /* Same bar treatment as the main accessories toggle so the two read as one control. */
 .wqa-acc-bar{display:flex;align-items:center;gap:8px;width:100%;padding:8px 11px;cursor:pointer;
-  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-xs);
+  background:var(--surface2);border:1px solid var(--wqa-hair);border-radius:var(--r-xs);
   font-family:inherit;color:var(--text);text-align:left;min-height:var(--control-h-lg)}
 .wqa-acc-bar:hover{border-color:var(--accent-mid)}
 .wqa-acc-arrow{font-size:10px;color:var(--text-muted);flex:0 0 auto}
@@ -1781,8 +1796,8 @@ input,select,textarea{
 .wqa-acc-bar-sum{font-size:11.5px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;
   white-space:nowrap;min-width:0;flex:1}
 .wqa-acc-bar-sum.has{color:var(--accent-2);font-weight:700}
-.wqa-row-acc .wqa-acc-editor{margin-top:8px;padding:9px;background:var(--surface2);
-  border:1px solid var(--border);border-radius:var(--r-xs)}
+.wqa-row-acc .wqa-acc-editor{margin-top:var(--wqa-s1);padding:10px;background:var(--surface2);
+  border:0;border-radius:var(--r-xs)}
 @media (max-width:820px){
   .wqa-acc-line{grid-template-columns:1fr 1fr;gap:7px}
   .wqa-acc-en{grid-column:1/-1;min-height:0}
@@ -1807,13 +1822,15 @@ input,select,textarea{
 .wqa-price-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end}
 .wqa-price-line+.wqa-price-line{margin-top:7px}
 .wqa-price-manual{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-.wqa-price-warn{margin-top:8px;padding:7px 9px;border-radius:var(--r-xs);
-  background:var(--amber-light);border:1px solid var(--amber-mid);
-  font-size:11.5px;font-weight:650;color:var(--amber);line-height:1.45}
+.wqa-price-warn{margin-top:var(--wqa-s2);padding:8px 11px;border-radius:0 var(--r-xs) var(--r-xs) 0;
+  background:var(--amber-light);border:0;border-left:3px solid var(--amber-mid);
+  font-size:11.5px;font-weight:600;color:var(--amber);line-height:1.45}
 .wqa-row-mode{margin-top:7px}
-/* The row's own material and finish, shown only while the list is mixed. */
-.wqa-row-spec{padding:0 12px 7px 12px;font-size:11px;font-weight:700;color:var(--text-muted);
-  overflow-wrap:anywhere}
+/* The row's own material and finish, shown only while the list is mixed.
+   LEVEL 3: it explains the line above it and must never be read first, so it
+   is lighter, smaller, and separated by a real gap instead of sitting flush. */
+.wqa-row-spec{padding:0 12px 9px 12px;font-size:10.5px;font-weight:600;color:var(--wqa-quiet);
+  letter-spacing:.01em;overflow-wrap:anywhere}
 @media (max-width:820px){
   .wqa-price-line{grid-template-columns:1fr 1fr;gap:7px}
   .wqa-price-manual{grid-template-columns:1fr}
@@ -1825,24 +1842,57 @@ input,select,textarea{
   font-family:inherit;color:var(--text);text-align:left;min-height:var(--control-h-lg)}
 .wqa-panel-head:hover{border-color:var(--accent-mid)}
 .wqa-panel-head.open{border-color:var(--accent-mid);background:var(--surface)}
-.wqa-panel-arrow{font-size:10px;color:var(--text-muted);flex:0 0 auto}
-.wqa-panel-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;line-height:1.25}
-.wqa-panel-title{font-size:12.5px;font-weight:900;color:var(--text-2)}
-.wqa-panel-sum{font-size:11px;font-weight:650;color:var(--text-muted);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wqa-panel-arrow{font-size:10px;color:var(--wqa-quiet);flex:0 0 auto}
+.wqa-panel-text{display:flex;align-items:baseline;gap:var(--wqa-s2);min-width:0;flex:1;
+  line-height:1.3;flex-wrap:wrap}
+.wqa-panel-title{font-size:12.5px;font-weight:800;color:var(--text-2)}
+.wqa-panel-sum{font-size:11px;font-weight:500;color:var(--wqa-quiet);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .wqa-panel-head.open .wqa-panel-title{color:var(--accent-2)}
-.wqa-panel-badge{flex:0 0 auto;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:var(--pill-r);
-  background:var(--accent-light);color:var(--accent-2);white-space:nowrap}
-.wqa-panel-body{margin-top:9px}
+/* Where this section's Apply would land. It rode in the title as another five
+   bold words on every head; it is the same fact, said quietly, once. */
+.wqa-panel-scope{flex:0 0 auto;font-size:10px;font-weight:700;letter-spacing:.02em;
+  color:var(--wqa-quiet);white-space:nowrap}
+.wqa-panel-head.open .wqa-panel-scope{color:var(--accent-2)}
+/* A count is metadata until it is a warning, and then it is amber — never a
+   second blue accent competing with the section it belongs to. */
+.wqa-panel-badge{flex:0 0 auto;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:var(--pill-r);
+  background:var(--surface3);color:var(--wqa-quiet);white-space:nowrap}
+.wqa-panel-badge.is-warn{background:var(--amber-light);color:var(--amber)}
+.wqa-panel-body{margin-top:var(--wqa-s2)}
+
+/* ── Bulk Edit — ONE container, four quiet rows ────────────────────────────
+   These four sections were four bordered cards stacked down the dialog, each
+   with its own outline, its own gap and its own bold heading — four rectangles
+   for something that is one idea: change many items at once. They are one
+   surface now, divided by hairlines. A CLOSED section is a quiet row; the OPEN
+   one is the only part that gains a background, a marker and a body. */
+.wqa-bulk{border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);
+  margin-bottom:var(--wqa-s3);overflow:hidden}
+.wqa-bulk-head{display:flex;align-items:baseline;gap:var(--wqa-s2);flex-wrap:wrap;
+  padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--wqa-hair)}
+.wqa-bulk-title{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-2)}
+.wqa-bulk-sub{font-size:11px;font-weight:500;color:var(--wqa-quiet)}
+.wqa-bulk .wqa-common{margin-bottom:0}
+.wqa-bulk .wqa-common+.wqa-common{border-top:1px solid var(--wqa-hair)}
+.wqa-bulk .wqa-panel-head{border:0;border-radius:0;background:transparent;
+  padding:10px 12px;min-height:44px}
+.wqa-bulk .wqa-panel-head:hover{background:var(--surface2)}
+.wqa-bulk .wqa-panel-head.open{background:var(--accent-light);
+  box-shadow:inset 3px 0 0 var(--accent)}
+.wqa-bulk .wqa-panel-body{margin-top:0;padding:12px 12px 14px;
+  border-top:1px solid var(--wqa-hair)}
 /* Quick Add — the customer's own message, kept beside the parsed rows so staff
    can compare the two without navigating away. ONE component: the same
    collapsible head every other section uses, over a scrolling text block. Only
    that block's height changes between desktop, tablet and phone. */
 .wqa-source-common{background:var(--surface)}
-.wqa-source-text{margin:0;max-height:150px;overflow:auto;overflow-wrap:anywhere;white-space:pre-wrap;
+.wqa-source-text{margin:0;max-height:108px;overflow:auto;overflow-wrap:anywhere;white-space:pre-wrap;
   font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;color:var(--text-2);
-  padding:9px 10px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface2)}
-.wqa-source-actions{display:flex;justify-content:flex-end;margin-top:8px}
+  padding:9px 11px;border:0;border-radius:var(--r-xs);background:var(--surface2)}
+.wqa-source-actions{display:flex;justify-content:flex-end;margin-top:var(--wqa-s1)}
+#wqaSource .wqa-panel-body{margin-top:var(--wqa-s1)}
 /* The only thing that changes between screens is how tall that block may get.
    Declared here, after the base rule, so the breakpoints actually win. */
 @media (max-width:820px){ .wqa-source-text{max-height:120px} }   /* tablet */
@@ -1852,7 +1902,7 @@ input,select,textarea{
    Only what each one opens into differs. */
 .wqa-source-common,.wqa-fix-common,.wqa-item-common,.wqa-price-common,.wqa-acc-common{
   padding:0;border:0;background:transparent}
-.wqa-scope{margin-top:9px}
+.wqa-scope{margin-top:var(--wqa-s2)}
 .wqa-item-grid-1{grid-template-columns:minmax(0,1fr)}
 /* The tick box lives in the number cell, so switching scope moves no column. */
 .wqa-pick{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;margin:0}
@@ -1873,23 +1923,39 @@ input,select,textarea{
 @media (max-width:480px){ .wqa-confirm-actions .btn{flex:1 1 100%} }
 
 /* Quick Add — unit / total weight beside the price, straight from the calculator */
-.wqa-weight-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-top:8px;
-  padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-xs)}
+/* Two labelled numbers. They were in a bordered strip, which made a third
+   rectangle inside an open row for something the uppercase labels already
+   separate perfectly well. */
+.wqa-weight-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--wqa-s1) var(--wqa-s4);
+  margin-top:var(--wqa-s2);padding:0;background:transparent;border:0}
 .wqa-w-item{display:flex;flex-direction:column;gap:1px;min-width:0}
 .wqa-w-lbl{font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--text-muted)}
-.wqa-w-val{font-size:12.5px;font-weight:800;color:var(--text-2);font-variant-numeric:tabular-nums}
+.wqa-w-val{font-size:12.5px;font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums}
 .wqa-flag-asym{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
 @media (max-width:480px){ .wqa-weight-line{gap:7px 14px} }
 
 /* Quick Add — compact review: one scannable line per item */
 .wqa-view-toggle{display:inline-flex;border:1px solid var(--border);border-radius:var(--pill-r);overflow:hidden;background:var(--surface)}
-.wqa-view-btn{border:0;background:transparent;font-family:inherit;font-size:11.5px;font-weight:800;
-  padding:5px 12px;cursor:pointer;color:var(--text-muted);min-height:30px}
-.wqa-view-btn.is-on{background:var(--accent-light);color:var(--accent-2)}
+.wqa-view-btn{border:0;background:transparent;font-family:inherit;font-size:11.5px;font-weight:700;
+  padding:5px 12px;cursor:pointer;color:var(--wqa-quiet);min-height:30px}
+.wqa-view-btn.is-on{background:var(--accent-light);color:var(--accent-2);font-weight:800}
+/* The word in front of the pair, so it reads as a view control and not as two
+   more buttons with the same weight as everything else on the bar. */
+.wqa-view-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--wqa-quiet)}
+/* Count and selection are one statement and stay side by side; this group is
+   also the bar's first child, so it keeps the phone wrapping rule below. */
+.wqa-rows-lead{display:flex;align-items:center;gap:var(--wqa-s2);min-width:0;flex-wrap:wrap}
+/* ONE place says how many rows are ticked. The Apply buttons still name the
+   scope they will act on; nothing else repeats the number. */
+.wqa-sel-count{font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--pill-r);
+  background:var(--accent-light);color:var(--accent-2);white-space:nowrap}
+.wqa-sel-count.is-zero{background:var(--amber-light);color:var(--amber)}
+.wqa-rows-count{font-size:12.5px;font-weight:800;color:var(--text-2)}
 /* No card per row: just a divider. (overflow:hidden would let a flex item shrink
    below its own content, so the basis is pinned.) */
 .wqa-row{padding:0;flex:0 0 auto;min-width:0;border:0;border-radius:0;background:transparent}
-.wqa-row+.wqa-row{border-top:1px solid var(--border)}
+.wqa-row+.wqa-row{border-top:1px solid var(--wqa-hair)}
 /* Zebra: it only has to be strong enough to carry the eye from Length across to
    Price, so it sits a couple of percent off white. Every state below is written
    at the same specificity or higher, and after it, so a blocked or open row is
@@ -1897,7 +1963,7 @@ input,select,textarea{
 .wqa-row:nth-child(even){background:var(--zebra)}
 .wqa-row.is-open{background:var(--surface2)}
 .wqa-row.wqa-row-block{background:var(--amber-light)}
-.wqa-row.is-open>.wqa-sum{border-bottom:1px solid var(--border)}
+.wqa-row.is-open>.wqa-sum{border-bottom:1px solid var(--wqa-hair)}
 /* ── One review table, not a stack of cards ────────────────────────────────
    The header and every row share one grid template, and the list is a single
    bordered surface with hairline dividers between rows.
@@ -1920,38 +1986,54 @@ input,select,textarea{
   --wqa-dim-spec: minmax(150px,1.4fr);   /* a mixed list's one whole-spec cell */
   --wqa-tail: 56px 104px 86px minmax(0,1fr) 46px 26px;      /* Qty W Price … */
   --wqa-cols: var(--wqa-lead) var(--wqa-dim) var(--wqa-tail);
+  /* ONE spacing rhythm for the whole dialog. Four steps, nothing between them:
+     s1 a label and its control, s2 a value and the metadata under it, s3 one
+     section from the next, s4 a major block. Every gap below reads from these,
+     so the dialog cannot drift back into 7px here and 11px there. */
+  --wqa-s1: 6px; --wqa-s2: 10px; --wqa-s3: 16px; --wqa-s4: 22px;
+  /* Two levels of line. A HAIRLINE separates rows inside one surface; the
+     surface itself keeps the ordinary --border. Nothing else draws a box. */
+  --wqa-hair: #e7ebf3;
+  /* Level 3 — metadata and explanation. Readable, never competing. */
+  --wqa-quiet: #6c7486;
 }
 .wqa-list-head,.wqa-sum{
-  display:grid;align-items:center;gap:0 8px;padding:0 12px;
+  display:grid;align-items:center;gap:0 var(--wqa-s2);padding:0 12px;
   grid-template-columns:var(--wqa-cols)}
 .wqa-list-head{position:sticky;top:0;z-index:3;background:var(--surface2);
-  padding-top:7px;padding-bottom:7px;margin-bottom:0;
-  border:1.5px solid var(--border);border-radius:var(--r-sm) var(--r-sm) 0 0}
+  padding-top:8px;padding-bottom:8px;margin-bottom:0;
+  border:1px solid var(--border);border-radius:var(--r-sm) var(--r-sm) 0 0}
 .wqa-list-head[hidden]{display:none}
 .wqa-h{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .wqa-h-num,.wqa-h-act{text-align:center}
-.wqa-sum{padding-top:5px;padding-bottom:5px;cursor:pointer;min-height:38px;
+.wqa-sum{padding-top:7px;padding-bottom:7px;cursor:pointer;min-height:44px;
   background:transparent;font-size:12.5px}
 /* A stale second :hover rule used to override this one with plain grey; there is
    now one hover, and it reads clearly above both stripes. */
 .wqa-row>.wqa-sum:hover{background:var(--accent-light)}
-.wqa-row.is-open>.wqa-sum{background:var(--surface2);border-bottom:1px solid var(--border)}
+.wqa-row.is-open>.wqa-sum{background:var(--surface2);border-bottom:1px solid var(--wqa-hair)}
 .wqa-row.wqa-row-block>.wqa-sum:hover{background:var(--amber-mid)}
-/* plain number, no pill */
-.wqa-sum-no{font-size:11.5px;font-weight:700;color:var(--accent-num);
+/* plain number, no pill. It says WHICH row, never how important the row is,
+   so it sits at level 3 with the rest of the metadata. */
+.wqa-sum-no{font-size:11px;font-weight:600;color:var(--wqa-quiet);
   font-variant-numeric:tabular-nums;text-align:center}
 .wqa-c{font-weight:600;color:var(--text-2);white-space:nowrap;font-variant-numeric:tabular-nums;
   overflow:hidden;text-overflow:ellipsis;text-align:center}
+/* LEVEL 1 — what the eye is looking for. Size, the dimensions and Qty are one
+   weight; Price is one step above them and Weight one step below, so the row
+   reads left to right and lands on the money. */
 .wqa-c-size {font-weight:700;color:var(--text)}
-.wqa-c-dim  {font-weight:800;color:var(--text)}      /* the values staff scan */
-.wqa-c-qty  {font-weight:800;color:var(--text)}
-.wqa-c-threadLen{font-weight:600;color:var(--text-muted)}
+.wqa-c-dim  {font-weight:700;color:var(--text)}      /* the values staff scan */
+.wqa-c-qty  {font-weight:700;color:var(--text)}
+.wqa-c-threadLen{font-weight:650;color:var(--text-2)}
 /* A mixed list carries a whole spec in one cell, so that one may be narrower
    than its text and shows what it can. */
-.wqa-c-spec {font-weight:650;color:var(--text-2)}
-.wqa-c-w    {font-weight:600;color:var(--text-muted)}
-.wqa-c-price{font-weight:800;color:var(--accent-2)}
+.wqa-c-spec {font-weight:600;color:var(--text-2)}
+.wqa-c-w    {font-weight:600;color:var(--wqa-quiet)}
+/* The row's outcome. Strongest thing on the line — by weight and size, not by
+   colour: blue here competed with every other accent in the dialog. */
+.wqa-c-price{font-weight:800;color:var(--text);font-size:13.5px;letter-spacing:-.01em}
 /* The badge column is a pure slack column: min-width 0, hidden overflow and no
    flex-grow reaching outside it, so an "Asymmetric" pill can never widen the
    track or shift Price / Edit / ×. */
@@ -1973,12 +2055,13 @@ input,select,textarea{
 .wqa-pill-warn{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
 .wqa-pill-info{background:var(--accent-light);color:var(--accent-2)}
 /* the two action cells are fixed width and centred, so they cannot push
-   anything to their left */
-.wqa-sum-act{font-size:11px;font-weight:800;color:var(--accent-2);text-align:center}
-.wqa-row-del{background:transparent;border:0;color:var(--text-muted);cursor:pointer;
-  font-size:12px;width:26px;height:26px;border-radius:var(--r-xs);justify-self:center}
-.wqa-row-del:hover{background:var(--surface);color:var(--danger,#b91c1c)}
-.wqa-row-body{padding:11px 12px;min-width:0;overflow-wrap:anywhere;background:var(--surface)}
+   anything to their left. LEVEL 2: Edit is the action, Delete sits a step under
+   it — still plainly there, never the first thing found. */
+.wqa-sum-act{font-size:11.5px;font-weight:700;color:var(--accent-2);text-align:center}
+.wqa-row-del{background:transparent;border:0;color:#8d96a8;cursor:pointer;
+  font-size:12px;width:28px;height:28px;border-radius:var(--r-xs);justify-self:center}
+.wqa-row-del:hover{background:var(--red-light);color:var(--red)}
+.wqa-row-body{padding:12px 12px 14px;min-width:0;overflow-wrap:anywhere;background:var(--surface)}
 .wqa-row-raw-full{margin-top:8px;font-size:11px;color:var(--text-muted);font-family:ui-monospace,Menlo,Consolas,monospace;
   overflow-wrap:anywhere}
 .wqa-hint-sm{display:block;margin-top:3px;font-size:10px;font-weight:650;color:var(--text-muted)}
@@ -1995,11 +2078,40 @@ input,select,textarea{
   /* breathing room so an expanded row never ends flush against the action bar */
   padding-bottom:14px;overscroll-behavior:contain}
 .wqa-sticky-actions{flex:0 0 auto;align-items:center;
-  background:var(--surface);border-top:1px solid var(--border);padding:11px 0 2px;margin-top:10px}
-.wqa-foot-count{margin-right:auto;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:var(--text-2)}
+  background:var(--surface);border-top:1px solid var(--border);padding:11px 0 2px;margin-top:var(--wqa-s2)}
+.wqa-foot-count{margin-right:auto;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text-2)}
 .wqa-foot-need{font-size:11px;font-weight:800;padding:2px 8px;border-radius:var(--pill-r);
   background:var(--amber-light);border:1px solid var(--amber-mid);color:var(--amber)}
 .wqa-foot-need[hidden]{display:none}
+/* ── Desktop ≥1024: the dialog earns its width, and the table spends it ───
+   Quick Add was a 900px dialog holding a ten-column table, and the columns paid
+   for it: values sat shoulder to shoulder, ACTIONS was clipped to "ACTI…", and
+   an open row had no room that was not already spoken for. The dialog now takes
+   the width the screen actually has, up to 1280px, and the tracks grow with it
+   instead of handing every spare pixel to the badge column. It is written as
+   min(): there is no width at which this rule can exceed the viewport, and
+   everything below 1024px keeps the layout it already had. */
+@media (min-width:1024px){
+  .wqa-modal{
+    width:min(1280px,calc(100vw - 64px));max-width:none;
+    --wqa-lead: 44px minmax(86px,1fr);
+    --wqa-dim:  minmax(92px,1.15fr);
+    --wqa-dim-spec: minmax(240px,2.4fr);
+    --wqa-tail: minmax(62px,.75fr) minmax(118px,1.15fr) minmax(104px,1.05fr)
+                minmax(84px,1fr) 74px 34px;
+  }
+  /* One rhythm down the table: the same left edge for the header, the values
+     and the metadata under them, and enough vertical room that neighbouring
+     rows are told apart by space rather than only by the stripe. */
+  .wqa-list-head,.wqa-sum{gap:0 var(--wqa-s3);padding-left:18px;padding-right:18px}
+  .wqa-sum{padding-top:9px;padding-bottom:9px;min-height:48px}
+  .wqa-list-head{padding-top:9px;padding-bottom:9px}
+  .wqa-row-spec{padding:0 18px 10px 18px}
+  .wqa-row-body{padding:14px 18px 16px}
+  .wqa-bulk-head,.wqa-bulk .wqa-panel-head{padding-left:14px;padding-right:14px}
+  .wqa-bulk .wqa-panel-body{padding:14px;max-width:1000px}
+}
+
 /* ── Tablet 600–1023: single-line tablet grid ─────────────────────────────
    The two-row item is gone: every value sits on ONE horizontal row, exactly as
    on desktop, so nothing looks high-low. That is achieved by narrowing the
@@ -2014,7 +2126,7 @@ input,select,textarea{
     --wqa-dim:  minmax(46px,62px);
     --wqa-dim-spec: minmax(96px,1.4fr);
     --wqa-tail: minmax(30px,42px) minmax(80px,100px) minmax(56px,72px)
-                minmax(0,1fr) 38px 20px;
+                minmax(0,1fr) 56px 24px;
     width:min(96vw,900px);          /* wide enough for one line, never overflowing */
   }
   .wqa-list-head,.wqa-sum{
@@ -2027,6 +2139,9 @@ input,select,textarea{
   .wqa-sum .wqa-c-qty::before{content:none}
   .wqa-list-head{padding-top:6px;padding-bottom:6px;min-height:0}
   .wqa-list-head .wqa-h{line-height:1.35}
+  /* ACTIONS had to be clipped to "ACTI…" to fit a tablet's track. It fits
+     without the letter-spacing, so the label is shown whole instead. */
+  .wqa-list-head .wqa-h-act{letter-spacing:0}
   /* the two empty header cells stay in the layout: hiding them would pull
      ACTIONS back a track and break alignment with the rows */
   .wqa-actions .btn{min-width:0;flex:1 1 auto}
@@ -2036,7 +2151,7 @@ input,select,textarea{
   .wqa-modal{width:100%}
   /* No column header on a phone — the summary is its own shape there. */
   .wqa-list-head{display:none}
-  .wqa-rows.has-head{border-top:1.5px solid var(--border);border-radius:var(--r-sm)}
+  .wqa-rows.has-head{border-top:1px solid var(--border);border-radius:var(--r-sm)}
   /* And no fixed tracks: a J Bolt has four dimensions where a Stud has one, and
      a layout that names its cells by column number can only be right for one of
      them. The summary wraps instead — number, size and dimensions on the first
@@ -3489,15 +3604,32 @@ input,select,textarea{
       <!-- The customer's own words, above everything derived from them. -->
       <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
       <div class="wqa-common" id="wqaCommon"></div>
-      <!-- Correcting what was read, before anything is copied into it. -->
-      <div class="wqa-common wqa-fix-common" id="wqaCommonFix"></div>
-      <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
-      <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
-      <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
+      <!-- The four copy-once sections are ONE thing — change many items at
+           once — so they live in one container instead of four stacked cards.
+           Each keeps its own id and its own renderer; only the frame is
+           shared. -->
+      <div class="wqa-bulk" id="wqaBulk">
+        <div class="wqa-bulk-head">
+          <span class="wqa-bulk-title" data-i18n="wqaBulkTitle">Bulk Edit</span>
+          <span class="wqa-bulk-sub" data-i18n="wqaBulkSub">One shared value, many items</span>
+        </div>
+        <!-- Correcting what was read, before anything is copied into it. -->
+        <div class="wqa-common wqa-fix-common" id="wqaCommonFix"></div>
+        <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
+        <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
+        <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
+      </div>
       <div class="wqa-rows-head">
-        <span id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
+        <span class="wqa-rows-lead">
+          <span class="wqa-rows-count" id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
+          <!-- The ONE place a selected count is shown. Present only while the
+               tick boxes are, and amber at zero so the refusal is never a
+               surprise. -->
+          <span class="wqa-sel-count" id="wqaSelCount" hidden></span>
+        </span>
         <!-- Shown only when an AI call actually produced the rows below. -->
         <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiAssisted" hidden>✨ AI assisted</span>
+        <span class="wqa-view-lbl" data-i18n="wqaViewLabel">View</span>
         <span class="wqa-view-toggle" role="group" data-i18n-aria="wqaAriaView" aria-label="View">
           <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')" data-i18n="wqaCompact">Compact</button>
           <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')" data-i18n="wqaExpanded">Expanded</button>
@@ -3977,6 +4109,8 @@ const I18N={
     wqaPrivacy:'Uploaded files are used only for AI extraction and are not saved with the quotation.',
     wqaParseItems:'Parse Items', wqaAnalyze:'Analyze',
     wqaCompact:'Compact', wqaExpanded:'Expanded', wqaEditPasted:'← Edit pasted text',
+    wqaViewLabel:'View', wqaBulkTitle:'Bulk Edit', wqaBulkSub:'One shared value, many items',
+    wqaNSelected:'{n} selected',
     wqaBackToUpload:'← Back to upload', wqaSourceTitle:'WhatsApp Message',
     wqaChooseInput:'← Choose Input', wqaChooseHint:'How did the customer send the request?',
     wqaSourceLines:'{n} lines', wqaSourceEdit:'Edit message',
@@ -4002,7 +4136,7 @@ const I18N={
     wqaFixNothingYet:'Nothing chosen yet — Apply would change nothing',
     wqaFixWillSet:'Will set: {f}', wqaFixWillFill:'Will fill where blank: {f}',
     wqaFixBlanksOnly:'Fill blanks only',
-    wqaFixNote:'Nothing changes until Apply. Each field is independent — a field left on “Keep existing” is not touched. Fill blanks only fills what is empty and never replaces a value.',
+    wqaFixNote:'“Keep existing” = unchanged. “Fill blanks only” fills empty values and never replaces one. Nothing is written until Apply.',
     wqaToastFixNothing:'Choose at least one field to change first',
     wqaToastFixApplied:'{n} item(s) corrected',
     wqaToastFixNoChange:'Nothing changed — those items already say that',
@@ -4192,6 +4326,8 @@ const I18N={
     wqaPrivacy:'上传的文件只用于 AI 提取，不会随报价保存。',
     wqaParseItems:'解析产品', wqaAnalyze:'分析',
     wqaCompact:'精简', wqaExpanded:'展开', wqaEditPasted:'← 编辑粘贴文字',
+    wqaViewLabel:'视图', wqaBulkTitle:'批量编辑', wqaBulkSub:'一个共同数值，多个项目',
+    wqaNSelected:'已选 {n} 项',
     wqaBackToUpload:'← 返回上传', wqaSourceTitle:'客户原文',
     wqaChooseInput:'← 选择输入方式', wqaChooseHint:'客户是以什么方式发来的？',
     wqaSourceLines:'{n} 行', wqaSourceEdit:'编辑原文',
@@ -4217,7 +4353,7 @@ const I18N={
     wqaFixNothingYet:'尚未选择——按下应用不会有任何改动',
     wqaFixWillSet:'将设为：{f}', wqaFixWillFill:'仅填补空白：{f}',
     wqaFixBlanksOnly:'只填空白',
-    wqaFixNote:'按下应用之前不会改动任何项目。每个字段各自独立——保持“保持不变”的字段不会被修改。勾选“只填空白”后只填补空白，不会覆盖已有的值。',
+    wqaFixNote:'“保持不变” = 不改动。“只填空白” 只填补空白，不会覆盖已有的值。按下应用前不写入任何项目。',
     wqaToastFixNothing:'请先选择至少一个要修改的字段',
     wqaToastFixApplied:'已修正 {n} 个项目',
     wqaToastFixNoChange:'没有改动——这些项目已经是这个值',
@@ -8188,8 +8324,12 @@ function wqaTogglePanel(which){ wqa.panels[which]=!wqa.panels[which];
   else if(which==='item')  wqaRenderCommonItem(true);
   else if(which==='price') wqaRenderCommonPrice(true);
   else                     wqaRenderCommonAcc(true); }
-function wqaPanelHead(which,title,summary,badge){
+/* opts.scope  where this section's Apply would land, said once and quietly
+                instead of riding in the title as five more bold words
+   opts.tone    'warn' when the badge is a count of work still to do        */
+function wqaPanelHead(which,title,summary,badge,opts){
   const open=!!wqa.panels[which];
+  const o=opts||{};
   return `<button type="button" class="wqa-panel-head${open?' open':''}" onclick="wqaTogglePanel('${which}')"
             aria-expanded="${open?'true':'false'}">
      <span class="wqa-panel-arrow">${open?'▾':'▸'}</span>
@@ -8197,7 +8337,8 @@ function wqaPanelHead(which,title,summary,badge){
        <span class="wqa-panel-title">${escHtml(title)}</span>
        <span class="wqa-panel-sum">${escHtml(summary)}</span>
      </span>
-     <span class="wqa-panel-badge"${badge?'':' hidden'}>${escHtml(badge||'')}</span>
+     ${o.scope?`<span class="wqa-panel-scope">${escHtml(o.scope)}</span>`:''}
+     <span class="wqa-panel-badge${o.tone==='warn'?' is-warn':''}"${badge?'':' hidden'}>${escHtml(badge||'')}</span>
    </button>`;
 }
 
@@ -8212,6 +8353,18 @@ function wqaApplyTargets(){
   return wqa.applyScope==='selected' ? live.filter(r=>r.sel) : live;
 }
 function wqaSelCount(){ return wqa.rows.filter(r=>!r.removed&&r.sel).length; }
+/* The selected count is shown in exactly one place — the table toolbar — and
+   only while the tick boxes are on screen. Amber at zero, because that is the
+   state an Apply is about to refuse. */
+function wqaPatchSelCount(){
+  const c=el('wqaSelCount'); if(!c) return;
+  const on=wqa.applyScope==='selected';
+  c.hidden=!on;
+  if(!on){ c.classList.remove('is-zero'); return; }
+  const n=wqaSelCount();
+  c.textContent=dcT('wqaNSelected').replace('{n}',n);
+  c.classList.toggle('is-zero',n===0);
+}
 function wqaSetApplyScope(s){
   wqa.applyScope = s==='selected' ? 'selected' : 'all';
   /* Leaving Selected drops the ticks: a hidden selection that a later Apply
@@ -8220,6 +8373,7 @@ function wqaSetApplyScope(s){
   wqaRenderCommonFix(true);
   wqaRenderCommonItem(true); wqaRenderCommonPrice(true); wqaRenderCommonAcc(true);
   wqaRenderRows(true);
+  wqaPatchSelCount();
 }
 function wqaToggleRowSel(i){
   const r=wqa.rows[i]; if(!r) return;
@@ -8227,6 +8381,7 @@ function wqaToggleRowSel(i){
   const card=el('wqaRows')&&el('wqaRows').querySelector('[data-wqa-row="'+i+'"]');
   if(card) card.classList.toggle('is-picked',!!r.sel);
   wqaPatchApplyLabels();          // only the button labels move; no panel rebuild
+  wqaPatchSelCount();
 }
 /* What a panel's Apply button says it will do, in the language of the moment. */
 function wqaApplyLabel(allKey,selKey){
@@ -8252,10 +8407,10 @@ function wqaScopeSwitch(){
               data-i18n="wqaScopeSelected">${escHtml(dcT('wqaScopeSelected'))}</button>
     </div>`;
 }
-/* The scope rides in the title, so a COLLAPSED panel still says where its Apply
-   would land. All three heads are built the same way, from the same pieces. */
-function wqaScopeTitle(key){
-  return dcT(key)+' — '+dcT(wqa.applyScope==='selected'?'wqaApplyToSelected':'wqaApplyToAll');
+/* A COLLAPSED panel still says where its Apply would land — it just no longer
+   says it in the heading's voice. Same words, same guarantee, level 3. */
+function wqaScopeWord(){
+  return dcT(wqa.applyScope==='selected'?'wqaApplyToSelected':'wqaApplyToAll');
 }
 
 /* ── Common Size / Thread — Apply to All ───────────────────────────────────
@@ -8303,11 +8458,12 @@ function wqaRenderCommonItem(force){
      ID and S are never offered to an L Bolt row, so the shared panel keeps to
      what every row in scope actually has — Size, and the thread. */
   const ends=wqaMaxEnds();
-  const head=wqaPanelHead('item',wqaScopeTitle('wqaCommonItemTitle'),wqaItemSummary(c),
-                          need?dcT('wqaNIncomplete').replace('{n}',need):'');
+  const head=wqaPanelHead('item',dcT('wqaCommonItemTitle'),wqaItemSummary(c),
+                          need?dcT('wqaNIncomplete').replace('{n}',need):'',
+                          {scope:wqaScopeWord(),tone:'warn'});
   box.innerHTML = head + (!wqa.panels.item ? '' :
     `<div class="wqa-panel-body">
-       <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards. A blank field is left alone — it never clears what a row already has.</div>
+       <div class="wqa-acc-note">Copied once into every item in scope; each stays editable afterwards. A blank field is never copied.</div>
        <div class="wqa-item-grid${ends?'':' wqa-item-grid-1'}">
          <label class="wqa-acc-f"><span>Size</span>
            <input type="text" id="wqaCommonSize" value="${escHtml(c.size)}" placeholder="M12"
@@ -8444,7 +8600,7 @@ function wqaRenderCommonFix(force){
     ? [...matSrc.options].filter(o=>o.value)
         .map(o=>`<option value="${escHtml(o.value)}"${f.material===o.value?' selected':''}>${escHtml(o.text)}</option>`).join('')
     : '');
-  const head=wqaPanelHead('fix',wqaScopeTitle('wqaCommonFixTitle'),wqaFixSummary(f),'');
+  const head=wqaPanelHead('fix',dcT('wqaCommonFixTitle'),wqaFixSummary(f),'',{scope:wqaScopeWord()});
   box.innerHTML = head + (!wqa.panels.fix ? '' :
     `<div class="wqa-panel-body">
        <div class="wqa-acc-note">${escHtml(dcT('wqaFixNote'))}</div>
@@ -8632,9 +8788,9 @@ function wqaRenderCommonPrice(force){
   const entered=[c.costRate!==''?'Cost Rate '+c.costRate:'',c.addCost!==''?'Add Cost '+c.addCost:'',
                  c.markup!==''?'Markup '+c.markup+'%':'',wqaPriceModeLabel(c.priceMode)].filter(Boolean).join('  ·  ');
   el('wqaCommonPrice').innerHTML=
-    wqaPanelHead('price',wqaScopeTitle('wqaCommonPriceTitle'),wqaPriceSummary(c),'') +
+    wqaPanelHead('price',dcT('wqaCommonPriceTitle'),wqaPriceSummary(c),'',{scope:wqaScopeWord()}) +
     (!wqa.panels.price ? '' : `<div class="wqa-panel-body">
-       <div class="wqa-acc-note">Entry values only. Auto Round and No Round rows each recalculate their own Final Unit Price from their own dimensions.</div>
+       <div class="wqa-acc-note">Entry values only. Auto Round and No Round rows each recalculate their own Final Unit Price.</div>
      <div class="wqa-price-line">
        <label class="wqa-acc-f"><span>Cost Rate</span><input type="number" min="0" step="0.01" value="${escHtml(c.costRate)}" oninput="wqaEditCommonPrice('costRate',this.value)"></label>
        <label class="wqa-acc-f"><span>Additional Cost</span><input type="number" min="0" step="0.01" value="${escHtml(c.addCost)}" oninput="wqaEditCommonPrice('addCost',this.value)"></label>
@@ -8652,7 +8808,7 @@ function wqaRenderCommonPrice(force){
                onclick="wqaApplyManualPriceToAll()">${escHtml(wqaApplyLabel('wqaApplyManualAll','wqaApplyManualSelected'))}</button>`:''}
        <span class="wqa-acc-sum">${escHtml(entered)}</span>
      </div>
-     ${manual?`<div class="wqa-price-warn">Manual Price gives every item the SAME final price. Different lengths normally cost different amounts — apply it only when the customer really quoted one flat price.</div>`:''}
+     ${manual?`<div class="wqa-price-warn">Manual Price gives every item the SAME final price. Different lengths normally cost different amounts — use it only for a genuine flat quote.</div>`:''}
      </div>`);
 }
 /* Collapsed header line: "Cost 6.00 · Add 1.60 · Markup 4% · Auto Round". */
@@ -8740,10 +8896,11 @@ function wqaRenderCommonAcc(force){
   if(!force && wqaTypingIn(el('wqaCommonAcc'))){ wqaPatchAccPanel(); wqaDeferRender('acc'); return; }
   const a=wqa.commonAcc||(wqa.commonAcc=wqaEmptyAcc());
   const n=wqaAccActiveCount(a);
-  const head=wqaPanelHead('acc',wqaScopeTitle('wqaCommonAccTitle'),wqaAccShortSummary(a),n?n+' active':'');
+  const head=wqaPanelHead('acc',dcT('wqaCommonAccTitle'),wqaAccShortSummary(a),n?n+' active':'',
+                          {scope:wqaScopeWord()});
   el('wqaCommonAcc').innerHTML = head + (!wqa.panels.acc ? '' :
     `<div class="wqa-panel-body">
-       <div class="wqa-acc-note">Copied into every item once. Each item stays independently editable afterwards.</div>
+       <div class="wqa-acc-note">Copied once into every item in scope; each stays editable afterwards.</div>
        ${wqaAccEditor(a,(g,f,v)=>`wqaEditCommonAcc('${g}','${f}',${v})`)}
        ${wqaScopeSwitch()}
        <div class="wqa-acc-actions">
@@ -9242,11 +9399,18 @@ function wqaUpdateAddButton(){
   btn.disabled = live.length===0 || blocked>0;
   btn.textContent = live.length? dcT('wqaAddNItems').replace('{n}',live.length) : dcT('wqaAddItems');
   const ft=el('wqaFootTotal'), fn=el('wqaFootNeed');
-  if(ft) ft.textContent=dcT('nItems').replace('{n}',live.length);
+  if(ft){
+    ft.textContent=dcT('nItems').replace('{n}',live.length);
+    /* "16 items", then "Add 16 Items to Quotation" 40px to its right, said the
+       same number twice on one bar. The button is the one that has to carry it,
+       so the count stands only while the button has no number to show. */
+    ft.hidden = live.length>0;
+  }
   if(fn){ fn.textContent=blocked?dcT('needAttention').replace('{n}',blocked):''; fn.hidden=!blocked; }
   /* Keeps the "N incomplete" badge live as rows are edited, without ever
      re-rendering the panel out from under a caret. */
   wqaPatchItemPanel();
+  wqaPatchSelCount();
 }
 /* A render that arrives mid-typing (price history landing, a debounced
    recompute) patches instead, and the real render runs once focus leaves. */
@@ -12102,7 +12266,6 @@ function wqaRenderRows(force){
      aside for an active caret. */
   if(!force && wqaTypingIn(el('wqaRows'))){ wqaPatchRows(); wqaDeferRender('rows'); return; }
   const live=wqa.rows.filter(r=>!r.removed);
-  el('wqaRowsCount').textContent=live.length+(live.length===1?' item':' items');
   const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
   const cols=wqaListCols();
   el('wqaRows').innerHTML=wqa.rows.map((r,i)=>{

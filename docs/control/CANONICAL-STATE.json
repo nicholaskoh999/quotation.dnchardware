@@ -1,0 +1,57 @@
+{
+  "application": "quotation.dnchardware",
+  "name": "Der-Cheng Quotation",
+  "version": "v2.24.0",
+  "status": "ACCEPTED",
+  "lastRound": "Quick Add UI Polish 1 — Visual Density & Hierarchy",
+  "controlFilesCreated": "UI POLISH 1 (docs/control/ did not exist before it)",
+  "files": {
+    "index.php": "calculator UI, CSS, i18n runtime, all client logic incl. WhatsApp Quick Add",
+    "companies.php": "companies and saved quotations",
+    "api.php": "JSON endpoints",
+    "ai_extract.php": "server-side AI extraction for photo / PDF Quick Add",
+    "auth.php": "single shared account, session based",
+    "serverOnly": ["db.php", "ai_config.php"]
+  },
+  "quickAdd": {
+    "step1": ["paste WhatsApp text", "upload photo or PDF", "optional additional info line"],
+    "reviewOrder": [
+      "customer message panel",
+      "common fields (product, material, finish, size type)",
+      "bulk edit container",
+      "table toolbar",
+      "item table",
+      "footer CTA"
+    ],
+    "bulkSections": ["Correct Items", "Common Item Fields", "Pricing Entry", "Accessories"],
+    "bulkAccordionExclusive": false,
+    "applyScope": { "values": ["all", "selected"], "shared": true, "zeroSelectedRefused": true },
+    "view": { "values": ["compact", "expanded"], "changesData": false },
+    "rowEditor": "in place, one row, opened by Edit",
+    "previousPrice": "inside the open row, same customer only, Use Last Price sets that row's manual price",
+    "selectedCountLocations": 1,
+    "notPresent": [
+      "named Fast Edit mode",
+      "toolbar Apply Previous Price",
+      "toolbar Clear Selection",
+      "pricing summary line under each compact row",
+      "one-accordion-open-at-a-time",
+      "per-row history count"
+    ]
+  },
+  "protected": [
+    "parser", "AI extraction schema", "weight formulas", "diameter tables",
+    "price computation", "price mode", "rounding", "size type rules",
+    "material mapping", "finish mapping", "qty rules",
+    "previous price matching", "history identity", "add to quotation path",
+    "api.php", "auth.php", "database layer"
+  ],
+  "languages": ["en", "zh"],
+  "responsive": {
+    "desktop": { "min": 1024, "dialogWidth": "min(1280px, 100vw - 64px)" },
+    "tablet": { "range": "600-1023", "dialogWidth": "min(96vw, 900px)" },
+    "sheet": { "max": 640, "note": "full screen, message panel starts closed" },
+    "phone": { "max": 599, "note": "no column header, summary wraps" }
+  },
+  "deploy": false
+}
