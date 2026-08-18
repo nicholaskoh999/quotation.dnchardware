@@ -8,10 +8,17 @@ BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
 ACCEPTED APPLICATION COMMIT
                 33ae0da14a3bd3108e8b066d4796b1bcda2de428
                 "The control under the pointer should be the thing that changes"
-                The commit the accepted implementation and its test
-                matrix were measured at. Every figure in this package
-                was produced by this tree, and docs/control/
-                CANONICAL-STATE.json is the authority for all of them.
+                The ACCEPTED application. docs/control/
+                CANONICAL-STATE.json is the authority for it.
+CANDIDATE APPLICATION COMMIT
+                98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac
+                "The nuts are part of what the rod costs, so they are part of what it is quoted at"
+                NOT YET ACCEPTED. A round under review proposes a
+                change to index.php, companies.php, pricing_history.php, tests/php/pricing_history.test.php, declared by name in
+                docs/control/ROUND-SCOPE.md. The test figures in this
+                package were measured on THIS tree, not on the accepted
+                one — the accepted commit above has not changed and does
+                not become this one until the round is accepted.
 PACKAGE / HEAD COMMIT
                 Not named here, and deliberately. The commits after the
                 application one carry this package, and a document
@@ -113,6 +120,9 @@ AUDIT COMMITS (oldest first — this list is the count)
   40f765b  ROUND-SCOPE said 48px; the implementation has always been 46
   9609213  UI POLISH 1 is accepted, so the accepted commit moves to the one that carries it
   33ae0da  The control under the pointer should be the thing that changes
+  d86f35e  A frame that cannot show its claim, and a manifest that credits the wrong tree
+  34a673b  Acceptance is a pointer moving, not a measurement being repeated
+  98a31e3  The nuts are part of what the rod costs, so they are part of what it is quoted at
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
