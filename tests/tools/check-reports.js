@@ -169,10 +169,36 @@ const APP = C.application.acceptedCommit;
 if (!EXTRACTED) {
   check(git('cat-file', '-t', APP) === 'commit',
     `application commit ${APP.slice(0, 7)} exists in this repository`);
-  /* The accepted PHP must still BE what was accepted. */
+  /* The accepted PHP must still BE what was accepted — unless the round says
+     otherwise, in its own control file, by name.
+
+     A round that proposes a change to the application is a normal thing; a
+     change nobody declared is not, and that is the one this check exists to
+     stop. So the list of files allowed to differ is read from ROUND-SCOPE's
+     ```candidate-files``` block. Anything on it is reported as a declared
+     candidate and named in the output every time. Anything NOT on it fails
+     exactly as it always did, and an empty block means nothing may differ.
+
+     Deliberately read from ROUND-SCOPE and nowhere else: it is the file that
+     changes every round, it is the file a reviewer reads to learn what this round
+     was allowed to touch, and it cannot quietly grant itself permission —
+     the declaration is prose a person can see. CANONICAL-STATE stays the
+     authority on what has been ACCEPTED, and is not consulted here. */
+  const scopeText = fs.existsSync(path.join(L.control, 'ROUND-SCOPE.md'))
+    ? read(L.control, 'ROUND-SCOPE.md') : '';
+  const candBlock = /```candidate-files\r?\n([\s\S]*?)```/.exec(scopeText);
+  const declared = new Set((candBlock ? candBlock[1] : '')
+    .split(/\r?\n/).map(l => l.trim()).filter(Boolean));
   const changed = git('diff', '--name-only', APP + '..HEAD', '--', '*.php');
-  check(changed === '', `application PHP byte-identical to ${APP.slice(0, 7)}`
-    + (changed ? ` — changed: ${changed.replace(/\n/g, ', ')}` : ''));
+  const changedList = changed ? changed.split('\n').filter(Boolean) : [];
+  const undeclared = changedList.filter(f => !declared.has(f));
+  check(undeclared.length === 0,
+    `application PHP differs from ${APP.slice(0, 7)} only where this round declared it`
+    + (undeclared.length ? ` — undeclared: ${undeclared.join(', ')}` : ''));
+  if (changedList.length) {
+    check(true, `declared candidate change, not yet accepted: ${changedList.join(', ')}`
+      + ` (accepted commit stays ${APP.slice(0, 7)})`);
+  }
 }
 ALL_DOCS.forEach(f => check(doc(f).includes(APP), `${f} names the accepted application commit`));
 

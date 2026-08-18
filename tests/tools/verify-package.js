@@ -111,19 +111,35 @@ else {
 }
 
 // ── 4 · the shipped application is the accepted application ──────────────
+/* Or, where a round proposes a change to it, exactly and only the files that
+   round declared — read from the SHIPPED ROUND-SCOPE, so the archive carries
+   its own justification and a reviewer holding the ZIP can check the claim
+   against the bytes beside it. An undeclared difference still fails. */
 {
   const APP = C.application.acceptedCommit;
+  const scopeEntry = entries.get('QUOTATION-DNC-REVIEW/docs/control/ROUND-SCOPE.md');
+  const scopeText = scopeEntry ? scopeEntry.toString('utf8') : '';
+  const block = /```candidate-files\r?\n([\s\S]*?)```/.exec(scopeText);
+  const declared = new Set((block ? block[1] : '')
+    .split(/\r?\n/).map(l => l.trim()).filter(Boolean));
   const src = names.filter(n => n.startsWith('QUOTATION-DNC-REVIEW/SOURCE/'));
   const php = src.filter(n => n.endsWith('.php'));
-  let diff = 0, gone = 0;
+  const differ = [];
+  let gone = 0;
   for (const n of php) {
     const rel = n.slice('QUOTATION-DNC-REVIEW/SOURCE/'.length);
     let want;
     try { want = git('show', `${APP}:${rel}`); } catch (e) { gone++; continue; }
-    if (!want.equals(entries.get(n))) diff++;
+    if (!want.equals(entries.get(n))) differ.push(rel);
   }
-  say(diff === 0, `all ${php.length} shipped PHP files byte-identical to ${APP.slice(0, 7)}`
-    + (diff ? ` — ${diff} differ` : ''));
+  const undeclared = differ.filter(f => !declared.has(f));
+  say(undeclared.length === 0,
+    `all ${php.length} shipped PHP files match ${APP.slice(0, 7)} except where declared`
+    + (undeclared.length ? ` — undeclared: ${undeclared.join(', ')}` : ''));
+  if (differ.length) {
+    say(true, `declared candidate, not yet accepted: ${differ.join(', ')}`
+      + ` — the accepted commit is still ${APP.slice(0, 7)}`);
+  }
   say(gone === 0, `and every one of them existed at that commit${gone ? ` — ${gone} did not` : ''}`);
 }
 

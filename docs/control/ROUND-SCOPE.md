@@ -105,6 +105,28 @@ CSS declaration.
 
 ---
 
+## CANDIDATE APPLICATION CHANGE
+
+This round proposes a change to the accepted application. It is declared here,
+by name, so that the report checker and the package verifier can tell a
+**declared candidate** apart from an **unnoticed drift** — and so that any file
+NOT on this list still fails, loudly, exactly as before.
+
+```candidate-files
+index.php
+```
+
+Nothing else may differ from `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`.
+
+The change is presentation only: every diff hunk in `index.php` falls above
+`</style>`. `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
+`PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` are **not** touched,
+because this round is a candidate and not yet an accepted state. If UI POLISH 1
+is accepted, the canonical application commit moves then — deliberately, as its
+own step, with this declaration removed.
+
+---
+
 ## STOP CONDITION
 
 - the full accepted regression passes at or above the canonical counts, with
