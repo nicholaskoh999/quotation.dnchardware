@@ -2500,6 +2500,24 @@ input,select,textarea{
   color:var(--text-muted);margin-left:auto}
 .wqa-bulk-bar .wqa-scope{margin-top:0}
 .wqa-bulk-btn{flex:1 1 240px}
+/* ── APPLY TO, on a phone ──────────────────────────────────
+   The label sits hard right on a wide bar, which is where it belongs when
+   the control it names is beside it. Once the bar wraps, that same
+   margin-left:auto strands it at the end of the FIRST line while its
+   buttons drop to the left of the second — so "APPLY TO:" reads against the
+   Bulk Edit button, and All Items / Selected Items read as belonging to
+   nothing. On a scope control that decides whether an action hits every row
+   or only the ticked ones, that is not a cosmetic problem.
+
+   So below 640 the pair claims its own full-width line each, in order: the
+   label directly above the buttons it names, and no auto margin to push
+   them apart. Nothing above 640 changes — the accepted desktop bar is
+   untouched at every width where it still fits on one line. */
+@media (max-width:640px){
+  .wqa-bulk-bar .wqa-scope-lbl{margin-left:0;flex:1 1 100%;margin-top:2px}
+  .wqa-bulk-bar .wqa-scope{flex:1 1 100%}
+  .wqa-bulk-bar .wqa-scope .wqa-view-btn{flex:1 1 0;min-width:0}
+}
 /* Open, and saying so: the accent edge and a tinted ground, with the four
    sections inside it now surfaces rather than four more bordered cards. */
 .wqa-bulk-body{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;

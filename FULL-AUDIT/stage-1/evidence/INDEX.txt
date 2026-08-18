@@ -1,0 +1,25 @@
+STAGE 1 — FINAL UI CLEANUP · EVIDENCE
+
+Every figure below was asserted by the capture script before its frame was
+written; the run fails if any of them moves.
+
+  01a/01b  430px APPLY TO — stranded, then attached to its control
+  02       430px review — no horizontal overflow
+  03       1440px — the accepted desktop bar, unchanged
+  04/05/06 Companies on a phone — header, page, modal actions at 44px
+  07       Companies on the desk — 40 and 24x17, exactly as accepted
+  08/09/10 numbering — one item, one number, three surfaces
+
+DEFERRED TO STAGE 2: dark mode; numbering ORDER on screen and in the message.
+
+  01  01a-430-apply-to-before.png
+  02  01b-430-apply-to-after.png
+  03  02-430-review-no-overflow.png
+  04  03-desk-1440-unchanged.png
+  05  04-companies-430-header.png
+  06  05-companies-430-page.png
+  07  06-companies-430-modal-actions.png
+  08  07-companies-desk-unchanged.png
+  09  08-numbering-screen.png
+  10  09-numbering-whatsapp.png
+  11  10-numbering-print.png

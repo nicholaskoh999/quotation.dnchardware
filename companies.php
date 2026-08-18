@@ -700,6 +700,39 @@ input,select,textarea{
 .item-search-hint{font-size:11.5px;color:var(--text-muted);margin-top:7px;line-height:1.4}
 .item-search-tools .cp-search-result{margin-top:10px}
 @media (max-width:700px){ .item-search-tools{padding:10px;margin-bottom:10px} }
+
+/* ── Reaching these with a thumb ──────────────────────────────
+   Measured on a 430px phone, three controls came out under the 44px a finger
+   actually needs, and they are not obscure ones: the language pair in the
+   header (30.6 x 40 and 39 x 40) and the × that closes every modal
+   (17 x 24 — under a fifth of the area). The Edit Company fields sat at 36.
+
+   The × is the one that matters most: it is the only way out of a modal on a
+   phone, it sits in the top corner where the hand is least steady, and missing
+   it means tapping the page behind. It grows into a real box rather than
+   staying a bare glyph.
+
+   Held to narrow widths and coarse pointers on purpose. Desktop keeps the
+   density UI POLISH 1 and UI POLISH 2 settled on — nothing here applies above
+   560px with a mouse, and none of it changes what any control DOES. */
+@media (max-width:560px){
+  .lang-btn{min-width:44px;min-height:44px;padding:0 12px;font-size:12px}
+  .modal-close{min-width:44px;min-height:44px;display:inline-flex;align-items:center;
+    justify-content:center;margin:-10px -10px -10px 8px;border-radius:var(--r-sm);
+    flex:0 0 auto;touch-action:manipulation}
+  .modal-close:hover{background:var(--surface2)}
+  .field input,.field select,.field textarea{min-height:44px}
+  .field textarea{min-height:64px}
+}
+/* A touch screen has no hover to fall back on, whatever its width. */
+@media (hover:none) and (pointer:coarse){
+  .lang-btn{min-width:44px;min-height:44px}
+  .modal-close{min-width:44px;min-height:44px;display:inline-flex;align-items:center;
+    justify-content:center;flex:0 0 auto;touch-action:manipulation}
+  .field input,.field select,.field textarea{min-height:44px}
+}
+/* The label keeps its place beside a taller close box. */
+@media (max-width:560px){ .modal-title{align-items:flex-start} }
 </style>
 </head>
 <body>

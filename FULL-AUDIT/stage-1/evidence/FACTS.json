@@ -1,0 +1,53 @@
+{
+  "before": {
+    "lblLeft": 340.5,
+    "lblRight": 405.4,
+    "scopeLeft": 22.6,
+    "sameRow": false,
+    "stacked": false,
+    "overflow": 0
+  },
+  "after": {
+    "lblLeft": 22.6,
+    "lblRight": 405.4,
+    "scopeLeft": 22.6,
+    "sameRow": false,
+    "stacked": true,
+    "overflow": 0
+  },
+  "desk": {
+    "lblLeft": 1100.4,
+    "lblRight": 1165.2,
+    "scopeLeft": 1174.2,
+    "sameRow": true,
+    "stacked": false,
+    "overflow": 0
+  },
+  "companiesHeader": {
+    "h": 44,
+    "w": 44,
+    "overflow": 0
+  },
+  "companiesModal": {
+    "close": {
+      "h": 44,
+      "w": 44
+    },
+    "field": {
+      "h": 44
+    }
+  },
+  "companiesDesk": {
+    "lang": {
+      "h": 40
+    },
+    "close": {
+      "h": 24,
+      "w": 17
+    }
+  },
+  "screenOrder": "4,3,2,1",
+  "waOrder": "1,3,2,4",
+  "wa": "MS FULLSIZE SAG ROD (ZP)\n1. M12 x L 1000 x TL 100/100mm - RM7.90\n3. M20 x L 1500 x TL 120/120mm - RM18.20\n\n4140 QT FULLSIZE SAG ROD (PL)\n2. M16 x L 1200 x TL 100/100mm - RM12.50\n4. M24 x L 1800 x TL 130/130mm - RM24.00",
+  "printOrder": "1,2,3,4"
+}
