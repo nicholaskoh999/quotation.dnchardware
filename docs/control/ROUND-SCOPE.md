@@ -87,15 +87,28 @@ No opportunistic refactoring. No fixes to the recorded N2–N6 observations.
 > Keep DIA beside Size, **the current density**, and the Pricing Summary
 > directly under each compact row.
 
-The round brief asks, in §6C, for roughly a **48px** compact row — the density
-that was accepted from the previous attempt's screenshots — where the accepted
-source sets `min-height:38px`. The two cannot both hold, so this round treats
-the brief as the explicit approval the guardrail requires, and changes **only**
-that one clause:
+The accepted source sets `min-height:38px`, so any change to the compact row
+height touches that clause and needs the explicit approval the guardrail asks
+for. It got one — but not for the figure the brief opened with. The number was
+settled by three things in sequence:
+
+| | |
+|---|---|
+| **Requested** | approximately **48px**, brief §6C — the density accepted from the previous attempt's screenshots |
+| **Capped** | the accepted regression pins the compact data line at **≤ 46px**, in two independent suites: `tests/suites/17-quickadd-layout.test.js:119` (`clean.sumHeight <= 46`) and `tests/suites/34-row-meta.test.js:90` (`rowH <= 46`) |
+| **Approved** | Nicholas approved **46px** explicitly, and capped it there: *"46px is approved for UI POLISH 1. Do not increase it further."* |
+| **Implemented** | **46px** |
+
+46px is inside "approximately 48", it is a 21% increase on the 38px the source
+had, and it keeps both accepted assertions green. **No accepted test was
+modified to accommodate it** — the cap was found by reading the suite, and the
+implementation was fitted to it rather than the other way round.
+
+So this round changes **only** that one clause of the guardrail:
 
 - DIA stays beside Size.
 - The Pricing Summary stays directly under each compact row.
-- Row height moves from 38px to 48px on desktop, and nowhere else.
+- Row height moves from **38px to 46px** on desktop, and nowhere else.
 
 If that is not what was intended, this is the line to reverse, and it is one
 CSS declaration.
