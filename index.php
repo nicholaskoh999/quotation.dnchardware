@@ -2156,22 +2156,22 @@ input,select,textarea{
    and the extra goes into the tracks the values live in rather than into the
    slack column. Everything below 1200px keeps the layout it already had.     */
 @media (min-width:1200px){
+  /* Every MINIMUM here is the accepted one, to the pixel, and only the maxima
+     are new. That is deliberate: a J Bolt names four dimensions, and its ten
+     tracks at their minimum widths are what decides whether the row fits its
+     own box. Raising those minima to spend the new width is what broke it —
+     at 1366 the panel is 1302px and a J Bolt wants every pixel of it. The fr
+     maxima give the columns the room when a Stud or a Sag Rod leaves it
+     spare, and give up all of it when a J Bolt does not. The gap and the
+     padding stay at the accepted figures for the same reason. */
   .wqa-modal{
     width:min(1360px,calc(100vw - 64px));max-width:none;
-    --wqa-lead: 46px minmax(74px,.85fr) minmax(78px,.85fr);
-    --wqa-dim:  minmax(88px,1fr);
-    --wqa-dim-spec: minmax(280px,2.4fr);
-    --wqa-tail: minmax(62px,.7fr) minmax(116px,1.05fr) minmax(104px,1fr)
-                minmax(90px,1.15fr) 168px;
+    --wqa-lead: 32px minmax(62px,.85fr) minmax(64px,.85fr);
+    --wqa-dim:  minmax(78px,1fr);
+    --wqa-dim-spec: minmax(250px,2.4fr);
+    --wqa-tail: minmax(56px,.7fr) minmax(104px,1.05fr) minmax(90px,1fr)
+                minmax(0,1.15fr) 152px;
   }
-  /* One rhythm down the table: the header, the values and the metadata under
-     them share a left edge, and the row gains the vertical room the round asks
-     for without the item block growing — the summary that used to wrap now
-     fits on the one line it was always meant to be. */
-  .wqa-list-head,.wqa-sum{gap:0 14px;padding-left:16px;padding-right:16px}
-  .wqa-list-head{padding-top:9px;padding-bottom:9px}
-  .wqa-row .wqa-meta{padding-left:52px;padding-right:16px}
-  .wqa-row .wqa-row-sub{padding-left:52px;padding-right:16px}
   /* The pricing summary is two sentences that were stacked because a 900px
      panel had nowhere to put them. It holds 219px of text in a 1316px row, so
      at this width they sit side by side and a clean item costs one line plus
