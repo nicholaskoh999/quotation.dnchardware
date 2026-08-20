@@ -1,0 +1,160 @@
+QUOTATION.DNC — STAGE 1 FINAL ACCEPTANCE · CONSISTENCY RESULTS
+==============================================================
+
+Run at 2c20f1c with a clean working tree, and written into
+the commit that follows it — a document cannot record the state of the commit
+it is inside without changing that state. This is the same rule COMMIT-INFO.txt
+follows, and for the same reason.
+
+What was run, and what was deliberately NOT run.
+
+NOT RUN     the full browser regression, and not by omission.
+
+            Stage 1's application and test bytes were reviewed and accepted as
+            they stand. Nothing about them moved between the reviewed run and
+            this promotion, proven by two empty diffs:
+
+                git diff --name-only 3e89713..HEAD -- '*.php'                 -> (empty)
+                git diff --name-only 3e89713..HEAD -- tests/suites tests/lib  -> (empty)
+
+            Re-running the suite could only have produced the same numbers from
+            a different tree state, which is a weaker fact than the two diffs
+            above, not a stronger one. The 38 / 3,816 / 4,172 matrix is promoted
+            AS MEASURED on 3e89713, and LOGS/ carries that run.
+
+RUN         report consistency   node tests/tools/check-reports.js
+            control consistency  node tests/tools/check-control.js
+            package verification after the build, on the extracted archive,
+                                 and reported outside it — for the same reason
+                                 the ordering above is what it is.
+
+----------------------------------------------------------------------------
+1 · REPORT CONSISTENCY — every report against docs/control/CANONICAL-STATE.json
+----------------------------------------------------------------------------
+
+
+  REPORT CONSISTENCY — repository, against docs/control/CANONICAL-STATE.json
+  ──────────────────────────────────────────────────────────────────────────
+  application 3e89713 · 38 suites · 4,172 assertions · baseline 2,810 · delta +1,362
+  862 keys at 100% · P1 13 / P2 24 / P3 2 / 39 findings · 5 recorded-not-repaired
+  ──────────────────────────────────────────────────────────────────────────
+  ok   canonical: 3,816+172+107+62+15 = 4,172 = finalAssertions
+  ok   canonical: 4,172 − 2,810 = 1,362 = delta
+  ok   canonical: 0+13+24+2 = 39 = total findings
+  ok   canonical: 5 recorded-not-repaired ids = 5
+  ok   canonical schemaVersion 1
+  ok   application commit 3e89713 exists in this repository
+  ok   application PHP differs from 3e89713 only where this round declared it
+  ok   EXECUTIVE-SUMMARY.md names the accepted application commit
+  ok   FULL-AUDIT-REPORT.md names the accepted application commit
+  ok   FINDINGS.md names the accepted application commit
+  ok   TEST-RESULTS.md names the accepted application commit
+  ok   TRANSLATION-AUDIT.md names the accepted application commit
+  ok   BUSINESS-DECISIONS-NEEDED.md names the accepted application commit
+  ok   COMMIT-INFO.txt names the accepted application commit
+  ok   28 superseded values swept across 9 artifacts
+  ok   no report points at the retired ZIP-MANIFEST.txt
+  ok   5 severity/observation table rows read cell by cell
+  ok   FINDINGS.md carries 39 F-headings, canonical says 39
+  ok   FINDINGS.md records N2, N3, N4, N5, N6 as not repaired (canonical: N2, N3, N4, N5, N6)
+  ok   and marks N1 as resolved, so it is not counted
+  ok   EXECUTIVE-SUMMARY.md says "39 in all"
+  ok   FULL-AUDIT-REPORT.md severity line reads P0 0 · P1 13 · P2 24 · P3 2
+  ok   FULL-AUDIT-REPORT.md says "39 findings, all repaired"
+  ok   FINDINGS.md severity line reads P0 0 · P1 13 · P2 24 · P3 2
+  ok   FINDINGS.md says "39 total, all repaired"
+  ok   COMMIT-INFO.txt tallies "39 total, 39 repaired"
+  ok   the recorded run has 38 suites
+  ok   the recorded run has 3816 browser assertions
+  ok   the recorded run failed 0
+  ok   per-suite assertions sum to 3816
+  ok   browser-suite.json: 38 suites / 3,816 assertions / 0 failed
+  ok   pricing-history-php.log records a passing 172-assertion run
+  ok   ai-extract-php.log records a passing 107-assertion run
+  ok   pricing-workbook.log records a passing 62-assertion run
+  ok   translation-coverage.log records a passing 15-assertion run
+  ok   translation-coverage.json totals 862 keys
+  ok   every file at 100% coverage
+  ok   nothing missing, undefined or untranslated-identical
+  ok   nothing bypassing dcT and no unapplied hook
+  ok   translation-coverage.log names 862 keys
+  ok   FULL-AUDIT-REPORT claims 96 frames, the directory holds 96
+  ok   evidence present: C04-accessories-zero-selected
+  ok   evidence present: C04b-accessories-zero-selected-chinese
+  ok   every evidence file a report names exists (35 checked)
+  ok   docs/control/PROJECT-GUARDRAILS.md present
+  ok   docs/control/ROUND-SCOPE.md present
+  ok   docs/control/CANONICAL-STATE.md present
+  ok   docs/control/CANONICAL-STATE.json present
+  ok   the shipped CANONICAL-STATE.json is the one this check ran against
+  ok   CANONICAL-STATE.md states the application commit (3e89713400b5bcfceca31d2c074de17411169d1b)
+  ok   CANONICAL-STATE.md states the final assertions (4,172)
+  ok   CANONICAL-STATE.md states the baseline (2,810)
+  ok   CANONICAL-STATE.md states the delta (+1,362)
+  ok   CANONICAL-STATE.md states the translation keys (862)
+  ok   CANONICAL-STATE.md states the total findings (39)
+  ok   CANONICAL-STATE.md states the recorded-not-repaired (5)
+  ok   COMMIT-INFO.txt generated blocks match Git and canonical state
+
+  57 checks, 0 disagreements.
+
+
+----------------------------------------------------------------------------
+2 · CONTROL CONSISTENCY — the three authorities against each other, and against Git
+----------------------------------------------------------------------------
+
+
+  CONTROL CONSISTENCY — Stage 1 final acceptance
+  ──────────────────────────────────────────────────────────────────────────
+  ok   CANONICAL-STATE.json accepted commit is 3e89713
+  ok   authoritative.js APP_SHA is 3e89713
+  ok   CANONICAL-STATE.md names it
+  ok   status accepted, round "STAGE 1 — Final UI Cleanup: narrow-width…"
+  ok   authoritative.js and canonical agree: 38 / 3816 / 4172 / +1362 / 0 failed
+  ok   the accepted matrix is the measured Stage 1 run
+  ok   3,816+172+107+62+15 = 4172
+  ok   4,172 − 2,810 = +1,362
+  ok   the four side suites agree in both files and did not move
+  ok   translation 862 / 100% / 0 / 0 / 0, unchanged
+  ok   4 superseded application commits recorded
+  ok   the historical chain is intact: 7f5bc97 → e3d659b → 33ae0da → 98a31e3
+  ok   98a31e3 is recorded superseded by 3e89713
+  ok   the accepted commit is not also listed as superseded
+  ok   CANONICAL-STATE.md records the same supersession
+  ok   4,070 retired, 4,172 is not retired
+  ok   +1,260 retired, +1,362 is not retired
+  ok   suite counts retired: 34 · 36 · 37 — 38 is current, not retired
+  ok   the accepted commit exists in this repository
+  ok   98a31e3 is an ancestor of 3e89713
+  ok   3e89713 is an ancestor of HEAD
+  ok   the promotion carries exactly index.php and companies.php
+  ok   no application PHP differs from the accepted commit
+  ok   no browser-test byte differs from the accepted commit
+  ok   the candidate SHA derived from the declared files IS the accepted commit
+  ok   working tree clean
+  ok   ROUND-SCOPE carries a candidate-files block
+  ok   the candidate-files block is EMPTY — nothing may differ from the accepted commit
+  ok   ROUND-SCOPE is marked FINAL ACCEPTED / CLOSED
+  ok   ROUND-SCOPE records DEPLOY = NO
+  ok   ROUND-SCOPE records STAGE 2 = NOT STARTED
+  ok   canonical: deployment not approved
+  ok   the Stage 1 UI section exists
+  ok   the scope control is protected
+  ok   the Companies tap targets are protected
+  ok   and so are the accepted desk sizes
+  ok   the printed A4 quotation is protected
+  ok   the accessory rule survives into print
+  ok   numbering identity is protected
+  ok   the deferrals are recorded as deferrals
+  ok   dark mode and numbering ORDER are deferred, not converted into accepted behaviour
+  ok   the STAGE 0B accessory rule is still protected, untouched by this round
+  ok   regression-evidence/browser-suite.log is the 38 / 3,816 run
+  ok   browser-suite.json agrees
+  ok   the 38 per-suite lines sum to 3816
+  ok   the candidate-only STAGE-1-TEST-RESULTS.md is gone, not left to drift
+
+  46 checks, 0 disagreements.
+
+
+----------------------------------------------------------------------------
+END
