@@ -11,8 +11,8 @@ ACCEPTED APPLICATION COMMIT
                 The ACCEPTED application. docs/control/
                 CANONICAL-STATE.json is the authority for it.
 CANDIDATE APPLICATION COMMIT
-                16623a2a61fa2bd34cdbd5e1a2ddf8ec8cd70dfd
-                "A label that has drifted onto another row, and a close button a thumb misses"
+                3e89713400b5bcfceca31d2c074de17411169d1b
+                "The quotation printed like a dump of the items array"
                 NOT YET ACCEPTED. A round under review proposes a
                 change to index.php, companies.php, declared by name in
                 docs/control/ROUND-SCOPE.md. The test figures in this
@@ -127,6 +127,9 @@ AUDIT COMMITS (oldest first — this list is the count)
   46077a3  A rule that changes what we charge belongs in the guardrails, not in a round report
   6eaf831  The builder ships in its own archive, so it has to be the committed one
   16623a2  A label that has drifted onto another row, and a close button a thumb misses
+  8176b6a  The generated facts, written after the commit they describe
+  2ec47d9  The Stage 1 builder ships in its own archive, so it has to be committed first
+  3e89713  The quotation printed like a dump of the items array
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
