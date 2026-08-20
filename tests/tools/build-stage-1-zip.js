@@ -86,11 +86,24 @@ const SOURCE = [
   'tests/tools/build-stage-1-zip.js',
 ];
 
-/* TEST-RESULTS.md travels because its per-suite listing is what a reviewer
-   reconciles the accepted counts against; STAGE-1.md carries this round's own,
-   which are higher and are NOT canonical yet. */
-const REPORTS = ['FULL-AUDIT/STAGE-1.md', 'FULL-AUDIT/TEST-RESULTS.md',
-                 'FULL-AUDIT/COMMIT-INFO.txt'];
+/* ── REPORTS, and one deliberate substitution ──────────────────────────────
+   `[source, name-in-the-archive]`. Every pair but one is the identity.
+
+   REPORTS/TEST-RESULTS.md is sourced from STAGE-1-TEST-RESULTS.md, not from
+   FULL-AUDIT/TEST-RESULTS.md. The latter records the ACCEPTED state and is
+   validated against CANONICAL-STATE, which still reads 37 suites and 4,070
+   assertions for 98a31e3 — correct, and deliberately untouched, because Stage 1
+   has passed review but has NOT been promoted. Shipping it inside a candidate
+   package made it read as stale when it was simply describing a different tree.
+
+   So the candidate package carries the CANDIDATE's measured run under that name,
+   and that document says so in its own first lines. The accepted document stays
+   accepted, and nothing was promoted to make a number agree. */
+const REPORTS = [
+  ['FULL-AUDIT/STAGE-1.md',              'STAGE-1.md'],
+  ['FULL-AUDIT/STAGE-1-TEST-RESULTS.md', 'TEST-RESULTS.md'],
+  ['FULL-AUDIT/COMMIT-INFO.txt',         'COMMIT-INFO.txt'],
+];
 
 /* Two sets, kept apart in the archive so a reviewer knows which is which and
    FACTS.json from one cannot overwrite FACTS.json from the other:
@@ -125,7 +138,7 @@ const add = (name, data) => entries.push([name, data]);
 
 CONTROL.forEach(p => add(`${NAME}/docs/control/${path.basename(p)}`, blob(need(p))));
 SOURCE.forEach(p => add(`${NAME}/SOURCE/${p}`, blob(need(p))));
-REPORTS.forEach(p => add(`${NAME}/REPORTS/${path.basename(p)}`, blob(need(p))));
+REPORTS.forEach(([src, name]) => add(`${NAME}/REPORTS/${name}`, blob(need(src))));
 add(`${NAME}/EVIDENCE/INDEX.md`, blob(need(EVIDENCE_INDEX)));
 evidence.forEach(([sub, p]) => add(`${NAME}/EVIDENCE/${sub}/${path.basename(p)}`, blob(p)));
 
@@ -180,7 +193,7 @@ const man = [
   ...(CAND ? [
   `CANDIDATE APPLICATION ${CAND}`,
   `                     "${gitText('log', '-1', '--format=%s', CAND)}"`,
-  '                     NOT YET ACCEPTED. Stage 0B proposes a change to',
+  '                     NOT YET ACCEPTED. Stage 1 proposes a change to',
   `                     ${candFiles.join(', ')},`,
   '                     declared by name in docs/control/ROUND-SCOPE.md. Every',
   '                     test figure in this package was measured on THIS tree.',
@@ -221,8 +234,9 @@ const man = [
   '                 touch, and the authoritative numbers. Read these first.',
   `  /SOURCE/       ${pad(SOURCE.length + ' files', 10)} the two application files this stage changed,`,
   '                 and the tests and tools that prove them',
-  `  /REPORTS/      ${pad(REPORTS.length + ' files', 10)} the Stage 1 report, the test results, and the`,
-  '                 generated commit facts',
+  `  /REPORTS/      ${pad(REPORTS.length + ' files', 10)} the Stage 1 report, the CANDIDATE's measured test`,
+  '                 results (which the LOGS reconcile to, and which are NOT',
+  '                 canonical), and the generated commit facts',
   `  /EVIDENCE/     ${pad((evidence.length + 1) + ' files', 10)} ui/ and print/ — this round's frames and the facts`,
   '                 each one asserts. Regenerated per candidate, not',
   '                 accumulated across them.',
