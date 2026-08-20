@@ -1,0 +1,16 @@
+STAGE 1 — PRINT / PDF QUOTATION LAYOUT · EVIDENCE
+
+Whole A4 sheets, rendered through Chromium's own print pipeline and
+rasterised page by page. Not cropped tables.
+
+Every figure was asserted before its frame was written; the run fails if
+any of them moves. The money, the accessory wording and the numbering are
+asserted as UNCHANGED, because a layout change is exactly where those
+would slip without anyone noticing.
+
+  01  01-print-before-p1.png
+  02  02-print-after-4-items-p1.png
+  03  03-print-accessory-and-alignment.png
+  04  04-print-grand-total.png
+  05  05-print-long-multipage-p1.png
+  06  05-print-long-multipage-p2.png

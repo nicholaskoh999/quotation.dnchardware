@@ -1,6 +1,6 @@
 # STAGE 1 — FINAL UI CLEANUP
 
-**Round:** STAGE 1 — Final UI Cleanup
+**Round:** STAGE 1 — Final UI Cleanup *(reopened for print / PDF layout)*
 **Continues from:** STAGE 0B — accepted at `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`
 **Application status:** accepted baseline `98a31e3`, with a **candidate** presentation change
 **Deploy:** NO
@@ -133,24 +133,71 @@ Both orderings are deliberate and documented in the source. Making them agree
 would change generated output — a data-generation change, which this round was
 instructed not to make. **Verified with evidence, ordering deferred.**
 
+### Goal 5 · Print / PDF quotation layout — REPAIRED *(added on review)*
+
+Nicholas / ChatGPT read the Stage 1 evidence, promoted nothing, and found one
+further presentation-only defect. `ROUND-SCOPE.md` was amended before the bytes
+that address it; the candidate under review at that point was `16623a2`.
+
+**Reproduced by rendering the real print stylesheet to an actual A4 PDF**, not by
+reading CSS. The sheet was already functionally correct — one priced row per
+item, the inclusive Unit Price, `cw 2nut` as plain description, numbering intact
+— and unpresentable:
+
+| | before | after |
+|---|---|---|
+| item rows | 8.8pt | **9.6pt** |
+| table header | 8.5pt | **9pt** |
+| QUOTATION | 18pt, no rule | **21pt** over a rule |
+| meta values (No., Date, Customer, Prepared By) | 9.5pt beside a 30mm label | **11pt**, label above value |
+| Description column | **43mm** — every description wrapped | **52mm** |
+| Grand Total | 10pt, grey row, hairline above | **13pt**, bold, **2px** rule above |
+| money columns | no tabular numerals | `tabular-nums`, digits line up |
+| Qty | centred | aligned to its column |
+| even rows | flat | a faint band, so the eye tracks across |
+
+The layout is more efficient as well as more readable: a 26-item quotation still
+fits in **2 pages**, exactly as before, despite the larger type.
+
+**Multi-page.** `thead` already repeated on page 2 — browsers do that for a real
+`<thead>`, and this table has always had one. What was missing is the rest, and
+is now explicit: `table-header-group` so the repeat is intentional rather than
+incidental, `break-inside:avoid` so no row is torn, `table-footer-group` so the
+Grand Total cannot be stranded away from the rows it totals, and the remarks and
+footer note kept whole.
+
+**What did not change, and is asserted frame by frame:** every figure, the
+accessory rule, and the numbering. Four items still produce **four** priced rows
+— no separately priced accessory row has returned — `cw 2nut` still carries no
+money, item 1 still quotes RM 7.76 / RM 77.60, and the sheet still totals
+**RM 284.80** before and after.
+
+**Print only, measured from the screen side.** Every rule is inside
+`@media print`, and `#printSummary` is `display:none` on screen with every
+sibling hidden in print. Rather than assert that, the same harness measured
+eleven screen elements at 1440 / 820 / 430px against the previous candidate:
+**zero differences**.
+
 ---
 
 ## 3 · Files changed
 
 | file | change |
 |---|---|
-| `index.php` | one `@media (max-width:640px)` block: the APPLY TO label and its control kept together. CSS only |
+| `index.php` | one `@media (max-width:640px)` block: the APPLY TO label and its control kept together. **And** the `@media print` block rebuilt: A4 margins, type scale, header hierarchy, column widths, numeric alignment, Grand Total prominence, multi-page safety. CSS only |
 | `companies.php` | two media blocks — `max-width:560px` and `(hover:none) and (pointer:coarse)` — raising the language buttons, the modal close and the form fields to 44px. CSS only |
 
-No markup, no script, no PHP, no translation key, no behaviour. Both diffs are
-purely additive stylesheet rules inside media queries.
+No markup, no script, no PHP, no translation key, no behaviour. Every diff is a
+stylesheet rule inside a media query. The `beforeprint` handler that builds the
+printed rows is **untouched** — same `dcItemFinalUnit`, same `totalAmount`, same
+`getPrintItemDimension`, same `formatPrintMoney`.
 
 ---
 
 ## 4 · Tests
 
 **New:** `tests/suites/38-mobile-ui.test.js` — *phone widths — the scope label,
-the tap targets, and the desk left alone*, **75 assertions**.
+the tap targets, and the desk left alone*, **102 assertions**.
 
 It protects the two repairs, the one deferral, and — deliberately — the thing
 that must NOT have moved:
@@ -166,6 +213,13 @@ that must NOT have moved:
   **emulated on the page**, not passed as a context option the harness drops
 - numbering identity across all three surfaces, plus the three orderings recorded
   as assertions so a later round cannot change them unnoticed
+- **the printed sheet**, with `print` media really emulated: the six columns in
+  order, the type scale, the 52mm Description, tabular numerals, right-aligned
+  money and Qty, a Grand Total larger and bolder over a heavier rule, the
+  repeating header, `break-inside:avoid` — and, as the other half of every one of
+  those, four items producing four priced rows, `cw 2nut` with no money in it,
+  RM 7.76 / RM 77.60 and a RM 284.80 total unchanged, and `#printSummary` back to
+  `display:none` with its rows cleared once `afterprint` fires
 
 **No accepted test was modified.**
 
@@ -175,22 +229,22 @@ that must NOT have moved:
 
 | group | suites | assertions | failed | skipped |
 |---|---:|---:|---:|---:|
-| Browser (`tests/run.js`) | **38** | **3,789** | 0 | 0 |
+| Browser (`tests/run.js`) | **38** | **3,816** | 0 | 0 |
 | Pricing-history PHP | 1 | 172 | 0 | 0 |
 | AI extraction PHP | 1 | 107 | 0 | 0 |
 | Pricing workbook | 1 | 62 | 0 | 0 |
 | Translation coverage | 1 | 15 | 0 | 0 |
-| **Total** | **42** | **4,145** | **0** | **0** |
+| **Total** | **42** | **4,172** | **0** | **0** |
 
 ```
-  3,789   browser
+  3,816   browser
 +   172   pricing / history
 +   107   AI extraction / parser
 +    62   workbook
 +    15   translation
-= 4,145   total
+= 4,172   total
 
-  4,145 − 2,810 = 1,335
+  4,172 − 2,810 = 1,362
 ```
 
 Translation: **862 keys, 100% coverage, 0 missing, 0 hard-coded, 0 unapplied** —
@@ -198,8 +252,10 @@ unchanged, because this round added no string and removed none.
 
 PHP lint: 7 of 7 clean.
 
-The browser matrix grew by **75** — the whole of the new suite. The previous
-3,714 / 4,070 were not forced onto this run.
+The browser matrix grew by **102** — the whole of the new suite, which now
+carries the print assertions too (75 → 102 when the round reopened). The
+previously accepted 3,714 / 4,070 were not forced onto this run, and neither
+were the 3,789 / 4,145 this round reported before it reopened.
 
 `CANONICAL-STATE` still reads **4,070** and **`98a31e3`**, deliberately: Stage 1
 is a candidate, and the canonical numbers move when Nicholas accepts it, as their
@@ -226,14 +282,17 @@ The accessory-inclusive rule accepted in Stage 0B is untouched: suite 14 passes 
 |---|---|
 | **Dark mode** | Nothing exists to polish; building it is a feature round. Deferred by Nicholas's decision, raised before any byte moved |
 | **Numbering order** on screen and in the message | Needs a data-generation change, which Stage 1 was instructed not to make |
+| **Printed page numbering** (`Page 1 of 2`) | Chrome does not support CSS paged-media margin boxes, so a page number cannot be placed from the stylesheet; the browser's own print dialog supplies headers and footers. Recorded rather than faked |
+| **A signature / terms block** for the lower half of a short quotation | That is document *content*, not layout — it needs wording Nicholas decides, not a CSS rule |
 | `index.php` sidebar toggle (34 × 34), step pills (36px) | Recorded, not repaired: this round's tap-target goal names the Companies screens, and widening the header would move density accepted in UI POLISH 1 |
 
 ---
 
 ## 8 · Candidate status
 
-This round is a **candidate**. `index.php` and `companies.php` are declared by
-name in `ROUND-SCOPE.md`, so the report checker and package verifier report them
+This round is a **candidate**, and it superseded its own earlier candidate
+`16623a2` when it reopened for the print work. `index.php` and `companies.php`
+are declared by name in `ROUND-SCOPE.md`, so the report checker and package verifier report them
 as a declared candidate rather than as drift, and any undeclared application
 change still fails. `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
 `PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` are **not** touched —

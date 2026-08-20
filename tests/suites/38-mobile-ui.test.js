@@ -27,12 +27,26 @@
        the only way out of a modal, and it sits in the corner where the hand is
        least steady.
 
-   3 · And the desk is untouched.
+   3 · The printed quotation reads as a document.
 
-       Every rule Stage 1 added lives inside a narrow-width or coarse-pointer
-       query. That is easy to claim and easy to get wrong, so it is measured from
-       the other side too: at desktop widths these controls must still be exactly
-       the size UI POLISH 1 and UI POLISH 2 left them.                        */
+       Stage 1 was reopened for this. The sheet was already CORRECT — one priced
+       row per item, the inclusive Unit Price, `cw 2nut` as plain description —
+       and unpresentable: 8.8pt rows, a Description column pinned to 43mm so
+       every description wrapped, a Grand Total that read as one more grey row,
+       and money columns whose digits did not line up.
+
+       The repair is type, space and alignment only, so the assertions are about
+       geometry and about what did NOT move: every figure, the accessory rule and
+       the numbering are checked here too, because a layout change that quietly
+       reintroduced a priced accessory row would look like an improvement.
+
+   4 · And the desk is untouched.
+
+       Every rule Stage 1 added lives inside a narrow-width, coarse-pointer or
+       PRINT query. That is easy to claim and easy to get wrong, so it is measured
+       from the other side too: at desktop widths these controls must still be
+       exactly the size UI POLISH 1 and UI POLISH 2 left them, and the print rules
+       must be invisible to the screen.                                       */
 'use strict';
 const { openApp, openCompanies, quickAddPaste } = require('../lib/harness');
 
@@ -264,6 +278,123 @@ module.exports = async (browser, A) => {
     A.eq(waNos.join(','), '1,3,2,4',
       'and the message groups by material, so its numbers are correct but not ascending — DEFERRED to Stage 2');
 
+    A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
+    await page.close();
+  }
+
+  // ══ 7 · the printed quotation ════════════════════════════════════════════
+  /* Measured with `print` media actually emulated, so these are the rules that
+     really apply on paper rather than the screen ones read hopefully. */
+  {
+    const page = await openApp(browser, { viewport: { width: 1440, height: 1000 } });
+    await page.evaluate(() => {
+      quoteItems.length = 0;
+      const mk = (desc, mat, fin, size, price, qty, acc) => ({
+        itemType: 'sagrod', desc, productType: 'SAG ROD', material: mat, finish: fin,
+        sizeType: 'FULLSIZE', cleanSize: 'M12', sizeCode: 'M12', size,
+        dimensionPreview: 'L 1000 x TL 100/100mm', qty, markup: 0, weight: 0.9,
+        boltUnitPrice: acc ? price - 2 : price, accessoryUnitPrice: acc ? 2 : 0,
+        finalUnitPrice: price, lineUnitPrice: price,
+        accessoryTotal: (acc ? 2 : 0) * qty, totalAmount: price * qty,
+        pricingModel: 'accessory-inclusive', priceMode: 'auto',
+        accessories: acc
+          ? { nut: { enabled: true, qty: 2, finish: 'HDG', unitPrice: 1 }, fw: { enabled: false }, custom: { enabled: false } }
+          : { nut: { enabled: false }, fw: { enabled: false }, custom: { enabled: false } },
+        formData: {} });
+      quoteItems.push(mk('MS UNDERSIZE SAG ROD', 'MS', 'HDG', 'M12 x L 1000 x TL 100/100mm', 7.76, 10, true));
+      quoteItems.push(mk('4140 QT FULLSIZE ANCHOR BOLT', '4140', 'PL', 'M16 x L 1200 x TL 100/100mm', 12.50, 4, false));
+      quoteItems.push(mk('MS FULLSIZE SAG ROD', 'MS', 'ZP', 'M20 x L 1500 x TL 120/120mm', 18.20, 6, false));
+      quoteItems.push(mk('SS316 FULLSIZE U-BOLT', 'SS316', 'N/A', 'M24 x L 1800 x W 220 x TL 130/130mm', 24.00, 2, true));
+      el('qi-refno').value = 'Q-2026-0412';
+      el('qi-date').value = '2026-08-18';
+      el('qi-customer').value = 'Alpha Steel Structure Sdn Bhd';
+      el('qi-prepby').value = 'Nicholas Koh';
+      renderQuote();
+      window.dispatchEvent(new Event('beforeprint'));
+    });
+    await page.emulateMedia({ media: 'print' });
+    await page.waitForTimeout(350);
+
+    const P = await page.evaluate(() => {
+      const px2mm = v => +(v / (96 / 25.4)).toFixed(1);
+      const pt = s => +parseFloat(s).toFixed(2) * 0.75;      // px → pt
+      const cs = s => getComputedStyle(document.querySelector(s));
+      const w  = s => px2mm(document.querySelector(s).getBoundingClientRect().width);
+      const head = [...document.querySelectorAll('.print-items-table thead th')].map(n => n.textContent.trim());
+      const rows = [...document.querySelectorAll('#printItemsBody tr')]
+        .map(tr => [...tr.children].map(td => td.textContent.trim()));
+      const money = [...document.querySelectorAll('#printItemsBody td.print-col-money')]
+        .map(n => getComputedStyle(n).textAlign);
+      const qty = [...document.querySelectorAll('#printItemsBody td.print-col-qty')]
+        .map(n => getComputedStyle(n).textAlign);
+      const foot = document.querySelector('.print-items-table tfoot td');
+      return {
+        summaryDisplay: cs('#printSummary').display,
+        bodyPt:  pt(cs('#printItemsBody td').fontSize),
+        headPt:  pt(cs('.print-items-table thead th').fontSize),
+        titlePt: pt(cs('.print-title').fontSize),
+        metaValuePt: pt(cs('.print-meta-value').fontSize),
+        grandPt: pt(getComputedStyle(document.querySelector('.print-items-table tfoot .print-col-money')).fontSize),
+        grandWeight: getComputedStyle(foot).fontWeight,
+        grandBorderTop: getComputedStyle(foot).borderTopWidth,
+        tabular: cs('.print-items-table').fontVariantNumeric,
+        descMm: w('.print-items-table .print-col-desc'),
+        theadDisplay: cs('.print-items-table thead').display,
+        rowBreak: getComputedStyle(document.querySelector('#printItemsBody tr')).breakInside,
+        head, rows, money, qty,
+        grand: document.getElementById('printGrandTotal').textContent.trim(),
+      };
+    });
+
+    /* ── the columns the brief names, in order and unchanged ── */
+    A.eq(P.head.join(' | '), 'No. | Description | Size / Dimension | Qty | Unit Price | Total',
+      'the printed table still carries exactly the six accepted columns, in order');
+
+    /* ── typography a person can read on paper ── */
+    A.ok(P.bodyPt >= 9.2, `item rows are set at ${P.bodyPt}pt — readable, where they were 8.8`);
+    A.ok(P.headPt >= 8.8, `the table header is ${P.headPt}pt`);
+    A.ok(P.titlePt >= 18, `QUOTATION is ${P.titlePt}pt and unmissable`);
+    A.ok(P.metaValuePt >= 10, `the quotation number, date, customer and preparer are ${P.metaValuePt}pt`);
+
+    /* ── the Description column, which is what was cramped ── */
+    A.ok(P.descMm >= 50, `Description has ${P.descMm}mm, up from the 43mm that wrapped every line`);
+
+    /* ── money that lines up ── */
+    A.ok(P.tabular.includes('tabular-nums'), 'the table sets figures in tabular numerals, so digits line up down the column');
+    A.eq(P.money.every(a => a === 'right'), true, 'every Unit Price and Total cell is right aligned');
+    A.eq(P.qty.every(a => a === 'right'), true, 'and Qty is aligned to its column too');
+
+    /* ── a Grand Total a reader finds at once ── */
+    A.ok(P.grandPt > P.bodyPt + 2, `the Grand Total is ${P.grandPt}pt against ${P.bodyPt}pt rows — it is the end of the document, not the last row`);
+    A.ok(Number(P.grandWeight) >= 700, `set bold (${P.grandWeight})`);
+    A.ok(parseFloat(P.grandBorderTop) > 1, `over a heavier rule (${P.grandBorderTop})`);
+    A.eq(P.grand, 'RM 284.80', 'and it still reads RM 284.80 — the layout moved, the money did not');
+
+    /* ── multi-page safety ── */
+    A.eq(P.theadDisplay, 'table-header-group', 'the header repeats on every page');
+    A.eq(P.rowBreak, 'avoid', 'and no item row may be torn across a page break');
+
+    /* ── and the accepted rules the layout must not have disturbed ── */
+    A.eq(P.rows.length, 4, 'four items, four priced rows — one per parent item, and no accessory row');
+    A.eq(P.rows.map(r => r[0]).join(','), '1,2,3,4', 'numbered in insertion order, unchanged');
+    A.eq(P.rows[0][4], 'RM 7.76', 'the first row quotes the inclusive Final Unit Price');
+    A.eq(P.rows[0][5], 'RM 77.60', 'and its Amount is that price times ten');
+    A.includes(P.rows[0][2], 'cw 2nut', 'with the accessories named as plain wording in the dimension cell');
+    A.excludes(P.rows[0][2], 'RM', 'and no money in that cell');
+    A.eq(P.rows.every(r => !/RM/.test(r[1])), true, 'no money in any Description cell either');
+    A.eq(P.rows[3][4], 'RM 24.00', 'the accessory-bearing U-Bolt also quotes one inclusive figure');
+    A.includes(P.rows[3][2], 'cw 2nut', 'named the same way');
+
+    /* afterprint is what the real flow fires when the dialog closes, and it is
+       what puts the sheet away again. Checking the screen without it would be
+       measuring a page still mid-print and calling the result a leak. */
+    await page.emulateMedia({ media: 'screen' });
+    await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+    await page.waitForTimeout(150);
+    A.eq(await page.evaluate(() => getComputedStyle(document.getElementById('printSummary')).display), 'none',
+      'and back on screen the print sheet is not rendered at all — the print rules cannot reach the UI');
+    A.eq(await page.evaluate(() => document.getElementById('printItemsBody').innerHTML), '',
+      'with its rows cleared, exactly as before this round');
     A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
     await page.close();
   }

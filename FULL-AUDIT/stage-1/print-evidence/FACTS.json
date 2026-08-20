@@ -1,0 +1,82 @@
+{
+  "before": {
+    "bodyPt": 8.8,
+    "descMm": 43,
+    "grandPt": 10
+  },
+  "after": {
+    "bodyPt": 9.6,
+    "titlePt": 21,
+    "metaPt": 11,
+    "descMm": 52,
+    "grandPt": 13,
+    "grandRule": "2px",
+    "tabular": "tabular-nums",
+    "moneyAlign": [
+      "right",
+      "right",
+      "right",
+      "right",
+      "right",
+      "right",
+      "right",
+      "right"
+    ],
+    "qtyAlign": [
+      "right",
+      "right",
+      "right",
+      "right"
+    ],
+    "head": [
+      "No.",
+      "Description",
+      "Size / Dimension",
+      "Qty",
+      "Unit Price",
+      "Total"
+    ]
+  },
+  "rows": [
+    [
+      "1",
+      "MS UNDERSIZE SAG ROD (HDG)",
+      "M12 x L 1000 x TL 100/100mm\ncw 2nut",
+      "10",
+      "RM 7.76",
+      "RM 77.60"
+    ],
+    [
+      "2",
+      "4140 QT FULLSIZE ANCHOR BOLT (PL)",
+      "M16 x L 1200 x TL 100/100mm",
+      "4",
+      "RM 12.50",
+      "RM 50.00"
+    ],
+    [
+      "3",
+      "MS FULLSIZE SAG ROD (ZP)",
+      "M20 x L 1500 x TL 120/120mm",
+      "6",
+      "RM 18.20",
+      "RM 109.20"
+    ],
+    [
+      "4",
+      "SS316 FULLSIZE U-BOLT (N/A)",
+      "M24 x L 1800 x W 220 x TL 130/130mm\ncw 2nut",
+      "2",
+      "RM 24.00",
+      "RM 48.00"
+    ]
+  ],
+  "grand": "RM 284.80",
+  "long": {
+    "thead": "table-header-group",
+    "rowBreak": "avoid",
+    "rows": 26,
+    "grand": "RM 1836.40",
+    "pages": 2
+  }
+}

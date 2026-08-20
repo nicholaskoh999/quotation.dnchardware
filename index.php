@@ -887,38 +887,91 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 }
 
 @media print{
-  @page{size:A4;margin:12mm}
+  /* ── An A4 quotation, not a table dump ───────────────────────────────
+     Rendered to a real A4 PDF rather than reasoned about, the previous sheet was
+     correct and unpresentable: 8.8pt rows, a Description column pinned to 43mm
+     so every description wrapped while Size kept 67mm beside it, a Grand Total
+     that read as one more grey row, and money columns whose digits did not line
+     up. It printed like a debug dump of the items array.
+
+     Everything below is TYPE, SPACE and ALIGNMENT. Not one figure moves: the
+     rows are still built by the same beforeprint handler, from the same
+     dcItemFinalUnit, with the accessory wording still a plain description and
+     still no priced accessory row. This block cannot reach the screen either —
+     #printSummary is display:none there, and every sibling is hidden here.     */
+  @page{size:A4;margin:14mm 13mm 15mm}
   html,body{width:auto!important;min-height:0!important;background:#fff!important;color:#111!important}
   body>*:not(#printSummary){display:none!important}
   #printSummary{
     display:block!important;width:100%!important;margin:0!important;padding:0!important;
     border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;
-    color:#111!important;font-family:Arial,sans-serif!important;font-size:10pt!important;
+    color:#111!important;font-family:Arial,Helvetica,sans-serif!important;font-size:10pt!important;
+    line-height:1.4!important;
   }
-  .print-issuer{padding-bottom:8mm;border-bottom:1px solid #bbb;text-align:center}
+  /* ── Letterhead ── */
+  .print-issuer{padding-bottom:5mm;margin-bottom:5mm;border-bottom:1.6pt solid #111;text-align:center}
   .print-issuer[hidden]{display:none!important}
-  .print-issuer-name{font-size:16pt;font-weight:800;letter-spacing:.02em;margin-bottom:2mm}
-  .print-issuer-line{font-size:9pt;line-height:1.45}
-  .print-title{font-size:18pt;font-weight:800;letter-spacing:.08em;text-align:center;margin:8mm 0 6mm}
-  .print-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm 8mm;margin-bottom:7mm}
-  .print-meta-item{display:grid;grid-template-columns:30mm 1fr;gap:2mm;border-bottom:1px solid #ddd;padding:1.5mm 0}
-  .print-meta-label{font-size:8.5pt;color:#555;font-weight:700}
-  .print-meta-value{font-size:9.5pt;font-weight:700;overflow-wrap:anywhere}
-  .print-items-table{width:100%;border-collapse:collapse;table-layout:fixed}
-  .print-items-table th,.print-items-table td{border:1px solid #bbb;padding:2.2mm 2mm;vertical-align:top}
-  .print-items-table th{background:#eee!important;color:#111!important;font-size:8.5pt;text-align:left;font-weight:800}
-  .print-items-table td{font-size:8.8pt;line-height:1.35}
-  .print-items-table .print-col-no{width:8mm;text-align:center}
-  .print-items-table .print-col-desc{width:43mm}
-  .print-items-table .print-col-qty{width:14mm;text-align:center}
-  .print-items-table .print-col-money{width:25mm;text-align:right;white-space:nowrap}
-  .print-item-size{white-space:pre-line;overflow-wrap:anywhere}
+  .print-issuer-name{font-size:17pt;font-weight:800;letter-spacing:.02em;margin-bottom:1.5mm}
+  .print-issuer-line{font-size:8.8pt;line-height:1.4;color:#333}
+  /* ── The word a reader looks for first ── */
+  .print-title{font-size:21pt;font-weight:800;letter-spacing:.14em;text-align:center;
+    margin:0 0 6mm;padding-bottom:2.5mm;border-bottom:.8pt solid #999}
+  /* ── Who, when, which number ─────────────────────────────────────────
+     Two columns, label above value rather than beside it: a 30mm label track
+     left the value squeezed into what remained, and a long customer name is the
+     commonest thing on this sheet.                                            */
+  .print-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm 10mm;margin:0 0 6mm}
+  .print-meta-item{display:block;border:0;border-bottom:.6pt solid #ccc;padding:0 0 1.6mm}
+  .print-meta-label{display:block;font-size:7.6pt;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:#666;margin-bottom:.8mm}
+  .print-meta-value{display:block;font-size:11pt;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+  /* ── The items ──────────────────────────────────────────────────
+     186mm of content width, spent where the words are:
+
+       No 9mm · Qty 15mm · Unit 27mm · Total 29mm  =  80mm fixed
+       Description and Size / Dimension share the remaining 106mm, 52/54       */
+  .print-items-table{width:100%;border-collapse:collapse;table-layout:fixed;
+    font-variant-numeric:tabular-nums}
+  .print-items-table th,.print-items-table td{border:.6pt solid #b0b0b0;padding:2.4mm 2.2mm;
+    vertical-align:top}
+  .print-items-table thead th{background:#e9e9e9!important;color:#111!important;font-size:9pt;
+    text-align:left;font-weight:800;letter-spacing:.04em;padding-top:2.2mm;padding-bottom:2.2mm;
+    border-color:#8a8a8a}
+  .print-items-table td{font-size:9.6pt;line-height:1.4}
+  .print-items-table .print-col-no{width:9mm;text-align:center;color:#444}
+  .print-items-table .print-col-desc{width:52mm;font-weight:600}
+  .print-items-table .print-col-qty{width:15mm;text-align:right}
+  .print-items-table th.print-col-qty{text-align:right}
+  .print-items-table .print-col-money{width:27mm;text-align:right;white-space:nowrap}
+  .print-items-table th.print-col-money{text-align:right}
+  .print-items-table td.print-col-money:last-child,
+  .print-items-table th.print-col-money:last-child{width:29mm}
+  /* The accessory wording sits under the dimension it belongs to, quieter than
+     it, and carrying no money — which is the accepted rule, stated in type. */
+  .print-item-size{white-space:pre-line;overflow-wrap:anywhere;font-size:9.4pt}
+  /* ── Multi-page ───────────────────────────────────────────────
+     thead repeats itself on every page, which browsers do for a real <thead>
+     and this table has always had. What was missing is the rest: a row must not
+     be torn in half, and the Grand Total must not be stranded on a page of its
+     own away from the rows it totals.                                         */
+  .print-items-table thead{display:table-header-group}
+  .print-items-table tfoot{display:table-footer-group}
   .print-items-table tbody tr{break-inside:avoid;page-break-inside:avoid}
-  .print-items-table tfoot td{font-size:10pt;font-weight:800;background:#f5f5f5!important}
-  .print-grand-label{text-align:right}
-  .print-remarks{margin-top:5mm;padding:3mm;border:1px solid #ccc;font-size:9pt;line-height:1.4;white-space:pre-line}
+  .print-items-table tbody tr:nth-child(even) td{background:#fafafa!important}
+  /* ── The figure the customer looks for ──────────────────────────────
+     It sat in the money column already, which was right, and looked like one
+     more row, which was not. A rule above it, a heavier weight and a larger
+     size make it the end of the document rather than its last line.           */
+  .print-items-table tfoot td{font-size:11.5pt;font-weight:800;background:#ededed!important;
+    border-top:2pt solid #111;padding-top:3mm;padding-bottom:3mm}
+  .print-grand-label{text-align:right;letter-spacing:.06em}
+  .print-items-table tfoot .print-col-money{font-size:13pt;white-space:nowrap}
+  /* ── Anything the customer still has to read ── */
+  .print-remarks{margin-top:6mm;padding:3.5mm 4mm;border:.6pt solid #bbb;border-left:2.4pt solid #555;
+    font-size:9.4pt;line-height:1.5;white-space:pre-line;break-inside:avoid;page-break-inside:avoid}
   .print-remarks[hidden]{display:none!important}
-  .print-footer-note{margin-top:8mm;padding-top:4mm;border-top:1px solid #ccc;text-align:center;font-size:8.5pt;color:#555}
+  .print-footer-note{margin-top:9mm;padding-top:3.5mm;border-top:.6pt solid #bbb;
+    text-align:center;font-size:8.4pt;color:#555;break-inside:avoid;page-break-inside:avoid}
 }
 
 /* ═══════════════ STAGE 6A — UI POLISH v2.17.3 ═══════════════ */

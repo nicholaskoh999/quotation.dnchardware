@@ -2,9 +2,16 @@
 
 ## ROUND
 
-**STAGE 1 — FINAL UI CLEANUP**
+**STAGE 1 — FINAL UI CLEANUP** *(reopened)*
 
 Presentation only. No business rule, no formula, no generated customer data.
+
+**Reopened after review.** Nicholas / ChatGPT read the Stage 1 evidence, accepted
+nothing yet, and found one further presentation-only defect that belongs in this
+round rather than the next: the **print / PDF quotation layout**. The candidate
+under review at that point was `16623a2a61fa2bd34cdbd5e1a2ddf8ec8cd70dfd`; this
+amendment is written **before** the bytes that supersede it, and adds a third
+goal to the two already repaired. Nothing already done in this round is undone.
 
 ## APPLICATION STATUS
 
@@ -110,6 +117,28 @@ Both orderings are deliberate and documented in the source. Changing either mean
 changing generated output — a data-generation change — which this round is
 instructed not to make. **Verified with evidence, ordering deferred to Stage 2.**
 
+### 5 · Print / PDF quotation layout — IN SCOPE, added on review
+
+Reproduced by rendering the real print stylesheet to an actual A4 PDF, not by
+reading CSS. The output is **functionally correct** — one priced row per item,
+inclusive Unit Price, `cw 2nut` as plain description, numbering intact — and
+**visually unacceptable**:
+
+| what the page does | measured |
+|---|---|
+| item rows set in 8.8pt, headers in 8.5pt | small for a formal A4 document |
+| `Description` column fixed at 43mm | every description wraps to two lines while `Size / Dimension` keeps ~67mm |
+| Grand Total is a grey table-footer cell | reads as one more row, not as the figure the customer looks for |
+| four items fill under half the sheet | the rest is empty, and nothing balances it |
+| no `tabular-nums` on the money columns | digits do not line up down the column |
+
+It reads as a raw bordered table dump rather than a quotation.
+
+**What must survive the repair, unchanged:** every figure, the accessory rule
+(`cw 2nut` stays a plain description, and a separately priced accessory row must
+never come back), numbering identity, and the repeating table header that already
+works on page 2.
+
 ---
 
 ## ALLOWED TO CHANGE
@@ -128,6 +157,18 @@ Nothing else may differ from `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`.
 - CSS only, inside a narrow-width media query, so the accepted desktop density
   from UI POLISH 1 and UI POLISH 2 is untouched at every width above it
 
+**`index.php` — the print / PDF layout, inside `@media print` only.**
+
+- `@page` margins, and the `#printSummary` block the print sheet is built from:
+  type scale, the header/meta hierarchy, table column widths, numeric alignment,
+  Grand Total prominence, and multi-page safety
+- **`@media print` only.** `#printSummary` is a direct child of `<body>`, is
+  `display:none` on screen, and the print sheet already hides every sibling — so
+  a rule written inside that block cannot reach the screen UI. That is structural,
+  not a promise, and the suite measures it from the screen side as well
+- no change to what the print path *generates*: `beforeprint` still builds one
+  priced row per parent item from `dcItemFinalUnit`, and that code is not touched
+
 **`companies.php` — mobile tap targets, and nothing else.**
 
 - `.lang-btn`, the modal close control, and the search / filter inputs raised to
@@ -137,8 +178,11 @@ Nothing else may differ from `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`.
 
 **Tests, evidence, reports, packaging**
 
-- a new responsive/tap-target suite proving the two fixes and the numbering
+- a new responsive/tap-target suite proving the fixes and the numbering
   verification, and asserting **no horizontal overflow** at 430 / 390 / 360
+- print-layout assertions: the column widths, the type scale, the money
+  alignment, the Grand Total, one priced row per item, `cw` carrying no money,
+  and the screen UI provably unmoved by the print rules
 - a Stage 1 evidence script and this round's frames
 - `docs/control/ROUND-SCOPE.md` (this file)
 - the Stage 1 report and the review package
@@ -155,6 +199,15 @@ and reuse · History identity and ordering · Qty and default Qty · Material ·
 Finish · Size Type · selection behaviour · Fast Edit behaviour · Bulk Edit
 behaviour · Details behaviour · database and save semantics · Add-to-quotation
 behaviour · translation semantics.
+
+Specifically for the print work, and not negotiable:
+
+- the `beforeprint` handler's **data generation** — one priced row per parent
+  item, `dcItemFinalUnit` as the Unit Price, `totalAmount` as the Amount, and
+  `getPrintItemDimension` putting the accessory wording in the dimension cell
+- **no separately priced accessory row may return**, in any form
+- item numbering and its order on any surface
+- currency formatting — `formatPrintMoney` is untouched
 
 Also out of scope, deliberately:
 
@@ -190,6 +243,11 @@ deliberately, as its own step, with this declaration closed.
 
 - no horizontal overflow and no orphaned label at 430 / 390 / 360px
 - Companies mobile controls at a comfortable target size
+- the print sheet renders as a professional A4 quotation — readable type, a
+  Description column wide enough for its content, aligned money, a Grand Total a
+  reader finds at once, and a second page that stays usable — with every figure,
+  the accessory rule and the numbering identical to before
+- the screen UI measured unchanged by the print rules, from the screen side
 - screen / print / WhatsApp numbering verified consistent in identity, with the
   ordering difference recorded rather than changed
 - desktop density from UI POLISH 1 and UI POLISH 2 provably unchanged

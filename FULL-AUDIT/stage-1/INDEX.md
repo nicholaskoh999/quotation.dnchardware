@@ -24,7 +24,46 @@ change and by nothing else.
 | 07 | **Companies at 1440px — unchanged.** Language button still 40 tall, × still **24 × 17**. The phone rule has not leaked onto the desk | `07-companies-desk-unchanged.png` |
 | 08 | Numbering on screen — items 1–4, list reading Newest First | `08-numbering-screen.png` |
 | 09 | Numbering in the WhatsApp message — grouped by material, numbers `1, 3` then `2, 4` | `09-numbering-whatsapp.png` |
-| 10 | Numbering on the printed sheet — `1, 2, 3, 4` in insertion order | `10-numbering-print.png` |
+| 10 | Numbering on the printed sheet — `1, 2, 3, 4` in insertion order, on the new A4 layout | `10-numbering-print.png` |
+
+## Print / PDF layout — `print-evidence/`
+
+Stage 1 was reopened for this. These are **whole A4 sheets**, rendered through
+Chromium's own print pipeline and rasterised page by page — not cropped tables,
+because the complaint was about the page.
+
+The before/after pair comes from the **same tree**: the "before" frame is produced
+by re-asserting the previous print rules on the element, so the two differ by this
+round's change and by nothing else.
+
+| # | Proof | File |
+|---|---|---|
+| 01 | **BEFORE** — 8.8pt rows, Description pinned at 43mm so every description wraps, a 10pt Grand Total that reads as one more grey row | `01-print-before-p1.png` |
+| 02 | **AFTER** — 9.6pt rows, 21pt QUOTATION over a rule, 11pt meta values, Description at 52mm, a 13pt Grand Total over a 2px rule. **Still RM 284.80** | `02-print-after-4-items-p1.png` |
+| 03 | The table close up — `cw 2nut` as plain description with no money beside it, right-aligned money in tabular numerals | `03-print-accessory-and-alignment.png` |
+| 04 | The Grand Total area on its own | `04-print-grand-total.png` |
+| 05 | A 26-item quotation over **2 A4 pages** — the header repeats, no row is torn, the Grand Total ends the document | `05-print-long-multipage-p1.png`, `-p2.png` |
+
+### What the print frames assert did NOT change
+
+A layout change is exactly where money and rules slip unnoticed, so each frame
+asserts the accepted behaviour as well as the new geometry:
+
+- **four items → four priced rows.** No separately priced accessory row has
+  returned, in any form
+- `cw 2nut` is still plain wording in the dimension cell, with **no `RM` in it**
+- item 1 still quotes **RM 7.76** inclusive and **RM 77.60** for ten
+- the sheet still totals **RM 284.80** — before and after
+- numbering still `1, 2, 3, 4` in insertion order
+- the six accepted columns, in order, unchanged
+- 26 items → 26 rows, numbered through to 26 without a gap
+
+### And the screen is provably unmoved
+
+Every print rule lives inside `@media print`, and `#printSummary` is
+`display:none` on screen. That was measured rather than asserted: the same
+harness measured eleven screen elements at 1440 / 820 / 430px against the
+previous candidate and reported **zero differences**.
 
 ## What frames 08–10 establish
 

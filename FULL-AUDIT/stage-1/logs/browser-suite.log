@@ -35,8 +35,8 @@
   ok    fast edit — one state, and everything it holds still  (77 assertions)
   ok    diameter — the bar the weight is made of  (94 assertions)
   ok    roles — Fast Edit, Bulk Edit and Details do not overlap  (109 assertions)
-  ok    phone widths — the scope label, the tap targets, and the desk left alone  (75 assertions)
+  ok    phone widths — the scope label, the tap targets, and the desk left alone  (102 assertions)
 
-  38 suites, 3789 assertions, 0 failed
+  38 suites, 3816 assertions, 0 failed
 
-  875.5s
+  876.5s
