@@ -1,9 +1,10 @@
 # STAGE 1 — FINAL UI CLEANUP
 
-**Round:** STAGE 1 — Final UI Cleanup *(reopened for print / PDF layout)*
-**Continues from:** STAGE 0B — accepted at `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`
-**Application status:** accepted baseline `98a31e3`, with a **candidate** presentation change
+**Round:** STAGE 1 — Final UI Cleanup *(reopened for print / PDF layout)* — **FINAL ACCEPTED / CLOSED**
+**Continues from:** STAGE 0B — the previously accepted commit `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`, superseded by this round
+**Accepted application commit:** `3e89713400b5bcfceca31d2c074de17411169d1b`
 **Deploy:** NO
+**Stage 2:** NOT STARTED
 **Scope:** `docs/control/ROUND-SCOPE.md`
 
 ---
@@ -254,12 +255,13 @@ PHP lint: 7 of 7 clean.
 
 The browser matrix grew by **102** — the whole of the new suite, which now
 carries the print assertions too (75 → 102 when the round reopened). The
-previously accepted 3,714 / 4,070 were not forced onto this run, and neither
-were the 3,789 / 4,145 this round reported before it reopened.
+figures accepted before this round — 3,714 browser and 4,070 in all — were not
+forced onto this run, and neither were the 3,789 / 4,145 this round reported
+before it reopened. Every number here is the measured one.
 
-`CANONICAL-STATE` still reads **4,070** and **`98a31e3`**, deliberately: Stage 1
-is a candidate, and the canonical numbers move when Nicholas accepts it, as their
-own step.
+`CANONICAL-STATE` now reads **4,172** and **`3e89713`**. It moved when Nicholas
+accepted this round, as its own step, over a tree that had not changed since the
+figures were measured.
 
 ---
 
@@ -288,12 +290,35 @@ The accessory-inclusive rule accepted in Stage 0B is untouched: suite 14 passes 
 
 ---
 
-## 8 · Candidate status
+## 8 · Acceptance
 
-This round is a **candidate**, and it superseded its own earlier candidate
-`16623a2` when it reopened for the print work. `index.php` and `companies.php`
-are declared by name in `ROUND-SCOPE.md`, so the report checker and package verifier report them
-as a declared candidate rather than as drift, and any undeclared application
-change still fails. `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
-`PROJECT-GUARDRAILS.md` and `tests/tools/authoritative.js` are **not** touched —
-the accepted commit stays `98a31e3` until Nicholas accepts this round.
+Nicholas / ChatGPT reviewed the implementation, the visual evidence, the
+regression and the candidate package, and **accepted** them. The promotion that
+followed is bookkeeping over a tree that did not move, and it rests on Git
+rather than on assertion:
+
+```
+git merge-base --is-ancestor 98a31e3 3e89713      →  0
+git log -1 --format=%H 98a31e3..HEAD -- index.php companies.php
+        →  3e89713   (the candidate SHA, DERIVED from the declared files)
+git diff --name-only 98a31e3..3e89713 -- '*.php'  →  index.php  companies.php
+git diff --name-only 3e89713..HEAD -- '*.php'                →  (empty)
+git diff --name-only 3e89713..HEAD -- tests/suites tests/lib →  (empty)
+```
+
+This round superseded its own earlier candidate `16623a2` when it reopened for
+the print work; `16623a2` was never promoted and must not be quoted as accepted.
+
+Because **no application byte and no browser-test byte moved between the
+reviewed run and the promotion**, the 38 / 3,816 / 4,172 matrix was promoted as
+measured and the browser regression was not re-run. Re-running it could only
+have produced the same numbers from a different tree state, which is a weaker
+fact than the one above, not a stronger one.
+
+What the promotion changed: `CANONICAL-STATE.md`, `CANONICAL-STATE.json`,
+`tests/tools/authoritative.js` now read `3e89713` and the new matrix;
+`PROJECT-GUARDRAILS.md` records the accepted Stage 1 UI outcomes and the two
+deferrals; `ROUND-SCOPE.md` is closed with an **empty** ```candidate-files```
+block, so nothing may now differ from `3e89713`.
+
+**Deploy: NO. Stage 2: NOT STARTED.**

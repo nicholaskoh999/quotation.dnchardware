@@ -49,6 +49,8 @@ Unless `ROUND-SCOPE.md` explicitly authorizes modification, **do not change**:
 - Bulk Edit workflow
 - Details workflow
 - accepted Compact row layout
+- **accepted STAGE 1 UI — the narrow-width scope control, the Companies mobile
+  tap targets and the print / PDF A4 quotation layout (see STAGE 1 UI below)**
 - Pricing Summary position
 - accepted History layout
 - database behaviour
@@ -282,6 +284,101 @@ inputs.
 - Compact: Details opens and closes one row.
 - Expanded: every row is open *because of the view*, so **do not render a Close
   action that cannot close the row.**
+
+---
+
+## STAGE 1 UI — ACCEPTED, AND PROTECTED FROM HERE
+
+Accepted in STAGE 1 on `3e89713`. Presentation only: nothing here changed what
+the application charges, parses, stores or generates. What is recorded below is
+the accepted OUTCOME, not the CSS that produces it — a later round may reach the
+same outcome differently, but may not lose it.
+
+### The narrow-width scope control
+
+At 430px and below, **the APPLY TO label and the scope buttons it names stay
+together**, on one row, and the bar does not scroll horizontally at 430 / 390 /
+360.
+
+The defect this closed was not clipping. `.wqa-scope-lbl` carried
+`margin-left:auto` inside a wrapping flex bar, so the label was pushed to the
+right end of one row while its own buttons wrapped to the left of the next — a
+person read "APPLY TO:" against the Bulk Edit button and read the scope buttons
+as belonging to nothing. **This is a Selected Items control**, and the rule
+under BULK EDIT that Selected Items must never be silently read as All Items is
+exactly what an orphaned label puts at risk. Treat a regression here as a
+correctness regression, not a cosmetic one.
+
+Above that width the accepted desktop density from UI POLISH 1 and UI POLISH 2
+is unchanged, and the suite measures the 641 / 640 boundary itself so the fix
+cannot creep upward.
+
+### Companies mobile tap targets
+
+At phone widths and on coarse pointers, the Companies controls a thumb actually
+reaches for — the `EN` / `中文` buttons, the modal close `✕`, and the search /
+filter inputs — are **at least 44 × 44**. Before this round the close control
+was 17 × 24, less than a third of a comfortable target.
+
+**The desk sizes are equally protected.** The suite asserts the same controls at
+exactly their accepted desktop dimensions, so raising a phone target may never
+be paid for by moving accepted desktop density.
+
+### The print / PDF quotation
+
+The printed sheet is a **professional A4 quotation**, not a dump of the items
+array. Accepted and protected:
+
+- A4 with real margins; readable body type; a title that reads as a title, with
+  a rule under it; meta fields as label-above-value rather than run together
+- a Description column wide enough for its content, money and Qty columns
+  right-aligned, and **tabular numerals** so digits line up down the column
+- a **Grand Total a reader finds at once** — larger than the row type, above a
+  heavy rule, not one more grey cell in the table
+- multi-page safety: the table header repeats on every page, and a row does not
+  break across a page boundary
+
+### The two rules the print work must never undo
+
+- **Accessory-inclusive pricing survives into print.** The Unit Price on the
+  printed sheet is `dcItemFinalUnit` — the customer's final price, accessories
+  included — and the accessory wording (`cw 2nut`) prints as plain description
+  text carrying no money of its own.
+- **No separately priced accessory row may return, in any form,** on the printed
+  sheet or anywhere else. See ACCESSORIES above.
+
+### Numbering identity
+
+**Item 3 is item 3 on Screen, on Print and in WhatsApp.** Verified in STAGE 1 on
+a deliberately interleaved quotation and protected from here.
+
+The three surfaces deliberately ORDER those items differently — Print in
+insertion order, Screen in the Newest First view, WhatsApp grouped by material
+and finish with each row carrying its own item number rather than its position
+in the message. **That difference was verified and left alone, not repaired.**
+
+### Print rules stay in print
+
+`#printSummary` is a direct child of `<body>` and is `display:none` on screen;
+the print sheet hides every sibling. A rule written for the printed page must
+stay inside `@media print`, and the screen must be measurable as unmoved from
+the screen side after `afterprint`.
+
+---
+
+## DEFERRED TO STAGE 2 — NOT ACCEPTED BEHAVIOUR
+
+Raised in STAGE 1, deferred by Nicholas's decision. **Neither is an accepted
+change, and neither may be treated as one until a round is scoped for it.**
+
+- **Dark mode.** There is no dark mode in this application: all three pages
+  hardcode `data-theme="light"`, there are zero `prefers-color-scheme` colour
+  rules, zero dark rules and no toggle. Building one is a feature round — a
+  second complete palette over the colour tokens on three pages, every active /
+  selected / focus / disabled state, and UI POLISH 1 and UI POLISH 2 re-proved
+  inside it — not a cleanup.
+- **Numbering ORDER** on any surface. Changing it changes generated customer
+  output. Identity is protected above; order is open, and open means unchanged.
 
 ---
 

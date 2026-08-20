@@ -86,22 +86,19 @@ const SOURCE = [
   'tests/tools/build-stage-1-zip.js',
 ];
 
-/* ── REPORTS, and one deliberate substitution ──────────────────────────────
-   `[source, name-in-the-archive]`. Every pair but one is the identity.
+/* ── REPORTS ───────────────────────────────────────────────────────────────
+   `[source, name-in-the-archive]`, and every pair is now the identity.
 
-   REPORTS/TEST-RESULTS.md is sourced from STAGE-1-TEST-RESULTS.md, not from
-   FULL-AUDIT/TEST-RESULTS.md. The latter records the ACCEPTED state and is
-   validated against CANONICAL-STATE, which still reads 37 suites and 4,070
-   assertions for 98a31e3 — correct, and deliberately untouched, because Stage 1
-   has passed review but has NOT been promoted. Shipping it inside a candidate
-   package made it read as stale when it was simply describing a different tree.
-
-   So the candidate package carries the CANDIDATE's measured run under that name,
-   and that document says so in its own first lines. The accepted document stays
-   accepted, and nothing was promoted to make a number agree. */
+   While Stage 1 was a candidate this list carried a deliberate substitution:
+   REPORTS/TEST-RESULTS.md was sourced from a separate STAGE-1-TEST-RESULTS.md,
+   because FULL-AUDIT/TEST-RESULTS.md records the ACCEPTED state and canonical
+   still read 37 suites / 4,070 assertions for 98a31e3. Stage 1 has since been
+   accepted, canonical reads 38 / 4,172 for 3e89713, and the accepted document
+   IS the candidate's run — so the substitution has nothing left to do and the
+   candidate-only document is gone rather than left to drift. */
 const REPORTS = [
   ['FULL-AUDIT/STAGE-1.md',              'STAGE-1.md'],
-  ['FULL-AUDIT/STAGE-1-TEST-RESULTS.md', 'TEST-RESULTS.md'],
+  ['FULL-AUDIT/TEST-RESULTS.md',         'TEST-RESULTS.md'],
   ['FULL-AUDIT/COMMIT-INFO.txt',         'COMMIT-INFO.txt'],
 ];
 

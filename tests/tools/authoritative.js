@@ -15,18 +15,19 @@
 'use strict';
 
 module.exports = {
-  /* Moved three times. 98a31e3 is the last commit that changed an application
-     file and carries STAGE 0B — the first of the three that changes BEHAVIOUR
-     rather than presentation: accessories now belong to the parent item's final
-     customer price. 33ae0da carried UI POLISH 2, e3d659b UI POLISH 1, 7f5bc97
-     came before that; all three are recorded as superseded in CANONICAL-STATE
-     and must not be quoted as current. */
-  APP_SHA:  '98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac',
+  /* Moved four times. 3e89713 is the last commit that changes an application
+     file and carries STAGE 1 — the final UI cleanup: the narrow-width scope
+     control and the print / PDF A4 layout in index.php, the mobile tap targets
+     in companies.php. Presentation only; the accessory-inclusive rule accepted
+     in STAGE 0B is untouched by it. 98a31e3 carried STAGE 0B, 33ae0da UI POLISH
+     2, e3d659b UI POLISH 1, 7f5bc97 came before that; all four are recorded as
+     superseded in CANONICAL-STATE and must not be quoted as current. */
+  APP_SHA:  '3e89713400b5bcfceca31d2c074de17411169d1b',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
-  SUITES: 37,
-  BROWSER: 3714,
-  TOTAL: 4070,
+  SUITES: 38,
+  BROWSER: 3816,
+  TOTAL: 4172,
   FAILED: 0,
   SKIPPED: 0,
 
@@ -36,7 +37,7 @@ module.exports = {
      per-round breakdowns are gone: they mixed absolutes with increments and
      stopped reconciling to anything. */
   BASELINE: 2810,
-  DELTA: 1260,
+  DELTA: 1362,
   SIDE: { 'pricing-history-php.log': 172, 'ai-extract-php.log': 107,
           'pricing-workbook.log': 62, 'translation-coverage.log': 15 },
 

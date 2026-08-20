@@ -5,22 +5,23 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` · **NOT DEPLOYED.**
+Final application SHA `3e89713400b5bcfceca31d2c074de17411169d1b` · **NOT DEPLOYED.**
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
-**4,070 assertions, 0 failed, 0 skipped.**
+**4,172 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` is the last commit that changed the
+> **On SHAs.** `3e89713400b5bcfceca31d2c074de17411169d1b` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when STAGE 0B was accepted. Three application SHAs are superseded by it and
+> when STAGE 1 was accepted. Four application SHAs are superseded by it and
 > must never be quoted as current:
+> superseded — `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`, accepted for STAGE 0B;
 > superseded — `33ae0da14a3bd3108e8b066d4796b1bcda2de428`, accepted for UI POLISH 2;
 > superseded — `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`, accepted for UI POLISH 1;
 > superseded — `7f5bc977197a658d6d4db995ee2c9bb5e106e21b`, accepted before that round.
@@ -415,7 +416,7 @@ Escape returns both the 10.6 and the word Default. R10 was tightened after it
 passed while the refusal text was empty: it now asserts the sentence, not only
 the disabled button.
 
-**TOTAL ASSERTIONS 4,070 · TOTAL FAILED 0 · SKIPPED 0.**
+**TOTAL ASSERTIONS 4,172 · TOTAL FAILED 0 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
@@ -439,7 +440,7 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green: 37 suites, 3,714 assertions, 0 failed in the browser matrix; 4,070
+re-exercised. Green: 38 suites, 3,816 assertions, 0 failed in the browser matrix; 4,172
 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth
