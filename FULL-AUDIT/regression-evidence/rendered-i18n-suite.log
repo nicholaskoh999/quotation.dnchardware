@@ -4,4 +4,4 @@ Same run, same tree — not a separate invocation.
   ok    rendered 中文 — the DOM, not the dictionary  (166 assertions)
 
 
-  38 suites, 3816 assertions, 0 failed
+  39 suites, 3907 assertions, 0 failed

@@ -19,45 +19,53 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `3e89713400b5bcfceca31d2c074de17411169d1b` |
+| Accepted application commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` |
 | Application status | **ACCEPTED** |
-| Accepted round | STAGE 1 — Final UI Cleanup, **FINAL ACCEPTED** |
+| Accepted round | UI POLISH 2A — Save Success Micro-Interaction, **FINAL ACCEPTED** |
 
-The accepted commit moved because STAGE 1 was accepted, and for no other
-reason. It is `3e89713` because that is the last commit that changed an
+The accepted commit moved because UI POLISH 2A was accepted, and for no other
+reason. It is `cf92f27` because that is the last commit that changed an
 application file — proven from the files, not from a branch tip:
 
 ```
-git merge-base --is-ancestor 98a31e3 3e89713   →  0   (98a31e3 is an ancestor)
-git log 98a31e3..HEAD -- '*.php'               →  3e89713   (nothing else)
-git diff --name-only 98a31e3..3e89713 -- '*.php'
-        →  index.php  companies.php
-git diff --name-only 3e89713..HEAD -- '*.php'  →  (empty)
-git diff --name-only 3e89713..HEAD -- tests/suites tests/lib
-        →  (empty)
+git merge-base --is-ancestor 3e89713 cf92f27  →  0   (3e89713 is an ancestor)
+git log -1 --format=%H 3e89713..HEAD -- index.php
+        →  cf92f27   (derived from the file ROUND-SCOPE declared, not asserted)
+git diff --name-only 3e89713..cf92f27 -- '*.php'
+        →  index.php                (and nothing else)
+git diff --name-only cf92f27..HEAD -- '*.php'                →  (empty)
+git diff --name-only cf92f27..HEAD -- tests/suites tests/lib →  (empty)
 ```
 
-`api.php`, `ai_extract.php`, `pricing_history.php`, `auth.php`, `login.php` and
-`logout.php` are byte-identical to the commit before it. Every commit after
-`3e89713` carries reports, control files and packaging, and changes no
+`api.php`, `ai_extract.php`, `companies.php`, `pricing_history.php`, `auth.php`,
+`login.php` and `logout.php` are byte-identical to the commit before it, and
+were re-verified file by file at the acceptance. Every commit after `cf92f27`
+carries reports, evidence, control files and packaging, and changes no
 application or test byte.
 
-**This one is presentation, and only presentation.** STAGE 0B changed what the
-application charges; STAGE 1 changed how it is read — the narrow-width scope
-control, the Companies mobile tap targets, and the print / PDF A4 quotation
-layout. Nothing in the parser, the pricing formulas, the accessory-inclusive
-final price, Previous Price, numbering or save semantics moved, and the accepted
-UI behaviours are written into `PROJECT-GUARDRAILS.md` under *STAGE 1 UI*.
+**What it changed.** A save now answers. The button that submits — the one
+inside the dialog, not the one that opens it — compresses while the request is
+in flight, shows a check **only once the server has confirmed**, the real saved
+values confirm themselves, the existing toast speaks, and a ~500ms confirmation
+says what was written.
 
-Two goals raised in this round were **deferred to Stage 2 by Nicholas's
-decision, not repaired**: dark mode (which does not exist in the application at
-all) and the item-numbering ORDER difference between Screen, Print and WhatsApp
-(numbering IDENTITY was verified consistent and is protected). Neither is a
-defect left open; both are recorded choices.
+Two confirmation semantics, and they are not interchangeable: `save_quotation`
+writes the WHOLE quotation, so the confirmation goes to the container holding
+exactly the items that were written and **no item row is singled out**;
+`save_default_price` writes ONE row, so there the confirmation goes to that row
+and its neighbours stay clean.
+
+It also closed a defect nobody had reported: `doSaveQuotation` had **no
+in-flight guard**, so two clicks inside the request window issued two POSTs on a
+save that allocates a quotation number. Four clicks now issue one.
+
+**The save payload, pricing, numbering, `ref_no` allocation, the parser, the
+database and the accepted STAGE 1 UI are unchanged**, asserted in the suite
+rather than promised.
 
 Acceptance was bookkeeping over a tree that did not move: no application or test
 byte changed between the reviewed candidate and this promotion, so the
-4,172-assertion matrix below stands exactly as measured on `3e89713` and was not
+4,263-assertion matrix below stands exactly as measured on `cf92f27` and was not
 re-run to promote it.
 
 ---
@@ -67,12 +75,12 @@ re-run to promote it.
 | | |
 |---|---:|
 | Baseline assertions | 2,810 |
-| Current final assertions | **4,172** |
-| Delta | **+1,362** |
+| Current final assertions | **4,263** |
+| Delta | **+1,453** |
 | Failed | 0 |
 | Skipped | 0 |
-| Browser suites | 38 |
-| Browser assertions | 3,816 |
+| Browser suites | 39 |
+| Browser assertions | 3,907 |
 
 Other accepted assertion groups:
 
@@ -86,23 +94,22 @@ Other accepted assertion groups:
 **Arithmetic, which the checker performs itself rather than trusting:**
 
 ```
-  3,816   browser
+  3,907   browser
 +   172   pricing / history
 +   107   AI extraction / parser
 +    62   workbook
 +    15   translation
-= 4,172   final
+= 4,263   final
 
-  4,172 - 2,810 = 1,362
+  4,263 - 2,810 = 1,453
 ```
 
-The browser matrix grew by 102 in STAGE 1, in one new suite and no other: *phone
-widths — the scope label, the tap targets, and the desk left alone*, which
-measures the narrow-width scope control, the Companies tap targets, the
-numbering identity across all three surfaces, and the printed A4 sheet. The
-thirty-seven suites that existed before this round are unchanged, assertion for
-assertion, because no behaviour they cover was touched. The side suites — 172 /
-107 / 62 / 15 — did not move.
+The browser matrix grew by 91 in UI POLISH 2A, in one new suite and no other:
+*save feedback — the button, the value, the region, and the row*, which measures
+the success sequence, the in-flight guard, both confirmation semantics, the
+failure path sampled every 12ms, reduced motion, and the save payload key for
+key. The thirty-eight suites that existed before this round are unchanged,
+assertion for assertion, and the four side groups did not move.
 
 ---
 
@@ -172,16 +179,17 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 
 | | superseded |
 |---|---|
-| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 · 3,958 · 4,070 |
-| Deltas | +734 · +869 · +989 · +1,017 · +1,148 · +1,260 |
+| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 · 3,958 · 4,070 · 4,172 |
+| Deltas | +734 · +869 · +989 · +1,017 · +1,148 · +1,260 · +1,362 |
 | Translation keys | 512 · 658 · 756 · 843 · 853 |
 | Finding totals | 29 · 33 |
-| Suite counts | 34 · 36 · 37 |
+| Suite counts | 34 · 36 · 37 · 38 |
 | Manifest filename | `ZIP-MANIFEST.txt` |
 | Application commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by `e3d659b` when UI POLISH 1 was accepted |
 | Application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — superseded by `33ae0da` when UI POLISH 2 was accepted |
 | Application commit | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` — superseded by `98a31e3` when STAGE 0B was accepted |
 | Application commit | `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` — superseded by `3e89713` when STAGE 1 was accepted |
+| Application commit | `3e89713400b5bcfceca31d2c074de17411169d1b` — superseded by `cf92f27` when UI POLISH 2A was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

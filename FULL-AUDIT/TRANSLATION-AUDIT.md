@@ -1,6 +1,6 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `3e89713400b5bcfceca31d2c074de17411169d1b`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `cf92f27feb629134a61801dc120eba79c54fb5f6`.
 
 Three tools, and the third exists because the first two were not enough:
 
@@ -11,12 +11,13 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `3e89713400b5bcfceca31d2c074de17411169d1b` is the last commit that changed the
+> **On SHAs.** `cf92f27feb629134a61801dc120eba79c54fb5f6` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when STAGE 1 was accepted. Four application SHAs are superseded by it and
-> must never be quoted as current:
+> when UI POLISH 2A was accepted. Five application SHAs are superseded by it
+> and must never be quoted as current:
+> superseded — `3e89713400b5bcfceca31d2c074de17411169d1b`, accepted for STAGE 1;
 > superseded — `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`, accepted for STAGE 0B;
 > superseded — `33ae0da14a3bd3108e8b066d4796b1bcda2de428`, accepted for UI POLISH 2;
 > superseded — `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`, accepted for UI POLISH 1;

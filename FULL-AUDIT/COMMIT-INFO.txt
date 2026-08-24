@@ -6,19 +6,12 @@ BRANCH          claude/quotation-dnc-stage-0-w62kpt
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                3e89713400b5bcfceca31d2c074de17411169d1b
-                "The quotation printed like a dump of the items array"
-                The ACCEPTED application. docs/control/
-                CANONICAL-STATE.json is the authority for it.
-CANDIDATE APPLICATION COMMIT
                 cf92f27feb629134a61801dc120eba79c54fb5f6
                 "A save that says what it saved, and only once it has"
-                NOT YET ACCEPTED. A round under review proposes a
-                change to index.php, declared by name in
-                docs/control/ROUND-SCOPE.md. The test figures in this
-                package were measured on THIS tree, not on the accepted
-                one — the accepted commit above has not changed and does
-                not become this one until the round is accepted.
+                The commit the accepted implementation and its test
+                matrix were measured at. Every figure in this package
+                was produced by this tree, and docs/control/
+                CANONICAL-STATE.json is the authority for all of them.
 PACKAGE / HEAD COMMIT
                 Not named here, and deliberately. The commits after the
                 application one carry this package, and a document
@@ -296,19 +289,19 @@ FILES CHANGED (baseline -> final)
 TEST MATRIX AT FINAL SHA
 ------------------------
 <<<GENERATED:MATRIX>>>
-  Browser suites            38 suites, 3,816 assertions, 0 failed
+  Browser suites            39 suites, 3,907 assertions, 0 failed
   Pricing-history PHP                    172 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      4,172
+  TOTAL ASSERTIONS                      4,263
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      4,172 assertions
-  Delta:     +1,362 assertions
+  Final:      4,263 assertions
+  Delta:     +1,453 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean

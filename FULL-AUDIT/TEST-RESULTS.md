@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `3e89713400b5bcfceca31d2c074de17411169d1b`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `cf92f27feb629134a61801dc120eba79c54fb5f6`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,12 +8,13 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `3e89713400b5bcfceca31d2c074de17411169d1b` is the last commit that changed the
+> **On SHAs.** `cf92f27feb629134a61801dc120eba79c54fb5f6` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when STAGE 1 was accepted. Four application SHAs are superseded by it and
-> must never be quoted as current:
+> when UI POLISH 2A was accepted. Five application SHAs are superseded by it
+> and must never be quoted as current:
+> superseded — `3e89713400b5bcfceca31d2c074de17411169d1b`, accepted for STAGE 1;
 > superseded — `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`, accepted for STAGE 0B;
 > superseded — `33ae0da14a3bd3108e8b066d4796b1bcda2de428`, accepted for UI POLISH 2;
 > superseded — `e3d659bba1636cd4cfc74cb89be1b52cf92aff67`, accepted for UI POLISH 1;
@@ -30,7 +31,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 38 | **3,816** | **0** |
+| Browser suites (`node tests/run.js`) | 39 | **3,907** | **0** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **172** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -40,14 +41,14 @@ against itself.
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **4,172** |
+| **TOTAL ASSERTIONS** | **4,263** |
 | **TOTAL FAILED** | **0** |
 
 | | |
 |---|---:|
 | Baseline | 2,810 assertions |
-| Final | 4,172 assertions |
-| Delta | **+1,362 assertions** |
+| Final | 4,263 assertions |
+| Delta | **+1,453 assertions** |
 
 Every one of those is new coverage over a defect this audit reproduced. The
 per-round breakdown that used to sit here has been removed rather than
@@ -109,8 +110,9 @@ different. Each slice says so in its first two lines.
   ok   diameter — the bar the weight is made of                                         94
   ok   roles — Fast Edit, Bulk Edit and Details do not overlap                         109
   ok   phone widths — the scope label, the tap targets, and the desk left alone       102
+  ok   save feedback — the button, the value, the region, and the row                  91
 
-  38 suites, 3816 assertions, 0 failed    876.5s
+  39 suites, 3907 assertions, 0 failed    893.9s
 ```
 
 ---
@@ -190,6 +192,25 @@ that do not break across pages, one priced row per parent item, `cw 2nut`
 carrying no money of its own, and the RM 284.80 total. It also fires
 `afterprint` and re-measures the screen, so the print rules are proved unable to
 reach the screen UI from the screen side.
+
+### Added in UI POLISH 2A
+
+**`tests/suites/39-save-feedback.test.js` — 91 assertions.** The one suite this
+round added, and the whole of its growth — the thirty-eight suites before it are
+unchanged, assertion for assertion.
+
+It measures the success sequence on the real Save dialog (compress → `res.ok` →
+check → value pulse → toast → ~500ms confirmation → normal); the in-flight
+guard, by clicking four times inside one held request and counting **one** POST;
+the failure path, sampled inside the page every 12ms so "no success visual ever
+appeared" is a measurement rather than an absence of looking; that the guard is
+released so a retry after a failure is allowed through; a second legitimate save;
+one toast per save; the ~500ms window measured from the running page rather than
+read off the stylesheet; **both confirmation semantics** — the quotation-level
+region with no item row singled out, and the exact rule row with its neighbours
+clean; a failed rule save marking nothing; reduced motion with the preference
+actually emulated; and **the save payload asserted key for key** against the
+accepted shape.
 
 ### Modified
 

@@ -4,6 +4,16 @@
 
 **UI POLISH 2A — SAVE SUCCESS MICRO-INTERACTION** *(amended before implementation)*
 
+**UI POLISH 2A = ACCEPTED.** Nicholas / ChatGPT reviewed the implementation, the
+visuals, the regression and the package — and, after an independently found
+evidence defect was repaired, accepted the round. The accepted application is
+`cf92f27feb629134a61801dc120eba79c54fb5f6`, promoted to canonical in its own
+bookkeeping commit; `3e89713` is recorded superseded.
+
+Everything below this line is the round's implementation and evidence contract
+**as it was written**, kept unchanged as the record of what the round was
+allowed to do and what it had to prove. Only the acceptance state above is new.
+
 Frontend interaction polish. No business rule, no formula, no schema, no
 generated customer data, no deploy.
 
@@ -16,9 +26,10 @@ rewritten; nothing else in the round changes.
 
 | | |
 |---|---|
-| Accepted application commit | `3e89713400b5bcfceca31d2c074de17411169d1b` |
+| Accepted application commit **when this round opened** | `3e89713400b5bcfceca31d2c074de17411169d1b` — superseded by this round on acceptance |
 | Previous accepted commit | `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` — superseded by STAGE 1 |
-| This round | a **candidate**, not an accepted state |
+| This round | **ACCEPTED** — see the acceptance note above |
+| Accepted application commit (after acceptance) | `cf92f27feb629134a61801dc120eba79c54fb5f6` |
 | Deploy | **NO** |
 
 ---

@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "3e89713400b5bcfceca31d2c074de17411169d1b",
+    "acceptedCommit": "cf92f27feb629134a61801dc120eba79c54fb5f6",
     "status": "accepted",
-    "acceptedRound": "STAGE 1 — Final UI Cleanup: narrow-width scope control, Companies mobile targets, print/PDF A4 layout (FINAL ACCEPTED)"
+    "acceptedRound": "UI POLISH 2A — Save Success Micro-Interaction (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4172,
-    "deltaAssertions": 1362,
+    "finalAssertions": 4263,
+    "deltaAssertions": 1453,
     "failed": 0,
     "skipped": 0,
-    "browserSuites": 38,
-    "browserAssertions": 3816,
+    "browserSuites": 39,
+    "browserAssertions": 3907,
     "pricingHistoryAssertions": 172,
     "aiExtractionAssertions": 107,
     "workbookAssertions": 62,
@@ -55,7 +55,8 @@
       3799,
       3827,
       3958,
-      4070
+      4070,
+      4172
     ],
     "supersededTranslationKeys": [
       512,
@@ -74,12 +75,14 @@
       989,
       1017,
       1148,
-      1260
+      1260,
+      1362
     ],
     "supersededSuiteCounts": [
       34,
       36,
-      37
+      37,
+      38
     ],
     "retiredManifestName": "ZIP-MANIFEST.txt",
     "resolvedObservation": {
@@ -107,6 +110,11 @@
         "sha": "98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac",
         "supersededBy": "3e89713400b5bcfceca31d2c074de17411169d1b",
         "reason": "STAGE 1 was accepted. The final UI cleanup is presentation only — the narrow-width scope control and the print/PDF A4 layout in index.php, the mobile tap targets in companies.php — so 98a31e3 is the previous accepted commit and must never be quoted as the current one. The assertion matrix moved with it: 3,816 browser across 38 suites and 4,172 in all, measured on 3e89713. No pricing, parsing or data-generation byte changed."
+      },
+      {
+        "sha": "3e89713400b5bcfceca31d2c074de17411169d1b",
+        "supersededBy": "cf92f27feb629134a61801dc120eba79c54fb5f6",
+        "reason": "UI POLISH 2A was accepted. A save now answers: the submitting button compresses while the request is in flight, shows a check only once the server has confirmed, the real saved values confirm themselves, and a ~500ms confirmation says what was written — plus an in-flight guard, so two clicks can no longer issue two POSTs. index.php is the only application file it changes, so 3e89713 is the previous accepted commit and must never be quoted as the current one. The assertion matrix moved with it: 3,907 browser across 39 suites and 4,263 in all, measured on cf92f27. No pricing, parsing, numbering or data-generation byte changed, and the save payload is unchanged."
       }
     ]
   }
