@@ -2,132 +2,244 @@
 
 ## ROUND
 
-**STAGE 1 — FINAL UI CLEANUP · FINAL ACCEPTED / CLOSED**
+**UI POLISH 2A — SAVE SUCCESS MICRO-INTERACTION**
 
-Presentation only. No business rule, no formula, no generated customer data.
-
-Nicholas / ChatGPT reviewed the implementation, the visual evidence, the
-regression and the candidate package, and **accepted** them. This file is now
-the record of a closed round, not a licence to change anything.
+Frontend interaction polish. No business rule, no formula, no schema, no
+generated customer data, no deploy.
 
 | | |
 |---|---|
-| Round status | **FINAL ACCEPTED / CLOSED** |
 | Accepted application commit | `3e89713400b5bcfceca31d2c074de17411169d1b` |
 | Previous accepted commit | `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` — superseded by STAGE 1 |
+| This round | a **candidate**, not an accepted state |
 | Deploy | **NO** |
-| Stage 2 | **NOT STARTED** |
 
 ---
 
-## THE PROOF THE PROMOTION RESTS ON
+## BASELINE GATE — PASSED BEFORE ANY EDIT
 
-Written before the bookkeeping, from Git rather than from assertion. The
-candidate SHA is **derived** from the files this round declared — it was never
-asserted, and it is not HEAD.
-
-```
-git merge-base --is-ancestor 98a31e3 3e89713      →  0   (98a31e3 is an ancestor)
-
-git log -1 --format=%H 98a31e3..HEAD -- index.php companies.php
-        →  3e89713400b5bcfceca31d2c074de17411169d1b
-           the last commit touching the two files ```candidate-files``` declared,
-           so 3e89713 IS the Stage 1 application candidate, derived not claimed
-
-git diff --name-only 98a31e3..3e89713 -- '*.php'
-        →  index.php  companies.php          (and nothing else)
-
-git diff --name-only 3e89713..HEAD -- '*.php'                →  (empty)
-git diff --name-only 3e89713..HEAD -- tests/suites tests/lib →  (empty)
-```
-
-The only commits after `3e89713` are `ff39782`, `7ff14df` and `f132254`, which
-carry reports, evidence, control files and packaging. **No application PHP byte
-and no browser-test byte moved between the reviewed candidate run and this
-promotion**, which is why the matrix below was promoted as measured and not
-re-run — re-running it could only have produced the same numbers from a
-different tree state, which is a weaker fact, not a stronger one.
-
----
-
-## WHAT WAS ACCEPTED
-
-| | |
+| Check | Evidence |
 |---|---|
-| 430px APPLY TO | **repaired** — the label and its scope buttons stay together |
-| Companies mobile | **repaired** — tap targets at 44px+, desk sizes unmoved |
-| Print / PDF A4 layout | **repaired** — a professional quotation, not a table dump |
-| Numbering identity | **verified**, Screen / Print / WhatsApp consistent |
-| Numbering ORDER | **DEFERRED to Stage 2** — verified and left alone |
-| Dark mode | **DEFERRED to Stage 2** — it does not exist to polish |
-
-The accepted outcomes are written into `PROJECT-GUARDRAILS.md` under **STAGE 1
-UI**, and the two deferrals under **DEFERRED TO STAGE 2**. From here they are
-protected exactly as the pricing engine and the accessory rule are.
-
-**The deferrals were not converted into changes.** Nothing about dark mode and
-nothing about numbering ORDER was implemented, and neither may be treated as
-accepted behaviour.
+| HEAD recorded | `f16cffef11f02fba7b9047475bffa4a1d5774c87` |
+| Accepted commit exists and is an ancestor of HEAD | `3e89713` |
+| Canonical and authoritative agree on it | `CANONICAL-STATE.json` and `tests/tools/authoritative.js` both read `3e89713` |
+| No application php differed from it at the start | `git diff --name-only 3e89713..HEAD -- '*.php'` → empty |
+| No test suite differed from it | `git diff --name-only 3e89713..HEAD -- tests/suites tests/lib` → empty |
+| Working tree clean | `git status --short` → empty |
+| STAGE 1's candidate declaration closed first | Stage 1 acceptance, its own commits |
+| Control files present and read, not reconstructed | all four |
 
 ---
 
-## ACCEPTED MATRIX
+## WHAT THE SOURCE ACTUALLY SAYS
 
-Measured on `3e89713`, promoted unchanged, and authoritative in
-`docs/control/CANONICAL-STATE.json`.
+Established read-only, before this file was written. **Nothing here was
+assumed.**
 
-| | |
-|---|---:|
-| Browser suites | 38 |
-| Browser assertions | 3,816 |
-| Pricing / History · AI Extraction · Workbook · Translation | 172 · 107 · 62 · 15 |
-| **Total assertions** | **4,172** |
-| Failed / Skipped | 0 / 0 |
-| Baseline | 2,810 |
-| Delta | **+1,362** |
-| Translation keys / coverage | 862 / 100% |
+### The Save buttons, and which of them saves
 
-The whole of the growth is one added suite — *phone widths — the scope label,
-the tap targets, and the desk left alone* (102 assertions). The thirty-seven
-suites that existed before this round are unchanged, assertion for assertion.
+| control | line | onclick | reaches a backend write? |
+|---|---|---|---|
+| `saveQuoteBtn` "Save Quotation" | 3729 | `openSaveModal()` | **no** — opens the modal |
+| `mobileSaveBtn` "Save" | 3746 | `openSaveModal()` | **no** — opens the modal |
+| `saveModalSubmitBtn` | 4238 | `doSaveQuotation()` | **YES** — `save_quotation` / `update_quotation` |
+| "Save Rule" (Default Price) | 4321 | `saveDPRule()` | **YES** — `save_default_price` / `update_default_price` |
+| "Save Rule" (Diameter) | 4451 | `saveDSRule()` | **YES** — `save_diameter_setting` / `update_diameter_setting` |
+| "Save Template" (WhatsApp) | 4382 | `saveWATemplate()` | **YES** — `save_whatsapp_template` |
+
+The button the user presses first opens a modal; **the button that saves is the
+one inside it.** A compress on `saveQuoteBtn` would be tactile feedback for
+opening a dialog, not for saving, so the interaction belongs to the submit
+control in every one of the four paths above.
+
+### What "confirmed success" is
+
+Every one of the four goes through the same shape (`doSaveQuotation`, line 9691):
+
+```js
+const res = await api(action, payload, 'POST');
+if (!res.ok) { showToast(dcT('tSaveFailed')…); return; }   // ← failure, returns
+…                                                          // ← success continues
+```
+
+`api()` (line 8896) returns the parsed JSON; a 401 redirects to `login.php` and
+returns `{ok:false}`. **Confirmed success is `res.ok === true` after the await,
+and nothing earlier.** That is the only gate the success visuals may sit behind.
+
+### The toast that already exists
+
+`showToast(msg)` at 9065 — one `<div class="toast" id="toast">` at 4490, a
+single shared timer (`toastTimer`), 2600ms, `.toast.show` fades and slides on
+`--mo` / `--mo-ease`. One element, one timer, so **one save cannot produce two
+toasts** as long as the round keeps using it. It also feeds `dcToastCapture`,
+which the browser suites read. **This round adds no second notification system.**
+
+### The motion system that already exists
+
+`:root{--mo-fast:140ms; --mo:180ms; --mo-slow:220ms; --mo-ease:cubic-bezier(.2,.7,.4,1)}`
+at 1646, from UI POLISH 1, with a `prefers-reduced-motion: reduce` block at 1694
+that already neutralises every transition and animation and flattens `.btn:active`.
+`.btn:active` is `translateY(1px)` on `--mo-fast`. **The compress belongs in this
+vocabulary, not beside it.**
+
+### The row highlight that already exists — and is ACCEPTED
+
+`.qi-item.row-new{animation:rowflash 1s ease}` at 505, driven by
+`renderQuote(newIdx)` at 8763. It fires when an item is **added to or updated in
+the draft array** — `pushItem` at 8683, the WAS path at 8578 — which is a
+client-side array mutation with **no API call at all**.
+
+`.wqa-flash` (Quick Add, 900ms) and `.calc-preview.flash` / `kpiflash` (500ms)
+are the same family.
+
+### Double submission is possible today
+
+`doSaveQuotation` has **no in-flight guard**. Two clicks inside the await window
+issue two POSTs. `setQuoteLockUI` (6080) disables `saveModalSubmitBtn` only once
+the quotation is already locked — after the first save has returned. The prompt
+requires "no double submission", so a guard is in scope, and it is the only
+behaviour change this round makes.
+
+---
+
+## THREE CONFLICTS, REPORTED RATHER THAN SILENTLY RESOLVED
+
+`PROJECT-GUARDRAILS.md` requires a prompt conflict to be reported. These are
+recorded here, before implementation, with the resolution this round proceeds
+under. Nicholas may overrule any of them.
+
+### 1 · "the exact row affected" vs "the whole quotation was saved"
+
+§7 requires the **exact** affected row to be confirmed and forbids highlighting
+every item row. But `save_quotation` persists the entire quotation: **every item
+row is affected.** The two instructions cannot both be met literally on that
+path.
+
+**Resolution.** Row-level confirmation is applied where a row genuinely is the
+unit of the save:
+
+- **Default Price rule save, Diameter rule save** — each writes exactly ONE row
+  of a multi-row table. Row *N* is confirmed and rows *M* are not, which is the
+  strongest possible proof of "the correct row, not an arbitrary row". **This is
+  the frame-04 evidence.**
+- **Quotation save** — the confirmation lands on the quotation **total bar**
+  (`quoteTotalBar`), the one row-shaped element that represents the thing that
+  was persisted, and on nothing else. The item rows are left alone. Documented,
+  not hidden.
+
+### 2 · §9's "edit item → save" is not a backend save
+
+The item-edit path mutates `quoteItems` in memory and calls `renderQuote(idx)`.
+There is no request, so there is no genuine success and §3 and §10 have nothing
+to gate. It already confirms itself with the **accepted** 1s `.row-new` flash.
+
+**Resolution.** The accepted 1s flash is **not touched** — changing it would
+alter UI POLISH 1 behaviour this round is told to preserve, and it signals a
+different event (an item entered the draft) from the one this round signals (the
+quotation reached the database). The new ~500ms confirmation is a separate class
+on the genuine-save paths only. Raised for Nicholas; reversible in one line.
+
+### 3 · dark mode does not exist
+
+§7 says "do not make dark mode worse". Established in STAGE 1 and recorded in
+`PROJECT-GUARDRAILS.md` under DEFERRED TO STAGE 2: all three pages hardcode
+`data-theme="light"`, zero `prefers-color-scheme` colour rules, zero dark rules,
+no toggle. The instruction is satisfied trivially — but this round expresses
+every new colour as an **existing accent/green token**, so a future dark palette
+inherits the interaction instead of having to re-author it.
 
 ---
 
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+index.php
 ```
 
-**The block is empty, and empty means what it has always meant: nothing may
-differ from the accepted application commit.**
+Nothing else may differ from `3e89713400b5bcfceca31d2c074de17411169d1b`.
 
-`3e89713` is now that commit. Any `*.php` difference from it is undeclared drift
-and fails the consistency check by name, loudly, until a new round declares it
-here first.
+**`index.php` — the save-success interaction, and nothing else.**
+
+- **CSS**: a compress state on the submitting button, a checkmark state, a value
+  confirmation pulse, and a ~500ms row/target confirmation — all inside the
+  `--mo` / `--mo-ease` vocabulary, all neutralised by the existing
+  `prefers-reduced-motion` block, all coloured from existing tokens
+- **JS**: one shared helper the four save paths call **after** `res.ok`, plus an
+  in-flight guard on each so a second click cannot issue a second POST
+- **markup**: a `data-*` hook on the Default Price and Diameter rule rows so the
+  affected row can be addressed by identity rather than by position
+
+The value animated is a **real saved value**, never a fabricated one:
+
+| save | value confirmed | why it is legitimate |
+|---|---|---|
+| quotation | `quoteTotalAmt` (grand total) and `qi-refno` | both are in the saved payload; the ref number may be **reassigned by the server** at save time (line 9702), so it is the one value a user most needs to see move |
+| default price rule | the saved row's Cost Rate / Markup cells | written by this request |
+| diameter rule | the saved row's own cells | written by this request |
+| WhatsApp template | none — no numeric value is saved | a small pulse on the saved control instead, per §5's own instruction not to fabricate one |
+
+**Tests, evidence, reports, packaging**
+
+- a new suite for the interaction: success gating, failure gating, the correct
+  affected row, highlight clearing, button restoration, consecutive saves, one
+  toast per save, no duplicate POST, reduced motion, and **the save payload
+  proved byte-identical to the accepted one**
+- a UI POLISH 2A evidence script, its five frames, and a recording
+- `docs/control/ROUND-SCOPE.md` (this file)
+- the round report and the review package
 
 ---
 
 ## NOT ALLOWED TO CHANGE
 
-Everything under PROTECTED / ACCEPTED AREAS in `PROJECT-GUARDRAILS.md`, which
-this round's outcomes have now joined:
+**Strictly protected this round.** The prompt's own no-change list and
+`PROJECT-GUARDRAILS.md` PROTECTED / ACCEPTED AREAS, which include everything
+STAGE 1 added:
 
-parser · extraction · AI extraction semantics · pricing formulas · **the
-accessory-inclusive final price** · weight · DIA · Previous Price matching and
-reuse · History identity and ordering · Qty and default Qty · Material · Finish
-· Size Type · selection behaviour · Fast Edit · Bulk Edit · Details · database
-and save semantics · Add-to-quotation behaviour · translation semantics ·
-**the accepted STAGE 1 narrow-width scope control, Companies mobile targets and
-print / PDF A4 layout** · **item numbering identity on every surface**.
+pricing logic · Cost Rate · Additional Cost · Markup · **the
+accessory-inclusive final price** and accessories carry-over · Previous Price
+matching and application · weight · DIA · Size Type · Material mapping · Qty ·
+parsing · Quick Add business logic · **quotation numbering and `ref_no`
+allocation** · `GET_LOCK` · database schema · authentication · authorization ·
+PDF generation · print logic · **WhatsApp item numbering** · the accepted STAGE
+1 narrow-width scope control, Companies mobile targets and print/PDF A4 layout ·
+item numbering identity on every surface · PHP version.
+
+Specifically, and not negotiable:
+
+- **the save payload is byte-identical.** The object passed to `api()` is not
+  touched, and the suite asserts it against the accepted shape
+- **no success visual before `res.ok`.** Not optimistically, not "usually"
+- **the accepted 1s `.row-new` add-item flash is untouched** (conflict 2)
+- `showToast` stays the only notification system, with its one timer
+- no schema change, no `UNIQUE(ref_no)`, no DB hardening, no error-semantics
+  change to make testing easier
+- no unrelated cleanup, no renaming, no restructuring "because it could be
+  cleaner"
 
 ---
 
-## STATE
+## STOP CONDITION
 
-- **STAGE 1 — FINAL ACCEPTED / CLOSED**
-- **DEPLOY = NO**
-- **STAGE 2 = NOT STARTED**
+- the submitting button compresses on press, recovers on success **and** on
+  failure, and cannot issue a second POST while one is in flight
+- ✓, value pulse, toast and row confirmation appear **only** after `res.ok`,
+  proven by a controlled failure that produces none of them
+- the confirmed row is the row that was saved, proven in a frame that also shows
+  neighbouring rows NOT confirmed
+- highlight ≈500ms, no permanent class, no stale timer, no mutated selection
+- consecutive saves work, one toast each
+- reduced motion still communicates saving / success / affected row / toast,
+  measured with the preference actually emulated
+- the save payload asserted unchanged
+- targeted suite, the FULL browser regression — application bytes change, so it
+  is re-run and not carried forward — every authoritative side suite, and the
+  translation audit
+- **zero failures, zero skips**
+- counts reported as **measured**, never forced to the accepted 3,816 / 4,172 / 862
+- ONE `QUOTATION-DNC-UI-POLISH-2A.zip`, built and independently verified after
+  extraction, with a README-review.md and the diff/scope proof
 
-A new round begins by rewriting this file — the round, the goals, and a
-```candidate-files``` block naming what it may touch — **before** any application
-byte changes. Not after.
+Then STOP. **No deploy.** No DB hardening, no `UNIQUE(ref_no)`, no numbering
+work, no dark mode, no next polish round. The candidate is not promoted until
+Nicholas reviews it.
