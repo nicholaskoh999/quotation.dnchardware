@@ -17,11 +17,10 @@
        deferrals AS deferrals rather than as accepted behaviour;
      · the accepted logs are the accepted run, and the per-suite lines sum.
 
-   PINNED to the accepted state on purpose, and re-pointed by hand at each
-   acceptance: a check that derives what to expect from the files it is checking
+   Written for the STAGE 1 final acceptance and pinned to it deliberately: an
+   acceptance check that derives what to expect from the files it is checking
    would agree with itself while being wrong, which is the failure this whole
-   control layer exists to prevent. Re-pointed for the UI POLISH 2A acceptance;
-   written first for STAGE 1.
+   control layer exists to prevent.
 
        node tests/tools/check-control.js                                    */
 'use strict';
@@ -35,8 +34,8 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP  = 'cf92f27feb629134a61801dc120eba79c54fb5f6';   // UI POLISH 2A, accepted
-const PREV = '3e89713400b5bcfceca31d2c074de17411169d1b';   // STAGE 1, superseded by it
+const APP = 'cf92f27feb629134a61801dc120eba79c54fb5f6';
+const PREV = '3e89713400b5bcfceca31d2c074de17411169d1b';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
 
@@ -55,7 +54,7 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
 ck(T.browserSuites === 39 && T.browserAssertions === 3907 && T.finalAssertions === 4263
    && T.deltaAssertions === 1453 && T.baselineAssertions === 2810,
-   'the accepted matrix is the measured UI POLISH 2A run');
+   'the accepted matrix is the measured run');
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
    + T.workbookAssertions + T.translationAssertions === T.finalAssertions,
    `3,907+172+107+62+15 = ${T.finalAssertions}`);
@@ -93,38 +92,24 @@ let anc = true; try { git('merge-base','--is-ancestor',PREV,APP); } catch { anc 
 ck(anc, '3e89713 is an ancestor of cf92f27');
 let ancHead = true; try { git('merge-base','--is-ancestor',APP,'HEAD'); } catch { ancHead = false; }
 ck(ancHead, 'cf92f27 is an ancestor of HEAD');
-ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php') === 'index.php',
-   'the promotion carries exactly index.php');
+ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php') === 'index.php\ncompanies.php'
+   || git('diff','--name-only',PREV+'..'+APP,'--','*.php').split('\n').sort().join(',') === 'companies.php,index.php',
+   'the promotion carries exactly index.php and companies.php');
 ck(git('diff','--name-only',APP+'..HEAD','--','*.php') === '',
    'no application PHP differs from the accepted commit');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
-ck(git('log','-1','--format=%H',PREV+'..HEAD','--','index.php') === APP,
-   'the candidate SHA derived from the declared file IS the accepted commit');
+ck(git('log','-1','--format=%H',PREV+'..HEAD','--','index.php','companies.php') === APP,
+   'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 
 // ── the candidate block is empty, and means it ──
-/* The STAGE 1 acceptance closed its round by EMPTYING this block, and the check
-   below used to demand exactly that. UI POLISH 2A's close-out was told to record
-   the acceptance state and leave the implementation contract as written, so the
-   block still names the file the round declared.
-
-   The invariant that matters is the same in both shapes and is asserted
-   directly rather than through the shape: every file the block declares is now
-   byte-identical to the accepted commit, and no application PHP differs from it
-   at all. A non-empty block after acceptance grants nothing, because there is
-   nothing left to differ. This is the same guarantee stated more plainly — not
-   a weaker one. */
 const m = /```candidate-files\r?\n([\s\S]*?)```/.exec(RS);
 ck(!!m, 'ROUND-SCOPE carries a candidate-files block');
-const declared = (m ? m[1] : '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-const stillDiffering = declared.filter(f => git('diff','--name-only',APP+'..HEAD','--',f) !== '');
-ck(stillDiffering.length === 0,
-   `every file the block declares is byte-identical to the accepted commit `
-   + `(${declared.join(', ') || 'none declared'}) — nothing is left to drift`);
-ck(/UI POLISH 2A = ACCEPTED/.test(RS), 'ROUND-SCOPE records UI POLISH 2A = ACCEPTED');
-ck(RS.includes(APP), 'and names the accepted application commit');
-ck(/Deploy \| \*\*NO\*\*/.test(RS), 'ROUND-SCOPE records Deploy = NO');
+ck(m && m[1].trim() === '', 'the candidate-files block is EMPTY — nothing may differ from the accepted commit');
+ck(/FINAL ACCEPTED \/ CLOSED/.test(RS), 'ROUND-SCOPE is marked FINAL ACCEPTED / CLOSED');
+ck(/DEPLOY = NO/.test(RS), 'ROUND-SCOPE records DEPLOY = NO');
+ck(/STAGE 2 = NOT STARTED/.test(RS), 'ROUND-SCOPE records STAGE 2 = NOT STARTED');
 ck(C.package.deploymentApproved === false, 'canonical: deployment not approved');
 
 // ── guardrails carry the accepted outcomes, and only those ──
@@ -142,13 +127,6 @@ ck(/Dark mode\.\*\* There is no dark mode/.test(GR) && /Numbering ORDER\*\* on a
 ck(GR.includes('accessories are inside the parent item’s final customer'.replace('’',"'"))
    || GR.includes('accessories are inside the parent item'),
    'the STAGE 0B accessory rule is still protected, untouched by this round');
-/* Recorded, not asserted green: the UI POLISH 2A behaviours are NOT yet in
-   PROJECT-GUARDRAILS. The close-out was scoped to accepted-state pointers and
-   guardrails is not one, so this notes the gap rather than quietly filling it
-   or quietly passing over it. */
-ck(!/save success micro-interaction/i.test(GR),
-   'NOTE: PROJECT-GUARDRAILS does not yet protect the accepted UI POLISH 2A '
-   + 'behaviours — raised for a decision, deliberately not added by a bookkeeping round');
 
 // ── the accepted logs are the accepted run ──
 const LOG = R('FULL-AUDIT/regression-evidence/browser-suite.log');
@@ -160,7 +138,7 @@ ck(per === 3907, `the 39 per-suite lines sum to ${per}`);
 ck(!fs.existsSync(path.join(REPO,'FULL-AUDIT/STAGE-1-TEST-RESULTS.md')),
    'the candidate-only STAGE-1-TEST-RESULTS.md is gone, not left to drift');
 
-console.log('\n  CONTROL CONSISTENCY — UI POLISH 2A final acceptance');
+console.log('\n  CONTROL CONSISTENCY — Stage 1 final acceptance');
 console.log('  ' + '─'.repeat(74));
 out.forEach(l => console.log('  ' + l));
 console.log(bad ? `\n  ${bad} disagreement(s).\n` : `\n  ${out.length} checks, 0 disagreements.\n`);

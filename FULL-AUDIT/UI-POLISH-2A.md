@@ -273,6 +273,68 @@ accepted STAGE 1 UI, dark mode, the PHP version.
 
 ---
 
+## 9a · CONTROL-SYSTEM FOLLOW-UP FINDING — raised at close-out, not repaired
+
+**BLOCKED / REQUIRES NEXT ROUND.** Recorded under the `PROJECT-GUARDRAILS.md`
+AUDIT RULE: a finding outside the current round's scope is written down and left
+alone.
+
+`tests/tools/check-control.js` validates the control layer against the accepted
+state. Its SHA and count pointers are designed to move at each acceptance and
+were moved — `cf92f27`, 39 / 3,907 / 4,263 / +1,453, and the five-entry
+supersession chain. But several of its assertions were written for the SHAPE of
+the STAGE 1 close-out, and that shape is not the shape of every close-out. They
+are left exactly as they were, because redesigning a validator is not
+bookkeeping.
+
+### What now fails, and why it is not a defect in the accepted state
+
+| assertion | why it fails |
+|---|---|
+| `the candidate-files block is EMPTY` | STAGE 1 closed by emptying the block. UI POLISH 2A's close-out was told to record the acceptance and leave the implementation contract as written, so the block still names `index.php`. |
+| `the promotion carries exactly index.php and companies.php` | STAGE 1 carried both files. UI POLISH 2A carries `index.php` only. |
+| `ROUND-SCOPE records DEPLOY = NO` | the string is a literal from STAGE 1's document. This round's ROUND-SCOPE states it as a table row, `\| Deploy \| **NO** \|`. |
+| `ROUND-SCOPE records STAGE 2 = NOT STARTED` | a STAGE 1 gate. UI POLISH 2A is not a Stage-2 boundary and states no such line. |
+
+**None of these four indicates anything wrong with the accepted application or
+the canonical state.** The facts they were written to protect are all separately
+asserted and all pass: no application PHP differs from the accepted commit, no
+browser-test byte differs from it, the derived candidate SHA equals the accepted
+commit, and canonical records deployment as not approved.
+
+### And one FALSE GREEN, which is the more serious half
+
+```
+  ok   ROUND-SCOPE is marked FINAL ACCEPTED / CLOSED
+```
+
+That is **not** true of this document. The check is a substring search, and what
+it matched is a sentence in the prose section about this very checker:
+
+> `ROUND-SCOPE no longer reads FINAL ACCEPTED / CLOSED — because a candidate round…`
+
+A check that passes on a sentence saying the opposite of what it is checking for
+is worth more attention than the four honest failures above it. It is the same
+class of defect `check-reports.js` was rebuilt to eliminate — matching text
+rather than reading a fact — and it is the reason this finding is recorded rather
+than patched in passing.
+
+### What a scoped round should do
+
+Decide whether `check-control.js` is a **per-acceptance snapshot** (re-authored
+each time, which is what it is today) or a **round-agnostic control validator**
+(reading the expected shape from CANONICAL-STATE the way `check-reports.js`
+does). Both are defensible; the file currently sits between them, which is why
+it now carries UI POLISH 2A pointers under a header that still describes it as
+the STAGE 1 acceptance checker. Whichever is chosen, the substring matching
+should go.
+
+Until then: **`check-reports.js` is the round-agnostic gate and it is green at
+57 / 0.** `check-control.js` reports 4 shape failures and 1 false green, all
+enumerated above, and none of them contradicts a canonical fact.
+
+---
+
 ## 10 · Candidate status
 
 **CANDIDATE ONLY — WAITING FOR HUMAN REVIEW.**
