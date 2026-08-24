@@ -8,10 +8,17 @@ BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
 ACCEPTED APPLICATION COMMIT
                 3e89713400b5bcfceca31d2c074de17411169d1b
                 "The quotation printed like a dump of the items array"
-                The commit the accepted implementation and its test
-                matrix were measured at. Every figure in this package
-                was produced by this tree, and docs/control/
-                CANONICAL-STATE.json is the authority for all of them.
+                The ACCEPTED application. docs/control/
+                CANONICAL-STATE.json is the authority for it.
+CANDIDATE APPLICATION COMMIT
+                cf92f27feb629134a61801dc120eba79c54fb5f6
+                "A save that says what it saved, and only once it has"
+                NOT YET ACCEPTED. A round under review proposes a
+                change to index.php, declared by name in
+                docs/control/ROUND-SCOPE.md. The test figures in this
+                package were measured on THIS tree, not on the accepted
+                one — the accepted commit above has not changed and does
+                not become this one until the round is accepted.
 PACKAGE / HEAD COMMIT
                 Not named here, and deliberately. The commits after the
                 application one carry this package, and a document
@@ -123,6 +130,16 @@ AUDIT COMMITS (oldest first — this list is the count)
   8176b6a  The generated facts, written after the commit they describe
   2ec47d9  The Stage 1 builder ships in its own archive, so it has to be committed first
   3e89713  The quotation printed like a dump of the items array
+  f132254  The generated facts, written after the commit they describe
+  7ff14df  The archive carries two evidence sets, kept apart
+  ff39782  A candidate's run is not the accepted matrix, and the package now says which is which
+  5da3c4b  The round that was reviewed is the round that is now accepted
+  621a13d  The generated facts, written after the commit they describe
+  2c20f1c  The control layer gets a checker of its own
+  f16cffe  The consistency results, written after the commit they describe
+  5053d52  The round is scoped before a byte of it is written
+  d63891f  The row semantics corrected before the bytes that would have encoded it
+  cf92f27  A save that says what it saved, and only once it has
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
