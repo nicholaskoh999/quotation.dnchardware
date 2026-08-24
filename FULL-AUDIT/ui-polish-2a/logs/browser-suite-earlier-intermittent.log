@@ -1,0 +1,11 @@
+exit=1
+  39 suites, 3907 assertions, 1 failed
+
+  FAILURES
+   - [fast edit — one state, and everything it holds still] O: clearing it back to the default lets the session close
+      expected: "true"
+      actual:   "false"
+
+  886.6s
+
+[exited with code 0]
