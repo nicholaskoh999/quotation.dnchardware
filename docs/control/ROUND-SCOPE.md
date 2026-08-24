@@ -2,10 +2,17 @@
 
 ## ROUND
 
-**UI POLISH 2A — SAVE SUCCESS MICRO-INTERACTION**
+**UI POLISH 2A — SAVE SUCCESS MICRO-INTERACTION** *(amended before implementation)*
 
 Frontend interaction polish. No business rule, no formula, no schema, no
 generated customer data, no deploy.
+
+**Amended on review.** Nicholas / ChatGPT accepted the baseline proof, the
+save-path proof, the sequencing of this file and the declared in-flight guard,
+and **corrected the row-confirmation interpretation**: a rule-table row may not
+stand in for the primary Quotation Save experience. This amendment is written
+**before** the bytes it governs. §CONFLICT 1 and the EVIDENCE CONTRACT below are
+rewritten; nothing else in the round changes.
 
 | | |
 |---|---|
@@ -115,17 +122,27 @@ every item row. But `save_quotation` persists the entire quotation: **every item
 row is affected.** The two instructions cannot both be met literally on that
 path.
 
-**Resolution.** Row-level confirmation is applied where a row genuinely is the
-unit of the save:
+**Resolution, as corrected on review.** There are two distinct semantics, and
+each is proved on its own path. **Neither stands in for the other.**
 
-- **Default Price rule save, Diameter rule save** — each writes exactly ONE row
-  of a multi-row table. Row *N* is confirmed and rows *M* are not, which is the
-  strongest possible proof of "the correct row, not an arbitrary row". **This is
-  the frame-04 evidence.**
-- **Quotation save** — the confirmation lands on the quotation **total bar**
-  (`quoteTotalBar`), the one row-shaped element that represents the thing that
-  was persisted, and on nothing else. The item rows are left alone. Documented,
-  not hidden.
+| | persistence unit | ~500ms confirmation lands on |
+|---|---|---|
+| **Quotation save** — `doSaveQuotation` | the whole quotation | the **quotation-level region**: `reviewListPanel`, the container holding exactly the item rows that were persisted |
+| **Rule / template save** — `saveDPRule`, `saveDSRule`, `saveWATemplate` | one row | the **exact saved row**, addressed by identity, with its neighbours provably not confirmed |
+
+For the quotation save there is **no provable single-row persistence context**,
+so this round does **not fabricate one**. It does not pick an arbitrary item row,
+and it does not substitute the total bar for a row it does not have. The
+confirmation is applied to the quotation-level region, in the existing accent
+language, because that region is exactly co-extensive with what was written: the
+persisted items and nothing else.
+
+**An earlier draft of this file proposed the total bar for that role and offered
+the rule-table row as the frame-04 proof of "the correct row, not an arbitrary
+one". Both are withdrawn.** The rule-table row proves the ROW semantics on the
+row-specific paths and proves nothing at all about the quotation path, and this
+round must not claim otherwise. The item rows are still left alone on a
+quotation save — the region confirms, its children do not.
 
 ### 2 · §9's "edit item → save" is not a backend save
 
@@ -167,13 +184,14 @@ Nothing else may differ from `3e89713400b5bcfceca31d2c074de17411169d1b`.
 - **JS**: one shared helper the four save paths call **after** `res.ok`, plus an
   in-flight guard on each so a second click cannot issue a second POST
 - **markup**: a `data-*` hook on the Default Price and Diameter rule rows so the
-  affected row can be addressed by identity rather than by position
+  affected row can be addressed by identity rather than by position. The
+  quotation-level region needs no new markup — `reviewListPanel` already exists
 
 The value animated is a **real saved value**, never a fabricated one:
 
 | save | value confirmed | why it is legitimate |
 |---|---|---|
-| quotation | `quoteTotalAmt` (grand total) and `qi-refno` | both are in the saved payload; the ref number may be **reassigned by the server** at save time (line 9702), so it is the one value a user most needs to see move |
+| quotation | `quoteTotalAmt` (grand total) and `qi-refno` | both are in the saved payload; the ref number may be **reassigned by the server** at save time (line 9702), so it is the one value a user most needs to see move. This is the §5 VALUE feedback and is **not** the §7 region confirmation — they are separate signals on separate elements |
 | default price rule | the saved row's Cost Rate / Markup cells | written by this request |
 | diameter rule | the saved row's own cells | written by this request |
 | WhatsApp template | none — no numeric value is saved | a small pulse on the saved control instead, per §5's own instruction not to fabricate one |
@@ -219,14 +237,85 @@ Specifically, and not negotiable:
 
 ---
 
+## ON `tests/tools/check-control.js`
+
+That checker was written for the **STAGE 1 final acceptance** and its own header
+says it is pinned to it deliberately: an acceptance check that derived what to
+expect from the files it checks would agree with itself while being wrong.
+
+Pinned means pinned. With this round open it reports four expected
+disagreements — the working tree is dirty, the candidate block names a file, and
+ROUND-SCOPE no longer reads FINAL ACCEPTED / CLOSED — because a candidate round
+is exactly the state it was written to reject. **That is the checker working, not
+failing.**
+
+So while UI POLISH 2A is a candidate, the round's consistency gate is
+`tests/tools/check-reports.js`, which is round-agnostic and reads CANONICAL-STATE.
+`check-control.js` is re-pointed at the acceptance step, as its own deliberate
+edit, **if and when Nicholas accepts this round** — and not to make a check go
+green. Canonical facts are not touched to satisfy a checker.
+
+---
+
+## EVIDENCE CONTRACT
+
+Two semantics, proved separately, and **labelled** so neither can be read as
+evidence for the other. `PROJECT-GUARDRAILS.md` EVIDENCE RULE applies to every
+frame: the claim must be visible inside the frame, the figure must be asserted
+so the run fails if it moves, and no frame may carry a toast left over from the
+step that set it up.
+
+### A · PRIMARY — Quotation Save, the complete micro-interaction
+
+The five frames the brief names, on `doSaveQuotation`:
+
+```
+01  BEFORE SAVE
+02  SAVE ACTIVE — the submitting button compressed
+03  SUCCESS ✓
+04  TOAST VISIBLE  +  the ~500ms QUOTATION-LEVEL region confirmed
+05  FINAL NORMAL STATE — no ✓, no highlight, no stale class, button usable
+```
+
+Frame 04 must show the toast and the confirmed quotation-level region **in the
+same frame**, with the item rows inside it visibly not individually highlighted.
+Plus a recording of the whole interaction end to end.
+
+### B · SECONDARY — row-specific save, exact-row confirmation
+
+On `saveDPRule`, a genuine one-row backend write:
+
+```
+06  the exact saved row confirmed ~500ms, with neighbouring rows NOT confirmed
+```
+
+**This frame proves the ROW semantics on the row-specific path only.** It is not
+offered as, and must not be reported as, proof of the quotation path's
+behaviour. The round report states that in those words.
+
+### C · the gates, proved by their absence
+
+```
+07  FAILED SAVE — no ✓, no value pulse, no success toast, no confirmation
+                  anywhere, button restored, existing error feedback intact
+08  REDUCED MOTION — ✓, toast and confirmation all still legible with the
+                  preference actually emulated, not assumed
+```
+
+---
+
 ## STOP CONDITION
 
 - the submitting button compresses on press, recovers on success **and** on
   failure, and cannot issue a second POST while one is in flight
 - ✓, value pulse, toast and row confirmation appear **only** after `res.ok`,
   proven by a controlled failure that produces none of them
-- the confirmed row is the row that was saved, proven in a frame that also shows
-  neighbouring rows NOT confirmed
+- on the **quotation** save, the ~500ms confirmation lands on the
+  quotation-level region and on no individual item row, proven in a frame that
+  shows the region confirmed and its rows not
+- on a **row-specific** save, the confirmed row is the row that was saved, proven
+  in a frame that also shows neighbouring rows NOT confirmed — and reported as
+  evidence for that path only
 - highlight ≈500ms, no permanent class, no stale timer, no mutated selection
 - consecutive saves work, one toast each
 - reduced motion still communicates saving / success / affected row / toast,
