@@ -1,0 +1,186 @@
+QUOTATION.DNC — UI POLISH 2A · DIFF / SCOPE PROOF
+============================================================================
+
+BASELINE SHA:   3e89713400b5bcfceca31d2c074de17411169d1b
+                "The quotation printed like a dump of the items array"
+                the ACCEPTED application. Unchanged by this round.
+
+CANDIDATE SHA:  cf92f27feb629134a61801dc120eba79c54fb5f6
+                "A save that says what it saved, and only once it has"
+                DERIVED, not asserted:
+                  git log -1 --format=%H 3e89713400b5bcfceca31d2c074de17411169d1b..HEAD -- index.php
+                index.php is the single entry in ROUND-SCOPE's
+                ```candidate-files``` block, so the candidate is the last
+                commit touching what the round declared it may touch.
+
+----------------------------------------------------------------------------
+FILES CHANGED  (git diff --name-only 3e89713400b5bcfceca31d2c074de17411169d1b..HEAD)
+----------------------------------------------------------------------------
+
+  APPLICATION or TEST:  FULL-AUDIT/BUSINESS-DECISIONS-NEEDED.md
+  APPLICATION or TEST:  FULL-AUDIT/COMMIT-INFO.txt
+  APPLICATION or TEST:  FULL-AUDIT/EXECUTIVE-SUMMARY.md
+  APPLICATION or TEST:  FULL-AUDIT/FINDINGS.md
+  APPLICATION or TEST:  FULL-AUDIT/FULL-AUDIT-REPORT.md
+  APPLICATION or TEST:  FULL-AUDIT/STAGE-1-CONSISTENCY.txt
+  APPLICATION or TEST:  FULL-AUDIT/STAGE-1.md
+  APPLICATION or TEST:  FULL-AUDIT/TEST-RESULTS.md
+  APPLICATION or TEST:  FULL-AUDIT/TRANSLATION-AUDIT.md
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/browser-suite.json
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/browser-suite.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/diameter-suite.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/edit-mode-suite.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/language-suite.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/quantity-suite.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/rendered-i18n-suite.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/responsive-matrix.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/roles-suite.log
+  APPLICATION or TEST:  FULL-AUDIT/regression-evidence/row-meta-suite.log
+  APPLICATION or TEST:  docs/control/CANONICAL-STATE.json
+  APPLICATION or TEST:  docs/control/CANONICAL-STATE.md
+  APPLICATION or TEST:  docs/control/PROJECT-GUARDRAILS.md
+  APPLICATION or TEST:  index.php
+  APPLICATION or TEST:  tests/lib/harness.js
+  APPLICATION or TEST:  tests/suites/39-save-feedback.test.js
+  APPLICATION or TEST:  tests/tools/authoritative.js
+  APPLICATION or TEST:  tests/tools/build-stage-1-accepted-zip.js
+  APPLICATION or TEST:  tests/tools/build-stage-1-zip.js
+  APPLICATION or TEST:  tests/tools/build-ui-polish-2a-zip.js
+  APPLICATION or TEST:  tests/tools/check-control.js
+  APPLICATION or TEST:  tests/ui-polish-2a-shots.js
+
+  Everything else in the range is this round's own scope, reports,
+  evidence and packaging:
+    FULL-AUDIT/UI-POLISH-2A-TEST-RESULTS.md
+    FULL-AUDIT/UI-POLISH-2A.md
+    FULL-AUDIT/ui-polish-2a/evidence/00-quotation-save-interaction.webm
+    FULL-AUDIT/ui-polish-2a/evidence/01-before-save.png
+    FULL-AUDIT/ui-polish-2a/evidence/02-save-active-compressed.png
+    FULL-AUDIT/ui-polish-2a/evidence/02a-button-at-rest.png
+    FULL-AUDIT/ui-polish-2a/evidence/02b-button-compressed.png
+    FULL-AUDIT/ui-polish-2a/evidence/03-success-check.png
+    FULL-AUDIT/ui-polish-2a/evidence/04-toast-and-quotation-confirmation.png
+    FULL-AUDIT/ui-polish-2a/evidence/04b-quotation-confirmation-region.png
+    FULL-AUDIT/ui-polish-2a/evidence/05-final-normal-state.png
+    FULL-AUDIT/ui-polish-2a/evidence/06-exact-row-confirmed.png
+    FULL-AUDIT/ui-polish-2a/evidence/06a-rule-rows-before.png
+    FULL-AUDIT/ui-polish-2a/evidence/07-failed-save-no-success-visuals.png
+    FULL-AUDIT/ui-polish-2a/evidence/08-reduced-motion-confirmation.png
+    FULL-AUDIT/ui-polish-2a/evidence/08a-reduced-motion-check.png
+    FULL-AUDIT/ui-polish-2a/evidence/FACTS.json
+    FULL-AUDIT/ui-polish-2a/evidence/INDEX.txt
+    FULL-AUDIT/ui-polish-2a/evidence/strip-000ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-090ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-180ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-280ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-380ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-500ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-620ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-760ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/strip-900ms.png
+    FULL-AUDIT/ui-polish-2a/evidence/video/e8092d338e76ebfdc2795ac88a162e74.webm
+    FULL-AUDIT/ui-polish-2a/logs/browser-suite.json
+    docs/control/ROUND-SCOPE.md
+
+----------------------------------------------------------------------------
+WHY EACH FILE CHANGED
+----------------------------------------------------------------------------
+
+  index.php                        THE application change, and the only one.
+                                   · CSS: the in-flight compress, the check, the
+                                     value pulse, and the ~500ms confirmation —
+                                     all inside the existing --mo / --mo-ease
+                                     vocabulary and all neutralised by the
+                                     existing prefers-reduced-motion block
+                                   · JS: one shared helper the four save paths
+                                     call AFTER res.ok, plus the in-flight guard
+                                   · markup: ids on the three rule/template Save
+                                     buttons, and a data-rule-id on the rule rows
+                                     so the saved row is addressed by identity
+                                     rather than by position
+
+  tests/suites/39-save-feedback     NEW. 91 assertions. Proves the sequence, the
+    .test.js                        gates, both confirmation semantics, the
+                                    guard, reduced motion, and the payload.
+
+  tests/lib/harness.js              ONE optional parameter: openApp now accepts a
+                                    caller-supplied BrowserContext, because
+                                    browser.newPage() cannot be given
+                                    recordVideo. Everything else is identical, so
+                                    the recording is of the same page the suites
+                                    drive rather than of a second, similar one.
+                                    No test behaviour changes.
+
+  tests/ui-polish-2a-shots.js       NEW. The evidence script.
+
+  tests/tools/build-ui-polish-2a    NEW. The package builder.
+    -zip.js
+
+  docs/control/ROUND-SCOPE.md       Written before any application byte, and
+                                    amended before implementation when review
+                                    corrected the row-confirmation reading.
+
+  FULL-AUDIT/UI-POLISH-2A*          The round's reports.
+  FULL-AUDIT/ui-polish-2a/          The round's evidence and logs.
+
+----------------------------------------------------------------------------
+THE ANSWERS
+----------------------------------------------------------------------------
+
+  BUSINESS LOGIC CHANGED:          NO
+  DATABASE CHANGED:                NO
+  SAVE PAYLOAD CHANGED:            NO
+  QUOTATION NUMBER LOGIC CHANGED:  NO
+  DEPLOYED:                        NO
+
+  Not as promises. As diffs and assertions:
+
+  · api.php is byte-identical to the accepted commit:
+      git diff --stat 3e89713400b5bcfceca31d2c074de17411169d1b..HEAD -- api.php   ->  0 lines of output
+  · so are ai_extract.php, auth.php, login.php, logout.php,
+    pricing_history.php, companies.php:
+      ai_extract.php  ->  0 changed
+      auth.php  ->  0 changed
+      login.php  ->  0 changed
+      logout.php  ->  0 changed
+      pricing_history.php  ->  0 changed
+      companies.php  ->  0 changed
+  · the ONLY application file in the diff is index.php:
+      git diff --name-only 3e89713400b5bcfceca31d2c074de17411169d1b..HEAD -- '*.php'  ->  index.php 
+  · no existing test suite was modified:
+      git diff --name-only 3e89713400b5bcfceca31d2c074de17411169d1b..HEAD -- tests/suites  ->  tests/suites/39-save-feedback.test.js 
+      (the one entry is the NEW suite this round adds)
+  · the save payload is asserted key for key in
+    39-save-feedback.test.js §1, against the accepted ten-key shape:
+      company_id, ref_no, quote_date, valid_until, prepared_by, remarks,
+      customer_name, customer_phone, items, total_amount
+    (id is added only on an update — JSON.stringify drops it when undefined,
+     which is the accepted behaviour and is unchanged)
+
+----------------------------------------------------------------------------
+ANYTHING OUTSIDE UI POLISH 2A?
+----------------------------------------------------------------------------
+
+  The whole of index.php's diff was read hunk by hunk. Every REMOVED line
+  in the application diff is one of the four save functions or one of the
+  three Save buttons that gained an id:
+
+            <button class="btn btn-primary" onclick="saveDPRule()" data-i18n="saveRule">Save Rule</button>
+          <button class="btn btn-primary" onclick="saveWATemplate()"><span data-i18n="saveTemplate">Save Template</span></button>
+            <button class="btn btn-primary" onclick="saveDSRule()"><span data-i18n="saveRule">Save Rule</span></button>
+      const res=await api(action,rule,'POST');
+      if(!res.ok){showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
+      if(!ref){ showToast(dcT('tNoRefNo')); return; }
+      const res=await api(editingQuoteId?'update_quotation':'save_quotation',payload,'POST');
+      if(!res.ok){ showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError'))); return; }
+      closeModal('saveModal');
+      const res=await api(action,rule,'POST');
+      if(!res.ok){showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
+
+  Nothing else was removed, renamed, reformatted or 'cleaned up'.
+
+----------------------------------------------------------------------------
+STATUS:  CANDIDATE ONLY — WAITING FOR HUMAN REVIEW
+         Canonical is NOT updated. The accepted commit stays 3e89713400b5bcfceca31d2c074de17411169d1b.
+----------------------------------------------------------------------------
+END
