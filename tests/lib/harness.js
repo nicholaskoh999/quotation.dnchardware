@@ -59,7 +59,13 @@ async function launch() {
 /* One page, booted and idle, with the api table it was given. */
 async function openApp(browser, opts = {}) {
   const api  = Object.assign(defaultApi(), opts.api || {});
-  const page = await browser.newPage({ viewport: opts.viewport || { width: 1440, height: 1000 } });
+  /* `opts.context` lets a caller supply its own BrowserContext — the evidence
+     script uses one with recordVideo, which browser.newPage() cannot be given.
+     Everything below is identical either way, so the recording is made of the
+     same page the suites drive rather than of a second, similar one. */
+  const page = opts.context
+    ? await opts.context.newPage()
+    : await browser.newPage({ viewport: opts.viewport || { width: 1440, height: 1000 } });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e && e.message || e)));
   /* A person clicking OK. Without this every confirm() resolves false and a

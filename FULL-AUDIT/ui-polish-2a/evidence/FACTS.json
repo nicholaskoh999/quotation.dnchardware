@@ -1,0 +1,74 @@
+{
+  "itemRows": 3,
+  "total": "RM 400.30",
+  "restLayoutWidth": 296,
+  "compress": {
+    "layout": 296,
+    "painted": 288.3,
+    "ratio": 0.974
+  },
+  "postsForFourClicks": 1,
+  "frame03": {
+    "label": "✓",
+    "modalOpen": true,
+    "toast": "Quotation saved and locked"
+  },
+  "frame04": {
+    "region": true,
+    "itemRowsMarked": 0,
+    "itemRows": 3,
+    "toast": "Quotation saved and locked",
+    "refno": "DC-TEST-001",
+    "total": "RM 400.30"
+  },
+  "settled": {
+    "region": false,
+    "check": false,
+    "shadow": "none"
+  },
+  "video": "00-quotation-save-interaction.webm",
+  "videoBytes": 786432,
+  "strip": [
+    0,
+    90,
+    180,
+    280,
+    380,
+    500,
+    620,
+    760,
+    900
+  ],
+  "frame06": {
+    "confirmed": [
+      "202"
+    ],
+    "notConfirmed": [
+      "101",
+      "303"
+    ],
+    "requestId": "202",
+    "costRate": 7.1,
+    "rowsInsideFrame": [
+      "101",
+      "202",
+      "303"
+    ]
+  },
+  "frame07": {
+    "samples": 129,
+    "sawCompress": true,
+    "ok": 0,
+    "check": 0,
+    "region": 0,
+    "rows": 0,
+    "value": 0,
+    "error": "Save failed: DB is down"
+  },
+  "frame08": {
+    "compress": "none",
+    "checkAnimation": "none",
+    "shadow": "rgb(22, 163, 74) 0px 0px 0px 2px inset, rgba(22, 163, 74, 0.11) 0px 0px 0px 400px inset",
+    "toast": "Quotation saved and locked"
+  }
+}

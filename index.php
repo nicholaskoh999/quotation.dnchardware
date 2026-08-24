@@ -1702,6 +1702,100 @@ input,select,textarea{
   .modal-overlay > .modal,.modal-overlay.open > .modal{transform:none}
 }
 
+/* ── UI POLISH 2A · save success micro-interaction ─────────────────────────
+   Every state below except .sv-saving is entered ONLY after a save has been
+   confirmed by the server. .sv-saving is the in-flight state; the instant press
+   feedback is the existing .btn:active translateY(1px) above, which this
+   integrates with rather than competing against.
+
+   Coloured entirely from existing tokens — --green, --green-2, --green-light,
+   already the confirmation language of .qi-item.row-new and the finish pills —
+   so a future dark palette inherits the interaction instead of re-authoring it.
+
+   Two confirmation classes, deliberately different elements and deliberately
+   NOT interchangeable:
+     .sv-confirm-region  the quotation-level container, for a save that persists
+                         the WHOLE quotation and therefore has no single
+                         affected row to point at
+     .sv-confirm-row     one table row, for a save that genuinely writes one row */
+:root{
+  --sv-press:110ms; --sv-check:190ms; --sv-value:220ms; --sv-confirm:500ms;
+  /* The same green as --green-2 (#16a34a), written out as a wash and as its own
+     vanishing point: a custom property cannot be interpolated into rgba(), and
+     the confirmation needs to fade to nothing rather than to a colour. */
+  --sv-wash:rgba(22,163,74,.11); --sv-wash-row:rgba(22,163,74,.14);
+  --sv-wash-0:rgba(22,163,74,0);
+}
+
+/* In flight: a small compress, and the click cannot land twice. Scale only —
+   no margin, no size, nothing the surrounding layout can feel. */
+.btn.sv-saving{ transform:scale(.974); filter:saturate(.92); cursor:default; pointer-events:none }
+.btn.sv-saving,.btn.sv-ok{
+  transition:transform var(--sv-press) var(--mo-ease), filter var(--sv-press) var(--mo-ease);
+}
+.btn.sv-ok{ pointer-events:none; cursor:default }
+
+/* The check. Opacity and scale, no overshoot, no bounce. */
+.sv-check{ display:inline-block; font-weight:800; line-height:1; letter-spacing:0 }
+.sv-check{ animation:sv-check var(--sv-check) var(--mo-ease) both }
+@keyframes sv-check{ from{opacity:0; transform:scale(.85)} to{opacity:1; transform:none} }
+
+/* A real saved value, confirming itself. Never a fabricated one. */
+.sv-value{ animation:sv-value var(--sv-value) var(--mo-ease) both }
+@keyframes sv-value{ from{opacity:.65; transform:translateY(3px)} to{opacity:1; transform:none} }
+
+/* ~500ms, then gone. Carried entirely by INSET BOX-SHADOW — the wash and the
+   edge both — and deliberately not by `background`.
+
+   Two reasons, both learned the hard way here. The review panel already has two
+   background colours of its own (`.review-list-panel` and `.locked`), so
+   animating background means the confirmation has to know which one to end on,
+   and ends on the wrong one the moment the panel is locked — which is exactly
+   when a quotation has just been saved. And a table row's background may be
+   striping or a warning state that is not this round's to overwrite. An inset
+   shadow paints above the background and below the text, so contrast is kept,
+   nothing underneath is replaced, and it fades to nothing rather than to a
+   colour. */
+.sv-confirm-region{ animation:sv-region var(--sv-confirm) var(--mo-ease) both }
+@keyframes sv-region{
+  0%  { box-shadow:inset 0 0 0 2px var(--green-2), inset 0 0 0 400px var(--sv-wash) }
+  75% { box-shadow:inset 0 0 0 2px var(--green-2), inset 0 0 0 400px var(--sv-wash) }
+  100%{ box-shadow:inset 0 0 0 0 var(--sv-wash-0), inset 0 0 0 400px var(--sv-wash-0) }
+}
+/* One row, and only that row. On the cells, so the row's own borders, badges
+   and any warning state are left exactly as they were. */
+.sv-confirm-row > td{ animation:sv-row var(--sv-confirm) var(--mo-ease) both }
+@keyframes sv-row{
+  /* Held, then released — the same shape as sv-region. A wash that starts
+     fading from the first frame is already half gone by the time a reader's eye
+     arrives, which makes a 500ms confirmation read as a 200ms one. */
+  0%  { box-shadow:inset 0 0 0 400px var(--sv-wash-row) }
+  75% { box-shadow:inset 0 0 0 400px var(--sv-wash-row) }
+  100%{ box-shadow:inset 0 0 0 400px var(--sv-wash-0) }
+}
+
+@media (prefers-reduced-motion: reduce){
+  /* The global rule above collapses every animation to .001ms, which would make
+     a 500ms confirmation invisible rather than calm — and §11 requires saving,
+     success, the affected target and the toast to STILL be communicated. So the
+     movement goes and the status stays: the check and the value appear at once,
+     and both confirmations hold as a static tint for the same 500ms, removed by
+     the same class the animation would have been. */
+  .btn.sv-saving{ transform:none; filter:saturate(.92) }
+  .sv-check,.sv-value{ animation:none!important; opacity:1; transform:none }
+  /* Written against `.review-list-panel` as well, so the static confirmation
+     is not out-specified by `.review-list-panel.locked` — which is the state a
+     just-saved quotation is always in. */
+  .sv-confirm-region,.review-list-panel.sv-confirm-region{
+    animation:none!important;
+    box-shadow:inset 0 0 0 2px var(--green-2), inset 0 0 0 400px var(--sv-wash);
+  }
+  .sv-confirm-row > td{
+    animation:none!important;
+    box-shadow:inset 0 0 0 400px var(--sv-wash-row);
+  }
+}
+
 /* Sidebar + its scrim. */
 .sidebar{transition:transform var(--mo-slow) var(--mo-ease)}
 .sidebar-backdrop{transition:opacity var(--mo) var(--mo-ease)}
@@ -4318,7 +4412,7 @@ input,select,textarea{
           <select id="dp-active"><option value="1" data-i18n="mActive">Active</option><option value="0" data-i18n="mDisabled">Disabled</option></select></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="saveDPRule()" data-i18n="saveRule">Save Rule</button>
+        <button class="btn btn-primary" id="dpSaveRuleBtn" onclick="saveDPRule()" data-i18n="saveRule">Save Rule</button>
         <button class="btn btn-ghost" onclick="resetDPForm()" data-i18n="mClear">Clear</button>
       </div>
     </div>
@@ -4379,7 +4473,7 @@ input,select,textarea{
 
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-wa" onclick="copyWATemplatePreview()"><span data-i18n="copyPreview">Copy Preview</span></button>
-      <button class="btn btn-primary" onclick="saveWATemplate()"><span data-i18n="saveTemplate">Save Template</span></button>
+      <button class="btn btn-primary" id="waSaveTemplateBtn" onclick="saveWATemplate()"><span data-i18n="saveTemplate">Save Template</span></button>
       <button class="btn btn-ghost" onclick="resetWATemplate()"><span data-i18n="resetDefault">Reset to Default</span></button>
       <button class="btn btn-ghost" style="margin-left:auto" onclick="closeModal('waTemplateModal')" data-i18n="close">Close</button>
     </div>
@@ -4448,7 +4542,7 @@ input,select,textarea{
           <input type="number" id="ds-diameter" step="0.01" placeholder="10.6" min="0"></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="saveDSRule()"><span data-i18n="saveRule">Save Rule</span></button>
+        <button class="btn btn-primary" id="dsSaveRuleBtn" onclick="saveDSRule()"><span data-i18n="saveRule">Save Rule</span></button>
         <button class="btn btn-ghost" onclick="resetDSForm()" data-i18n="mClear">Clear</button>
       </div>
     </div>
@@ -6843,13 +6937,18 @@ async function saveDSRule(){
     diameter
   };
   const action=rule.id?'update_diameter_setting':'save_diameter_setting';
-  const res=await api(action,rule,'POST');
-  if(!res.ok){showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
+  if(!dcSvBegin('dsRule', el('dsSaveRuleBtn'))) return;      /* one save at a time */
+  let res;
+  try{ res=await api(action,rule,'POST'); }
+  catch(e){ dcSvFail('dsRule'); showToast(dcT('tSaveFailed').replace('{e}',(e&&e.message)||dcT('tNetworkError'))); return; }
+  if(!res.ok){dcSvFail('dsRule');showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
+  dcSvOk('dsRule');
   await refreshDSRules();
   if(rule.type===currentType){ autoFillDiameter(currentType); recalcCurrent(); }
   showToast(dcT('tDiaSaved'));
   resetDSForm();
   renderDSList();
+  dcSvSettle('dsRule', { row: dcSvRuleRow('dsListBody', rule.id || res.id) });
 }
 function editDSRule(id){
   const rule=getDSDisplayRules().find(r=>String(r.id)===String(id));if(!rule)return;
@@ -6903,6 +7002,7 @@ function renderDSList(){
   empty.style.display=rules.length?'none':'block';
   rules.forEach(r=>{
     const tr=document.createElement('tr');
+    tr.dataset.ruleId=String(r.id);            /* UI POLISH 2A: identity, not position */
     const isSystem=r.source==='system';
     tr.innerHTML=`
       <td>${escHtml(DS_TYPE_LABELS[r.type]||r.type)}</td>
@@ -9069,6 +9169,136 @@ function showToast(msg){
 }
 function scrollToQuote(){ goToStep(3); }
 
+/* ── UI POLISH 2A · save success micro-interaction ─────────────────────────
+   One helper, four save paths, and one hard rule: EVERYTHING except the
+   in-flight state runs only after the server has said ok.
+
+   Why a helper and not four copies. The part that has to be right is the
+   failure path, and four hand-written copies of "did we remember to put the
+   button back" is four chances to forget one. Every path now calls dcSvBegin()
+   before its request and exactly one of dcSvFail() / dcSvOk() after it.
+
+   Why the visuals are split across dcSvOk() and dcSvSettle(). The check belongs
+   to the moment the answer arrives. The confirmation belongs to the moment its
+   target exists — a rule row is destroyed and rebuilt by renderDPList() after
+   the save, so a confirmation scheduled earlier would decorate a row that is
+   about to be thrown away, or find nothing at all. Each visual is anchored to
+   the moment its own target is real. */
+const DC_SV_MS = { hold:200, lag:240, value:220, confirm:500, restore:520 };
+/* key -> the button snapshot. Its presence IS the in-flight flag, which is what
+   refuses a second click: one save per key, whatever the pointer does. */
+const dcSvFlight = new Map();
+/* key -> timers, cancelled before the key is reused so a second save cannot
+   inherit the first one's timers and strip its own classes early */
+const dcSvTimers = new Map();
+/* node -> its own removal timer, for the same reason at element level */
+const dcSvNodeTimers = new WeakMap();
+
+function dcSvLater(key, ms, fn){
+  const t = dcSvTimers.get(key) || [];
+  t.push(setTimeout(fn, ms));
+  dcSvTimers.set(key, t);
+}
+function dcSvCancel(key){
+  (dcSvTimers.get(key) || []).forEach(clearTimeout);
+  dcSvTimers.delete(key);
+}
+/* Re-triggerable: remove, force a reflow, add. Without the reflow a second save
+   inside the same second re-adds a class the element already carries and the
+   animation simply never restarts. */
+function dcSvPulse(node, cls, ms){
+  if(!node) return;
+  const prev = dcSvNodeTimers.get(node);
+  if(prev) clearTimeout(prev);
+  node.classList.remove(cls);
+  void node.offsetWidth;
+  node.classList.add(cls);
+  dcSvNodeTimers.set(node, setTimeout(()=>{
+    try{ node.classList.remove(cls); dcSvNodeTimers.delete(node); }catch(e){}
+  }, ms||DC_SV_MS.confirm));
+}
+/* The in-flight state. Returns FALSE when a save on this key is already running,
+   which is the whole of the double-submission guard: the caller returns without
+   issuing a second request. */
+function dcSvBegin(key, btn){
+  if(dcSvFlight.has(key)) return false;
+  dcSvCancel(key);
+  const snap = { btn: btn||null, html:'', minWidth:'' };
+  if(btn){
+    snap.html = btn.innerHTML;
+    snap.minWidth = btn.style.minWidth;
+    /* The check is far narrower than "Save Quotation". Pinning the measured
+       width is what keeps the dialog still when the label swaps. */
+    const w = btn.getBoundingClientRect().width;
+    if(w) btn.style.minWidth = w.toFixed(2)+'px';
+    btn.classList.remove('sv-ok');
+    btn.classList.add('sv-saving');
+    btn.setAttribute('aria-busy','true');
+  }
+  dcSvFlight.set(key, snap);
+  return true;
+}
+/* Put the button back exactly as it was — and do NOT restore its disabled
+   state. Whether a Save button is enabled is the application's answer
+   (updateQuoteLockUI owns it), not this helper's; callers pass `settle` for
+   that and it runs after the label is back. */
+function dcSvRestore(key){
+  const snap = dcSvFlight.get(key);
+  if(!snap) return;
+  const btn = snap.btn;
+  if(btn){
+    btn.classList.remove('sv-saving','sv-ok');
+    btn.removeAttribute('aria-busy');
+    btn.innerHTML = snap.html;
+    btn.style.minWidth = snap.minWidth;
+  }
+  dcSvFlight.delete(key);
+}
+/* FAILURE. The button comes back and nothing else happens: no check, no value
+   pulse, no confirmation anywhere. The caller's own error toast is untouched —
+   this round does not go near existing error feedback. */
+function dcSvFail(key){
+  dcSvCancel(key);
+  dcSvRestore(key);
+}
+/* SUCCESS, part one: the check. Only ever called with res.ok already true. */
+function dcSvOk(key){
+  const snap = dcSvFlight.get(key);
+  const btn = snap && snap.btn;
+  if(!btn) return;
+  btn.classList.remove('sv-saving');
+  btn.classList.add('sv-ok');
+  btn.innerHTML = '<span class="sv-check" aria-hidden="true">\u2713</span>';
+}
+/* SUCCESS, part two: the page-level feedback, scheduled once its targets exist.
+     value  ids of elements holding a real value this save wrote
+     region id of the quotation-level container, for a whole-quotation save
+     row    an element, for a save that genuinely wrote one row
+     lag    ms before the page feedback starts, so a closing modal is out of the
+            way before the region underneath it confirms
+     settle the application's own state refresh, run after the button is back */
+function dcSvSettle(key, opts){
+  const o = opts || {};
+  const lag = Number.isFinite(o.lag) ? o.lag : 0;
+  dcSvLater(key, lag, ()=>{
+    (o.value||[]).forEach(id => dcSvPulse(el(id), 'sv-value', DC_SV_MS.value));
+    if(o.region) dcSvPulse(el(o.region), 'sv-confirm-region', DC_SV_MS.confirm);
+    if(o.row)    dcSvPulse(o.row,        'sv-confirm-row',    DC_SV_MS.confirm);
+  });
+  dcSvLater(key, lag + DC_SV_MS.restore, ()=>{
+    dcSvRestore(key);
+    if(typeof o.settle === 'function') o.settle();
+  });
+}
+/* The saved row, addressed by the identity the server confirmed rather than by
+   where it happens to sit after a re-sort or a filter change. */
+function dcSvRuleRow(tbodyId, id){
+  if(id===undefined || id===null || id==='') return null;
+  const body = el(tbodyId);
+  if(!body) return null;
+  return body.querySelector('tr[data-rule-id="'+String(id).replace(/["\\]/g,'')+'"]') || null;
+}
+
 /* ── Workflow stepper ── */
 function goToStep(n){
   const map={1:'step1Card',2:'step2Card',3:'step3Card',4:'step4Actions'};
@@ -9296,19 +9526,27 @@ function refreshWAPreview(){
     .replace(/{preparedBy}/g, qi.prepby||'Staff Name');
 }
 async function saveWATemplate(){
+  if(!dcSvBegin('waTemplate', el('waSaveTemplateBtn'))) return;   /* one save at a time */
   let res;
   try{
     res=await api('save_whatsapp_template',{template_body:el('waTemplateInput').value},'POST');
   }catch(e){
+    dcSvFail('waTemplate');
     showToast(dcT('tTemplateFailed').replace('{e}',e.message||dcT('tNetworkError')));
     return;
   }
   if(res.ok){
+    dcSvOk('waTemplate');
     await loadWATemplate();
     el('waTemplateInput').value=getWATemplate();
     refreshWAPreview();
     showToast(dcT('tTemplateSaved'));
+    /* No numeric value is saved here and §5 forbids inventing one, so the
+       confirmation is a pulse on the saved control itself — the template body
+       that was just written — and nothing else. */
+    dcSvSettle('waTemplate', { value:['waTemplateInput'] });
   } else {
+    dcSvFail('waTemplate');
     showToast(dcT('tTemplateFailed').replace('{e}',res.error||dcT('tApiError')));
   }
 }
@@ -9668,8 +9906,12 @@ async function doSaveQuotation(){
   const companyId=el('sv-company').value?parseInt(el('sv-company').value,10):null;
   selectedCompanyId=companyId;
   const updatingExisting=!!editingQuoteId;
+  /* UI POLISH 2A. The guard opens HERE, before the first await, so the whole
+     asynchronous region is covered: ensureRefNo() and the save itself. A second
+     click while any of it is in flight is refused and issues no request. */
+  if(!dcSvBegin('quotation', el('saveModalSubmitBtn'))) return;
   const ref=updatingExisting ? fv0('qi-refno') : (el('sv-refno').value.trim() || await ensureRefNo());
-  if(!ref){ showToast(dcT('tNoRefNo')); return; }
+  if(!ref){ dcSvFail('quotation'); showToast(dcT('tNoRefNo')); return; }
   el('qi-refno').value=ref;
   el('qi-date').value=el('sv-date').value;
   el('qi-prepby').value=el('sv-prepby').value.trim();
@@ -9688,8 +9930,20 @@ async function doSaveQuotation(){
     items: JSON.parse(JSON.stringify(quoteItems)),
     total_amount: quoteItems.reduce((s,i)=>s+i.totalAmount,0)
   };
-  const res=await api(editingQuoteId?'update_quotation':'save_quotation',payload,'POST');
-  if(!res.ok){ showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError'))); return; }
+  let res;
+  try{
+    res=await api(editingQuoteId?'update_quotation':'save_quotation',payload,'POST');
+  }catch(e){
+    /* A thrown request is a failed save. The button comes back, the existing
+       error feedback speaks, and no success visual runs. */
+    dcSvFail('quotation');
+    showToast(dcT('tSaveFailed').replace('{e}',(e&&e.message)||dcT('tNetworkError')));
+    return;
+  }
+  if(!res.ok){ dcSvFail('quotation'); showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError'))); return; }
+  /* CONFIRMED. Nothing above this line has shown a success state, and nothing
+     below it runs on the failure path. */
+  dcSvOk('quotation');
   clearUnsavedDraft();
   editingQuoteId=editingQuoteId || res.id || (res.data&&res.data.id) || null;
   /* Phase 1 fix: the quotation number is allocated by the server at save time.
@@ -9702,7 +9956,10 @@ async function doSaveQuotation(){
     el('qi-refno').value=res.ref_no;
     syncQI();
   }
-  closeModal('saveModal');
+  /* The dialog holds just long enough for the check to be seen, then closes.
+     Everything after this line runs immediately as it always did — only the
+     visual close is deferred, and closeModal only toggles a class. */
+  dcSvLater('quotation', DC_SV_MS.hold, ()=>closeModal('saveModal'));
   loadedSavedQuote=true;
   quoteLocked=true;
   editingItemIndex=null;
@@ -9716,6 +9973,18 @@ async function doSaveQuotation(){
     showToast(dcT(updatingExisting?'tQuoteUpdatedLocked':'tQuoteSavedLocked'));
   }
   refreshWorkflow();
+  /* save_quotation persists the WHOLE quotation, so there is no single affected
+     row and this round invents none. The ~500ms confirmation goes to
+     reviewListPanel — the container holding exactly the item rows that were
+     written — and the item rows inside it are left alone. The value pulse is a
+     separate signal on separate elements: the grand total, and the reference
+     number, which the server may have REASSIGNED at save time. */
+  dcSvSettle('quotation', {
+    value: ['quoteTotalAmt','qi-refno'],
+    region: 'reviewListPanel',
+    lag: DC_SV_MS.lag,
+    settle: updateQuoteLockUI
+  });
 }
 
 /* ── handoff load from Companies page ── */
@@ -10015,13 +10284,21 @@ async function saveDPRule(){
     active: el('dp-active').value
   };
   const action=rule.id?'update_default_price':'save_default_price';
-  const res=await api(action,rule,'POST');
-  if(!res.ok){showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
+  if(!dcSvBegin('dpRule', el('dpSaveRuleBtn'))) return;      /* one save at a time */
+  let res;
+  try{ res=await api(action,rule,'POST'); }
+  catch(e){ dcSvFail('dpRule'); showToast(dcT('tSaveFailed').replace('{e}',(e&&e.message)||dcT('tNetworkError'))); return; }
+  if(!res.ok){dcSvFail('dpRule');showToast(dcT('tSaveFailed').replace('{e}',res.error||dcT('tServerError')));return}
+  dcSvOk('dpRule');
   await refreshDPRules();
   showToast(dcT(rule.id ? 'tRuleUpdated' : 'tRuleSaved'));
   resetDPForm();
   renderDPList();
   applyDefaultPrice();
+  /* This save wrote exactly ONE row, so the confirmation goes to that row and
+     its neighbours are left alone. Scheduled here, after renderDPList has
+     rebuilt the table — the row confirmed is the row that now exists. */
+  dcSvSettle('dpRule', { row: dcSvRuleRow('dpListBody', rule.id || res.id) });
 }
 
 function editDPRule(id){
@@ -10088,6 +10365,9 @@ function renderDPList(){
   const pct=n=>(n||0)+'%';
   rules.forEach(r=>{
     const tr=document.createElement('tr');
+    /* UI POLISH 2A: the saved row is confirmed by IDENTITY, not by position —
+       a filter or a re-sort must not move the confirmation onto another rule. */
+    tr.dataset.ruleId=String(r.id);
     const isSystem=r.source==='system';
     tr.innerHTML=`
       <td>${escHtml(ITEM_TYPE_LABELS[r.type]||r.type)}</td>

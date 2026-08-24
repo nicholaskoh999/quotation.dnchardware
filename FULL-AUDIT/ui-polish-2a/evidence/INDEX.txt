@@ -1,0 +1,32 @@
+UI POLISH 2A — save success micro-interaction · evidence
+==============================================================
+
+Every frame asserted its own figures before it was written; the run fails
+if any of them moves. FACTS.json carries the measured values.
+
+A · PRIMARY — the quotation save (save_quotation, the WHOLE quotation)
+  00-quotation-save-interaction.webm  the complete interaction, recorded
+  strip-000ms … strip-900ms          the same interaction as timed frames
+  01-before-save
+  02a-button-at-rest / 02b-button-compressed   the same rectangle, before
+                                     and during: 296px of layout either way,
+                                     288.3px painted while in flight
+  02-save-active-compressed          response held open, not raced
+  03-success-check
+  04-toast-and-quotation-confirmation   THE frame: toast + the ~500ms
+                                        confirmation on reviewListPanel,
+                                        with 0 of 3 item rows singled out
+  04b-quotation-confirmation-region     the same moment, closer
+  05-final-normal-state
+
+B · SECONDARY — a row-specific save (save_default_price, ONE row)
+  06a-rule-rows-before
+  06-exact-row-confirmed             row 202 confirmed, 101 and 303 not
+  This proves the ROW semantics on the row-specific path. It proves
+  nothing about the quotation path above.
+
+C · the gates
+  07-failed-save-no-success-visuals  sampled every 12ms: 0 checks, 0
+                                     confirmations, 0 value pulses
+  08a-reduced-motion-check
+  08-reduced-motion-confirmation     movement gone, status kept
