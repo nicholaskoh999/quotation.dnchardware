@@ -27,7 +27,10 @@
     "shadow": "none"
   },
   "video": "00-quotation-save-interaction.webm",
-  "videoBytes": 786432,
+  "videoBytes": 1078396,
+  "videoDuration": 6.84,
+  "videoDecodedFrames": 171,
+  "videoDecoderWarnings": "none",
   "strip": [
     0,
     90,
@@ -56,7 +59,7 @@
     ]
   },
   "frame07": {
-    "samples": 129,
+    "samples": 133,
     "sawCompress": true,
     "ok": 0,
     "check": 0,

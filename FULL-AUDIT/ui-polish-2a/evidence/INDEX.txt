@@ -5,7 +5,11 @@ Every frame asserted its own figures before it was written; the run fails
 if any of them moves. FACTS.json carries the measured values.
 
 A · PRIMARY — the quotation save (save_quotation, the WHOLE quotation)
-  00-quotation-save-interaction.webm  the complete interaction, recorded
+  00-quotation-save-interaction.webm  the complete interaction, recorded.
+                                     Finalised before it was copied, and
+                                     decoded end to end before this run was
+                                     allowed to pass — duration and decoded
+                                     frame count are in FACTS.json.
   strip-000ms … strip-900ms          the same interaction as timed frames
   01-before-save
   02a-button-at-rest / 02b-button-compressed   the same rectangle, before

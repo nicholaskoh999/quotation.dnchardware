@@ -54,9 +54,10 @@ Full statement, as diffs rather than promises: `REPORTS/DIFF-PROOF.txt`.
 1. `EVIDENCE/04-toast-and-quotation-confirmation.png` — the frame the round
    turns on. Toast, the ~500ms confirmation on the quotation-level region, and
    **0 of 3 item rows singled out**, in one frame.
-2. `EVIDENCE/00-quotation-save-interaction.webm` — the whole interaction. If
-   you have no player, `strip-000ms` … `strip-900ms` is the same save as nine
-   timed frames.
+2. `EVIDENCE/00-quotation-save-interaction.webm` — the whole interaction,
+   **6.84s, decoder-verified** (real duration, demuxes to the end, 171 frames
+   decoded against 171 expected). If you have no player, `strip-000ms` …
+   `strip-900ms` is the same save as nine timed frames.
 3. `EVIDENCE/06-exact-row-confirmed.png` — the OTHER semantics. Rule 202
    confirmed, 101 and 303 clean. **This proves the row behaviour of the
    row-specific save. It is not evidence about the quotation save.**
@@ -64,6 +65,25 @@ Full statement, as diffs rather than promises: `REPORTS/DIFF-PROOF.txt`.
    zero confirmations, zero value pulses, button restored, existing error text.
 5. `EVIDENCE/02a-button-at-rest` vs `02b-button-compressed` — the same
    rectangle. 296px of layout either way; 288.3px painted while in flight.
+
+**Evidence fix applied since the first package:**
+
+The first package's recording was **truncated** — 786,432 bytes, no duration,
+114 frames before *"File ended prematurely"* — because the evidence script
+copied Playwright's temp file **before the BrowserContext was closed**, so it
+copied it before Playwright had finalised it. The fix is the documented
+lifecycle: handle → close page → close context → `saveAs()`.
+
+The script now **gates on a decoder**: real duration, clean demux to the end,
+and a decoded frame count matching the duration, with a missing decoder treated
+as a failure rather than a skip. That is the durable part — this round's own
+package verification had returned thirty-six green checks over a file that would
+not play, because a CRC proves the bytes survived the archive and nothing about
+whether they were complete going in.
+
+**Only `tests/ui-polish-2a-shots.js` changed**, plus the re-captured frames.
+`git diff cf92f27..HEAD -- '*.php'` and `-- tests/suites tests/lib` are both
+empty. The application candidate is unchanged.
 
 **Known issues:**
 

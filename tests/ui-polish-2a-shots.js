@@ -22,6 +22,13 @@
    rather than by racing it. A screenshot that happened to land on the right
    frame is not evidence that the frame exists.
 
+   The recording is FINALISED before it is copied, and then DECODED before the
+   run is allowed to pass. The first version of this script copied the file
+   while the BrowserContext was still open, which produced a 786,432-byte
+   Matroska with no Duration element that stopped 114 frames in — a file that
+   existed, had a plausible size, and passed every checksum in the package while
+   being unplayable. Existence is not integrity: the check below asks a decoder.
+
    Run:  node tests/ui-polish-2a-shots.js <outdir>                            */
 'use strict';
 const fs = require('fs');
@@ -29,10 +36,33 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const { launch, openApp, quickAddPaste } = require(path.join(ROOT, 'tests/lib/harness'));
 
+/* Playwright ships its own ffmpeg for exactly this format. Found rather than
+   assumed, and its ABSENCE is a failure: a recording nothing has decoded is not
+   evidence, so the run must not pass by skipping the check. */
+const { spawnSync } = require('child_process');
+function findFfmpeg() {
+  const roots = [process.env.PLAYWRIGHT_BROWSERS_PATH, '/opt/pw-browsers',
+                 path.join(process.env.HOME || '', '.cache/ms-playwright')].filter(Boolean);
+  for (const r of roots) {
+    let dirs = [];
+    try { dirs = fs.readdirSync(r).filter(d => d.startsWith('ffmpeg')); } catch (e) { continue; }
+    for (const d of dirs)
+      for (const n of ['ffmpeg-linux', 'ffmpeg'])
+        { const f = path.join(r, d, n); if (fs.existsSync(f)) return f; }
+  }
+  const which = spawnSync('which', ['ffmpeg'], { encoding: 'utf8' });
+  return which.status === 0 ? which.stdout.trim() : null;
+}
+
 const OUT = process.argv[2];
 if (!OUT) { console.error('usage: node tests/ui-polish-2a-shots.js <outdir>'); process.exit(1); }
 fs.mkdirSync(OUT, { recursive: true });
-const VIDEO = path.join(OUT, 'video');
+/* Playwright needs a directory to record into and names the file by hash. That
+   raw file is a working artifact, not evidence, so it is kept OUTSIDE OUT and
+   removed once saveAs has written the named copy — otherwise the same recording
+   ships twice, under two names, and a reviewer has to work out which is which. */
+const VIDEO = path.join(path.dirname(path.resolve(OUT)), '.pw-video-tmp');
+fs.rmSync(VIDEO, { recursive: true, force: true });
 fs.mkdirSync(VIDEO, { recursive: true });
 
 const DESK = { width: 1440, height: 1000 };
@@ -233,18 +263,60 @@ const OK_BODY = JSON.stringify({ ok: true, id: 41, ref_no: 'DC-TEST-001' });
     must(!/22,\s*163,\s*74/.test(rest.shadow), 'and the panel is back to its own edge: ' + rest.shadow);
     facts.settled = { region: rest.region, check: rest.check, shadow: rest.shadow };
     await shot(page, '05-final-normal-state');
+
+    /* ── finalise, THEN copy ────────────────────────────────────────────────
+       The handle is taken while the page is still open; the page and then the
+       CONTEXT are closed, which is what makes Playwright flush and finalise the
+       Matroska; and only then does saveAs() write it out — saveAs waits for
+       that finalisation, which is the whole reason to use it over copying the
+       temp file. Copying before the context closes yields a file with no
+       Duration element that stops partway through. */
+    const vid = page.video();
+    must(!!vid, 'the page was recording');
+    const to = path.join(OUT, '00-quotation-save-interaction.webm');
     await page.close();
-    const vid = await page.video();
-    if (vid) {
-      const from = await vid.path();
-      const to = path.join(OUT, '00-quotation-save-interaction.webm');
-      fs.copyFileSync(from, to);
-      facts.video = path.basename(to);
-      facts.videoBytes = fs.statSync(to).size;
-      console.log('  ✓ 00-quotation-save-interaction.webm (' + facts.videoBytes + ' bytes)');
-      log.push('00-quotation-save-interaction.webm');
-    }
     await ctx.close();
+    await vid.saveAs(to);
+    facts.video = path.basename(to);
+    facts.videoBytes = fs.statSync(to).size;
+
+    /* ── and prove it decodes, before anything downstream trusts it ────────
+       A ZIP CRC proves the bytes survived the archive. It says nothing about
+       whether those bytes were a complete recording when they went in. */
+    const ff = findFfmpeg();
+    must(!!ff, 'a decoder is available to verify the recording: ' + ff);
+    const info = spawnSync(ff, ['-hide_banner', '-i', to], { encoding: 'utf8' }).stderr || '';
+    const dur = /Duration:\s*(\d\d:\d\d:\d\d\.\d+)/.exec(info);
+    must(!!dur, 'the container reports a real duration, so it was finalised: '
+                + (dur ? dur[1] : info.match(/Duration:.*/) || 'none'));
+    const seconds = dur[1].split(':').reduce((a, v) => a * 60 + parseFloat(v), 0);
+    must(seconds > 2, 'and the duration is the interaction, not a fragment: ' + seconds.toFixed(2) + 's');
+    const tmp = path.join(OUT, '.decode-check');
+    fs.mkdirSync(tmp, { recursive: true });
+    /* Every frame, no filter graph. Playwright's ffmpeg is a stripped build —
+       it has no `fps` filter and only two muxers — so the check is written to
+       what that build can actually do rather than to what a full ffmpeg could.
+       Decoding all of them is also the stronger test: it reads the file to the
+       end, which is precisely where a truncated recording stops. */
+    const dec = spawnSync(ff, ['-hide_banner', '-v', 'warning', '-i', to,
+                               '-f', 'image2', '-y', path.join(tmp, 'f%05d.png')],
+                          { encoding: 'utf8' });
+    const decErr = (dec.stderr || '').trim();
+    const decoded = fs.readdirSync(tmp).length;
+    fs.rmSync(tmp, { recursive: true, force: true });
+    must(!/ended prematurely|Invalid data|corrupt|truncat/i.test(decErr),
+      'and the whole file demuxes with no premature end: ' + (decErr ? decErr.split('\n')[0] : 'no warnings'));
+    const fps = Number((/(\d+(?:\.\d+)?) fps/.exec(info) || [0, 25])[1]) || 25;
+    const expected = Math.floor(seconds * fps);
+    must(decoded >= expected * 0.9,
+      'decoding it end to end yields the frames its duration promises: '
+        + decoded + ' frames, against ' + expected + ' for ' + seconds.toFixed(2) + 's at ' + fps + 'fps');
+    facts.videoDuration = +seconds.toFixed(2);
+    facts.videoDecodedFrames = decoded;
+    facts.videoDecoderWarnings = decErr || 'none';
+    console.log('  ✓ 00-quotation-save-interaction.webm (' + facts.videoBytes + ' bytes, '
+                + seconds.toFixed(2) + 's, decoded clean)');
+    log.push('00-quotation-save-interaction.webm');
 
     // ── a timed strip of the same interaction, for a reviewer with no player ──
     {
@@ -449,6 +521,7 @@ const OK_BODY = JSON.stringify({ ok: true, id: 41, ref_no: 'DC-TEST-001' });
     await browser.close();
   }
 
+  fs.rmSync(VIDEO, { recursive: true, force: true });
   fs.writeFileSync(path.join(OUT, 'FACTS.json'), JSON.stringify(facts, null, 2) + '\n');
   fs.writeFileSync(path.join(OUT, 'INDEX.txt'),
     'UI POLISH 2A — save success micro-interaction · evidence\n' +
@@ -456,7 +529,11 @@ const OK_BODY = JSON.stringify({ ok: true, id: 41, ref_no: 'DC-TEST-001' });
     'Every frame asserted its own figures before it was written; the run fails\n' +
     'if any of them moves. FACTS.json carries the measured values.\n\n' +
     'A · PRIMARY — the quotation save (save_quotation, the WHOLE quotation)\n' +
-    '  00-quotation-save-interaction.webm  the complete interaction, recorded\n' +
+    '  00-quotation-save-interaction.webm  the complete interaction, recorded.\n' +
+    '                                     Finalised before it was copied, and\n' +
+    '                                     decoded end to end before this run was\n' +
+    '                                     allowed to pass — duration and decoded\n' +
+    '                                     frame count are in FACTS.json.\n' +
     '  strip-000ms … strip-900ms          the same interaction as timed frames\n' +
     '  01-before-save\n' +
     '  02a-button-at-rest / 02b-button-compressed   the same rectangle, before\n' +

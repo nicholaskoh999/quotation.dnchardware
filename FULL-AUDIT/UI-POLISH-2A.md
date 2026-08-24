@@ -204,11 +204,58 @@ delta **+1,453**. Translation 862 / 100%. PHP lint 7/7.
 unrelated scope enters a round.
 
 **Evidence:** Contract A / B / C, 23 files, plus a **recording of the actual
-interaction** and a nine-frame timed strip of the same save. Every frame asserts
+interaction** — 6.84s, decoder-verified — and a nine-frame timed strip of the
+same save. Every frame asserts
 its own figures before it is written and fails the run if they move. Frame 04 —
 the one the round turns on — carries the toast, the confirmed region and the
 unmarked item rows together, and the toast on it is asserted to be the **save's
 own message** rather than a leftover.
+
+---
+
+## 8a · One evidence defect, found on review and repaired
+
+The first package shipped a **truncated recording**. It was 786,432 bytes, it
+passed the archive's CRC and its SHA-256, and it was unplayable: the container
+carried no Duration element and a decoder stopped 114 frames in with *"File
+ended prematurely"*.
+
+The cause was a lifecycle mistake in `tests/ui-polish-2a-shots.js`, not in the
+application: the file was copied out of Playwright's temp directory **while the
+BrowserContext was still open**, so it was copied before Playwright had
+finalised it.
+
+```js
+await page.close();
+const from = await (await page.video()).path();
+fs.copyFileSync(from, to);      // ← copied here, still unfinalised
+await ctx.close();              // ← finalised here, too late
+```
+
+The repair is the documented order, and nothing else: take the handle while the
+page is open, close the page, close the **context** — which is what flushes and
+finalises the Matroska — and only then `saveAs()`, which waits for that
+finalisation rather than racing it.
+
+**The lesson is the part worth keeping.** A checksum proves the bytes survived
+the archive. It says nothing about whether those bytes were a complete recording
+when they went in, and this round's own package verification reported thirty-six
+green checks over a file that would not play. So the evidence script now **asks a
+decoder before the run is allowed to pass**: the container must report a real
+duration, the file must demux to the end with no premature-end warning, and
+decoding it must yield the frame count its duration promises. A missing decoder
+is a failure, not a skip — evidence nothing has decoded is not evidence.
+
+Verified independently of the script, on the packaged copy:
+
+```
+Duration: 00:00:06.84   bitrate: 1261 kb/s   vp8 1440x1000 25fps
+full decode -> 171 frames, 171 expected, no warnings
+```
+
+**No application byte, no CSS, no save timing and no test suite changed for
+this.** `git diff cf92f27..HEAD -- '*.php'` and
+`-- tests/suites tests/lib` are both empty; the candidate is still `cf92f27`.
 
 ---
 
