@@ -2,152 +2,126 @@
 
 ## ROUND
 
-**QUICK ADD STABILITY — FINAL ACCEPTED / CLOSED**
+**API — 1062 DUPLICATE RETRY HARDENING**
 
-Two rounds, accepted together: the Size Type display fix (`54f896a`) and the
-manual-diameter commit fix (`6bb5772`). Both are about a value being read from
-the wrong place — never about a value being wrong.
+One statement, one retry, one error number. No schema, no index, no ref_no
+format, no allocation algorithm, no UI, no pricing, no JSON shape.
 
 | | |
 |---|---|
-| Round status | **FINAL ACCEPTED / CLOSED** |
 | Accepted application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` |
-| Previous accepted commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` — superseded by this round |
-| Matrix | **unchanged** — 39 / 3,907 / 4,263 / +1,453, the same figures measured on `cf92f27` |
+| main | `9df52a7bb25b6fe4c6f4844fbbc887d106cf586c` |
+| This round | a **candidate**, not an accepted state |
 | Deploy | **NO** |
-
-Everything below is the round's investigation and contract **as it was written**,
-kept as the record of what was allowed and what had to be proved — including the
-first, wrong reading of the defect, which is why the first attempt missed. Only
-the status above is new.
 
 ---
 
-## THE DEFECT — CORRECTED AFTER REPRODUCTION
+## WHY THIS ROUND EXISTS
 
-**This section was rewritten once the bug was actually reproduced. The first
-reading of it was wrong, and the wrong reading is kept here because it is the
-reason the first fix did not work.**
+`UNIQUE(ref_no)` is now live in production — `quotations.ref_no varchar(100)`,
+index `uq_quotations_ref`, duplicate audit 0, null audit 0. That is the right
+protection and it changes what a collision *looks like*.
 
-### What was assumed, and why it was wrong
-
-The Add path reports `"L Bolt M14 — Enter Diameter"`. `wqaAddAll` builds a
-`stuck` reason as `nameOf(r) + ' — ' + …` in **two** places, and the first
-reading assumed the message came from the `wqaRowMissing` branch — which would
-have meant `r.noDia` was true.
-
-Reproduced, on the candidate tree, the row's state at the moment Add is pressed
-is **completely clean**:
+Before the index, two racing saves could both insert and the duplicate survived
+silently. Now the second one is refused by the database with **MySQL error
+1062**, and `execute_or_fail()` turns any failure into
 
 ```
-diaMm:"16"  diaManual:true  noDia:false  missing:[]  blocked:false
-weight:0.6724  form:"16"  screenDia:"16 Manual"
-ADD -> items:0   toast:"1 to fix — L Bolt M14 — Enter Diameter"
+Quotation save failed: Duplicate entry 'Q-2026-0431' for key 'uq_quotations_ref'
 ```
 
-`wqaRowMissing` returns `[]`. The message is the OTHER branch: `said[0]`, the
-toast captured from `addCurrentItem()`.
+which is a correct refusal and a poor answer: the number is allocated by the
+server, the person did not choose it, and the machine already knows what the
+next free one is. A collision here is recoverable **by the application**, and
+only this one is.
 
-### The actual cause
+**The lock is not redundant and is not being touched.** `GET_LOCK` prevents the
+race between two PHP requests; 1062 catches what the lock cannot see — a second
+application, an import, a manual insert, or a request that died between
+allocating and inserting. This round handles the leftover, it does not replace
+the guard.
 
-`wqaAddAll` does not commit from the row. It commits through the shared form:
+---
 
-```js
-switchType(wqaRowProduct(r));
-wqaApplyRowToForm(r);
-try{ addCurrentItem(); }              // the real add path: validates the FORM
-…
-else stuck.push({r, why:`${nameOf(r)} — `+(said[0]||dcT('wqaAddRefused'))});
-```
+## WHAT THE SOURCE SAYS
 
-**`wqaApplyRowToForm` never writes the diameter.** The word does not appear in
-it. It writes material, size type, size, dimensions, thread length, quantity and
-the price overrides — and then `onMaterialSizeChange(t,true)` auto-fills the
-diameter *from the table*, which for M14 at that size type is empty.
+Established read-only, on `6bb5772`:
 
-So a manual diameter lives in `r.diaMm` and is written into the form in exactly
-one place — inside `wqaRecomputeAll`, which is not the Add path. Display reads
-the row and is right; `addCurrentItem` reads the form and refuses.
+- **exactly one statement writes `ref_no`** — the `INSERT` at api.php:587.
+  `update_quotation` deliberately excludes the column and says so in a comment
+- allocation is `next_free_ref_no($db)` under `GET_LOCK('dc_quotation_ref_alloc', 10)`
+- `execute_or_fail($stmt, $label)` calls `fail_json($label . ': ' . $stmt->error)`
+  on **any** failure and exits — it cannot distinguish 1062 from a dead
+  connection, and this round does not change it for anyone else
+- `grep` for `1062` / `Duplicate entry` / `errno` across api.php returns nothing:
+  there is no duplicate-key handling anywhere today
 
-That is precisely the mismatch reported: **display uses `r.diaMm`, the commit
-uses the shared form, and nothing carries the typed bar from one to the other.**
-
-### The second, latent half
-
-Measured on `54f896a`, undersize M24 with a manual 16:
-
-```
-STATE diaMm:"16" diaManual:true noDia:false calc:present
-FORM  diameter:""      ← the field noDia is sampled from is already empty
-```
-
-`r.noDia = !(fn(t,'diameter') > 0)` samples that same shared input, after
-`recalcCurrent()` may have re-resolved it. `noDia` was right only because the
-sample landed first. Nothing orders those events, and neither display field can
-self-correct afterwards — both re-syncs are guarded on `!r.diaManual`. This has
-not been observed to fire, and it is repaired in the same breath rather than
-left as a second way for the same two values to disagree.
+---
 
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+api.php
 ```
 
-**The block is empty, and empty means what it has always meant: nothing may
-differ from the accepted application commit** — now `6bb5772`. Any `*.php`
-difference from it is undeclared drift and fails by name until a new round
-declares it here first.
+Nothing else may differ from `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`.
 
-**Two sites, one rule: a diameter a person typed is the row’s own answer, and
-every consumer of the form must be given it.**
+**One new function, and one call site — the INSERT in `save_quotation` only.**
 
-1. **`wqaApplyRowToForm`** — THE FIX. After `onMaterialSizeChange(t,true)` has
-   auto-filled the diameter from the table, a row carrying a manual override
-   writes that override into the form. This is the function both the recompute
-   and the **Add path** go through, so the committed item is weighed on the bar
-   the person typed. Without it the Add path cannot see the override at all.
+```php
+function dc_save_quotation_insert($stmt, &$ref_no, callable $reallocate)
+```
 
-2. **`wqaRecomputeAll`** — the latent half. `r.noDia` is decided from the row
-   when a manual diameter is present, instead of from a shared input whose value
-   depends on what happened to it last; and the value is re-asserted if the form
-   has stopped holding it, so forcing the flag can never let a row reach
-   `wqaReadFormPricing` with an empty diameter and be priced on a weight of zero.
+- executes the prepared statement; returns true on success
+- on failure, reads `$stmt->errno`. **Anything other than 1062 returns false
+  immediately** and the caller fails exactly as it does today, with the same
+  message from the same `fail_json` — non-1062 errors are not caught, not
+  retried, and not reworded
+- on 1062 it calls `$reallocate()` — which at the call site is
+  `next_free_ref_no($db)`, **the existing allocation logic, unchanged** — and
+  executes **once** more. Maximum retry = 1, enforced by there being no loop
+- `$ref_no` is taken **by reference** because `mysqli::bind_param` binds by
+  reference: re-assigning it is the whole of the retry. No re-bind, no second
+  prepare, no rebuilt payload — the statement sends the new number and every
+  other column is byte-identical to the first attempt
+
+The allocator is passed in rather than called directly so the function has no
+hidden dependency on `$db` and can be driven by a test without a database.
 
 **Tests**
 
-- a suite case asserting the invariant directly: `diaManual && diaMm > 0`
-  implies `noDia === false`, on a size with **no** table bar, where the old code
-  depended on sampling order
-- and asserting the form is left holding the manual bar, which is the
-  observable difference between the two versions
+- `tests/php/save_retry.test.php` — extracts the shipped function from api.php
+  by name and drives it against a fake statement, the way the browser harness
+  serves the real `index.php` rather than a copy: normal save, a 1062 that
+  succeeds on retry, a 1062 that fails again, a non-1062 error, retry count, and
+  that the reallocation is what the second attempt actually sends
 
 ---
 
 ## NOT ALLOWED TO CHANGE
 
-The parser · `DC_SIZE_TYPE_RULES` and size-type resolution · Diameter Settings
-rules and how they are read · the weight formula · pricing · the database ·
-translations (no key added, changed or removed) · `wqaEditDia`'s meaning of a
-manual override · `wqaClearManualDia`'s rule that changing size, size type,
-material or product drops the override · item numbering · the accepted UI POLISH
-2A save interaction.
+The database schema · the `UNIQUE` index · the `ref_no` format · `next_free_ref_no`
+and the allocation algorithm · `GET_LOCK` / `acquire_ref_lock` / `release_ref_lock` ·
+`ref_no_in_use` · the requested-ref branch that honours a still-free previewed
+number · `execute_or_fail` for every other caller · the quotation JSON structure ·
+`update_quotation` · the UI · pricing · parsing · translations.
 
-`r.diaMm` and `r.diaManual` keep their present meanings and are still written in
-exactly the places they are written now. This round decides `noDia` from them;
-it does not decide them.
+**No other SQL error is caught.** A prepare failure, a lost connection, a
+constraint that is not 1062 — all still reach `fail_json` unchanged. Widening
+this to a general retry is precisely the thing that turns a hard failure into a
+silent double-write, and it is out of scope in both directions.
 
 ---
 
 ## STOP CONDITION
 
-- L Bolt · 4140 QT · M14 · Ø16 manual · L300 · W150 · Qty 10 → **adds**, and
-  never shows *Enter Diameter*
-- weight stays **0.6724 kg/pc** — computed from the manual bar, not from 0
-- a row with a manual diameter on a size with no stocked bar has
-  `noDia === false` and a form still holding that bar
-- M12 Fullsize, M12 Undersize Ø10.6, a non-manual diameter from settings, and
-  clearing an override back to the table all behave exactly as they do today
-- the FULL browser regression re-run — application bytes change — every side
+- a normal save behaves exactly as it does today, one INSERT, one `ok:true`
+- a simulated 1062 re-allocates once and succeeds, and the response carries the
+  NEW number with `reassigned` true — which the UI already speaks (`tSavedAsTaken`)
+- a second 1062 fails, with the same error shape as today
+- a non-1062 failure is **not** retried and fails with the same message as today
+- exactly **one** retry, asserted by counting executions
+- the full browser regression re-run — application bytes change — every side
   suite, and the translation audit at **862 keys / 100%**
 - **zero failures, zero skips**
 
