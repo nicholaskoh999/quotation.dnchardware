@@ -34,8 +34,8 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = 'cf92f27feb629134a61801dc120eba79c54fb5f6';
-const PREV = '3e89713400b5bcfceca31d2c074de17411169d1b';
+const APP = '6bb5772475e06925f6c2ac8237099fcf0c61c3b7';
+const PREV = 'cf92f27feb629134a61801dc120eba79c54fb5f6';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
 
@@ -70,12 +70,12 @@ ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 5, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713',
+ck(S.length === 6, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[4].sha === PREV && S[4].supersededBy === APP, `3e89713 is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[5].sha === PREV && S[5].supersededBy === APP, `cf92f27 is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`3e89713400b5bcfceca31d2c074de17411169d1b` — superseded by `cf92f27`'),
+ck(MD.includes('`cf92f27feb629134a61801dc120eba79c54fb5f6` — superseded by `6bb5772`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
 ck(H.supersededAssertionTotals.includes(4172) && !H.supersededAssertionTotals.includes(4263),
@@ -89,9 +89,9 @@ ck(H.supersededSuiteCounts.includes(38) && !H.supersededSuiteCounts.includes(39)
 git('cat-file', '-t', APP);
 ck(git('cat-file','-t',APP) === 'commit', 'the accepted commit exists in this repository');
 let anc = true; try { git('merge-base','--is-ancestor',PREV,APP); } catch { anc = false; }
-ck(anc, '3e89713 is an ancestor of cf92f27');
+ck(anc, 'cf92f27 is an ancestor of 6bb5772');
 let ancHead = true; try { git('merge-base','--is-ancestor',APP,'HEAD'); } catch { ancHead = false; }
-ck(ancHead, 'cf92f27 is an ancestor of HEAD');
+ck(ancHead, '6bb5772 is an ancestor of HEAD');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php') === 'index.php\ncompanies.php'
    || git('diff','--name-only',PREV+'..'+APP,'--','*.php').split('\n').sort().join(',') === 'companies.php,index.php',
    'the promotion carries exactly index.php and companies.php');

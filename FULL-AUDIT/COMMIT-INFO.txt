@@ -6,8 +6,8 @@ BRANCH          claude/quotation-dnc-stage-0-w62kpt
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                cf92f27feb629134a61801dc120eba79c54fb5f6
-                "A save that says what it saved, and only once it has"
+                6bb5772475e06925f6c2ac8237099fcf0c61c3b7
+                "Quick Add commits the bar a person typed, not the one the table has"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -133,6 +133,17 @@ AUDIT COMMITS (oldest first — this list is the count)
   5053d52  The round is scoped before a byte of it is written
   d63891f  The row semantics corrected before the bytes that would have encoded it
   cf92f27  A save that says what it saved, and only once it has
+  b03b8a7  The proof written against the commit it describes
+  1538055  The generated facts, written after the commit they describe
+  b98ff88  The logs travel with the round, and the raw recording does not travel twice
+  92a0107  A recording that was copied before it was finished
+  c45fe17  docs(control): accept UI POLISH 2A canonical baseline
+  34bdbf3  docs(control): keep only the pointer moves in check-control, record the rest
+  5e2a540  db: prepare UNIQUE(ref_no), audited from source, not applied
+  ca0e18f  The round is scoped before the byte it changes
+  54f896a  Quick Add says which size type, not only whose idea it was
+  9317628  The round is scoped before the flag it repairs
+  6bb5772  Quick Add commits the bar a person typed, not the one the table has
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind

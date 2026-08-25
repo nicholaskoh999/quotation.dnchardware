@@ -19,54 +19,50 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` |
+| Accepted application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` |
 | Application status | **ACCEPTED** |
-| Accepted round | UI POLISH 2A — Save Success Micro-Interaction, **FINAL ACCEPTED** |
+| Accepted round | QUICK ADD STABILITY — Size Type display and manual-diameter commit, **FINAL ACCEPTED** |
 
-The accepted commit moved because UI POLISH 2A was accepted, and for no other
-reason. It is `cf92f27` because that is the last commit that changed an
+The accepted commit moved because two Quick Add defects were accepted, and for
+no other reason. It is `6bb5772` because that is the last commit that changed an
 application file — proven from the files, not from a branch tip:
 
 ```
-git merge-base --is-ancestor 3e89713 cf92f27  →  0   (3e89713 is an ancestor)
-git log -1 --format=%H 3e89713..HEAD -- index.php
-        →  cf92f27   (derived from the file ROUND-SCOPE declared, not asserted)
-git diff --name-only 3e89713..cf92f27 -- '*.php'
+git merge-base --is-ancestor cf92f27 6bb5772   →  0   (cf92f27 is an ancestor)
+git log -1 --format=%H cf92f27..HEAD -- index.php
+        →  6bb5772   (derived from the file ROUND-SCOPE declared, not asserted)
+git diff --name-only cf92f27..6bb5772 -- '*.php'
         →  index.php                (and nothing else)
-git diff --name-only cf92f27..HEAD -- '*.php'                →  (empty)
-git diff --name-only cf92f27..HEAD -- tests/suites tests/lib →  (empty)
+git diff --name-only 6bb5772..HEAD -- '*.php'                →  (empty)
+git diff --name-only 6bb5772..HEAD -- tests/suites tests/lib →  (empty)
 ```
 
-`api.php`, `ai_extract.php`, `companies.php`, `pricing_history.php`, `auth.php`,
-`login.php` and `logout.php` are byte-identical to the commit before it, and
-were re-verified file by file at the acceptance. Every commit after `cf92f27`
-carries reports, evidence, control files and packaging, and changes no
-application or test byte.
+**What the two fixes are.** Both are about a value being read from the wrong
+place, not about a value being wrong.
 
-**What it changed.** A save now answers. The button that submits — the one
-inside the dialog, not the one that opens it — compresses while the request is
-in flight, shows a check **only once the server has confirmed**, the real saved
-values confirm themselves, the existing toast speaks, and a ~500ms confirmation
-says what was written.
+The compact Quick Add row printed a defaulted size type's **source** where its
+value belongs — *"Size Type: company default"* — while the Bulk Edit selector
+and the expanded editor, reading `wqaRowSpec`, printed *Fullsize*. It now reads
+`wqaRowSpec` too and shows **`Size Type: Fullsize · company default`**: the value
+first, the source kept, because an unstated size type moves the diameter and
+with it the weight and the price by about 22% at M12.
 
-Two confirmation semantics, and they are not interchangeable: `save_quotation`
-writes the WHOLE quotation, so the confirmation goes to the container holding
-exactly the items that were written and **no item row is singled out**;
-`save_default_price` writes ONE row, so there the confirmation goes to that row
-and its neighbours stay clean.
+And a diameter a person typed lived in `r.diaMm` but never reached the shared
+form that `wqaAddAll` commits through — `wqaApplyRowToForm` did not write it —
+so a row showing **16 Manual** and 0.6724 kg/pc was refused by `addCurrentItem`
+with *"Enter Diameter"*, about a number on the screen in front of the reader. The
+override is now written into the form after the table's auto-fill, and `noDia`
+is decided from the row rather than sampled from that shared input.
 
-It also closed a defect nobody had reported: `doSaveQuotation` had **no
-in-flight guard**, so two clicks inside the request window issued two POSTs on a
-save that allocates a quotation number. Four clicks now issue one.
-
-**The save payload, pricing, numbering, `ref_no` allocation, the parser, the
-database and the accepted STAGE 1 UI are unchanged**, asserted in the suite
-rather than promised.
+**Nothing else moved.** The parser, `DC_SIZE_TYPE_RULES`, Diameter Settings, the
+weight formula, pricing, item numbering and the database are untouched, and no
+translation key was added, changed or removed.
 
 Acceptance was bookkeeping over a tree that did not move: no application or test
 byte changed between the reviewed candidate and this promotion, so the
-4,263-assertion matrix below stands exactly as measured on `cf92f27` and was not
-re-run to promote it.
+4,263-assertion matrix below stands exactly as measured on `6bb5772` — and it is
+the SAME matrix that was measured on `cf92f27`, because neither fix changes what
+any suite asserts.
 
 ---
 
@@ -190,6 +186,7 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Application commit | `33ae0da14a3bd3108e8b066d4796b1bcda2de428` — superseded by `98a31e3` when STAGE 0B was accepted |
 | Application commit | `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` — superseded by `3e89713` when STAGE 1 was accepted |
 | Application commit | `3e89713400b5bcfceca31d2c074de17411169d1b` — superseded by `cf92f27` when UI POLISH 2A was accepted |
+| Application commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` — superseded by `6bb5772` when QUICK ADD STABILITY was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

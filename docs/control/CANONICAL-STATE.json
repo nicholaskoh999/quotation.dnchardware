@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "cf92f27feb629134a61801dc120eba79c54fb5f6",
+    "acceptedCommit": "6bb5772475e06925f6c2ac8237099fcf0c61c3b7",
     "status": "accepted",
-    "acceptedRound": "UI POLISH 2A — Save Success Micro-Interaction (FINAL ACCEPTED)"
+    "acceptedRound": "QUICK ADD STABILITY — Size Type display and manual-diameter commit (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
@@ -115,6 +115,11 @@
         "sha": "3e89713400b5bcfceca31d2c074de17411169d1b",
         "supersededBy": "cf92f27feb629134a61801dc120eba79c54fb5f6",
         "reason": "UI POLISH 2A was accepted. A save now answers: the submitting button compresses while the request is in flight, shows a check only once the server has confirmed, the real saved values confirm themselves, and a ~500ms confirmation says what was written — plus an in-flight guard, so two clicks can no longer issue two POSTs. index.php is the only application file it changes, so 3e89713 is the previous accepted commit and must never be quoted as the current one. The assertion matrix moved with it: 3,907 browser across 39 suites and 4,263 in all, measured on cf92f27. No pricing, parsing, numbering or data-generation byte changed, and the save payload is unchanged."
+      },
+      {
+        "sha": "cf92f27feb629134a61801dc120eba79c54fb5f6",
+        "supersededBy": "6bb5772475e06925f6c2ac8237099fcf0c61c3b7",
+        "reason": "QUICK ADD STABILITY was accepted. Two display/state defects in index.php: the compact row printed a defaulted size type’s SOURCE where its value belongs, and a manually typed diameter never reached the shared form the Add path commits through, so a row showing \"16 Manual\" and its weight was refused with \"Enter Diameter\". Both are presentation and state-routing only — the parser, the size-type rules, Diameter Settings, the weight formula, pricing and the database are untouched, and the assertion matrix did not move: 39 suites, 3,907 browser and 4,263 in all, measured on 6bb5772 exactly as on cf92f27."
       }
     ]
   }

@@ -2,18 +2,24 @@
 
 ## ROUND
 
-**QUICK ADD — MANUAL DIAMETER VALIDATION FIX**
+**QUICK ADD STABILITY — FINAL ACCEPTED / CLOSED**
 
-One derived flag, read from the wrong place. No parser, no size-type rules, no
-Diameter Settings rules, no weight formula, no pricing, no database, no
-translations.
+Two rounds, accepted together: the Size Type display fix (`54f896a`) and the
+manual-diameter commit fix (`6bb5772`). Both are about a value being read from
+the wrong place — never about a value being wrong.
 
 | | |
 |---|---|
-| Accepted application commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` |
-| Base for this round | `54f896a` — Quick Add Size Type Display Fix |
-| This round | a **candidate**, not an accepted state |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| Accepted application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` |
+| Previous accepted commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` — superseded by this round |
+| Matrix | **unchanged** — 39 / 3,907 / 4,263 / +1,453, the same figures measured on `cf92f27` |
 | Deploy | **NO** |
+
+Everything below is the round's investigation and contract **as it was written**,
+kept as the record of what was allowed and what had to be proved — including the
+first, wrong reading of the defect, which is why the first attempt missed. Only
+the status above is new.
 
 ---
 
@@ -85,10 +91,12 @@ left as a second way for the same two values to disagree.
 ## ALLOWED TO CHANGE
 
 ```candidate-files
-index.php
 ```
 
-Nothing else may differ from `cf92f27feb629134a61801dc120eba79c54fb5f6`.
+**The block is empty, and empty means what it has always meant: nothing may
+differ from the accepted application commit** — now `6bb5772`. Any `*.php`
+difference from it is undeclared drift and fails by name until a new round
+declares it here first.
 
 **Two sites, one rule: a diameter a person typed is the row’s own answer, and
 every consumer of the form must be given it.**

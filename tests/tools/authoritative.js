@@ -15,15 +15,16 @@
 'use strict';
 
 module.exports = {
-  /* Moved five times. cf92f27 is the last commit that changes an application
-     file and carries UI POLISH 2A — the save success micro-interaction, and an
-     in-flight guard so two clicks can no longer issue two POSTs. index.php is
-     the only application file it touches; the save payload, the numbering and
-     the accessory-inclusive rule are untouched by it. 3e89713 carried STAGE 1,
+  /* Moved six times. 6bb5772 is the last commit that changes an application
+     file and carries QUICK ADD STABILITY — a defaulted size type now shows its
+     VALUE and not only its source, and a manually typed diameter now reaches
+     the shared form the Add path commits through. index.php is the only
+     application file it touches, and the matrix did not move with it. cf92f27
+     carried UI POLISH 2A, 3e89713 carried STAGE 1,
      98a31e3 STAGE 0B, 33ae0da UI POLISH 2, e3d659b UI POLISH 1, 7f5bc97 came
      before that; all five are recorded as superseded in CANONICAL-STATE and
      must not be quoted as current. */
-  APP_SHA:  'cf92f27feb629134a61801dc120eba79c54fb5f6',
+  APP_SHA:  '6bb5772475e06925f6c2ac8237099fcf0c61c3b7',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 39,
