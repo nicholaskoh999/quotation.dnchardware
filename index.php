@@ -4825,8 +4825,10 @@ const I18N={
     wqaToastManualAppliedSel:'Manual price RM{p} applied to {n} selected items',
     wqaProductKept:'Product changed on {n} item(s). Your corrections were kept — the message was not re-read.',
     phCheckFailed:'Could not check previous prices — this is not the same as there being none. Check the connection, or sign in again, and try once more.',
-    wqaStCompany:'Size Type: company default',
-    wqaStConfigured:'Size Type: from Diameter Settings',
+    /* The SOURCE phrase only. The value now goes in front of it, so keeping
+       the prefix here would print "Size Type:" twice. */
+    wqaStCompany:'company default',
+    wqaStConfigured:'from Diameter Settings',
     wqaToastAccNothing:'No accessories are set in this panel — nothing was applied. Use Clear All Accessories to remove them from the rows.',
     wqaToastLastPriceOff:'Last Price switched off on {n} row(s)',
     wqaToastAccCleared:'Accessories cleared on all items',
@@ -5344,8 +5346,8 @@ const I18N={
     wqaToastManualAppliedSel:'手动价格 RM{p} 已应用到 {n} 个已选择项目',
     wqaProductKept:'已更改 {n} 个项目的产品。您的修改已保留 —— 未重新解析原文。',
     phCheckFailed:'无法查询过往价格 —— 这不等于没有记录。请检查连线或重新登入后再试。',
-    wqaStCompany:'尺寸类型：公司默认',
-    wqaStConfigured:'尺寸类型：取自直径设置',
+    wqaStCompany:'公司默认',
+    wqaStConfigured:'取自直径设置',
     wqaToastAccNothing:'此面板未设置配件 —— 未套用任何内容。若要清除各行配件，请使用「清除全部配件」。',
     wqaToastLastPriceOff:'{n} 行的上次价格已关闭',
     wqaToastAccCleared:'已清除全部项目的配件',
@@ -12609,6 +12611,26 @@ function wqaShownPrice(r){
    what it IS disagrees with itself. Both stop the Add button; only the second
    needs a person rather than a value. */
 function wqaRowBlocked(r){ return wqaRowMissing(r).length>0 || !!r.productConflict; }
+/* ── The size type a row will be priced on ──────────────────────────────────
+   Read from wqaRowSpec — the SAME expression the Bulk Edit selector and the
+   expanded editor read — so the badge, the meta line and the two selectors
+   cannot answer differently about one row. They did: the badge named where the
+   answer came from while the selectors named the answer, which reads as a
+   disagreement even though the state underneath was right the whole time.
+
+   The source is still shown, because it still matters. A size type the customer
+   never stated moves the diameter, and with it the weight and the price, by
+   about 22% at M12; that it was OURS and not theirs is the thing a person needs
+   to be able to question. It simply no longer stands in place of the value. */
+function wqaSizeTypeWord(r){
+  const st=wqaRowSpec(r,'sizeType');
+  return st==='FULLSIZE'?'Fullsize':st==='UNDERSIZE'?'Undersize':'';
+}
+/* Empty when the document or a person gave the answer: there is no source to
+   name, and the value alone is the whole of it. */
+function wqaSizeTypeWhy(r){
+  return r.stDefaulted ? dcT(r.stWhy==='configured'?'wqaStConfigured':'wqaStCompany') : '';
+}
 /* Small pills, never alert blocks. */
 function wqaRowBadges(r){
   const out=[];
@@ -12617,7 +12639,10 @@ function wqaRowBadges(r){
      the diameter and therefore the weight and the price by about 22% at M12.
      It was recorded as ours (stDefaulted) and shown as if the document had
      said it — the select simply read "Undersize", with nothing to question. */
-  if(r.stDefaulted) out.push({t:dcT(r.stWhy==='configured'?'wqaStConfigured':'wqaStCompany'),k:'info'});
+  if(r.stDefaulted){
+    const stw=wqaSizeTypeWord(r);
+    out.push({t:dcT('sumSizeType')+(stw?' '+stw:'')+' · '+wqaSizeTypeWhy(r),k:'info'});
+  }
   if(r.noteApplied&&r.noteApplied.length)
     out.push({t:dcT('wqaNoteBadge')+' '+[...new Set(r.noteApplied)].join(' · '),k:'info'});
   /* Field names are looked up too, so "Needs Size Type" reads as a sentence in
@@ -16674,15 +16699,13 @@ function wqaMetaSizeTypeHtml(r){
   /* A product with no size type — a Plate has none — gets no line, not a
      dash: the row is not missing anything. */
   if(!dcProductHasSizeType(wqaRowProduct(r))) return '';
-  /* A defaulted size type keeps its full sentence — "Size Type: company
-     default" — because WHERE the answer came from is the information; the
-     value itself is already in the summary columns above. An answer the
-     document or a person gave shows as the value. */
-  if(r.stDefaulted)
-    return `<span class="wqa-meta-line">${escHtml(dcT(r.stWhy==='configured'?'wqaStConfigured':'wqaStCompany'))}</span>`;
-  const st=wqaRowSpec(r,'sizeType');
-  const v=st==='FULLSIZE'?'Fullsize':st==='UNDERSIZE'?'Undersize':'—';
-  return `<span class="wqa-meta-line">${escHtml(dcT('sumSizeType'))} <b>${escHtml(v)}</b></span>`;
+  /* The value, then where it came from when it came from us. ONE branch, so a
+     defaulted row and a stated one cannot be formatted by different rules and
+     drift apart the way they had. */
+  const v=wqaSizeTypeWord(r)||'—';
+  const why=wqaSizeTypeWhy(r);
+  return `<span class="wqa-meta-line">${escHtml(dcT('sumSizeType'))} <b>${escHtml(v)}</b>`
+       + (why?` · ${escHtml(why)}`:'') + `</span>`;
 }
 function wqaProvBtnHtml(r,i){
   const ref=String(r.usedHistoryRef||'').trim();
