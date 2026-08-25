@@ -6,8 +6,8 @@ BRANCH          claude/quotation-dnc-stage-0-w62kpt
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                6bb5772475e06925f6c2ac8237099fcf0c61c3b7
-                "Quick Add commits the bar a person typed, not the one the table has"
+                86cf2629a66434bf3bdffe2efc0acbe527c358ac
+                "A duplicate reference number is a retry, not a failed save"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -144,6 +144,9 @@ AUDIT COMMITS (oldest first — this list is the count)
   54f896a  Quick Add says which size type, not only whose idea it was
   9317628  The round is scoped before the flag it repairs
   6bb5772  Quick Add commits the bar a person typed, not the one the table has
+  9df52a7  docs(control): accept the Quick Add stability fixes as canonical
+  1251b3b  The round is scoped before the statement it wraps
+  86cf262  A duplicate reference number is a retry, not a failed save
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -306,13 +309,13 @@ TEST MATRIX AT FINAL SHA
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      4,263
+  TOTAL ASSERTIONS                      4,305
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      4,263 assertions
-  Delta:     +1,453 assertions
+  Final:      4,305 assertions
+  Delta:     +1,495 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
@@ -344,7 +347,7 @@ EVIDENCE
   screenshots/          96 frames + INDEX.txt
   before-fix/           6 frames from the baseline commit, same inputs
   after-fix/            56 frames, the matching after
-  regression-evidence/  16 files — every log the reports claim,
+  regression-evidence/  17 files — every log the reports claim,
                         checked against the directory rather than written
                         from memory
 <<<END:EVIDENCE>>>

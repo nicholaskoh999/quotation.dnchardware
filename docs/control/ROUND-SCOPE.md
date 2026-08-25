@@ -7,12 +7,15 @@
 One statement, one retry, one error number. No schema, no index, no ref_no
 format, no allocation algorithm, no UI, no pricing, no JSON shape.
 
+**FINAL ACCEPTED / CLOSED.**
+
 | | |
 |---|---|
-| Accepted application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` |
-| main | `9df52a7bb25b6fe4c6f4844fbbc887d106cf586c` |
-| This round | a **candidate**, not an accepted state |
-| Deploy | **NO** |
+| Accepted application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
+| Superseded application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | the accepted state is not a deployed state |
+| STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 
 ---
 
@@ -61,11 +64,11 @@ Established read-only, on `6bb5772`:
 ## ALLOWED TO CHANGE
 
 ```candidate-files
-api.php
-tests/php/save_retry.test.php
 ```
 
-Nothing else may differ from `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`.
+The block is **EMPTY**. This round is closed: `api.php` and
+`tests/php/save_retry.test.php` were reviewed and accepted into `86cf262`, so
+nothing may now differ from the accepted commit.
 
 **One new function, and one call site — the INSERT in `save_quotation` only.**
 
@@ -127,3 +130,26 @@ silent double-write, and it is out of scope in both directions.
 - **zero failures, zero skips**
 
 Then STOP. **No deploy.** Candidate only.
+
+---
+
+## OUTCOME — FINAL ACCEPTED / CLOSED
+
+Every stop condition above was met and the candidate was promoted.
+
+| | |
+|---|---:|
+| Accepted application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
+| Browser suites | 39 |
+| Browser assertions | 3,907 |
+| Failed | 0 |
+| Skipped | 0 |
+| Side suites | 172 · 107 · 62 · 15 · **42** |
+| Total assertions | **4,305** (+1,495 on the 2,810 baseline) |
+| Translation | 862 keys, 100% |
+
+`main` was fast-forwarded to the accepted commit — no merge commit, no rebase,
+no force push. **DEPLOY = NO.** **STAGE 2 = NOT STARTED.** The migration
+`migrations/2026-08-24-add-unique-ref-no.sql` is unchanged and remains
+**NOT APPLIED** by this round; the UNIQUE index it describes was already live in
+production before the round began, which is why the round existed.

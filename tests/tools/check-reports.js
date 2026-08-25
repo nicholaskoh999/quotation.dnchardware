@@ -50,10 +50,12 @@ const bad = (where, msg) => fail.push(`FAIL ${where} ${msg}`);
 {
   const t = C.tests, f = C.findings;
   const sum = t.browserAssertions + t.pricingHistoryAssertions
-            + t.aiExtractionAssertions + t.workbookAssertions + t.translationAssertions;
+            + t.aiExtractionAssertions + t.workbookAssertions + t.translationAssertions
+            + t.saveRetryAssertions;
   check(sum === t.finalAssertions,
     `canonical: ${fmt(t.browserAssertions)}+${t.pricingHistoryAssertions}+${t.aiExtractionAssertions}`
-    + `+${t.workbookAssertions}+${t.translationAssertions} = ${fmt(sum)} = finalAssertions`);
+    + `+${t.workbookAssertions}+${t.translationAssertions}+${t.saveRetryAssertions}`
+    + ` = ${fmt(sum)} = finalAssertions`);
   check(t.finalAssertions - t.baselineAssertions === t.deltaAssertions,
     `canonical: ${fmt(t.finalAssertions)} − ${fmt(t.baselineAssertions)} = ${fmt(t.deltaAssertions)} = delta`);
   check(f.p0 + f.p1 + f.p2 + f.p3 === f.total,

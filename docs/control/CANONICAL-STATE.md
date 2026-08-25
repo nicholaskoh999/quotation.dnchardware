@@ -19,50 +19,59 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` |
+| Accepted application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
 | Application status | **ACCEPTED** |
-| Accepted round | QUICK ADD STABILITY — Size Type display and manual-diameter commit, **FINAL ACCEPTED** |
+| Accepted round | API 1062 DUPLICATE RETRY HARDENING — one retry for a duplicate reference number, **FINAL ACCEPTED** |
 
-The accepted commit moved because two Quick Add defects were accepted, and for
-no other reason. It is `6bb5772` because that is the last commit that changed an
-application file — proven from the files, not from a branch tip:
+The accepted commit moved because one database error this application can answer
+is now answered, and for no other reason. It is `86cf262` because that is the
+last commit that changed an application file — proven from the files, not from a
+branch tip:
 
 ```
-git merge-base --is-ancestor cf92f27 6bb5772   →  0   (cf92f27 is an ancestor)
-git log -1 --format=%H cf92f27..HEAD -- index.php
-        →  6bb5772   (derived from the file ROUND-SCOPE declared, not asserted)
-git diff --name-only cf92f27..6bb5772 -- '*.php'
-        →  index.php                (and nothing else)
-git diff --name-only 6bb5772..HEAD -- '*.php'                →  (empty)
-git diff --name-only 6bb5772..HEAD -- tests/suites tests/lib →  (empty)
+git merge-base --is-ancestor 6bb5772 86cf262  →  0   (6bb5772 is an ancestor)
+git log -1 --format=%H 6bb5772..HEAD -- api.php tests/php/save_retry.test.php
+        →  86cf262   (derived from the files ROUND-SCOPE declared, not asserted)
+git diff --name-only 6bb5772..86cf262 -- '*.php'
+        →  api.php                  (and nothing else)
+git diff --name-only 86cf262..HEAD -- '*.php'                →  (empty)
+git diff --name-only 86cf262..HEAD -- tests/suites tests/lib →  (empty)
 ```
 
-**What the two fixes are.** Both are about a value being read from the wrong
-place, not about a value being wrong.
+**What the fix is.** A duplicate reference number is now a retry, not a failed
+save.
 
-The compact Quick Add row printed a defaulted size type's **source** where its
-value belongs — *"Size Type: company default"* — while the Bulk Edit selector
-and the expanded editor, reading `wqaRowSpec`, printed *Fullsize*. It now reads
-`wqaRowSpec` too and shows **`Size Type: Fullsize · company default`**: the value
-first, the source kept, because an unstated size type moves the diameter and
-with it the weight and the price by about 22% at M12.
+`save_quotation` allocates `ref_no` through `next_free_ref_no($db)` under
+`GET_LOCK('dc_quotation_ref_alloc', 10)`. That lock serialises two PHP requests
+against each other and nothing more: it cannot see a second application, an
+import, a manual insert, or a request that died between allocating a number and
+using it. `quotations.ref_no` carries a UNIQUE index, so such a collision is
+refused by the database with error **1062** rather than becoming a silent
+duplicate — and the INSERT went through `execute_or_fail()`, which cannot tell
+1062 from a dead connection and failed the whole save either way. The number was
+chosen by the server, the person never typed it, and the machine already knows
+what the next free one is; refusing the save was a poor answer to a question the
+application can answer itself.
 
-And a diameter a person typed lived in `r.diaMm` but never reached the shared
-form that `wqaAddAll` commits through — `wqaApplyRowToForm` did not write it —
-so a row showing **16 Manual** and 0.6724 kg/pc was refused by `addCurrentItem`
-with *"Enter Diameter"*, about a number on the screen in front of the reader. The
-override is now written into the form after the table's auto-fill, and `noDia`
-is decided from the row rather than sampled from that shared input.
+`dc_save_quotation_insert()` now wraps that one INSERT. On errno 1062 it
+re-allocates through the **existing** allocator and executes once more —
+`$ref_no` is taken by reference because `mysqli::bind_param` binds by reference,
+so re-assigning it *is* the retry, with every other column byte for byte the one
+the first attempt sent. On any other errno it returns false untouched, so the
+caller fails exactly as it did before. **Maximum retry is one**: a second
+collision means something other than a race, and a retry would only hide it.
 
-**Nothing else moved.** The parser, `DC_SIZE_TYPE_RULES`, Diameter Settings, the
-weight formula, pricing, item numbering and the database are untouched, and no
-translation key was added, changed or removed.
+**Nothing else moved.** The allocation algorithm, `GET_LOCK`, the `ref_no`
+format, the database schema, the UNIQUE index, the UI, pricing, the parser and
+the quotation JSON structure are untouched. `update_quotation` is **not**
+wrapped. No translation key was added, changed or removed. The migration
+`migrations/2026-08-24-add-unique-ref-no.sql` remains **NOT APPLIED** and
+unmodified.
 
-Acceptance was bookkeeping over a tree that did not move: no application or test
-byte changed between the reviewed candidate and this promotion, so the
-4,263-assertion matrix below stands exactly as measured on `6bb5772` — and it is
-the SAME matrix that was measured on `cf92f27`, because neither fix changes what
-any suite asserts.
+The browser matrix did not move — 39 suites and 3,907 assertions, measured on
+`86cf262` exactly as on `6bb5772`, because no suite asserts anything this change
+alters. The new PHP suite `tests/php/save_retry.test.php` adds a fifth side
+group of **42**, which is the whole of the +42 below.
 
 ---
 
@@ -71,8 +80,8 @@ any suite asserts.
 | | |
 |---|---:|
 | Baseline assertions | 2,810 |
-| Current final assertions | **4,263** |
-| Delta | **+1,453** |
+| Current final assertions | **4,305** |
+| Delta | **+1,495** |
 | Failed | 0 |
 | Skipped | 0 |
 | Browser suites | 39 |
@@ -86,6 +95,7 @@ Other accepted assertion groups:
 | AI Extraction / Parser | 107 |
 | Workbook | 62 |
 | Translation | 15 |
+| Save retry (api.php 1062) | 42 |
 
 **Arithmetic, which the checker performs itself rather than trusting:**
 
@@ -95,9 +105,10 @@ Other accepted assertion groups:
 +   107   AI extraction / parser
 +    62   workbook
 +    15   translation
-= 4,263   final
++    42   save retry
+= 4,305   final
 
-  4,263 - 2,810 = 1,453
+  4,305 - 2,810 = 1,495
 ```
 
 The browser matrix grew by 91 in UI POLISH 2A, in one new suite and no other:
@@ -187,6 +198,7 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Application commit | `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac` — superseded by `3e89713` when STAGE 1 was accepted |
 | Application commit | `3e89713400b5bcfceca31d2c074de17411169d1b` — superseded by `cf92f27` when UI POLISH 2A was accepted |
 | Application commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` — superseded by `6bb5772` when QUICK ADD STABILITY was accepted |
+| Application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` — superseded by `86cf262` when API 1062 DUPLICATE RETRY HARDENING was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

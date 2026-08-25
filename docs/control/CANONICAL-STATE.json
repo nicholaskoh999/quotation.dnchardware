@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "6bb5772475e06925f6c2ac8237099fcf0c61c3b7",
+    "acceptedCommit": "86cf2629a66434bf3bdffe2efc0acbe527c358ac",
     "status": "accepted",
-    "acceptedRound": "QUICK ADD STABILITY — Size Type display and manual-diameter commit (FINAL ACCEPTED)"
+    "acceptedRound": "API 1062 DUPLICATE RETRY HARDENING — one retry for a duplicate reference number (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4263,
-    "deltaAssertions": 1453,
+    "finalAssertions": 4305,
+    "deltaAssertions": 1495,
     "failed": 0,
     "skipped": 0,
     "browserSuites": 39,
@@ -16,7 +16,8 @@
     "pricingHistoryAssertions": 172,
     "aiExtractionAssertions": 107,
     "workbookAssertions": 62,
-    "translationAssertions": 15
+    "translationAssertions": 15,
+    "saveRetryAssertions": 42
   },
   "translation": {
     "keys": 862,
@@ -56,7 +57,8 @@
       3827,
       3958,
       4070,
-      4172
+      4172,
+      4263
     ],
     "supersededTranslationKeys": [
       512,
@@ -76,7 +78,8 @@
       1017,
       1148,
       1260,
-      1362
+      1362,
+      1453
     ],
     "supersededSuiteCounts": [
       34,
@@ -120,6 +123,11 @@
         "sha": "cf92f27feb629134a61801dc120eba79c54fb5f6",
         "supersededBy": "6bb5772475e06925f6c2ac8237099fcf0c61c3b7",
         "reason": "QUICK ADD STABILITY was accepted. Two display/state defects in index.php: the compact row printed a defaulted size type’s SOURCE where its value belongs, and a manually typed diameter never reached the shared form the Add path commits through, so a row showing \"16 Manual\" and its weight was refused with \"Enter Diameter\". Both are presentation and state-routing only — the parser, the size-type rules, Diameter Settings, the weight formula, pricing and the database are untouched, and the assertion matrix did not move: 39 suites, 3,907 browser and 4,263 in all, measured on 6bb5772 exactly as on cf92f27."
+      },
+      {
+        "sha": "6bb5772475e06925f6c2ac8237099fcf0c61c3b7",
+        "supersededBy": "86cf2629a66434bf3bdffe2efc0acbe527c358ac",
+        "reason": "API 1062 DUPLICATE RETRY HARDENING was accepted. save_quotation allocates ref_no under GET_LOCK, but the lock only serialises allocation inside one PHP process — it cannot see a second application, an import, a manual insert, or a request that died between allocating a number and using it, and execute_or_fail() could not tell MySQL 1062 from a dead connection, so a recoverable number collision destroyed the whole save. dc_save_quotation_insert() now wraps that one INSERT: on errno 1062 it re-allocates through the existing next_free_ref_no($db) and executes once more, and on any other errno it returns false untouched so the caller fails exactly as before. Maximum retry is one. api.php is the only application file it changes, and the allocation algorithm, GET_LOCK, the ref_no format, the schema, the UNIQUE index, the UI, pricing and the quotation JSON are all unchanged; update_quotation is not wrapped. The browser matrix did not move — 39 suites and 3,907 browser assertions, measured on 86cf262 exactly as on 6bb5772 — but tests/php/save_retry.test.php adds a fifth side suite of 42 assertions, so the total moved from 4,263 to 4,305 and the delta from +1,453 to +1,495. 6bb5772 is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   }

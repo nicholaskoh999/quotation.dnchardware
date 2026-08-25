@@ -15,21 +15,22 @@
 'use strict';
 
 module.exports = {
-  /* Moved six times. 6bb5772 is the last commit that changes an application
-     file and carries QUICK ADD STABILITY — a defaulted size type now shows its
-     VALUE and not only its source, and a manually typed diameter now reaches
-     the shared form the Add path commits through. index.php is the only
-     application file it touches, and the matrix did not move with it. cf92f27
-     carried UI POLISH 2A, 3e89713 carried STAGE 1,
+  /* Moved seven times. 86cf262 is the last commit that changes an application
+     file and carries API 1062 DUPLICATE RETRY HARDENING — a duplicate ref_no
+     is now re-allocated once and retried instead of failing the whole save,
+     and only errno 1062 is caught. api.php is the only application file it
+     touches. The BROWSER matrix did not move with it, but the new PHP suite
+     tests/php/save_retry.test.php adds 42, so TOTAL and DELTA did. 6bb5772
+     carried QUICK ADD STABILITY, cf92f27 UI POLISH 2A, 3e89713 STAGE 1,
      98a31e3 STAGE 0B, 33ae0da UI POLISH 2, e3d659b UI POLISH 1, 7f5bc97 came
-     before that; all five are recorded as superseded in CANONICAL-STATE and
+     before that; all seven are recorded as superseded in CANONICAL-STATE and
      must not be quoted as current. */
-  APP_SHA:  '6bb5772475e06925f6c2ac8237099fcf0c61c3b7',
+  APP_SHA:  '86cf2629a66434bf3bdffe2efc0acbe527c358ac',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 39,
   BROWSER: 3907,
-  TOTAL: 4263,
+  TOTAL: 4305,
   FAILED: 0,
   SKIPPED: 0,
 
@@ -39,9 +40,10 @@ module.exports = {
      per-round breakdowns are gone: they mixed absolutes with increments and
      stopped reconciling to anything. */
   BASELINE: 2810,
-  DELTA: 1453,
+  DELTA: 1495,
   SIDE: { 'pricing-history-php.log': 172, 'ai-extract-php.log': 107,
-          'pricing-workbook.log': 62, 'translation-coverage.log': 15 },
+          'pricing-workbook.log': 62, 'translation-coverage.log': 15,
+          'save-retry-php.log': 42 },
 
   KEYS: 862, COVERAGE: 100,
   P0: 0, P1: 13, P2: 24, P3: 2, FINDINGS: 39,

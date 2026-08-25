@@ -390,6 +390,38 @@ explicit approval.**
 
 ---
 
+## ACCEPTED — THE ONE DATABASE ERROR THE SAVE PATH ANSWERS
+
+`save_quotation` retries its INSERT **once**, and only on MySQL **1062**
+(duplicate key on `quotations.ref_no`). On 1062 it re-allocates through the
+existing `next_free_ref_no($db)` and executes again; on any other errno it
+returns false untouched so the caller fails exactly as it did before.
+
+Protected from here:
+
+- **Maximum retry is one.** A second 1062 is a failure, not another attempt. A
+  loop would hide a fault that is no longer a race.
+- **Only 1062.** A prepare failure, a lost connection, a foreign-key violation
+  or a truncation must never be retried — that is how a hard failure becomes a
+  silent double-write. Widening the errno test is a business-rule change and
+  needs explicit approval.
+- **`GET_LOCK` stays.** The lock is not made redundant by the retry and is not
+  a substitute for it: the lock serialises two PHP requests, 1062 catches what a
+  lock held in one process cannot see.
+- **The allocator is not redesigned.** `next_free_ref_no($db)` and the
+  `Q-YYYY-NNNN` format are unchanged; the retry calls the existing allocator
+  rather than inventing a number.
+- **`update_quotation` is not wrapped**, and must not be — it does not allocate
+  a reference number.
+- `$ref_no` is bound **by reference**. Anything that copies it before the retry
+  breaks the fix silently, because the second attempt would re-send the taken
+  number.
+
+`tests/php/save_retry.test.php` extracts the function from the shipped `api.php`
+and fails if any of the above stops being true.
+
+---
+
 ## CHANGE SAFETY PROCEDURE
 
 Before modifying any protected application area:
