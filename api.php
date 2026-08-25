@@ -256,6 +256,39 @@ function ref_no_in_use($db, $ref) {
     return intval($row['c'] ?? 0) > 0;
 }
 
+/* ── The one database error this application can answer ────────────────────
+   quotations.ref_no carries a UNIQUE index, so a collision is refused by the
+   database with error 1062 instead of becoming a silent duplicate. That is the
+   right protection, and it leaves one case worth handling: the number was
+   chosen by the SERVER, the person never typed it, and the machine already
+   knows what the next free one is. Refusing the save and asking a human to try
+   again is a poor answer to a question we can answer ourselves.
+
+   GET_LOCK above is not made redundant by this and is not touched. The lock
+   stops two PHP requests racing each other; 1062 catches what a lock held in
+   one process cannot see — a second application, an import, a manual insert, or
+   a request that died between allocating a number and using it.
+
+   ONE retry, and no loop, because a second collision means something other than
+   a race and a retry would only hide it. And ONLY 1062: a prepare failure, a
+   lost connection or any other constraint returns false untouched, so the
+   caller fails exactly as it did before this function existed. Widening this
+   into a general retry is how a hard failure turns into a silent double-write.
+
+   $ref_no is taken BY REFERENCE because mysqli::bind_param binds by reference —
+   re-assigning it here IS the retry. Nothing is re-bound, nothing is
+   re-prepared, and every other column the second attempt sends is byte for byte
+   the one the first attempt sent.
+
+   The allocator is passed in rather than reached for, so this has no hidden
+   dependency on $db and can be exercised without a database. */
+function dc_save_quotation_insert($stmt, &$ref_no, callable $reallocate) {
+    if ($stmt->execute()) return true;
+    if ((int)$stmt->errno !== 1062) return false;   // not ours: the caller fails as before
+    $ref_no = $reallocate();
+    return $stmt->execute();
+}
+
 function next_free_ref_no($db) {
     $year = date('Y');
     $res = query_or_fail($db, "SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(ref_no, '-', -1) AS UNSIGNED)), 0) AS m FROM quotations WHERE ref_no LIKE 'Q-{$year}-%'", 'Next reference lookup failed');
@@ -586,7 +619,13 @@ if ($action === 'get_next_ref') {
     }
     $stmt = prepare_or_fail($db, "INSERT INTO quotations (company_id,ref_no,quote_date,valid_until,prepared_by,remarks,customer_name,customer_phone,items,total_amount) VALUES (?,?,?,?,?,?,?,?,?,?)", 'Quotation save prepare failed');
     $stmt->bind_param('issssssssd', $company_id,$ref_no,$quote_date,$valid_until,$prep_by,$remarks,$cust_name,$cust_phone,$items,$total);
-    execute_or_fail($stmt, 'Quotation save failed');
+    /* One retry, for a duplicate ref_no and for nothing else. $ref_no is bound
+       by reference, so a re-allocation inside is what the second attempt sends;
+       the 'reassigned' flag below then reports the new number, which the screen
+       already knows how to say. */
+    if (!dc_save_quotation_insert($stmt, $ref_no, function () use ($db) { return next_free_ref_no($db); })) {
+        fail_json('Quotation save failed: ' . $stmt->error);
+    }
     $new_id = $db->insert_id;
     release_ref_lock($db);
     echo json_encode(['ok'=>true,'id'=>$new_id,'ref_no'=>$ref_no,'reassigned'=>($requested_ref !== '' && $ref_no !== $requested_ref)]);

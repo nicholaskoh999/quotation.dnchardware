@@ -62,6 +62,7 @@ Established read-only, on `6bb5772`:
 
 ```candidate-files
 api.php
+tests/php/save_retry.test.php
 ```
 
 Nothing else may differ from `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`.
