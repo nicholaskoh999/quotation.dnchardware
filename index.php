@@ -16315,6 +16315,25 @@ function wqaApplyRowToForm(r){
   if(fieldExists(t,'threadLen')) setFieldValue(t,'threadLen',wqaThreadValue(r));
   setFieldValue(t,'qty',r.qty||'');
   onMaterialSizeChange(t,true);
+  /* ── The bar a person typed, into the form the calculator actually reads ───
+     onMaterialSizeChange above has just auto-filled the diameter FROM THE
+     TABLE, which is right for a row that never questioned it and wrong for one
+     that did. A manual override lived only in r.diaMm and was written into the
+     form in exactly one other place — inside wqaRecomputeAll — and that is not
+     the path Add takes.
+
+     So the row displayed "16 Manual" and 0.6724 kg/pc, read straight off
+     r.diaMm, while wqaAddAll committed through switchType + this function +
+     addCurrentItem, which validated a form whose diameter box the table had
+     just emptied and refused with "Enter Diameter" — about a number that was
+     on the screen in front of the person reading it.
+
+     Written HERE, after the auto-fill and before anything reads the form, so
+     the recompute, the weight, the price and the committed item are all made of
+     the same bar. Applied only when the person actually chose one: an empty or
+     non-positive override is not a choice and leaves the table's answer alone. */
+  if(r.diaManual && parseFloat(String(r.diaMm||'').trim()) > 0)
+    setFieldValue(t,'diameter',String(r.diaMm).trim());
   /* Every row is priced through the ONE form for its product, so anything the
      previous row left in a box is this row's starting point. The cost rate and
      the additional cost are already re-derived or cleared by the material
@@ -16436,7 +16455,8 @@ async function wqaRecomputeAll(mode){
        written into the same box the calculator reads — so the weight below is
        made of the number on the screen and of no other number. Size identity
        is untouched: an M12 given a 10.7mm bar is still an M12. */
-    if(r.diaManual && String(r.diaMm||'').trim()!==''){
+    const manualDia = r.diaManual ? parseFloat(String(r.diaMm||'').trim()) : NaN;
+    if(manualDia > 0){
       setFieldValue(t,'diameter',r.diaMm);
       recalcCurrent();
     }
@@ -16445,8 +16465,34 @@ async function wqaRecomputeAll(mode){
        there is no undersize M24 — the form comes back with an empty diameter,
        the weight is zero, and the price would be the Additional Cost standing
        on its own. Read from the form so this is the SAME rule the calculator
-       used, custom Diameter Settings rules included. */
-    r.noDia = !(fn(t,'diameter') > 0);
+       used, custom Diameter Settings rules included.
+
+       EXCEPT when a person has typed the bar. #<type>-diameter is ONE input,
+       shared by every row of this product type, and recalcCurrent() above may
+       re-resolve it from the table a moment after the typed value was written
+       into it — for a size with no stocked bar it re-resolves to EMPTY. Asking
+       that field whether THIS row has a diameter was therefore asking the wrong
+       object, and the answer depended on which of those two events happened
+       last.
+
+       It could only fail one way, and it failed silently. r.diaMm is never
+       reset while diaManual is true (the line below), and wqaPatchRows will not
+       re-sync the cell while diaManual is true either — so the row went on
+       showing "16 Manual" and its weight while noDia said the diameter was
+       missing, and Add answered "Enter Diameter" about a number that was on the
+       screen in front of the person reading it.
+
+       So a typed diameter is answered from the ROW. And it is re-asserted into
+       the form when the form has stopped holding it, because deciding the flag
+       alone would let this row reach wqaReadFormPricing with an empty diameter
+       and be priced on a weight of zero — a quieter defect than the one being
+       fixed, and a worse one. */
+    if(manualDia > 0){
+      if(!(fn(t,'diameter') > 0)) setFieldValue(t,'diameter',String(manualDia));
+      r.noDia = false;
+    } else {
+      r.noDia = !(fn(t,'diameter') > 0);
+    }
     /* Read back, not written forward. Where the person has not overridden it,
        the row's diameter IS whatever the calculator resolved a moment ago —
        built-in table or a configured Diameter Settings rule, whichever won —

@@ -17,52 +17,70 @@ translations.
 
 ---
 
-## THE DEFECT, AND WHY IT IS A STATE-SOURCE DEFECT
+## THE DEFECT — CORRECTED AFTER REPRODUCTION
 
-A Quick Add row carries its own answer for the bar it is cut from:
-`r.diaMm = "16"`, `r.diaManual = true`. The compact cell reads exactly that and
-shows **DIA 16 MANUAL**. The weight is computed from it and reads 0.6724 kg/pc.
+**This section was rewritten once the bug was actually reproduced. The first
+reading of it was wrong, and the wrong reading is kept here because it is the
+reason the first fix did not work.**
 
-Validation reads something else. In `wqaRecomputeAll` (index.php ~16449):
+### What was assumed, and why it was wrong
+
+The Add path reports `"L Bolt M14 — Enter Diameter"`. `wqaAddAll` builds a
+`stuck` reason as `nameOf(r) + ' — ' + …` in **two** places, and the first
+reading assumed the message came from the `wqaRowMissing` branch — which would
+have meant `r.noDia` was true.
+
+Reproduced, on the candidate tree, the row's state at the moment Add is pressed
+is **completely clean**:
+
+```
+diaMm:"16"  diaManual:true  noDia:false  missing:[]  blocked:false
+weight:0.6724  form:"16"  screenDia:"16 Manual"
+ADD -> items:0   toast:"1 to fix — L Bolt M14 — Enter Diameter"
+```
+
+`wqaRowMissing` returns `[]`. The message is the OTHER branch: `said[0]`, the
+toast captured from `addCurrentItem()`.
+
+### The actual cause
+
+`wqaAddAll` does not commit from the row. It commits through the shared form:
 
 ```js
-if (r.diaManual && String(r.diaMm||'').trim()!==''){ setFieldValue(t,'diameter',r.diaMm); recalcCurrent(); }
-r.noDia = !(fn(t,'diameter') > 0);        // ← the SHARED form input, not the row
+switchType(wqaRowProduct(r));
+wqaApplyRowToForm(r);
+try{ addCurrentItem(); }              // the real add path: validates the FORM
+…
+else stuck.push({r, why:`${nameOf(r)} — `+(said[0]||dcT('wqaAddRefused'))});
 ```
 
-`fn(t,'diameter')` reads `#<type>-diameter` — one global input that every row of
-that product type writes to and reads from in turn, and that `recalcCurrent()`
-may re-resolve from the diameter table or from Diameter Settings **after** the
-manual value was written. For a size with no stocked bar it re-resolves to
-empty.
+**`wqaApplyRowToForm` never writes the diameter.** The word does not appear in
+it. It writes material, size type, size, dimensions, thread length, quantity and
+the price overrides — and then `onMaterialSizeChange(t,true)` auto-fills the
+diameter *from the table*, which for M14 at that size type is empty.
 
-**Measured, on `54f896a`**, undersize M24 with a manual 16:
+So a manual diameter lives in `r.diaMm` and is written into the form in exactly
+one place — inside `wqaRecomputeAll`, which is not the Add path. Display reads
+the row and is right; `addCurrentItem` reads the form and refuses.
+
+That is precisely the mismatch reported: **display uses `r.diaMm`, the commit
+uses the shared form, and nothing carries the typed bar from one to the other.**
+
+### The second, latent half
+
+Measured on `54f896a`, undersize M24 with a manual 16:
 
 ```
-STATE  diaMm:"16"  diaManual:true  noDia:false  calc:present
-SCREEN diaCell:"16 Manual"  weight:"1.2627 kg/pc"
-FORM   diameter:""     ← the field noDia is sampled from is already empty
+STATE diaMm:"16" diaManual:true noDia:false calc:present
+FORM  diameter:""      ← the field noDia is sampled from is already empty
 ```
 
-`noDia` was correct only because the sample landed before the field was cleared.
-Nothing orders those two events. When the sample lands after, `noDia` becomes
-`true` while `diaManual` stays `true` — and **neither display field can ever
-correct itself**, because both re-syncs are guarded on that same flag:
-
-```js
-// recompute:     if(!r.diaManual) r.diaMm = ...      ← the typed value is never reset
-// wqaPatchRows:  if(dIn && !r.diaManual && …)        ← the DIA cell is never re-synced
-```
-
-So the row shows **16 MANUAL** and a weight, while `wqaRowMissing(r)` returns
-`['Diameter']` and `wqaAddAll` reports **“L Bolt M14 — Enter Diameter”** — that
-message format proves `wqaRowMissing` returned Diameter and nothing else.
-
-**The three surfaces do not use different objects or stale copies.** They all
-read the same `wqa.rows[i]`. The disagreement is inside one object, between a
-field the row owns and a flag sampled from shared mutable DOM.
-
----
+`r.noDia = !(fn(t,'diameter') > 0)` samples that same shared input, after
+`recalcCurrent()` may have re-resolved it. `noDia` was right only because the
+sample landed first. Nothing orders those events, and neither display field can
+self-correct afterwards — both re-syncs are guarded on `!r.diaManual`. This has
+not been observed to fire, and it is repaired in the same breath rather than
+left as a second way for the same two values to disagree.
 
 ## ALLOWED TO CHANGE
 
@@ -72,17 +90,20 @@ index.php
 
 Nothing else may differ from `cf92f27feb629134a61801dc120eba79c54fb5f6`.
 
-**One block, in `wqaRecomputeAll`.** A diameter a person typed becomes
-authoritative for that row:
+**Two sites, one rule: a diameter a person typed is the row’s own answer, and
+every consumer of the form must be given it.**
 
-- when `r.diaManual` is true and `r.diaMm` parses to a positive number,
-  `r.noDia` is **false** — decided from the row, not from the form
-- and the manual value is **re-asserted into the form if the form no longer
-  holds it**, so the calculator below weighs the bar the person typed rather
-  than an empty field. Without that, forcing `noDia=false` alone would let a row
-  reach `wqaReadFormPricing` with no diameter and be priced at weight 0 — a
-  worse defect than the one being fixed
-- when there is no manual diameter, the existing resolution is untouched
+1. **`wqaApplyRowToForm`** — THE FIX. After `onMaterialSizeChange(t,true)` has
+   auto-filled the diameter from the table, a row carrying a manual override
+   writes that override into the form. This is the function both the recompute
+   and the **Add path** go through, so the committed item is weighed on the bar
+   the person typed. Without it the Add path cannot see the override at all.
+
+2. **`wqaRecomputeAll`** — the latent half. `r.noDia` is decided from the row
+   when a manual diameter is present, instead of from a shared input whose value
+   depends on what happened to it last; and the value is re-asserted if the form
+   has stopped holding it, so forcing the flag can never let a row reach
+   `wqaReadFormPricing` with an empty diameter and be priced on a weight of zero.
 
 **Tests**
 
