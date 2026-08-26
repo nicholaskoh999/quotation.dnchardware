@@ -18,7 +18,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if ($u === '' || $p === '') {
         $error = 'Please enter both username and password.';
         $errorCode = 'errLoginMissing';
-    } elseif (dc_login($u, $p)) {
+    } elseif (dc_login(dc_login_db(), $u, $p)) {
         header('Location: ' . $next, true, 302);
         exit;
     } else {
@@ -28,6 +28,34 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 }
 
 $justLoggedOut = isset($_GET['out']);
+
+/**
+ * The database handle, opened ONLY to check a password, and only on a POST.
+ *
+ * Loaded lazily inside this function rather than at the top of the file so a
+ * plain GET of the sign-in page — which is most of its traffic, including the
+ * redirect when someone is already signed in — still opens no connection.
+ *
+ * mysqli_report(MYSQLI_REPORT_OFF) runs BEFORE db.php is required, exactly as
+ * api.php does it. getDB() checks $conn->connect_error and dc_login() checks
+ * return values; under the PHP 8.1+ default those would throw first and both
+ * checks would be dead code, turning a database hiccup into an uncaught
+ * mysqli_sql_exception on the sign-in page.
+ *
+ * Returns null when the database cannot be reached, and dc_login() fails closed
+ * on null. Authentication never succeeds because a lookup could not be made.
+ */
+function dc_login_db() {
+    static $db = null;
+    if ($db !== null) return $db;
+    mysqli_report(MYSQLI_REPORT_OFF);
+    $path = __DIR__ . '/db.php';
+    if (!is_file($path)) return null;
+    require_once $path;
+    if (!function_exists('getDB')) return null;
+    $db = getDB();
+    return $db;
+}
 ?><!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -238,7 +266,7 @@ $justLoggedOut = isset($_GET['out']);
 
   <div class="card">
     <h1 data-i18n="signIn">Sign In</h1>
-    <p class="sub" data-i18n="signInSub">Enter the shared staff account to continue.</p>
+    <p class="sub" data-i18n="signInSub">Sign in with your own account to continue.</p>
 
     <?php if ($error !== ''): ?>
       <div class="msg err" role="alert"><span>⚠️</span><span data-i18n="<?= htmlspecialchars($errorCode, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></span></div>
@@ -277,7 +305,7 @@ const DC_LANG_KEY='dc_lang', DC_LANGS=['en','zh'];
 const I18N={
   en:{ langAria:'Language',
        brandSub:'Quotation System', signIn:'Sign In',
-       signInSub:'Enter the shared staff account to continue.',
+       signInSub:'Sign in with your own account to continue.',
        signedOut:'You have been signed out on this device.',
        lblUsername:'Username', lblPassword:'Password', showPassword:'Show password',
        stays7Days:'Stays signed in for about 7 days on this device.',
@@ -285,7 +313,7 @@ const I18N={
        errLoginBad:'Wrong username or password.' },
   zh:{ langAria:'语言',
        brandSub:'报价系统', signIn:'登录',
-       signInSub:'输入共用员工账号以继续。',
+       signInSub:'使用您的个人账号登录以继续。',
        signedOut:'已在此设备登出。',
        lblUsername:'用户名', lblPassword:'密码', showPassword:'显示密码',
        stays7Days:'此设备约保持登录 7 天。',

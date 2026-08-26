@@ -1,29 +1,28 @@
 <?php
 /**
- * Der-Cheng Quotation — simple shared-account login
- * Phase 1b · 2026-08-12 · built on v2.23.2
+ * Der-Cheng Quotation — individual account login
  *
- * ONE shared account. No database, no user table, no roles.
- * Concurrent sessions are fully supported: every browser gets its own PHP
- * session id, so 3-4 staff can be signed in at the same time and one person
+ * Each member of staff has their OWN account in app_users, so the server knows
+ * WHICH PERSON is making a request. That is the whole reason this file changed:
+ * a quotation's history can only say who edited it if the session carries an
+ * identity, and until now every session was the same shared 'admin'.
+ *
+ * Concurrent sessions are still fully supported: every browser gets its own PHP
+ * session id, so several staff can be signed in at the same time and one person
  * logging out never affects anyone else.
  *
- * The password is NOT stored in plaintext — only a bcrypt hash, compared with
- * password_verify().
+ * Passwords are NOT stored in plaintext — a bcrypt hash lives in
+ * app_users.password_hash and is compared with password_verify().
  *
- * Deliberately NOT included (single shared account makes them harmful or
- * pointless): account lockout — locking "admin" would lock out every member of
- * staff at once; password reset / OTP / email — nothing to reset against.
+ * THIS FILE STILL DOES NOT LOAD THE DATABASE. It is required by index.php,
+ * companies.php, api.php, login.php and logout.php; making it open a connection
+ * would put one behind every page. dc_login() takes the handle as an ARGUMENT,
+ * and login.php — the only caller — is the only file that loads db.php.
+ *
+ * Deliberately NOT included, and not in this round's scope: roles, permissions,
+ * account lockout, rate limiting, password reset, OTP, 2FA, SSO, API tokens and
+ * any user-management screen. Accounts are created by an operator in SQL.
  */
-
-// ── Credentials ──────────────────────────────────────────────────────────────
-// Username staff type in.
-const DC_AUTH_USER = 'admin';
-
-// bcrypt hash of the agreed password. Generated with:
-//     php -r 'echo password_hash("your-new-password", PASSWORD_DEFAULT);'
-// To change the password later, replace ONLY this line with a new hash.
-const DC_AUTH_PASS_HASH = '$2y$10$hpBPd9vpplFfyyJiIPceYuWcdbzBuc512Gaux1E2zjyvSlL82Gd.q';
 
 // Stay signed in for ~7 days.
 const DC_AUTH_LIFETIME = 604800; // 7 * 24 * 60 * 60
@@ -74,10 +73,17 @@ function dc_session_start() {
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-/** True when this browser holds a valid, unexpired login. */
+/** True when this browser holds a valid, unexpired login BY A KNOWN PERSON. */
 function dc_is_logged_in() {
     dc_session_start();
     if (empty($_SESSION['dc_auth']) || $_SESSION['dc_auth'] !== true) return false;
+
+    /* An authenticated session must carry an identity. A session holding only
+       the old shared-account shape — dc_auth with no dc_user_id — is NOT
+       trusted, which is deliberate: on cutover every shared 'admin' session
+       must stop being accepted rather than quietly become an actor nobody can
+       name. It is also what makes a half-written session fail safely. */
+    if (dc_current_user() === null) return false;
 
     // Absolute 7-day cap, independent of how the host prunes session files.
     $since = (int)($_SESSION['dc_login_time'] ?? 0);
@@ -89,28 +95,109 @@ function dc_is_logged_in() {
 }
 
 /**
- * Verify credentials and sign this browser in.
+ * The authenticated person, or null. THE one way for application code to ask
+ * who is acting — future audit code reads this and never $_SESSION directly,
+ * so the session shape can change without a search-and-replace.
+ *
+ * Every value comes from the row that was verified at login. Nothing here is
+ * ever read from POST, JSON, a cookie or any other client-controlled input.
+ * Malformed session state returns null rather than a partial actor.
+ */
+function dc_current_user() {
+    dc_session_start();
+    if (empty($_SESSION['dc_auth']) || $_SESSION['dc_auth'] !== true) return null;
+
+    $id      = $_SESSION['dc_user_id'] ?? null;
+    $user    = $_SESSION['dc_username'] ?? null;
+    $display = $_SESSION['dc_display_name'] ?? null;
+
+    if (!is_int($id) || $id <= 0)                      return null;
+    if (!is_string($user) || $user === '')             return null;
+    if (!is_string($display) || $display === '')       return null;
+
+    return ['id' => $id, 'username' => $user, 'display_name' => $display];
+}
+
+/**
+ * ONE username spelling per person. Trimmed and lowercased on the way in and on
+ * the way to the lookup, and UNIQUE in the table, so "Nicholas", "NICHOLAS" and
+ * "nicholas" are one identity and not three. display_name keeps its own casing
+ * — that is what a person is CALLED, not how they are addressed by the system.
+ */
+function dc_normalize_username($raw) {
+    return strtolower(trim((string)$raw));
+}
+
+/**
+ * Verify credentials against app_users and sign this browser in.
  * Returns true on success. Concurrent logins are allowed — nothing here
  * invalidates any other browser's session.
+ *
+ * $db is PASSED IN, never fetched. That is what keeps this file free of any
+ * database dependency: login.php is the only caller and the only file that
+ * loads db.php.
+ *
+ * FAILS CLOSED, without exception. No handle, a prepare that fails, an execute
+ * that fails, no such user, enabled = 0, a bad password, or a row missing the
+ * fields an identity needs — every one of them returns false and leaves the
+ * session exactly as it was. There is no shared-account fallback: it would be a
+ * permanent backdoor, and application rollback already restores the old app.
+ *
+ * The caller is expected to have put mysqli into MYSQLI_REPORT_OFF, which is
+ * the contract the rest of this application is written against. The `!$stmt`
+ * and `!execute()` checks below are that contract; under PHP 8.1+ defaults
+ * those calls would throw instead and this function would never see false.
  */
-function dc_login($username, $password) {
+function dc_login($db, $username, $password) {
     dc_session_start();
 
-    $userOk = hash_equals(DC_AUTH_USER, (string)$username);
-    $passOk = password_verify((string)$password, DC_AUTH_PASS_HASH);
+    $user = dc_normalize_username($username);
+    $pass = (string)$password;
 
-    // Compare both regardless of the first result (no early return), then a
-    // short pause so guessing is slow. No lockout: one shared account means a
-    // lockout would take the whole office offline.
-    if (!$userOk || !$passOk) {
+    /* Look up first, THEN decide — and always spend the same 0.4s on any
+       failure, so a wrong username and a wrong password are not distinguishable
+       by how long the answer took. No lockout in this round: it is recorded as
+       a future security item, not smuggled in here. */
+    $row = null;
+    if ($user !== '' && $pass !== '' && is_object($db) && method_exists($db, 'prepare')) {
+        $stmt = $db->prepare('SELECT id, username, display_name, password_hash, enabled
+                                FROM app_users WHERE username = ? LIMIT 1');
+        if ($stmt) {
+            $stmt->bind_param('s', $user);
+            if ($stmt->execute()) {
+                $res = $stmt->get_result();
+                if ($res) $row = $res->fetch_assoc();
+            }
+            $stmt->close();
+        }
+    }
+
+    $hash    = is_array($row) ? (string)($row['password_hash'] ?? '') : '';
+    $enabled = is_array($row) ? (int)($row['enabled'] ?? 0) : 0;
+    $passOk  = $hash !== '' && password_verify($pass, $hash);
+
+    if (!is_array($row) || $enabled !== 1 || !$passOk) {
         usleep(400000); // 0.4s
         return false;
     }
 
+    $id      = (int)($row['id'] ?? 0);
+    $display = trim((string)($row['display_name'] ?? ''));
+    $stored  = dc_normalize_username($row['username'] ?? '');
+    if ($id <= 0 || $display === '' || $stored === '') {
+        usleep(400000);
+        return false;                  // a row that cannot name a person is not a login
+    }
+
     session_regenerate_id(true);       // new id after login (session fixation)
-    $_SESSION['dc_auth'] = true;
-    $_SESSION['dc_user'] = DC_AUTH_USER;
-    $_SESSION['dc_login_time'] = time();
+    $_SESSION['dc_auth']         = true;
+    $_SESSION['dc_user_id']      = $id;
+    $_SESSION['dc_username']     = $stored;
+    $_SESSION['dc_display_name'] = $display;
+    $_SESSION['dc_login_time']   = time();
+    /* Compatibility alias for any code still reading the old key. NOT the
+       canonical actor field — dc_current_user() is. */
+    $_SESSION['dc_user']         = $stored;
     return true;
 }
 
