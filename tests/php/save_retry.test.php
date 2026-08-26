@@ -139,7 +139,19 @@ foreach ([2006 => 'server has gone away', 1146 => 'table does not exist',
 
 // ══ 6 · nothing else in api.php was wrapped ══════════════════════════════════
 {
-    eq(substr_count($src, 'dc_save_quotation_insert'), 2,
+    /* Counted in a COMMENT-BLANKED copy: api.php explains in prose which checks
+       the PHP 8.1 mysqli default breaks, and names this function while doing
+       so. The assertion is about the program, not the commentary. */
+    $codeOnly = $src;
+    foreach (token_get_all($src) as $tok) {
+        if (is_array($tok) && ($tok[0] === T_COMMENT || $tok[0] === T_DOC_COMMENT)) {
+            $at = strpos($codeOnly, $tok[1]);
+            if ($at !== false) {
+                $codeOnly = substr_replace($codeOnly, str_repeat(' ', strlen($tok[1])), $at, strlen($tok[1]));
+            }
+        }
+    }
+    eq(substr_count($codeOnly, 'dc_save_quotation_insert'), 2,
         '6: the function is defined exactly once and called from exactly one place');
     ok(strpos($src, 'UPDATE quotations SET company_id') !== false,
         '6: update_quotation is still there');

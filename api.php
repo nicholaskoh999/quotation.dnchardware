@@ -10,6 +10,34 @@ header('Access-Control-Allow-Headers: Content-Type');
 require_once __DIR__ . '/auth.php';
 dc_require_api_login();
 
+/* ── The one line that keeps this application working on PHP 8.1 and later ──
+   PHP 8.1 changed the DEFAULT mysqli report mode from MYSQLI_REPORT_OFF to
+   MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT, which makes mysqli THROW where it
+   used to return false. Every error path in this file reads a return value and
+   then an errno — getDB() checks $conn->connect_error, query_or_fail() checks
+   !$res, execute_or_fail() checks !$stmt->execute(), and
+   dc_save_quotation_insert() checks !$stmt->execute() and then $stmt->errno.
+   There is no try/catch anywhere in this application. Under the 8.1 default
+   every one of those checks becomes dead code: the request dies on an uncaught
+   mysqli_sql_exception before a single byte of JSON is written, and the
+   duplicate-ref_no retry below never runs at all.
+
+   Turning reporting OFF restores the contract this code was written against
+   rather than rewriting the code to a different one. On PHP 8.0 — what
+   production runs today — OFF is already the default, so this is a no-op and
+   behaviour is unchanged. On 8.4 it puts the behaviour back.
+
+   It is placed HERE, before db.php is required, because getDB() lives in
+   db.php: that file holds the real credentials, exists only on the server, and
+   is not in Git. A fix that depended on editing it would be a fix that never
+   reaches production. mysqli_report() is process-wide and static, so this one
+   call also covers every query, prepare and execute that follows.
+
+   Deliberate and accepted: OFF also silences mysqli warnings. That is exactly
+   what PHP 8.0 does today, and this file reports $db->error / $stmt->error in
+   its own JSON, so nothing the application relies on is lost.            */
+mysqli_report(MYSQLI_REPORT_OFF);
+
 require_once 'db.php';
 require_once __DIR__ . '/pricing_history.php';   // identity, accessories and ranking
 $db = getDB();
@@ -161,14 +189,20 @@ function parse_csv_text($text) {
     $rows = [];
     foreach ($lines as $line) {
         if (trim($line) === '') continue;
-        $rows[] = str_getcsv($line);
+        /* '\\' is the default this call has always used; PHP 8.4 deprecates
+           relying on it and PHP 9 changes it, so it is now stated. */
+        $rows[] = str_getcsv($line, ',', '"', "\\");
     }
     return $rows;
 }
 function build_csv($header, $rows) {
     $fh = fopen('php://temp', 'w+');
-    fputcsv($fh, $header);
-    foreach ($rows as $r) fputcsv($fh, $r);
+    /* Same three defaults, stated for the same reason. These run once per row,
+       so leaving them implicit put one deprecation notice per exported row into
+       the error log — and into the download itself wherever display_errors is
+       on. */
+    fputcsv($fh, $header, ',', '"', "\\");
+    foreach ($rows as $r) fputcsv($fh, $r, ',', '"', "\\");
     rewind($fh);
     $out = stream_get_contents($fh);
     fclose($fh);
