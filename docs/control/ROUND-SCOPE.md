@@ -80,7 +80,22 @@ the content of the server-only `db.php`, which this round cannot see or change.
 ```candidate-files
 api.php
 tests/php/mysqli_compat.test.php
+tests/php/save_retry.test.php
 ```
+
+**Amended mid-round, and why.** `save_retry.test.php` §6 asserts that the name
+`dc_save_quotation_insert` appears in `api.php` exactly twice — once defined,
+once called. The comment this round adds above `mysqli_report()` explains which
+checks the 8.1 default breaks, and names that function as one of them, so the
+count is now three. The application is correct; the test counts occurrences in
+raw bytes and cannot tell code from prose.
+
+The fix is to count in a **comment-blanked copy** of the source, which is what
+the assertion always meant. That is not weakening the check — it makes it
+measure the program instead of the commentary, and the new suite uses the same
+technique for the same reason. The alternative, rewording the application's
+comment so a test's counting method stays happy, would be contorting the
+program to fit its measurement.
 
 Nothing else may differ from `86cf2629a66434bf3bdffe2efc0acbe527c358ac`.
 
