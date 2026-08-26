@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "86cf2629a66434bf3bdffe2efc0acbe527c358ac",
+    "acceptedCommit": "97a14cf56bad6414e382c6f49f40d13eabd97dc9",
     "status": "accepted",
-    "acceptedRound": "API 1062 DUPLICATE RETRY HARDENING — one retry for a duplicate reference number (FINAL ACCEPTED)"
+    "acceptedRound": "PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY — the driver contract restored, and the CSV escape stated (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4305,
-    "deltaAssertions": 1495,
+    "finalAssertions": 4399,
+    "deltaAssertions": 1589,
     "failed": 0,
     "skipped": 0,
     "browserSuites": 39,
@@ -17,7 +17,8 @@
     "aiExtractionAssertions": 107,
     "workbookAssertions": 62,
     "translationAssertions": 15,
-    "saveRetryAssertions": 42
+    "saveRetryAssertions": 42,
+    "mysqliCompatAssertions": 94
   },
   "translation": {
     "keys": 862,
@@ -58,7 +59,8 @@
       3958,
       4070,
       4172,
-      4263
+      4263,
+      4305
     ],
     "supersededTranslationKeys": [
       512,
@@ -79,7 +81,8 @@
       1148,
       1260,
       1362,
-      1453
+      1453,
+      1495
     ],
     "supersededSuiteCounts": [
       34,
@@ -128,6 +131,11 @@
         "sha": "6bb5772475e06925f6c2ac8237099fcf0c61c3b7",
         "supersededBy": "86cf2629a66434bf3bdffe2efc0acbe527c358ac",
         "reason": "API 1062 DUPLICATE RETRY HARDENING was accepted. save_quotation allocates ref_no under GET_LOCK, but the lock only serialises allocation inside one PHP process — it cannot see a second application, an import, a manual insert, or a request that died between allocating a number and using it, and execute_or_fail() could not tell MySQL 1062 from a dead connection, so a recoverable number collision destroyed the whole save. dc_save_quotation_insert() now wraps that one INSERT: on errno 1062 it re-allocates through the existing next_free_ref_no($db) and executes once more, and on any other errno it returns false untouched so the caller fails exactly as before. Maximum retry is one. api.php is the only application file it changes, and the allocation algorithm, GET_LOCK, the ref_no format, the schema, the UNIQUE index, the UI, pricing and the quotation JSON are all unchanged; update_quotation is not wrapped. The browser matrix did not move — 39 suites and 3,907 browser assertions, measured on 86cf262 exactly as on 6bb5772 — but tests/php/save_retry.test.php adds a fifth side suite of 42 assertions, so the total moved from 4,263 to 4,305 and the delta from +1,453 to +1,495. 6bb5772 is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "86cf2629a66434bf3bdffe2efc0acbe527c358ac",
+        "supersededBy": "97a14cf56bad6414e382c6f49f40d13eabd97dc9",
+        "reason": "PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted. PHP 8.1 changed the default mysqli_report mode to MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT, so mysqli throws where it used to return false. Every error path in api.php reads a return value and then an errno, and the application contains no try/catch in any PHP file, so on PHP 8.4 all of those checks were dead code: a request would die on an uncaught mysqli_sql_exception before any JSON was written, and the 1062 retry accepted at 86cf262 would never have run. api.php now calls mysqli_report(MYSQLI_REPORT_OFF) immediately before db.php is required — the earliest correct point, because getDB() lives in the server-only db.php that is absent from Git, and nothing in api.php before it touches mysqli. On PHP 8.0, which production runs, OFF is already the default and the call is a no-op; on 8.4 it restores the contract. No version branch was introduced. api.php also now states the three default $escape arguments to str_getcsv() and fputcsv(), which PHP 8.4 deprecates leaving implicit and which fired once per CSV row; the output was proven byte-identical to the implicit form. api.php is the only application file changed. The allocation algorithm, GET_LOCK, the ref_no format, the schema, the UNIQUE index, the UI, the parser, pricing and the quotation JSON are untouched, and no production PHP version was switched. The browser matrix did not move — 39 suites and 3,907 assertions, measured on 97a14cf exactly as on 86cf262 — but tests/php/mysqli_compat.test.php adds a sixth side suite of 94 assertions, so the total moved from 4,305 to 4,399 and the delta from +1,495 to +1,589. 86cf262 is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   }

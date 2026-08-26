@@ -8,13 +8,16 @@ One initialisation call, three explicit CSV arguments. No schema, no index, no
 ref_no format, no allocation algorithm, no retry count, no UI, no parser, no
 pricing, no translation, no deployment, no production PHP switch.
 
+**FINAL ACCEPTED / CLOSED.**
+
 | | |
 |---|---|
-| Accepted application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
-| main | `30f6fc654a5b55e9743c0c87d675b298372fd95f` |
-| This round | a **candidate**, not an accepted state |
-| Deploy | **NO** |
-| Production PHP switch | **NO** — quo.dnchardware.com stays on 8.0 |
+| Accepted application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
+| Superseded application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | no deployment action was taken in the promotion step |
+| STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
+| Production PHP switch | **NO** — quo.dnchardware.com remains on 8.0 |
 
 ---
 
@@ -78,12 +81,14 @@ the content of the server-only `db.php`, which this round cannot see or change.
 ## ALLOWED TO CHANGE
 
 ```candidate-files
-api.php
-tests/php/mysqli_compat.test.php
-tests/php/save_retry.test.php
 ```
 
-**Amended mid-round, and why.** `save_retry.test.php` §6 asserts that the name
+The block is **EMPTY**. This round is closed: `api.php`,
+`tests/php/mysqli_compat.test.php` and `tests/php/save_retry.test.php` were
+reviewed and accepted into `97a14cf`, so nothing may now differ from the
+accepted commit.
+
+**Amended mid-round, and why (kept as the record).** `save_retry.test.php` §6 asserts that the name
 `dc_save_quotation_insert` appears in `api.php` exactly twice — once defined,
 once called. The comment this round adds above `mysqli_report()` explains which
 checks the 8.1 default breaks, and names that function as one of them, so the
@@ -154,3 +159,30 @@ Under the real PHP 8.4.19 runtime, `error_reporting = E_ALL`:
   existing canonical suites unchanged; translation **862 keys / 100%**
 
 Then STOP. **No deploy. No production PHP switch.** Candidate only.
+
+---
+
+## OUTCOME — FINAL ACCEPTED / CLOSED
+
+Every acceptance condition above was met and the candidate was promoted.
+
+| | |
+|---|---:|
+| Accepted application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
+| Browser suites | 39 |
+| Browser assertions | 3,907 |
+| Failed | 0 |
+| Skipped | 0 |
+| Side suites | 172 · 107 · 62 · 15 · 42 · **94** |
+| Total assertions | **4,399** (+1,589 on the 2,810 baseline) |
+| Translation | 862 keys, 100% |
+| Runtime the PHP evidence was measured on | PHP **8.4.19** |
+
+`main` was fast-forwarded to the accepted commit — no merge commit, no rebase,
+no force push. **DEPLOY = NO** in this step: the candidate had already been
+deployed under PHP 8.0 and smoke-tested before promotion, and the promotion
+itself took no deployment action. **The production PHP version was NOT
+switched** — `quo.dnchardware.com` remains on 8.0, Account Global PHP remains
+7.4, and `dnchardware.com` / `erp.dnchardware.com` were not touched.
+`migrations/2026-08-24-add-unique-ref-no.sql` is unchanged and remains
+NOT APPLIED by this round.

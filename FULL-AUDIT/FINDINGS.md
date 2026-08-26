@@ -1,7 +1,7 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `86cf2629a66434bf3bdffe2efc0acbe527c358ac` · Not deployed.
+Final application SHA `97a14cf56bad6414e382c6f49f40d13eabd97dc9` · Not deployed.
 
 **P0 0 · P1 13 · P2 24 · P3 2 · 39 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
@@ -27,13 +27,14 @@ usability failure · **P3** cosmetic.
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
 
-> **On SHAs.** `86cf2629a66434bf3bdffe2efc0acbe527c358ac` is the last commit that changed the
+> **On SHAs.** `97a14cf56bad6414e382c6f49f40d13eabd97dc9` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when API 1062 DUPLICATE RETRY HARDENING was accepted. Seven application SHAs
-> are superseded by it and must never be quoted as current:
-> superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for QUICK ADD STABILITY;
+> when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted. Eight application
+> SHAs are superseded by it and must never be quoted as current:
+> superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
+> superseded — `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`, accepted for QUICK ADD STABILITY;
 > superseded — `cf92f27feb629134a61801dc120eba79c54fb5f6`, accepted for UI POLISH 2A;
 > superseded — `3e89713400b5bcfceca31d2c074de17411169d1b`, accepted for STAGE 1;
 > superseded — `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`, accepted for STAGE 0B;

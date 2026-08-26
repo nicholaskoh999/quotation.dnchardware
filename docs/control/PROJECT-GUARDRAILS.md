@@ -422,6 +422,45 @@ and fails if any of the above stops being true.
 
 ---
 
+## ACCEPTED — THE DRIVER CONTRACT THIS CODE IS WRITTEN AGAINST
+
+`api.php` calls `mysqli_report(MYSQLI_REPORT_OFF)` immediately before `db.php`
+is required. Everything in this application checks a RETURN VALUE and then an
+errno; there is no `try`/`catch` in any PHP file. PHP 8.1 changed the default
+report mode so mysqli throws instead, which turns every one of those checks
+into dead code and kills the 1062 retry.
+
+Protected from here:
+
+- **The call stays, and stays before `db.php`.** `getDB()` lives in the
+  server-only `db.php`, which is absent from Git; the call must precede it, and
+  nothing before it may touch mysqli.
+- **It stays unconditional.** No `PHP_VERSION_ID` gate. On 8.0 it is a no-op
+  because OFF is already the default; on 8.1+ it restores the contract. One
+  statement, every version.
+- **The helpers keep branching on return values.** `query_or_fail`,
+  `prepare_or_fail`, `execute_or_fail` and `dc_save_quotation_insert` must not
+  be rewritten into exception handling. Converting them is a change of error
+  architecture and needs explicit approval.
+- **`dc_save_quotation_insert()` must keep SEEING `$stmt->errno`.** If an
+  exception can reach it first, the duplicate-ref_no retry is gone.
+- **A new file that opens its own database connection needs the same call.**
+  Today `api.php` is the only DB entry point, which is why one call suffices.
+
+Accepted and deliberate: OFF also silences mysqli warnings — exactly what PHP
+8.0 does today, and the application reports `$db->error` / `$stmt->error` in
+its own JSON.
+
+**CSV.** `str_getcsv()` and `fputcsv()` state all three defaults
+(`','`, `'"'`, `"\\"`). PHP 8.4 deprecates leaving them implicit and PHP 9
+changes them. Proven byte-identical to the implicit form; do not drop them
+back.
+
+`tests/php/mysqli_compat.test.php` drives the shipped `api.php` and fails if
+any of the above stops being true.
+
+---
+
 ## CHANGE SAFETY PROCEDURE
 
 Before modifying any protected application area:

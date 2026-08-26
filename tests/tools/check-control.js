@@ -34,8 +34,8 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = '86cf2629a66434bf3bdffe2efc0acbe527c358ac';
-const PREV = '6bb5772475e06925f6c2ac8237099fcf0c61c3b7';
+const APP = '97a14cf56bad6414e382c6f49f40d13eabd97dc9';
+const PREV = '86cf2629a66434bf3bdffe2efc0acbe527c358ac';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
 
@@ -52,37 +52,39 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    && A.TOTAL === T.finalAssertions && A.BASELINE === T.baselineAssertions
    && A.DELTA === T.deltaAssertions && A.FAILED === T.failed && A.SKIPPED === T.skipped,
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
-ck(T.browserSuites === 39 && T.browserAssertions === 3907 && T.finalAssertions === 4305
-   && T.deltaAssertions === 1495 && T.baselineAssertions === 2810,
+ck(T.browserSuites === 39 && T.browserAssertions === 3907 && T.finalAssertions === 4399
+   && T.deltaAssertions === 1589 && T.baselineAssertions === 2810,
    'the accepted matrix is the measured run');
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
-   + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions === T.finalAssertions,
-   `3,907+172+107+62+15+42 = ${T.finalAssertions}`);
-ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,305 − 2,810 = +1,495');
+   + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions
+   + T.mysqliCompatAssertions === T.finalAssertions,
+   `3,907+172+107+62+15+42+94 = ${T.finalAssertions}`);
+ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,399 − 2,810 = +1,589');
 ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['ai-extract-php.log'] === T.aiExtractionAssertions
    && A.SIDE['pricing-workbook.log'] === T.workbookAssertions
    && A.SIDE['translation-coverage.log'] === T.translationAssertions
-   && A.SIDE['save-retry-php.log'] === T.saveRetryAssertions,
-   'the five side suites agree in both files');
+   && A.SIDE['save-retry-php.log'] === T.saveRetryAssertions
+   && A.SIDE['mysqli-compat-php.log'] === T.mysqliCompatAssertions,
+   'the six side suites agree in both files');
 ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
    && C.translation.missing === 0 && C.translation.hardcoded === 0 && C.translation.unapplied === 0,
    `translation 862 / 100% / 0 / 0 / 0, unchanged`);
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 7, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772',
+ck(S.length === 8, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[6].sha === PREV && S[6].supersededBy === APP, `6bb5772 is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[7].sha === PREV && S[7].supersededBy === APP, `86cf262 is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`6bb5772475e06925f6c2ac8237099fcf0c61c3b7` — superseded by `86cf262`'),
+ck(MD.includes('`86cf2629a66434bf3bdffe2efc0acbe527c358ac` — superseded by `97a14cf`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
-ck(H.supersededAssertionTotals.includes(4263) && !H.supersededAssertionTotals.includes(4305),
-   '4,263 retired, 4,305 is not retired');
-ck(H.supersededDeltas.includes(1453) && !H.supersededDeltas.includes(1495),
-   '+1,453 retired, +1,495 is not retired');
+ck(H.supersededAssertionTotals.includes(4305) && !H.supersededAssertionTotals.includes(4399),
+   '4,305 retired, 4,399 is not retired');
+ck(H.supersededDeltas.includes(1495) && !H.supersededDeltas.includes(1589),
+   '+1,495 retired, +1,589 is not retired');
 ck(H.supersededSuiteCounts.includes(38) && !H.supersededSuiteCounts.includes(39),
    `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — 39 is current, not retired`);
 
@@ -97,13 +99,14 @@ ck(ancHead, '6bb5772 is an ancestor of HEAD');
    for on its own — this promotion carries ONE application file. */
 ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**') === 'api.php',
    'the promotion carries exactly api.php');
-ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php') === 'tests/php/save_retry.test.php',
-   'and exactly one test file, the PHP suite that proves it — no browser suite moved');
+ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
+   === 'tests/php/mysqli_compat.test.php,tests/php/save_retry.test.php',
+   'and exactly the two PHP test files — no browser suite moved');
 ck(git('diff','--name-only',APP+'..HEAD','--','*.php') === '',
    'no application PHP differs from the accepted commit');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
-ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','tests/php/save_retry.test.php') === APP,
+ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','tests/php/mysqli_compat.test.php','tests/php/save_retry.test.php') === APP,
    'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 

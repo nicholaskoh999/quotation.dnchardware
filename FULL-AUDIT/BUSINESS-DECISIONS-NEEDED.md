@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `86cf2629a66434bf3bdffe2efc0acbe527c358ac` · not deployed.
+Final application SHA `97a14cf56bad6414e382c6f49f40d13eabd97dc9` · not deployed.
 
 **Two questions are open. Four are decided and are recorded below as decided,
 not as open** — they were being counted as unanswered in earlier drafts of this
@@ -21,13 +21,14 @@ with the options laid out and what the code does today. The four decided ones
 are kept here so each decision has somewhere to live, and so nobody re-opens one
 by finding an old draft.
 
-> **On SHAs.** `86cf2629a66434bf3bdffe2efc0acbe527c358ac` is the last commit that changed the
+> **On SHAs.** `97a14cf56bad6414e382c6f49f40d13eabd97dc9` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when API 1062 DUPLICATE RETRY HARDENING was accepted. Seven application SHAs
-> are superseded by it and must never be quoted as current:
-> superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for QUICK ADD STABILITY;
+> when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted. Eight application
+> SHAs are superseded by it and must never be quoted as current:
+> superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
+> superseded — `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`, accepted for QUICK ADD STABILITY;
 > superseded — `cf92f27feb629134a61801dc120eba79c54fb5f6`, accepted for UI POLISH 2A;
 > superseded — `3e89713400b5bcfceca31d2c074de17411169d1b`, accepted for STAGE 1;
 > superseded — `98a31e32c0636cb4b3ca13c0ec376d1cc36db9ac`, accepted for STAGE 0B;

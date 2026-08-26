@@ -19,59 +19,82 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
+| Accepted application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
 | Application status | **ACCEPTED** |
-| Accepted round | API 1062 DUPLICATE RETRY HARDENING — one retry for a duplicate reference number, **FINAL ACCEPTED** |
+| Accepted round | PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY — the driver contract restored, and the CSV escape stated, **FINAL ACCEPTED** |
 
-The accepted commit moved because one database error this application can answer
-is now answered, and for no other reason. It is `86cf262` because that is the
-last commit that changed an application file — proven from the files, not from a
-branch tip:
+The accepted commit moved because the database driver stopped honouring the
+contract this code was written against, and for no other reason. It is
+`97a14cf` because that is the last commit that changed an application file —
+proven from the files, not from a branch tip:
 
 ```
-git merge-base --is-ancestor 6bb5772 86cf262  →  0   (6bb5772 is an ancestor)
-git log -1 --format=%H 6bb5772..HEAD -- api.php tests/php/save_retry.test.php
-        →  86cf262   (derived from the files ROUND-SCOPE declared, not asserted)
-git diff --name-only 6bb5772..86cf262 -- '*.php'
+git merge-base --is-ancestor 86cf262 97a14cf  →  0   (86cf262 is an ancestor)
+git log -1 --format=%H 86cf262..HEAD -- api.php \
+        tests/php/mysqli_compat.test.php tests/php/save_retry.test.php
+        →  97a14cf   (derived from the files ROUND-SCOPE declared, not asserted)
+git diff --name-only 86cf262..97a14cf -- '*.php' ':(exclude)tests/**'
         →  api.php                  (and nothing else)
-git diff --name-only 86cf262..HEAD -- '*.php'                →  (empty)
-git diff --name-only 86cf262..HEAD -- tests/suites tests/lib →  (empty)
+git diff --name-only 97a14cf..HEAD -- '*.php'                →  (empty)
+git diff --name-only 97a14cf..HEAD -- tests/suites tests/lib →  (empty)
 ```
 
-**What the fix is.** A duplicate reference number is now a retry, not a failed
-save.
+**What the fix is.** PHP **8.1** changed the default `mysqli_report` mode from
+`MYSQLI_REPORT_OFF` to `MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT`, so mysqli
+**throws** where it used to return `false`.
 
-`save_quotation` allocates `ref_no` through `next_free_ref_no($db)` under
-`GET_LOCK('dc_quotation_ref_alloc', 10)`. That lock serialises two PHP requests
-against each other and nothing more: it cannot see a second application, an
-import, a manual insert, or a request that died between allocating a number and
-using it. `quotations.ref_no` carries a UNIQUE index, so such a collision is
-refused by the database with error **1062** rather than becoming a silent
-duplicate — and the INSERT went through `execute_or_fail()`, which cannot tell
-1062 from a dead connection and failed the whole save either way. The number was
-chosen by the server, the person never typed it, and the machine already knows
-what the next free one is; refusing the save was a poor answer to a question the
-application can answer itself.
+Every error path in `api.php` reads a return value and then an errno —
+`getDB()` checks `$conn->connect_error`, `query_or_fail()` checks `!$res`,
+`execute_or_fail()` checks `!$stmt->execute()`, and
+`dc_save_quotation_insert()` checks `!$stmt->execute()` and then
+`$stmt->errno` — and the application contains **no `try`/`catch` and no
+exception handler in any PHP file**. Under the 8.1 default every one of those
+checks is dead code: the request dies on an uncaught `mysqli_sql_exception`
+before a single byte of JSON is written, and the 1062 retry accepted at
+`86cf262` never runs at all. Proven on a real PHP 8.4.19 runtime against the
+shipped function:
 
-`dc_save_quotation_insert()` now wraps that one INSERT. On errno 1062 it
-re-allocates through the **existing** allocator and executes once more —
-`$ref_no` is taken by reference because `mysqli::bind_param` binds by reference,
-so re-assigning it *is* the retry, with every other column byte for byte the one
-the first attempt sent. On any other errno it returns false untouched, so the
-caller fails exactly as it did before. **Maximum retry is one**: a second
-collision means something other than a race, and a retry would only hide it.
+```
+PHP 8.0 — execute() returns false
+    returned: true | executes: 2 | reallocations: 1 | ref_no now: Q-2026-0432
+PHP 8.1+/8.4 default — execute() throws
+    UNCAUGHT mysqli_sql_exception | executes: 1 | reallocations: 0
+```
+
+`api.php` now calls `mysqli_report(MYSQLI_REPORT_OFF)` **immediately before
+`db.php` is required**. That is the earliest correct point: `api.php` is the
+only file that requires `db.php` or calls `getDB()`, the only `new mysqli(...)`
+in the repository lives inside `getDB()`, and nothing in `api.php` before that
+line touches mysqli. It is placed there rather than in `db.php` because that
+file holds the real credentials, exists only on the server and is absent from
+Git — a fix that depended on editing it would never reach production.
+
+**Why it is safe on both versions.** On PHP 8.0, which production runs,
+`MYSQLI_REPORT_OFF` is already the default, so the call is a no-op and
+behaviour is unchanged. On 8.4 it restores the 8.0 contract: a failed
+connection returns a `mysqli` object with `connect_errno` set instead of
+throwing, so `getDB()`'s own check runs again. **No version branch was
+introduced** — one statement, both versions.
+
+**And the CSV escape.** PHP 8.4 deprecates leaving `$escape` implicit on
+`str_getcsv()` and `fputcsv()`. Both are called in loops, so the notice fired
+once per row — into the error log, and into the download itself wherever
+`display_errors` is on. The three defaults are now stated, and the output was
+proven **byte-identical** to the implicit form across quoted commas, quoted
+double-quotes, empty fields, UTF-8 and backslashes.
 
 **Nothing else moved.** The allocation algorithm, `GET_LOCK`, the `ref_no`
-format, the database schema, the UNIQUE index, the UI, pricing, the parser and
-the quotation JSON structure are untouched. `update_quotation` is **not**
-wrapped. No translation key was added, changed or removed. The migration
-`migrations/2026-08-24-add-unique-ref-no.sql` remains **NOT APPLIED** and
-unmodified.
+format, the database schema, the UNIQUE index, the UI, the parser, pricing and
+the quotation JSON are untouched, `update_quotation` is still not wrapped, and
+no translation key changed. `migrations/2026-08-24-add-unique-ref-no.sql` is
+unmodified. **No production PHP version was switched**; `quo.dnchardware.com`
+remains on 8.0, and this candidate was smoke-tested there before acceptance.
 
-The browser matrix did not move — 39 suites and 3,907 assertions, measured on
-`86cf262` exactly as on `6bb5772`, because no suite asserts anything this change
-alters. The new PHP suite `tests/php/save_retry.test.php` adds a fifth side
-group of **42**, which is the whole of the +42 below.
+Exactly four executable lines changed in `api.php`; everything else the diff
+carries is commentary. The browser matrix did not move — 39 suites and 3,907
+assertions, measured on `97a14cf` exactly as on `86cf262` — while
+`tests/php/mysqli_compat.test.php` adds a sixth side group of **94**, which is
+the whole of the +94 below.
 
 ---
 
@@ -80,8 +103,8 @@ group of **42**, which is the whole of the +42 below.
 | | |
 |---|---:|
 | Baseline assertions | 2,810 |
-| Current final assertions | **4,305** |
-| Delta | **+1,495** |
+| Current final assertions | **4,399** |
+| Delta | **+1,589** |
 | Failed | 0 |
 | Skipped | 0 |
 | Browser suites | 39 |
@@ -96,6 +119,7 @@ Other accepted assertion groups:
 | Workbook | 62 |
 | Translation | 15 |
 | Save retry (api.php 1062) | 42 |
+| mysqli compatibility (PHP 8.1+) | 94 |
 
 **Arithmetic, which the checker performs itself rather than trusting:**
 
@@ -106,9 +130,10 @@ Other accepted assertion groups:
 +    62   workbook
 +    15   translation
 +    42   save retry
-= 4,305   final
++    94   mysqli compatibility
+= 4,399   final
 
-  4,305 - 2,810 = 1,495
+  4,399 - 2,810 = 1,589
 ```
 
 The browser matrix grew by 91 in UI POLISH 2A, in one new suite and no other:
@@ -199,6 +224,7 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Application commit | `3e89713400b5bcfceca31d2c074de17411169d1b` — superseded by `cf92f27` when UI POLISH 2A was accepted |
 | Application commit | `cf92f27feb629134a61801dc120eba79c54fb5f6` — superseded by `6bb5772` when QUICK ADD STABILITY was accepted |
 | Application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` — superseded by `86cf262` when API 1062 DUPLICATE RETRY HARDENING was accepted |
+| Application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` — superseded by `97a14cf` when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always
