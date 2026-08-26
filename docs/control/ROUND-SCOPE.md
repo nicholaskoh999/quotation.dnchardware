@@ -17,7 +17,7 @@ pricing, no translation, no deployment, no production PHP switch.
 | Round status | **FINAL ACCEPTED / CLOSED** |
 | DEPLOY = NO | no deployment action was taken in the promotion step |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production PHP switch | **NO** — quo.dnchardware.com remains on 8.0 |
+| Production PHP switch | **NO** — no PHP version switch was performed by this round |
 
 ---
 
@@ -122,7 +122,8 @@ mysqli_report(MYSQLI_REPORT_OFF);
   PHP 8.x. Verified on 8.4.19: the call returns `true` and emits no
   deprecation.
 - On **PHP 8.0** the default is already `MYSQLI_REPORT_OFF`, so the call is a
-  no-op and behaviour is bit-for-bit what production runs today.
+  no-op and behaviour is bit-for-bit what production was running when this
+  round was written.
 - On **PHP 8.4** it restores exactly the 8.0 contract. Verified: a failed
   connection returns a `mysqli` object with `connect_errno=2002` instead of
   throwing, so `getDB()`'s `if ($conn->connect_error)` check runs again.
@@ -134,9 +135,10 @@ This is the smallest change that satisfies the requirement. The DB layer is
 introduced.
 
 Accepted cost, stated rather than hidden: `MYSQLI_REPORT_OFF` also suppresses
-mysqli warnings. That is precisely the PHP 8.0 behaviour production runs today,
-and the application already surfaces `$db->error` / `$stmt->error` in its own
-JSON error messages, so no diagnostic the application relies on is lost.
+mysqli warnings. That is precisely the PHP 8.0 behaviour production was running
+when this round was written, and the application already surfaces `$db->error` /
+`$stmt->error` in its own JSON error messages, so no diagnostic the application
+relies on is lost.
 
 ---
 
@@ -181,8 +183,10 @@ Every acceptance condition above was met and the candidate was promoted.
 `main` was fast-forwarded to the accepted commit — no merge commit, no rebase,
 no force push. **DEPLOY = NO** in this step: the candidate had already been
 deployed under PHP 8.0 and smoke-tested before promotion, and the promotion
-itself took no deployment action. **The production PHP version was NOT
-switched** — `quo.dnchardware.com` remains on 8.0, Account Global PHP remains
-7.4, and `dnchardware.com` / `erp.dnchardware.com` were not touched.
+itself took no deployment action. **This round performed no PHP version
+switch** — it left `quo.dnchardware.com`, Account Global PHP, `dnchardware.com`
+and `erp.dnchardware.com` exactly as it found them. (A later, separate step did
+switch `quo.dnchardware.com` to PHP 8.4; that was not this round's doing, and
+nothing above should be read as describing the runtime in force today.)
 `migrations/2026-08-24-add-unique-ref-no.sql` is unchanged and remains
 NOT APPLIED by this round.

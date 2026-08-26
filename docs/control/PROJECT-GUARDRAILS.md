@@ -461,6 +461,70 @@ any of the above stops being true.
 
 ---
 
+## CONTROL-ONLY ROUND
+
+**Two SHAs, and they are not the same thing.**
+
+```
+Accepted Application SHA   the last commit that changed an application file,
+                           and the commit every canonical figure was measured
+                           against
+
+Repository / Close-out SHA the tip of main, which also carries control tooling,
+                           validators, documentation and bookkeeping
+```
+
+They have always differed in practice — every acceptance close-out advances main
+without advancing the application. This rule states it, so a round that touches
+only the control layer can be accepted without falsely advancing the accepted
+application SHA.
+
+**A CONTROL-ONLY ROUND may modify:**
+
+- `tests/tools/*` — validators, authoritative pointers, packagers
+- control validators and their own self-tests
+- control documentation — `PROJECT-GUARDRAILS.md`, `ROUND-SCOPE.md`,
+  `CANONICAL-STATE.md` / `.json`
+- accepted-state bookkeeping and the `FULL-AUDIT/` reports
+
+**It must NOT modify application PHP.**
+
+**Acceptance requirements — all of them, or it is not a control-only round:**
+
+```
+application PHP diff                = 0 files
+Accepted Application SHA            unchanged
+canonical application figures       unchanged
+database / schema / migrations      unchanged
+production application              unchanged, unless separately deployed
+```
+
+**A control-only close-out MAY advance the repository / main SHA without
+advancing the Accepted Application SHA.** That is the whole point of the
+distinction, and it is not a loophole: the accepted application SHA means "the
+application was reviewed and accepted in this state", and a control-only round
+does not put that claim in question.
+
+**Assertion counting.** A control-system self-test is not an application
+assertion. It must not be added to `finalAssertions`, to the side-suite matrix
+in `authoritative.js`, or to any accepted-state report. Those figures describe
+the application; inflating them with tests of the validators would make the
+canonical total mean two different things at once.
+
+**Verification is still verification.** `check-control.js` and
+`check-reports.js` must both reach zero disagreements, and the application PHP
+diff must be *shown*, not asserted:
+
+```
+git diff --name-only <accepted-app-sha>..HEAD -- '*.php' ':(exclude)tests/**'
+        →  (empty)
+```
+
+If that command prints anything at all, the round is not control-only. Stop and
+re-scope it.
+
+---
+
 ## CHANGE SAFETY PROCEDURE
 
 Before modifying any protected application area:
