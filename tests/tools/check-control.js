@@ -114,9 +114,47 @@ ck(git('status','--porcelain') === '', 'working tree clean');
 const m = /```candidate-files\r?\n([\s\S]*?)```/.exec(RS);
 ck(!!m, 'ROUND-SCOPE carries a candidate-files block');
 ck(m && m[1].trim() === '', 'the candidate-files block is EMPTY — nothing may differ from the accepted commit');
-ck(/FINAL ACCEPTED \/ CLOSED/.test(RS), 'ROUND-SCOPE is marked FINAL ACCEPTED / CLOSED');
-ck(/DEPLOY = NO/.test(RS), 'ROUND-SCOPE records DEPLOY = NO');
-ck(/STAGE 2 = NOT STARTED/.test(RS), 'ROUND-SCOPE records STAGE 2 = NOT STARTED');
+/* ── The round's state is a FIELD, not a phrase found somewhere ─────────────
+   These three were substring searches over the whole document, and a substring
+   search cannot tell an assertion from its own denial. Every one of
+
+       This round is NOT FINAL ACCEPTED / CLOSED.
+       Stage 1 was FINAL ACCEPTED / CLOSED in August.
+       PREVIOUSLY FINAL ACCEPTED / CLOSED; now reopened.
+       ROUND-SCOPE no longer reads FINAL ACCEPTED / CLOSED.
+       The string "FINAL ACCEPTED / CLOSED" is invalid.
+
+   satisfied the old test. The last of those is not hypothetical: it is the
+   false green recorded in FULL-AUDIT/UI-POLISH-2A.md §9a, where the check read
+   green off a sentence saying the state was absent.
+
+   So the state is now read from the status table in the ROUND section — the
+   one place that declares it — as label -> value pairs, and the assertion
+   names a CELL. Prose cannot forge a table cell, a later OUTCOME table is
+   outside the parsed region, and an exact value match cannot be satisfied by
+   a longer string that negates it.                                          */
+function roundScopeStatus(text) {
+    const sec = /^##[ \t]+ROUND[ \t]*$([\s\S]*?)^---[ \t]*$/m.exec(text);
+    if (!sec) return null;
+    const rows = new Map();
+    for (const raw of sec[1].split(/\r?\n/)) {
+        const m = /^\|([^|]*)\|([^|]*)\|$/.exec(raw.trim());
+        if (!m) continue;
+        const label = m[1].trim().replace(/\*\*/g, '').trim();
+        const value = m[2].trim().replace(/\*\*/g, '').trim();
+        if (!label || /^:?-+:?$/.test(label)) continue;   // header and |---| rule
+        rows.set(label, value);
+    }
+    return rows;
+}
+const ST = roundScopeStatus(RS);
+ck(ST instanceof Map && ST.size > 0,
+   'ROUND-SCOPE carries a status table in its ROUND section');
+ck(!!ST && ST.get('Round status') === 'FINAL ACCEPTED / CLOSED',
+   'ROUND-SCOPE status field reads EXACTLY "FINAL ACCEPTED / CLOSED"'
+   + (ST && ST.has('Round status') ? ` (it reads "${ST.get('Round status')}")` : ' (no such field)'));
+ck(!!ST && ST.has('DEPLOY = NO'), 'ROUND-SCOPE records DEPLOY = NO as a status field');
+ck(!!ST && ST.has('STAGE 2 = NOT STARTED'), 'ROUND-SCOPE records STAGE 2 = NOT STARTED as a status field');
 ck(C.package.deploymentApproved === false, 'canonical: deployment not approved');
 
 // ── guardrails carry the accepted outcomes, and only those ──
