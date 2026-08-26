@@ -2,154 +2,140 @@
 
 ## ROUND
 
-**API — 1062 DUPLICATE RETRY HARDENING**
+**PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY**
 
-One statement, one retry, one error number. No schema, no index, no ref_no
-format, no allocation algorithm, no UI, no pricing, no JSON shape.
-
-**FINAL ACCEPTED / CLOSED.**
+One initialisation call, three explicit CSV arguments. No schema, no index, no
+ref_no format, no allocation algorithm, no retry count, no UI, no parser, no
+pricing, no translation, no deployment, no production PHP switch.
 
 | | |
 |---|---|
 | Accepted application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
-| Superseded application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` |
-| Round status | **FINAL ACCEPTED / CLOSED** |
-| DEPLOY = NO | the accepted state is not a deployed state |
-| STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
+| main | `30f6fc654a5b55e9743c0c87d675b298372fd95f` |
+| This round | a **candidate**, not an accepted state |
+| Deploy | **NO** |
+| Production PHP switch | **NO** — quo.dnchardware.com stays on 8.0 |
 
 ---
 
 ## WHY THIS ROUND EXISTS
 
-`UNIQUE(ref_no)` is now live in production — `quotations.ref_no varchar(100)`,
-index `uq_quotations_ref`, duplicate audit 0, null audit 0. That is the right
-protection and it changes what a collision *looks like*.
+The PHP 8.4 audit ran on a real PHP 8.4.19 runtime and returned READY WITH
+REQUIRED FIXES on two findings. This round fixes those two and nothing else.
 
-Before the index, two racing saves could both insert and the duplicate survived
-silently. Now the second one is refused by the database with **MySQL error
-1062**, and `execute_or_fail()` turns any failure into
+**F1 — mysqli throws instead of returning false.** PHP **8.1** changed the
+default `mysqli_report` mode from `MYSQLI_REPORT_OFF` to
+`MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT`. Every error path in this
+application is return-value-based —
 
 ```
-Quotation save failed: Duplicate entry 'Q-2026-0431' for key 'uq_quotations_ref'
+getDB()            checks  $conn->connect_error
+query_or_fail()    checks  !$res
+prepare_or_fail()  checks  !$stmt
+execute_or_fail()  checks  !$stmt->execute()
+dc_save_quotation_insert()  checks  !$stmt->execute()  then  $stmt->errno
 ```
 
-which is a correct refusal and a poor answer: the number is allocated by the
-server, the person did not choose it, and the machine already knows what the
-next free one is. A collision here is recoverable **by the application**, and
-only this one is.
+— and the application contains **no `try`/`catch` and no exception handler in
+any PHP file**. On 8.4 every one of those checks is dead code: an uncaught
+`mysqli_sql_exception` ends the request before any JSON is written, and the
+accepted 1062 retry never runs. Proven against the shipped function:
 
-**The lock is not redundant and is not being touched.** `GET_LOCK` prevents the
-race between two PHP requests; 1062 catches what the lock cannot see — a second
-application, an import, a manual insert, or a request that died between
-allocating and inserting. This round handles the leftover, it does not replace
-the guard.
+```
+(a) PHP 8.0 — execute() returns false
+    returned: true | executes: 2 | reallocations: 1 | ref_no now: Q-2026-0432
+(b) PHP 8.1+/8.4 default — execute() throws
+    UNCAUGHT mysqli_sql_exception | executes: 1 | reallocations: 0
+```
+
+**F2 — CSV `$escape` deprecation.** PHP 8.4 emits *"the $escape parameter must
+be provided as its default value will change"* for `str_getcsv()`, `fputcsv()`
+and `fgetcsv()`. `api.php` calls the first two, inside loops, so the notice
+fires **once per row**. Values are unchanged on 8.4; the default changes in
+PHP 9.
 
 ---
 
-## WHAT THE SOURCE SAYS
+## WHERE THE FIX GOES, AND WHY THERE
 
-Established read-only, on `6bb5772`:
+Established from the source before writing this scope, not assumed:
 
-- **exactly one statement writes `ref_no`** — the `INSERT` at api.php:587.
-  `update_quotation` deliberately excludes the column and says so in a comment
-- allocation is `next_free_ref_no($db)` under `GET_LOCK('dc_quotation_ref_alloc', 10)`
-- `execute_or_fail($stmt, $label)` calls `fail_json($label . ': ' . $stmt->error)`
-  on **any** failure and exits — it cannot distinguish 1062 from a dead
-  connection, and this round does not change it for anyone else
-- `grep` for `1062` / `Duplicate entry` / `errno` across api.php returns nothing:
-  there is no duplicate-key handling anywhere today
+- `api.php` is the **only** file that `require`s `db.php` and calls `getDB()`.
+- The **only** `new mysqli(...)` in the repository is inside `getDB()`
+  (server-only `db.php`; `db.sample.php` mirrors it).
+- `auth.php` never touches the database — session only.
+- `ai_extract.php` never touches the database.
+- `pricing_history.php` constructs nothing; it receives `$db` as a parameter.
+- Nothing in `api.php` before line 13 touches mysqli: three `header()` calls,
+  `require auth.php`, `dc_require_api_login()`.
+
+So the earliest correct point is **`api.php`, immediately before
+`require_once 'db.php'`**. Placing it there means the fix does not depend on
+the content of the server-only `db.php`, which this round cannot see or change.
 
 ---
 
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+api.php
+tests/php/mysqli_compat.test.php
 ```
 
-The block is **EMPTY**. This round is closed: `api.php` and
-`tests/php/save_retry.test.php` were reviewed and accepted into `86cf262`, so
-nothing may now differ from the accepted commit.
+Nothing else may differ from `86cf2629a66434bf3bdffe2efc0acbe527c358ac`.
 
-**One new function, and one call site — the INSERT in `save_quotation` only.**
+**One `mysqli_report()` call, and three explicit `$escape` arguments.**
+
+`db.sample.php` is deliberately NOT touched: the live `db.php` is authoritative
+and cannot be reached from here, so a fix that relied on the sample would be a
+fix that does not run in production.
+
+---
+
+## THE STRATEGY, AND WHY IT IS SAFE ON BOTH VERSIONS
 
 ```php
-function dc_save_quotation_insert($stmt, &$ref_no, callable $reallocate)
+mysqli_report(MYSQLI_REPORT_OFF);
 ```
 
-- executes the prepared statement; returns true on success
-- on failure, reads `$stmt->errno`. **Anything other than 1062 returns false
-  immediately** and the caller fails exactly as it does today, with the same
-  message from the same `fail_json` — non-1062 errors are not caught, not
-  retried, and not reworded
-- on 1062 it calls `$reallocate()` — which at the call site is
-  `next_free_ref_no($db)`, **the existing allocation logic, unchanged** — and
-  executes **once** more. Maximum retry = 1, enforced by there being no loop
-- `$ref_no` is taken **by reference** because `mysqli::bind_param` binds by
-  reference: re-assigning it is the whole of the retry. No re-bind, no second
-  prepare, no rebuilt payload — the statement sends the new number and every
-  other column is byte-identical to the first attempt
+- `mysqli_report()` and `MYSQLI_REPORT_OFF` (value `0`) exist in **every**
+  PHP 8.x. Verified on 8.4.19: the call returns `true` and emits no
+  deprecation.
+- On **PHP 8.0** the default is already `MYSQLI_REPORT_OFF`, so the call is a
+  no-op and behaviour is bit-for-bit what production runs today.
+- On **PHP 8.4** it restores exactly the 8.0 contract. Verified: a failed
+  connection returns a `mysqli` object with `connect_errno=2002` instead of
+  throwing, so `getDB()`'s `if ($conn->connect_error)` check runs again.
+- It is a global, process-wide setting, so one call covers every later
+  `query` / `prepare` / `execute` in the request.
 
-The allocator is passed in rather than called directly so the function has no
-hidden dependency on `$db` and can be driven by a test without a database.
+This is the smallest change that satisfies the requirement. The DB layer is
+**not** redesigned into exception-based architecture, and no `try`/`catch` is
+introduced.
 
-**Tests**
-
-- `tests/php/save_retry.test.php` — extracts the shipped function from api.php
-  by name and drives it against a fake statement, the way the browser harness
-  serves the real `index.php` rather than a copy: normal save, a 1062 that
-  succeeds on retry, a 1062 that fails again, a non-1062 error, retry count, and
-  that the reallocation is what the second attempt actually sends
+Accepted cost, stated rather than hidden: `MYSQLI_REPORT_OFF` also suppresses
+mysqli warnings. That is precisely the PHP 8.0 behaviour production runs today,
+and the application already surfaces `$db->error` / `$stmt->error` in its own
+JSON error messages, so no diagnostic the application relies on is lost.
 
 ---
 
-## NOT ALLOWED TO CHANGE
+## ACCEPTANCE — WHAT MUST BE TRUE TO CLOSE
 
-The database schema · the `UNIQUE` index · the `ref_no` format · `next_free_ref_no`
-and the allocation algorithm · `GET_LOCK` / `acquire_ref_lock` / `release_ref_lock` ·
-`ref_no_in_use` · the requested-ref branch that honours a still-free previewed
-number · `execute_or_fail` for every other caller · the quotation JSON structure ·
-`update_quotation` · the UI · pricing · parsing · translations.
+Under the real PHP 8.4.19 runtime, `error_reporting = E_ALL`:
 
-**No other SQL error is caught.** A prepare failure, a lost connection, a
-constraint that is not 1062 — all still reach `fail_json` unchanged. Widening
-this to a general retry is precisely the thing that turns a hard failure into a
-silent double-write, and it is out of scope in both directions.
+- a failed connection does **not** throw, and reaches `getDB()`'s existing check
+- `query_or_fail` / `prepare_or_fail` / `execute_or_fail` still fail through the
+  existing JSON contract, with no uncaught exception
+- `dc_save_quotation_insert()` still sees `$stmt->errno === 1062` — **the most
+  important point of this round** — and still performs exactly **2 executes,
+  1 reallocation**, with the new ref_no actually sent
+- a second 1062 stops and returns failure, with no loop
+- errnos 2006 / 1146 / 1452 / 1406 are **not** retried
+- CSV: single row, multiple rows, quoted commas, quoted double-quotes, empty
+  field and UTF-8 all round-trip unchanged, with **0 deprecation notices**
+- `php -l` clean on every application PHP file, on 8.4
+- full regression: **39 suites, 3,907 browser assertions, 0 failed, 0 skipped**;
+  existing canonical suites unchanged; translation **862 keys / 100%**
 
----
-
-## STOP CONDITION
-
-- a normal save behaves exactly as it does today, one INSERT, one `ok:true`
-- a simulated 1062 re-allocates once and succeeds, and the response carries the
-  NEW number with `reassigned` true — which the UI already speaks (`tSavedAsTaken`)
-- a second 1062 fails, with the same error shape as today
-- a non-1062 failure is **not** retried and fails with the same message as today
-- exactly **one** retry, asserted by counting executions
-- the full browser regression re-run — application bytes change — every side
-  suite, and the translation audit at **862 keys / 100%**
-- **zero failures, zero skips**
-
-Then STOP. **No deploy.** Candidate only.
-
----
-
-## OUTCOME — FINAL ACCEPTED / CLOSED
-
-Every stop condition above was met and the candidate was promoted.
-
-| | |
-|---|---:|
-| Accepted application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
-| Browser suites | 39 |
-| Browser assertions | 3,907 |
-| Failed | 0 |
-| Skipped | 0 |
-| Side suites | 172 · 107 · 62 · 15 · **42** |
-| Total assertions | **4,305** (+1,495 on the 2,810 baseline) |
-| Translation | 862 keys, 100% |
-
-`main` was fast-forwarded to the accepted commit — no merge commit, no rebase,
-no force push. **DEPLOY = NO.** **STAGE 2 = NOT STARTED.** The migration
-`migrations/2026-08-24-add-unique-ref-no.sql` is unchanged and remains
-**NOT APPLIED** by this round; the UNIQUE index it describes was already live in
-production before the round began, which is why the round existed.
+Then STOP. **No deploy. No production PHP switch.** Candidate only.
