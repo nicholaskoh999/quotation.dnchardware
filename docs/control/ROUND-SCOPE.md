@@ -2,191 +2,149 @@
 
 ## ROUND
 
-**PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY**
+**ACTOR IDENTITY FOUNDATION**
 
-One initialisation call, three explicit CSV arguments. No schema, no index, no
-ref_no format, no allocation algorithm, no retry count, no UI, no parser, no
-pricing, no translation, no deployment, no production PHP switch.
-
-**FINAL ACCEPTED / CLOSED.**
+The smallest production-safe change that lets the server know WHICH INDIVIDUAL
+authenticated person is making a request. No audit history, no revisions, no
+item ids, no roles, no RBAC, no user-management UI, no password reset, no 2FA,
+no deployment.
 
 | | |
 |---|---|
 | Accepted application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
-| Superseded application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` |
-| Round status | **FINAL ACCEPTED / CLOSED** |
-| DEPLOY = NO | no deployment action was taken in the promotion step |
+| main | `e7646c861976f3087f8f08f3dd653e3922fa4dd3` |
+| Round status | **CANDIDATE — READY FOR REVIEW** |
+| DEPLOY = NO | a candidate is not a deployed state |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production PHP switch | **NO** — no PHP version switch was performed by this round |
+| Production DB change | **NO** — the migration is prepared, NOT APPLIED |
 
 ---
 
 ## WHY THIS ROUND EXISTS
 
-The PHP 8.4 audit ran on a real PHP 8.4.19 runtime and returned READY WITH
-REQUIRED FIXES on two findings. This round fixes those two and nothing else.
+`auth.php` is one shared hard-coded account:
 
-**F1 — mysqli throws instead of returning false.** PHP **8.1** changed the
-default `mysqli_report` mode from `MYSQLI_REPORT_OFF` to
-`MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT`. Every error path in this
-application is return-value-based —
-
-```
-getDB()            checks  $conn->connect_error
-query_or_fail()    checks  !$res
-prepare_or_fail()  checks  !$stmt
-execute_or_fail()  checks  !$stmt->execute()
-dc_save_quotation_insert()  checks  !$stmt->execute()  then  $stmt->errno
+```php
+const DC_AUTH_USER = 'admin';
+$_SESSION['dc_user'] = DC_AUTH_USER;      // always the literal 'admin'
 ```
 
-— and the application contains **no `try`/`catch` and no exception handler in
-any PHP file**. On 8.4 every one of those checks is dead code: an uncaught
-`mysqli_sql_exception` ends the request before any JSON is written, and the
-accepted 1062 retry never runs. Proven against the shipped function:
+Three or four staff sign in as the same identity, so the server cannot tell
+Nicholas from anyone else. The accepted Audit / Revision History architecture
+needs to answer "WHO changed this quotation?", and no audit table can answer it
+while every request is `admin`. This round supplies the missing half:
 
 ```
-(a) PHP 8.0 — execute() returns false
-    returned: true | executes: 2 | reallocations: 1 | ref_no now: Q-2026-0432
-(b) PHP 8.1+/8.4 default — execute() throws
-    UNCAUGHT mysqli_sql_exception | executes: 1 | reallocations: 0
+authenticated request  →  immutable numeric user_id + username + display_name
 ```
 
-**F2 — CSV `$escape` deprecation.** PHP 8.4 emits *"the $escape parameter must
-be provided as its default value will change"* for `str_getcsv()`, `fputcsv()`
-and `fgetcsv()`. `api.php` calls the first two, inside loops, so the notice
-fires **once per row**. Values are unchanged on 8.4; the default changes in
-PHP 9.
-
----
-
-## WHERE THE FIX GOES, AND WHY THERE
-
-Established from the source before writing this scope, not assumed:
-
-- `api.php` is the **only** file that `require`s `db.php` and calls `getDB()`.
-- The **only** `new mysqli(...)` in the repository is inside `getDB()`
-  (server-only `db.php`; `db.sample.php` mirrors it).
-- `auth.php` never touches the database — session only.
-- `ai_extract.php` never touches the database.
-- `pricing_history.php` constructs nothing; it receives `$db` as a parameter.
-- Nothing in `api.php` before line 13 touches mysqli: three `header()` calls,
-  `require auth.php`, `dc_require_api_login()`.
-
-So the earliest correct point is **`api.php`, immediately before
-`require_once 'db.php'`**. Placing it there means the fix does not depend on
-the content of the server-only `db.php`, which this round cannot see or change.
+read from the SERVER session, never from the client.
 
 ---
 
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+auth.php
+login.php
+migrations/2026-08-26-create-app-users.sql
+tests/php/auth_identity.test.php
 ```
 
-The block is **EMPTY**. This round is closed: `api.php`,
-`tests/php/mysqli_compat.test.php` and `tests/php/save_retry.test.php` were
-reviewed and accepted into `97a14cf`, so nothing may now differ from the
-accepted commit.
+Nothing else may differ from `97a14cf56bad6414e382c6f49f40d13eabd97dc9`.
 
-**Amended mid-round, and why (kept as the record).** `save_retry.test.php` §6 asserts that the name
-`dc_save_quotation_insert` appears in `api.php` exactly twice — once defined,
-once called. The comment this round adds above `mysqli_report()` explains which
-checks the 8.1 default breaks, and names that function as one of them, so the
-count is now three. The application is correct; the test counts occurrences in
-raw bytes and cannot tell code from prose.
-
-The fix is to count in a **comment-blanked copy** of the source, which is what
-the assertion always meant. That is not weakening the check — it makes it
-measure the program instead of the commentary, and the new suite uses the same
-technique for the same reason. The alternative, rewording the application's
-comment so a test's counting method stays happy, would be contorting the
-program to fit its measurement.
-
-Nothing else may differ from `86cf2629a66434bf3bdffe2efc0acbe527c358ac`.
-
-**One `mysqli_report()` call, and three explicit `$escape` arguments.**
-
-`db.sample.php` is deliberately NOT touched: the live `db.php` is authoritative
-and cannot be reached from here, so a fix that relied on the sample would be a
-fix that does not run in production.
+`api.php`, `index.php`, `companies.php`, `pricing_history.php`,
+`ai_extract.php`, `logout.php`, `db.sample.php` and every browser suite are
+**out of scope and must not change**.
 
 ---
 
-## THE STRATEGY, AND WHY IT IS SAFE ON BOTH VERSIONS
+## DESIGN, DECIDED BEFORE IMPLEMENTATION
+
+**`auth.php` keeps its zero-DB property.** It is required by `index.php`,
+`companies.php`, `api.php`, `login.php` and `logout.php`; making it load the
+database would put a connection behind every page. The credential lookup
+therefore takes an **injected** handle:
 
 ```php
-mysqli_report(MYSQLI_REPORT_OFF);
+dc_login($db, $username, $password)
 ```
 
-- `mysqli_report()` and `MYSQLI_REPORT_OFF` (value `0`) exist in **every**
-  PHP 8.x. Verified on 8.4.19: the call returns `true` and emits no
-  deprecation.
-- On **PHP 8.0** the default is already `MYSQLI_REPORT_OFF`, so the call is a
-  no-op and behaviour is bit-for-bit what production was running when this
-  round was written.
-- On **PHP 8.4** it restores exactly the 8.0 contract. Verified: a failed
-  connection returns a `mysqli` object with `connect_errno=2002` instead of
-  throwing, so `getDB()`'s `if ($conn->connect_error)` check runs again.
-- It is a global, process-wide setting, so one call covers every later
-  `query` / `prepare` / `execute` in the request.
+`login.php` is the only caller and the only file that loads `db.php` — lazily,
+inside the POST branch, so a GET of the login page still opens no connection.
+No circular require, no hidden global, and no `app_users` lookup on any normal
+API request: after login the identity lives in the session.
 
-This is the smallest change that satisfies the requirement. The DB layer is
-**not** redesigned into exception-based architecture, and no `try`/`catch` is
-introduced.
+**PHP 8.4.** `login.php` must call `mysqli_report(MYSQLI_REPORT_OFF)` before
+requiring `db.php`, exactly as `api.php` does, or the accepted return-value
+contract is lost and a DB fault becomes an uncaught `mysqli_sql_exception`.
 
-Accepted cost, stated rather than hidden: `MYSQLI_REPORT_OFF` also suppresses
-mysqli warnings. That is precisely the PHP 8.0 behaviour production was running
-when this round was written, and the application already surfaces `$db->error` /
-`$stmt->error` in its own JSON error messages, so no diagnostic the application
-relies on is lost.
+**Fail closed.** Any DB fault — no handle, prepare fails, execute fails, no row,
+`enabled = 0`, bad password — returns false and establishes NO session.
+
+**Username normalisation:** `strtolower(trim($username))`, stored lowercase,
+looked up lowercase, `UNIQUE`. `Nicholas`, `NICHOLAS` and `nicholas` are one
+identity. `display_name` casing is never touched.
+
+**No shared-admin fallback.** `DC_AUTH_USER` and `DC_AUTH_PASS_HASH` are
+removed. Rollout is a clean cutover (application rollback restores the old
+shared-login app); a fallback would be a permanent backdoor.
+
+**Session contract** — all three identity fields come from the authenticated
+DB row:
+
+```php
+$_SESSION['dc_auth']         = true;
+$_SESSION['dc_user_id']      = (int) row id;
+$_SESSION['dc_username']     = normalised username;
+$_SESSION['dc_display_name'] = row display_name;
+$_SESSION['dc_login_time']   = time();
+$_SESSION['dc_user']         = username;   // compatibility alias only
+```
+
+`dc_current_user()` reads the session, validates it, and returns
+`['id','username','display_name']` or `null`. Future audit code consumes that
+helper, never `$_SESSION` internals and never `dc_user`.
+
+**`dc_is_logged_in()` additionally requires a valid identity.** A session
+carrying only the old `dc_auth` + `dc_user` shape is no longer authenticated.
+That is deliberate: on cutover every existing shared-account session must stop
+being trusted rather than silently become an unidentified actor.
+
+---
+
+## MUST NOT CHANGE — PROVEN, NOT ASSERTED
+
+`ref_no` format · server-side allocation · `GET_LOCK` · `uq_quotations_ref`
+· `NOT NULL ref_no` · the one-time 1062 retry · quotation create / update /
+delete semantics · pricing · material mapping · Previous Price · Quick Add ·
+the item JSON structure · the translation dictionary outside the login strings
+this round touches · the PHP runtime target.
 
 ---
 
 ## ACCEPTANCE — WHAT MUST BE TRUE TO CLOSE
 
-Under the real PHP 8.4.19 runtime, `error_reporting = E_ALL`:
+Targeted evidence, on the real PHP 8.4 runtime, against the real `auth.php`
+with real PHP sessions:
 
-- a failed connection does **not** throw, and reaches `getDB()`'s existing check
-- `query_or_fail` / `prepare_or_fail` / `execute_or_fail` still fail through the
-  existing JSON contract, with no uncaught exception
-- `dc_save_quotation_insert()` still sees `$stmt->errno === 1062` — **the most
-  important point of this round** — and still performs exactly **2 executes,
-  1 reallocation**, with the new ref_no actually sent
-- a second 1062 stops and returns failure, with no loop
-- errnos 2006 / 1146 / 1452 / 1406 are **not** retried
-- CSV: single row, multiple rows, quoted commas, quoted double-quotes, empty
-  field and UTF-8 all round-trip unchanged, with **0 deprecation notices**
-- `php -l` clean on every application PHP file, on 8.4
-- full regression: **39 suites, 3,907 browser assertions, 0 failed, 0 skipped**;
-  existing canonical suites unchanged; translation **862 keys / 100%**
+- valid enabled user with the right password logs in, and the session carries
+  `dc_auth`, the right `dc_user_id`, `dc_username`, `dc_display_name` and a
+  positive `dc_login_time`
+- wrong password, unknown username and `enabled = 0` each FAIL
+- case normalisation behaves exactly as documented
+- the session id CHANGES on successful login
+- two sessions can hold two different users at once, with different ids
+- logging one out leaves the other authenticated
+- an expired `dc_login_time` is rejected
+- the page guard redirects; the API guard returns JSON 401
+- a DB failure fails closed, with no authenticated session and no uncaught
+  `mysqli_sql_exception`
+- a failed login leaves no authenticated state behind
+- `password_verify` is used and no plaintext credential is committed
+- the migration declares UNIQUE on username
 
-Then STOP. **No deploy. No production PHP switch.** Candidate only.
+Then the FULL regression: **39 suites, 3,907 browser assertions, 0 failed,
+0 skipped**, translation **862 keys / 100%**, and `php -l` clean on 8.4.
 
----
-
-## OUTCOME — FINAL ACCEPTED / CLOSED
-
-Every acceptance condition above was met and the candidate was promoted.
-
-| | |
-|---|---:|
-| Accepted application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
-| Browser suites | 39 |
-| Browser assertions | 3,907 |
-| Failed | 0 |
-| Skipped | 0 |
-| Side suites | 172 · 107 · 62 · 15 · 42 · **94** |
-| Total assertions | **4,399** (+1,589 on the 2,810 baseline) |
-| Translation | 862 keys, 100% |
-| Runtime the PHP evidence was measured on | PHP **8.4.19** |
-
-`main` was fast-forwarded to the accepted commit — no merge commit, no rebase,
-no force push. **DEPLOY = NO** in this step: the candidate had already been
-deployed under PHP 8.0 and smoke-tested before promotion, and the promotion
-itself took no deployment action. **This round performed no PHP version
-switch** — it left `quo.dnchardware.com`, Account Global PHP, `dnchardware.com`
-and `erp.dnchardware.com` exactly as it found them. (A later, separate step did
-switch `quo.dnchardware.com` to PHP 8.4; that was not this round's doing, and
-nothing above should be read as describing the runtime in force today.)
-`migrations/2026-08-24-add-unique-ref-no.sql` is unchanged and remains
-NOT APPLIED by this round.
+Then STOP. **No deploy. No production DB change.** Candidate only.
