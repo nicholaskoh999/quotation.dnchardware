@@ -29,38 +29,53 @@ function eq($actual, $expected, $msg) {
                                    . "\n      actual:   " . var_export($actual, true));
 }
 
-/* ── a mysqli stand-in that returns values instead of throwing ────────────── */
-class FakeRes {
-    private $row;
-    public function __construct($row) { $this->row = $row; }
-    public function fetch_assoc() { return $this->row; }
-}
+/* ── a mysqli stand-in that returns values instead of throwing ──────────────
+   It speaks bind_param / execute / bind_result / fetch — the PORTABLE prepared
+   statement pattern. It has NO get_result() at all, so if auth.php ever reaches
+   for one again these tests fail at once rather than passing on mysqlnd. */
 class FakeStmt {
-    public $bound = null; private $db;
+    public $bound = null; private $db; private $out = [];
     public function __construct($db) { $this->db = $db; }
-    public function bind_param($types, &$v) { $this->bound = $v; return true; }
+    public function bind_param($types, &$v) {
+        if ($this->db->failBindParam) return false;
+        $this->bound = $v; return true;
+    }
     public function execute() { $this->db->executes++; return !$this->db->failExecute; }
-    public function get_result() {
-        if ($this->db->failResult) return false;
+    public function bind_result(&...$cols) {
+        if ($this->db->failBindResult) return false;
+        $this->out = [];
+        foreach ($cols as $i => &$c) { $this->out[$i] = &$c; }
+        return true;
+    }
+    public function fetch() {
+        if ($this->db->failFetch) return false;
         $this->db->lookedUp[] = $this->bound;
         $row = $this->db->rows[$this->bound] ?? null;
-        return new FakeRes($row);
+        if ($row === null) return null;                 // mysqli: null = no more rows
+        $vals = [$row['id'], $row['username'], $row['display_name'],
+                 $row['password_hash'], $row['enabled']];
+        foreach ($vals as $i => $v) { if (array_key_exists($i, $this->out)) $this->out[$i] = $v; }
+        return true;
     }
-    public function close() { return true; }
+    public function close() { $this->db->closes++; return true; }
 }
 class FakeDb {
     public $rows = [];            // username => row
-    public $failPrepare = false;  // prepare() returns false, as MYSQLI_REPORT_OFF does
-    public $failExecute = false;
-    public $failResult  = false;
+    public $failPrepare    = false;   // each returns false, as MYSQLI_REPORT_OFF does
+    public $failBindParam  = false;
+    public $failExecute    = false;
+    public $failBindResult = false;
+    public $failFetch      = false;
     public $executes = 0;
+    public $closes   = 0;
     public $lookedUp = [];
-    public function prepare($sql) { return $this->failPrepare ? false : new FakeStmt($this); }
+    public function prepare($sql) { $this->lastSql = $sql; return $this->failPrepare ? false : new FakeStmt($this); }
+    public $lastSql = '';
 }
 
 /* Throwaway credentials, hashed at runtime. Nothing here is a real password. */
-$PW_A = 'test-only-secret-A';
-$PW_B = 'test-only-secret-B';
+$GLOBALS['PW_A'] = $PW_A = 'test-only-secret-A';
+$GLOBALS['PW_B'] = $PW_B = 'test-only-secret-B';
 
 function makeDb($pwA, $pwB) {
     $db = new FakeDb();
@@ -227,9 +242,11 @@ function freshSession() {
 
 // ══ L · the DB fails — authentication must fail CLOSED ══════════════════════
 {
-    foreach ([['failPrepare', 'prepare() returns false'],
-              ['failExecute', 'execute() returns false'],
-              ['failResult',  'get_result() returns false']] as [$flag, $label]) {
+    foreach ([['failPrepare',    'prepare() returns false'],
+              ['failBindParam',  'bind_param() returns false'],
+              ['failExecute',    'execute() returns false'],
+              ['failBindResult', 'bind_result() returns false'],
+              ['failFetch',      'fetch() returns false']] as [$flag, $label]) {
         freshSession();
         $broken = makeDb($PW_A, $PW_B);
         $broken->$flag = true;
@@ -263,6 +280,104 @@ function freshSession() {
         dc_login($db, 'nicholas', $PW_A);
         $_SESSION[$k] = $bad;
         ok(dc_current_user() === null, "X: a session whose $k is " . var_export($bad, true) . ' fails safely');
+    }
+}
+
+// ══ F1 · every credential failure does the SAME bcrypt work ═════════════════
+{
+    /* Deterministic, not wall-clock. The proof is structural: there is exactly
+       ONE password_verify() call in the shipped file and it is NOT guarded, so
+       every path that reaches the decision runs it. The old code guarded it
+       with `$hash !== '' &&`, which skipped bcrypt entirely for an unknown
+       username — the finding this fixes. */
+    $authSrc  = file_get_contents(__DIR__ . '/../../auth.php');
+    $codeOnly = $authSrc;
+    foreach (token_get_all($authSrc) as $tok) {
+        if (is_array($tok) && ($tok[0] === T_COMMENT || $tok[0] === T_DOC_COMMENT)) {
+            $at = strpos($codeOnly, $tok[1]);
+            if ($at !== false) $codeOnly = substr_replace($codeOnly, str_repeat(' ', strlen($tok[1])), $at, strlen($tok[1]));
+        }
+    }
+    eq(substr_count($codeOnly, 'password_verify('), 1,
+       'F1: exactly ONE password_verify() call exists in the code');
+    ok(preg_match('/\$passOk\s*=\s*password_verify\(\$pass, \$hash\);/', $codeOnly),
+       'F1: it is a plain assignment — no condition can skip it');
+    ok(strpos($codeOnly, '$hash !== \'\' && password_verify') === false,
+       'F1: the old short-circuit that skipped bcrypt for an unknown user is gone');
+    ok(strpos($codeOnly, 'if ($hash === \'\') $hash = DC_AUTH_DUMMY_HASH;') !== false,
+       'F1: a missing hash falls back to the decoy rather than to an empty string');
+
+    /* The decoy must be REAL bcrypt work, at the cost this runtime produces. */
+    ok(defined('DC_AUTH_DUMMY_HASH'), 'F1: the decoy hash constant exists');
+    $info = password_get_info(DC_AUTH_DUMMY_HASH);
+    eq($info['algoName'], 'bcrypt', 'F1: the decoy is a real bcrypt hash, not a placeholder string');
+    $ref = password_get_info(password_hash('x', PASSWORD_DEFAULT));
+    eq($info['options']['cost'] ?? null, $ref['options']['cost'] ?? null,
+       'F1: the decoy cost matches what PASSWORD_DEFAULT produces here — equal work');
+    ok(password_verify('', DC_AUTH_DUMMY_HASH) === false
+       && password_verify('admin', DC_AUTH_DUMMY_HASH) === false
+       && password_verify('password', DC_AUTH_DUMMY_HASH) === false,
+       'F1: the decoy verifies against no guessable password');
+
+    /* And it can never authenticate: no row means the row check fails whatever
+       password_verify() returned. Proven by seeding a user whose stored hash IS
+       the decoy and then signing in as a DIFFERENT, unknown username. */
+    freshSession();
+    $decoyDb = new FakeDb();
+    $decoyDb->rows['someone'] = ['id' => 1, 'username' => 'someone', 'display_name' => 'Someone',
+                                 'password_hash' => DC_AUTH_DUMMY_HASH, 'enabled' => 1];
+    ok(dc_login($decoyDb, 'nobody-at-all', 'anything') === false,
+       'F1: the decoy path cannot authenticate an unknown user');
+    ok(dc_current_user() === null, 'F1: and leaves no identity');
+
+    /* Both failure kinds reach the SAME lookup-then-verify shape. */
+    freshSession();
+    $probe = makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']);
+    ok(dc_login($probe, 'nobody', 'whatever') === false, 'F1: unknown user fails');
+    eq($probe->executes, 1, 'F1: the unknown-user path still performs the DB lookup');
+    freshSession();
+    $probe2 = makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']);
+    ok(dc_login($probe2, 'nicholas', 'wrong-password') === false, 'F1: wrong password fails');
+    eq($probe2->executes, 1, 'F1: the wrong-password path performs one lookup too');
+
+    /* Wall-clock, as CORROBORATION only — a generous ratio, never the proof. */
+    $t0 = microtime(true); freshSession(); dc_login(makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']), 'nobody', 'whatever');
+    $unknown = microtime(true) - $t0;
+    $t1 = microtime(true); freshSession(); dc_login(makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']), 'nicholas', 'wrong-password');
+    $wrong = microtime(true) - $t1;
+    $ratio = $wrong > 0 ? $unknown / $wrong : 0;
+    ok($ratio > 0.5 && $ratio < 2.0,
+       sprintf('F1: the two failures cost comparable wall-clock (ratio %.2f, unknown %.3fs vs wrong %.3fs)',
+               $ratio, $unknown, $wrong));
+}
+
+// ══ F2 · the lookup is portable — no mysqlnd-only get_result() ══════════════
+{
+    $authSrc = file_get_contents(__DIR__ . '/../../auth.php');
+    ok(strpos($authSrc, '->get_result(') === false,
+       'F2: the shipped auth.php contains no ->get_result( — no mysqlnd dependency');
+    ok(strpos($authSrc, 'bind_result(') !== false, 'F2: it uses bind_result()');
+    ok(preg_match('/\$stmt->fetch\(\) === true/', $authSrc),
+       'F2: and checks fetch() strictly against true, so null (no row) is not a login');
+    ok(preg_match('/LIMIT 1/', $authSrc), 'F2: the query is bounded to one row');
+    ok(preg_match('/\$stmt->close\(\);/', $authSrc),
+       'F2: and the statement is closed, so no unfetched result is left on the connection');
+
+    /* The fake driver has no get_result() method at all — if auth.php called
+       one, every login test above would already have failed. */
+    ok(!method_exists('FakeStmt', 'get_result'),
+       'F2: the test driver deliberately offers no get_result() to fall back on');
+
+    /* One row is retrieved with all five columns. */
+    freshSession();
+    $db2 = makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']);
+    ok(dc_login($db2, 'siewling', $GLOBALS['PW_B']) === true, 'F2: a real login still works through bind_result/fetch');
+    eq($_SESSION['dc_user_id'], 12,          'F2: id came back');
+    eq($_SESSION['dc_username'], 'siewling', 'F2: username came back');
+    eq($_SESSION['dc_display_name'], 'Siew Ling', 'F2: display_name came back');
+    eq($db2->closes, 1, 'F2: the statement was closed exactly once');
+    foreach (['id','username','display_name','password_hash','enabled'] as $col) {
+        ok(strpos($db2->lastSql, $col) !== false, "F2: the SELECT retrieves $col");
     }
 }
 

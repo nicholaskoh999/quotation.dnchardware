@@ -148,3 +148,31 @@ Then the FULL regression: **39 suites, 3,907 browser assertions, 0 failed,
 0 skipped**, translation **862 keys / 100%**, and `php -l` clean on 8.4.
 
 Then STOP. **No deploy. No production DB change.** Candidate only.
+
+---
+
+## HUMAN REVIEW · PATCH ROUND (candidate `e396d60`)
+
+Two code findings, both upheld. Recorded here because the round stays open.
+
+**F1 — failed-login timing.** The first candidate only ran `password_verify()`
+when a row supplied a non-empty hash, so an unknown username returned without
+doing bcrypt work while a known one did. My report claimed the two were
+indistinguishable by timing; **that claim was not justified and was wrong.**
+`dc_login()` now falls back to `DC_AUTH_DUMMY_HASH` — a real bcrypt hash of a
+random string that was generated once, never written down and discarded — so
+`password_verify()` runs on every credential failure. It authenticates nothing:
+it is only reached when no usable row was found, and the row check fails the
+login regardless of what verification returned.
+
+**F2 — `get_result()` removed.** It requires mysqlnd, a dependency the accepted
+application never had. The lookup now uses the portable
+`bind_param` → `execute` → `bind_result` → `fetch` pattern, bounded by
+`LIMIT 1` and closed, with every step return-checked under the accepted
+`MYSQLI_REPORT_OFF` contract. The test driver deliberately offers no
+`get_result()` to fall back on.
+
+**F3 — repository chain.** Reported, not acted on: rebasing would require a
+force push, which this round's own rule forbids. See the report.
+
+Status remains **CANDIDATE — READY FOR HUMAN REVIEW**.

@@ -27,6 +27,23 @@
 // Stay signed in for ~7 days.
 const DC_AUTH_LIFETIME = 604800; // 7 * 24 * 60 * 60
 
+/**
+ * A real bcrypt hash of a random string that was generated once, never written
+ * down, and immediately discarded. It exists so that dc_login() can run
+ * password_verify() on EVERY credential failure, including one where no user
+ * row was found — otherwise an unknown username returns without doing bcrypt
+ * work and a known username does, and the difference is measurable.
+ *
+ * It authenticates nothing. It is only ever reached when there is no usable
+ * row, and the row check below fails the login regardless of what
+ * password_verify() returns. Even someone who knew the discarded preimage
+ * could not sign in with it.
+ *
+ * Its cost factor matches what password_hash(..., PASSWORD_DEFAULT) produces
+ * on this runtime, so the decoy costs what a real verification costs.
+ */
+const DC_AUTH_DUMMY_HASH = '$2y$12$beZY8mkX8rSDm4Cd/E0/D.dmpbugEPQBbP/QWXjTFwZbyr8MmSeoK';
+
 // ── Session bootstrap ────────────────────────────────────────────────────────
 
 /** True when the request arrived over HTTPS (handles LiteSpeed/proxy headers). */
@@ -154,30 +171,40 @@ function dc_login($db, $username, $password) {
     $user = dc_normalize_username($username);
     $pass = (string)$password;
 
-    /* Look up first, THEN decide — and always spend the same 0.4s on any
-       failure, so a wrong username and a wrong password are not distinguishable
-       by how long the answer took. No lockout in this round: it is recorded as
-       a future security item, not smuggled in here. */
+    /* bind_result()/fetch(), NOT get_result(): get_result() needs the mysqlnd
+       driver, and nothing else in this application depends on it. LIMIT 1 plus
+       close() means there is never an unfetched row left on the connection.
+
+       Every step is return-checked, which is the MYSQLI_REPORT_OFF contract the
+       rest of this application is written against. */
     $row = null;
-    if ($user !== '' && $pass !== '' && is_object($db) && method_exists($db, 'prepare')) {
+    if ($user !== '' && is_object($db) && method_exists($db, 'prepare')) {
         $stmt = $db->prepare('SELECT id, username, display_name, password_hash, enabled
                                 FROM app_users WHERE username = ? LIMIT 1');
         if ($stmt) {
-            $stmt->bind_param('s', $user);
-            if ($stmt->execute()) {
-                $res = $stmt->get_result();
-                if ($res) $row = $res->fetch_assoc();
+            $rId = $rUser = $rName = $rHash = $rEnabled = null;
+            if ($stmt->bind_param('s', $user)
+             && $stmt->execute()
+             && $stmt->bind_result($rId, $rUser, $rName, $rHash, $rEnabled)
+             && $stmt->fetch() === true) {
+                $row = ['id' => $rId, 'username' => $rUser, 'display_name' => $rName,
+                        'password_hash' => $rHash, 'enabled' => $rEnabled];
             }
             $stmt->close();
         }
     }
 
+    /* password_verify() runs on EVERY path, against the real hash when a row
+       was found and against the decoy constant when one was not. An unknown
+       username therefore costs the same bcrypt work as a known one, so the two
+       failures are not told apart by how long the answer took. */
     $hash    = is_array($row) ? (string)($row['password_hash'] ?? '') : '';
+    if ($hash === '') $hash = DC_AUTH_DUMMY_HASH;
     $enabled = is_array($row) ? (int)($row['enabled'] ?? 0) : 0;
-    $passOk  = $hash !== '' && password_verify($pass, $hash);
+    $passOk  = password_verify($pass, $hash);
 
     if (!is_array($row) || $enabled !== 1 || !$passOk) {
-        usleep(400000); // 0.4s
+        usleep(400000); // 0.4s — a floor under every failure, on top of the above
         return false;
     }
 
