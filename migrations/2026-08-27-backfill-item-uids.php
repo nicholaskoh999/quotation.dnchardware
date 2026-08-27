@@ -36,10 +36,20 @@
  *                     never guess which database it is about to write to.
  *   --apply           Actually write. Without it this is a DRY RUN and the
  *                     transaction is rolled back.
- *   --repair-invalid  Also re-mint identity for items whose stored item_uid is
- *                     malformed or duplicated inside their own quotation.
- *                     Without it those quotations are REPORTED and SKIPPED.
  *   --limit=N         Process at most N quotations (for a cautious first pass).
+ *
+ * THE GATE — malformed or duplicated STORED identity
+ *   This file adds identity where there is none. It does NOT rewrite identity
+ *   that already exists, even when that identity is damaged. If any stored
+ *   item_uid is malformed, or two items in one quotation claim the same one,
+ *   the run REPORTS the affected quotation ids and REFUSES TO WRITE ANYTHING
+ *   — not just those rows, the whole run — and exits non-zero.
+ *
+ *   That is deliberate. Deciding which of two rows keeps a duplicated identity,
+ *   or what a malformed one was meant to be, is a judgement about which item is
+ *   which. A migration that made that choice silently would be guessing exactly
+ *   the thing this round exists to stop guessing. A person inspects those
+ *   quotations and decides.
  *
  * IDEMPOTENT. A second run finds nothing to change and writes nothing.
  * ─────────────────────────────────────────────────────────────────────────────
@@ -56,11 +66,10 @@ if (PHP_SAPI !== 'cli') {
 mysqli_report(MYSQLI_REPORT_OFF);
 
 // ── arguments ────────────────────────────────────────────────────────────────
-$opt = ['db' => null, 'apply' => false, 'repair' => false, 'limit' => 0];
+$opt = ['db' => null, 'apply' => false, 'limit' => 0];
 foreach (array_slice($argv, 1) as $a) {
     if (strpos($a, '--db=') === 0)            $opt['db']     = substr($a, 5);
     elseif ($a === '--apply')                 $opt['apply']  = true;
-    elseif ($a === '--repair-invalid')        $opt['repair'] = true;
     elseif (strpos($a, '--limit=') === 0)     $opt['limit']  = max(0, (int)substr($a, 8));
     elseif ($a === '--help' || $a === '-h')   { echo file_get_contents(__FILE__, false, null, 0, 2200), "\n"; exit(0); }
     else { fwrite(STDERR, "Unknown argument: {$a}\n"); exit(2); }
@@ -130,15 +139,14 @@ $n = [
     'items'           => 0,
     'already'         => 0,   // items that already had a valid unique uid
     'minted'          => 0,   // items given one
-    'repaired'        => 0,   // malformed/duplicate re-minted (only with --repair-invalid)
     'changed'         => 0,   // quotation rows that need a write
     'unchanged'       => 0,
     'unreadable'      => 0,   // items JSON that will not decode to an array
-    'skipped_invalid' => 0,   // quotations with malformed/duplicate uids, left alone
+    'skipped_invalid' => 0,   // quotations whose stored identity is damaged
     'invalid_items'   => 0,   // the items inside them
 ];
 /* The counts reconcile, so a report can be checked rather than believed:
-       items seen = already + minted + remade + invalid + unreadable-rows' items */
+       items seen = already + minted + invalid + unreadable-rows' items */
 $problem = [];   // quotation ids only — never customer data
 
 if (!$db->begin_transaction()) { fwrite(STDERR, "  could not begin a transaction: {$db->error}\n"); exit(1); }
@@ -155,7 +163,7 @@ foreach ($rows as [$id, $json]) {
     $seen    = [];
     $invalid = false;
     $out     = [];
-    $minted  = 0; $repaired = 0;
+    $minted  = 0;
 
     /* Pass 1 — claim every VALID, non-duplicate uid first, so a later
        malformed row can never take an earlier row's identity. */
@@ -180,18 +188,16 @@ foreach ($rows as [$id, $json]) {
             $n['already']++;
             $out[] = $it; continue;
         }
-        /* Malformed, or a second row claiming a uid the first already holds. */
+        /* Malformed, or a second row claiming a uid the first already holds.
+           NOT repaired here, and not by any flag: rewriting stored identity is
+           a judgement about which item is which, and this file does not make
+           it. Counted, reported, and the whole run refuses to write. */
         $invalid = true;
-        if ($opt['repair']) {
-            do { $u2 = bf_new_uid(); } while (isset($seen[$u2]));
-            $seen[$u2] = true; $it['item_uid'] = $u2; $repaired++;
-        } else {
-            $n['invalid_items']++;
-        }
+        $n['invalid_items']++;
         $out[] = $it;
     }
 
-    if ($invalid && !$opt['repair']) {
+    if ($invalid) {
         $n['skipped_invalid']++; $problem['invalid'][] = (int)$id;
         continue;
     }
@@ -202,9 +208,9 @@ foreach ($rows as [$id, $json]) {
         break;
     }
 
-    if ($minted === 0 && $repaired === 0) { $n['unchanged']++; continue; }
+    if ($minted === 0) { $n['unchanged']++; continue; }
 
-    $n['minted'] += $minted; $n['repaired'] += $repaired; $n['changed']++;
+    $n['minted'] += $minted; $n['changed']++;
 
     $enc = json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($enc === false) { $abort = "quotation {$id}: items would not re-encode — aborting"; break; }
@@ -219,7 +225,12 @@ if ($abort !== null) {
     fwrite(STDERR, "\n  ABORTED — {$abort}\n  Nothing was written.\n\n");
     exit(1);
 }
-if ($opt['apply']) {
+/* ── GATE ────────────────────────────────────────────────────────────────────
+   Damaged stored identity anywhere means nothing is written anywhere. Not the
+   damaged rows, not the healthy ones. A partial backfill would leave the
+   operator believing the job was done. */
+$gateClosed = $n['skipped_invalid'] > 0;
+if ($opt['apply'] && !$gateClosed) {
     if (!$db->commit()) { $db->rollback(); fwrite(STDERR, "  commit failed: {$db->error}\n"); exit(1); }
 } else {
     $db->rollback();
@@ -230,22 +241,27 @@ printf("  quotations read          %6d\n", $n['quotations']);
 printf("  items seen               %6d\n", $n['items']);
 printf("  already had identity     %6d\n", $n['already']);
 printf("  identity minted          %6d\n", $n['minted']);
-if ($opt['repair']) printf("  invalid identity remade  %6d\n", $n['repaired']);
 printf("  quotation rows to write  %6d\n", $n['changed']);
 printf("  quotation rows unchanged %6d\n", $n['unchanged']);
 if ($n['invalid_items'])   printf("  items with invalid uid   %6d\n", $n['invalid_items']);
 if ($n['unreadable'])      printf("  items JSON unreadable    %6d   ids: %s\n", $n['unreadable'], implode(',', array_slice($problem['unreadable'], 0, 20)));
 if ($n['skipped_invalid']) printf("  SKIPPED, invalid uid     %6d   ids: %s\n", $n['skipped_invalid'], implode(',', array_slice($problem['invalid'], 0, 20)));
 echo '  ' . str_repeat('-', 70) . "\n";
+if ($gateClosed) {
+    echo "  GATE CLOSED — nothing was written.\n\n";
+    echo "  The quotation ids listed above hold identity that is malformed, or that\n";
+    echo "  two of their items claim at once. This migration adds identity where\n";
+    echo "  there is none; it does not rewrite identity that already exists, because\n";
+    echo "  choosing which item keeps a duplicated uid is a decision about which item\n";
+    echo "  is which. Inspect those quotations and decide by hand.\n\n";
+    echo "  Until then update_quotation will refuse them with\n";
+    echo "  ITEM_IDENTITY_BACKFILL_REQUIRED, which is the correct refusal.\n\n";
+    exit(1);
+}
 if ($opt['apply']) {
     echo "  APPLIED and committed. Re-run without --apply: it must report 0 to write.\n\n";
 } else {
     echo "  DRY RUN — transaction rolled back, nothing written.\n";
     echo "  Re-run with --apply to write.\n\n";
-}
-if ($n['skipped_invalid']) {
-    echo "  Those quotations still hold malformed or duplicated identity and will be\n";
-    echo "  refused by update_quotation. Inspect them, then re-run with\n";
-    echo "  --repair-invalid to give the affected items fresh identity.\n\n";
 }
 exit(0);

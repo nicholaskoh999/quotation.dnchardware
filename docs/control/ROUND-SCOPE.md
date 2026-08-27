@@ -158,12 +158,29 @@ touch. It runs inside a transaction and rolls back on any failure.
 
 - preserves every existing valid uid
 - adds one only where it is missing
-- detects malformed and duplicated stored uids, **reports them and skips those
-  quotations**; `--repair-invalid` is what re-mints them, and then the first
-  holder of a duplicated uid keeps it
+- **detects malformed and duplicated stored uids and refuses to write anything
+  at all** — see the gate below
 - idempotent — a second run reports 0 to write
 - updates only the rows that changed
 - prints counts, and quotation ids for problem rows only. No customer data.
+
+**THE GATE, and why there is no repair flag.** This file adds identity where
+there is none. It does **not** rewrite identity that already exists, even when
+that identity is damaged, and there is no option that makes it. If any stored
+`item_uid` is malformed, or two items in one quotation claim the same one, the
+run prints those quotation ids, prints `GATE CLOSED`, rolls back and **exits
+non-zero** — in dry run and under `--apply` alike.
+
+The refusal is deliberately total: **not just the damaged rows, the whole run.**
+A backfill that quietly did the healthy rows and skipped the rest would report
+success and leave an operator believing the job was finished.
+
+Deciding which of two items keeps a duplicated uid, or what a malformed one was
+meant to be, is a decision about *which item is which*. A migration that made
+that choice on its own would be guessing precisely the thing this round exists
+to stop guessing. A person inspects those quotations and decides. Until then
+`update_quotation` refuses them with `ITEM_IDENTITY_BACKFILL_REQUIRED`, which
+is the correct refusal and not a bug to route around.
 
 **The proof it carries.** For every row, the items array is compared before and
 after **with `item_uid` stripped out**, and a single difference aborts the whole
@@ -182,7 +199,8 @@ HTTP.
 1. production database backup
 2. pause quotation edits briefly
 3. backfill **DRY RUN**, and read the counts
-4. review — especially any skipped or unreadable rows
+4. review — if the dry run printed `GATE CLOSED`, step 5 will refuse; the
+   named quotations must be inspected and decided by hand first
 5. backfill `--apply`
 6. verify every persisted item now holds a valid unique uid
 7. deploy the accepted Item Identity application
@@ -222,7 +240,11 @@ undone.
   without reloading preserves identity; a copy clears it; a reorder does not
   regenerate it
 - backfill: dry run writes nothing; apply adds only what was missing; a second
-  apply is idempotent; business data identical with `item_uid` stripped
+  apply is idempotent; business data identical with `item_uid` stripped, and
+  `item_uid` is the only key any item gains
+- backfill: a malformed or duplicated **stored** uid is detected, named, and
+  refuses the apply outright — nothing written, non-zero exit, and no flag
+  anywhere that would repair it instead
 - `php -l` clean on every changed PHP file
 - the existing regression, unchanged: the thirty-nine accepted browser suites,
   translation **862 keys / 100%**, and the accepted PHP side suites at their
@@ -243,7 +265,7 @@ not touched by a candidate.
 |---|---:|
 | Browser suites | **40** (39 accepted + `40-item-identity`) |
 | Browser assertions | **3,936** |
-| Item identity PHP (`tests/php/item_identity.test.php`) | **137** |
+| Item identity PHP (`tests/php/item_identity.test.php`) | **156** |
 | Pricing / History | 172 |
 | AI Extraction / Parser | 107 |
 | Workbook | 62 |
@@ -251,15 +273,15 @@ not touched by a candidate.
 | Save retry | 42 |
 | mysqli compatibility | 94 |
 | Actor Identity | 150 |
-| **Candidate total** | **4,715** |
+| **Candidate total** | **4,734** |
 | Baseline | 2,810 |
-| **Delta** | **+1,905** |
+| **Delta** | **+1,924** |
 
 ```
   3,936   browser (40 suites)
 +   172 + 107 + 62 + 15 + 42 + 94 + 150   the accepted side groups
-+   137   item identity
-= 4,715   candidate total          4,715 - 2,810 = +1,905
++   156   item identity
+= 4,734   candidate total          4,734 - 2,810 = +1,924
 ```
 
 The thirty-nine accepted suites still measure **3,907** — 3,936 − 29, the new

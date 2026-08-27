@@ -333,31 +333,14 @@ $persisted = json_encode([
     ok(strpos($mig, 'ALTER TABLE') === false && strpos($mig, 'DROP ') === false,
        '7: no schema change and nothing dropped');
 
-    $tmp   = sys_get_temp_dir() . '/dc-item-uid-' . getmypid();
+    $tmp = sys_get_temp_dir() . '/dc-item-uid-' . getmypid();
     @mkdir($tmp, 0777, true);
-    $store = $tmp . '/store.json';
-    $stub  = $tmp . '/db.php';
 
-    /* A quotation from before this round, one already carrying identity, and
-       one with a duplicate — the three shapes the backfill has to tell apart. */
-    $seed = [
-        ['id' => 1, 'items' => json_encode([
-            ['desc' => 'SAG ROD', 'size' => 'M20', 'qty' => 4, 'finalUnitPrice' => 5.76, 'totalAmount' => 23.04],
-            ['desc' => 'STUD',    'size' => 'M12', 'qty' => 2, 'finalUnitPrice' => 1.10, 'totalAmount' => 2.20],
-        ])],
-        ['id' => 2, 'items' => json_encode([
-            ['desc' => 'ANCHOR', 'qty' => 1, 'item_uid' => 'itm_44444444444444444444444444444444'],
-        ])],
-        ['id' => 3, 'items' => json_encode([
-            ['desc' => 'DUP A', 'qty' => 1, 'item_uid' => 'itm_55555555555555555555555555555555'],
-            ['desc' => 'DUP B', 'qty' => 1, 'item_uid' => 'itm_55555555555555555555555555555555'],
-        ])],
-    ];
-    file_put_contents($store, json_encode($seed));
-    file_put_contents($stub, str_replace('__STORE__', addslashes($store), <<<'STUB'
+    /* One stub db.php per store: just enough mysqli for the migration, with the
+       "database" in a JSON file so the test can read what was actually
+       written — or prove that nothing was. */
+    $STUB = <<<'STUB'
 <?php
-/* A stub db.php: just enough mysqli for the migration, with the "database" in
-   a JSON file so the test can read what was actually written. */
 $GLOBALS['DC_STORE'] = '__STORE__';
 class FakeRes { private $r; function __construct($r){ $this->r=$r; } function fetch_row(){ return $this->r; } function free(){} }
 class FakeSel {
@@ -402,16 +385,25 @@ class FakeDB {
     function rollback(){ $this->pending = []; return true; }
 }
 function getDB(){ static $d; if (!$d) $d = new FakeDB(); return $d; }
-STUB
-    ));
+STUB;
 
     $php = PHP_BINARY;
-    $run = function ($args) use ($php, $MIG, $stub) {
-        $cmd = escapeshellarg($php) . ' ' . escapeshellarg($MIG) . ' --db=' . escapeshellarg($stub) . ' ' . $args . ' 2>&1';
-        $out = shell_exec($cmd);
-        return (string)$out;
+    $mkStore = function ($name, $seed) use ($tmp, $STUB) {
+        $store = $tmp . '/' . $name . '.json';
+        $stub  = $tmp . '/' . $name . '-db.php';
+        file_put_contents($store, json_encode($seed));
+        file_put_contents($stub, str_replace('__STORE__', addslashes($store), $STUB));
+        return [$store, $stub];
     };
-    $load = function () use ($store) {
+    /* Exit code matters here — the gate has to be usable from a script. */
+    $run = function ($stub, $args) use ($php, $MIG) {
+        $cmd = escapeshellarg($php) . ' ' . escapeshellarg($MIG)
+             . ' --db=' . escapeshellarg($stub) . ' ' . $args . ' 2>&1';
+        $out = []; $code = 0;
+        exec($cmd, $out, $code);
+        return [implode("\n", $out), $code];
+    };
+    $load = function ($store) {
         $rows = json_decode(file_get_contents($store), true);
         $by = [];
         foreach ($rows as $r) $by[(int)$r['id']] = json_decode($r['items'], true);
@@ -423,34 +415,42 @@ STUB
         return $o;
     };
 
-    $before = $load();
+    // ── store A: a legacy quotation and one that already has identity ────────
+    [$storeA, $stubA] = $mkStore('a', [
+        ['id' => 1, 'items' => json_encode([
+            ['desc' => 'SAG ROD', 'size' => 'M20', 'qty' => 4, 'finalUnitPrice' => 5.76, 'totalAmount' => 23.04],
+            ['desc' => 'STUD',    'size' => 'M12', 'qty' => 2, 'finalUnitPrice' => 1.10, 'totalAmount' => 2.20],
+        ])],
+        ['id' => 2, 'items' => json_encode([
+            ['desc' => 'ANCHOR', 'qty' => 1, 'item_uid' => 'itm_44444444444444444444444444444444'],
+        ])],
+    ]);
+    $before = $load($storeA);
 
     // 7a · DRY RUN writes nothing
-    $out = $run('');
+    [$out, $code] = $run($stubA, '');
     ok(strpos($out, 'DRY RUN') !== false, '7a: it announces the dry run');
     ok(preg_match('/identity minted\s+2/', $out) === 1, '7a: it finds the two items with no identity');
-    ok(preg_match('/already had identity\s+2/', $out) === 1, '7a: and the two that already had it');
-    ok(preg_match('/items with invalid uid\s+1/', $out) === 1, '7a: and the one that is a duplicate');
-    ok(preg_match('/SKIPPED, invalid uid\s+1/', $out) === 1, '7a: whose quotation is reported as skipped');
-    /* The counts reconcile, so the report can be checked rather than believed. */
-    ok(preg_match('/items seen\s+(\d+)/', $out, $mm) === 1 && (int)$mm[1] === 5,
-       '7a: five items seen = 2 already + 2 minted + 1 invalid');
-    eq($load(), $before, '7a: and the database is byte-for-byte what it was');
+    ok(preg_match('/already had identity\s+1/', $out) === 1, '7a: and the one that already had it');
+    ok(preg_match('/items seen\s+(\d+)/', $out, $mm) === 1 && (int)$mm[1] === 3,
+       '7a: three items seen = 2 minted + 1 already');
+    eq($code, 0, '7a: a clean dry run exits 0');
+    eq($load($storeA), $before, '7a: and the database is byte-for-byte what it was');
 
-    // 7b · APPLY
-    $out = $run('--apply');
+    // 7b · APPLY adds ONLY what was missing
+    [$out, $code] = $run($stubA, '--apply');
     ok(strpos($out, 'APPLIED and committed') !== false, '7b: the apply run commits');
-    $after = $load();
+    eq($code, 0, '7b: and exits 0');
+    $after = $load($storeA);
     ok(dc_is_item_uid($after[1][0]['item_uid'] ?? ''), '7b: the legacy quotation\'s first item now has identity');
     ok(dc_is_item_uid($after[1][1]['item_uid'] ?? ''), '7b: and so does its second');
     ok(($after[1][0]['item_uid'] ?? '') !== ($after[1][1]['item_uid'] ?? ''),
        '7b: two items in one quotation got two different uids');
     eq($after[2][0]['item_uid'], 'itm_44444444444444444444444444444444',
-       '7b: an item that already had identity KEEPS it');
-    eq($after[3], $before[3], '7b: the quotation with duplicated identity was left untouched');
+       '7b: an item that already had identity KEEPS it, byte for byte');
 
     // 7c · THE PROOF — strip identity and nothing moved
-    foreach ([1, 2, 3] as $id) {
+    foreach ([1, 2] as $id) {
         eq($strip($after[$id]), $strip($before[$id]),
            "7c: quotation {$id} — with item_uid stripped, the business data is identical");
     }
@@ -458,29 +458,79 @@ STUB
     eq(array_column($after[1], 'desc'), array_column($before[1], 'desc'), '7c: nor the item ORDER');
     eq($after[1][0]['totalAmount'], 23.04, '7c: nor a line total');
     eq($after[1][1]['finalUnitPrice'], 1.10, '7c: nor a unit price');
+    eq($after[1][0]['size'], 'M20', '7c: nor a size');
+    eq($after[1][1]['qty'], 2, '7c: nor a quantity');
+    /* item_uid is the ONLY key that appeared, on every item. */
+    foreach ([1, 2] as $id) {
+        foreach ($after[$id] as $i => $it) {
+            $addedKeys = array_values(array_diff(array_keys($it), array_keys($before[$id][$i])));
+            ok($addedKeys === [] || $addedKeys === ['item_uid'],
+               "7c: quotation {$id} item {$i} gained nothing but item_uid (" . implode(',', $addedKeys) . ')');
+            eq(array_values(array_diff(array_keys($before[$id][$i]), array_keys($it))), [],
+               "7c: quotation {$id} item {$i} lost no key");
+        }
+    }
 
     // 7d · IDEMPOTENT
-    $twice = $load();
-    $out = $run('--apply');
+    $twice = $load($storeA);
+    [$out, $code] = $run($stubA, '--apply');
     ok(preg_match('/identity minted\s+0/', $out) === 1, '7d: a second apply mints nothing');
     ok(preg_match('/quotation rows to write\s+0/', $out) === 1, '7d: and has nothing to write');
-    eq($load(), $twice, '7d: the database is unchanged by the second run');
+    eq($code, 0, '7d: and still exits 0');
+    eq($load($storeA), $twice, '7d: the database is unchanged by the second run');
 
-    // 7e · --repair-invalid is what fixes the damaged one, and only then
-    $out = $run('--apply --repair-invalid');
-    ok(preg_match('/invalid identity remade\s+1/', $out) === 1, '7e: --repair-invalid re-mints the duplicate');
-    $rep = $load();
-    eq($rep[3][0]['item_uid'], 'itm_55555555555555555555555555555555',
-       '7e: the FIRST holder keeps the identity it had');
-    ok(dc_is_item_uid($rep[3][1]['item_uid']) && $rep[3][1]['item_uid'] !== $rep[3][0]['item_uid'],
-       '7e: and the second gets a fresh one');
-    eq($strip($rep[3]), $strip($before[3]), '7e: business data still identical');
+    // ── store B: damaged stored identity, alongside a healthy legacy row ─────
+    [$storeB, $stubB] = $mkStore('b', [
+        ['id' => 10, 'items' => json_encode([
+            ['desc' => 'DUP A', 'qty' => 1, 'item_uid' => 'itm_55555555555555555555555555555555'],
+            ['desc' => 'DUP B', 'qty' => 1, 'item_uid' => 'itm_55555555555555555555555555555555'],
+        ])],
+        ['id' => 11, 'items' => json_encode([
+            ['desc' => 'MALFORMED', 'qty' => 1, 'item_uid' => 'nope'],
+        ])],
+        ['id' => 12, 'items' => json_encode([
+            ['desc' => 'HEALTHY LEGACY', 'qty' => 3],
+        ])],
+    ]);
+    $beforeB = $load($storeB);
 
-    // 7f · it refuses to guess which database
-    $bare = shell_exec(escapeshellarg($php) . ' ' . escapeshellarg($MIG) . ' 2>&1');
-    ok(strpos((string)$bare, '--db=') !== false, '7f: without --db it refuses rather than guessing');
+    // 7e · detected, reported, and the WHOLE run refuses — no repair, no flag
+    [$out, $code] = $run($stubB, '--apply');
+    ok(preg_match('/items with invalid uid\s+2/', $out) === 1,
+       '7e: both damaged items are detected — the duplicate and the malformed one');
+    ok(preg_match('/SKIPPED, invalid uid\s+2/', $out) === 1, '7e: in two quotations');
+    ok(strpos($out, '10') !== false && strpos($out, '11') !== false,
+       '7e: and their ids are named so a person can go and look');
+    ok(strpos($out, 'GATE CLOSED') !== false, '7e: the gate closes');
+    ok(strpos($out, 'APPLIED and committed') === false, '7e: and nothing is announced as applied');
+    eq($code, 1, '7e: --apply exits NON-ZERO, so a script cannot walk past it');
+    eq($load($storeB), $beforeB,
+       '7e: NOTHING was written — not the damaged rows, and not the healthy one beside them');
+    ok(!isset($load($storeB)[12][0]['item_uid']),
+       '7e: the healthy legacy row was not backfilled either — a partial backfill would look finished');
 
-    @unlink($store); @unlink($stub); @rmdir($tmp);
+    // 7f · the dry run reports the same thing and still writes nothing
+    [$out, $code] = $run($stubB, '');
+    ok(strpos($out, 'GATE CLOSED') !== false, '7f: the dry run closes the same gate');
+    eq($code, 1, '7f: and reports it in its exit code');
+    eq($load($storeB), $beforeB, '7f: still nothing written');
+
+    // 7g · there is NO repair capability, by any name
+    ok(strpos($mig, 'repair-invalid') === false, '7g: the migration has no --repair-invalid flag');
+    ok(!preg_match('/\$it\[.item_uid.\]\s*=\s*\$u2/', $mig),
+       '7g: and no code path that re-mints an existing stored uid');
+    [$out, $code] = $run($stubA, '--apply --repair-invalid');
+    ok(strpos($out, 'Unknown argument') !== false, '7g: passing it is rejected outright');
+    eq($code, 2, '7g: with a usage exit code, not a silent ignore');
+
+    // 7h · it refuses to guess which database
+    $out = []; $code = 0;
+    exec(escapeshellarg($php) . ' ' . escapeshellarg($MIG) . ' 2>&1', $out, $code);
+    ok(strpos(implode("\n", $out), '--db=') !== false, '7h: without --db it refuses rather than guessing');
+    eq($code, 2, '7h: and says so with a usage exit code');
+
+    foreach ([$storeA, $stubA, $storeB, $stubB] as $f) @unlink($f);
+    @rmdir($tmp);
 }
 
 
