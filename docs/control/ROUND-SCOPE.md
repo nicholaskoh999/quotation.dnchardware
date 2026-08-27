@@ -237,8 +237,15 @@ undone.
 - every refusal above fails closed, by name, before anything is written
 - a legacy persisted quotation asks for the backfill rather than being guessed
 - the page: load → edit → save preserves identity; create → save → edit again
-  without reloading preserves identity; a copy clears it; a reorder does not
-  regenerate it
+  without reloading preserves identity; a reorder does not regenerate it
+- clone / duplicate item: **N/A — there is no such path in the application.**
+  `quoteItems.push` appears in exactly three add paths and none of them copies
+  an existing row, so there is no end-to-end clone behaviour to accept and none
+  is claimed as tested. `dcStripItemUid()` is tested as a **guard helper only**:
+  it removes `item_uid` and changes nothing else. Any future clone / duplicate
+  feature **MUST** call it before the copied row is saved, or the copy would
+  claim the original's identity and `update_quotation` would refuse the save
+  with `ITEM_IDENTITY_DUPLICATE_UID`.
 - backfill: dry run writes nothing; apply adds only what was missing; a second
   apply is idempotent; business data identical with `item_uid` stripped, and
   `item_uid` is the only key any item gains

@@ -270,8 +270,17 @@ function validate_quotation_payload($input, &$error) {
 //
 // It lives inside the quotations.items JSON, so there is NO schema change and no
 // item table. The previous release never reads the key, so a backfilled
-// quotation renders, prices and re-saves under the old application exactly as it
-// did before — which is what makes the rollout order safe.
+// quotation RENDERS and PRICES under the old application exactly as it did
+// before.
+//
+// It does NOT follow that the old application preserves the key. Its edit path
+// rebuilds an item object from the entry form, and a rebuilt object does not
+// carry item_uid, so a quotation edited under the old release can come back
+// with identity missing from the rows that were touched. That is not a fault
+// and nothing breaks — the backfill is idempotent and this function fails
+// closed with ITEM_IDENTITY_BACKFILL_REQUIRED rather than guessing — but it is
+// why quotation edits must stay PAUSED between the backfill and the
+// deployment, and why that window is kept short.
 //
 // This round establishes identity and nothing else: no revision storage, no
 // audit rows, no transaction redesign.
@@ -373,8 +382,11 @@ function dc_reconcile_item_uids($incoming, $persistedJson, &$error) {
     }
     /* A persisted UID absent from $incoming is a DELETED item. Nothing is done
        about it on purpose: the identity disappears with the row and is never
-       handed to another item, because a fresh UID is minted at random and the
-       old one is not in $used to be reissued. */
+       handed to another item. $used starts as a copy of $persisted, so every
+       UID this quotation ever held — including the ones being deleted right
+       now — stays RESERVED for the whole of this reconciliation, and
+       dc_mint_item_uid() skips anything already in it. A freed UID is
+       therefore unavailable rather than merely improbable. */
     return $incoming;
 }
 
