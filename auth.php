@@ -32,7 +32,9 @@ const DC_AUTH_LIFETIME = 604800; // 7 * 24 * 60 * 60
  * down, and immediately discarded. It exists so that dc_login() can run
  * password_verify() on EVERY credential failure, including one where no user
  * row was found — otherwise an unknown username returns without doing bcrypt
- * work and a known username does, and the difference is measurable.
+ * work while a known username pays for it, which is a username-enumeration
+ * signal. Equalising the verification cost narrows that signal; it does not
+ * make the two requests identical end to end.
  *
  * It authenticates nothing. It is only ever reached when there is no usable
  * row, and the row check below fails the login regardless of what
@@ -196,8 +198,10 @@ function dc_login($db, $username, $password) {
 
     /* password_verify() runs on EVERY path, against the real hash when a row
        was found and against the decoy constant when one was not. An unknown
-       username therefore costs the same bcrypt work as a known one, so the two
-       failures are not told apart by how long the answer took. */
+       username therefore pays the same bcrypt verification cost as a known
+       username. This reduces the username-enumeration timing signal; it does
+       not guarantee identical end-to-end request timing, because database and
+       control-flow costs may still differ. */
     $hash    = is_array($row) ? (string)($row['password_hash'] ?? '') : '';
     if ($hash === '') $hash = DC_AUTH_DUMMY_HASH;
     $enabled = is_array($row) ? (int)($row['enabled'] ?? 0) : 0;

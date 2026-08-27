@@ -283,13 +283,18 @@ function freshSession() {
     }
 }
 
-// ══ F1 · every credential failure does the SAME bcrypt work ═════════════════
+// ══ F1 · every credential failure pays the SAME bcrypt verification cost ════
 {
     /* Deterministic, not wall-clock. The proof is structural: there is exactly
        ONE password_verify() call in the shipped file and it is NOT guarded, so
        every path that reaches the decision runs it. The old code guarded it
        with `$hash !== '' &&`, which skipped bcrypt entirely for an unknown
-       username — the finding this fixes. */
+       username — the finding this fixes.
+
+       Scope of the claim: this shows the VERIFICATION COST is equal, which
+       narrows the username-enumeration signal. It does not show that the two
+       requests take the same time end to end — database and control-flow costs
+       may still differ, and nothing below measures them. */
     $authSrc  = file_get_contents(__DIR__ . '/../../auth.php');
     $codeOnly = $authSrc;
     foreach (token_get_all($authSrc) as $tok) {
@@ -313,7 +318,7 @@ function freshSession() {
     eq($info['algoName'], 'bcrypt', 'F1: the decoy is a real bcrypt hash, not a placeholder string');
     $ref = password_get_info(password_hash('x', PASSWORD_DEFAULT));
     eq($info['options']['cost'] ?? null, $ref['options']['cost'] ?? null,
-       'F1: the decoy cost matches what PASSWORD_DEFAULT produces here — equal work');
+       'F1: the decoy cost matches what PASSWORD_DEFAULT produces here — equal verification cost');
     ok(password_verify('', DC_AUTH_DUMMY_HASH) === false
        && password_verify('admin', DC_AUTH_DUMMY_HASH) === false
        && password_verify('password', DC_AUTH_DUMMY_HASH) === false,
@@ -330,7 +335,8 @@ function freshSession() {
        'F1: the decoy path cannot authenticate an unknown user');
     ok(dc_current_user() === null, 'F1: and leaves no identity');
 
-    /* Both failure kinds reach the SAME lookup-then-verify shape. */
+    /* Both failure kinds reach the same lookup-then-verify shape. Equal shape,
+       not a guarantee of equal elapsed time. */
     freshSession();
     $probe = makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']);
     ok(dc_login($probe, 'nobody', 'whatever') === false, 'F1: unknown user fails');
@@ -340,14 +346,16 @@ function freshSession() {
     ok(dc_login($probe2, 'nicholas', 'wrong-password') === false, 'F1: wrong password fails');
     eq($probe2->executes, 1, 'F1: the wrong-password path performs one lookup too');
 
-    /* Wall-clock, as CORROBORATION only — a generous ratio, never the proof. */
+    /* Wall-clock, as CORROBORATION only — a generous ratio, never the proof, and
+       never a claim that end-to-end timing is identical. A single machine under
+       load says little; this catches a gross regression, nothing finer. */
     $t0 = microtime(true); freshSession(); dc_login(makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']), 'nobody', 'whatever');
     $unknown = microtime(true) - $t0;
     $t1 = microtime(true); freshSession(); dc_login(makeDb($GLOBALS['PW_A'], $GLOBALS['PW_B']), 'nicholas', 'wrong-password');
     $wrong = microtime(true) - $t1;
     $ratio = $wrong > 0 ? $unknown / $wrong : 0;
     ok($ratio > 0.5 && $ratio < 2.0,
-       sprintf('F1: the two failures cost comparable wall-clock (ratio %.2f, unknown %.3fs vs wrong %.3fs)',
+       sprintf('F1: the two failures cost broadly comparable wall-clock here (ratio %.2f, unknown %.3fs vs wrong %.3fs)',
                $ratio, $unknown, $wrong));
 }
 

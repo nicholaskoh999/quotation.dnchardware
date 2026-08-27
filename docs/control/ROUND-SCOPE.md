@@ -165,6 +165,12 @@ random string that was generated once, never written down and discarded — so
 it is only reached when no usable row was found, and the row check fails the
 login regardless of what verification returned.
 
+**What this does and does not claim.** An unknown username now pays the same
+bcrypt verification cost as a known username, which reduces the
+username-enumeration timing signal. It does **not** guarantee identical
+end-to-end request timing: database and control-flow costs may still differ,
+and nothing here measures them. The evidence supports the narrower claim only.
+
 **F2 — `get_result()` removed.** It requires mysqlnd, a dependency the accepted
 application never had. The lookup now uses the portable
 `bind_param` → `execute` → `bind_result` → `fetch` pattern, bounded by
