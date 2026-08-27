@@ -2,7 +2,7 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · **NOT DEPLOYED.**
+Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · **LIVE IN PRODUCTION, VERIFIED 2026-08-27.**
 
 > **On SHAs.** `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every

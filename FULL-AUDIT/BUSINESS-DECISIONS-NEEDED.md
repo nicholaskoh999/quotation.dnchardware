@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · not deployed.
+Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · **LIVE IN PRODUCTION, VERIFIED 2026-08-27.**
 
 **Two questions are open. Four are decided and are recorded below as decided,
 not as open** — they were being counted as unanswered in earlier drafts of this

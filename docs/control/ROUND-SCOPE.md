@@ -18,8 +18,9 @@ no deployment.
 | Round status | **FINAL ACCEPTED / CLOSED** |
 | DEPLOY = NO | no deployment action was taken in the promotion step |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production DB change | **NO** — the migration is prepared, NOT APPLIED |
-| Production users | **NONE SEEDED** — no `app_users` row exists in production |
+| Production DB change | **APPLIED** — `app_users` created 2026-08-27, backup taken first |
+| Production users | **2 SEEDED** — `nicholas` id=1, `testuser` id=2 |
+| Production deployment | **LIVE · PRODUCTION VERIFIED** 2026-08-27 |
 
 ---
 
@@ -211,14 +212,21 @@ rebase, no force push.
 | Translation | 862 keys, 100% |
 | Runtime the PHP evidence was measured on | PHP **8.4.19** |
 
-**Accepted in source is not deployed, and the two must not be read as one
-state.** `e76bb85` is the accepted application; `quo.dnchardware.com` still
-runs the previous build, which is the shared-login one. Nothing in this round
-touched production.
+**Rolled out and verified in production on 2026-08-27**, as a separate step
+after this round closed in source. The promotion commit itself took no
+deployment action; the rollout was performed against the accepted commit.
 
-- `migrations/2026-08-26-create-app-users.sql` — **NOT APPLIED**
-- production `app_users` rows — **NONE SEEDED**
-- Actor Identity in production — **NOT DEPLOYED, NOT PRODUCTION VERIFIED**
+- `migrations/2026-08-26-create-app-users.sql` — **APPLIED**, after a retained
+  production database backup
+- production `app_users` rows — **2 seeded**, `nicholas` id=1, `testuser` id=2
+- Actor Identity in production — **LIVE · PRODUCTION VERIFIED**
+- rollback — **NOT NEEDED**
+
+Smoke, with two people signed in at once: concurrent login PASS · logout
+isolation PASS · distinct server-side identities PASS · wrong password REFUSED ·
+unknown username REFUSED · old shared admin REFUSED · signed-out API HTTP 401 ·
+quotation create / save PASS · `ref_no` generation PASS · reopen / edit /
+re-save PASS with `ref_no` unchanged · test quotation cleaned up.
 
 The already-completed DB `NOT NULL(ref_no)` production fact is unaffected and
 remains accepted. `migrations/2026-08-26-set-ref-no-not-null.sql` still carries
@@ -226,6 +234,5 @@ its preparation-time header saying NOT APPLIED; that header records what was
 true when the file was written and is deliberately not rewritten. Current state
 is stated here and in CANONICAL-STATE, not by editing history.
 
-**The next production step is separate and has not been taken:** `app_users`
-preflight, create and seed, then the Actor Identity deployment, then a two-user
-production smoke. Only after that rollout does Item Identity Foundation begin.
+**The production rollout is complete**, so the gate it held is lifted: Item
+Identity Foundation may begin, in its own round with its own scope.

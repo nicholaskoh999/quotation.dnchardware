@@ -1,7 +1,7 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · Not deployed.
+Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · **LIVE IN PRODUCTION, VERIFIED 2026-08-27.**
 
 **P0 0 · P1 13 · P2 24 · P3 2 · 39 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of

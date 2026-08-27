@@ -5,6 +5,20 @@
     "status": "accepted",
     "acceptedRound": "ACTOR IDENTITY FOUNDATION — the server learns which individual person is asking (FINAL ACCEPTED)"
   },
+  "production": {
+    "host": "quo.dnchardware.com",
+    "runtime": "PHP 8.4",
+    "deployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
+    "actorIdentity": "LIVE — PRODUCTION VERIFIED",
+    "verifiedOn": "2026-08-27",
+    "appUsersMigration": "APPLIED",
+    "appUsersMigrationFile": "migrations/2026-08-26-create-app-users.sql",
+    "seededUsers": 2,
+    "databaseBackupRetained": true,
+    "rollbackPerformed": false,
+    "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
+    "note": "Verified by a two-user production smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. The test quotation was removed afterwards and no rollback was needed. The assertion figures in tests are SOURCE test figures, measured at e76bb85; the rollout did not change them and must not be read as adding to them."
+  },
   "tests": {
     "baselineAssertions": 2810,
     "finalAssertions": 4549,
@@ -143,7 +157,7 @@
       {
         "sha": "97a14cf56bad6414e382c6f49f40d13eabd97dc9",
         "supersededBy": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
-        "reason": "ACTOR IDENTITY FOUNDATION was accepted. Authentication is now DB-backed per individual person. auth.php no longer carries a shared DC_AUTH_USER / DC_AUTH_PASS_HASH pair; dc_login($db, $username, $password) takes an INJECTED handle so auth.php keeps its zero-DB property, and login.php — the only caller and the only file that loads db.php, lazily and inside the POST branch — calls mysqli_report(MYSQLI_REPORT_OFF) before requiring it, exactly as api.php does. A successful login stores dc_user_id, dc_username, dc_display_name and dc_login_time from the authenticated row; dc_user survives as a compatibility alias only, and dc_current_user() is the canonical server-side actor accessor. Passwords remain hashes verified by password_verify(), a disabled account cannot authenticate, and an unknown username is verified against a dummy bcrypt hash so every credential failure does the same bcrypt work — which REDUCES the username-enumeration timing signal and is not a claim of identical end-to-end timing. get_result() is not used: the lookup is the portable bind_param -> execute -> bind_result -> fetch. There is no legacy shared-admin fallback, so existing shared sessions stop being trusted at cutover, deliberately. auth.php and login.php are the only application files changed. Quotation create / update / delete, the ref_no format, GET_LOCK, the one-time 1062 retry, pricing, Quick Add and the item JSON are untouched, and item_uid and audit revisions are not implemented. The browser matrix did not move — 39 suites and 3,907 assertions, measured on e76bb85 exactly as on 97a14cf — but tests/php/auth_identity.test.php adds a seventh side group of 150, so the total moved from 4,399 to 4,549 and the delta from +1,589 to +1,739. migrations/2026-08-26-create-app-users.sql is prepared and NOT APPLIED, no production user was seeded, and the accepted application is not deployed. 97a14cf is the previous accepted commit and must never be quoted as the current one."
+        "reason": "ACTOR IDENTITY FOUNDATION was accepted. Authentication is now DB-backed per individual person. auth.php no longer carries a shared DC_AUTH_USER / DC_AUTH_PASS_HASH pair; dc_login($db, $username, $password) takes an INJECTED handle so auth.php keeps its zero-DB property, and login.php — the only caller and the only file that loads db.php, lazily and inside the POST branch — calls mysqli_report(MYSQLI_REPORT_OFF) before requiring it, exactly as api.php does. A successful login stores dc_user_id, dc_username, dc_display_name and dc_login_time from the authenticated row; dc_user survives as a compatibility alias only, and dc_current_user() is the canonical server-side actor accessor. Passwords remain hashes verified by password_verify(), a disabled account cannot authenticate, and an unknown username is verified against a dummy bcrypt hash so every credential failure does the same bcrypt work — which REDUCES the username-enumeration timing signal and is not a claim of identical end-to-end timing. get_result() is not used: the lookup is the portable bind_param -> execute -> bind_result -> fetch. There is no legacy shared-admin fallback, so existing shared sessions stop being trusted at cutover, deliberately. auth.php and login.php are the only application files changed. Quotation create / update / delete, the ref_no format, GET_LOCK, the one-time 1062 retry, pricing, Quick Add and the item JSON are untouched, and item_uid and audit revisions are not implemented. The browser matrix did not move — 39 suites and 3,907 assertions, measured on e76bb85 exactly as on 97a14cf — but tests/php/auth_identity.test.php adds a seventh side group of 150, so the total moved from 4,399 to 4,549 and the delta from +1,589 to +1,739. At acceptance migrations/2026-08-26-create-app-users.sql was prepared and NOT APPLIED, no production user had been seeded, and the accepted application was not yet deployed; the production rollout happened separately afterwards and its current state is recorded under \"production\", not here. 97a14cf is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   }

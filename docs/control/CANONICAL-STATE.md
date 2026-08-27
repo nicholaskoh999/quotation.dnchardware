@@ -96,18 +96,33 @@ measured on `e76bb85` exactly as on `97a14cf` — while
 `tests/php/auth_identity.test.php` adds a seventh side group of **150**, which
 is the whole of the +150 below.
 
-**ACCEPTED IN SOURCE IS NOT DEPLOYED, and the two are different facts.**
-`e76bb85` is the accepted application. `quo.dnchardware.com` still runs the
-previous shared-login build.
+**DEPLOYED AND PRODUCTION VERIFIED, 2026-08-27.** `e76bb85` is both the
+accepted application and what `quo.dnchardware.com` now runs. Accepted-in-source
+and live-in-production remain two different facts; they simply agree today, and
+a future accepted commit will separate them again until it is rolled out.
 
 | | |
 |---|---|
-| Actor Identity in production | **NOT DEPLOYED · NOT PRODUCTION VERIFIED** |
-| `migrations/2026-08-26-create-app-users.sql` | **NOT APPLIED** |
-| Production `app_users` rows | **NONE SEEDED** |
+| Actor Identity in production | **LIVE · PRODUCTION VERIFIED** |
+| Deployed application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
+| `migrations/2026-08-26-create-app-users.sql` | **APPLIED** |
+| Production `app_users` rows | **2 seeded** — `nicholas` id=1, `testuser` id=2 |
+| Production DB backup | taken before the migration, retained |
+| Rollback | **NOT NEEDED** |
+
+**What the production smoke proved**, with two people signed in at once:
+concurrent login PASS · logout isolation PASS · distinct server-side identities
+PASS · wrong password REFUSED · unknown username REFUSED · the old shared admin
+credentials REFUSED, so there is no fallback · signed-out API **HTTP 401** ·
+quotation create / save PASS · `ref_no` generation PASS · reopen / edit /
+re-save PASS with `ref_no` unchanged · the test quotation removed afterwards.
+
+**The assertion figures above are SOURCE test figures**, measured at `e76bb85`.
+The rollout did not change them and nothing from it is added to them — a
+production smoke is not an assertion count.
 
 Production `NOT NULL(ref_no)` was applied and verified in its own separate
-round and remains accepted; that fact is unaffected by this one.
+earlier round and remains accepted; that fact is unaffected by this one.
 `migrations/2026-08-26-set-ref-no-not-null.sql` still carries the
 preparation-time header saying NOT APPLIED, which records what was true when
 the file was written. History is not rewritten to make an old header read like
@@ -227,8 +242,10 @@ Manifest path: `MANIFEST/MANIFEST.txt`
 `quotation-dnc-final.zip`, nested delivery ZIPs, old delivery dump folders,
 secrets, `db.php`, `ai_config.php`.
 
-GitHub is source/history reference only. Deployment: **NO**, unless Nicholas
-explicitly approves.
+GitHub is source/history reference only. Deployment is **NEVER automatic**
+and never happens without Nicholas's explicit approval. Actor Identity was
+approved and deployed on 2026-08-27; that approval was for that release and
+does not carry to the next one.
 
 ---
 

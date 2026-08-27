@@ -514,10 +514,19 @@ update / delete behaviour · the `ref_no` format · `GET_LOCK` · the one-time
 1062 retry · pricing · Quick Add · the item JSON structure. `item_uid` is
 **not implemented**. Audit revisions are **not implemented**.
 
-**ACCEPTED IN SOURCE IS NOT DEPLOYED.** `migrations/2026-08-26-create-app-users.sql`
-is prepared and **NOT APPLIED**, no production user has been seeded, and
-production still runs the previous shared-login build. Nothing here may be
-described as production-verified until that rollout happens and is smoke-tested.
+**LIVE IN PRODUCTION SINCE 2026-08-27.**
+`migrations/2026-08-26-create-app-users.sql` is **APPLIED**, `app_users` holds
+real individual accounts, and `quo.dnchardware.com` runs the accepted commit.
+Everything above is therefore protected in a live system, not only in source.
+
+Two consequences that are now permanent:
+
+- **`app_users` rows are never deleted.** Deactivate with `enabled = 0`. A
+  `user_id` may be referenced by quotation history forever, so removing a row
+  would orphan the name behind it.
+- **The shared `admin` account is gone and stays gone.** It was verified
+  refused in production. Reinstating any shared or fallback credential is a
+  business-rule change needing explicit approval, not a convenience.
 
 `tests/php/auth_identity.test.php` drives the shipped `auth.php` with real PHP
 sessions and fails if any of the above stops being true.

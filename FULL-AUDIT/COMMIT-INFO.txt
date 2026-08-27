@@ -22,9 +22,12 @@ PACKAGE / HEAD COMMIT
                 can honestly state it. It may sit after the
                 application commit above, carrying evidence, reports
                 and packaging only.
-DEPLOYED        NO — nothing was deployed, and nothing was run against
-                production data. Every test drives the shipped code
-                against a controlled API in a local browser.
+DEPLOYED        NOT BY THIS PACKAGE — no step in producing it deployed
+                anything, and nothing here was run against production
+                data. Every test drives the shipped code against a
+                controlled API in a local browser. Whether the accepted
+                application is live is a separate fact, recorded in
+                docs/control/CANONICAL-STATE.json under "production".
 <<<END:HEADER>>>
 
 WORKING TREE    clean at the final commit

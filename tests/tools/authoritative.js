@@ -29,10 +29,11 @@ module.exports = {
      recorded as superseded in CANONICAL-STATE and must not be quoted as
      current.
 
-     ACCEPTED IN SOURCE IS NOT DEPLOYED. e76bb85 is the accepted application;
-     production still runs the previous build, migrations/
-     2026-08-26-create-app-users.sql is NOT APPLIED and no production user has
-     been seeded. */
+     e76bb85 is both the accepted application and, since 2026-08-27, what
+     production runs: migrations/2026-08-26-create-app-users.sql is APPLIED,
+     app_users is seeded, and the two-user smoke passed. The figures below are
+     SOURCE test figures measured at e76bb85 — a production smoke is not an
+     assertion and adds nothing to them. */
   APP_SHA:  'e76bb85d663f96fdce3ed6c0c70b72c49d84000a',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
