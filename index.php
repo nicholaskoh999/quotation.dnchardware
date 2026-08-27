@@ -7422,6 +7422,46 @@ function dcReportFoldedManuals(){
    Manual Price used to mean the bolt; it now means the customer's price, so a
    manual RM30.00 with RM0.70 of nuts becomes a manual RM30.70 — the same line
    the customer agreed to, expressed in the way the form now reads it. */
+/* ── Item identity ──────────────────────────────────────────────────────────
+   item_uid belongs to the SERVER. This page carries one and gives it back; it
+   never invents one, and it never lets one survive onto an item that is not
+   the same item.
+
+   Two rules, and they are opposites, which is why they are written down:
+
+     · An item built fresh from the entry form REPLACING a row that is already
+       in the quotation is the SAME row — the object is new, the identity is
+       not, so it travels across the replacement. Without this, editing a saved
+       item would silently delete it and add a different one.
+     · An item that is merely LIKE another one is a new item. Anything that
+       copies an item must not copy its identity.
+
+   A row with no item_uid is a new row, and that is the only way this page can
+   ask for one: by not sending a UID and letting the server mint it. */
+function dcCarryItemUid(prev,next){
+  if(prev && typeof prev.item_uid==='string' && prev.item_uid) next.item_uid=prev.item_uid;
+  return next;
+}
+/* A copy of an item is a different item. Used by anything that clones a row. */
+function dcStripItemUid(item){
+  if(item && 'item_uid' in item) delete item.item_uid;
+  return item;
+}
+/* The server answers a save with the items it actually persisted, in order.
+   Adopting the UIDs it issued is what makes a SECOND save from the same page
+   work: create, edit again without reloading, save — the items still carry the
+   identity the first save gave them, so the server sees edits and not a
+   quotation whose every row is new. Length is checked rather than assumed; a
+   mismatch means the answer is not describing this array, and nothing is
+   adopted. */
+function dcAdoptServerItems(serverItems){
+  if(!Array.isArray(serverItems) || serverItems.length!==quoteItems.length) return false;
+  for(let i=0;i<serverItems.length;i++){
+    const s=serverItems[i];
+    if(s && typeof s.item_uid==='string' && s.item_uid) quoteItems[i].item_uid=s.item_uid;
+  }
+  return true;
+}
 function dcMigrateItemPricing(item){
   if(!item || !dcItemIsSeparated(item)) return item;
   const acc=roundMoney2(Number(item.accessoryUnitPrice)||0);
@@ -8423,7 +8463,7 @@ function addPlate(){
   };
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const idx=editingItemIndex;
-    quoteItems[idx]=item;
+    quoteItems[idx]=dcCarryItemUid(quoteItems[idx],item);
     editingItemIndex=null;
     markQuotationDirty(); setItemEditMode(null); dcClearCustomDims(); renderQuote(idx);
     showToast(dcT('tItemUpdated')); return;
@@ -8666,7 +8706,7 @@ function addWAS(){
   };
   if(editingItemIndex!==null&&quoteItems[editingItemIndex]){
     const idx=editingItemIndex;
-    quoteItems[idx]=item;
+    quoteItems[idx]=dcCarryItemUid(quoteItems[idx],item);
     editingItemIndex=null;
     markQuotationDirty();setItemEditMode(null);
     resetAccPanel('was');                     // same rule as pushItem: no carry-over
@@ -8781,7 +8821,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),threadRef:dcReadItemThreadRef(),formData:captureItemFormData(type),...priceData,...money};
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const updatedIndex=editingItemIndex;
-    quoteItems[updatedIndex]=item;
+    quoteItems[updatedIndex]=dcCarryItemUid(quoteItems[updatedIndex],item);
     editingItemIndex=null;
     markQuotationDirty();
     setItemEditMode(null);
@@ -9946,6 +9986,9 @@ async function doSaveQuotation(){
   /* CONFIRMED. Nothing above this line has shown a success state, and nothing
      below it runs on the failure path. */
   dcSvOk('quotation');
+  /* Before the snapshot, before the re-render: the server owns item identity
+     and has just answered with it. */
+  dcAdoptServerItems(res.items);
   clearUnsavedDraft();
   editingQuoteId=editingQuoteId || res.id || (res.data&&res.data.id) || null;
   /* Phase 1 fix: the quotation number is allocated by the server at save time.

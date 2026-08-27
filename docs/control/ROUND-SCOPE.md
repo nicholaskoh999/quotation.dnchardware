@@ -2,237 +2,295 @@
 
 ## ROUND
 
-**ACTOR IDENTITY FOUNDATION**
+**ITEM IDENTITY FOUNDATION**
 
-The smallest production-safe change that lets the server know WHICH INDIVIDUAL
-authenticated person is making a request. No audit history, no revisions, no
-item ids, no roles, no RBAC, no user-management UI, no password reset, no 2FA,
-no deployment.
-
-**FINAL ACCEPTED / CLOSED.**
+The smallest change that gives every persisted quotation item a stable,
+immutable, server-owned identity. No revision storage, no audit rows, no
+history table, no diffing, no transaction redesign, no schema change, no
+deployment, no production DB write.
 
 | | |
 |---|---|
 | Accepted application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
-| Superseded application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
-| Round status | **FINAL ACCEPTED / CLOSED** |
-| DEPLOY = NO | no deployment action was taken in the promotion step |
+| Round status | **CANDIDATE — READY FOR REVIEW** |
+| DEPLOY = NO | a candidate is not a deployed state |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production DB change | **APPLIED** — `app_users` created 2026-08-27, backup taken first |
-| Production users | **2 SEEDED** — `nicholas` id=1, `testuser` id=2 |
-| Production deployment | **LIVE · PRODUCTION VERIFIED** 2026-08-27 |
+| Production DB change | **NO** — the backfill is prepared, NOT APPLIED |
+| Revision Storage | **NOT STARTED** — identity only |
 
 ---
 
 ## WHY THIS ROUND EXISTS
 
-`auth.php` is one shared hard-coded account:
+Actor Identity answered *who is asking*. It is live and production verified.
+The other half of "who changed this quotation item" is *which item* — and a
+quotation item has no identity at all:
 
 ```php
-const DC_AUTH_USER = 'admin';
-$_SESSION['dc_user'] = DC_AUTH_USER;      // always the literal 'admin'
+$items = json_encode($input['items'] ?? []);   // update_quotation, before this round
 ```
 
-Three or four staff sign in as the same identity, so the server cannot tell
-Nicholas from anyone else. The accepted Audit / Revision History architecture
-needs to answer "WHO changed this quotation?", and no audit table can answer it
-while every request is `admin`. This round supplies the missing half:
+The whole array is replaced on every save. An item is known only by its
+position in that array, so the server cannot tell
 
 ```
-authenticated request  →  immutable numeric user_id + username + display_name
+edited item 2        from   deleted item 2 and added a new one
+reordered            from   rewrote every row
 ```
 
-read from the SERVER session, never from the client.
+Any audit table built on top of that would record position changes as content
+changes and content changes as position changes. Identity has to come first,
+and it has to come from the server: an id the browser can choose is a field,
+not an identity.
+
+---
+
+## THE CONTRACT
+
+```
+itm_ + 32 lowercase hex        bin2hex(random_bytes(16))
+itm_6f9d7e8b9f4d4ec986f0d093e7815fd2
+```
+
+**The server is the authority.** `dc_new_item_uid()` is the only place one is
+made, and it lives in `api.php`.
+
+**CREATE.** Every item is given a fresh uid before persistence and any
+client-supplied one is discarded — on a create there is nothing an incoming uid
+could refer to, so accepting one would let a browser choose an identity.
+
+**UPDATE.** `update_quotation` reads the persisted `items` — one column, one
+row, the minimum this needs — and reconciles before anything is written:
+
+| incoming | outcome |
+|---|---|
+| uid present, valid, belongs to this quotation, seen once | **preserved exactly** |
+| no uid (`absent`, `null`, `''`) | **new item**, fresh uid |
+| uid present but malformed | `ITEM_IDENTITY_MALFORMED_UID` |
+| the same uid twice | `ITEM_IDENTITY_DUPLICATE_UID` |
+| a uid this quotation does not hold | `ITEM_IDENTITY_UNKNOWN_UID` |
+| a persisted uid missing from the incoming array | **deleted** — its identity goes with it and is never reissued |
+
+**A persisted quotation whose stored identity is missing, malformed or
+duplicated is refused** with `ITEM_IDENTITY_BACKFILL_REQUIRED`. It is **not**
+reconciled by array position. Position matching is the exact guess this round
+exists to remove, and doing it once "just for legacy rows" would put identity
+on the wrong item in the one case nobody would check.
+
+Every refusal returns before the `UPDATE` is prepared, so a refused save leaves
+the quotation untouched.
+
+**Not this round.** The read-then-write in `update_quotation` is not wrapped in
+a transaction. Two simultaneous edits of one quotation can still interleave
+exactly as they always have. That is the transaction-foundation round, and
+widening this one to reach it would put the allocation, the lock and the 1062
+retry back on the table.
+
+---
+
+## THE PAGE
+
+`index.php` carries identity and cannot mint it.
+
+- a loaded saved item keeps its uid
+- editing fields keeps it — including through the **three commit sites** where
+  an item rebuilt from the entry form replaces a row that already exists.
+  `dcCarryItemUid(prev, next)` moves identity across that replacement; without
+  it, editing a saved row would silently delete it and add a different one
+- reorder moves the uid with the item, because the uid is on the item
+- a new manual / Quick Add / AI-created item starts with **no** uid — that is
+  how the page asks for one
+- `dcStripItemUid()` exists so anything that copies a row clears identity: a
+  copy of an item is a different item
+- the page contains no uid literal and no generator of its own
+
+After a save the server answers with the normalized persisted items, and
+`dcAdoptServerItems()` takes the uids it issued **before** the snapshot. That
+is what makes the important case work:
+
+```
+create  →  server mints uids  →  edit again WITHOUT reloading  →  save
+        →  the same uids, so the second save is an edit, not three new items
+```
 
 ---
 
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+api.php
+index.php
+migrations/2026-08-27-backfill-item-uids.php
+tests/php/item_identity.test.php
+tests/suites/40-item-identity.test.js
 ```
 
-The block is **EMPTY**. This round is closed: `auth.php`, `login.php`,
-`migrations/2026-08-26-create-app-users.sql` and
-`tests/php/auth_identity.test.php` were reviewed and accepted into
-`e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, so nothing may now differ from the
-accepted commit.
+Nothing else may differ from `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`.
 
-Nothing else may differ from `97a14cf56bad6414e382c6f49f40d13eabd97dc9` either;
-the two application files this round carried are `auth.php` and `login.php`,
-and the diff is shown rather than asserted in the close-out.
-
-`api.php`, `index.php`, `companies.php`, `pricing_history.php`,
-`ai_extract.php`, `logout.php`, `db.sample.php` and every browser suite are
-**out of scope and must not change**.
+`auth.php`, `login.php`, `logout.php`, `companies.php`, `pricing_history.php`,
+`ai_extract.php`, `db.sample.php` and the existing thirty-nine browser suites
+are **out of scope and must not change**.
 
 ---
 
-## DESIGN, DECIDED BEFORE IMPLEMENTATION
+## MUST NOT CHANGE — AND DOES NOT
 
-**`auth.php` keeps its zero-DB property.** It is required by `index.php`,
-`companies.php`, `api.php`, `login.php` and `logout.php`; making it load the
-database would put a connection behind every page. The credential lookup
-therefore takes an **injected** handle:
+`ref_no` format · server-side allocation · `GET_LOCK` · `uq_quotations_ref` ·
+`NOT NULL ref_no` · the one-time 1062 retry · `mysqli_report(MYSQLI_REPORT_OFF)`
+· quotation create / update / delete semantics · pricing · material mapping ·
+Previous Price · Quick Add · the item JSON structure apart from the one new key
+· Actor Identity · the translation dictionary.
 
-```php
-dc_login($db, $username, $password)
-```
+`update_quotation`'s own `UPDATE` statement is unchanged, `ref_no` is still not
+in it, and `save_quotation`'s allocation path is untouched.
 
-`login.php` is the only caller and the only file that loads `db.php` — lazily,
-inside the POST branch, so a GET of the login page still opens no connection.
-No circular require, no hidden global, and no `app_users` lookup on any normal
-API request: after login the identity lives in the session.
-
-**PHP 8.4.** `login.php` must call `mysqli_report(MYSQLI_REPORT_OFF)` before
-requiring `db.php`, exactly as `api.php` does, or the accepted return-value
-contract is lost and a DB fault becomes an uncaught `mysqli_sql_exception`.
-
-**Fail closed.** Any DB fault — no handle, prepare fails, execute fails, no row,
-`enabled = 0`, bad password — returns false and establishes NO session.
-
-**Username normalisation:** `strtolower(trim($username))`, stored lowercase,
-looked up lowercase, `UNIQUE`. `Nicholas`, `NICHOLAS` and `nicholas` are one
-identity. `display_name` casing is never touched.
-
-**No shared-admin fallback.** `DC_AUTH_USER` and `DC_AUTH_PASS_HASH` are
-removed. Rollout is a clean cutover (application rollback restores the old
-shared-login app); a fallback would be a permanent backdoor.
-
-**Session contract** — all three identity fields come from the authenticated
-DB row:
-
-```php
-$_SESSION['dc_auth']         = true;
-$_SESSION['dc_user_id']      = (int) row id;
-$_SESSION['dc_username']     = normalised username;
-$_SESSION['dc_display_name'] = row display_name;
-$_SESSION['dc_login_time']   = time();
-$_SESSION['dc_user']         = username;   // compatibility alias only
-```
-
-`dc_current_user()` reads the session, validates it, and returns
-`['id','username','display_name']` or `null`. Future audit code consumes that
-helper, never `$_SESSION` internals and never `dc_user`.
-
-**`dc_is_logged_in()` additionally requires a valid identity.** A session
-carrying only the old `dc_auth` + `dc_user` shape is no longer authenticated.
-That is deliberate: on cutover every existing shared-account session must stop
-being trusted rather than silently become an unidentified actor.
+**No schema change.** `item_uid` lives inside the existing `quotations.items`
+JSON. There is no item table and no migration that alters one.
 
 ---
 
-## MUST NOT CHANGE — PROVEN, NOT ASSERTED
+## BACKFILL
 
-`ref_no` format · server-side allocation · `GET_LOCK` · `uq_quotations_ref`
-· `NOT NULL ref_no` · the one-time 1062 retry · quotation create / update /
-delete semantics · pricing · material mapping · Previous Price · Quick Add ·
-the item JSON structure · the translation dictionary outside the login strings
-this round touches · the PHP runtime target.
+`migrations/2026-08-27-backfill-item-uids.php` — CLI only, refuses to run from
+the web, **dry run by default**, writes only with `--apply`, and requires
+`--db=/path/to/db.php` rather than guessing which database it is about to
+touch. It runs inside a transaction and rolls back on any failure.
+
+- preserves every existing valid uid
+- adds one only where it is missing
+- detects malformed and duplicated stored uids, **reports them and skips those
+  quotations**; `--repair-invalid` is what re-mints them, and then the first
+  holder of a duplicated uid keeps it
+- idempotent — a second run reports 0 to write
+- updates only the rows that changed
+- prints counts, and quotation ids for problem rows only. No customer data.
+
+**The proof it carries.** For every row, the items array is compared before and
+after **with `item_uid` stripped out**, and a single difference aborts the whole
+transaction. So the quotation id, `ref_no`, company, customer, item order,
+descriptions, sizes, materials, quantities, pricing, totals and dates cannot
+move — not because the file promises it, but because the run stops if they do.
+
+`migrations/` is **not** part of the deployed file set in `.cpanel.yml`, so the
+backfill runs from the server-side git checkout and is never reachable over
+HTTP.
+
+---
+
+## ROLLOUT DESIGN — DOCUMENTED, NOT EXECUTED
+
+1. production database backup
+2. pause quotation edits briefly
+3. backfill **DRY RUN**, and read the counts
+4. review — especially any skipped or unreadable rows
+5. backfill `--apply`
+6. verify every persisted item now holds a valid unique uid
+7. deploy the accepted Item Identity application
+8. production smoke
+9. resume edits
+
+**Why the pause is in step 2 and not somewhere more convenient.** The build
+that is live today never reads `item_uid`, so a backfilled quotation renders,
+prices and prints under it exactly as before, and the extra JSON key changes
+nothing a customer or a calculation sees — verified: the accepted build
+contains no reference to `item_uid` at all, and its load path spreads unknown
+item keys through untouched.
+
+But the old build's *edit* path rebuilds an item object from the entry form,
+and an object it rebuilds does not carry the new key. So an item edited under
+the OLD application after the backfill loses its identity again and its
+quotation would need backfilling a second time. Nothing breaks — the backfill
+is idempotent and `update_quotation` fails closed rather than guessing — but
+the window between step 5 and step 7 is the one to keep short.
+
+Rolling the application back is the real rollback: the previous release ignores
+`item_uid` entirely, so the backfilled data stays valid and nothing has to be
+undone.
 
 ---
 
 ## ACCEPTANCE — WHAT MUST BE TRUE TO CLOSE
 
-Targeted evidence, on the real PHP 8.4 runtime, against the real `auth.php`
-with real PHP sessions:
+- CREATE: every item receives a uid; a supplied one is ignored; two new items
+  receive different uids
+- UPDATE: an ordinary edit preserves the uid; a reorder preserves the
+  uid-to-item pairing; a delete removes that uid and never reissues it; an
+  added item receives a fresh uid that differs from every retained one
+- every refusal above fails closed, by name, before anything is written
+- a legacy persisted quotation asks for the backfill rather than being guessed
+- the page: load → edit → save preserves identity; create → save → edit again
+  without reloading preserves identity; a copy clears it; a reorder does not
+  regenerate it
+- backfill: dry run writes nothing; apply adds only what was missing; a second
+  apply is idempotent; business data identical with `item_uid` stripped
+- `php -l` clean on every changed PHP file
+- the existing regression, unchanged: the thirty-nine accepted browser suites,
+  translation **862 keys / 100%**, and the accepted PHP side suites at their
+  accepted figures
 
-- valid enabled user with the right password logs in, and the session carries
-  `dc_auth`, the right `dc_user_id`, `dc_username`, `dc_display_name` and a
-  positive `dc_login_time`
-- wrong password, unknown username and `enabled = 0` each FAIL
-- case normalisation behaves exactly as documented
-- the session id CHANGES on successful login
-- two sessions can hold two different users at once, with different ids
-- logging one out leaves the other authenticated
-- an expired `dc_login_time` is rejected
-- the page guard redirects; the API guard returns JSON 401
-- a DB failure fails closed, with no authenticated session and no uncaught
-  `mysqli_sql_exception`
-- a failed login leaves no authenticated state behind
-- `password_verify` is used and no plaintext credential is committed
-- the migration declares UNIQUE on username
-
-Then the FULL regression: **39 suites, 3,907 browser assertions, 0 failed,
-0 skipped**, translation **862 keys / 100%**, and `php -l` clean on 8.4.
-
-Then STOP. **No deploy. No production DB change.** Candidate only.
+Then STOP. **No deploy. No production DB write.** Candidate only.
 
 ---
 
-## HUMAN REVIEW · PATCH ROUND (candidate `e396d60`)
+## MEASURED ON THIS CANDIDATE
 
-Two code findings, both upheld. Recorded here because the round stays open.
-
-**F1 — failed-login timing.** The first candidate only ran `password_verify()`
-when a row supplied a non-empty hash, so an unknown username returned without
-doing bcrypt work while a known one did. My report claimed the two were
-indistinguishable by timing; **that claim was not justified and was wrong.**
-`dc_login()` now falls back to `DC_AUTH_DUMMY_HASH` — a real bcrypt hash of a
-random string that was generated once, never written down and discarded — so
-`password_verify()` runs on every credential failure. It authenticates nothing:
-it is only reached when no usable row was found, and the row check fails the
-login regardless of what verification returned.
-
-**What this does and does not claim.** An unknown username now pays the same
-bcrypt verification cost as a known username, which reduces the
-username-enumeration timing signal. It does **not** guarantee identical
-end-to-end request timing: database and control-flow costs may still differ,
-and nothing here measures them. The evidence supports the narrower claim only.
-
-**F2 — `get_result()` removed.** It requires mysqlnd, a dependency the accepted
-application never had. The lookup now uses the portable
-`bind_param` → `execute` → `bind_result` → `fetch` pattern, bounded by
-`LIMIT 1` and closed, with every step return-checked under the accepted
-`MYSQLI_REPORT_OFF` contract. The test driver deliberately offers no
-`get_result()` to fall back on.
-
-**F3 — repository chain.** Reported, not acted on: rebasing would require a
-force push, which this round's own rule forbids. See the report.
-
-Both were fixed in `e8239bf` and `e76bb85`, and the round then passed FINAL
-HUMAN REVIEW.
-
----
-
-## OUTCOME — FINAL ACCEPTED / CLOSED
-
-Every acceptance condition above was met and the candidate was promoted. `main`
-was fast-forwarded from `5f54297` to the accepted commit — no merge commit, no
-rebase, no force push.
+Filled in from the actual runs, not from the accepted figures. This round adds
+tests, so the totals move and are reported as they were measured. **None of
+these are canonical** — CANONICAL-STATE still describes `e76bb85`, and it is
+not touched by a candidate.
 
 | | |
 |---|---:|
-| Accepted application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
-| Browser suites | 39 |
-| Browser assertions | 3,907 |
-| Failed | 0 |
-| Skipped | 0 |
-| Side suites | 172 · 107 · 62 · 15 · 42 · 94 · **150** |
-| Total assertions | **4,549** (+1,739 on the 2,810 baseline) |
-| Translation | 862 keys, 100% |
-| Runtime the PHP evidence was measured on | PHP **8.4.19** |
+| Browser suites | **40** (39 accepted + `40-item-identity`) |
+| Browser assertions | **3,936** |
+| Item identity PHP (`tests/php/item_identity.test.php`) | **137** |
+| Pricing / History | 172 |
+| AI Extraction / Parser | 107 |
+| Workbook | 62 |
+| Translation | 15 |
+| Save retry | 42 |
+| mysqli compatibility | 94 |
+| Actor Identity | 150 |
+| **Candidate total** | **4,715** |
+| Baseline | 2,810 |
+| **Delta** | **+1,905** |
 
-**Rolled out and verified in production on 2026-08-27**, as a separate step
-after this round closed in source. The promotion commit itself took no
-deployment action; the rollout was performed against the accepted commit.
+```
+  3,936   browser (40 suites)
++   172 + 107 + 62 + 15 + 42 + 94 + 150   the accepted side groups
++   137   item identity
+= 4,715   candidate total          4,715 - 2,810 = +1,905
+```
 
-- `migrations/2026-08-26-create-app-users.sql` — **APPLIED**, after a retained
-  production database backup
-- production `app_users` rows — **2 seeded**, `nicholas` id=1, `testuser` id=2
-- Actor Identity in production — **LIVE · PRODUCTION VERIFIED**
-- rollback — **NOT NEEDED**
+The thirty-nine accepted suites still measure **3,907** — 3,936 − 29, the new
+suite's own count. Not one existing suite's assertion count moved, which is the
+point: this round adds a key and changes no behaviour any of them measure.
 
-Smoke, with two people signed in at once: concurrent login PASS · logout
-isolation PASS · distinct server-side identities PASS · wrong password REFUSED ·
-unknown username REFUSED · old shared admin REFUSED · signed-out API HTTP 401 ·
-quotation create / save PASS · `ref_no` generation PASS · reopen / edit /
-re-save PASS with `ref_no` unchanged · test quotation cleaned up.
+Translation **862 keys / 100%**, unchanged — `index.php` gained no user-visible
+string. `php -l` clean on every PHP file.
 
-The already-completed DB `NOT NULL(ref_no)` production fact is unaffected and
-remains accepted. `migrations/2026-08-26-set-ref-no-not-null.sql` still carries
-its preparation-time header saying NOT APPLIED; that header records what was
-true when the file was written and is deliberately not rewritten. Current state
-is stated here and in CANONICAL-STATE, not by editing history.
+### What did NOT come out green here, and why
 
-**The production rollout is complete**, so the gate it held is lifted: Item
-Identity Foundation may begin, in its own round with its own scope.
+**Eight browser assertions failed, all in `38-mobile-ui`, and none of them
+belong to this round.** They are the companies.php modal `✕` desktop
+dimensions — expected 24 tall / 17 wide, measured 27 / 16.3 at 1440, 980, 700
+and 600px. `companies.php` is untouched by this candidate. Proven rather than
+asserted: a pristine `git worktree` at `ce26146` — this round's own starting
+point — fails the same eight assertions with the same numbers. They are font
+metrics on this Windows Chromium; the accepted matrix was measured in a Linux
+sandbox with a different fallback stack, and the harness strips the Google
+Fonts link. Nothing here may be read as the accepted 39/3,907 run being
+reproduced on this machine.
+
+**Two side figures are carried forward, not re-measured here:**
+
+- **Workbook 62** — `check-pricing-workbook.py` needs `openpyxl`, which is not
+  installed on this machine. Untouched by this round.
+- **Actor Identity 150** — measured on this machine as 150 assertions, **1
+  failed**: the deliberately runtime-relative bcrypt-cost assertion, which
+  needs PHP 8.4 (default cost 12) and gets 10 on the local 8.3.30. Already
+  recorded in CANONICAL-STATE. Unrelated to this round and not to be relaxed.
+
+The six suites that ran clean here — item identity 137, pricing 172, AI
+extraction 107, mysqli 94, save retry 42, translation 15 — match their accepted
+figures exactly.

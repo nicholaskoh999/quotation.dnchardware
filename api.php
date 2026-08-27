@@ -259,6 +259,126 @@ function validate_quotation_payload($input, &$error) {
     return true;
 }
 
+
+// ── Item identity ────────────────────────────────────────────────────────────
+// Every PERSISTED quotation item carries an item_uid. The browser holds one and
+// gives it back; it never mints one. Identity a client can invent is not
+// identity — it is a field, and a field cannot be trusted to say which row of a
+// quotation's history is which.
+//
+//     itm_ + 32 lowercase hex        128 bits from random_bytes()
+//
+// It lives inside the quotations.items JSON, so there is NO schema change and no
+// item table. The previous release never reads the key, so a backfilled
+// quotation renders, prices and re-saves under the old application exactly as it
+// did before — which is what makes the rollout order safe.
+//
+// This round establishes identity and nothing else: no revision storage, no
+// audit rows, no transaction redesign.
+
+const DC_ITEM_UID_RE = '/^itm_[0-9a-f]{32}$/';
+
+function dc_new_item_uid() {
+    return 'itm_' . bin2hex(random_bytes(16));
+}
+
+function dc_is_item_uid($v) {
+    return is_string($v) && preg_match(DC_ITEM_UID_RE, $v) === 1;
+}
+
+/* The two shapes a browser produces for "this item has no identity yet": the
+   key is absent, or it is null / empty string. A key that is PRESENT and is
+   something else — a number, an array, a non-empty non-UID string — is not one
+   of them, and is refused rather than forgiven. Forgiving it is how a forged
+   identity becomes a new item without anyone noticing. */
+function dc_item_uid_absent($item) {
+    if (!is_array($item) || !array_key_exists('item_uid', $item)) return true;
+    $v = $item['item_uid'];
+    return $v === null || $v === '';
+}
+
+/* A new UID may never collide with one this quotation already holds. The odds
+   are 2^-128 and the loop will never run twice; it is here because "will never
+   happen" is not the same as "cannot happen", and the cost is one array read. */
+function dc_mint_item_uid(array &$used) {
+    do { $uid = dc_new_item_uid(); } while (isset($used[$uid]));
+    $used[$uid] = true;
+    return $uid;
+}
+
+/* CREATE. Every item gets a fresh server UID and any client-supplied one is
+   discarded — on a create there is nothing for an incoming UID to refer to, so
+   accepting one would let a browser choose an identity. */
+function dc_assign_item_uids($items) {
+    if (!is_array($items)) return [];
+    $used = [];
+    foreach ($items as $i => $item) {
+        if (!is_array($item)) continue;      // validate_quotation_payload already refused it
+        $item['item_uid'] = dc_mint_item_uid($used);
+        $items[$i] = $item;
+    }
+    return $items;
+}
+
+/* UPDATE. Reconcile what the browser sent against what is already persisted,
+   and FAIL CLOSED on anything that does not reconcile. Returns the items to
+   persist, or null with $error set — and it is called before a single byte is
+   written, so a refusal changes nothing.
+
+   Deliberately NOT position-based. Reconciling by array index is exactly the
+   guess this round exists to remove: it cannot tell a reorder from a delete
+   followed by an add, and it silently moves identity onto the wrong row.
+
+   The persisted read is the minimum: one column, one row. Making the whole
+   update transactional is a different round and is not started here. */
+function dc_reconcile_item_uids($incoming, $persistedJson, &$error) {
+    $persistedItems = json_decode((string)$persistedJson, true);
+    if (!is_array($persistedItems)) {
+        /* Unreadable stored items. Nothing here may be guessed. */
+        $error = 'ITEM_IDENTITY_BACKFILL_REQUIRED';
+        return null;
+    }
+    $persisted = [];
+    foreach ($persistedItems as $p) {
+        if (!is_array($p) || dc_item_uid_absent($p)
+            || !dc_is_item_uid($p['item_uid']) || isset($persisted[$p['item_uid']])) {
+            /* A stored quotation from before this round, or one with a damaged
+               identity. It is NOT repaired here and NOT reconciled by position:
+               the backfill migration is the one place allowed to write identity
+               into existing rows, and it is run deliberately by an operator. */
+            $error = 'ITEM_IDENTITY_BACKFILL_REQUIRED';
+            return null;
+        }
+        $persisted[$p['item_uid']] = true;
+    }
+
+    if (!is_array($incoming)) { $error = 'ITEM_IDENTITY_MALFORMED_UID'; return null; }
+
+    $used = $persisted;    // retained UIDs are taken; a fresh one must avoid them
+    $seen = [];
+    foreach ($incoming as $idx => $item) {
+        if (!is_array($item)) { $error = 'ITEM_IDENTITY_MALFORMED_UID'; return null; }
+        if (dc_item_uid_absent($item)) {
+            /* No identity yet — this is a new item, wherever it sits in the
+               array. */
+            $item['item_uid'] = dc_mint_item_uid($used);
+            $incoming[$idx] = $item;
+            continue;
+        }
+        $uid = $item['item_uid'];
+        if (!dc_is_item_uid($uid))     { $error = 'ITEM_IDENTITY_MALFORMED_UID'; return null; }
+        if (isset($seen[$uid]))        { $error = 'ITEM_IDENTITY_DUPLICATE_UID';  return null; }
+        if (!isset($persisted[$uid]))  { $error = 'ITEM_IDENTITY_UNKNOWN_UID';    return null; }
+        $seen[$uid] = true;
+    }
+    /* A persisted UID absent from $incoming is a DELETED item. Nothing is done
+       about it on purpose: the identity disappears with the row and is never
+       handed to another item, because a fresh UID is minted at random and the
+       old one is not in $used to be reissued. */
+    return $incoming;
+}
+
+
 // ── Phase 1 stability: server-side quotation number allocation ──
 // The number shown in the browser at page load is a *preview only*. The real
 // number is allocated here, at save time, while holding a named MySQL lock so
@@ -638,7 +758,9 @@ if ($action === 'get_next_ref') {
     $remarks     = trim($input['remarks'] ?? '');
     $cust_name   = trim($input['customer_name'] ?? '');
     $cust_phone  = trim($input['customer_phone'] ?? '');
-    $items       = json_encode($input['items'] ?? []);
+    /* Item identity is minted here, not by the browser. */
+    $itemsArr    = dc_assign_item_uids($input['items'] ?? []);
+    $items       = json_encode($itemsArr);
     $total       = floatval($input['total_amount'] ?? 0);
 
     // Allocate the quotation number server-side, under a named lock, so two
@@ -662,7 +784,11 @@ if ($action === 'get_next_ref') {
     }
     $new_id = $db->insert_id;
     release_ref_lock($db);
-    echo json_encode(['ok'=>true,'id'=>$new_id,'ref_no'=>$ref_no,'reassigned'=>($requested_ref !== '' && $ref_no !== $requested_ref)]);
+    /* The normalized persisted items travel back, so the page that saved can
+       adopt the UIDs the server just issued. Without that, a second save from
+       the same page would send items with no identity and every one of them
+       would be read as new. */
+    echo json_encode(['ok'=>true,'id'=>$new_id,'ref_no'=>$ref_no,'reassigned'=>($requested_ref !== '' && $ref_no !== $requested_ref),'items'=>$itemsArr]);
 
 } elseif ($action === 'update_quotation') {
     $id          = intval($input['id'] ?? 0);
@@ -682,14 +808,37 @@ if ($action === 'get_next_ref') {
     $remarks     = trim($input['remarks'] ?? '');
     $cust_name   = trim($input['customer_name'] ?? '');
     $cust_phone  = trim($input['customer_phone'] ?? '');
-    $items       = json_encode($input['items'] ?? []);
+
+    /* Item identity, reconciled BEFORE anything is written. The read is one
+       column of one row — the minimum this needs — and every refusal below
+       leaves the quotation exactly as it was. */
+    $sel = prepare_or_fail($db, "SELECT items FROM quotations WHERE id=?", 'Quotation identity read prepare failed');
+    $sel->bind_param('i', $id);
+    execute_or_fail($sel, 'Quotation identity read failed');
+    $persistedItemsJson = null;
+    $sel->bind_result($persistedItemsJson);
+    $found = $sel->fetch();
+    $sel->close();
+    if (!$found) {
+        http_response_code(404);
+        echo json_encode(['ok'=>false,'error'=>'Not found']);
+        exit;
+    }
+    $identityError = '';
+    $itemsArr = dc_reconcile_item_uids($input['items'] ?? [], $persistedItemsJson, $identityError);
+    if ($itemsArr === null) {
+        echo json_encode(['ok'=>false,'error'=>$identityError]);
+        exit;
+    }
+
+    $items       = json_encode($itemsArr);
     $total       = floatval($input['total_amount'] ?? 0);
     // Note: ref_no is deliberately NOT part of this UPDATE — editing an
     // existing quotation always keeps its original quotation number.
     $stmt = prepare_or_fail($db, "UPDATE quotations SET company_id=?,quote_date=?,valid_until=?,prepared_by=?,remarks=?,customer_name=?,customer_phone=?,items=?,total_amount=? WHERE id=?", 'Quotation update prepare failed');
     $stmt->bind_param('isssssssdi', $company_id,$quote_date,$valid_until,$prep_by,$remarks,$cust_name,$cust_phone,$items,$total,$id);
     execute_or_fail($stmt, 'Quotation update failed');
-    echo json_encode(['ok'=>true]);
+    echo json_encode(['ok'=>true,'items'=>$itemsArr]);
 
 } elseif ($action === 'delete_quotation') {
     $id = intval($input['id'] ?? 0);
