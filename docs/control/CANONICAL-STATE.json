@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "97a14cf56bad6414e382c6f49f40d13eabd97dc9",
+    "acceptedCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
     "status": "accepted",
-    "acceptedRound": "PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY — the driver contract restored, and the CSV escape stated (FINAL ACCEPTED)"
+    "acceptedRound": "ACTOR IDENTITY FOUNDATION — the server learns which individual person is asking (FINAL ACCEPTED)"
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4399,
-    "deltaAssertions": 1589,
+    "finalAssertions": 4549,
+    "deltaAssertions": 1739,
     "failed": 0,
     "skipped": 0,
     "browserSuites": 39,
@@ -18,7 +18,8 @@
     "workbookAssertions": 62,
     "translationAssertions": 15,
     "saveRetryAssertions": 42,
-    "mysqliCompatAssertions": 94
+    "mysqliCompatAssertions": 94,
+    "actorIdentityAssertions": 150
   },
   "translation": {
     "keys": 862,
@@ -60,7 +61,8 @@
       4070,
       4172,
       4263,
-      4305
+      4305,
+      4399
     ],
     "supersededTranslationKeys": [
       512,
@@ -82,7 +84,8 @@
       1260,
       1362,
       1453,
-      1495
+      1495,
+      1589
     ],
     "supersededSuiteCounts": [
       34,
@@ -136,6 +139,11 @@
         "sha": "86cf2629a66434bf3bdffe2efc0acbe527c358ac",
         "supersededBy": "97a14cf56bad6414e382c6f49f40d13eabd97dc9",
         "reason": "PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted. PHP 8.1 changed the default mysqli_report mode to MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT, so mysqli throws where it used to return false. Every error path in api.php reads a return value and then an errno, and the application contains no try/catch in any PHP file, so on PHP 8.4 all of those checks were dead code: a request would die on an uncaught mysqli_sql_exception before any JSON was written, and the 1062 retry accepted at 86cf262 would never have run. api.php now calls mysqli_report(MYSQLI_REPORT_OFF) immediately before db.php is required — the earliest correct point, because getDB() lives in the server-only db.php that is absent from Git, and nothing in api.php before it touches mysqli. On PHP 8.0, which production runs, OFF is already the default and the call is a no-op; on 8.4 it restores the contract. No version branch was introduced. api.php also now states the three default $escape arguments to str_getcsv() and fputcsv(), which PHP 8.4 deprecates leaving implicit and which fired once per CSV row; the output was proven byte-identical to the implicit form. api.php is the only application file changed. The allocation algorithm, GET_LOCK, the ref_no format, the schema, the UNIQUE index, the UI, the parser, pricing and the quotation JSON are untouched, and no production PHP version was switched. The browser matrix did not move — 39 suites and 3,907 assertions, measured on 97a14cf exactly as on 86cf262 — but tests/php/mysqli_compat.test.php adds a sixth side suite of 94 assertions, so the total moved from 4,305 to 4,399 and the delta from +1,495 to +1,589. 86cf262 is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "97a14cf56bad6414e382c6f49f40d13eabd97dc9",
+        "supersededBy": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
+        "reason": "ACTOR IDENTITY FOUNDATION was accepted. Authentication is now DB-backed per individual person. auth.php no longer carries a shared DC_AUTH_USER / DC_AUTH_PASS_HASH pair; dc_login($db, $username, $password) takes an INJECTED handle so auth.php keeps its zero-DB property, and login.php — the only caller and the only file that loads db.php, lazily and inside the POST branch — calls mysqli_report(MYSQLI_REPORT_OFF) before requiring it, exactly as api.php does. A successful login stores dc_user_id, dc_username, dc_display_name and dc_login_time from the authenticated row; dc_user survives as a compatibility alias only, and dc_current_user() is the canonical server-side actor accessor. Passwords remain hashes verified by password_verify(), a disabled account cannot authenticate, and an unknown username is verified against a dummy bcrypt hash so every credential failure does the same bcrypt work — which REDUCES the username-enumeration timing signal and is not a claim of identical end-to-end timing. get_result() is not used: the lookup is the portable bind_param -> execute -> bind_result -> fetch. There is no legacy shared-admin fallback, so existing shared sessions stop being trusted at cutover, deliberately. auth.php and login.php are the only application files changed. Quotation create / update / delete, the ref_no format, GET_LOCK, the one-time 1062 retry, pricing, Quick Add and the item JSON are untouched, and item_uid and audit revisions are not implemented. The browser matrix did not move — 39 suites and 3,907 assertions, measured on e76bb85 exactly as on 97a14cf — but tests/php/auth_identity.test.php adds a seventh side group of 150, so the total moved from 4,399 to 4,549 and the delta from +1,589 to +1,739. migrations/2026-08-26-create-app-users.sql is prepared and NOT APPLIED, no production user was seeded, and the accepted application is not deployed. 97a14cf is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   }

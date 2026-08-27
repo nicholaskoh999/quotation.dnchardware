@@ -51,11 +51,11 @@ const bad = (where, msg) => fail.push(`FAIL ${where} ${msg}`);
   const t = C.tests, f = C.findings;
   const sum = t.browserAssertions + t.pricingHistoryAssertions
             + t.aiExtractionAssertions + t.workbookAssertions + t.translationAssertions
-            + t.saveRetryAssertions + t.mysqliCompatAssertions;
+            + t.saveRetryAssertions + t.mysqliCompatAssertions + t.actorIdentityAssertions;
   check(sum === t.finalAssertions,
     `canonical: ${fmt(t.browserAssertions)}+${t.pricingHistoryAssertions}+${t.aiExtractionAssertions}`
     + `+${t.workbookAssertions}+${t.translationAssertions}+${t.saveRetryAssertions}`
-    + `+${t.mysqliCompatAssertions} = ${fmt(sum)} = finalAssertions`);
+    + `+${t.mysqliCompatAssertions}+${t.actorIdentityAssertions} = ${fmt(sum)} = finalAssertions`);
   check(t.finalAssertions - t.baselineAssertions === t.deltaAssertions,
     `canonical: ${fmt(t.finalAssertions)} − ${fmt(t.baselineAssertions)} = ${fmt(t.deltaAssertions)} = delta`);
   check(f.p0 + f.p1 + f.p2 + f.p3 === f.total,
@@ -599,6 +599,9 @@ if (!EXTRACTED) {
       `  AI extraction PHP                      ${T.aiExtractionAssertions} assertions, 0 failed`,
       `  Pricing workbook                        ${T.workbookAssertions} assertions, 0 failed`,
       `  Translation coverage                    ${T.translationAssertions} assertions, 0 failed`,
+      `  Save retry PHP                          ${T.saveRetryAssertions} assertions, 0 failed`,
+      `  mysqli compatibility PHP                ${T.mysqliCompatAssertions} assertions, 0 failed`,
+      `  Actor identity PHP                     ${T.actorIdentityAssertions} assertions, 0 failed`,
       `  ----------------------------------------------------------------`,
       `  TOTAL ASSERTIONS                     ${fmt(T.finalAssertions).padStart(6)}`,
       `  TOTAL FAILED                              ${T.failed}`,

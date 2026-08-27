@@ -5,22 +5,23 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `97a14cf56bad6414e382c6f49f40d13eabd97dc9` · **NOT DEPLOYED.**
+Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · **NOT DEPLOYED.**
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
-**4,399 assertions, 0 failed, 0 skipped.**
+**4,549 assertions, 0 failed, 0 skipped.**
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `FINDINGS.md` has every defect with its root cause and its regression.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `97a14cf56bad6414e382c6f49f40d13eabd97dc9` is the last commit that changed the
+> **On SHAs.** `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted. Eight application
+> when ACTOR IDENTITY FOUNDATION was accepted. Nine application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;
 > superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
 > superseded — `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`, accepted for QUICK ADD STABILITY;
 > superseded — `cf92f27feb629134a61801dc120eba79c54fb5f6`, accepted for UI POLISH 2A;
@@ -420,7 +421,7 @@ Escape returns both the 10.6 and the word Default. R10 was tightened after it
 passed while the refusal text was empty: it now asserts the sentence, not only
 the disabled button.
 
-**TOTAL ASSERTIONS 4,399 · TOTAL FAILED 0 · SKIPPED 0.**
+**TOTAL ASSERTIONS 4,549 · TOTAL FAILED 0 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
@@ -446,7 +447,7 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. Green: 39 suites, 3,907 assertions, 0 failed in the browser matrix; 4,399
+re-exercised. Green: 39 suites, 3,907 assertions, 0 failed in the browser matrix; 4,549
 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth

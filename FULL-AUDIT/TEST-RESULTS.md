@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `97a14cf56bad6414e382c6f49f40d13eabd97dc9`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,12 +8,13 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `97a14cf56bad6414e382c6f49f40d13eabd97dc9` is the last commit that changed the
+> **On SHAs.** `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted. Eight application
+> when ACTOR IDENTITY FOUNDATION was accepted. Nine application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;
 > superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
 > superseded — `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`, accepted for QUICK ADD STABILITY;
 > superseded — `cf92f27feb629134a61801dc120eba79c54fb5f6`, accepted for UI POLISH 2A;
@@ -41,25 +42,35 @@ against itself.
 | Translation coverage (`tests/tools/check-translations.js`) | 1 | **15** | **0** |
 | Save retry PHP (`tests/php/save_retry.test.php`) | 1 | **42** | **0** |
 | mysqli compatibility PHP (`tests/php/mysqli_compat.test.php`) | 1 | **94** | **0** |
+| Actor identity PHP (`tests/php/auth_identity.test.php`) | 1 | **150** | **0** |
 
 ## TOTAL
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **4,399** |
+| **TOTAL ASSERTIONS** | **4,549** |
 | **TOTAL FAILED** | **0** |
 
 | | |
 |---|---:|
 | Baseline | 2,810 assertions |
-| Final | 4,399 assertions |
-| Delta | **+1,589 assertions** |
+| Final | 4,549 assertions |
+| Delta | **+1,739 assertions** |
 
 Every one of those is new coverage over a defect this audit reproduced. The
 per-round breakdown that used to sit here has been removed rather than
 corrected: it mixed absolute totals with increments and no longer reconciled
 to anything, and a sum that does not add up is worse than no sum. The commits
 are listed one by one in `COMMIT-INFO.txt`, each naming what it added.
+
+**The Actor Identity group was measured on PHP 8.4.19**, under
+`error_reporting = E_ALL`, against the real `auth.php` with real PHP sessions.
+One of its 150 assertions is deliberately runtime-relative: it compares the
+decoy hash's bcrypt cost with what `PASSWORD_DEFAULT` produces on the runtime
+in use, and PHP 8.4 raised that default from 10 to 12. The suite is therefore
+green on 8.4 and reports that one assertion as failed on 8.3 or earlier. The
+figure above is the 8.4.19 run, and the assertion is not to be relaxed to make
+an older interpreter agree.
 
 **Skipped or environment-limited: none.** Every suite named in the brief ran to
 completion and is counted above. The pricing-workbook check takes the workbook

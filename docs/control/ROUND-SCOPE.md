@@ -9,14 +9,17 @@ authenticated person is making a request. No audit history, no revisions, no
 item ids, no roles, no RBAC, no user-management UI, no password reset, no 2FA,
 no deployment.
 
+**FINAL ACCEPTED / CLOSED.**
+
 | | |
 |---|---|
-| Accepted application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
-| main | `e7646c861976f3087f8f08f3dd653e3922fa4dd3` |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
+| Accepted application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
+| Superseded application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | no deployment action was taken in the promotion step |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 | Production DB change | **NO** — the migration is prepared, NOT APPLIED |
+| Production users | **NONE SEEDED** — no `app_users` row exists in production |
 
 ---
 
@@ -45,13 +48,17 @@ read from the SERVER session, never from the client.
 ## ALLOWED TO CHANGE
 
 ```candidate-files
-auth.php
-login.php
-migrations/2026-08-26-create-app-users.sql
-tests/php/auth_identity.test.php
 ```
 
-Nothing else may differ from `97a14cf56bad6414e382c6f49f40d13eabd97dc9`.
+The block is **EMPTY**. This round is closed: `auth.php`, `login.php`,
+`migrations/2026-08-26-create-app-users.sql` and
+`tests/php/auth_identity.test.php` were reviewed and accepted into
+`e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, so nothing may now differ from the
+accepted commit.
+
+Nothing else may differ from `97a14cf56bad6414e382c6f49f40d13eabd97dc9` either;
+the two application files this round carried are `auth.php` and `login.php`,
+and the diff is shown rather than asserted in the close-out.
 
 `api.php`, `index.php`, `companies.php`, `pricing_history.php`,
 `ai_extract.php`, `logout.php`, `db.sample.php` and every browser suite are
@@ -181,4 +188,44 @@ application never had. The lookup now uses the portable
 **F3 — repository chain.** Reported, not acted on: rebasing would require a
 force push, which this round's own rule forbids. See the report.
 
-Status remains **CANDIDATE — READY FOR HUMAN REVIEW**.
+Both were fixed in `e8239bf` and `e76bb85`, and the round then passed FINAL
+HUMAN REVIEW.
+
+---
+
+## OUTCOME — FINAL ACCEPTED / CLOSED
+
+Every acceptance condition above was met and the candidate was promoted. `main`
+was fast-forwarded from `5f54297` to the accepted commit — no merge commit, no
+rebase, no force push.
+
+| | |
+|---|---:|
+| Accepted application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
+| Browser suites | 39 |
+| Browser assertions | 3,907 |
+| Failed | 0 |
+| Skipped | 0 |
+| Side suites | 172 · 107 · 62 · 15 · 42 · 94 · **150** |
+| Total assertions | **4,549** (+1,739 on the 2,810 baseline) |
+| Translation | 862 keys, 100% |
+| Runtime the PHP evidence was measured on | PHP **8.4.19** |
+
+**Accepted in source is not deployed, and the two must not be read as one
+state.** `e76bb85` is the accepted application; `quo.dnchardware.com` still
+runs the previous build, which is the shared-login one. Nothing in this round
+touched production.
+
+- `migrations/2026-08-26-create-app-users.sql` — **NOT APPLIED**
+- production `app_users` rows — **NONE SEEDED**
+- Actor Identity in production — **NOT DEPLOYED, NOT PRODUCTION VERIFIED**
+
+The already-completed DB `NOT NULL(ref_no)` production fact is unaffected and
+remains accepted. `migrations/2026-08-26-set-ref-no-not-null.sql` still carries
+its preparation-time header saying NOT APPLIED; that header records what was
+true when the file was written and is deliberately not rewritten. Current state
+is stated here and in CANONICAL-STATE, not by editing history.
+
+**The next production step is separate and has not been taken:** `app_users`
+preflight, create and seed, then the Actor Identity deployment, then a two-user
+production smoke. Only after that rollout does Item Identity Foundation begin.

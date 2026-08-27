@@ -2,12 +2,12 @@ QUOTATION.DNC — FULL-SYSTEM AUDIT, REPAIRS AND WORKFLOW POLISH
 ==============================================================
 
 <<<GENERATED:HEADER>>>
-BRANCH          claude/quotation-dnc-stage-0-w62kpt
+BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                97a14cf56bad6414e382c6f49f40d13eabd97dc9
-                "Put back the contract the driver stopped honouring"
+                e76bb85d663f96fdce3ed6c0c70b72c49d84000a
+                "Say only what the evidence shows about failed-login timing"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -151,6 +151,14 @@ AUDIT COMMITS (oldest first — this list is the count)
   c9a849d  The round is scoped before the call it inserts
   cefae89  The scope is amended before the test it widens to
   97a14cf  Put back the contract the driver stopped honouring
+  2ac3e3f  docs(control): accept the PHP 8.1+ mysqli compatibility fix as canonical
+  6f8b238  A round's state is a field, not a phrase found somewhere
+  e7646c8  Name the two SHAs, and stop a closed round claiming today's runtime
+  5f54297  db: prepare NOT NULL(ref_no), audited from source, not applied
+  1279282  The round is scoped before the identity it establishes
+  e396d60  The server learns which person is asking
+  e8239bf  Every failed sign-in does the same work, and asks the driver for less
+  e76bb85  Say only what the evidence shows about failed-login timing
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -312,14 +320,17 @@ TEST MATRIX AT FINAL SHA
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
+  Save retry PHP                          42 assertions, 0 failed
+  mysqli compatibility PHP                94 assertions, 0 failed
+  Actor identity PHP                     150 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      4,399
+  TOTAL ASSERTIONS                      4,549
   TOTAL FAILED                              0
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      4,399 assertions
-  Delta:     +1,589 assertions
+  Final:      4,549 assertions
+  Delta:     +1,739 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean

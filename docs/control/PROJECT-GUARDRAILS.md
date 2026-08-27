@@ -461,6 +461,69 @@ any of the above stops being true.
 
 ---
 
+## ACCEPTED — WHO IS ASKING
+
+Accepted in ACTOR IDENTITY FOUNDATION on `e76bb85`. Authentication is DB-backed
+per individual person: the server can name the staff member behind a request
+instead of seeing one shared `admin`. `auth.php` and `login.php` are the only
+application files it changed.
+
+Protected from here:
+
+- **`app_users` supplies an immutable numeric user id**, and that id — not the
+  username — is the actor's identity. A username can be re-cased or corrected;
+  the id is what future audit rows will point at.
+- **A successful authenticated session stores exactly four identity facts**,
+  all read from the authenticated row and never from the client:
+
+```
+dc_user_id  ·  dc_username  ·  dc_display_name  ·  dc_login_time
+```
+
+- **`dc_user` is a compatibility alias only.** It is not identity, and no new
+  code may read it as identity.
+- **`dc_current_user()` is the canonical server-side actor accessor.** Audit
+  and revision code consumes that helper — never `$_SESSION` internals, never
+  `dc_user`.
+- **Passwords stay hashes, verified by `password_verify()`.** No plaintext
+  credential is committed, and a disabled account (`enabled = 0`) cannot
+  authenticate.
+- **Unknown-user verification runs against a dummy bcrypt hash**, so every
+  credential failure does the same bcrypt work. What this claims is narrow and
+  must stay narrow: it **reduces the username-enumeration timing signal**. It
+  is **not** a claim of identical end-to-end timing, and nothing in the round
+  measured that. Do not restate it as one.
+- **`get_result()` is NOT used.** It requires mysqlnd, a dependency this
+  application never had. The lookup is the portable
+  `bind_param` → `execute` → `bind_result` → `fetch`, bounded by `LIMIT 1` and
+  closed, every step return-checked under the accepted `MYSQLI_REPORT_OFF`
+  contract.
+- **`auth.php` does not load the database.** `dc_login()` takes an injected
+  handle; `login.php` is the only caller and the only file that requires
+  `db.php`, lazily inside the POST branch, and calls
+  `mysqli_report(MYSQLI_REPORT_OFF)` first exactly as `api.php` does.
+- **An ordinary authenticated API request does not query `app_users`.** After
+  login the identity lives in the session; putting a lookup on every request
+  would put a connection behind every page.
+- **There is no legacy shared-admin fallback**, and none may be reinstated. A
+  fallback would be a permanent backdoor. Old shared sessions therefore stop
+  being trusted at cutover — that is the design, not a defect.
+
+**Unchanged by this round, and still protected as before:** quotation create /
+update / delete behaviour · the `ref_no` format · `GET_LOCK` · the one-time
+1062 retry · pricing · Quick Add · the item JSON structure. `item_uid` is
+**not implemented**. Audit revisions are **not implemented**.
+
+**ACCEPTED IN SOURCE IS NOT DEPLOYED.** `migrations/2026-08-26-create-app-users.sql`
+is prepared and **NOT APPLIED**, no production user has been seeded, and
+production still runs the previous shared-login build. Nothing here may be
+described as production-verified until that rollout happens and is smoke-tested.
+
+`tests/php/auth_identity.test.php` drives the shipped `auth.php` with real PHP
+sessions and fails if any of the above stops being true.
+
+---
+
 ## CONTROL-ONLY ROUND
 
 **Two SHAs, and they are not the same thing.**

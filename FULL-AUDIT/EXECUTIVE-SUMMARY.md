@@ -2,14 +2,15 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `97a14cf56bad6414e382c6f49f40d13eabd97dc9` · **NOT DEPLOYED.**
+Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · **NOT DEPLOYED.**
 
-> **On SHAs.** `97a14cf56bad6414e382c6f49f40d13eabd97dc9` is the last commit that changed the
+> **On SHAs.** `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted. Eight application
+> when ACTOR IDENTITY FOUNDATION was accepted. Nine application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;
 > superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
 > superseded — `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`, accepted for QUICK ADD STABILITY;
 > superseded — `cf92f27feb629134a61801dc120eba79c54fb5f6`, accepted for UI POLISH 2A;
