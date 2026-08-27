@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `649f80a09f83a7201c0f3772e01fc270ccda3e05`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,12 +8,13 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` is the last commit that changed the
+> **On SHAs.** `649f80a09f83a7201c0f3772e01fc270ccda3e05` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when ACTOR IDENTITY FOUNDATION was accepted. Nine application
+> when ITEM IDENTITY FOUNDATION was accepted. Ten application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, accepted for ACTOR IDENTITY FOUNDATION;
 > superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;
 > superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
 > superseded — `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`, accepted for QUICK ADD STABILITY;
@@ -35,7 +36,7 @@ against itself.
 
 | Group | Suites | Assertions | Failed |
 |---|---:|---:|---:|
-| Browser suites (`node tests/run.js`) | 39 | **3,907** | **0** |
+| Browser suites (`node tests/run.js`) | 40 | **3,936** | **8** |
 | Pricing-history PHP (`tests/php/pricing_history.test.php`) | 1 | **172** | **0** |
 | AI extraction PHP (`tests/php/ai_extract.test.php`) | 1 | **107** | **0** |
 | Pricing workbook (`tests/tools/check-pricing-workbook.py`) | 1 | **62** | **0** |
@@ -43,19 +44,20 @@ against itself.
 | Save retry PHP (`tests/php/save_retry.test.php`) | 1 | **42** | **0** |
 | mysqli compatibility PHP (`tests/php/mysqli_compat.test.php`) | 1 | **94** | **0** |
 | Actor identity PHP (`tests/php/auth_identity.test.php`) | 1 | **150** | **0** |
+| Item identity PHP (`tests/php/item_identity.test.php`) | 1 | **156** | **0** |
 
 ## TOTAL
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **4,549** |
-| **TOTAL FAILED** | **0** |
+| **TOTAL ASSERTIONS** | **4,734** |
+| **TOTAL FAILED** | **8** |
 
 | | |
 |---|---:|
 | Baseline | 2,810 assertions |
-| Final | 4,549 assertions |
-| Delta | **+1,739 assertions** |
+| Final | 4,734 assertions |
+| Delta | **+1,924 assertions** |
 
 Every one of those is new coverage over a defect this audit reproduced. The
 per-round breakdown that used to sit here has been removed rather than
@@ -72,7 +74,25 @@ green on 8.4 and reports that one assertion as failed on 8.3 or earlier. The
 figure above is the 8.4.19 run, and the assertion is not to be relaxed to make
 an older interpreter agree.
 
-**Skipped or environment-limited: none.** Every suite named in the brief ran to
+**The eight browser failures, in full.** They are all in
+`tests/suites/38-mobile-ui.test.js`, on the `companies.php` modal close control
+at 1440 / 980 / 700 / 600px: 27 tall where 24 was accepted, and 16.3 wide where
+17 was. They are font metrics, not an application fault — this matrix was
+re-measured on Windows Chromium while the earlier figures were measured in a
+Linux sandbox, and the harness strips the Google Fonts link so each falls back
+to whatever the host provides. `companies.php` and that suite are both
+untouched by this round, and a pristine worktree at the round's own starting
+point fails the same eight with the same numbers. They are NOT to be relaxed:
+the desktop dimensions they measure are protected, and what is unproven here is
+the environment, not the rule. The full record is in
+docs/control/CANONICAL-STATE, under `tests.browserFailureException`.
+
+**The browser matrix grew for the first time in five rounds.** The suites that
+existed before this round still measure 3,907 between them, assertion for
+assertion, and `40-item-identity` adds 29 — the whole of the difference. No
+earlier suite was modified or deleted.
+
+**Skipped: none.** Every suite named in the brief ran to
 completion and is counted above. The pricing-workbook check takes the workbook
 as an argument (`tests/tools/check-pricing-workbook.py
 quotation-dnc-final/pricing-engine-v2-input.xlsx`); it was run that way and
@@ -125,10 +145,11 @@ different. Each slice says so in its first two lines.
   ok   fast edit — one state, and everything it holds still                             77
   ok   diameter — the bar the weight is made of                                         94
   ok   roles — Fast Edit, Bulk Edit and Details do not overlap                         109
-  ok   phone widths — the scope label, the tap targets, and the desk left alone       102
+  FAIL phone widths — the scope label, the tap targets, and the desk left alone       102   (8 failed)
   ok   save feedback — the button, the value, the region, and the row                  91
+  ok   item identity — the page carries a uid it cannot mint                           29
 
-  39 suites, 3907 assertions, 0 failed    893.9s
+  40 suites, 3936 assertions, 8 failed    908.1s
 ```
 
 ---

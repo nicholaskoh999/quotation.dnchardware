@@ -51,11 +51,13 @@ const bad = (where, msg) => fail.push(`FAIL ${where} ${msg}`);
   const t = C.tests, f = C.findings;
   const sum = t.browserAssertions + t.pricingHistoryAssertions
             + t.aiExtractionAssertions + t.workbookAssertions + t.translationAssertions
-            + t.saveRetryAssertions + t.mysqliCompatAssertions + t.actorIdentityAssertions;
+            + t.saveRetryAssertions + t.mysqliCompatAssertions + t.actorIdentityAssertions
+            + t.itemIdentityAssertions;
   check(sum === t.finalAssertions,
     `canonical: ${fmt(t.browserAssertions)}+${t.pricingHistoryAssertions}+${t.aiExtractionAssertions}`
     + `+${t.workbookAssertions}+${t.translationAssertions}+${t.saveRetryAssertions}`
-    + `+${t.mysqliCompatAssertions}+${t.actorIdentityAssertions} = ${fmt(sum)} = finalAssertions`);
+    + `+${t.mysqliCompatAssertions}+${t.actorIdentityAssertions}+${t.itemIdentityAssertions}`
+    + ` = ${fmt(sum)} = finalAssertions`);
   check(t.finalAssertions - t.baselineAssertions === t.deltaAssertions,
     `canonical: ${fmt(t.finalAssertions)} − ${fmt(t.baselineAssertions)} = ${fmt(t.deltaAssertions)} = delta`);
   check(f.p0 + f.p1 + f.p2 + f.p3 === f.total,
@@ -405,10 +407,17 @@ if (has(L.logs, 'browser-suite.json')) {
   check(b.suites === T.browserSuites && b.asserts === T.browserAssertions && b.failures === T.failed,
     `browser-suite.json: ${b.suites} suites / ${fmt(b.asserts)} assertions / ${b.failures} failed`);
 }
+/* auth-identity-php.log is deliberately absent from this list: the accepted
+   150/0/0 run was measured on PHP 8.4.19 and the machine that closed that
+   round had only 8.3, so no log was written rather than one being invented.
+   That gap is recorded in CANONICAL-STATE, not papered over here. */
 for (const [f, want] of [['pricing-history-php.log', T.pricingHistoryAssertions],
                          ['ai-extract-php.log', T.aiExtractionAssertions],
                          ['pricing-workbook.log', T.workbookAssertions],
-                         ['translation-coverage.log', T.translationAssertions]]) {
+                         ['translation-coverage.log', T.translationAssertions],
+                         ['save-retry-php.log', T.saveRetryAssertions],
+                         ['mysqli-compat-php.log', T.mysqliCompatAssertions],
+                         ['item-identity-php.log', T.itemIdentityAssertions]]) {
   if (!has(L.logs, f)) { bad(f, 'is missing'); continue; }
   const t = read(L.logs, f);
   const m = t.match(/\((\d+) assertions\)/);
@@ -597,7 +606,7 @@ if (!EXTRACTED) {
       `                        from memory`,
     ].join('\n'),
     MATRIX: [
-      `  Browser suites            ${T.browserSuites} suites, ${fmt(T.browserAssertions)} assertions, 0 failed`,
+      `  Browser suites            ${T.browserSuites} suites, ${fmt(T.browserAssertions)} assertions, ${T.failed} failed`,
       `  Pricing-history PHP                    ${T.pricingHistoryAssertions} assertions, 0 failed`,
       `  AI extraction PHP                      ${T.aiExtractionAssertions} assertions, 0 failed`,
       `  Pricing workbook                        ${T.workbookAssertions} assertions, 0 failed`,
@@ -605,9 +614,10 @@ if (!EXTRACTED) {
       `  Save retry PHP                          ${T.saveRetryAssertions} assertions, 0 failed`,
       `  mysqli compatibility PHP                ${T.mysqliCompatAssertions} assertions, 0 failed`,
       `  Actor identity PHP                     ${T.actorIdentityAssertions} assertions, 0 failed`,
+      `  Item identity PHP                      ${T.itemIdentityAssertions} assertions, 0 failed`,
       `  ----------------------------------------------------------------`,
       `  TOTAL ASSERTIONS                     ${fmt(T.finalAssertions).padStart(6)}`,
-      `  TOTAL FAILED                              ${T.failed}`,
+      `  TOTAL FAILED                              ${T.failed}${T.failed ? '   (environment; see CANONICAL-STATE browserFailureException)' : ''}`,
       `  SKIPPED / ENVIRONMENT-LIMITED             ${T.skipped}`,
       ``,
       `  Baseline:  ${fmt(T.baselineAssertions).padStart(6)} assertions`,

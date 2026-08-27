@@ -35,9 +35,36 @@
   ok    fast edit — one state, and everything it holds still  (77 assertions)
   ok    diameter — the bar the weight is made of  (94 assertions)
   ok    roles — Fast Edit, Bulk Edit and Details do not overlap  (109 assertions)
-  ok    phone widths — the scope label, the tap targets, and the desk left alone  (102 assertions)
+  FAIL  phone widths — the scope label, the tap targets, and the desk left alone  (102 assertions, 8 failed)
   ok    save feedback — the button, the value, the region, and the row  (91 assertions)
+  ok    item identity — the page carries a uid it cannot mint  (29 assertions)
 
-  39 suites, 3907 assertions, 0 failed
+  40 suites, 3936 assertions, 8 failed
 
-  905.9s
+  FAILURES
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 1440px: the modal × is still 24 tall, as accepted
+      expected: "24"
+      actual:   "27"
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 1440px: and still 17 wide — the phone rule has not leaked onto the desk
+      expected: "17"
+      actual:   "16.3"
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 980px: the modal × is still 24 tall, as accepted
+      expected: "24"
+      actual:   "27"
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 980px: and still 17 wide — the phone rule has not leaked onto the desk
+      expected: "17"
+      actual:   "16.3"
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 700px: the modal × is still 24 tall, as accepted
+      expected: "24"
+      actual:   "27"
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 700px: and still 17 wide — the phone rule has not leaked onto the desk
+      expected: "17"
+      actual:   "16.3"
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 600px: the modal × is still 24 tall, as accepted
+      expected: "24"
+      actual:   "27"
+   - [phone widths — the scope label, the tap targets, and the desk left alone] companies 600px: and still 17 wide — the phone rule has not leaked onto the desk
+      expected: "17"
+      actual:   "16.3"
+
+  908.1s

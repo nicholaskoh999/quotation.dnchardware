@@ -6,8 +6,8 @@ BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                e76bb85d663f96fdce3ed6c0c70b72c49d84000a
-                "Say only what the evidence shows about failed-login timing"
+                649f80a09f83a7201c0f3772e01fc270ccda3e05
+                "Three comments that said more than the evidence does"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -162,6 +162,11 @@ AUDIT COMMITS (oldest first — this list is the count)
   e396d60  The server learns which person is asking
   e8239bf  Every failed sign-in does the same work, and asks the driver for less
   e76bb85  Say only what the evidence shows about failed-login timing
+  ce26146  docs(control): accept Actor Identity Foundation as canonical
+  796a720  docs(control): record Actor Identity as live and production verified
+  3088250  Every quotation item gets a name only the server can give it
+  308b8eb  The backfill adds identity; it does not rewrite identity that exists
+  649f80a  Three comments that said more than the evidence does
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -318,7 +323,7 @@ FILES CHANGED (baseline -> final)
 TEST MATRIX AT FINAL SHA
 ------------------------
 <<<GENERATED:MATRIX>>>
-  Browser suites            39 suites, 3,907 assertions, 0 failed
+  Browser suites            40 suites, 3,936 assertions, 8 failed
   Pricing-history PHP                    172 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
@@ -326,14 +331,15 @@ TEST MATRIX AT FINAL SHA
   Save retry PHP                          42 assertions, 0 failed
   mysqli compatibility PHP                94 assertions, 0 failed
   Actor identity PHP                     150 assertions, 0 failed
+  Item identity PHP                      156 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      4,549
-  TOTAL FAILED                              0
+  TOTAL ASSERTIONS                      4,734
+  TOTAL FAILED                              8   (environment; see CANONICAL-STATE browserFailureException)
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      4,549 assertions
-  Delta:     +1,739 assertions
+  Final:      4,734 assertions
+  Delta:     +1,924 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
@@ -365,7 +371,7 @@ EVIDENCE
   screenshots/          96 frames + INDEX.txt
   before-fix/           6 frames from the baseline commit, same inputs
   after-fix/            56 frames, the matching after
-  regression-evidence/  18 files — every log the reports claim,
+  regression-evidence/  19 files — every log the reports claim,
                         checked against the directory rather than written
                         from memory
 <<<END:EVIDENCE>>>

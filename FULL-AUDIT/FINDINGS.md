@@ -1,7 +1,7 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` · **LIVE IN PRODUCTION, VERIFIED 2026-08-27.**
+Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **ACCEPTED, NOT DEPLOYED** — production still runs the previous accepted commit, named in docs/control/CANONICAL-STATE under `production`.
 
 **P0 0 · P1 13 · P2 24 · P3 2 · 39 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
@@ -27,12 +27,13 @@ usability failure · **P3** cosmetic.
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
 
-> **On SHAs.** `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` is the last commit that changed the
+> **On SHAs.** `649f80a09f83a7201c0f3772e01fc270ccda3e05` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when ACTOR IDENTITY FOUNDATION was accepted. Nine application
+> when ITEM IDENTITY FOUNDATION was accepted. Ten application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, accepted for ACTOR IDENTITY FOUNDATION;
 > superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;
 > superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
 > superseded — `6bb5772475e06925f6c2ac8237099fcf0c61c3b7`, accepted for QUICK ADD STABILITY;

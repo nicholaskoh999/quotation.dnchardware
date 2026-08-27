@@ -34,8 +34,10 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a';
-const PREV = '97a14cf56bad6414e382c6f49f40d13eabd97dc9';
+const APP = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
+const PREV = 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a';
+/* What production RUNS, which is no longer what has been accepted. */
+const DEPLOYED = 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
 
@@ -52,63 +54,98 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    && A.TOTAL === T.finalAssertions && A.BASELINE === T.baselineAssertions
    && A.DELTA === T.deltaAssertions && A.FAILED === T.failed && A.SKIPPED === T.skipped,
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
-ck(T.browserSuites === 39 && T.browserAssertions === 3907 && T.finalAssertions === 4549
-   && T.deltaAssertions === 1739 && T.baselineAssertions === 2810,
+ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 4734
+   && T.deltaAssertions === 1924 && T.baselineAssertions === 2810,
    'the accepted matrix is the measured run');
+ck(T.browserSuitesBeforeThisRound === 39 && T.browserAssertionsBeforeThisRound === 3907
+   && T.itemIdentityBrowserAssertions === 29
+   && T.browserAssertionsBeforeThisRound + T.itemIdentityBrowserAssertions === T.browserAssertions,
+   `the browser matrix grew by exactly the new suite: 3,907 + 29 = ${T.browserAssertions}`);
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
    + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions
-   + T.mysqliCompatAssertions + T.actorIdentityAssertions === T.finalAssertions,
-   `3,907+172+107+62+15+42+94+150 = ${T.finalAssertions}`);
-ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,549 − 2,810 = +1,739');
+   + T.mysqliCompatAssertions + T.actorIdentityAssertions + T.itemIdentityAssertions
+   === T.finalAssertions,
+   `3,936+172+107+62+15+42+94+150+156 = ${T.finalAssertions}`);
+ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,734 − 2,810 = +1,924');
 ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['ai-extract-php.log'] === T.aiExtractionAssertions
    && A.SIDE['pricing-workbook.log'] === T.workbookAssertions
    && A.SIDE['translation-coverage.log'] === T.translationAssertions
    && A.SIDE['save-retry-php.log'] === T.saveRetryAssertions
    && A.SIDE['mysqli-compat-php.log'] === T.mysqliCompatAssertions
-   && A.SIDE['auth-identity-php.log'] === T.actorIdentityAssertions,
-   'the seven side suites agree in both files');
+   && A.SIDE['auth-identity-php.log'] === T.actorIdentityAssertions
+   && A.SIDE['item-identity-php.log'] === T.itemIdentityAssertions,
+   'the eight side suites agree in both files');
+/* ── A failing assertion count may be recorded, but never left bare ────────
+   The matrix has read "0 failed" for every accepted round until this one. It
+   now reads 8, and the only thing that makes that acceptable is that the
+   failures are named, attributed, and shown to pre-date the round. A future
+   round that lets FAILED drift upward without extending this record fails
+   here rather than shipping a number nobody has to justify. */
+const X = T.browserFailureException || {};
+ck(A.FAILED === T.failed, `authoritative.js and canonical agree on ${T.failed} failed`);
+ck(T.failed === 0 || (X && X.count === T.failed),
+   `${T.failed} failed, and the exception accounts for exactly ${X.count}`);
+ck(T.failed === 0 || (X.applicationFault === false && X.introducedByThisRound === false),
+   'the recorded failures are not an application fault and did not arrive with this round');
+ck(T.failed === 0 || (typeof X.reproducedOn === 'string' && /^[0-9a-f]{40}$/.test(X.reproducedOn)),
+   `and were reproduced on a commit that predates it: ${String(X.reproducedOn).slice(0,7)}`);
+ck(T.failed === 0 || (Array.isArray(X.filesUntouchedByThisRound)
+   && X.filesUntouchedByThisRound.every(f => git('diff','--name-only',PREV+'..'+APP,'--',f) === '')),
+   'and every file it blames is genuinely untouched by this promotion');
+ck(T.skipped === 0, 'nothing was skipped');
+
 ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
    && C.translation.missing === 0 && C.translation.hardcoded === 0 && C.translation.unapplied === 0,
    `translation 862 / 100% / 0 / 0 / 0, unchanged`);
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 9, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf',
+ck(S.length === 10, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[8].sha === PREV && S[8].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[9].sha === PREV && S[9].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`97a14cf56bad6414e382c6f49f40d13eabd97dc9` — superseded by `e76bb85`'),
+ck(MD.includes('`e76bb85d663f96fdce3ed6c0c70b72c49d84000a` — superseded by `649f80a`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
-ck(H.supersededAssertionTotals.includes(4399) && !H.supersededAssertionTotals.includes(4549),
-   '4,399 retired, 4,549 is not retired');
-ck(H.supersededDeltas.includes(1589) && !H.supersededDeltas.includes(1739),
-   '+1,589 retired, +1,739 is not retired');
-ck(H.supersededSuiteCounts.includes(38) && !H.supersededSuiteCounts.includes(39),
-   `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — 39 is current, not retired`);
+ck(H.supersededAssertionTotals.includes(4549) && !H.supersededAssertionTotals.includes(4734),
+   '4,549 retired, 4,734 is not retired');
+ck(H.supersededDeltas.includes(1739) && !H.supersededDeltas.includes(1924),
+   '+1,739 retired, +1,924 is not retired');
+ck(H.supersededSuiteCounts.includes(39) && !H.supersededSuiteCounts.includes(40),
+   `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — 40 is current, not retired`);
 
 // ── Git ──
 git('cat-file', '-t', APP);
 ck(git('cat-file','-t',APP) === 'commit', 'the accepted commit exists in this repository');
 let anc = true; try { git('merge-base','--is-ancestor',PREV,APP); } catch { anc = false; }
 ck(anc, `${PREV.slice(0,7)} is an ancestor of ${APP.slice(0,7)}`);
+ck(git('cat-file','-t',DEPLOYED) === 'commit', 'the DEPLOYED commit exists in this repository');
+ck(DEPLOYED !== APP, 'ACCEPTED and DEPLOYED are different commits — accepted is not live');
+ck(C.production.deployedApplicationCommit === DEPLOYED,
+   `canonical: production runs ${DEPLOYED.slice(0,7)}, not ${APP.slice(0,7)}`);
+ck(/NOT APPLIED/.test(C.production.itemUidBackfill || ''),
+   'canonical: the item_uid backfill is NOT APPLIED');
 let ancHead = true; try { git('merge-base','--is-ancestor',APP,'HEAD'); } catch { ancHead = false; }
 ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 /* '*.php' matches tests/php/*.test.php too, so the application half is asked
    for on its own — this promotion carries TWO application files. */
 ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**').split('\n').sort().join(',')
-   === 'auth.php,login.php',
-   'the promotion carries exactly auth.php and login.php');
+   === 'api.php,index.php,migrations/2026-08-27-backfill-item-uids.php',
+   'the promotion carries exactly api.php, index.php and the backfill migration');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
-   === 'tests/php/auth_identity.test.php',
-   'and exactly the one PHP test file — no browser suite moved');
+   === 'tests/php/item_identity.test.php,tests/suites/40-item-identity.test.js',
+   'and exactly the two new test files — ONE browser suite was added and none was edited');
+ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
+   'not one of the thirty-nine accepted browser suites was modified or deleted');
 ck(git('diff','--name-only',APP+'..HEAD','--','*.php') === '',
    'no application PHP differs from the accepted commit');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
-ck(git('log','-1','--format=%H',PREV+'..HEAD','--','auth.php','login.php','tests/php/auth_identity.test.php') === APP,
+ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','index.php',
+       'migrations/2026-08-27-backfill-item-uids.php','tests/php/item_identity.test.php',
+       'tests/suites/40-item-identity.test.js') === APP,
    'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 
@@ -177,11 +214,15 @@ ck(GR.includes('accessories are inside the parent item’s final customer'.repla
 
 // ── the accepted logs are the accepted run ──
 const LOG = R('FULL-AUDIT/regression-evidence/browser-suite.log');
-ck(/39 suites, 3907 assertions, 0 failed/.test(LOG), 'regression-evidence/browser-suite.log is the 39 / 3,907 run');
+ck(/40 suites, 3936 assertions, 8 failed/.test(LOG), 'regression-evidence/browser-suite.log is the 40 / 3,936 run');
 const BJ = JSON.parse(R('FULL-AUDIT/regression-evidence/browser-suite.json'));
-ck(BJ.suites === 39 && BJ.asserts === 3907 && BJ.failures === 0, 'browser-suite.json agrees');
+ck(BJ.suites === 40 && BJ.asserts === 3936 && BJ.failures === 8, 'browser-suite.json agrees');
+ck(Array.isArray(BJ.detail) && BJ.detail.length === BJ.failures,
+   `and carries all ${BJ.failures} failures in full rather than a bare count`);
+ck(BJ.detail.every(d => /phone widths/.test(d.suite)),
+   'every recorded failure is in the one suite the exception names');
 const per = [...LOG.matchAll(/\((\d+) assertions/g)].reduce((a,x)=>a+Number(x[1]),0);
-ck(per === 3907, `the 39 per-suite lines sum to ${per}`);
+ck(per === 3936, `the 40 per-suite lines sum to ${per}`);
 ck(!fs.existsSync(path.join(REPO,'FULL-AUDIT/STAGE-1-TEST-RESULTS.md')),
    'the candidate-only STAGE-1-TEST-RESULTS.md is gone, not left to drift');
 

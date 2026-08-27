@@ -15,32 +15,45 @@
 'use strict';
 
 module.exports = {
-  /* Moved nine times. e76bb85 is the last commit that changes an application
-     file and carries ACTOR IDENTITY FOUNDATION — authentication is DB-backed
-     per individual person, dc_login() takes an injected handle so auth.php
-     keeps its zero-DB property, and a successful session carries dc_user_id,
-     dc_username, dc_display_name and dc_login_time. auth.php and login.php
-     are the only application files it touches. The BROWSER matrix did not
-     move with it, but the new PHP suite tests/php/auth_identity.test.php adds
-     150, so TOTAL and DELTA did. 97a14cf carried the PHP 8.1+ mysqli
-     compatibility fix, 86cf262 the 1062 retry, 6bb5772 QUICK ADD STABILITY,
-     cf92f27 UI POLISH 2A, 3e89713 STAGE 1, 98a31e3 STAGE 0B, 33ae0da UI
-     POLISH 2, e3d659b UI POLISH 1, 7f5bc97 came before that; all nine are
-     recorded as superseded in CANONICAL-STATE and must not be quoted as
-     current.
+  /* Moved ten times. 649f80a is the last commit that changes an application
+     file and carries ITEM IDENTITY FOUNDATION — every persisted quotation item
+     holds a server-minted item_uid inside the existing items JSON, and
+     update_quotation reconciles against what is STORED rather than against
+     array position. api.php, index.php and the CLI backfill migration are the
+     application files it touches. e76bb85 carried ACTOR IDENTITY FOUNDATION,
+     97a14cf the PHP 8.1+ mysqli compatibility fix, 86cf262 the 1062 retry,
+     6bb5772 QUICK ADD STABILITY, cf92f27 UI POLISH 2A, 3e89713 STAGE 1,
+     98a31e3 STAGE 0B, 33ae0da UI POLISH 2, e3d659b UI POLISH 1, 7f5bc97 came
+     before that; all ten are recorded as superseded in CANONICAL-STATE and
+     must not be quoted as current.
 
-     e76bb85 is both the accepted application and, since 2026-08-27, what
-     production runs: migrations/2026-08-26-create-app-users.sql is APPLIED,
-     app_users is seeded, and the two-user smoke passed. The figures below are
-     SOURCE test figures measured at e76bb85 — a production smoke is not an
-     assertion and adds nothing to them. */
-  APP_SHA:  'e76bb85d663f96fdce3ed6c0c70b72c49d84000a',
+     The BROWSER matrix moved with this one, for the first time in five rounds:
+     tests/suites/40-item-identity.test.js is a fortieth suite of 29, and
+     tests/php/item_identity.test.php is an eighth side group of 156.
+
+     TWO SHAs, AND THEY ARE NOT THE SAME THING. APP_SHA is what has been
+     ACCEPTED. DEPLOYED_SHA is what production actually runs — still e76bb85,
+     the Actor Identity build, because Item Identity has not been deployed,
+     migrations/2026-08-27-backfill-item-uids.php has NOT been applied, and no
+     production quotation item holds an item_uid. They were equal for one
+     round; they are not equal now, and a checker that assumes they are would
+     report a live state that does not exist. */
+  APP_SHA:  '649f80a09f83a7201c0f3772e01fc270ccda3e05',
+  DEPLOYED_SHA: 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
-  SUITES: 39,
-  BROWSER: 3907,
-  TOTAL: 4549,
-  FAILED: 0,
+  SUITES: 40,
+  BROWSER: 3936,
+  TOTAL: 4734,
+  /* NOT zero, and not to be quietly restored to zero. Eight assertions in
+     38-mobile-ui fail on the runtime this matrix was re-measured on. They are
+     font metrics on the companies.php modal close control, not an application
+     fault: companies.php is untouched by this round and a pristine worktree at
+     ce26146 fails the same eight with the same numbers. CANONICAL-STATE
+     records the whole exception under tests.browserFailureException. Relaxing
+     those assertions to make this read 0 would delete a protected accepted
+     dimension to tidy a number. */
+  FAILED: 8,
   SKIPPED: 0,
 
   /* Where this started, and how far it moved. Stated as three numbers whose
@@ -49,11 +62,11 @@ module.exports = {
      per-round breakdowns are gone: they mixed absolutes with increments and
      stopped reconciling to anything. */
   BASELINE: 2810,
-  DELTA: 1739,
+  DELTA: 1924,
   SIDE: { 'pricing-history-php.log': 172, 'ai-extract-php.log': 107,
           'pricing-workbook.log': 62, 'translation-coverage.log': 15,
           'save-retry-php.log': 42, 'mysqli-compat-php.log': 94,
-          'auth-identity-php.log': 150 },
+          'auth-identity-php.log': 150, 'item-identity-php.log': 156 },
 
   KEYS: 862, COVERAGE: 100,
   P0: 0, P1: 13, P2: 24, P3: 2, FINDINGS: 39,

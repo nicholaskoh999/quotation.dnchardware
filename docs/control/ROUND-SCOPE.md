@@ -9,11 +9,15 @@ immutable, server-owned identity. No revision storage, no audit rows, no
 history table, no diffing, no transaction redesign, no schema change, no
 deployment, no production DB write.
 
+**FINAL ACCEPTED / CLOSED.**
+
 | | |
 |---|---|
-| Accepted application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
+| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
+| Superseded application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
+| Deployed application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` — **production has NOT moved** |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | no deployment action was taken in the promotion step |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 | Production DB change | **NO** — the backfill is prepared, NOT APPLIED |
 | Revision Storage | **NOT STARTED** — identity only |
@@ -118,14 +122,16 @@ create  →  server mints uids  →  edit again WITHOUT reloading  →  save
 ## ALLOWED TO CHANGE
 
 ```candidate-files
-api.php
-index.php
-migrations/2026-08-27-backfill-item-uids.php
-tests/php/item_identity.test.php
-tests/suites/40-item-identity.test.js
 ```
 
-Nothing else may differ from `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`.
+The block is **EMPTY**. This round is closed: `api.php`, `index.php`,
+`migrations/2026-08-27-backfill-item-uids.php`, `tests/php/item_identity.test.php`
+and `tests/suites/40-item-identity.test.js` were reviewed and accepted into
+`649f80a09f83a7201c0f3772e01fc270ccda3e05`, so nothing may now differ from the
+accepted commit.
+
+Nothing else differed from `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` either,
+and the close-out shows the diff rather than asserting it.
 
 `auth.php`, `login.php`, `logout.php`, `companies.php`, `pricing_history.php`,
 `ai_extract.php`, `db.sample.php` and the existing thirty-nine browser suites
@@ -261,12 +267,12 @@ Then STOP. **No deploy. No production DB write.** Candidate only.
 
 ---
 
-## MEASURED ON THIS CANDIDATE
+## MEASURED — AND NOW ACCEPTED
 
-Filled in from the actual runs, not from the accepted figures. This round adds
-tests, so the totals move and are reported as they were measured. **None of
-these are canonical** — CANONICAL-STATE still describes `e76bb85`, and it is
-not touched by a candidate.
+Filled in from the actual runs, not carried over. This round adds tests, so the
+totals moved and are recorded as they were measured. **These are now the
+canonical figures**; CANONICAL-STATE carries the same numbers and the same
+exception.
 
 | | |
 |---|---:|
@@ -298,7 +304,7 @@ point: this round adds a key and changes no behaviour any of them measure.
 Translation **862 keys / 100%**, unchanged — `index.php` gained no user-visible
 string. `php -l` clean on every PHP file.
 
-### What did NOT come out green here, and why
+### What did NOT come out green, and why — ACCEPTED AS AN EXCEPTION
 
 **Eight browser assertions failed, all in `38-mobile-ui`, and none of them
 belong to this round.** They are the companies.php modal `✕` desktop
@@ -308,8 +314,14 @@ asserted: a pristine `git worktree` at `ce26146` — this round's own starting
 point — fails the same eight assertions with the same numbers. They are font
 metrics on this Windows Chromium; the accepted matrix was measured in a Linux
 sandbox with a different fallback stack, and the harness strips the Google
-Fonts link. Nothing here may be read as the accepted 39/3,907 run being
+Fonts link. Nothing here may be read as the earlier 3,907 run being
 reproduced on this machine.
+
+The exception is recorded in CANONICAL-STATE under
+`tests.browserFailureException`, and `check-control.js` now refuses a non-zero
+failure count that is not accounted for there — named suite, stated cause,
+`applicationFault: false`, and a commit predating the round on which it was
+reproduced. A later round cannot let this number drift upward quietly.
 
 **Two side figures are carried forward, not re-measured here:**
 
@@ -323,3 +335,43 @@ reproduced on this machine.
 The six suites that ran clean here — item identity 137, pricing 172, AI
 extraction 107, mysqli 94, save retry 42, translation 15 — match their accepted
 figures exactly.
+
+---
+
+## OUTCOME — FINAL ACCEPTED / CLOSED
+
+Every acceptance condition above was met and the candidate was promoted. `main`
+was fast-forwarded from `796a720` to the accepted commit — no merge commit, no
+rebase, no force push.
+
+| | |
+|---|---:|
+| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
+| Browser suites | **40** |
+| Browser assertions | **3,936** |
+| Failed | **8** — the recorded `38-mobile-ui` environment exception |
+| Skipped | 0 |
+| Suites before this round | 39, measuring 3,907 |
+| New browser suite | `40-item-identity` — 29 |
+| Side suites | 172 · 107 · 62 · 15 · 42 · 94 · 150 · **156** |
+| Total assertions | **4,734** (+1,924 on the 2,810 baseline) |
+| Translation | 862 keys, 100% |
+
+**ACCEPTED IS NOT LIVE.** Production still runs
+`e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, the Actor Identity build. Item
+Identity exists in source only.
+
+- Item Identity in production — **NOT DEPLOYED, NOT PRODUCTION VERIFIED**
+- `migrations/2026-08-27-backfill-item-uids.php` — **NOT APPLIED**
+- production quotation items holding an `item_uid` — **none**
+- rollback — **not applicable; nothing was rolled out**
+
+Actor Identity remains live and production verified, `app_users` remains
+applied and seeded, and production `NOT NULL(ref_no)` is untouched. Accepting
+`649f80a` disturbs none of those: they are facts about `e76bb85`, which is
+still the deployed build.
+
+**The next production step has not been taken.** The rollout order in this file
+— backup, pause edits, backfill dry run, review, `--apply`, deploy, smoke,
+resume — is documented and unexecuted. Revision Storage Foundation is **NOT
+STARTED** and does not begin until that rollout is complete.

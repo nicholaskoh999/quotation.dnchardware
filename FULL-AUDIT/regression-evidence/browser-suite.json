@@ -1,6 +1,39 @@
 {
-  "suites": 39,
-  "asserts": 3907,
-  "failures": 0,
-  "detail": []
+  "suites": 40,
+  "asserts": 3936,
+  "failures": 8,
+  "detail": [
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 1440px: the modal × is still 24 tall, as accepted\n      expected: \"24\"\n      actual:   \"27\""
+    },
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 1440px: and still 17 wide — the phone rule has not leaked onto the desk\n      expected: \"17\"\n      actual:   \"16.3\""
+    },
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 980px: the modal × is still 24 tall, as accepted\n      expected: \"24\"\n      actual:   \"27\""
+    },
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 980px: and still 17 wide — the phone rule has not leaked onto the desk\n      expected: \"17\"\n      actual:   \"16.3\""
+    },
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 700px: the modal × is still 24 tall, as accepted\n      expected: \"24\"\n      actual:   \"27\""
+    },
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 700px: and still 17 wide — the phone rule has not leaked onto the desk\n      expected: \"17\"\n      actual:   \"16.3\""
+    },
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 600px: the modal × is still 24 tall, as accepted\n      expected: \"24\"\n      actual:   \"27\""
+    },
+    {
+      "suite": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "msg": "companies 600px: and still 17 wide — the phone rule has not leaked onto the desk\n      expected: \"17\"\n      actual:   \"16.3\""
+    }
+  ]
 }

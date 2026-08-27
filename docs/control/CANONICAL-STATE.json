@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
+    "acceptedCommit": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
     "status": "accepted",
-    "acceptedRound": "ACTOR IDENTITY FOUNDATION — the server learns which individual person is asking (FINAL ACCEPTED)"
+    "acceptedRound": "ITEM IDENTITY FOUNDATION — every persisted quotation item carries a server-owned item_uid (FINAL ACCEPTED)"
   },
   "production": {
     "host": "quo.dnchardware.com",
@@ -17,23 +17,45 @@
     "databaseBackupRetained": true,
     "rollbackPerformed": false,
     "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
-    "note": "Verified by a two-user production smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. The test quotation was removed afterwards and no rollback was needed. The assertion figures in tests are SOURCE test figures, measured at e76bb85; the rollout did not change them and must not be read as adding to them."
+    "note": "Verified by a two-user production smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. The test quotation was removed afterwards and no rollback was needed. The assertion figures in tests are SOURCE test figures, measured at e76bb85; the rollout did not change them and must not be read as adding to them. ITEM IDENTITY IS ACCEPTED IN SOURCE ONLY: production still runs e76bb85, no quotation item in production holds an item_uid, and the backfill has not been applied. deployedApplicationCommit is the live build and is deliberately NOT the same field as application.acceptedCommit.",
+    "itemIdentity": "NOT DEPLOYED — production runs e76bb85, the Actor Identity build",
+    "itemUidBackfill": "NOT APPLIED — migrations/2026-08-27-backfill-item-uids.php has never been run against production"
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4549,
-    "deltaAssertions": 1739,
-    "failed": 0,
+    "finalAssertions": 4734,
+    "deltaAssertions": 1924,
+    "failed": 8,
     "skipped": 0,
-    "browserSuites": 39,
-    "browserAssertions": 3907,
+    "browserSuites": 40,
+    "browserAssertions": 3936,
     "pricingHistoryAssertions": 172,
     "aiExtractionAssertions": 107,
     "workbookAssertions": 62,
     "translationAssertions": 15,
     "saveRetryAssertions": 42,
     "mysqliCompatAssertions": 94,
-    "actorIdentityAssertions": 150
+    "actorIdentityAssertions": 150,
+    "itemIdentityAssertions": 156,
+    "browserSuitesBeforeThisRound": 39,
+    "browserAssertionsBeforeThisRound": 3907,
+    "itemIdentityBrowserAssertions": 29,
+    "browserFailureException": {
+      "count": 8,
+      "applicationFault": false,
+      "introducedByThisRound": false,
+      "suiteFile": "tests/suites/38-mobile-ui.test.js",
+      "suiteTitle": "phone widths — the scope label, the tap targets, and the desk left alone",
+      "what": "the companies.php modal close control, measured at 1440 / 980 / 700 / 600px: 27 tall where 24 was accepted, and 16.3 wide where 17 was",
+      "cause": "font metrics. This matrix was re-measured on Windows Chromium; the accepted figures were measured in a Linux sandbox, and the harness strips the Google Fonts link so both fall back to whatever the host provides.",
+      "filesUntouchedByThisRound": [
+        "companies.php",
+        "tests/suites/38-mobile-ui.test.js"
+      ],
+      "reproducedOn": "ce26146a6a792f2bac0ebb4bab77389d19ff0660",
+      "reproducedHow": "a pristine git worktree at ce26146 — this round's own starting point, before a single Item Identity byte — fails the same eight assertions with the same numbers",
+      "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule."
+    }
   },
   "translation": {
     "keys": 862,
@@ -76,7 +98,8 @@
       4172,
       4263,
       4305,
-      4399
+      4399,
+      4549
     ],
     "supersededTranslationKeys": [
       512,
@@ -99,13 +122,15 @@
       1362,
       1453,
       1495,
-      1589
+      1589,
+      1739
     ],
     "supersededSuiteCounts": [
       34,
       36,
       37,
-      38
+      38,
+      39
     ],
     "retiredManifestName": "ZIP-MANIFEST.txt",
     "resolvedObservation": {
@@ -158,6 +183,11 @@
         "sha": "97a14cf56bad6414e382c6f49f40d13eabd97dc9",
         "supersededBy": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
         "reason": "ACTOR IDENTITY FOUNDATION was accepted. Authentication is now DB-backed per individual person. auth.php no longer carries a shared DC_AUTH_USER / DC_AUTH_PASS_HASH pair; dc_login($db, $username, $password) takes an INJECTED handle so auth.php keeps its zero-DB property, and login.php — the only caller and the only file that loads db.php, lazily and inside the POST branch — calls mysqli_report(MYSQLI_REPORT_OFF) before requiring it, exactly as api.php does. A successful login stores dc_user_id, dc_username, dc_display_name and dc_login_time from the authenticated row; dc_user survives as a compatibility alias only, and dc_current_user() is the canonical server-side actor accessor. Passwords remain hashes verified by password_verify(), a disabled account cannot authenticate, and an unknown username is verified against a dummy bcrypt hash so every credential failure does the same bcrypt work — which REDUCES the username-enumeration timing signal and is not a claim of identical end-to-end timing. get_result() is not used: the lookup is the portable bind_param -> execute -> bind_result -> fetch. There is no legacy shared-admin fallback, so existing shared sessions stop being trusted at cutover, deliberately. auth.php and login.php are the only application files changed. Quotation create / update / delete, the ref_no format, GET_LOCK, the one-time 1062 retry, pricing, Quick Add and the item JSON are untouched, and item_uid and audit revisions are not implemented. The browser matrix did not move — 39 suites and 3,907 assertions, measured on e76bb85 exactly as on 97a14cf — but tests/php/auth_identity.test.php adds a seventh side group of 150, so the total moved from 4,399 to 4,549 and the delta from +1,589 to +1,739. At acceptance migrations/2026-08-26-create-app-users.sql was prepared and NOT APPLIED, no production user had been seeded, and the accepted application was not yet deployed; the production rollout happened separately afterwards and its current state is recorded under \"production\", not here. 97a14cf is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
+        "supersededBy": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
+        "reason": "ITEM IDENTITY FOUNDATION was accepted. Every persisted quotation item now carries an item_uid — 'itm_' plus 32 lowercase hex from bin2hex(random_bytes(16)) — inside the existing quotations.items JSON, so there is no schema change and no item table. save_quotation mints one per item and discards any the client sent, because on a create there is nothing an incoming uid could refer to. update_quotation reads the persisted items — one column, one row — and reconciles before writing: a uid that is valid, belongs to that quotation and appears once is preserved; an item with no uid is new; and everything else fails closed by name before the UPDATE is prepared — ITEM_IDENTITY_UNKNOWN_UID, ITEM_IDENTITY_DUPLICATE_UID, ITEM_IDENTITY_MALFORMED_UID, and ITEM_IDENTITY_BACKFILL_REQUIRED for a stored quotation whose identity is missing or damaged. Nothing is ever reconciled by array position, which is the guess the round exists to remove. index.php carries identity and cannot mint it: dcCarryItemUid moves it across the three commit sites where an item rebuilt from the entry form replaces an existing row, dcStripItemUid clears it for a copy, and dcAdoptServerItems takes the uids the server issued before the snapshot so a second save from the same page is an edit rather than a set of new items. api.php, index.php and the new CLI backfill migration are the application files it carries. ref_no, GET_LOCK, the 1062 retry, mysqli_report(MYSQLI_REPORT_OFF), pricing, Quick Add, the parser and Actor Identity are untouched. The browser matrix moved for the first time in five rounds: 40 suites and 3,936 assertions, the thirty-nine earlier suites still measuring 3,907 and the new tests/suites/40-item-identity.test.js adding 29; tests/php/item_identity.test.php adds an eighth side group of 156, so the total moved from 4,549 to 4,734 and the delta from +1,739 to +1,924. Eight browser assertions failed and are recorded under tests.browserFailureException as an environment exception reproduced on ce26146, not an application fault. e76bb85 remains the DEPLOYED build: Item Identity is accepted in source only, the production backfill has not been applied, and no production item holds an item_uid. e76bb85 is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   }

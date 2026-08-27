@@ -533,6 +533,72 @@ sessions and fails if any of the above stops being true.
 
 ---
 
+## ACCEPTED — WHICH ITEM
+
+Accepted in ITEM IDENTITY FOUNDATION on `649f80a`. Every **persisted**
+quotation item carries an `item_uid`, and the server owns it.
+
+```
+itm_ + 32 lowercase hex        bin2hex(random_bytes(16))
+```
+
+It lives inside the existing `quotations.items` JSON. **There is no schema
+change and no item table**, and reinstating either is a design change needing
+explicit approval.
+
+Protected from here:
+
+- **The browser may never mint one.** `index.php` contains no uid literal and
+  no generator. An item with no `item_uid` is how the page asks for identity;
+  an id a client can choose is a field, not an identity.
+- **CREATE discards any client-supplied uid.** On a create there is nothing an
+  incoming uid could refer to.
+- **Nothing is reconciled by array position — ever.** `update_quotation` reads
+  the persisted items and matches uid-to-item. Index matching cannot tell a
+  reorder from a delete-plus-add, and adding it "just for legacy rows" would
+  put identity on the wrong item in the one case nobody checks.
+- **Every mismatch fails closed, by name, before the `UPDATE` is prepared:**
+  `ITEM_IDENTITY_UNKNOWN_UID`, `ITEM_IDENTITY_DUPLICATE_UID`,
+  `ITEM_IDENTITY_MALFORMED_UID`, `ITEM_IDENTITY_BACKFILL_REQUIRED`. A refusal
+  must leave the quotation untouched.
+- **A deleted item's uid is never reissued.** `$used` starts as a copy of the
+  persisted set, so every uid the quotation ever held stays reserved for the
+  whole reconciliation. Anything that empties `$used` breaks this silently.
+- **The three commit sites keep carrying identity.** Where an item rebuilt
+  from the entry form replaces an existing row, `dcCarryItemUid()` moves the
+  uid across. Drop it at one site and editing a saved item silently deletes it
+  and adds a different one.
+- **The save path adopts the server's answer before it snapshots.**
+  `dcAdoptServerItems()` is what makes *create → edit again without reloading →
+  save* an edit rather than a set of new items.
+- **A copy of an item is a different item.** There is no clone / duplicate path
+  in the application today — `quoteItems.push` appears in exactly three add
+  paths and none copies an existing row — so `dcStripItemUid()` is a guard, not
+  tested end-to-end behaviour. **Any clone feature added later MUST call it
+  before the copy is saved.**
+- **The backfill adds identity; it does not rewrite identity that exists.**
+  Malformed or duplicated stored uids are reported and the whole run refuses,
+  with a non-zero exit. There is no repair flag and none may be added: choosing
+  which of two items keeps a duplicated uid is a decision about which item is
+  which.
+
+**Unchanged by this round, and still protected as before:** `ref_no` ·
+server-side allocation · `GET_LOCK` · `uq_quotations_ref` · `NOT NULL ref_no` ·
+the one-time 1062 retry · `mysqli_report(MYSQLI_REPORT_OFF)` · pricing ·
+material mapping · Previous Price · Quick Add · the parser · Actor Identity.
+**Revision storage and audit rows are NOT implemented.**
+
+**ACCEPTED IS NOT LIVE.** Production runs `e76bb85`, the Actor Identity build.
+Item Identity is **not deployed**, the backfill is **NOT APPLIED**, and no
+production item holds an `item_uid`. Nothing here may be described as
+production-verified until that rollout happens and is smoke-tested.
+
+`tests/php/item_identity.test.php` runs the shipped `api.php` functions and
+executes the shipped migration; `tests/suites/40-item-identity.test.js` drives
+the shipped page. Both fail if any of the above stops being true.
+
+---
+
 ## CONTROL-ONLY ROUND
 
 **Two SHAs, and they are not the same thing.**
