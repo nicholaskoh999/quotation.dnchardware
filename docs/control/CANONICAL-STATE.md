@@ -131,6 +131,59 @@ unaffected — accepting and deploying `649f80a` disturbed none of them.
 
 ---
 
+## REVISION STORAGE — FINAL ACCEPTED / CLOSED
+
+| | |
+|---|---|
+| Round | REVISION STORAGE FOUNDATION |
+| Status | **FINAL ACCEPTED / CLOSED**, 2026-08-28 |
+| Accepted candidate | `b1fd1de7b1623150dcd6d8d609d8014af488f70e` |
+| Table | `quotation_revisions` |
+| Migration | `migrations/2026-08-28-create-quotation-revisions.sql` — **NOT APPLIED to production** |
+| Revision writer | **NOT STARTED** |
+
+| verified on | assertions | failed |
+|---|---:|---:|
+| MySQL **8.0.46** — the exact production engine | 198 | 0 |
+| MySQL **8.4.3** | 198 | 0 |
+
+**The accepted application commit does NOT move.** This round added a migration
+and a schema suite and changed no application file:
+
+```
+git diff --name-only 649f80a..b1fd1de -- '*.php' ':(exclude)tests/**'   →  (empty)
+```
+
+`migrations/` and `tests/` are not in `.cpanel.yml`'s `APPFILES`, so neither
+artefact is deployed. The application that is accepted, and the application that
+is live, are both still `649f80a`.
+
+**The 198 are deliberately NOT added to the assertion total below.** Those
+figures describe the APPLICATION, measured at `649f80a`. A suite that measures
+a migration is not an application assertion any more than a control-system
+self-test is, and adding it would make the canonical total mean two things at
+once — the same rule that keeps `check-control`'s own tests out of it.
+
+**What was accepted.** `quotation_revisions` holds an immutable snapshot per
+revision: `UNIQUE (quotation_id, revision_no)`, full `snapshot_json` as native
+`JSON`, `snapshot_schema_version` with no default so a writer must state the
+format it wrote, `created_at` as `DATETIME` rather than `TIMESTAMP`, actor id
+plus name snapshots, and **no foreign keys** — because every `ON DELETE` action
+would decide the Baseline / Delete Policy round's business question by accident,
+in DDL. No item table: item identity stays inside the snapshot JSON. No
+triggers: append-only is a contract the writer round enforces.
+
+**One column is compared across tables, and its final state is authoritative:**
+`quotation_revisions.quotation_ref_no` has the same `COLUMN_TYPE`,
+`CHARACTER_SET_NAME` and `COLLATION_NAME` as `quotations.ref_no`, read from the
+live database. The migration states no charset and no collation of its own, so
+it cannot be wrong about a database it has never seen.
+
+**Nothing writes to it.** No application file mentions `quotation_revisions`.
+The Snapshot Revision Writer is a later round and has not begun.
+
+---
+
 ## TESTS
 
 | | |

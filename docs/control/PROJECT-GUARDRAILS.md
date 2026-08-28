@@ -605,6 +605,52 @@ the shipped page. Both fail if any of the above stops being true.
 
 ---
 
+## ACCEPTED — WHERE THE PAST WILL LIVE
+
+Accepted in REVISION STORAGE FOUNDATION on `b1fd1de`. `quotation_revisions` is
+the table an immutable quotation snapshot can be written to. **Nothing writes to
+it yet**, and that is the accepted state.
+
+Protected from here:
+
+- **No foreign key to `quotations`, and none may be added** until the Baseline /
+  Delete Policy round decides the question. `CASCADE` would destroy the history
+  of a deleted quotation — the record that makes a deletion auditable;
+  `RESTRICT` would change today's deletion behaviour; `SET NULL` would orphan a
+  revision from what it describes. Adding one now decides that policy in DDL,
+  where nobody would look for it.
+- **No foreign key to `app_users`** until user-retention policy is decided.
+  `actor_username` and `actor_display_name` are snapshots beside the id so a
+  rename cannot rewrite the past.
+- **No item table.** Item identity stays inside `snapshot_json`, exactly as it
+  lives inside `quotations.items`.
+- **`snapshot_schema_version` has no default, and must not acquire one.** A
+  default would let a future snapshot format be stored silently under the old
+  version number.
+- **`created_at` is `DATETIME`, not `TIMESTAMP`.** `TIMESTAMP` stops in 2038 and
+  shifts with the session time zone, and this is the table designed never to be
+  rewritten.
+- **`quotation_ref_no` matches `quotations.ref_no`** on type, charset and
+  collation, read from the live database. Hard-coding a collation into the
+  migration is what this rule forbids.
+- **Append-only is a contract, not a trigger.** The writer round enforces it by
+  there being exactly one `INSERT` and no `UPDATE` or `DELETE` in the code.
+  Adding a trigger needs its own decision.
+- **`CREATE TABLE IF NOT EXISTS` is not a check.** The migration's conformance
+  gate is what refuses a table that is present but wrong, and `CONFORMS` means
+  the complete final state — including `COLUMN_DEFAULT` and collation — not
+  merely that the structure looks about right.
+
+**NOT APPLIED, NOT DEPLOYED.** The migration has never been run against
+production; `quotation_revisions` does not exist there. The accepted and live
+application is still `649f80a`, and neither `migrations/` nor `tests/` is in
+the deployed file set.
+
+`tests/php/revision_storage.test.php` proves all of the above against a real
+server and fails rather than skips when none is reachable.
+
+---
+
 ## CONTROL-ONLY ROUND
 
 **Two SHAs, and they are not the same thing.**

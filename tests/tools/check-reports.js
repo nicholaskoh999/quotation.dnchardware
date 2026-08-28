@@ -195,9 +195,22 @@ if (!EXTRACTED) {
      was allowed to touch, and it cannot quietly grant itself permission —
      the declaration is prose a person can see. CANONICAL-STATE stays the
      authority on what has been ACCEPTED, and is not consulted here. */
-  const changed = git('diff', '--name-only', APP + '..HEAD', '--', '*.php');
+  /* '*.php' matches tests/php/*.test.php too. A round may add a PHP SUITE
+     after the accepted commit without touching the application — Revision
+     Storage did exactly that — and reading a new test file as undeclared
+     application drift would be reading the wrong thing. The application half
+     is asked for on its own; the test half is reported separately below so it
+     is not hidden either. */
+  const changed = git('diff', '--name-only', APP + '..HEAD', '--', '*.php', ':(exclude)tests/**');
   const changedList = changed ? changed.split('\n').filter(Boolean) : [];
   const undeclared = changedList.filter(f => !declared.has(f));
+  const testAdds = git('diff', '--name-only', '--diff-filter=A', APP + '..HEAD', '--', 'tests/**/*.php');
+  const testMods = git('diff', '--name-only', '--diff-filter=MD', APP + '..HEAD', '--', 'tests/**/*.php');
+  check(testMods === '',
+    'no accepted PHP suite was modified or deleted after the accepted commit'
+    + (testMods ? ' — changed: ' + testMods.split('\n').join(', ') : ''));
+  if (testAdds) check(true, `PHP suites ADDED since ${APP.slice(0, 7)}, which is not application drift: `
+    + testAdds.split('\n').join(', '));
   check(undeclared.length === 0,
     `application PHP differs from ${APP.slice(0, 7)} only where this round declared it`
     + (undeclared.length ? ` — undeclared: ${undeclared.join(', ')}` : ''));

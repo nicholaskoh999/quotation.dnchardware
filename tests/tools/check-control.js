@@ -40,6 +40,7 @@ const PREV = 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a';
 const DEPLOYED = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
+const fmtN = n => Number(n).toLocaleString('en-US');
 
 // ── the three authorities name one commit ──
 ck(C.application.acceptedCommit === APP, `CANONICAL-STATE.json accepted commit is ${APP.slice(0,7)}`);
@@ -160,8 +161,15 @@ ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests
    'and exactly the two new test files — ONE browser suite was added and none was edited');
 ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
    'not one of the thirty-nine accepted browser suites was modified or deleted');
-ck(git('diff','--name-only',APP+'..HEAD','--','*.php') === '',
+/* '*.php' matches tests/php/*.test.php too. Revision Storage added
+   tests/php/revision_storage.test.php AFTER the accepted commit without
+   touching the application, which is legitimate and which this assertion
+   could not previously express. The application half is asked for on its own;
+   the test half is asked for separately below. */
+ck(git('diff','--name-only',APP+'..HEAD','--','*.php',':(exclude)tests/**') === '',
    'no application PHP differs from the accepted commit');
+ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') === '',
+   'and no accepted PHP suite was modified or deleted after it — only added to');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
 ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','index.php',
@@ -216,6 +224,38 @@ ck(!!ST && ST.get('Round status') === 'FINAL ACCEPTED / CLOSED',
 ck(!!ST && ST.has('DEPLOY = NO'), 'ROUND-SCOPE records DEPLOY = NO as a status field');
 ck(!!ST && ST.has('STAGE 2 = NOT STARTED'), 'ROUND-SCOPE records STAGE 2 = NOT STARTED as a status field');
 ck(C.package.deploymentApproved === false, 'canonical: deployment not approved');
+
+// ── Revision Storage: accepted, and accepted is not applied ──
+{ const R = C.revisionStorage || {};
+  ck(R.status === 'FINAL ACCEPTED / CLOSED', `revision storage: ${R.status}`);
+  ck(git('cat-file','-t',String(R.acceptedCandidate)) === 'commit',
+     `its accepted candidate ${String(R.acceptedCandidate).slice(0,7)} exists`);
+  let inMain = true; try { git('merge-base','--is-ancestor',R.acceptedCandidate,'HEAD'); } catch { inMain = false; }
+  ck(inMain, 'and is an ancestor of HEAD');
+  ck(R.applicationCommitMoved === false && A.APP_SHA === APP,
+     'it moved no application commit — the accepted application is still ' + APP.slice(0,7));
+  ck(/^NOT APPLIED/.test(R.migrationApplied || ''), 'its migration is NOT APPLIED to production');
+  ck(/^NOT STARTED/.test(R.revisionWriter || ''), 'and the revision writer has NOT started');
+  ck(A.REVISION_STORAGE.assertions === R.assertions && A.REVISION_STORAGE.failed === R.failed,
+     `authoritative.js and canonical agree: ${R.assertions} assertions, ${R.failed} failed`);
+  const eng = Object.keys(R.verifiedOn || {});
+  ck(eng.length === 2 && eng.some(e => /8\.0\./.test(e)),
+     `verified on ${eng.join(' and ')} — including a production-version engine`);
+  ck(Object.values(R.verifiedOn || {}).every(v => v.assertions === R.assertions && v.failed === 0),
+     'both engines returned the same count with no failures');
+  /* The figure stays OUT of the application total, on purpose. The sum
+     assertion above already proves finalAssertions is exactly the eight
+     application side groups plus the browser matrix; this states the
+     consequence so a future round cannot quietly add a ninth. */
+  ck(T.revisionStorageAssertions === undefined,
+     'and it is NOT folded into the application assertion total, which stays '
+     + fmtN(T.finalAssertions));
+  (R.artefacts || []).forEach(f => {
+    let there = true; try { git('cat-file','-e','HEAD:'+f); } catch { there = false; }
+    ck(there, `artefact present: ${f}`); });
+  ck(git('diff','--name-only',APP+'..HEAD','--','*.sql').split('\n').filter(Boolean).join(',')
+     === 'migrations/2026-08-28-create-quotation-revisions.sql',
+     'the only SQL added since the accepted commit is that migration'); }
 
 // ── guardrails carry the accepted outcomes, and only those ──
 [['STAGE 1 UI — ACCEPTED', 'the Stage 1 UI section exists'],

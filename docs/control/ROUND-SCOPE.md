@@ -9,12 +9,15 @@ writes one. No writer, no hooks, no transaction redesign, no diff engine, no
 history API, no history UI, no backfill, no deletion policy, no deployment, no
 production DB change.
 
+**FINAL ACCEPTED / CLOSED.**
+
 | | |
 |---|---|
-| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
+| Accepted candidate | `b1fd1de7b1623150dcd6d8d609d8014af488f70e` |
+| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — **unchanged; this round moved no application file** |
 | Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — live, verified 2026-08-28 |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | nothing was deployed; `migrations/` and `tests/` are not in the deployed file set |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 | Production DB change | **NO** — the migration is prepared, NOT APPLIED |
 | Revision writer | **NOT STARTED** — storage only |
@@ -142,11 +145,20 @@ enforces things — by there being exactly one `INSERT` and no `UPDATE` or
 ## ALLOWED TO CHANGE
 
 ```candidate-files
-migrations/2026-08-28-create-quotation-revisions.sql
-tests/php/revision_storage.test.php
 ```
 
-Nothing else may differ from `649f80a09f83a7201c0f3772e01fc270ccda3e05`.
+The block is **EMPTY**. This round is closed:
+`migrations/2026-08-28-create-quotation-revisions.sql` and
+`tests/php/revision_storage.test.php` were reviewed and accepted into
+`b1fd1de7b1623150dcd6d8d609d8014af488f70e`.
+
+**The accepted APPLICATION commit did not move**, and that is the whole point of
+this round: it added a migration and a schema suite and changed no application
+file. Neither artefact is in `.cpanel.yml`'s `APPFILES`, so neither is deployed.
+
+```
+git diff --name-only 649f80a..b1fd1de -- '*.php' ':(exclude)tests/**'   →  (empty)
+```
 
 **No application file is touched by this round.** `api.php`, `index.php`,
 `companies.php`, `pricing_history.php`, `ai_extract.php`, `auth.php`,
@@ -315,6 +327,7 @@ Then STOP. **No deploy. No production DB change.** Candidate only.
 | | |
 |---|---:|
 | `tests/php/revision_storage.test.php` | **198 assertions, 0 failed** |
+| Counted in the application total? | **No** — see the OUTCOME below |
 | MySQL **8.0.46** — the production version, exactly | 198 / 0 |
 | MySQL **8.4.3** | 198 / 0 |
 
@@ -343,4 +356,39 @@ defaulting to `CURRENT_TIMESTAMP` (8.0.13+). MariaDB was NOT used as a
 substitute — its `JSON` is an alias for `LONGTEXT`, so every native-validation
 assertion would have measured something else.
 
+---
 
+## OUTCOME — FINAL ACCEPTED / CLOSED
+
+Accepted on 2026-08-28. `main` was fast-forwarded from `b9663d5` to
+`b1fd1de7b1623150dcd6d8d609d8014af488f70e` — no merge commit, no rebase, no
+force push.
+
+| | |
+|---|---:|
+| Accepted candidate | `b1fd1de7b1623150dcd6d8d609d8014af488f70e` |
+| MySQL **8.0.46** — the exact production engine | 198 / 0 |
+| MySQL **8.4.3** | 198 / 0 |
+| Accepted application commit | `649f80a` — **unchanged** |
+| Application assertion total | 4,734 — **unchanged** |
+
+**Why the accepted application SHA did not move, and why 198 is not added to
+the total.** This round changed no application file. `migrations/` and `tests/`
+are not deployed, so nothing a customer can reach is different. The canonical
+assertion figures describe the APPLICATION measured at `649f80a`; a suite that
+measures a migration is not an application assertion any more than
+`check-control`'s own tests are, and folding it in would make the total mean two
+things at once. The 198 are recorded in their own canonical block instead, where
+they cannot drift unnoticed either.
+
+**Production is untouched.**
+
+- `migrations/2026-08-28-create-quotation-revisions.sql` — **NOT APPLIED**;
+  `quotation_revisions` does not exist in production
+- production application — still `649f80a`, unchanged
+- Revision writer — **NOT STARTED**; no application file mentions
+  `quotation_revisions`
+
+**Next: READ-BEFORE-WRITE / TRANSACTION FOUNDATION**, which is NOT started. The
+sequence after it is unchanged: Snapshot Revision Writer → Diff Engine / No-op
+Suppression → Baseline / Delete Policy → History API → History UI.

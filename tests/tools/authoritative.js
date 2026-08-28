@@ -68,6 +68,15 @@ module.exports = {
           'save-retry-php.log': 42, 'mysqli-compat-php.log': 94,
           'auth-identity-php.log': 150, 'item-identity-php.log': 156 },
 
+  /* The Revision Storage round's own figure, kept OUT of TOTAL on purpose.
+     TOTAL describes the application measured at APP_SHA; a suite that measures
+     a migration is not an application assertion, and folding it in would make
+     TOTAL mean two things at once — the same reason check-control's own tests
+     are not in it. Recorded here so it cannot drift unnoticed either. */
+  REVISION_STORAGE: { assertions: 198, failed: 0,
+                      engines: ['8.0.46', '8.4.3'],
+                      migrationApplied: false, writerStarted: false },
+
   KEYS: 862, COVERAGE: 100,
   P0: 0, P1: 13, P2: 24, P3: 2, FINDINGS: 39,
 };

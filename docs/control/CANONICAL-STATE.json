@@ -5,6 +5,38 @@
     "status": "accepted",
     "acceptedRound": "ITEM IDENTITY FOUNDATION — every persisted quotation item carries a server-owned item_uid (FINAL ACCEPTED)"
   },
+  "revisionStorage": {
+    "round": "REVISION STORAGE FOUNDATION",
+    "status": "FINAL ACCEPTED / CLOSED",
+    "acceptedCandidate": "b1fd1de7b1623150dcd6d8d609d8014af488f70e",
+    "acceptedOn": "2026-08-28",
+    "artefacts": [
+      "migrations/2026-08-28-create-quotation-revisions.sql",
+      "tests/php/revision_storage.test.php"
+    ],
+    "applicationCommitMoved": false,
+    "whyNotCounted": "This round added a migration and a schema suite. It changed no application file, so application.acceptedCommit does not move and the figures under tests do not change. The 198 assertions below are deliberately NOT added to tests.finalAssertions: those figures describe the APPLICATION measured at 649f80a09f83a7201c0f3772e01fc270ccda3e05, and a suite that measures a migration is not an application assertion any more than a control-system self-test is. Adding it would make the canonical total mean two things at once.",
+    "assertions": 198,
+    "failed": 0,
+    "skipped": 0,
+    "verifiedOn": {
+      "mysql-8.0.46": {
+        "assertions": 198,
+        "failed": 0,
+        "note": "the exact production engine version, official dev.mysql.com archive, isolated datadir and port, never connected to production"
+      },
+      "mysql-8.4.3": {
+        "assertions": 198,
+        "failed": 0
+      }
+    },
+    "table": "quotation_revisions",
+    "migrationApplied": "NOT APPLIED — migrations/2026-08-28-create-quotation-revisions.sql has never been run against production, and quotation_revisions does not exist there",
+    "revisionWriter": "NOT STARTED — no application file reads or writes quotation_revisions",
+    "foreignKeys": "none, deliberately — see PROJECT-GUARDRAILS and the migration header",
+    "triggers": "none — append-only is an application contract, enforced by the writer round",
+    "refNoContract": "quotation_revisions.quotation_ref_no must have the same COLUMN_TYPE, CHARACTER_SET_NAME and COLLATION_NAME as quotations.ref_no. The authority is read from the live database; the migration hard-codes no charset and no collation of its own."
+  },
   "production": {
     "host": "quo.dnchardware.com",
     "runtime": "PHP 8.4.24",
