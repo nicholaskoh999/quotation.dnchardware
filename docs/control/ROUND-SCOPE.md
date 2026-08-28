@@ -2,200 +2,196 @@
 
 ## ROUND
 
-**REVISION STORAGE FOUNDATION**
+**READ-BEFORE-WRITE / TRANSACTION FOUNDATION**
 
-One table. Somewhere immutable quotation snapshots can live, and nothing that
-writes one. No writer, no hooks, no transaction redesign, no diff engine, no
-history API, no history UI, no backfill, no deletion policy, no deployment, no
-production DB change.
-
-**FINAL ACCEPTED / CLOSED.**
+One transaction around a quotation mutation, and a persisted read that happens
+inside it. No revision is written, no snapshot is built, no history exists. The
+round exists so the Snapshot Revision Writer can later add its INSERT to a
+transaction that is already there.
 
 | | |
 |---|---|
-| Accepted candidate | `b1fd1de7b1623150dcd6d8d609d8014af488f70e` |
-| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — **unchanged; this round moved no application file** |
+| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
 | Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — live, verified 2026-08-28 |
-| Round status | **FINAL ACCEPTED / CLOSED** |
-| DEPLOY = NO | nothing was deployed; `migrations/` and `tests/` are not in the deployed file set |
+| Round status | **CANDIDATE — READY FOR REVIEW** |
+| DEPLOY = NO | a candidate is not a deployed state |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production DB change | **NO** — the migration is prepared, NOT APPLIED |
-| Revision writer | **NOT STARTED** — storage only |
+| Production DB change | **NO** |
+| Revision writer | **NOT STARTED** — this round writes no revision |
 
 ---
 
 ## WHY THIS ROUND EXISTS
 
-Two of the three questions are answered and live in production.
-
-```
-Actor Identity   →  WHO is asking          app_users, dc_current_user()
-Item Identity    →  WHICH ITEM             item_uid, inside the items JSON
-Revision Storage →  WHERE the past lives   ← this round
-```
-
-Nothing keeps the previous state. Every save overwrites the quotation row in
-place:
+`update_quotation` read the persisted items, reconciled identity against them,
+and then wrote — with no transaction and no lock around any of it:
 
 ```php
-UPDATE quotations SET company_id=?,quote_date=?,…,items=?,…  WHERE id=?
+$sel = prepare_or_fail($db, "SELECT items FROM quotations WHERE id=?", …);   // before
+…
+$stmt = prepare_or_fail($db, "UPDATE quotations SET …", …);
 ```
 
-So the answer to *what did this change* is currently: gone. This round adds the
-place a snapshot can be kept. It does not put anything in it.
+Between those two statements another request could change the very items that
+had just been reconciled. Nothing detected it and nothing prevented it. A
+revision writer bolted onto that would snapshot a BEFORE state that was already
+untrue by the time it wrote.
+
+`save_quotation` had the same shape on the create side: the named lock
+serialised number allocation, but the allocation and the INSERT that used it
+were not one atomic write.
 
 ---
 
-## THE TABLE
+## WHAT CHANGED, IN `api.php`
 
-`quotation_revisions`, created by
-`migrations/2026-08-28-create-quotation-revisions.sql`.
+### The transaction scope, and why `fail_json()` had to learn about it
 
-| column | type | why |
-|---|---|---|
-| `id` | `BIGINT UNSIGNED NOT NULL AUTO_INCREMENT` | the revision row's own identity |
-| `quotation_id` | `INT UNSIGNED NOT NULL` | logical reference to `quotations.id`, matching its observed type |
-| `revision_no` | `INT UNSIGNED NOT NULL` | monotonic **per quotation**, from 1 |
-| `quotation_ref_no` | `VARCHAR(100) NOT NULL`, charset and collation **taken from `quotations.ref_no`** | the number as it was; a lookup aid, and what still names the quotation after its row is deleted |
-| `event_type` | `VARCHAR(32) NOT NULL` | a label. **Not an ENUM, not constrained** |
-| `actor_user_id` | `INT UNSIGNED NULL` | matches `app_users.id` |
-| `actor_username` | `VARCHAR(64) NULL` | snapshot, so a rename cannot rewrite the past |
-| `actor_display_name` | `VARCHAR(100) NULL` | the same |
-| `snapshot_schema_version` | `SMALLINT UNSIGNED NOT NULL` | **no default** — a writer must state the format it wrote |
-| `snapshot_json` | `JSON NOT NULL` | the whole quotation, validated by the column |
-| `created_at` | `DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP` | see below |
+The hard part was never `BEGIN` and `COMMIT`. It is that `query_or_fail()`,
+`prepare_or_fail()`, `execute_or_fail()` and the 1062 retry all end the request
+through `fail_json()`, which echoes and exits — and an exit inside an open
+transaction leaves the rollback to the connection closing, and the named lock
+to the same. That works. It is not a contract; it is a side effect of the
+process dying.
 
-```
-PRIMARY KEY (id)
-UNIQUE KEY  uq_quotation_revisions_no       (quotation_id, revision_no)
-KEY         idx_quotation_revisions_ref     (quotation_ref_no)
-KEY         idx_quotation_revisions_actor   (actor_user_id)
-KEY         idx_quotation_revisions_created (created_at)
-ENGINE=InnoDB, no CHARACTER SET clause — the table inherits the database default
+So the scope is recorded as the request runs and `fail_json()` unwinds it
+explicitly before it answers:
+
+```php
+dc_txn_begin() / dc_txn_commit() / dc_txn_rollback()
+dc_txn_note_lock()      ← acquire_ref_lock / release_ref_lock report in
+dc_txn_cleanup()        ← rollback, THEN release the named lock
 ```
 
-**No item table.** Item identity stays inside the snapshot JSON, exactly as it
-lives inside `quotations.items` today. `snapshot_json` is queryable, so
-`JSON_EXTRACT(snapshot_json, '$.items[0].item_uid')` reads it back — proven in
-the suite.
+Every existing error path became transaction-safe **without one call site
+changing**, which is also why this round did not have to touch the helpers
+PROJECT-GUARDRAILS protects. They still branch on return values; there is still
+no `try`/`catch` in the application.
 
-### Four choices worth arguing about
+**The two levels are tracked separately on purpose.** `GET_LOCK` is SESSION
+scoped and the transaction is not: `COMMIT` does not release a named lock and
+`ROLLBACK` does not either. Merging them would be wrong in both directions.
 
-**`DATETIME`, not `TIMESTAMP`, and it deviates from `app_users` on purpose.**
-`TIMESTAMP` stops in 2038, and this is the one table designed never to be
-rewritten. It is also converted by the *session* time zone: `api.php` sets
-`+08:00` per request but the CLI migrations connect without setting it, so the
-same instant written by one path and read by another would not agree.
-`DATETIME` stores the literal value it was given.
+### CREATE
 
-**`snapshot_schema_version` has no default.** A default would let a future
-format be stored silently under the old number, and the one thing a version
-column must never do is be wrong. Omitting it fails the insert — proven.
+```
+validate → mint item identity → GET_LOCK → BEGIN → allocate ref_no
+        → INSERT (one 1062 retry) → COMMIT → RELEASE_LOCK → respond
+```
 
-**`event_type` is a plain `VARCHAR`.** This round stores history; it does not
-decide which events exist. Widening an `ENUM` or a `CHECK` later is a migration
-against a table that by then holds real history, so the cheap thing now is to
-decide nothing.
+**COMMIT happens before the lock is released.** The lock exists to stop a second
+request allocating the same number; letting go of it while the INSERT is still
+uncommitted would hand out a number that is not yet taken.
 
-**No standalone index on `quotation_id`.** It is the leftmost column of the
-`UNIQUE`, so MySQL already uses that index for lookups by quotation. A second
-index on the same prefix costs writes and buys nothing. Its absence is
-asserted, so it reads as a decision rather than an omission.
+If `BEGIN` fails, the lock is given back and nothing is attempted. If the INSERT
+fails, `fail_json()` rolls back and releases before answering. If `COMMIT` fails
+it is reported as a failure — never as success.
+
+### UPDATE
+
+```
+validate → BEGIN → SELECT * … FOR UPDATE → reconcile against THAT row
+        → UPDATE → COMMIT → respond
+```
+
+`dc_lock_quotation_for_update($db, $id)` returns the whole row, not the one
+column reconciliation needs. That is deliberate: it is the authoritative BEFORE
+state, and reading it twice — once to reconcile, once for a future snapshot —
+would reintroduce exactly the gap this function closes.
+
+Every refusal past `BEGIN` rolls back explicitly: not found → 404 and rollback;
+malformed, unknown, duplicated or backfill-required identity → rollback and the
+existing error by name.
 
 ---
 
-## NO FOREIGN KEYS — A DECISION, NOT MISSING WORK
+## WHAT THE LOCK DOES, AND WHAT IT DOES NOT
 
-`quotation_id` is a **logical, immutable reference**. There is no FK to
-`quotations`, because every available action is wrong today:
+The accepted claim is narrow, and stated narrowly on purpose:
 
-| | |
-|---|---|
-| `ON DELETE CASCADE` | destroys the history of a deleted quotation — the exact record that makes a deletion auditable |
-| `ON DELETE RESTRICT` | changes today's deletion behaviour, which is an application change this round is not scoped for |
-| `ON DELETE SET NULL` | orphans a revision from the thing it describes, permanently |
+> Two UPDATE transactions cannot hold the same quotation row at once. The second
+> waits until the first commits or rolls back.
 
-The application can physically delete quotations today, and what history should
-do about that is the **Baseline / Delete Policy** round. Choosing an FK action
-now would decide that policy by accident, in DDL, where nobody would look for
-it. `quotation_ref_no` is stored alongside precisely so a revision still names
-its quotation once the row is gone — proven in the suite by deleting one.
+That is what gives a future revision writer a deterministic persisted BEFORE
+state.
 
-No FK to `app_users` either, until user-retention policy is decided. Rows there
-are never deleted today (`enabled = 0` instead), but that is a convention, not
-a constraint, and history must survive it changing.
-
----
-
-## APPEND-ONLY IS A CONTRACT, NOT A TRIGGER
-
-A revision, once written, is never updated and never deleted. That is **not**
-enforced with `BEFORE UPDATE` / `BEFORE DELETE` triggers, deliberately:
-triggers on this shared host need privileges the project has not established,
-they are awkward to inspect and reverse, and a trigger that refuses a `DELETE`
-would also refuse the Baseline / Delete Policy round its own decisions.
-
-The contract is stated here and in the migration header. The **Snapshot
-Revision Writer** round enforces it the way the rest of this application
-enforces things — by there being exactly one `INSERT` and no `UPDATE` or
-`DELETE` in the code.
+**This is NOT optimistic concurrency.** A browser holding a stale copy can still
+overwrite a newer edit, because nothing here compares versions. No version
+column was added and no conflict is detected. Any claim that "stale browser
+edits can no longer overwrite newer edits" would be false, and this round does
+not make it.
 
 ---
 
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+api.php
+tests/php/transaction_foundation.test.php
+tests/php/mysqli_compat.test.php
+tests/php/item_identity.test.php
 ```
 
-The block is **EMPTY**. This round is closed:
-`migrations/2026-08-28-create-quotation-revisions.sql` and
-`tests/php/revision_storage.test.php` were reviewed and accepted into
-`b1fd1de7b1623150dcd6d8d609d8014af488f70e`.
+Nothing else may differ from `649f80a09f83a7201c0f3772e01fc270ccda3e05`.
 
-**The accepted APPLICATION commit did not move**, and that is the whole point of
-this round: it added a migration and a schema suite and changed no application
-file. Neither artefact is in `.cpanel.yml`'s `APPFILES`, so neither is deployed.
+`index.php`, `companies.php`, `auth.php`, `login.php`, `logout.php`,
+`pricing_history.php`, `ai_extract.php` and all forty browser suites are out of
+scope and do not change.
 
-```
-git diff --name-only 649f80a..b1fd1de -- '*.php' ':(exclude)tests/**'   →  (empty)
-```
+### The two accepted suites this round had to touch, and why
 
-**No application file is touched by this round.** `api.php`, `index.php`,
-`companies.php`, `pricing_history.php`, `ai_extract.php`, `auth.php`,
-`login.php`, `logout.php` and all forty browser suites are out of scope and do
-not change. The suite asserts it: `api.php` contains no revision *code*, and
-its only mention of the word is a comment saying there is none.
+Both are recorded here rather than slipped in, because editing an accepted test
+is exactly the move that should be visible.
+
+**`mysqli_compat.test.php` — a lifted dependency, no assertion changed.** The
+suite lifts `fail_json()` out of the shipped file and evaluates it, in the
+parent and again in a child process. `fail_json()` now calls
+`dc_txn_cleanup()`, so lifting one without the other evaluates a `fail_json`
+that cannot run — it died with *undefined function*, not with a failed
+assertion. Both lift sites now take the dependency too. **Every assertion is
+identical**: a query, prepare or execute failure still has to return parseable
+JSON with the existing message and no fatal.
+
+**`item_identity.test.php` — one assertion followed a contract this round
+supersedes.** It asserted the literal text `SELECT items FROM quotations WHERE
+id=?` under the label *"reading the minimum it needs — one column, one row"*.
+That was the right contract for Item Identity and is the wrong one now: the read
+is deliberately no longer minimal, because it is the BEFORE state. The single
+assertion is replaced by **four**, which ask for more than it did — that the
+read goes through `dc_lock_quotation_for_update`, that it is `FOR UPDATE`, that
+the transaction was opened *before* it, and that the old unlocked read is gone.
+Not weakened; tightened, and pointed at the contract that now holds.
 
 ---
 
 ## MUST NOT CHANGE — AND DOES NOT
 
-`ref_no` format · server-side allocation · `GET_LOCK` · `uq_quotations_ref` ·
-`NOT NULL ref_no` · the one-time 1062 retry · `mysqli_report(MYSQLI_REPORT_OFF)`
-· `item_uid` and its reconciliation · Actor Identity · quotation create /
-update / delete semantics · pricing · Quick Add · the parser · the translation
-dictionary.
+`ref_no` format · server-side allocation · `GET_LOCK` / `RELEASE_LOCK` ·
+`uq_quotations_ref` · `NOT NULL ref_no` · **exactly one** 1062 retry ·
+`mysqli_report(MYSQLI_REPORT_OFF)` · the return-value-and-errno helpers ·
+`item_uid` minting and reconciliation · Actor Identity · pricing · Quick Add ·
+the parser · the translation dictionary · `delete_quotation`.
 
-`quotations` and `app_users` are not altered, and the suite proves it by
-fingerprinting both with `SHOW CREATE TABLE` before and after.
+The named lock was **not** replaced by row locking, and row locking was not
+extended to the create path. `update_quotation` still does not touch `ref_no`.
+No retry loop was introduced.
 
 ---
 
 ## OUT OF SCOPE — NAMED, SO THEY ARE NOT DRIFTED INTO
 
-No save/update hook · no revision writer · no transaction redesign · no
-read-before-write redesign · no diff engine · no no-op suppression · no history
-API · no history UI · no baseline backfill · no deletion-history policy · no
-quotation delete UI · no production migration · no deployment.
+No revision rows · no reference to `quotation_revisions` from application code ·
+no snapshot construction · no diff engine · no no-op suppression · no history
+API · no history UI · no baseline or deletion policy · no Delete UI · no
+optimistic concurrency or version field · no foreign keys · no triggers · no
+production migration · no deployment.
 
-**The missing Saved Quotation delete UI is a separate future item** and is
-deliberately not mixed into this round.
-
-The sequence, unchanged:
+`delete_quotation` is untouched; deletion history belongs to Baseline / Delete
+Policy.
 
 ```
-Revision Storage Foundation          ← this round
-→ Read-before-write / Transaction Foundation
+Revision Storage Foundation                     ACCEPTED / CLOSED
+Read-before-write / Transaction Foundation      ← this round
 → Snapshot Revision Writer
 → Diff Engine / No-op Suppression
 → Baseline / Delete Policy
@@ -205,190 +201,91 @@ Revision Storage Foundation          ← this round
 
 ---
 
-## THE MIGRATION
-
-Five sections, in the shape the accepted `app_users` and `NOT NULL(ref_no)`
-migrations established:
-
-1. **PREFLIGHT**, read-only. Reads the real types of `quotations.id`,
-   `quotations.ref_no` and `app_users.id` from `information_schema` rather than
-   assuming them, reads the database's default collation, and gates on
-   `quotation_revisions` not already existing.
-2. **CREATE TABLE IF NOT EXISTS**, between `-- >>> SECTION 2 BEGIN` / `-- <<<
-   SECTION 2 END` markers. Those markers are load-bearing: the test lifts
-   exactly that block out of the shipped file and executes it, so the test
-   measures the migration that ships rather than a copy of it.
-3. **VERIFY**, read-only — columns, indexes, row count, and the collation
-   check below.
-4. **RE-RUNNING**, stated: `IF NOT EXISTS` makes section 2 safe twice, and
-   sections 1 and 3 are read-only.
-5. **ROLLBACK**, commented out. While the table is empty, dropping it reverses
-   the migration completely — one practical benefit of having added no FK.
-
-**The collation, and the one authoritative answer.** An earlier draft of this
-document described two different final schemas — "inherits the database
-default" and "section 3a may ALTER it to match". Those are not the same table,
-and the ambiguity is now removed. There is exactly one post-migration state:
-
-> `quotation_revisions.quotation_ref_no` has the **same `COLUMN_TYPE`,
-> `CHARACTER_SET_NAME` and `COLLATION_NAME` as `quotations.ref_no`.**
-
-Inheriting the database default is only where **section 2** starts, not where
-the migration ends. **Section 3 is a required step, not a conditional one**: it
-reads the charset and collation off `quotations.ref_no` and generates the
-`ALTER`, taking the type from the column rather than restating it — the same
-"generate, don't hand-type" discipline the `NOT NULL(ref_no)` migration used.
-It is unconditional by design; when the collations already agree it sets them
-to what they already are, which is harmless and better than a branch an
-operator has to decide about at 11pm. **Section 4a then gates on equality** and
-says NO-GO until it holds.
-
-Why it matters: MySQL refuses to compare columns whose collations differ, and
-on MySQL 8 the database default is commonly `utf8mb4_0900_ai_ci` while an older
-table is `utf8mb4_general_ci` — same charset, different collation, and the join
-from a revision to its quotation dies with *Illegal mix of collations*.
-
-The suite models production exactly here: its stand-in `quotations.ref_no` is
-`utf8mb4_general_ci` while the test database's default is not, so section 3 has
-real work to do. It then asserts all three attributes match, asserts the final
-collation is **not** merely the database default, and runs the join.
-
-**The conformance gate — what `IF NOT EXISTS` cannot do.** `CREATE TABLE IF NOT
-EXISTS` protects an existing table from replacement; it does **not** tell you
-whether the table that is there is the right one. Against a `quotation_revisions`
-built by hand, or by an older draft, it succeeds, changes nothing, and leaves
-the operator believing the schema above is what they have. That is a silent
-pass over a wrong schema.
-
-**CONFORMS means the table is already in the complete authoritative final
-state** — not "section 2's `CREATE` looks about right". Section 1b compares
-every expected column by name, **type, nullability, `EXTRA` and
-`COLUMN_DEFAULT`**; every expected index by name, uniqueness, column list and
-order; counts the unexpected as well as the missing; and checks
-`quotation_ref_no` against `quotations.ref_no` on **`COLUMN_TYPE`,
-`CHARACTER_SET_NAME` and `COLLATION_NAME`, read from the live database**. If
-`quotations.ref_no` cannot be found the answer is NO-GO, not a CONFORMS reached
-by comparing against nothing. Section 4b re-runs it after the migration.
-
-`COLUMN_DEFAULT` is in the gate deliberately. `snapshot_schema_version` must
-have **no** default, and a table correct in every other respect but carrying
-`DEFAULT 1` is a different contract — it would let a future snapshot format be
-stored silently under the old version number. That one difference alone reads
-NO-GO.
-
-**Twelve wrong-schema fixtures, each with exactly one defect.** They are
-generated from one correct definition with a single attribute overridden, so a
-NO-GO can only be caused by the thing it is named after; a fixture with two
-defects proves nothing about either. The suite first asserts the generator's
-untouched output CONFORMS, then: a forbidden `DEFAULT` on
-`snapshot_schema_version` · `created_at` as `TIMESTAMP` · `created_at` with no
-default · `quotation_ref_no` on the database default collation · wrong type ·
-wrong charset · a missing column · `snapshot_json` as `LONGTEXT` · the `UNIQUE`
-degraded to an ordinary key · an unexpected column · an unexpected index · a
-standalone `quotation_id` index the `UNIQUE` already covers. For every one it
-demonstrates that **section 2 alone succeeds and changes nothing** before
-showing the gate refuses it.
-
-**The invariant is tested, not assumed.** Section 1b must never say CONFORMS
-while section 4a says otherwise. The suite walks all thirteen fixtures, asserts
-that any CONFORMS implies a section 4a MATCH, and asserts that **exactly one**
-of the thirteen conforms. Both ask the same live question of the same database,
-which is why they cannot disagree.
-
----
-
 ## ACCEPTANCE — WHAT MUST BE TRUE TO CLOSE
 
-- the table is created cleanly, and a second run of the **complete procedure**
-  is safe — including when rows are already present, which are proven
-  byte-identical afterwards
-- `quotation_ref_no` ends with the same type, charset and collation as
-  `quotations.ref_no`, asserted attribute by attribute
-- an existing but WRONG `quotation_revisions` is refused by the conformance
-  gate rather than silently accepted by `IF NOT EXISTS`
-- it starts **empty**, and nothing writes to it
-- `quotations` and `app_users` are identical in definition afterwards
-- exactly one table is created
-- `UNIQUE (quotation_id, revision_no)` is enforced; the same `revision_no` is
-  allowed for **different** quotations and rejected for the **same** one
-- `snapshot_json` accepts valid JSON, rejects invalid, and is queryable as JSON
-- `snapshot_schema_version` is present and cannot be omitted
-- the logical quotation reference survives the quotation row being deleted
-- no revision writer exists anywhere in the application
-- `api.php` and `index.php` behaviour unchanged
-- production untouched
-
-Then STOP. **No deploy. No production DB change.** Candidate only.
+- CREATE and UPDATE are both transactional, and the UPDATE's persisted read is
+  inside its transaction and held `FOR UPDATE`
+- COMMIT precedes `RELEASE_LOCK` on the create path
+- every handled failure after `BEGIN` rolls back explicitly, and leaves the
+  quotation byte-identical
+- a refused `COMMIT` is never reported as success; a refused `BEGIN` writes
+  nothing
+- the named lock is released explicitly on success and on handled failure —
+  proven while the session is still open, not by the connection closing
+- two transactions cannot hold the same quotation row; a different row is not
+  blocked
+- item identity, `ref_no`, the 1062 retry and `delete_quotation` all behave
+  exactly as before
+- no application reference to `quotation_revisions` exists
+- the full browser matrix runs, with its result recorded as measured
 
 ---
 
 ## MEASURED ON THIS CANDIDATE
 
-| | |
-|---|---:|
-| `tests/php/revision_storage.test.php` | **198 assertions, 0 failed** |
-| Counted in the application total? | **No** — see the OUTCOME below |
-| MySQL **8.0.46** — the production version, exactly | 198 / 0 |
-| MySQL **8.4.3** | 198 / 0 |
+Filled in from the runs, not carried over. **None of these are canonical** —
+CANONICAL-STATE still describes `649f80a`, and a candidate does not touch it.
 
-The suite creates its own throwaway database, does everything inside it, drops
-it, and refuses to run against a schema it did not create. It **fails** rather
-than skips when no MySQL is reachable: a schema test that did not run must not
-read as one that passed.
-
-**Not re-run, and why:** the forty-suite browser matrix. No application byte
-changed — `git diff` over `*.php` outside `tests/` and `migrations/` is empty —
-so re-running it would only reproduce the eight recorded `38-mobile-ui`
-environment failures. `php -l` is clean on both new files.
-
-**The production version was run, not argued about.** An earlier draft of this
-section reasoned that the two version-sensitive values were safe on 8.0 and
-labelled that an argument rather than a run. It is now a run: the same suite,
-unchanged, against **MySQL 8.0.46** — the exact production version — from the
-official archive at dev.mysql.com, in an isolated datadir on an isolated port,
-never touching production and never using production credentials. Identical
-result on both engines, assertion for assertion.
-
-The two version-sensitive values it depends on are confirmed empirically on
-8.0.46 rather than inferred: `COLUMN_TYPE` reads `int unsigned` without a
-display width (8.0.19+), and `EXTRA` reads `DEFAULT_GENERATED` for a column
-defaulting to `CURRENT_TIMESTAMP` (8.0.13+). MariaDB was NOT used as a
-substitute — its `JSON` is an alias for `LONGTEXT`, so every native-validation
-assertion would have measured something else.
-
----
-
-## OUTCOME — FINAL ACCEPTED / CLOSED
-
-Accepted on 2026-08-28. `main` was fast-forwarded from `b9663d5` to
-`b1fd1de7b1623150dcd6d8d609d8014af488f70e` — no merge commit, no rebase, no
-force push.
+### Targeted — the transaction suite
 
 | | |
 |---|---:|
-| Accepted candidate | `b1fd1de7b1623150dcd6d8d609d8014af488f70e` |
-| MySQL **8.0.46** — the exact production engine | 198 / 0 |
-| MySQL **8.4.3** | 198 / 0 |
-| Accepted application commit | `649f80a` — **unchanged** |
-| Application assertion total | 4,734 — **unchanged** |
+| `tests/php/transaction_foundation.test.php` on MySQL **8.0.46**, the production engine | **85 / 0** |
+| the same suite on MySQL **8.4.3** | **85 / 0** |
 
-**Why the accepted application SHA did not move, and why 198 is not added to
-the total.** This round changed no application file. `migrations/` and `tests/`
-are not deployed, so nothing a customer can reach is different. The canonical
-assertion figures describe the APPLICATION measured at `649f80a`; a suite that
-measures a migration is not an application assertion any more than
-`check-control`'s own tests are, and folding it in would make the total mean two
-things at once. The 198 are recorded in their own canonical block instead, where
-they cannot drift unnoticed either.
+Three kinds of evidence, because no one kind covers a transaction. The shipped
+`api.php` is copied byte-identically into a sandbox beside a stub `auth.php` and
+`db.php` and **served over real HTTP by PHP's built-in server**, so
+`save_quotation` and `update_quotation` run against real MySQL with a real
+request body. `dc_txn_*` and `dc_lock_quotation_for_update` are lifted from the
+shipped file and driven directly, including against a stub driver for the two
+failures a real server will not produce on demand — `BEGIN` refused and `COMMIT`
+refused. Statement ORDER is read out of the source, because "the read is inside
+the transaction" is a claim about sequence and nothing else can prove it.
 
-**Production is untouched.**
+The row lock is measured on two real connections: A holds a quotation
+`FOR UPDATE`; B is refused the same row and times out; B takes a *different*
+quotation immediately; A commits; B then takes the first row. The named lock is
+proven released **while the session is still open**, so the proof is the code
+giving it back and not the connection closing.
 
-- `migrations/2026-08-28-create-quotation-revisions.sql` — **NOT APPLIED**;
-  `quotation_revisions` does not exist in production
-- production application — still `649f80a`, unchanged
-- Revision writer — **NOT STARTED**; no application file mentions
-  `quotation_revisions`
+### Existing PHP suites, re-run against the changed `api.php`
 
-**Next: READ-BEFORE-WRITE / TRANSACTION FOUNDATION**, which is NOT started. The
-sequence after it is unchanged: Snapshot Revision Writer → Diff Engine / No-op
-Suppression → Baseline / Delete Policy → History API → History UI.
+| | |
+|---|---:|
+| save retry | 42 / 0 |
+| mysqli compatibility | 94 / 0 |
+| item identity | **159** / 0 (was 156 — see the four replacing one, above) |
+| pricing / history | 172 / 0 |
+| AI extraction | 107 / 0 |
+| revision storage | 198 / 0 |
+| actor identity | 150 / **1** — the known PHP 8.4 bcrypt-cost artifact |
+
+Actor identity's single failure is the deliberately runtime-relative assertion
+recorded in CANONICAL-STATE: the decoy hash's cost against what
+`PASSWORD_DEFAULT` produces, which needs PHP 8.4 and gets 10 on this 8.3.30
+machine. Unrelated to this round and not to be relaxed.
+
+### Full browser matrix — run, because application code changed
+
+| | |
+|---|---:|
+| Suites | **40** |
+| Assertions | **3,936** |
+| Failed | **8** |
+| Skipped | **0** |
+| Elapsed | 901.5s |
+
+**The 8 are the recorded environment exception, unchanged and not one more.**
+All in `tests/suites/38-mobile-ui.test.js`, all on the `companies.php` modal
+close control at 1440 / 980 / 700 / 600px — 27 tall where 24 was accepted, 16.3
+wide where 17 was. Font metrics on this Windows Chromium against a matrix
+measured in a Linux sandbox; `companies.php` is untouched by this round, and
+CANONICAL-STATE's `tests.browserFailureException` already records the same
+eight, reproduced on `ce26146`.
+
+**This is not being restated as 0 failed.** 3,928 of 3,936 pass; the remaining
+8 have not been measured on a runtime that can settle them, and the transaction
+change added none of them.
+
+`php -l` clean on every PHP file.

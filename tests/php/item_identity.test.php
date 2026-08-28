@@ -269,8 +269,22 @@ $persisted = json_encode([
     $upd = substr($API, strpos($API, "\$action === 'update_quotation'"),
                   strpos($API, "\$action === 'delete_quotation'") - strpos($API, "\$action === 'update_quotation'"));
     ok(strpos($upd, 'dc_reconcile_item_uids(') !== false, '5: update_quotation reconciles identity');
-    ok(strpos($upd, 'SELECT items FROM quotations WHERE id=?') !== false,
-       '5: reading the minimum it needs — one column, one row');
+    /* Was: 'SELECT items FROM quotations WHERE id=?' — the minimum read, which
+       is what Item Identity needed and all it needed. READ-BEFORE-WRITE /
+       TRANSACTION FOUNDATION deliberately replaced it: the row is now read
+       INSIDE the transaction and held FOR UPDATE, and the whole row is
+       returned because it is the authoritative BEFORE state a later revision
+       writer will snapshot. The assertion follows the contract rather than the
+       old statement text, and asks for MORE than it used to. */
+    ok(strpos($upd, 'dc_lock_quotation_for_update($db, $id)') !== false,
+       '5: the persisted read goes through the locking helper');
+    ok(strpos($API, 'SELECT * FROM quotations WHERE id = ? FOR UPDATE') !== false,
+       '5: which reads the row FOR UPDATE');
+    ok(strpos($upd, 'dc_txn_begin(') !== false
+       && strpos($upd, 'dc_txn_begin(') < strpos($upd, 'dc_lock_quotation_for_update('),
+       '5: inside a transaction that was opened BEFORE it, not after');
+    ok(strpos($upd, 'SELECT items FROM quotations') === false,
+       '5: and the old unlocked pre-transaction read is gone');
     ok(strpos($upd, "'items'=>\$itemsArr") !== false, '5: and answers with the persisted items too');
     /* Order matters more than presence: the refusal has to come first. */
     ok(strpos($upd, 'dc_reconcile_item_uids(') < strpos($upd, 'UPDATE quotations SET'),

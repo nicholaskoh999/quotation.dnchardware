@@ -122,6 +122,13 @@ function lift($src, $name) {
 
 // ══ 3 · the existing false/errno flow still works ═══════════════════════════
 {
+    /* fail_json() now unwinds the transaction scope before it answers, so it
+       calls dc_txn_cleanup(). Lifting one without the other measures a
+       fail_json that cannot run. Nothing this suite asserts changes: the
+       contract is still that a query, prepare or execute failure returns
+       parseable JSON with the existing message and no fatal. */
+    $GLOBALS['DC_TXN'] = ['db' => null, 'active' => false, 'lock' => false];
+    eval(lift($src, 'dc_txn_cleanup'));
     eval(lift($src, 'fail_json'));
     eval(lift($src, 'query_or_fail'));
     eval(lift($src, 'prepare_or_fail'));
@@ -161,6 +168,8 @@ function lift($src, $name) {
     }
     return substr($src, $at, $i - $at + 1);
 }
+$GLOBALS['DC_TXN'] = ['db' => null, 'active' => false, 'lock' => false];
+eval(lift($src, 'dc_txn_cleanup'));
 eval(lift($src, 'fail_json'));
 eval(lift($src, 'query_or_fail'));
 eval(lift($src, 'prepare_or_fail'));

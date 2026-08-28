@@ -57,7 +57,70 @@ $input = [];
 $raw = file_get_contents('php://input');
 if ($raw) $input = json_decode($raw, true) ?? [];
 
+/* ── Transaction scope ──────────────────────────────────────────────────────
+   A quotation mutation and, in a later round, its revision snapshot have to be
+   one atomic write. This round adds the transaction and nothing that writes a
+   revision.
+
+   The awkward part is not BEGIN and COMMIT; it is every path that already
+   ends the request. query_or_fail(), prepare_or_fail(), execute_or_fail() and
+   the 1062 retry all funnel into fail_json(), which echoes and exits — and an
+   exit inside an open transaction would leave the rollback to the connection
+   closing, and the named lock to the same. That works, but it is not a
+   contract: it is a side effect of the process dying.
+
+   So the scope is recorded as the request runs, and fail_json() unwinds it
+   explicitly before it exits. Every existing error path becomes transaction
+   safe without a single call site changing, which is also why this round does
+   not have to rewrite the helpers the guardrails protect.
+
+   Two levels, deliberately not merged. The named lock is SESSION scoped and
+   the transaction is not: COMMIT does not release GET_LOCK, and ROLLBACK does
+   not either. They are tracked separately and released separately. */
+$GLOBALS['DC_TXN'] = ['db' => null, 'active' => false, 'lock' => false];
+
+function dc_txn_begin($db) {
+    if (!$db->begin_transaction()) return false;
+    $GLOBALS['DC_TXN']['db']     = $db;
+    $GLOBALS['DC_TXN']['active'] = true;
+    return true;
+}
+
+function dc_txn_commit($db) {
+    $ok = $db->commit();
+    /* Cleared either way. A failed COMMIT has already ended the transaction;
+       what it has NOT done is succeed, and the caller must not report success. */
+    $GLOBALS['DC_TXN']['active'] = false;
+    return $ok;
+}
+
+function dc_txn_rollback($db) {
+    if (!$GLOBALS['DC_TXN']['active']) return;
+    @$db->rollback();
+    $GLOBALS['DC_TXN']['active'] = false;
+}
+
+/* Called by acquire_ref_lock() / release_ref_lock() so the unwind below knows
+   whether this request is holding the named lock. */
+function dc_txn_note_lock($db, $held) {
+    $GLOBALS['DC_TXN']['db']   = $db;
+    $GLOBALS['DC_TXN']['lock'] = $held;
+}
+
+/* Roll back an open transaction and release a held named lock, in that order.
+   Safe to call when neither is true, which is every request that fails before
+   any of this starts. */
+function dc_txn_cleanup() {
+    $t = &$GLOBALS['DC_TXN'];
+    if (!$t['db']) return;
+    if ($t['active']) { @$t['db']->rollback(); $t['active'] = false; }
+    if ($t['lock'])   { @$t['db']->query("SELECT RELEASE_LOCK('" . DC_REF_LOCK . "')"); $t['lock'] = false; }
+}
+
 function fail_json($error) {
+    /* Before the response, not after: an exit must never be the thing that
+       ends a transaction this code opened. */
+    dc_txn_cleanup();
     echo json_encode(['ok'=>false,'error'=>$error]);
     exit;
 }
@@ -315,6 +378,35 @@ function dc_mint_item_uid(array &$used) {
     return $uid;
 }
 
+/* READ BEFORE WRITE. The persisted quotation, read INSIDE the caller's
+   transaction and locked with FOR UPDATE, so that between reading it and
+   writing it nobody else can change it.
+
+   Returns the whole row rather than the one column reconciliation needs. That
+   is deliberate: this is the authoritative BEFORE state, and the Snapshot
+   Revision Writer will snapshot it from here. Reading it twice — once to
+   reconcile, once to snapshot — would reintroduce exactly the gap this
+   function exists to close.
+
+   WHAT THE LOCK DOES, AND WHAT IT DOES NOT. Two UPDATE transactions cannot
+   hold the same quotation row at once: the second waits for the first to
+   commit or roll back. That is what gives the writer a deterministic BEFORE
+   state. It is NOT optimistic concurrency — a browser holding a stale copy can
+   still overwrite a newer edit, because nothing here compares versions. That
+   is a different round and this one does not claim it.
+
+   Returns null when there is no such row; the caller decides what that means. */
+function dc_lock_quotation_for_update($db, $id) {
+    $stmt = prepare_or_fail($db, "SELECT * FROM quotations WHERE id = ? FOR UPDATE",
+                            'Quotation lock prepare failed');
+    $stmt->bind_param('i', $id);
+    execute_or_fail($stmt, 'Quotation lock failed');
+    $res = $stmt->get_result();
+    $row = $res ? $res->fetch_assoc() : null;
+    $stmt->close();
+    return $row ?: null;
+}
+
 /* CREATE. Every item gets a fresh server UID and any client-supplied one is
    discarded — on a create there is nothing for an incoming UID to refer to, so
    accepting one would let a browser choose an identity. */
@@ -407,11 +499,16 @@ define('DC_REF_LOCK', 'dc_quotation_ref_alloc');
 function acquire_ref_lock($db) {
     $res = $db->query("SELECT GET_LOCK('" . DC_REF_LOCK . "', 10) AS l");
     $row = $res ? $res->fetch_assoc() : null;
-    return $row && intval($row['l']) === 1;
+    $got = $row && intval($row['l']) === 1;
+    /* Recorded so a failure anywhere between here and release_ref_lock() gives
+       it back explicitly, rather than leaving it to the connection closing. */
+    if ($got) dc_txn_note_lock($db, true);
+    return $got;
 }
 
 function release_ref_lock($db) {
     @$db->query("SELECT RELEASE_LOCK('" . DC_REF_LOCK . "')");
+    dc_txn_note_lock($db, false);
 }
 
 function ref_no_in_use($db, $ref) {
@@ -780,6 +877,14 @@ if ($action === 'get_next_ref') {
     if (!acquire_ref_lock($db)) {
         echo json_encode(['ok'=>false,'error'=>'Could not reserve a quotation number (busy). Please try again.']); exit;
     }
+    /* The lock is taken FIRST and the transaction opened inside it, so the
+       allocation and the INSERT that uses it are one atomic write. If BEGIN
+       itself fails nothing has been written, and the lock is given back before
+       anything else is attempted. */
+    if (!dc_txn_begin($db)) {
+        release_ref_lock($db);
+        fail_json('Could not begin the save transaction: ' . $db->error);
+    }
     if ($requested_ref !== '' && !ref_no_in_use($db, $requested_ref)) {
         $ref_no = $requested_ref;               // previewed / custom number still free — keep it
     } else {
@@ -792,9 +897,17 @@ if ($action === 'get_next_ref') {
        the 'reassigned' flag below then reports the new number, which the screen
        already knows how to say. */
     if (!dc_save_quotation_insert($stmt, $ref_no, function () use ($db) { return next_free_ref_no($db); })) {
+        /* fail_json rolls the transaction back and gives the named lock back
+           before it answers. Nothing partial survives. */
         fail_json('Quotation save failed: ' . $stmt->error);
     }
     $new_id = $db->insert_id;
+    /* COMMIT BEFORE THE LOCK IS RELEASED. The lock exists to stop a second
+       request allocating the same number; letting go of it while this INSERT
+       is still uncommitted would hand out a number that is not yet taken. */
+    if (!dc_txn_commit($db)) {
+        fail_json('Quotation save could not be committed: ' . $db->error);
+    }
     release_ref_lock($db);
     /* The normalized persisted items travel back, so the page that saved can
        adopt the UIDs the server just issued. Without that, a second save from
@@ -821,24 +934,29 @@ if ($action === 'get_next_ref') {
     $cust_name   = trim($input['customer_name'] ?? '');
     $cust_phone  = trim($input['customer_phone'] ?? '');
 
-    /* Item identity, reconciled BEFORE anything is written. The read is one
-       column of one row — the minimum this needs — and every refusal below
-       leaves the quotation exactly as it was. */
-    $sel = prepare_or_fail($db, "SELECT items FROM quotations WHERE id=?", 'Quotation identity read prepare failed');
-    $sel->bind_param('i', $id);
-    execute_or_fail($sel, 'Quotation identity read failed');
-    $persistedItemsJson = null;
-    $sel->bind_result($persistedItemsJson);
-    $found = $sel->fetch();
-    $sel->close();
-    if (!$found) {
+    /* READ BEFORE WRITE. The transaction opens FIRST, then the persisted row
+       is read and locked inside it, and the UPDATE below writes that same row
+       on that same connection before COMMIT. Previously the read happened
+       outside any transaction, so between reconciling identity and writing it
+       another request could have changed the very items that were reconciled.
+
+       Every refusal past this point rolls back explicitly and leaves the
+       quotation exactly as it was. */
+    if (!dc_txn_begin($db)) {
+        fail_json('Could not begin the update transaction: ' . $db->error);
+    }
+    $persisted = dc_lock_quotation_for_update($db, $id);
+    if ($persisted === null) {
+        dc_txn_rollback($db);
         http_response_code(404);
         echo json_encode(['ok'=>false,'error'=>'Not found']);
         exit;
     }
+    /* Reconciled against the LOCKED row, not against a copy read before it. */
     $identityError = '';
-    $itemsArr = dc_reconcile_item_uids($input['items'] ?? [], $persistedItemsJson, $identityError);
+    $itemsArr = dc_reconcile_item_uids($input['items'] ?? [], $persisted['items'], $identityError);
     if ($itemsArr === null) {
+        dc_txn_rollback($db);
         echo json_encode(['ok'=>false,'error'=>$identityError]);
         exit;
     }
@@ -850,6 +968,9 @@ if ($action === 'get_next_ref') {
     $stmt = prepare_or_fail($db, "UPDATE quotations SET company_id=?,quote_date=?,valid_until=?,prepared_by=?,remarks=?,customer_name=?,customer_phone=?,items=?,total_amount=? WHERE id=?", 'Quotation update prepare failed');
     $stmt->bind_param('isssssssdi', $company_id,$quote_date,$valid_until,$prep_by,$remarks,$cust_name,$cust_phone,$items,$total,$id);
     execute_or_fail($stmt, 'Quotation update failed');
+    if (!dc_txn_commit($db)) {
+        fail_json('Quotation update could not be committed: ' . $db->error);
+    }
     echo json_encode(['ok'=>true,'items'=>$itemsArr]);
 
 } elseif ($action === 'delete_quotation') {
