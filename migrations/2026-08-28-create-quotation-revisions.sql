@@ -110,10 +110,23 @@ WHERE  TABLE_SCHEMA = DATABASE()
 --      That is a silent pass over a wrong schema, and this query is what stops
 --      it.
 --
---      It compares every expected column (name, type, nullability, extra) and
---      every expected index (name, uniqueness, column list and order) against
---      what is actually there, and counts anything unexpected as well as
---      anything missing.
+--      CONFORMS means THE TABLE IS ALREADY IN THE COMPLETE AUTHORITATIVE
+--      FINAL STATE — not "section 2's CREATE looks about right". It compares
+--      every expected column by name, TYPE, nullability, EXTRA and
+--      COLUMN_DEFAULT; every expected index by name, uniqueness and column
+--      list and order; counts anything unexpected as well as anything missing;
+--      and checks quotation_ref_no against quotations.ref_no on COLUMN_TYPE,
+--      CHARACTER_SET_NAME and COLLATION_NAME.
+--
+--      COLUMN_DEFAULT is in there deliberately. snapshot_schema_version must
+--      have NO default, and a table that is correct in every other respect but
+--      carries DEFAULT 1 is a different contract: it would let a future
+--      snapshot format be stored silently under the old version number. That
+--      one difference alone reads NO-GO.
+--
+--      The charset and collation are read from quotations.ref_no at run time.
+--      Nothing here hard-codes them, so CONFORMS cannot be true while
+--      section 4a says MISMATCH — both ask the same live question.
 --
 --      ABSENT   → section 2 will create it. Proceed.
 --      CONFORMS → the right table is already there. Section 2 is a no-op and
@@ -130,30 +143,54 @@ WHERE  TABLE_SCHEMA = DATABASE()
 -- >>> CONFORMANCE BEGIN
 SELECT CASE
          WHEN present = 0 THEN 'ABSENT — section 2 will create it'
-         WHEN bad_cols = 0 AND extra_cols = 0 AND bad_idx = 0 AND extra_idx = 0
+         WHEN ref_authority = 0
+           THEN 'NO-GO — quotations.ref_no was not found, so the authoritative type, charset and collation for quotation_ref_no cannot be read. Do NOT run section 2.'
+         WHEN bad_cols = 0 AND extra_cols = 0 AND bad_idx = 0 AND extra_idx = 0 AND bad_ref = 0
            THEN 'CONFORMS — the expected table is already there; re-running is safe'
          ELSE CONCAT('NO-GO — an existing quotation_revisions does not match: ',
                      bad_cols,   ' wrong or missing column(s), ',
                      extra_cols, ' unexpected column(s), ',
                      bad_idx,    ' wrong or missing index(es), ',
-                     extra_idx,  ' unexpected index(es). Do NOT run section 2.')
+                     extra_idx,  ' unexpected index(es), ',
+                     bad_ref,    ' quotation_ref_no mismatch(es) against quotations.ref_no.',
+                     ' Do NOT run section 2.')
        END AS conformance
 FROM (
   SELECT
     (SELECT COUNT(*) FROM information_schema.TABLES
       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions') AS present,
+    /* The authority for quotation_ref_no is the live quotations.ref_no. If it
+       cannot be read, nothing below can be judged and the answer is NO-GO
+       rather than a CONFORMS reached by comparing against nothing. */
+    (SELECT COUNT(*) FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotations'
+        AND COLUMN_NAME = 'ref_no') AS ref_authority,
     (SELECT COUNT(*) FROM (
-        SELECT 'id' AS col, 'bigint unsigned' AS typ, 'NO' AS nul, 'auto_increment' AS ext
-        UNION ALL SELECT 'quotation_id',            'int unsigned',      'NO',  ''
-        UNION ALL SELECT 'revision_no',             'int unsigned',      'NO',  ''
-        UNION ALL SELECT 'quotation_ref_no',        'varchar(100)',      'NO',  ''
-        UNION ALL SELECT 'event_type',              'varchar(32)',       'NO',  ''
-        UNION ALL SELECT 'actor_user_id',           'int unsigned',      'YES', ''
-        UNION ALL SELECT 'actor_username',          'varchar(64)',       'YES', ''
-        UNION ALL SELECT 'actor_display_name',      'varchar(100)',      'YES', ''
-        UNION ALL SELECT 'snapshot_schema_version', 'smallint unsigned', 'NO',  ''
-        UNION ALL SELECT 'snapshot_json',           'json',              'NO',  ''
-        UNION ALL SELECT 'created_at',              'datetime',          'NO',  'DEFAULT_GENERATED'
+        SELECT 'id' AS col, 'bigint unsigned' AS typ, 'NO' AS nul,
+               'auto_increment' AS ext, CAST(NULL AS CHAR(64)) AS def
+        UNION ALL SELECT 'quotation_id',            'int unsigned',      'NO',  '', NULL
+        UNION ALL SELECT 'revision_no',             'int unsigned',      'NO',  '', NULL
+        /* The expected TYPE of quotation_ref_no is read from quotations.ref_no,
+           never hard-coded. Its charset and collation are checked by bad_ref. */
+        UNION ALL SELECT 'quotation_ref_no',
+                         (SELECT LOWER(COLUMN_TYPE) FROM information_schema.COLUMNS
+                           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotations'
+                             AND COLUMN_NAME = 'ref_no'),
+                                                    'NO',  '', NULL
+        UNION ALL SELECT 'event_type',              'varchar(32)',       'NO',  '', NULL
+        UNION ALL SELECT 'actor_user_id',           'int unsigned',      'YES', '', NULL
+        UNION ALL SELECT 'actor_username',          'varchar(64)',       'YES', '', NULL
+        UNION ALL SELECT 'actor_display_name',      'varchar(100)',      'YES', '', NULL
+        /* NO DEFAULT is part of the contract, not a detail: a default would let
+           a future snapshot format be stored silently under the old version
+           number. COLUMN_DEFAULT must be NULL, and <=> is what compares it. */
+        UNION ALL SELECT 'snapshot_schema_version', 'smallint unsigned', 'NO',  '', NULL
+        UNION ALL SELECT 'snapshot_json',           'json',              'NO',  '', NULL
+        /* DATETIME, defaulting to CURRENT_TIMESTAMP. A TIMESTAMP here is a
+           different contract — it stops in 2038 and shifts with the session
+           time zone — and reads NO-GO. */
+        UNION ALL SELECT 'created_at',              'datetime',          'NO',
+                         'DEFAULT_GENERATED', 'CURRENT_TIMESTAMP'
       ) e
       LEFT JOIN information_schema.COLUMNS c
              ON c.TABLE_SCHEMA = DATABASE()
@@ -162,15 +199,31 @@ FROM (
       WHERE (SELECT COUNT(*) FROM information_schema.TABLES
               WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions') > 0
         AND (c.COLUMN_NAME IS NULL
-          OR LOWER(c.COLUMN_TYPE) <> e.typ
-          OR c.IS_NULLABLE       <> e.nul
-          OR c.EXTRA             <> e.ext)) AS bad_cols,
+          OR NOT (LOWER(c.COLUMN_TYPE)      <=> e.typ)
+          OR NOT (c.IS_NULLABLE             <=> e.nul)
+          OR NOT (c.EXTRA                   <=> e.ext)
+          OR NOT (UPPER(c.COLUMN_DEFAULT)   <=> e.def))) AS bad_cols,
     (SELECT COUNT(*) FROM information_schema.COLUMNS c
       WHERE c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = 'quotation_revisions'
         AND c.COLUMN_NAME NOT IN ('id','quotation_id','revision_no','quotation_ref_no',
                                   'event_type','actor_user_id','actor_username',
                                   'actor_display_name','snapshot_schema_version',
                                   'snapshot_json','created_at')) AS extra_cols,
+    /* The authoritative final state of the one column compared across tables.
+       Read dynamically from quotations.ref_no — this file states no charset and
+       no collation of its own, so it cannot be wrong about a database it has
+       never seen. */
+    (SELECT COUNT(*) FROM information_schema.COLUMNS r
+       JOIN information_schema.COLUMNS q
+         ON  q.TABLE_SCHEMA = DATABASE()
+         AND q.TABLE_NAME   = 'quotations'
+         AND q.COLUMN_NAME  = 'ref_no'
+      WHERE r.TABLE_SCHEMA = DATABASE()
+        AND r.TABLE_NAME   = 'quotation_revisions'
+        AND r.COLUMN_NAME  = 'quotation_ref_no'
+        AND NOT (r.COLUMN_TYPE         <=> q.COLUMN_TYPE
+             AND r.CHARACTER_SET_NAME  <=> q.CHARACTER_SET_NAME
+             AND r.COLLATION_NAME      <=> q.COLLATION_NAME)) AS bad_ref,
     (SELECT COUNT(*) FROM (
         SELECT 'PRIMARY' AS idx, 0 AS nu, 'id' AS cols
         UNION ALL SELECT 'uq_quotation_revisions_no',       0, 'quotation_id,revision_no'
@@ -187,6 +240,8 @@ FROM (
       WHERE (SELECT COUNT(*) FROM information_schema.TABLES
               WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions') > 0
         AND (s.INDEX_NAME IS NULL OR s.nu <> e.nu OR s.cols <> e.cols)) AS bad_idx,
+    /* Anything not in the accepted five, INCLUDING a standalone index on
+       quotation_id, which the UNIQUE already covers as its leftmost column. */
     (SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS
       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions'
         AND INDEX_NAME NOT IN ('PRIMARY','uq_quotation_revisions_no',

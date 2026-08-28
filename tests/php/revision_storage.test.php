@@ -222,6 +222,8 @@ $A = $fresh();
 
     eq($cols['snapshot_schema_version']['COLUMN_DEFAULT'], null,
        '2: snapshot_schema_version has NO default — a writer must state the version it wrote');
+    eq($cols['snapshot_schema_version']['IS_NULLABLE'], 'NO',
+       '2: and is NOT NULL, so it cannot be skipped either way');
     ok(stripos((string)$cols['created_at']['COLUMN_DEFAULT'], 'CURRENT_TIMESTAMP') !== false,
        '2: created_at defaults to CURRENT_TIMESTAMP');
     ok(strtolower($cols['created_at']['COLUMN_TYPE']) !== 'timestamp',
@@ -380,105 +382,99 @@ $drop($A);
 // ══ 6 · THE WRONG-SCHEMA GATE ══════════════════════════════════════════════
 /* CREATE TABLE IF NOT EXISTS is not a check. Against a quotation_revisions
    that is present but WRONG it succeeds, changes nothing, and leaves the
-   operator believing the migration worked. Each case below builds a wrong
-   table, proves section 2 alone would have called it fine, and proves the
-   shipped conformance gate refuses it. */
+   operator believing the migration worked.
+
+   Every fixture below is generated from ONE correct definition with exactly
+   ONE attribute overridden, so a NO-GO can only be caused by the defect it is
+   named after. A fixture with two defects proves nothing about either. */
 {
+    /* The correct table, in the same shape section 2 produces AFTER section 3 —
+       including quotation_ref_no already matching quotations.ref_no, because
+       that is the authoritative final state the gate is judging against. */
+    $mk = function (array $over = [], array $addCols = [], array $dropCols = [],
+                    array $idxOver = [], array $addIdx = []) use ($REFCS, $REFCOLL) {
+        $cols = [
+            'id'                      => 'BIGINT UNSIGNED NOT NULL AUTO_INCREMENT',
+            'quotation_id'            => 'INT UNSIGNED NOT NULL',
+            'revision_no'             => 'INT UNSIGNED NOT NULL',
+            'quotation_ref_no'        => "VARCHAR(100) CHARACTER SET {$REFCS} COLLATE {$REFCOLL} NOT NULL",
+            'event_type'              => 'VARCHAR(32) NOT NULL',
+            'actor_user_id'           => 'INT UNSIGNED NULL',
+            'actor_username'          => 'VARCHAR(64) NULL',
+            'actor_display_name'      => 'VARCHAR(100) NULL',
+            'snapshot_schema_version' => 'SMALLINT UNSIGNED NOT NULL',
+            'snapshot_json'           => 'JSON NOT NULL',
+            'created_at'              => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        ];
+        foreach ($over as $k => $v) $cols[$k] = $v;
+        foreach ($dropCols as $k) unset($cols[$k]);
+        foreach ($addCols as $k => $v) $cols[$k] = $v;
+
+        $idx = [
+            'PRIMARY'                         => 'PRIMARY KEY (id)',
+            'uq_quotation_revisions_no'       => 'UNIQUE KEY uq_quotation_revisions_no (quotation_id, revision_no)',
+            'idx_quotation_revisions_ref'     => 'KEY idx_quotation_revisions_ref (quotation_ref_no)',
+            'idx_quotation_revisions_actor'   => 'KEY idx_quotation_revisions_actor (actor_user_id)',
+            'idx_quotation_revisions_created' => 'KEY idx_quotation_revisions_created (created_at)',
+        ];
+        foreach ($idxOver as $k => $v) $idx[$k] = $v;
+        foreach ($addIdx as $k => $v) $idx[$k] = $v;
+
+        $parts = [];
+        foreach ($cols as $n => $d) $parts[] = "  {$n} {$d}";
+        foreach ($idx as $d) $parts[] = "  {$d}";
+        return "CREATE TABLE quotation_revisions (\n" . implode(",\n", $parts) . "\n) ENGINE=InnoDB";
+    };
+
+    /* Sanity: the generator's untouched output IS the accepted final state.
+       Without this, a defect in the generator would make every NO-GO below
+       meaningless. */
+    $S0 = $fresh();
+    ok($db->query($mk()) === true, '6: the fixture generator builds the accepted table: ' . $db->error);
+    eq($one($conform), 'CONFORMS — the expected table is already there; re-running is safe',
+       '6: and the gate CONFORMS on it — so every NO-GO below is caused by its one override');
+    eq(substr($one($gate), 0, 5), 'MATCH', '6: section 4a agrees it is the final state');
+    $drop($S0);
+
     $wrongCases = [
-        ['a column is missing',
-         "CREATE TABLE quotation_revisions (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            quotation_id INT UNSIGNED NOT NULL,
-            revision_no INT UNSIGNED NOT NULL,
-            quotation_ref_no VARCHAR(100) NOT NULL,
-            event_type VARCHAR(32) NOT NULL,
-            actor_user_id INT UNSIGNED NULL,
-            actor_username VARCHAR(64) NULL,
-            actor_display_name VARCHAR(100) NULL,
-            snapshot_json JSON NOT NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY uq_quotation_revisions_no (quotation_id, revision_no),
-            KEY idx_quotation_revisions_ref (quotation_ref_no),
-            KEY idx_quotation_revisions_actor (actor_user_id),
-            KEY idx_quotation_revisions_created (created_at)) ENGINE=InnoDB"],
+        // ── 1A · COLUMN_DEFAULT is part of the contract ─────────────────────
+        ['a forbidden DEFAULT on snapshot_schema_version, and nothing else wrong',
+         $mk(['snapshot_schema_version' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 1'])],
 
-        ['snapshot_json is TEXT instead of JSON',
-         "CREATE TABLE quotation_revisions (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            quotation_id INT UNSIGNED NOT NULL,
-            revision_no INT UNSIGNED NOT NULL,
-            quotation_ref_no VARCHAR(100) NOT NULL,
-            event_type VARCHAR(32) NOT NULL,
-            actor_user_id INT UNSIGNED NULL,
-            actor_username VARCHAR(64) NULL,
-            actor_display_name VARCHAR(100) NULL,
-            snapshot_schema_version SMALLINT UNSIGNED NOT NULL,
-            snapshot_json LONGTEXT NOT NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY uq_quotation_revisions_no (quotation_id, revision_no),
-            KEY idx_quotation_revisions_ref (quotation_ref_no),
-            KEY idx_quotation_revisions_actor (actor_user_id),
-            KEY idx_quotation_revisions_created (created_at)) ENGINE=InnoDB"],
+        ['created_at is TIMESTAMP instead of DATETIME, and nothing else wrong',
+         $mk(['created_at' => 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'])],
 
-        ['the UNIQUE is only an ordinary index',
-         "CREATE TABLE quotation_revisions (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            quotation_id INT UNSIGNED NOT NULL,
-            revision_no INT UNSIGNED NOT NULL,
-            quotation_ref_no VARCHAR(100) NOT NULL,
-            event_type VARCHAR(32) NOT NULL,
-            actor_user_id INT UNSIGNED NULL,
-            actor_username VARCHAR(64) NULL,
-            actor_display_name VARCHAR(100) NULL,
-            snapshot_schema_version SMALLINT UNSIGNED NOT NULL,
-            snapshot_json JSON NOT NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY uq_quotation_revisions_no (quotation_id, revision_no),
-            KEY idx_quotation_revisions_ref (quotation_ref_no),
-            KEY idx_quotation_revisions_actor (actor_user_id),
-            KEY idx_quotation_revisions_created (created_at)) ENGINE=InnoDB"],
+        ['created_at has no default, and nothing else wrong',
+         $mk(['created_at' => 'DATETIME NOT NULL'])],
 
-        ['snapshot_schema_version has a default it must not have',
-         "CREATE TABLE quotation_revisions (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            quotation_id INT UNSIGNED NOT NULL,
-            revision_no INT UNSIGNED NOT NULL,
-            quotation_ref_no VARCHAR(100) NOT NULL,
-            event_type VARCHAR(32) NOT NULL,
-            actor_user_id INT UNSIGNED NULL,
-            actor_username VARCHAR(64) NULL,
-            actor_display_name VARCHAR(100) NULL,
-            snapshot_schema_version SMALLINT UNSIGNED NOT NULL DEFAULT 1,
-            snapshot_json JSON NOT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY uq_quotation_revisions_no (quotation_id, revision_no),
-            KEY idx_quotation_revisions_ref (quotation_ref_no),
-            KEY idx_quotation_revisions_actor (actor_user_id),
-            KEY idx_quotation_revisions_created (created_at)) ENGINE=InnoDB"],
+        // ── 1B · charset / collation, read dynamically ──────────────────────
+        ['quotation_ref_no on the database default collation instead of quotations.ref_no\'s',
+         $mk(['quotation_ref_no' => 'VARCHAR(100) NOT NULL'])],
 
-        ['an unexpected extra column is present',
-         "CREATE TABLE quotation_revisions (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            quotation_id INT UNSIGNED NOT NULL,
-            revision_no INT UNSIGNED NOT NULL,
-            quotation_ref_no VARCHAR(100) NOT NULL,
-            event_type VARCHAR(32) NOT NULL,
-            actor_user_id INT UNSIGNED NULL,
-            actor_username VARCHAR(64) NULL,
-            actor_display_name VARCHAR(100) NULL,
-            snapshot_schema_version SMALLINT UNSIGNED NOT NULL,
-            snapshot_json JSON NOT NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            leftover_column VARCHAR(10) NULL,
-            PRIMARY KEY (id),
-            UNIQUE KEY uq_quotation_revisions_no (quotation_id, revision_no),
-            KEY idx_quotation_revisions_ref (quotation_ref_no),
-            KEY idx_quotation_revisions_actor (actor_user_id),
-            KEY idx_quotation_revisions_created (created_at)) ENGINE=InnoDB"],
+        ['quotation_ref_no is the wrong TYPE, and nothing else wrong',
+         $mk(['quotation_ref_no' => "VARCHAR(200) CHARACTER SET {$REFCS} COLLATE {$REFCOLL} NOT NULL"])],
+
+        ['quotation_ref_no is the wrong CHARACTER SET, and nothing else wrong',
+         $mk(['quotation_ref_no' => 'VARCHAR(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL'])],
+
+        // ── structure ───────────────────────────────────────────────────────
+        ['a column is missing, and nothing else wrong',
+         $mk([], [], ['snapshot_schema_version'])],
+
+        ['snapshot_json is LONGTEXT instead of JSON, and nothing else wrong',
+         $mk(['snapshot_json' => 'LONGTEXT NOT NULL'])],
+
+        ['the UNIQUE is degraded to an ordinary key, and nothing else wrong',
+         $mk([], [], [], ['uq_quotation_revisions_no' => 'KEY uq_quotation_revisions_no (quotation_id, revision_no)'])],
+
+        ['an unexpected extra column is present, and nothing else wrong',
+         $mk([], ['leftover_column' => 'VARCHAR(10) NULL'])],
+
+        ['an unexpected extra index is present, and nothing else wrong',
+         $mk([], [], [], [], ['idx_leftover' => 'KEY idx_leftover (event_type)'])],
+
+        ['a standalone quotation_id index the UNIQUE already covers',
+         $mk([], [], [], [], ['idx_quotation_revisions_qid' => 'KEY idx_quotation_revisions_qid (quotation_id)'])],
     ];
 
     foreach ($wrongCases as [$label, $ddl]) {
@@ -499,12 +495,25 @@ $drop($A);
         $drop($W);
     }
 
-    /* And the gate is not simply always negative: the right table passes it. */
-    $G = $fresh();
-    eq($runComplete(), true, '6: a correctly migrated database');
-    eq($one($conform), 'CONFORMS — the expected table is already there; re-running is safe',
-       '6: reads CONFORMS, so the gate discriminates rather than always refusing');
-    $drop($G);
+    /* THE INVARIANT: section 1b must never say CONFORMS while section 4a says
+       otherwise. Both ask the same live question of the same database, and this
+       walks every fixture — the correct one and all twelve wrong ones — to
+       prove the two verdicts never disagree. */
+    $conformsSeen = 0;
+    foreach (array_merge([['the accepted table', $mk()]], $wrongCases) as [$label, $ddl]) {
+        $I = $fresh();
+        $db->query($ddl);
+        $c = $one($conform);
+        $g = strpos($one($gate), 'MATCH') === 0;
+        if (strpos($c, 'CONFORMS') === 0) {
+            $conformsSeen++;
+            ok($g, "6: INVARIANT — CONFORMS implies section 4a MATCH — {$label}");
+        } else {
+            ok(true, "6: INVARIANT — not CONFORMS, so nothing to imply — {$label}");
+        }
+        $drop($I);
+    }
+    eq($conformsSeen, 1, '6: exactly one of the thirteen fixtures conforms — the accepted one');
 }
 
 

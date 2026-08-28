@@ -248,17 +248,40 @@ built by hand, or by an older draft, it succeeds, changes nothing, and leaves
 the operator believing the schema above is what they have. That is a silent
 pass over a wrong schema.
 
-Section 1b is one query that compares every expected column (name, type,
-nullability, extra) and every expected index (name, uniqueness, column list and
-order) against what is actually there, counting the unexpected as well as the
-missing, and returns **ABSENT**, **CONFORMS** or **NO-GO** with the counts.
-Section 4b re-runs it after the migration. Five wrong-schema fixtures are
-proven in the suite — a missing column, `snapshot_json` as `LONGTEXT`, the
-`UNIQUE` degraded to an ordinary key, a forbidden default on
-`snapshot_schema_version`, and an unexpected extra column. For each, the suite
-first demonstrates that **section 2 alone succeeds and changes nothing**, then
-that the gate refuses it. A correct database still reads CONFORMS, so the gate
-discriminates rather than always refusing.
+**CONFORMS means the table is already in the complete authoritative final
+state** — not "section 2's `CREATE` looks about right". Section 1b compares
+every expected column by name, **type, nullability, `EXTRA` and
+`COLUMN_DEFAULT`**; every expected index by name, uniqueness, column list and
+order; counts the unexpected as well as the missing; and checks
+`quotation_ref_no` against `quotations.ref_no` on **`COLUMN_TYPE`,
+`CHARACTER_SET_NAME` and `COLLATION_NAME`, read from the live database**. If
+`quotations.ref_no` cannot be found the answer is NO-GO, not a CONFORMS reached
+by comparing against nothing. Section 4b re-runs it after the migration.
+
+`COLUMN_DEFAULT` is in the gate deliberately. `snapshot_schema_version` must
+have **no** default, and a table correct in every other respect but carrying
+`DEFAULT 1` is a different contract — it would let a future snapshot format be
+stored silently under the old version number. That one difference alone reads
+NO-GO.
+
+**Twelve wrong-schema fixtures, each with exactly one defect.** They are
+generated from one correct definition with a single attribute overridden, so a
+NO-GO can only be caused by the thing it is named after; a fixture with two
+defects proves nothing about either. The suite first asserts the generator's
+untouched output CONFORMS, then: a forbidden `DEFAULT` on
+`snapshot_schema_version` · `created_at` as `TIMESTAMP` · `created_at` with no
+default · `quotation_ref_no` on the database default collation · wrong type ·
+wrong charset · a missing column · `snapshot_json` as `LONGTEXT` · the `UNIQUE`
+degraded to an ordinary key · an unexpected column · an unexpected index · a
+standalone `quotation_id` index the `UNIQUE` already covers. For every one it
+demonstrates that **section 2 alone succeeds and changes nothing** before
+showing the gate refuses it.
+
+**The invariant is tested, not assumed.** Section 1b must never say CONFORMS
+while section 4a says otherwise. The suite walks all thirteen fixtures, asserts
+that any CONFORMS implies a section 4a MATCH, and asserts that **exactly one**
+of the thirteen conforms. Both ask the same live question of the same database,
+which is why they cannot disagree.
 
 ---
 
@@ -291,9 +314,9 @@ Then STOP. **No deploy. No production DB change.** Candidate only.
 
 | | |
 |---|---:|
-| `tests/php/revision_storage.test.php` | **140 assertions, 0 failed** |
-| Server it ran against | MySQL **8.4.3** |
-| Production target | MySQL **8.0.46** — see below |
+| `tests/php/revision_storage.test.php` | **198 assertions, 0 failed** |
+| MySQL **8.0.46** — the production version, exactly | 198 / 0 |
+| MySQL **8.4.3** | 198 / 0 |
 
 The suite creates its own throwaway database, does everything inside it, drops
 it, and refuses to run against a schema it did not create. It **fails** rather
@@ -305,26 +328,19 @@ changed — `git diff` over `*.php` outside `tests/` and `migrations/` is empty 
 so re-running it would only reproduce the eight recorded `38-mobile-ui`
 environment failures. `php -l` is clean on both new files.
 
-**The version gap, stated rather than glossed.** This was verified on MySQL
-**8.4.3**; production is **8.0.46**. No MySQL 8.0.x is installed on the machine
-this ran on and there is no container runtime, so the 8.0 run has **not** been
-performed. MariaDB 10.4.32 is present but is not a valid stand-in: its `JSON`
-is an alias for `LONGTEXT`, so every assertion about native validation would
-measure something else.
+**The production version was run, not argued about.** An earlier draft of this
+section reasoned that the two version-sensitive values were safe on 8.0 and
+labelled that an argument rather than a run. It is now a run: the same suite,
+unchanged, against **MySQL 8.0.46** — the exact production version — from the
+official archive at dev.mysql.com, in an isolated datadir on an isolated port,
+never touching production and never using production credentials. Identical
+result on both engines, assertion for assertion.
 
-Two observable values this suite asserts are version-sensitive, and both
-thresholds sit far below the production version:
+The two version-sensitive values it depends on are confirmed empirically on
+8.0.46 rather than inferred: `COLUMN_TYPE` reads `int unsigned` without a
+display width (8.0.19+), and `EXTRA` reads `DEFAULT_GENERATED` for a column
+defaulting to `CURRENT_TIMESTAMP` (8.0.13+). MariaDB was NOT used as a
+substitute — its `JSON` is an alias for `LONGTEXT`, so every native-validation
+assertion would have measured something else.
 
-| assertion | needs | production |
-|---|---|---|
-| `COLUMN_TYPE` reads `int unsigned`, not `int(10) unsigned` | MySQL **8.0.19+** (display widths dropped) | 8.0.46 ✓ |
-| `EXTRA` reads `DEFAULT_GENERATED` for `DEFAULT CURRENT_TIMESTAMP` | MySQL **8.0.13+** | 8.0.46 ✓ |
 
-Everything else used — native `JSON` with validation and errno 3140, errno 1062
-and 1048, `BIGINT`/`SMALLINT UNSIGNED`, `DATETIME DEFAULT CURRENT_TIMESTAMP`,
-composite `UNIQUE`, `CREATE TABLE IF NOT EXISTS`, `GROUP_CONCAT(... ORDER BY)`
-and derived tables — is unchanged across 5.7 → 8.4. The conformance gate's note
-records the 8.0.13 threshold in the migration itself, and section 1 re-reads
-the real environment before section 2 runs.
-
-That is an argument, not a run. The empirical 8.0.x run remains outstanding.
