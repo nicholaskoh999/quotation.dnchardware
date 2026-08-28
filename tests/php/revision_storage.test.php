@@ -519,11 +519,14 @@ $drop($A);
 
 // ══ 7 · no writer exists anywhere in the application ════════════════════════
 {
-    foreach (['api.php', 'index.php', 'companies.php', 'pricing_history.php',
+    /* api.php is the one file allowed to name the table, and only as the
+       writer. Everything else must still be innocent of it: no reader, no
+       hook, no second writer. */
+    foreach (['index.php', 'companies.php', 'pricing_history.php',
               'ai_extract.php', 'auth.php', 'login.php', 'logout.php'] as $f) {
         $t = file_get_contents($ROOT . '/' . $f);
         ok(stripos($t, 'quotation_revisions') === false,
-           "7: {$f} does not mention quotation_revisions — no writer, no reader, no hook");
+           "7: {$f} does not mention quotation_revisions — no reader, no hook, no second writer");
     }
     $phpCode = function ($file) {
         $out = '';
@@ -535,10 +538,18 @@ $drop($A);
         }
         return $out;
     };
-    ok(stripos($phpCode($ROOT . '/api.php'), 'revision') === false,
-       '7: api.php contains no revision CODE — the only mention is a comment saying there is none');
-    ok(stripos(file_get_contents($ROOT . '/api.php'), 'no revision storage') !== false,
-       '7: and that comment still says so');
+    /* Was: api.php contains no revision CODE. That was the Revision Storage
+       round's own out-of-scope guard and was true while the writer did not
+       exist. SNAPSHOT REVISION WRITER starts it by authorisation, so the guard
+       is replaced by the contract that now holds — which is stricter, because
+       "none" is easy and "exactly one INSERT and never an UPDATE or DELETE" is
+       the thing that actually keeps this table append-only. */
+    $code = $phpCode($ROOT . '/api.php');
+    eq(substr_count($code, 'INSERT INTO quotation_revisions'), 1,
+       '7: api.php writes revisions through exactly ONE INSERT');
+    eq(preg_match_all('/(UPDATE|DELETE\s+FROM|TRUNCATE\s+(TABLE\s+)?)\s*quotation_revisions/i', $code), 0,
+       '7: and never updates, deletes or truncates the table — append-only, enforced by the code');
+    ok(strpos($code, 'dc_write_revision') !== false, '7: through one named writer');
 }
 
 $db->close();

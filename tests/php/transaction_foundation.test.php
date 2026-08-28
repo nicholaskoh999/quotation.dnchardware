@@ -83,6 +83,9 @@ $delete = $seg("\$action === 'delete_quotation'", "\$action === 'get_price_histo
 ok($create !== '' && $update !== '', '1: both handlers were located in the shipped file');
 
 {
+    /* api.php with its commentary blanked, so the structural counts below
+       measure the program and not the prose about it. */
+    $code = preg_replace('~//[^\n]*~', '', preg_replace('~/\*.*?\*/~s', '', $API));
     $at = function ($h, $n) { $p = strpos($h, $n); return $p === false ? -1 : $p; };
     // CREATE: lock -> begin -> insert -> commit -> release
     $lock = $at($create, 'acquire_ref_lock(');
@@ -123,8 +126,25 @@ ok($create !== '' && $update !== '', '1: both handlers were located in the shipp
        '1: and the named lock was NOT replaced by row locking on the create path');
 
     // out of scope, proven absent
-    ok(stripos($API, 'quotation_revisions') === false, '1: api.php has no reference to quotation_revisions');
-    ok(stripos($API, 'snapshot_json') === false, '1: and none to snapshot_json');
+    /* Was: api.php must not mention quotation_revisions or snapshot_json — the
+       Transaction Foundation round's own out-of-scope guard, correct while the
+       writer did not exist. SNAPSHOT REVISION WRITER starts it by
+       authorisation, so the guard is replaced by the contract that now holds,
+       which asks for more than the absence did. */
+    ok(stripos($API, 'quotation_revisions') !== false,
+       '1: api.php now writes revisions, which this transaction exists to make atomic');
+    eq(substr_count($code, 'INSERT INTO quotation_revisions'), 1,
+       '1: through exactly ONE INSERT');
+    eq(preg_match_all('/(UPDATE|DELETE\s+FROM)\s+quotation_revisions/i', $code), 0,
+       '1: and never an UPDATE or DELETE — append-only, enforced by the code');
+    foreach ([[$create, 'CREATE'], [$update, 'UPDATE']] as [$h, $lbl]) {
+        $w = strpos($h, 'dc_write_revision(');
+        ok($w !== false, "1: the {$lbl} path writes one");
+        ok($w < strrpos($h, 'dc_txn_commit('),
+           "1: INSIDE this transaction — before the {$lbl} commit, so they land together or not at all");
+    }
+    ok(strpos($delete, 'dc_write_revision(') === false,
+       '1: delete_quotation still writes none — that is a later round');
     ok(strpos($delete, 'dc_txn_begin(') === false && strpos($delete, 'FOR UPDATE') === false,
        '1: delete_quotation is untouched by this round');
     ok(preg_match('/for\s*\(|while\s*\(/', $create) === 0,
@@ -200,8 +220,27 @@ if ($ex && $ex->num_rows) { echo "\n  FAIL  {$DBN} already exists — refusing t
 $db->query("CREATE DATABASE {$DBN}");
 $db->select_db($DBN);
 
-$makeSchema = function ($custLen = 200) use ($db) {
+/* companies and quotation_revisions are part of the fixture because a
+   successful save now touches both: the revision writer resolves the company
+   name for its snapshot and writes exactly one revision inside the same
+   transaction. A fixture without them makes every save fail, and this suite
+   would then be measuring a missing table rather than the transaction it is
+   about. The revision table is lifted from the SHIPPED migration so it cannot
+   drift from the accepted schema. */
+$REVDDL = (function () {
+    $sql = file_get_contents(dirname(__DIR__, 2) . '/migrations/2026-08-28-create-quotation-revisions.sql');
+    preg_match('/-- >>> SECTION 2 BEGIN\s*(.*?)\s*-- <<< SECTION 2 END/s', $sql, $m);
+    return $m[1] ?? '';
+})();
+ok($REVDDL !== '', '0: the revision schema was lifted from the shipped migration');
+
+$makeSchema = function ($custLen = 200) use ($db, $REVDDL) {
+    $db->query("DROP TABLE IF EXISTS quotation_revisions");
     $db->query("DROP TABLE IF EXISTS quotations");
+    $db->query("DROP TABLE IF EXISTS companies");
+    $db->query("CREATE TABLE companies (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        name VARCHAR(200) NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB");
     $db->query("CREATE TABLE quotations (
         id INT UNSIGNED NOT NULL AUTO_INCREMENT,
         company_id INT UNSIGNED NULL,
@@ -212,6 +251,7 @@ $makeSchema = function ($custLen = 200) use ($db) {
         items LONGTEXT NULL, total_amount DECIMAL(12,2) NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id), UNIQUE KEY uq_quotations_ref (ref_no)) ENGINE=InnoDB");
+    $db->query($REVDDL);
 };
 $makeSchema();
 
@@ -220,7 +260,9 @@ $SB = sys_get_temp_dir() . '/dc-txn-sb-' . getmypid();
 @mkdir($SB, 0777, true);
 copy($ROOT . '/api.php', $SB . '/api.php');
 copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
-file_put_contents($SB . '/auth.php', "<?php function dc_require_api_login(){} function dc_current_user(){ return null; }\n");
+file_put_contents($SB . '/auth.php',
+    "<?php function dc_require_api_login(){}\n"
+  . "function dc_current_user(){ return ['id'=>7,'username'=>'nicholas','display_name'=>'Nicholas Koh']; }\n");
 file_put_contents($SB . '/db.php', "<?php function getDB(){ static \$d; if(!\$d){ \$d = new mysqli('{$H}','{$U}','{$W}',null,{$P}); \$d->select_db('{$DBN}'); } return \$d; }\n");
 ok(sha1_file($SB . '/api.php') === sha1_file($ROOT . '/api.php'),
    '3: the sandbox runs a byte-identical copy of the shipped api.php');
@@ -235,6 +277,18 @@ $srvPipes = [];
 $srv = proc_open([PHP_BINARY, '-S', "127.0.0.1:{$PORT}", '-t', $SB],
                  [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $srvPipes, $SB);
 if (!is_resource($srv)) { echo "\n  FAIL  could not start the sandbox web server\n\n"; exit(1); }
+/* A fatal error skips the cleanup at the foot of this file, and a leaked
+   server keeps the port — poisoning the NEXT run, which then talks to a stale
+   sandbox and looks like a hang. Registered here so the port is given back
+   however this process ends. */
+register_shutdown_function(function () use (&$srv, &$srvPipes) {
+    if (is_resource($srv)) {
+        proc_terminate($srv);
+        foreach ($srvPipes as $sp) if (is_resource($sp)) fclose($sp);
+        proc_close($srv);
+        $srv = null;
+    }
+});
 $up = false;
 for ($i = 0; $i < 60; $i++) {
     $fp = @fsockopen('127.0.0.1', $PORT, $e1, $e2, 0.3);
@@ -436,9 +490,6 @@ $id1 = null;
 
 
 // ── clean up ─────────────────────────────────────────────────────────────────
-proc_terminate($srv);
-foreach ($srvPipes as $sp) { if (is_resource($sp)) fclose($sp); }
-proc_close($srv);
 foreach (['api.php', 'pricing_history.php', 'auth.php', 'db.php'] as $f) @unlink($SB . '/' . $f);
 @rmdir($SB);
 $db->select_db('mysql');

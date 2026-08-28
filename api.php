@@ -407,6 +407,144 @@ function dc_lock_quotation_for_update($db, $id) {
     return $row ?: null;
 }
 
+/* ── The revision writer ─────────────────────────────────────────────────────
+   A quotation mutation and its immutable snapshot are ONE transaction. There is
+   exactly one INSERT into quotation_revisions in this whole file and no UPDATE
+   and no DELETE against it anywhere — that is how append-only is enforced,
+   because the storage round deliberately did not add a trigger.
+
+   THE TABLE IS REQUIRED. If quotation_revisions is absent the save FAILS and
+   rolls back. That is not an oversight and must not be softened into a
+   fallback: a "save that worked but kept no history" is precisely the state
+   this round exists to make impossible. It does mean a deployment order —
+   migrations/2026-08-28-create-quotation-revisions.sql must be APPLIED BEFORE
+   this application is deployed — and that order is written into ROUND-SCOPE.
+
+   SNAPSHOT OF PERSISTED FACT, NOT OF REQUEST INTENT. The row is read back out
+   of the database after the mutation, inside the same transaction, so what is
+   recorded is what the server actually stored: the ref_no the allocator chose
+   (possibly reassigned by the 1062 retry), the quote_date it defaulted, the
+   item_uid values it minted, the total it wrote. Snapshotting $input would
+   record what the browser asked for, which is a different and less useful
+   fact. */
+
+const DC_SNAPSHOT_SCHEMA_VERSION = 1;
+
+/* The persisted quotation with its company name RESOLVED, so the snapshot
+   freezes what the document said at that moment. Renaming a company later must
+   not rewrite the past, which is the same reason Actor Identity snapshots the
+   username beside the id. */
+function dc_read_quotation_snapshot_row($db, $id) {
+    $stmt = prepare_or_fail($db,
+        "SELECT q.*, c.name AS company_name FROM quotations q "
+      . "LEFT JOIN companies c ON q.company_id = c.id WHERE q.id = ?",
+        'Revision snapshot read prepare failed');
+    $stmt->bind_param('i', $id);
+    execute_or_fail($stmt, 'Revision snapshot read failed');
+    $res = $stmt->get_result();
+    $row = $res ? $res->fetch_assoc() : null;
+    $stmt->close();
+    return $row ?: null;
+}
+
+/* The shape snapshot_schema_version = 1 names. The version lives in the COLUMN
+   and not inside the JSON: two copies of the same fact can disagree, and the
+   accepted storage contract already put it in a column of its own. */
+function dc_build_quotation_snapshot(array $row) {
+    $items = json_decode((string)($row['items'] ?? ''), true);
+    if (!is_array($items)) $items = [];
+    return [
+        'quotation' => [
+            'id'             => (int)$row['id'],
+            'ref_no'         => $row['ref_no'],
+            'company_id'     => (isset($row['company_id']) && $row['company_id'] !== null)
+                                ? (int)$row['company_id'] : null,
+            /* FROZEN. Resolved here, never looked up again when the revision is
+               read back. */
+            'company_name'   => $row['company_name'] ?? null,
+            'customer_name'  => $row['customer_name'] ?? null,
+            'customer_phone' => $row['customer_phone'] ?? null,
+            'quote_date'     => $row['quote_date'] ?? null,
+            'valid_until'    => $row['valid_until'] ?? null,
+            /* A field OF THE DOCUMENT — whose name is printed on the quotation.
+               It is NOT the audit actor and must never be used as one; that is
+               what actor_user_id / actor_username / actor_display_name are, and
+               they come from the authenticated session. */
+            'prepared_by'    => $row['prepared_by'] ?? null,
+            'remarks'        => $row['remarks'] ?? null,
+            'total_amount'   => $row['total_amount'] ?? null,
+            'created_at'     => $row['created_at'] ?? null,
+        ],
+        /* Verbatim, every one carrying the item_uid the server owns. No item
+           table: identity lives inside the snapshot exactly as it lives inside
+           quotations.items. */
+        'items'      => $items,
+        'item_count' => count($items),
+    ];
+}
+
+/* Monotonic PER QUOTATION, allocated INSIDE the transaction.
+   On the update path the quotation row is already held FOR UPDATE, so two
+   updates of one quotation are serialised and cannot read the same MAX. On the
+   create path the row was just inserted by this transaction and nobody else can
+   see it yet. UNIQUE (quotation_id, revision_no) is the backstop that makes a
+   mistake here a refused write rather than a silently duplicated history. */
+function dc_next_revision_no($db, $quotationId) {
+    $stmt = prepare_or_fail($db,
+        "SELECT COALESCE(MAX(revision_no), 0) + 1 AS n FROM quotation_revisions WHERE quotation_id = ?",
+        'Revision number prepare failed');
+    $stmt->bind_param('i', $quotationId);
+    execute_or_fail($stmt, 'Revision number lookup failed');
+    $res = $stmt->get_result();
+    $row = $res ? $res->fetch_assoc() : null;
+    $stmt->close();
+    return (int)($row['n'] ?? 1);
+}
+
+/* The one INSERT. Called after the mutation and BEFORE COMMIT, so the quotation
+   and its revision commit together or neither does. Every failure inside goes
+   through fail_json(), which rolls the transaction back and releases the named
+   lock before it answers — so a revision that cannot be written takes the
+   quotation change down with it. */
+function dc_write_revision($db, $quotationId, $eventType) {
+    $row = dc_read_quotation_snapshot_row($db, $quotationId);
+    if ($row === null) {
+        fail_json('Revision not written: the quotation could not be read back');
+    }
+    $json = json_encode(dc_build_quotation_snapshot($row),
+                        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($json === false) {
+        fail_json('Revision not written: the quotation snapshot would not encode');
+    }
+
+    /* WHO, from the authenticated session and from nowhere else. NULL when
+       there is no signed-in person behind the request — a script or a future
+       system actor — because a placeholder id would be a lie. */
+    $actor     = dc_current_user();
+    $actorId   = ($actor && isset($actor['id'])) ? (int)$actor['id'] : null;
+    $actorUser = $actor['username'] ?? null;
+    $actorName = $actor['display_name'] ?? null;
+
+    $revNo  = dc_next_revision_no($db, $quotationId);
+    $ver    = DC_SNAPSHOT_SCHEMA_VERSION;
+    $refNo  = (string)$row['ref_no'];
+
+    $stmt = prepare_or_fail($db,
+        "INSERT INTO quotation_revisions "
+      . "(quotation_id, revision_no, quotation_ref_no, event_type, "
+      . " actor_user_id, actor_username, actor_display_name, "
+      . " snapshot_schema_version, snapshot_json) VALUES (?,?,?,?,?,?,?,?,?)",
+        'Revision write prepare failed');
+    $stmt->bind_param('iississis', $quotationId, $revNo, $refNo, $eventType,
+                      $actorId, $actorUser, $actorName, $ver, $json);
+    if (!$stmt->execute()) {
+        /* Rolls back the quotation mutation too. No unrevisioned save. */
+        fail_json('Revision write failed: ' . $stmt->error);
+    }
+    $stmt->close();
+    return $revNo;
+}
+
 /* CREATE. Every item gets a fresh server UID and any client-supplied one is
    discarded — on a create there is nothing for an incoming UID to refer to, so
    accepting one would let a browser choose an identity. */
@@ -902,6 +1040,12 @@ if ($action === 'get_next_ref') {
         fail_json('Quotation save failed: ' . $stmt->error);
     }
     $new_id = $db->insert_id;
+    /* Exactly ONE revision, written after the 1062 retry has settled so a
+       reallocated ref_no is the one recorded, and before COMMIT so the
+       quotation and its history commit together. A first attempt that failed
+       and was retried leaves no revision behind, because none was written
+       until here. */
+    dc_write_revision($db, $new_id, 'create');
     /* COMMIT BEFORE THE LOCK IS RELEASED. The lock exists to stop a second
        request allocating the same number; letting go of it while this INSERT
        is still uncommitted would hand out a number that is not yet taken. */
@@ -968,6 +1112,10 @@ if ($action === 'get_next_ref') {
     $stmt = prepare_or_fail($db, "UPDATE quotations SET company_id=?,quote_date=?,valid_until=?,prepared_by=?,remarks=?,customer_name=?,customer_phone=?,items=?,total_amount=? WHERE id=?", 'Quotation update prepare failed');
     $stmt->bind_param('isssssssdi', $company_id,$quote_date,$valid_until,$prep_by,$remarks,$cust_name,$cust_phone,$items,$total,$id);
     execute_or_fail($stmt, 'Quotation update failed');
+    /* The snapshot is read back AFTER the write, so it records what was
+       actually stored rather than what was asked for. Still inside the
+       transaction the locked read opened. */
+    dc_write_revision($db, $id, 'update');
     if (!dc_txn_commit($db)) {
         fail_json('Quotation update could not be committed: ' . $db->error);
     }

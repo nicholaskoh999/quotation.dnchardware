@@ -2,201 +2,234 @@
 
 ## ROUND
 
-**READ-BEFORE-WRITE / TRANSACTION FOUNDATION**
+**SNAPSHOT REVISION WRITER**
 
-One transaction around a quotation mutation, and a persisted read that happens
-inside it. No revision is written, no snapshot is built, no history exists. The
-round exists so the Snapshot Revision Writer can later add its INSERT to a
-transaction that is already there.
+The first real revision writer. A quotation mutation and its immutable full
+snapshot are one atomic transaction: both land, or neither does. No diff, no
+no-op suppression, no baseline, no delete revision, no history API, no history
+UI, no production migration, no deployment.
 
 | | |
 |---|---|
 | Accepted application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` |
-| Superseded application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
-| Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — **production has NOT moved** |
-| Round status | **FINAL ACCEPTED / CLOSED** |
-| DEPLOY = NO | no deployment action was taken in the promotion step |
+| Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — production has not moved |
+| Round status | **CANDIDATE — READY FOR REVIEW** |
+| DEPLOY = NO | a candidate is not a deployed state |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production DB change | **NO** |
-| Revision writer | **NOT STARTED** — this round writes no revision |
+| Production DB change | **NO** — `quotation_revisions` is still NOT APPLIED to production |
 
 ---
 
 ## WHY THIS ROUND EXISTS
 
-`update_quotation` read the persisted items, reconciled identity against them,
-and then wrote — with no transaction and no lock around any of it:
+Three rounds built the pieces. This one joins them.
 
-```php
-$sel = prepare_or_fail($db, "SELECT items FROM quotations WHERE id=?", …);   // before
-…
-$stmt = prepare_or_fail($db, "UPDATE quotations SET …", …);
+```
+Actor Identity     WHO      dc_current_user()      live in production
+Item Identity      WHICH    item_uid               live in production
+Revision Storage   WHERE    quotation_revisions    accepted, not applied
+Transaction Fdn    WHEN     one transaction        accepted, not deployed
+Snapshot Writer    WHAT     ← this round
 ```
 
-Between those two statements another request could change the very items that
-had just been reconciled. Nothing detected it and nothing prevented it. A
-revision writer bolted onto that would snapshot a BEFORE state that was already
-untrue by the time it wrote.
-
-`save_quotation` had the same shape on the create side: the named lock
-serialised number allocation, but the allocation and the INSERT that used it
-were not one atomic write.
+Until now nothing wrote a revision. The table existed and stayed empty by
+design. This round makes every successful `save_quotation` and
+`update_quotation` record exactly one immutable snapshot of what was actually
+persisted, inside the transaction that persisted it.
 
 ---
 
-## WHAT CHANGED, IN `api.php`
-
-### The transaction scope, and why `fail_json()` had to learn about it
-
-The hard part was never `BEGIN` and `COMMIT`. It is that `query_or_fail()`,
-`prepare_or_fail()`, `execute_or_fail()` and the 1062 retry all end the request
-through `fail_json()`, which echoes and exits — and an exit inside an open
-transaction leaves the rollback to the connection closing, and the named lock
-to the same. That works. It is not a contract; it is a side effect of the
-process dying.
-
-So the scope is recorded as the request runs and `fail_json()` unwinds it
-explicitly before it answers:
-
-```php
-dc_txn_begin() / dc_txn_commit() / dc_txn_rollback()
-dc_txn_note_lock()      ← acquire_ref_lock / release_ref_lock report in
-dc_txn_cleanup()        ← rollback, THEN release the named lock
-```
-
-Every existing error path became transaction-safe **without one call site
-changing**, which is also why this round did not have to touch the helpers
-PROJECT-GUARDRAILS protects. They still branch on return values; there is still
-no `try`/`catch` in the application.
-
-**The two levels are tracked separately on purpose.** `GET_LOCK` is SESSION
-scoped and the transaction is not: `COMMIT` does not release a named lock and
-`ROLLBACK` does not either. Merging them would be wrong in both directions.
-
-### CREATE
+## WHAT WAS BUILT, IN `api.php`
 
 ```
-validate → mint item identity → GET_LOCK → BEGIN → allocate ref_no
-        → INSERT (one 1062 retry) → COMMIT → RELEASE_LOCK → respond
+CREATE   GET_LOCK → BEGIN → allocate → INSERT quotation (one 1062 retry)
+                  → read back → write ONE revision → COMMIT → RELEASE_LOCK
+UPDATE   BEGIN → SELECT * … FOR UPDATE → reconcile → UPDATE quotation
+                  → read back → write ONE revision → COMMIT
 ```
 
-**COMMIT happens before the lock is released.** The lock exists to stop a second
-request allocating the same number; letting go of it while the INSERT is still
-uncommitted would hand out a number that is not yet taken.
+The revision INSERT is **before** `COMMIT` on both paths, so a quotation and its
+history commit together or not at all. Every failure inside the writer goes
+through `fail_json()`, which the Transaction Foundation already made unwind the
+scope — so a revision that cannot be written **takes the quotation change down
+with it**.
 
-If `BEGIN` fails, the lock is given back and nothing is attempted. If the INSERT
-fails, `fail_json()` rolls back and releases before answering. If `COMMIT` fails
-it is reported as a failure — never as success.
+### The snapshot is of persisted fact, not of request intent
 
-### UPDATE
+The row is read back out of the database after the mutation, inside the same
+transaction. What is recorded is what the server actually stored: the `ref_no`
+the allocator chose, the `quote_date` it defaulted, the `item_uid` values it
+minted, the total it wrote. Snapshotting `$input` would record what the browser
+asked for, which is a different and much less useful fact.
+
+`snapshot_schema_version = 1` names this shape:
 
 ```
-validate → BEGIN → SELECT * … FOR UPDATE → reconcile against THAT row
-        → UPDATE → COMMIT → respond
+quotation { id, ref_no, company_id, company_name, customer_name,
+            customer_phone, quote_date, valid_until, prepared_by,
+            remarks, total_amount, created_at }
+items      [ … every persisted item, each carrying its item_uid … ]
+item_count n
 ```
 
-`dc_lock_quotation_for_update($db, $id)` returns the whole row, not the one
-column reconciliation needs. That is deliberate: it is the authoritative BEFORE
-state, and reading it twice — once to reconcile, once for a future snapshot —
-would reintroduce exactly the gap this function closes.
+**`company_name` is FROZEN.** Resolved through the same `LEFT JOIN companies`
+the read paths use, and stored in the snapshot. Renaming a company later must
+not rewrite what the document said — the same reason Actor Identity snapshots
+the username beside the id.
 
-Every refusal past `BEGIN` rolls back explicitly: not found → 404 and rollback;
-malformed, unknown, duplicated or backfill-required identity → rollback and the
-existing error by name.
+**The version lives in the COLUMN, not inside the JSON.** Two copies of one
+fact can disagree, and the accepted storage contract already gave it a column.
+
+**No item table.** Item identity stays inside `snapshot_json`, exactly as it
+lives inside `quotations.items`.
+
+### The actor is the session, and `prepared_by` is not the actor
+
+`actor_user_id` / `actor_username` / `actor_display_name` come from
+`dc_current_user()` and from nowhere else. All three are NULL when no signed-in
+person is behind the request, because a placeholder id would be a lie.
+
+`prepared_by` is a **field of the document** — whose name is printed on the
+quotation. It is kept in the snapshot as that, and is never written to an actor
+column. The suite proves the two are different values and that neither actor
+field carries it.
+
+### `revision_no`
+
+`COALESCE(MAX(revision_no), 0) + 1` for that quotation, **inside the
+transaction**. On the update path the quotation row is already held `FOR
+UPDATE`, so two updates of one quotation are serialised and cannot read the same
+`MAX`; on the create path the row was just inserted by this transaction and
+nobody else can see it. `UNIQUE (quotation_id, revision_no)` is the backstop
+that turns a mistake here into a refused write rather than a silently duplicated
+history. Proven under two concurrent updates of the same quotation.
+
+### Append-only, enforced by the code
+
+Exactly **one** `INSERT INTO quotation_revisions` in the whole application, and
+no `UPDATE`, `DELETE` or `TRUNCATE` against it anywhere. That is how the storage
+round said it would be enforced, having deliberately declined to add a trigger.
 
 ---
 
-## WHAT THE LOCK DOES, AND WHAT IT DOES NOT
+## THE DEPLOYMENT ORDER THIS CREATES
 
-The accepted claim is narrow, and stated narrowly on purpose:
+**`migrations/2026-08-28-create-quotation-revisions.sql` must be APPLIED to
+production BEFORE this application is deployed.**
 
-> Two UPDATE transactions cannot hold the same quotation row at once. The second
-> waits until the first commits or rolls back.
+The table is required. With it absent, a save FAILS and rolls back. That is not
+an oversight and must not be softened into a fallback: a save that worked but
+kept no history is precisely the state this round exists to make impossible.
+The failure mode is safe — the save is refused, nothing partial is written — but
+it is a hard ordering constraint and it is proven in the suite by dropping the
+table and watching a save be refused with no quotation row created.
 
-That is what gives a future revision writer a deterministic persisted BEFORE
-state.
+---
 
-**This is NOT optimistic concurrency.** A browser holding a stale copy can still
-overwrite a newer edit, because nothing here compares versions. No version
-column was added and no conflict is detected. Any claim that "stale browser
-edits can no longer overwrite newer edits" would be false, and this round does
-not make it.
+## A DEFECT FOUND IN A PREVIOUSLY ACCEPTED ROUND
+
+**The one-time 1062 retry cannot recover inside the transaction that
+READ-BEFORE-WRITE / TRANSACTION FOUNDATION introduced.** Found by this round's
+test, caused by the previous one, and **not fixed here**.
+
+MySQL's default isolation is REPEATABLE READ, which gives a transaction a
+consistent snapshot at its first read. When another session commits the `ref_no`
+the allocator is about to use:
+
+- the INSERT is refused with 1062, because writes always see the latest state;
+- but `next_free_ref_no()`'s plain `SELECT` still reads the transaction's
+  original snapshot and returns **the same number**;
+- so the single permitted retry collides again and is spent.
+
+Demonstrated directly: inside a transaction, a plain `SELECT` reports the row
+absent while an `INSERT` of that very row is refused with 1062.
+
+Before the transaction existed each `SELECT` saw the latest committed data and
+the retry recovered. It no longer can.
+
+**Severity, stated plainly.** It fails CLOSED: the save is refused with the
+duplicate-key error, nothing partial is written, no wrong number is issued, and
+the operator's own retry runs in a fresh transaction with a fresh snapshot and
+succeeds. It only fires when something outside `DC_REF_LOCK` — a second
+application, an import, a manual insert — takes the exact number this request
+chose, which is the rare case the retry was built for in the first place.
+
+**Not fixed in this round**, because the fix is either a change of isolation
+level for the save transaction or a change to the allocator's read semantics.
+Both are Transaction Foundation decisions with their own consequences, and
+widening this round to make them would be exactly the scope creep the brief
+forbids. Recorded here for its own round.
+
+The suite therefore proves what is true rather than what was assumed: a real
+1062 race leaves **no quotation row and no revision**, and the writer is called
+exactly once, after the retrying INSERT returns, with no loop around either.
 
 ---
 
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+api.php
+tests/php/revision_writer.test.php
+tests/php/transaction_foundation.test.php
+tests/php/revision_storage.test.php
 ```
 
-The block is **EMPTY**. This round is closed: `api.php`,
-`tests/php/transaction_foundation.test.php`, `tests/php/mysqli_compat.test.php`
-and `tests/php/item_identity.test.php` were reviewed and accepted into
-`1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, so nothing may now differ from the
-accepted commit.
+Nothing else may differ from `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`.
+`api.php` is the only deployed application file. No browser suite changed.
 
-`api.php` was the only application file, and the close-out shows the diff rather
-than asserting it.
+### The two accepted suites this round had to maintain
 
-`index.php`, `companies.php`, `auth.php`, `login.php`, `logout.php`,
-`pricing_history.php`, `ai_extract.php` and all forty browser suites are out of
-scope and do not change.
+Both for the same reason, and both recorded rather than slipped in.
 
-### The two accepted suites this round had to touch, and why
+**They asserted the writer did not exist.** `transaction_foundation` asserted
+`api.php` mentions neither `quotation_revisions` nor `snapshot_json`;
+`revision_storage` asserted it contains no revision code at all. Those were each
+round's own out-of-scope guard and were correct while the writer did not exist.
+This round starts it by authorisation, so both guards are replaced by the
+contract that now holds — exactly one `INSERT`, never an `UPDATE` or `DELETE`,
+the writer inside the transaction, and every *other* application file still
+innocent of the table. Stricter than the absence they replaced.
 
-Both are recorded here rather than slipped in, because editing an accepted test
-is exactly the move that should be visible.
+**`transaction_foundation` also needed its fixture completed.** Its schema had
+no `companies` and no `quotation_revisions`, so with the writer in place every
+save in it failed and the suite died on a null. A fixture that lacks what a
+successful save touches measures a missing table, not the transaction it is
+about. Both tables were added, the revision one lifted from the shipped
+migration so it cannot drift, and its stub `dc_current_user()` now answers with
+an actor. **No assertion was weakened**; the suite went from 85 to 92
+assertions.
 
-**`mysqli_compat.test.php` — a lifted dependency, no assertion changed.** The
-suite lifts `fail_json()` out of the shipped file and evaluates it, in the
-parent and again in a child process. `fail_json()` now calls
-`dc_txn_cleanup()`, so lifting one without the other evaluates a `fail_json`
-that cannot run — it died with *undefined function*, not with a failed
-assertion. Both lift sites now take the dependency too. **Every assertion is
-identical**: a query, prepare or execute failure still has to return parseable
-JSON with the existing message and no fatal.
-
-**`item_identity.test.php` — one assertion followed a contract this round
-supersedes.** It asserted the literal text `SELECT items FROM quotations WHERE
-id=?` under the label *"reading the minimum it needs — one column, one row"*.
-That was the right contract for Item Identity and is the wrong one now: the read
-is deliberately no longer minimal, because it is the BEFORE state. The single
-assertion is replaced by **four**, which ask for more than it did — that the
-read goes through `dc_lock_quotation_for_update`, that it is `FOR UPDATE`, that
-the transaction was opened *before* it, and that the old unlocked read is gone.
-Not weakened; tightened, and pointed at the contract that now holds.
+While fixing it, one real hygiene defect: the suite's web server was only
+stopped at the foot of the file, so a fatal error leaked it. A leaked server
+keeps the port, the next run's readiness check succeeds against the *stale*
+server, and the run then talks to a deleted sandbox — which looks exactly like a
+hang and cost real time here. Both HTTP suites now stop the server from a
+shutdown handler.
 
 ---
 
 ## MUST NOT CHANGE — AND DOES NOT
 
-`ref_no` format · server-side allocation · `GET_LOCK` / `RELEASE_LOCK` ·
-`uq_quotations_ref` · `NOT NULL ref_no` · **exactly one** 1062 retry ·
-`mysqli_report(MYSQLI_REPORT_OFF)` · the return-value-and-errno helpers ·
-`item_uid` minting and reconciliation · Actor Identity · pricing · Quick Add ·
-the parser · the translation dictionary · `delete_quotation`.
-
-The named lock was **not** replaced by row locking, and row locking was not
-extended to the create path. `update_quotation` still does not touch `ref_no`.
-No retry loop was introduced.
+`ref_no` format · server-side allocation · `GET_LOCK` and its release ordering ·
+`uq_quotations_ref` · the exactly-one 1062 retry (unchanged, and its limitation
+is a finding, not an edit) · `SELECT … FOR UPDATE` · `item_uid` reconciliation ·
+Actor Identity · pricing · Quick Add · the parser · the translation dictionary ·
+`delete_quotation`, which writes no revision and is untouched.
 
 ---
 
 ## OUT OF SCOPE — NAMED, SO THEY ARE NOT DRIFTED INTO
 
-No revision rows · no reference to `quotation_revisions` from application code ·
-no snapshot construction · no diff engine · no no-op suppression · no history
-API · no history UI · no baseline or deletion policy · no Delete UI · no
-optimistic concurrency or version field · no foreign keys · no triggers · no
-production migration · no deployment.
-
-`delete_quotation` is untouched; deletion history belongs to Baseline / Delete
-Policy.
+No diff engine · no structured before/after · **no no-op suppression — an
+UPDATE with unchanged business data still writes an UPDATE revision in this
+round, deliberately** · no baseline backfill · no DELETE revision · no restore ·
+no soft delete · no delete policy · no History API · no History UI · no delete
+UI · no revision browsing · no optimistic concurrency · no production migration
+· no deployment.
 
 ```
-Revision Storage Foundation                     ACCEPTED / CLOSED
-Read-before-write / Transaction Foundation      ← this round
-→ Snapshot Revision Writer
+Snapshot Revision Writer            ← this round
 → Diff Engine / No-op Suppression
 → Baseline / Delete Policy
 → History API
@@ -205,133 +238,79 @@ Read-before-write / Transaction Foundation      ← this round
 
 ---
 
-## ACCEPTANCE — WHAT MUST BE TRUE TO CLOSE
-
-- CREATE and UPDATE are both transactional, and the UPDATE's persisted read is
-  inside its transaction and held `FOR UPDATE`
-- COMMIT precedes `RELEASE_LOCK` on the create path
-- every handled failure after `BEGIN` rolls back explicitly, and leaves the
-  quotation byte-identical
-- a refused `COMMIT` is never reported as success; a refused `BEGIN` writes
-  nothing
-- the named lock is released explicitly on success and on handled failure —
-  proven while the session is still open, not by the connection closing
-- two transactions cannot hold the same quotation row; a different row is not
-  blocked
-- item identity, `ref_no`, the 1062 retry and `delete_quotation` all behave
-  exactly as before
-- no application reference to `quotation_revisions` exists
-- the full browser matrix runs, with its result recorded as measured
-
----
-
 ## MEASURED ON THIS CANDIDATE
 
 Filled in from the runs, not carried over. **None of these are canonical** —
-CANONICAL-STATE still describes `649f80a`, and a candidate does not touch it.
+CANONICAL-STATE still describes `1ca6554`, and a candidate does not touch it.
 
-### Targeted — the transaction suite
-
-| | |
-|---|---:|
-| `tests/php/transaction_foundation.test.php` on MySQL **8.0.46**, the production engine | **85 / 0** |
-| the same suite on MySQL **8.4.3** | **85 / 0** |
-
-Three kinds of evidence, because no one kind covers a transaction. The shipped
-`api.php` is copied byte-identically into a sandbox beside a stub `auth.php` and
-`db.php` and **served over real HTTP by PHP's built-in server**, so
-`save_quotation` and `update_quotation` run against real MySQL with a real
-request body. `dc_txn_*` and `dc_lock_quotation_for_update` are lifted from the
-shipped file and driven directly, including against a stub driver for the two
-failures a real server will not produce on demand — `BEGIN` refused and `COMMIT`
-refused. Statement ORDER is read out of the source, because "the read is inside
-the transaction" is a claim about sequence and nothing else can prove it.
-
-The row lock is measured on two real connections: A holds a quotation
-`FOR UPDATE`; B is refused the same row and times out; B takes a *different*
-quotation immediately; A commits; B then takes the first row. The named lock is
-proven released **while the session is still open**, so the proof is the code
-giving it back and not the connection closing.
-
-### Existing PHP suites, re-run against the changed `api.php`
+### Targeted — the revision writer
 
 | | |
 |---|---:|
-| save retry | 42 / 0 |
+| `tests/php/revision_writer.test.php` on MySQL **8.0.46**, the production engine | **94 / 0** |
+| the same suite on MySQL **8.4.3** | **94 / 0** |
+
+The shipped `api.php` is copied byte-identically into a sandbox and served over
+real HTTP; the revision table is lifted from the shipped migration, so the suite
+cannot pass against a schema the migration would not produce. What is measured
+is the database afterwards.
+
+### Every other PHP suite, against the changed `api.php`
+
+| | |
+|---|---:|
+| transaction foundation | **92 / 0** (was 85 — fixture completed, guards superseded) |
+| revision storage | 198 / 0 |
+| item identity | 159 / 0 |
 | mysqli compatibility | 94 / 0 |
-| item identity | **159** / 0 (was 156 — see the four replacing one, above) |
 | pricing / history | 172 / 0 |
 | AI extraction | 107 / 0 |
-| revision storage | 198 / 0 |
+| save retry | 42 / 0 |
 | actor identity | 150 / **1** — the known PHP 8.4 bcrypt-cost artifact |
 
-Actor identity's single failure is the deliberately runtime-relative assertion
-recorded in CANONICAL-STATE: the decoy hash's cost against what
-`PASSWORD_DEFAULT` produces, which needs PHP 8.4 and gets 10 on this 8.3.30
-machine. Unrelated to this round and not to be relaxed.
+`auth_identity`'s single failure is the deliberately runtime-relative assertion
+recorded in CANONICAL-STATE: it needs PHP 8.4 and gets cost 10 on this 8.3.30
+machine. Unrelated to this round.
 
 ### Full browser matrix — run, because application code changed
 
 | | |
 |---|---:|
 | Suites | **40** |
-| Assertions | **3,936** |
+| Assertions | **3,936** — 3,928 passed |
 | Failed | **8** |
 | Skipped | **0** |
-| Elapsed | 901.5s |
+| Elapsed | 913.6s |
 
 **The 8 are the recorded environment exception, unchanged and not one more.**
-All in `tests/suites/38-mobile-ui.test.js`, all on the `companies.php` modal
-close control at 1440 / 980 / 700 / 600px — 27 tall where 24 was accepted, 16.3
-wide where 17 was. Font metrics on this Windows Chromium against a matrix
-measured in a Linux sandbox; `companies.php` is untouched by this round, and
+All in `38-mobile-ui`, all the `companies.php` modal close control at 1440 /
+980 / 700 / 600px. `companies.php` is untouched by this round.
 CANONICAL-STATE's `tests.browserFailureException` already records the same
-eight, reproduced on `ce26146`.
+eight, reproduced on `ce26146` before any of this existed.
 
-**This is not being restated as 0 failed.** 3,928 of 3,936 pass; the remaining
-8 have not been measured on a runtime that can settle them, and the transaction
-change added none of them.
+**No NEW application regression.** That is the acceptance condition, and it
+holds: the browser matrix returned the same figures and the same eight, and
+every PHP suite is green apart from the pre-existing runtime artifact.
 
 `php -l` clean on every PHP file.
 
----
+### What the suite proves, in its own words
 
-## OUTCOME — FINAL ACCEPTED / CLOSED
+CREATE — one revision, event `create`, numbered 1, schema version stated;
+snapshot equals the persisted row field by field; `item_uid` values equal the
+persisted ones; `company_name` frozen; actor from the session; `prepared_by`
+present as a document field and **not** substituted for the actor.
 
-Accepted on 2026-08-28. `main` was fast-forwarded from `77a788e` to
-`1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` — one commit, no merge commit, no
-rebase, no force push.
+UPDATE — one more revision, event `update`, numbered 2 then 3; snapshot is the
+state *after* the write; `ref_no` unchanged even when the payload carried a
+different one; retained identity preserved, new item minted.
 
-| | |
-|---|---:|
-| Accepted application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` |
-| Browser suites | 40 |
-| Browser assertions | 3,936 — **3,928 passed, 8 failed**, 0 skipped |
-| Transaction foundation, MySQL **8.0.46** | 85 / 0 |
-| Transaction foundation, MySQL **8.4.3** | 85 / 0 |
-| Side suites | 172 · 107 · 62 · 15 · 42 · 94 · 150 · **159** · **85** |
-| Total assertions | **4,822** (+2,012 on the 2,810 baseline) |
-| Translation | 862 keys, 100% |
+ATOMICITY — a refused mutation writes neither row; a create that fails at the
+INSERT leaves nothing; a revision that cannot be written rolls the quotation
+mutation back, byte-identical, with the named lock released; with
+`quotation_revisions` absent a save is refused rather than silently unrecorded;
+no orphan revision, no unrevisioned quotation, no duplicate `(quotation_id,
+revision_no)`.
 
-**The 8 failures are recorded, not rounded away.** The same
-`38-mobile-ui` `companies.php` modal-close metrics at the same four widths,
-already in CANONICAL-STATE and reproduced on `ce26146` before this round
-existed — re-measured here with the transaction change in place and returning
-the same eight. This round added none and fixed none.
-
-**Item identity reads 159, not 156,** because one assertion that measured a
-superseded contract became four stricter ones. The total is recalculated from
-the evidence, not carried over.
-
-**ACCEPTED IS NOT LIVE.** Production still runs
-`649f80a09f83a7201c0f3772e01fc270ccda3e05`, the Item Identity build. The
-transaction foundation exists in source only.
-
-- transaction foundation in production — **NOT DEPLOYED**
-- `migrations/2026-08-28-create-quotation-revisions.sql` — **NOT APPLIED**
-- revision writer — **NOT STARTED**; no application file mentions
-  `quotation_revisions`
-- `delete_quotation` — unchanged
-
-**Next: SNAPSHOT REVISION WRITER**, which is NOT started. It is the round that
-finally adds the INSERT this one made a safe place for.
+CONCURRENCY — two simultaneous updates of one quotation both succeed and
+produce revisions 2 and 3, no collision and no gap.
