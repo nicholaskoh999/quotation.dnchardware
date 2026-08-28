@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
+    "acceptedCommit": "1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a",
     "status": "accepted",
-    "acceptedRound": "ITEM IDENTITY FOUNDATION — every persisted quotation item carries a server-owned item_uid (FINAL ACCEPTED)"
+    "acceptedRound": "READ-BEFORE-WRITE / TRANSACTION FOUNDATION — one transaction around a quotation mutation, and the persisted read moved inside it (FINAL ACCEPTED)"
   },
   "revisionStorage": {
     "round": "REVISION STORAGE FOUNDATION",
@@ -49,7 +49,7 @@
     "databaseBackupRetained": true,
     "rollbackPerformed": false,
     "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
-    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them.",
+    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed.",
     "itemIdentity": "LIVE — PRODUCTION VERIFIED",
     "itemUidBackfill": "APPLIED",
     "previouslyDeployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
@@ -81,8 +81,8 @@
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4734,
-    "deltaAssertions": 1924,
+    "finalAssertions": 4822,
+    "deltaAssertions": 2012,
     "failed": 8,
     "skipped": 0,
     "browserSuites": 40,
@@ -94,7 +94,8 @@
     "saveRetryAssertions": 42,
     "mysqliCompatAssertions": 94,
     "actorIdentityAssertions": 150,
-    "itemIdentityAssertions": 156,
+    "itemIdentityAssertions": 159,
+    "transactionFoundationAssertions": 85,
     "browserSuitesBeforeThisRound": 39,
     "browserAssertionsBeforeThisRound": 3907,
     "itemIdentityBrowserAssertions": 29,
@@ -112,7 +113,8 @@
       ],
       "reproducedOn": "ce26146a6a792f2bac0ebb4bab77389d19ff0660",
       "reproducedHow": "a pristine git worktree at ce26146 — this round's own starting point, before a single Item Identity byte — fails the same eight assertions with the same numbers",
-      "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule."
+      "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule.",
+      "note": "Re-measured on the accepted commit 1ca6554 with the transaction change in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them — 3,928 of 3,936 pass."
     }
   },
   "translation": {
@@ -157,7 +159,8 @@
       4263,
       4305,
       4399,
-      4549
+      4549,
+      4734
     ],
     "supersededTranslationKeys": [
       512,
@@ -181,7 +184,8 @@
       1453,
       1495,
       1589,
-      1739
+      1739,
+      1924
     ],
     "supersededSuiteCounts": [
       34,
@@ -246,6 +250,11 @@
         "sha": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
         "supersededBy": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
         "reason": "ITEM IDENTITY FOUNDATION was accepted. Every persisted quotation item now carries an item_uid — 'itm_' plus 32 lowercase hex from bin2hex(random_bytes(16)) — inside the existing quotations.items JSON, so there is no schema change and no item table. save_quotation mints one per item and discards any the client sent, because on a create there is nothing an incoming uid could refer to. update_quotation reads the persisted items — one column, one row — and reconciles before writing: a uid that is valid, belongs to that quotation and appears once is preserved; an item with no uid is new; and everything else fails closed by name before the UPDATE is prepared — ITEM_IDENTITY_UNKNOWN_UID, ITEM_IDENTITY_DUPLICATE_UID, ITEM_IDENTITY_MALFORMED_UID, and ITEM_IDENTITY_BACKFILL_REQUIRED for a stored quotation whose identity is missing or damaged. Nothing is ever reconciled by array position, which is the guess the round exists to remove. index.php carries identity and cannot mint it: dcCarryItemUid moves it across the three commit sites where an item rebuilt from the entry form replaces an existing row, dcStripItemUid clears it for a copy, and dcAdoptServerItems takes the uids the server issued before the snapshot so a second save from the same page is an edit rather than a set of new items. api.php, index.php and the new CLI backfill migration are the application files it carries. ref_no, GET_LOCK, the 1062 retry, mysqli_report(MYSQLI_REPORT_OFF), pricing, Quick Add, the parser and Actor Identity are untouched. The browser matrix moved for the first time in five rounds: 40 suites and 3,936 assertions, the thirty-nine earlier suites still measuring 3,907 and the new tests/suites/40-item-identity.test.js adding 29; tests/php/item_identity.test.php adds an eighth side group of 156, so the total moved from 4,549 to 4,734 and the delta from +1,739 to +1,924. Eight browser assertions failed and are recorded under tests.browserFailureException as an environment exception reproduced on ce26146, not an application fault. e76bb85 remains the DEPLOYED build: Item Identity is accepted in source only, the production backfill has not been applied, and no production item holds an item_uid. e76bb85 is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
+        "supersededBy": "1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a",
+        "reason": "READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. update_quotation read the persisted items, reconciled item identity against them and then wrote, with no transaction and no lock around any of it, so between those two statements another request could change the very items that had just been reconciled. save_quotation had the same shape: the named lock serialised number allocation, but the allocation and the INSERT that used it were not one atomic write. CREATE is now validate -> mint identity -> GET_LOCK -> BEGIN -> allocate -> INSERT (one 1062 retry) -> COMMIT -> RELEASE_LOCK, with the commit deliberately before the release because letting go of the lock while the INSERT is uncommitted would hand out a number that is not yet taken. UPDATE is now BEGIN -> SELECT * ... FOR UPDATE -> reconcile against that locked row -> UPDATE -> COMMIT, and dc_lock_quotation_for_update() returns the whole row because it is the authoritative BEFORE state a later revision writer will snapshot. The awkward part was never BEGIN and COMMIT: query_or_fail, prepare_or_fail, execute_or_fail and the 1062 retry all end the request through fail_json, which echoes and exits, and an exit inside an open transaction leaves the rollback to the connection closing — a side effect of the process dying rather than a contract. The transaction scope is now recorded as the request runs and fail_json unwinds it explicitly before answering, so every existing error path became transaction safe without one call site changing and the guardrail-protected helpers did not need rewriting. The named lock and the transaction are tracked separately because GET_LOCK is SESSION scoped and COMMIT does not release it. THE CLAIM IS NARROW: two UPDATE transactions cannot hold the same quotation row at once, which gives a future writer a deterministic BEFORE state. It is NOT optimistic concurrency — a stale browser copy can still overwrite a newer edit, because nothing compares versions. api.php is the only application file changed; ref_no, the allocator, GET_LOCK, the exactly-one 1062 retry, item identity, Actor Identity, pricing, the parser and delete_quotation are untouched, and no browser suite moved. The browser matrix was re-run because application code changed and returned the same 40 suites and 3,936 assertions with the same eight recorded environment failures. tests/php/transaction_foundation.test.php adds a ninth side group of 85, measured on MySQL 8.0.46 and 8.4.3, and item identity moved 156 -> 159 because one assertion that measured a superseded contract became four stricter ones; so the total moved from 4,734 to 4,822 and the delta from +1,924 to +2,012. 649f80a is the previous accepted commit and must never be quoted as the current one — it also remains the DEPLOYED build, which is a different fact."
       }
     ]
   }

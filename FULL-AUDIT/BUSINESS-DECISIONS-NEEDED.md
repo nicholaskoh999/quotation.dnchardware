@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **DEPLOYED AND PRODUCTION VERIFIED 2026-08-28** — accepted and live are the same commit; the rollout evidence is in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` · **ACCEPTED, NOT DEPLOYED** — production still runs the previous accepted commit; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
 
 **Two questions are open. Four are decided and are recorded below as decided,
 not as open** — they were being counted as unanswered in earlier drafts of this
@@ -21,12 +21,13 @@ with the options laid out and what the code does today. The four decided ones
 are kept here so each decision has somewhere to live, and so nobody re-opens one
 by finding an old draft.
 
-> **On SHAs.** `649f80a09f83a7201c0f3772e01fc270ccda3e05` is the last commit that changed the
+> **On SHAs.** `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when ITEM IDENTITY FOUNDATION was accepted. Ten application
+> when READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. Eleven application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `649f80a09f83a7201c0f3772e01fc270ccda3e05`, accepted for ITEM IDENTITY FOUNDATION;
 > superseded — `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, accepted for ACTOR IDENTITY FOUNDATION;
 > superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;
 > superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;

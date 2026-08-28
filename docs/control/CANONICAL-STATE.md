@@ -19,115 +19,103 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
+| Accepted application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` |
 | Application status | **ACCEPTED** |
-| Accepted round | ITEM IDENTITY FOUNDATION — every persisted quotation item carries a server-owned `item_uid`, **FINAL ACCEPTED** |
+| Accepted round | READ-BEFORE-WRITE / TRANSACTION FOUNDATION — one transaction around a quotation mutation, and the persisted read moved inside it, **FINAL ACCEPTED** |
 
-The accepted commit moved because a quotation item had no identity at all, and
-for no other reason. It is `649f80a` because that is the last commit that
-changed an application file — proven from the files, not from a branch tip:
-
-```
-git merge-base --is-ancestor e76bb85 649f80a  →  0   (e76bb85 is an ancestor)
-git log -1 --format=%H e76bb85..HEAD -- api.php index.php \
-        migrations/2026-08-27-backfill-item-uids.php \
-        tests/php/item_identity.test.php tests/suites/40-item-identity.test.js
-        →  649f80a   (derived from the files ROUND-SCOPE declared, not asserted)
-git diff --name-only e76bb85..649f80a -- '*.php' ':(exclude)tests/**'
-        →  api.php, index.php, migrations/2026-08-27-backfill-item-uids.php
-git diff --name-only --diff-filter=MD e76bb85..649f80a -- tests/suites  →  (empty)
-git diff --name-only 649f80a..HEAD -- '*.php'                →  (empty)
-```
-
-**What the change is.** `update_quotation` re-encoded the whole items array on
-every save, so an item was known only by its position in it. The server could
-not tell an edit of item 2 from a delete of item 2 plus an add, or a reorder
-from a rewrite. Actor Identity answered *who is asking*; no audit table can use
-that answer until the server can also say *which item*.
+The accepted commit moved because a quotation could be read and then written
+with nothing holding the two together, and for no other reason. It is
+`1ca6554` because that is the last commit that changed an application file —
+proven from the files, not from a branch tip:
 
 ```
-itm_ + 32 lowercase hex        bin2hex(random_bytes(16))
+git merge-base --is-ancestor 649f80a 1ca6554  →  0   (649f80a is an ancestor)
+git log -1 --format=%H 649f80a..HEAD -- api.php \
+        tests/php/transaction_foundation.test.php \
+        tests/php/mysqli_compat.test.php tests/php/item_identity.test.php
+        →  1ca6554   (derived from the files ROUND-SCOPE declared, not asserted)
+git diff --name-only 649f80a..1ca6554 -- '*.php' ':(exclude)tests/**'  →  api.php
+git diff --name-only --diff-filter=MD 649f80a..1ca6554 -- tests/suites →  (empty)
+git diff --name-only 1ca6554..HEAD -- '*.php' ':(exclude)tests/**'     →  (empty)
 ```
 
-inside the existing `quotations.items` JSON. **No schema change, no item
-table.**
+**What the change is.** `update_quotation` read the persisted items, reconciled
+item identity against them, and then wrote — with no transaction and no lock
+around any of it. Between those two statements another request could change the
+very items that had just been reconciled; nothing detected it and nothing
+prevented it. `save_quotation` had the same shape: the named lock serialised
+number allocation, but the allocation and the INSERT that used it were not one
+atomic write.
 
-**CREATE** mints one per item and discards any the client sent — on a create
-there is nothing an incoming uid could refer to, so honouring one would let a
-browser choose an identity. **UPDATE** reads the persisted items, one column
-and one row, and reconciles before writing: a uid that is valid, belongs to
-that quotation and appears once is preserved; an item with no uid is new; and
-everything else fails closed **by name, before the `UPDATE` is prepared** —
-`ITEM_IDENTITY_UNKNOWN_UID`, `ITEM_IDENTITY_DUPLICATE_UID`,
-`ITEM_IDENTITY_MALFORMED_UID`, and `ITEM_IDENTITY_BACKFILL_REQUIRED` for a
-stored quotation whose identity is missing or damaged.
+```
+CREATE   validate → mint identity → GET_LOCK → BEGIN → allocate
+                  → INSERT (one 1062 retry) → COMMIT → RELEASE_LOCK
+UPDATE   validate → BEGIN → SELECT * … FOR UPDATE → reconcile against THAT row
+                  → UPDATE → COMMIT
+```
 
-**Nothing is ever reconciled by array position.** That is the guess this round
-exists to remove, and doing it once "just for legacy rows" would put identity
-on the wrong item in the one case nobody would check. A deleted item's uid is
-never reissued either: `$used` starts as a copy of the persisted set, so every
-uid the quotation ever held stays reserved for the whole reconciliation.
+**COMMIT precedes RELEASE_LOCK on the create path**, deliberately: the lock
+exists to stop a second request allocating the same number, and letting go of it
+while the INSERT is uncommitted would hand out a number that is not yet taken.
+`dc_lock_quotation_for_update()` returns the **whole row**, not the one column
+reconciliation needs, because it is the authoritative BEFORE state a later
+revision writer will snapshot — reading it twice would reintroduce the gap it
+closes.
 
-**The page carries identity and cannot mint it.** `dcCarryItemUid()` moves it
-across the three commit sites where an item rebuilt from the entry form
-replaces an existing row — without that, editing a saved item would silently
-delete it and add a different one. `dcStripItemUid()` clears it for a copy.
-`dcAdoptServerItems()` takes the uids the server issued **before** the
-snapshot, which is what makes *create → edit again without reloading → save* an
-edit rather than a set of new items. `index.php` holds no uid literal and no
-generator.
+**The hard part was never BEGIN and COMMIT.** `query_or_fail`, `prepare_or_fail`,
+`execute_or_fail` and the 1062 retry all end the request through `fail_json()`,
+which echoes and exits — and an exit inside an open transaction leaves the
+rollback to the connection closing, and the named lock to the same. That works,
+but it is a side effect of the process dying rather than a contract. The
+transaction scope is now recorded as the request runs and `fail_json()` unwinds
+it explicitly before it answers, so **every existing error path became
+transaction safe without one call site changing** — which is also why the
+helpers PROJECT-GUARDRAILS protects did not have to be rewritten. They still
+branch on return values; there is still no `try`/`catch` in any PHP file.
 
-**The backfill adds identity; it does not rewrite identity that exists.**
-`migrations/2026-08-27-backfill-item-uids.php` is CLI-only, dry-run by default,
-requires `--db=PATH`, runs in a transaction and is idempotent. Malformed or
-duplicated **stored** uids are detected, their quotation ids named, and the
-whole run refuses — not just those rows — with `GATE CLOSED` and a non-zero
-exit. There is no repair flag, by any name. Its proof is not a promise: every
-row's items array is compared before and after with `item_uid` stripped, and
-one difference aborts the transaction.
+The named lock and the transaction are tracked **separately**: `GET_LOCK` is
+SESSION scoped, `COMMIT` does not release it and `ROLLBACK` does not either.
+
+**What this claims, and what it does not.** Two UPDATE transactions cannot hold
+the same quotation row at once; the second waits for the first. That is the
+whole claim, and it is what gives a future writer a deterministic BEFORE state.
+It is **NOT optimistic concurrency** — a browser holding a stale copy can still
+overwrite a newer edit, because nothing compares versions. No version column was
+added and no conflict is detected.
 
 **Nothing else moved.** `ref_no`, server-side allocation, `GET_LOCK`,
-`uq_quotations_ref`, `NOT NULL ref_no`, the one-time 1062 retry,
-`mysqli_report(MYSQLI_REPORT_OFF)`, pricing, material mapping, Previous Price,
-Quick Add, the parser, the UI and Actor Identity are untouched, and no
-translation key changed. **Revision storage is not started.**
+`uq_quotations_ref`, `NOT NULL ref_no`, the **exactly one** 1062 retry,
+`mysqli_report(MYSQLI_REPORT_OFF)`, item identity minting and reconciliation,
+Actor Identity, pricing, Quick Add, the parser, the translation dictionary and
+`delete_quotation` are untouched. `api.php` is the only application file
+changed, no browser suite moved, and no application file references
+`quotation_revisions`. **The revision writer is NOT started.**
 
-**DEPLOYED AND PRODUCTION VERIFIED, 2026-08-28.** Accepted and deployed are
-equal again. They remain two separate fields, and the next accepted commit will
-separate them once more until it is rolled out.
+**Two accepted suites were maintained, and both are recorded rather than
+slipped in.** `mysqli_compat.test.php` lifts `fail_json()` and evaluates it, in
+the parent and again in a child process; `fail_json()` now calls
+`dc_txn_cleanup()`, so lifting one without the other evaluated a `fail_json`
+that could not run — it died with *undefined function*, not a failed assertion.
+Both lift sites take the dependency now and **every assertion is identical**.
+`item_identity.test.php` asserted the literal `SELECT items FROM quotations
+WHERE id=?` under *"reading the minimum it needs"* — the right contract for Item
+Identity and the wrong one now, because this round deliberately makes the read
+non-minimal. That one assertion became **four**, asking for more than it did:
+the read goes through `dc_lock_quotation_for_update`, it is `FOR UPDATE`, the
+transaction opened before it, and the old unlocked read is gone. Tightened, not
+weakened — which is why item identity reads 159 below and not 156.
+
+**ACCEPTED IS NOT LIVE, and this round parts them again.**
 
 | | |
 |---|---|
-| Accepted application | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
-| **Deployed application** | **`649f80a09f83a7201c0f3772e01fc270ccda3e05`** |
-| Production runtime | **PHP 8.4.24** |
-| Item Identity in production | **LIVE · PRODUCTION VERIFIED** |
-| `migrations/2026-08-27-backfill-item-uids.php` | **APPLIED** |
-| Rollback | **NOT REQUIRED** |
+| Accepted application | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` |
+| **Deployed application** | **`649f80a09f83a7201c0f3772e01fc270ccda3e05`** — the Item Identity build |
+| Transaction foundation in production | **NOT DEPLOYED · NOT PRODUCTION VERIFIED** |
+| `migrations/2026-08-28-create-quotation-revisions.sql` | **NOT APPLIED** |
 
-**The backfill, in numbers.** 690 quotations, 2,079 items, 2,079 holding a
-valid `item_uid`, **0** missing or invalid. The proof that it finished is the
-re-run: a dry run immediately after `--apply` reported *already had identity
-2,079 · identity minted 0 · quotation rows to write 0 · quotation rows
-unchanged 690*. Idempotence and total coverage are the same observation read
-twice.
-
-**The deploy, verified path by path.** 18 of 18 deployed application paths
-match the accepted commit — **0 drift, 0 missing** — with the file list read
-from `.cpanel.yml`'s own `APPFILES` plus `assets/icons` rather than typed out,
-and each path compared as a sha256 of the deployed file against the blob at the
-accepted commit.
-
-**The smoke.** One temporary quotation, `Q-2026-0693`: CREATE issued a
-server-generated valid `item_uid`, EDIT preserved it, RE-SAVE preserved it, and
-REOPEN showed normal business data. It was deleted afterwards — exactly one row
-removed, remaining `Q-2026-0693` = 0, and the quotation count returned to 690.
-
-Production previously ran `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`. That is
-**history, not current state**, and is recorded under
-`production.previouslyDeployedApplicationCommit`. Actor Identity remains live,
-`app_users` remains applied and seeded, and production `NOT NULL(ref_no)` is
-unaffected — accepting and deploying `649f80a` disturbed none of them.
+They were equal for exactly one round after the 2026-08-28 rollout. That is the
+exception, not the rule: an accepted commit is not live until it is rolled out.
 
 ---
 
@@ -189,8 +177,8 @@ The Snapshot Revision Writer is a later round and has not begun.
 | | |
 |---|---:|
 | Baseline assertions | 2,810 |
-| Current final assertions | **4,734** |
-| Delta | **+1,924** |
+| Current final assertions | **4,822** |
+| Delta | **+2,012** |
 | Failed | **8** — see the exception below |
 | Skipped | 0 |
 | Browser suites | **40** |
@@ -207,7 +195,8 @@ Other accepted assertion groups:
 | Save retry (api.php 1062) | 42 |
 | mysqli compatibility (PHP 8.1+) | 94 |
 | Actor Identity (auth.php / login.php) | 150 |
-| Item Identity (api.php / index.php) | 156 |
+| Item Identity (api.php / index.php) | 159 |
+| Transaction Foundation (api.php) | 85 |
 
 **Arithmetic, which the checker performs itself rather than trusting:**
 
@@ -220,10 +209,11 @@ Other accepted assertion groups:
 +    42   save retry
 +    94   mysqli compatibility
 +   150   actor identity
-+   156   item identity
-= 4,734   final
++   159   item identity
++    85   transaction foundation
+= 4,822   final
 
-  4,734 - 2,810 = 1,924
+  4,822 - 2,810 = 2,012
 ```
 
 **The browser matrix moved for the first time in five rounds.** The
@@ -250,7 +240,8 @@ written out in full rather than left as a number.
 | Cause | font metrics. This matrix was re-measured on Windows Chromium; the accepted figures were measured in a Linux sandbox, and the harness strips the Google Fonts link so each falls back to whatever the host provides |
 | Application fault | **No** |
 | Introduced by this round | **No** — `companies.php` and `38-mobile-ui.test.js` are both untouched by it |
-| Reproduced on | `ce26146a6a792f2bac0ebb4bab77389d19ff0660` — a pristine worktree at this round's own starting point fails the same eight with the same numbers |
+| Reproduced on | `ce26146a6a792f2bac0ebb4bab77389d19ff0660` — a pristine worktree at the Item Identity round's starting point fails the same eight with the same numbers |
+| Re-measured on | `1ca6554`, with the transaction change in place: the same eight, the same widths, the same numbers |
 
 **What must not happen to them.** Do not relax those assertions, and do not
 restate this total as *0 failed*. The accepted desktop dimensions they measure
@@ -336,8 +327,8 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 
 | | superseded |
 |---|---|
-| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 · 3,958 · 4,070 · 4,172 · 4,263 · 4,305 · 4,399 · 4,549 |
-| Deltas | +734 · +869 · +989 · +1,017 · +1,148 · +1,260 · +1,362 · +1,453 · +1,495 · +1,589 · +1,739 |
+| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 · 3,958 · 4,070 · 4,172 · 4,263 · 4,305 · 4,399 · 4,549 · 4,734 |
+| Deltas | +734 · +869 · +989 · +1,017 · +1,148 · +1,260 · +1,362 · +1,453 · +1,495 · +1,589 · +1,739 · +1,924 |
 | Translation keys | 512 · 658 · 756 · 843 · 853 |
 | Finding totals | 29 · 33 |
 | Suite counts | 34 · 36 · 37 · 38 · 39 |
@@ -351,7 +342,8 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Application commit | `6bb5772475e06925f6c2ac8237099fcf0c61c3b7` — superseded by `86cf262` when API 1062 DUPLICATE RETRY HARDENING was accepted |
 | Application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` — superseded by `97a14cf` when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted |
 | Application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` — superseded by `e76bb85` when ACTOR IDENTITY FOUNDATION was accepted |
-| Application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` — superseded by `649f80a` when ITEM IDENTITY FOUNDATION was accepted. **Still the DEPLOYED commit**, which is a different fact and is current, not superseded |
+| Application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` — superseded by `649f80a` when ITEM IDENTITY FOUNDATION was accepted |
+| Application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — superseded by `1ca6554` when READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. **Still the DEPLOYED commit**, which is a different fact and is current, not superseded |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

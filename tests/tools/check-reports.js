@@ -52,12 +52,12 @@ const bad = (where, msg) => fail.push(`FAIL ${where} ${msg}`);
   const sum = t.browserAssertions + t.pricingHistoryAssertions
             + t.aiExtractionAssertions + t.workbookAssertions + t.translationAssertions
             + t.saveRetryAssertions + t.mysqliCompatAssertions + t.actorIdentityAssertions
-            + t.itemIdentityAssertions;
+            + t.itemIdentityAssertions + t.transactionFoundationAssertions;
   check(sum === t.finalAssertions,
     `canonical: ${fmt(t.browserAssertions)}+${t.pricingHistoryAssertions}+${t.aiExtractionAssertions}`
     + `+${t.workbookAssertions}+${t.translationAssertions}+${t.saveRetryAssertions}`
     + `+${t.mysqliCompatAssertions}+${t.actorIdentityAssertions}+${t.itemIdentityAssertions}`
-    + ` = ${fmt(sum)} = finalAssertions`);
+    + `+${t.transactionFoundationAssertions} = ${fmt(sum)} = finalAssertions`);
   check(t.finalAssertions - t.baselineAssertions === t.deltaAssertions,
     `canonical: ${fmt(t.finalAssertions)} − ${fmt(t.baselineAssertions)} = ${fmt(t.deltaAssertions)} = delta`);
   check(f.p0 + f.p1 + f.p2 + f.p3 === f.total,
@@ -430,7 +430,8 @@ for (const [f, want] of [['pricing-history-php.log', T.pricingHistoryAssertions]
                          ['translation-coverage.log', T.translationAssertions],
                          ['save-retry-php.log', T.saveRetryAssertions],
                          ['mysqli-compat-php.log', T.mysqliCompatAssertions],
-                         ['item-identity-php.log', T.itemIdentityAssertions]]) {
+                         ['item-identity-php.log', T.itemIdentityAssertions],
+                         ['transaction-foundation-php.log', T.transactionFoundationAssertions]]) {
   if (!has(L.logs, f)) { bad(f, 'is missing'); continue; }
   const t = read(L.logs, f);
   const m = t.match(/\((\d+) assertions\)/);
@@ -628,6 +629,7 @@ if (!EXTRACTED) {
       `  mysqli compatibility PHP                ${T.mysqliCompatAssertions} assertions, 0 failed`,
       `  Actor identity PHP                     ${T.actorIdentityAssertions} assertions, 0 failed`,
       `  Item identity PHP                      ${T.itemIdentityAssertions} assertions, 0 failed`,
+      `  Transaction foundation PHP              ${T.transactionFoundationAssertions} assertions, 0 failed`,
       `  ----------------------------------------------------------------`,
       `  TOTAL ASSERTIONS                     ${fmt(T.finalAssertions).padStart(6)}`,
       `  TOTAL FAILED                              ${T.failed}${T.failed ? '   (environment; see CANONICAL-STATE browserFailureException)' : ''}`,

@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `649f80a09f83a7201c0f3772e01fc270ccda3e05`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,12 +8,13 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `649f80a09f83a7201c0f3772e01fc270ccda3e05` is the last commit that changed the
+> **On SHAs.** `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when ITEM IDENTITY FOUNDATION was accepted. Ten application
+> when READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. Eleven application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `649f80a09f83a7201c0f3772e01fc270ccda3e05`, accepted for ITEM IDENTITY FOUNDATION;
 > superseded — `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, accepted for ACTOR IDENTITY FOUNDATION;
 > superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;
 > superseded — `86cf2629a66434bf3bdffe2efc0acbe527c358ac`, accepted for API 1062 DUPLICATE RETRY HARDENING;
@@ -44,20 +45,21 @@ against itself.
 | Save retry PHP (`tests/php/save_retry.test.php`) | 1 | **42** | **0** |
 | mysqli compatibility PHP (`tests/php/mysqli_compat.test.php`) | 1 | **94** | **0** |
 | Actor identity PHP (`tests/php/auth_identity.test.php`) | 1 | **150** | **0** |
-| Item identity PHP (`tests/php/item_identity.test.php`) | 1 | **156** | **0** |
+| Item identity PHP (`tests/php/item_identity.test.php`) | 1 | **159** | **0** |
+| Transaction foundation PHP (`tests/php/transaction_foundation.test.php`) | 1 | **85** | **0** |
 
 ## TOTAL
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **4,734** |
+| **TOTAL ASSERTIONS** | **4,822** |
 | **TOTAL FAILED** | **8** |
 
 | | |
 |---|---:|
 | Baseline | 2,810 assertions |
-| Final | 4,734 assertions |
-| Delta | **+1,924 assertions** |
+| Final | 4,822 assertions |
+| Delta | **+2,012 assertions** |
 
 Every one of those is new coverage over a defect this audit reproduced. The
 per-round breakdown that used to sit here has been removed rather than
@@ -91,6 +93,17 @@ docs/control/CANONICAL-STATE, under `tests.browserFailureException`.
 existed before this round still measure 3,907 between them, assertion for
 assertion, and `40-item-identity` adds 29 — the whole of the difference. No
 earlier suite was modified or deleted.
+
+**The transaction foundation suite ran on two engines**, MySQL **8.0.46** —
+the production version — and MySQL **8.4.3**, returning 85 / 0 on each. It
+copies the shipped `api.php` byte-identically into a sandbox and drives it over
+real HTTP, because `api.php` reads its body from `php://input` and a CLI include
+never sees one.
+
+**Item identity reads 159, not 156.** One assertion measured a contract this
+round supersedes — the old minimal `SELECT items` read — and became four
+stricter ones about the locked read. The total is recalculated from that, not
+carried over.
 
 **Skipped: none.** Every suite named in the brief ran to
 completion and is counted above. The pricing-workbook check takes the workbook

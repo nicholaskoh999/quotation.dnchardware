@@ -11,10 +11,11 @@ transaction that is already there.
 
 | | |
 |---|---|
-| Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
-| Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — live, verified 2026-08-28 |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
+| Accepted application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` |
+| Superseded application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
+| Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — **production has NOT moved** |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | no deployment action was taken in the promotion step |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 | Production DB change | **NO** |
 | Revision writer | **NOT STARTED** — this round writes no revision |
@@ -126,13 +127,16 @@ not make it.
 ## ALLOWED TO CHANGE
 
 ```candidate-files
-api.php
-tests/php/transaction_foundation.test.php
-tests/php/mysqli_compat.test.php
-tests/php/item_identity.test.php
 ```
 
-Nothing else may differ from `649f80a09f83a7201c0f3772e01fc270ccda3e05`.
+The block is **EMPTY**. This round is closed: `api.php`,
+`tests/php/transaction_foundation.test.php`, `tests/php/mysqli_compat.test.php`
+and `tests/php/item_identity.test.php` were reviewed and accepted into
+`1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, so nothing may now differ from the
+accepted commit.
+
+`api.php` was the only application file, and the close-out shows the diff rather
+than asserting it.
 
 `index.php`, `companies.php`, `auth.php`, `login.php`, `logout.php`,
 `pricing_history.php`, `ai_extract.php` and all forty browser suites are out of
@@ -289,3 +293,45 @@ eight, reproduced on `ce26146`.
 change added none of them.
 
 `php -l` clean on every PHP file.
+
+---
+
+## OUTCOME — FINAL ACCEPTED / CLOSED
+
+Accepted on 2026-08-28. `main` was fast-forwarded from `77a788e` to
+`1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` — one commit, no merge commit, no
+rebase, no force push.
+
+| | |
+|---|---:|
+| Accepted application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` |
+| Browser suites | 40 |
+| Browser assertions | 3,936 — **3,928 passed, 8 failed**, 0 skipped |
+| Transaction foundation, MySQL **8.0.46** | 85 / 0 |
+| Transaction foundation, MySQL **8.4.3** | 85 / 0 |
+| Side suites | 172 · 107 · 62 · 15 · 42 · 94 · 150 · **159** · **85** |
+| Total assertions | **4,822** (+2,012 on the 2,810 baseline) |
+| Translation | 862 keys, 100% |
+
+**The 8 failures are recorded, not rounded away.** The same
+`38-mobile-ui` `companies.php` modal-close metrics at the same four widths,
+already in CANONICAL-STATE and reproduced on `ce26146` before this round
+existed — re-measured here with the transaction change in place and returning
+the same eight. This round added none and fixed none.
+
+**Item identity reads 159, not 156,** because one assertion that measured a
+superseded contract became four stricter ones. The total is recalculated from
+the evidence, not carried over.
+
+**ACCEPTED IS NOT LIVE.** Production still runs
+`649f80a09f83a7201c0f3772e01fc270ccda3e05`, the Item Identity build. The
+transaction foundation exists in source only.
+
+- transaction foundation in production — **NOT DEPLOYED**
+- `migrations/2026-08-28-create-quotation-revisions.sql` — **NOT APPLIED**
+- revision writer — **NOT STARTED**; no application file mentions
+  `quotation_revisions`
+- `delete_quotation` — unchanged
+
+**Next: SNAPSHOT REVISION WRITER**, which is NOT started. It is the round that
+finally adds the INSERT this one made a safe place for.

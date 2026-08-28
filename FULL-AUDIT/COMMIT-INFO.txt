@@ -6,8 +6,8 @@ BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                649f80a09f83a7201c0f3772e01fc270ccda3e05
-                "Three comments that said more than the evidence does"
+                1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a
+                "One transaction around the mutation, and the read moved inside it"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -167,6 +167,13 @@ AUDIT COMMITS (oldest first — this list is the count)
   3088250  Every quotation item gets a name only the server can give it
   308b8eb  The backfill adds identity; it does not rewrite identity that exists
   649f80a  Three comments that said more than the evidence does
+  a016f43  docs(control): accept Item Identity Foundation as canonical
+  b9663d5  docs(control): record Item Identity as deployed and production verified
+  44f9afc  Somewhere the past can live, and nothing yet that writes to it
+  af9b1dd  One final schema, and a gate for the table that is present but wrong
+  b1fd1de  CONFORMS now means the final state, and it is proven on 8.0.46
+  77a788e  docs(control): accept Revision Storage Foundation as canonical
+  1ca6554  One transaction around the mutation, and the read moved inside it
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -331,15 +338,16 @@ TEST MATRIX AT FINAL SHA
   Save retry PHP                          42 assertions, 0 failed
   mysqli compatibility PHP                94 assertions, 0 failed
   Actor identity PHP                     150 assertions, 0 failed
-  Item identity PHP                      156 assertions, 0 failed
+  Item identity PHP                      159 assertions, 0 failed
+  Transaction foundation PHP              85 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      4,734
+  TOTAL ASSERTIONS                      4,822
   TOTAL FAILED                              8   (environment; see CANONICAL-STATE browserFailureException)
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      4,734 assertions
-  Delta:     +1,924 assertions
+  Final:      4,822 assertions
+  Delta:     +2,012 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
@@ -371,7 +379,7 @@ EVIDENCE
   screenshots/          96 frames + INDEX.txt
   before-fix/           6 frames from the baseline commit, same inputs
   after-fix/            56 frames, the matching after
-  regression-evidence/  19 files — every log the reports claim,
+  regression-evidence/  20 files — every log the reports claim,
                         checked against the directory rather than written
                         from memory
 <<<END:EVIDENCE>>>

@@ -651,6 +651,59 @@ server and fails rather than skips when none is reachable.
 
 ---
 
+## ACCEPTED — ONE TRANSACTION, AND THE READ INSIDE IT
+
+Accepted in READ-BEFORE-WRITE / TRANSACTION FOUNDATION on `1ca6554`. A
+quotation mutation is one transaction, and the persisted read that `update`
+reconciles against happens inside it holding the row `FOR UPDATE`.
+
+```
+CREATE   validate → mint identity → GET_LOCK → BEGIN → allocate
+                  → INSERT (one 1062 retry) → COMMIT → RELEASE_LOCK
+UPDATE   validate → BEGIN → SELECT * … FOR UPDATE → reconcile → UPDATE → COMMIT
+```
+
+Protected from here:
+
+- **`COMMIT` precedes `RELEASE_LOCK` on the create path.** The named lock stops
+  a second request allocating the same number; releasing it while the INSERT is
+  uncommitted would hand out a number that is not yet taken.
+- **`GET_LOCK` and the transaction are separate, and stay separate.** `GET_LOCK`
+  is SESSION scoped: `COMMIT` does not release it and `ROLLBACK` does not
+  either. The named lock must not be replaced by row locking, and row locking
+  must not be extended to the create path.
+- **The persisted read must not move outside the transaction**, and must keep
+  its `FOR UPDATE`. Reading before `BEGIN` is the defect this round removed.
+- **`dc_lock_quotation_for_update()` returns the whole row on purpose.** It is
+  the authoritative BEFORE state; reading it twice — once to reconcile, once to
+  snapshot — would reintroduce the gap it closes.
+- **`fail_json()` unwinds the scope before it answers.** Every helper ends the
+  request through it, and an `exit` inside an open transaction leaves the
+  rollback to the connection closing. Anything that removes `dc_txn_cleanup()`
+  from `fail_json()` silently returns the application to that state.
+- **A refused `COMMIT` is never reported as success**, and a refused `BEGIN`
+  writes nothing.
+- **Maximum retry is still one, and still only 1062.** No retry loop was
+  introduced and none may be.
+
+**THE CLAIM IS NARROW, AND MUST STAY NARROW.** Two UPDATE transactions cannot
+hold the same quotation row at once; the second waits. That is all. It is **not
+optimistic concurrency** — a browser holding a stale copy can still overwrite a
+newer edit, because nothing compares versions. Do not restate this as "stale
+edits can no longer overwrite newer ones"; that would need a version field and a
+conflict check, which are a different round.
+
+**Unchanged:** `ref_no` · the allocator · `uq_quotations_ref` ·
+`NOT NULL ref_no` · item identity · Actor Identity · pricing · Quick Add · the
+parser · `delete_quotation`. The revision writer is **NOT STARTED** and no
+application file references `quotation_revisions`.
+
+`tests/php/transaction_foundation.test.php` drives the shipped `api.php` over
+real HTTP against MySQL 8.0.46 and 8.4.3, and proves the row lock on two live
+connections.
+
+---
+
 ## CONTROL-ONLY ROUND
 
 **Two SHAs, and they are not the same thing.**

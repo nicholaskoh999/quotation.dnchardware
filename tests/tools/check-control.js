@@ -34,8 +34,8 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
-const PREV = 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a';
+const APP = '1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a';
+const PREV = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 /* What production RUNS, which is no longer what has been accepted. */
 const DEPLOYED = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 const out = []; let bad = 0;
@@ -55,8 +55,8 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    && A.TOTAL === T.finalAssertions && A.BASELINE === T.baselineAssertions
    && A.DELTA === T.deltaAssertions && A.FAILED === T.failed && A.SKIPPED === T.skipped,
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
-ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 4734
-   && T.deltaAssertions === 1924 && T.baselineAssertions === 2810,
+ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 4822
+   && T.deltaAssertions === 2012 && T.baselineAssertions === 2810,
    'the accepted matrix is the measured run');
 ck(T.browserSuitesBeforeThisRound === 39 && T.browserAssertionsBeforeThisRound === 3907
    && T.itemIdentityBrowserAssertions === 29
@@ -65,9 +65,9 @@ ck(T.browserSuitesBeforeThisRound === 39 && T.browserAssertionsBeforeThisRound =
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
    + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions
    + T.mysqliCompatAssertions + T.actorIdentityAssertions + T.itemIdentityAssertions
-   === T.finalAssertions,
-   `3,936+172+107+62+15+42+94+150+156 = ${T.finalAssertions}`);
-ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,734 − 2,810 = +1,924');
+   + T.transactionFoundationAssertions === T.finalAssertions,
+   `3,936+172+107+62+15+42+94+150+159+85 = ${T.finalAssertions}`);
+ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,822 − 2,810 = +2,012');
 ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['ai-extract-php.log'] === T.aiExtractionAssertions
    && A.SIDE['pricing-workbook.log'] === T.workbookAssertions
@@ -75,8 +75,9 @@ ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['save-retry-php.log'] === T.saveRetryAssertions
    && A.SIDE['mysqli-compat-php.log'] === T.mysqliCompatAssertions
    && A.SIDE['auth-identity-php.log'] === T.actorIdentityAssertions
-   && A.SIDE['item-identity-php.log'] === T.itemIdentityAssertions,
-   'the eight side suites agree in both files');
+   && A.SIDE['item-identity-php.log'] === T.itemIdentityAssertions
+   && A.SIDE['transaction-foundation-php.log'] === T.transactionFoundationAssertions,
+   'the nine side suites agree in both files');
 /* ── A failing assertion count may be recorded, but never left bare ────────
    The matrix has read "0 failed" for every accepted round until this one. It
    now reads 8, and the only thing that makes that acceptable is that the
@@ -102,18 +103,18 @@ ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 10, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85',
+ck(S.length === 11, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[9].sha === PREV && S[9].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[10].sha === PREV && S[10].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`e76bb85d663f96fdce3ed6c0c70b72c49d84000a` — superseded by `649f80a`'),
+ck(MD.includes('`649f80a09f83a7201c0f3772e01fc270ccda3e05` — superseded by `1ca6554`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
-ck(H.supersededAssertionTotals.includes(4549) && !H.supersededAssertionTotals.includes(4734),
-   '4,549 retired, 4,734 is not retired');
-ck(H.supersededDeltas.includes(1739) && !H.supersededDeltas.includes(1924),
-   '+1,739 retired, +1,924 is not retired');
+ck(H.supersededAssertionTotals.includes(4734) && !H.supersededAssertionTotals.includes(4822),
+   '4,734 retired, 4,822 is not retired');
+ck(H.supersededDeltas.includes(1924) && !H.supersededDeltas.includes(2012),
+   '+1,924 retired, +2,012 is not retired');
 ck(H.supersededSuiteCounts.includes(39) && !H.supersededSuiteCounts.includes(40),
    `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — 40 is current, not retired`);
 
@@ -137,8 +138,16 @@ ck(DEPLOYED === APP
    DEPLOYED === APP
      ? `accepted and deployed are the same commit today (${APP.slice(0,7)})`
      : `accepted ${APP.slice(0,7)} is NOT deployed; production runs ${DEPLOYED.slice(0,7)}`);
-ck(C.production.previouslyDeployedApplicationCommit === PREV,
-   `canonical records the previously deployed build ${PREV.slice(0,7)} as history`);
+/* This is DEPLOYMENT history, not the acceptance chain, and the two have
+   parted again: PREV is the previously ACCEPTED commit, which happens to be
+   what production runs today. What must hold is that the field names a real
+   commit that production actually ran before the current one. */
+{ const was = String(C.production.previouslyDeployedApplicationCommit || '');
+  let realWas = true; try { git('cat-file','-t',was); } catch { realWas = false; }
+  ck(realWas && was !== DEPLOYED,
+     `canonical records a previously deployed build ${was.slice(0,7)}, distinct from the live ${DEPLOYED.slice(0,7)}`);
+  let order = true; try { git('merge-base','--is-ancestor',was,DEPLOYED); } catch { order = false; }
+  ck(order, 'and it precedes the live one in history'); }
 ck(/^APPLIED/.test(C.production.itemUidBackfill || ''),
    'canonical: the item_uid backfill is APPLIED');
 { const B = C.production.itemUidBackfillEvidence || {};
@@ -153,12 +162,13 @@ let ancHead = true; try { git('merge-base','--is-ancestor',APP,'HEAD'); } catch 
 ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 /* '*.php' matches tests/php/*.test.php too, so the application half is asked
    for on its own — this promotion carries TWO application files. */
-ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**').split('\n').sort().join(',')
-   === 'api.php,index.php,migrations/2026-08-27-backfill-item-uids.php',
-   'the promotion carries exactly api.php, index.php and the backfill migration');
+ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**') === 'api.php',
+   'the promotion carries exactly api.php');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
-   === 'tests/php/item_identity.test.php,tests/suites/40-item-identity.test.js',
-   'and exactly the two new test files — ONE browser suite was added and none was edited');
+   === 'tests/php/item_identity.test.php,tests/php/mysqli_compat.test.php,'
+     + 'tests/php/revision_storage.test.php,tests/php/transaction_foundation.test.php',
+   'and exactly four PHP suites — the two this round maintained, its own new one, and '
+   + 'revision storage, which was added by a round that moved no application commit');
 ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
    'not one of the thirty-nine accepted browser suites was modified or deleted');
 /* '*.php' matches tests/php/*.test.php too. Revision Storage added
@@ -172,9 +182,9 @@ ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') ==
    'and no accepted PHP suite was modified or deleted after it — only added to');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
-ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','index.php',
-       'migrations/2026-08-27-backfill-item-uids.php','tests/php/item_identity.test.php',
-       'tests/suites/40-item-identity.test.js') === APP,
+ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php',
+       'tests/php/transaction_foundation.test.php','tests/php/mysqli_compat.test.php',
+       'tests/php/item_identity.test.php') === APP,
    'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 
@@ -253,9 +263,11 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
   (R.artefacts || []).forEach(f => {
     let there = true; try { git('cat-file','-e','HEAD:'+f); } catch { there = false; }
     ck(there, `artefact present: ${f}`); });
-  ck(git('diff','--name-only',APP+'..HEAD','--','*.sql').split('\n').filter(Boolean).join(',')
-     === 'migrations/2026-08-28-create-quotation-revisions.sql',
-     'the only SQL added since the accepted commit is that migration'); }
+  /* Was written for the Revision Storage window and named the wrong file.
+     What matters now is the same invariant the PHP check makes: nothing has
+     changed since the accepted commit. */
+  ck(git('diff','--name-only',APP+'..HEAD','--','*.sql') === '',
+     'no SQL differs from the accepted commit'); }
 
 // ── guardrails carry the accepted outcomes, and only those ──
 [['STAGE 1 UI — ACCEPTED', 'the Stage 1 UI section exists'],

@@ -15,36 +15,39 @@
 'use strict';
 
 module.exports = {
-  /* Moved ten times. 649f80a is the last commit that changes an application
-     file and carries ITEM IDENTITY FOUNDATION — every persisted quotation item
-     holds a server-minted item_uid inside the existing items JSON, and
-     update_quotation reconciles against what is STORED rather than against
-     array position. api.php, index.php and the CLI backfill migration are the
-     application files it touches. e76bb85 carried ACTOR IDENTITY FOUNDATION,
+  /* Moved eleven times. 1ca6554 is the last commit that changes an
+     application file and carries READ-BEFORE-WRITE / TRANSACTION FOUNDATION —
+     save_quotation and update_quotation are each one transaction, and the
+     persisted read that update reconciles against now happens INSIDE that
+     transaction, holding the row FOR UPDATE. api.php is the only application
+     file it touches. 649f80a carried ITEM IDENTITY FOUNDATION, e76bb85 ACTOR
+     IDENTITY FOUNDATION,
      97a14cf the PHP 8.1+ mysqli compatibility fix, 86cf262 the 1062 retry,
      6bb5772 QUICK ADD STABILITY, cf92f27 UI POLISH 2A, 3e89713 STAGE 1,
      98a31e3 STAGE 0B, 33ae0da UI POLISH 2, e3d659b UI POLISH 1, 7f5bc97 came
-     before that; all ten are recorded as superseded in CANONICAL-STATE and
+     before that; all eleven are recorded as superseded in CANONICAL-STATE and
      must not be quoted as current.
 
-     The BROWSER matrix moved with this one, for the first time in five rounds:
-     tests/suites/40-item-identity.test.js is a fortieth suite of 29, and
-     tests/php/item_identity.test.php is an eighth side group of 156.
+     The BROWSER matrix did NOT move with this one — 40 suites and 3,936
+     assertions, re-run because application code changed and returning the same
+     figures and the same eight recorded environment failures.
+     tests/php/transaction_foundation.test.php is a ninth side group of 85, and
+     item identity moved 156 -> 159 because one assertion that measured a
+     superseded contract became four stricter ones.
 
-     TWO SHAs, AND THEY ARE STILL TWO FIELDS EVEN WHEN THEY AGREE. APP_SHA is
-     what has been ACCEPTED; DEPLOYED_SHA is what production actually runs.
-     They are equal as of the 2026-08-28 rollout — backfill applied, 18/18
-     deployed paths matching, smoke passed — and they were NOT equal the day
-     before. Do not collapse them into one constant because they happen to
-     agree today; the next accepted commit separates them again until it
-     ships. */
-  APP_SHA:  '649f80a09f83a7201c0f3772e01fc270ccda3e05',
+     TWO SHAs, AND THEY HAVE SEPARATED AGAIN. APP_SHA is what has been
+     ACCEPTED; DEPLOYED_SHA is what production actually runs. They were equal
+     for exactly one round after the 2026-08-28 rollout, and accepting
+     1ca6554 parted them: production still runs 649f80a, the Item Identity
+     build. The transaction foundation is accepted in source and NOT deployed.
+     This is the ordinary state, not the exception. */
+  APP_SHA:  '1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a',
   DEPLOYED_SHA: '649f80a09f83a7201c0f3772e01fc270ccda3e05',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 40,
   BROWSER: 3936,
-  TOTAL: 4734,
+  TOTAL: 4822,
   /* NOT zero, and not to be quietly restored to zero. Eight assertions in
      38-mobile-ui fail on the runtime this matrix was re-measured on. They are
      font metrics on the companies.php modal close control, not an application
@@ -62,11 +65,12 @@ module.exports = {
      per-round breakdowns are gone: they mixed absolutes with increments and
      stopped reconciling to anything. */
   BASELINE: 2810,
-  DELTA: 1924,
+  DELTA: 2012,
   SIDE: { 'pricing-history-php.log': 172, 'ai-extract-php.log': 107,
           'pricing-workbook.log': 62, 'translation-coverage.log': 15,
           'save-retry-php.log': 42, 'mysqli-compat-php.log': 94,
-          'auth-identity-php.log': 150, 'item-identity-php.log': 156 },
+          'auth-identity-php.log': 150, 'item-identity-php.log': 159,
+          'transaction-foundation-php.log': 85 },
 
   /* The Revision Storage round's own figure, kept OUT of TOTAL on purpose.
      TOTAL describes the application measured at APP_SHA; a suite that measures
