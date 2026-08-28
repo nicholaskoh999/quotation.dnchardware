@@ -7,7 +7,30 @@
 --                          was written. Section 1 MUST be run and READ by a
 --                          person before section 2.
 --   Round                : REVISION STORAGE FOUNDATION (candidate)
---   Target               : MySQL 8.0.46 (production). Verified on 8.4.3.
+--   Target               : MySQL 8.0.46 (production).
+--
+-- THE COMPLETE PROCEDURE IS SECTIONS 2 AND 3. Not section 2 alone.
+--   Section 2 creates the table. Section 3 aligns one column's collation and is
+--   REQUIRED, not conditional. Section 4 refuses to say the migration is done
+--   until the result matches what is written below.
+--
+-- THE AUTHORITATIVE POST-MIGRATION STATE
+--   After sections 2 and 3, exactly one thing is true of the column that gets
+--   compared across tables:
+--
+--       quotation_revisions.quotation_ref_no
+--           has the SAME COLUMN_TYPE, CHARACTER_SET_NAME and COLLATION_NAME
+--           as quotations.ref_no
+--
+--   Not "inherits the database default", which is only where section 2 starts.
+--   MySQL refuses to compare two columns whose collations differ, so a
+--   revision could not be joined to its quotation — and on MySQL 8 the database
+--   default is commonly utf8mb4_0900_ai_ci while an older table is
+--   utf8mb4_general_ci. Same charset, different collation, dead join.
+--
+--   The values are NOT hard-coded here. Section 3 reads them off
+--   quotations.ref_no and generates the statement, so this file cannot be wrong
+--   about a database it has never seen. Section 4 then asserts equality.
 --
 -- WHY THIS IS WANTED
 --   Actor Identity answers WHO. Item Identity answers WHICH ITEM. Neither can
@@ -26,9 +49,6 @@
 --   · It creates no item table. Item identity stays inside the snapshot JSON,
 --     exactly as it lives inside quotations.items today.
 --   · It adds no triggers and no foreign keys. See the two notes below.
---   · It does not assume a charset or collation. Section 1 reads what this
---     database actually uses, section 2 inherits it, and section 3 CHECKS the
---     one place where inheriting could be wrong.
 --
 -- APPEND-ONLY IS A CONTRACT, NOT A TRIGGER
 --   This table is conceptually append-only: a revision, once written, is never
@@ -37,8 +57,8 @@
 --   privileges this project has not established, they are awkward to inspect
 --   and reverse, and a trigger that refuses a DELETE would also refuse the
 --   Baseline / Delete Policy round its own decisions. The contract is stated
---   here and in PROJECT-GUARDRAILS; the writer round is where it is enforced,
---   by there being exactly one INSERT and no UPDATE or DELETE in the code.
+--   here; the writer round enforces it by there being exactly one INSERT and no
+--   UPDATE or DELETE in the code.
 --
 -- NO FOREIGN KEYS, AND THAT IS THE DESIGN
 --   quotation_id is a LOGICAL, IMMUTABLE reference. It is not a DB-enforced FK,
@@ -73,16 +93,112 @@
 
 SELECT VERSION() AS engine_version, DATABASE() AS db_in_use;
 
--- 1a · Does quotation_revisions already exist? If this returns a row, STOP.
+-- 1a · Does quotation_revisions already exist?
 SELECT TABLE_NAME, ENGINE, TABLE_ROWS, TABLE_COLLATION, CREATE_TIME
 FROM   information_schema.TABLES
 WHERE  TABLE_SCHEMA = DATABASE()
   AND  TABLE_NAME   = 'quotation_revisions';
 
--- 1b · Only if 1a returned a row.
+-- 1b · THE CONFORMANCE GATE — the one check CREATE TABLE IF NOT EXISTS cannot
+--      make for you.
+--
+--      IF NOT EXISTS protects an existing table from being replaced. It does
+--      NOT tell you whether the table that is there is the RIGHT ONE. Run it
+--      against a quotation_revisions built by hand, or by an older draft of
+--      this file, or by something else entirely, and it will succeed, change
+--      nothing, and leave you believing the schema below is what you have.
+--      That is a silent pass over a wrong schema, and this query is what stops
+--      it.
+--
+--      It compares every expected column (name, type, nullability, extra) and
+--      every expected index (name, uniqueness, column list and order) against
+--      what is actually there, and counts anything unexpected as well as
+--      anything missing.
+--
+--      ABSENT   → section 2 will create it. Proceed.
+--      CONFORMS → the right table is already there. Section 2 is a no-op and
+--                 re-running the file is safe.
+--      NO-GO    → STOP. Do not run section 2; it would do nothing and you
+--                 would carry on believing it had worked. Inspect with 1c and
+--                 decide by hand.
+--
+--      Note on EXTRA for created_at: MySQL reports DEFAULT_GENERATED for a
+--      column with DEFAULT CURRENT_TIMESTAMP from 8.0.13 onward. Production is
+--      8.0.46. On anything older this reads NO-GO for that one column, which
+--      is a version signal rather than a schema fault — check the engine
+--      version printed above before acting on it.
+-- >>> CONFORMANCE BEGIN
+SELECT CASE
+         WHEN present = 0 THEN 'ABSENT — section 2 will create it'
+         WHEN bad_cols = 0 AND extra_cols = 0 AND bad_idx = 0 AND extra_idx = 0
+           THEN 'CONFORMS — the expected table is already there; re-running is safe'
+         ELSE CONCAT('NO-GO — an existing quotation_revisions does not match: ',
+                     bad_cols,   ' wrong or missing column(s), ',
+                     extra_cols, ' unexpected column(s), ',
+                     bad_idx,    ' wrong or missing index(es), ',
+                     extra_idx,  ' unexpected index(es). Do NOT run section 2.')
+       END AS conformance
+FROM (
+  SELECT
+    (SELECT COUNT(*) FROM information_schema.TABLES
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions') AS present,
+    (SELECT COUNT(*) FROM (
+        SELECT 'id' AS col, 'bigint unsigned' AS typ, 'NO' AS nul, 'auto_increment' AS ext
+        UNION ALL SELECT 'quotation_id',            'int unsigned',      'NO',  ''
+        UNION ALL SELECT 'revision_no',             'int unsigned',      'NO',  ''
+        UNION ALL SELECT 'quotation_ref_no',        'varchar(100)',      'NO',  ''
+        UNION ALL SELECT 'event_type',              'varchar(32)',       'NO',  ''
+        UNION ALL SELECT 'actor_user_id',           'int unsigned',      'YES', ''
+        UNION ALL SELECT 'actor_username',          'varchar(64)',       'YES', ''
+        UNION ALL SELECT 'actor_display_name',      'varchar(100)',      'YES', ''
+        UNION ALL SELECT 'snapshot_schema_version', 'smallint unsigned', 'NO',  ''
+        UNION ALL SELECT 'snapshot_json',           'json',              'NO',  ''
+        UNION ALL SELECT 'created_at',              'datetime',          'NO',  'DEFAULT_GENERATED'
+      ) e
+      LEFT JOIN information_schema.COLUMNS c
+             ON c.TABLE_SCHEMA = DATABASE()
+            AND c.TABLE_NAME   = 'quotation_revisions'
+            AND c.COLUMN_NAME  = e.col
+      WHERE (SELECT COUNT(*) FROM information_schema.TABLES
+              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions') > 0
+        AND (c.COLUMN_NAME IS NULL
+          OR LOWER(c.COLUMN_TYPE) <> e.typ
+          OR c.IS_NULLABLE       <> e.nul
+          OR c.EXTRA             <> e.ext)) AS bad_cols,
+    (SELECT COUNT(*) FROM information_schema.COLUMNS c
+      WHERE c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = 'quotation_revisions'
+        AND c.COLUMN_NAME NOT IN ('id','quotation_id','revision_no','quotation_ref_no',
+                                  'event_type','actor_user_id','actor_username',
+                                  'actor_display_name','snapshot_schema_version',
+                                  'snapshot_json','created_at')) AS extra_cols,
+    (SELECT COUNT(*) FROM (
+        SELECT 'PRIMARY' AS idx, 0 AS nu, 'id' AS cols
+        UNION ALL SELECT 'uq_quotation_revisions_no',       0, 'quotation_id,revision_no'
+        UNION ALL SELECT 'idx_quotation_revisions_ref',     1, 'quotation_ref_no'
+        UNION ALL SELECT 'idx_quotation_revisions_actor',   1, 'actor_user_id'
+        UNION ALL SELECT 'idx_quotation_revisions_created', 1, 'created_at'
+      ) e
+      LEFT JOIN (SELECT INDEX_NAME,
+                        MIN(NON_UNIQUE) AS nu,
+                        GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS cols
+                 FROM   information_schema.STATISTICS
+                 WHERE  TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions'
+                 GROUP  BY INDEX_NAME) s ON s.INDEX_NAME = e.idx
+      WHERE (SELECT COUNT(*) FROM information_schema.TABLES
+              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions') > 0
+        AND (s.INDEX_NAME IS NULL OR s.nu <> e.nu OR s.cols <> e.cols)) AS bad_idx,
+    (SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotation_revisions'
+        AND INDEX_NAME NOT IN ('PRIMARY','uq_quotation_revisions_no',
+                               'idx_quotation_revisions_ref','idx_quotation_revisions_actor',
+                               'idx_quotation_revisions_created')) AS extra_idx
+) q;
+-- <<< CONFORMANCE END
+
+-- 1c · Only if 1b said NO-GO, or you want to see it in full.
 --      SHOW CREATE TABLE quotation_revisions;
 
--- 1c · The types this table has to match. Section 2 states them explicitly, so
+-- 1d · The types this table has to match. Section 2 states them explicitly, so
 --      READ this and confirm before running it.
 SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, EXTRA,
        CHARACTER_SET_NAME, COLLATION_NAME
@@ -101,32 +217,16 @@ WHERE  TABLE_SCHEMA = DATABASE()
 --   quotation_id in section 2 to match. A narrower reference silently truncates.
 --   If quotations.ref_no is wider than varchar(100), widen quotation_ref_no.
 
--- 1d · The database's own defaults. Section 2 states no CHARACTER SET, so the
---      table inherits these — read them, and read 1e beside them.
+-- 1e · The database's own defaults, for reference. Section 2 inherits these;
+--      section 3 then overrides the one column that must not.
 SELECT DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME
 FROM   information_schema.SCHEMATA
 WHERE  SCHEMA_NAME = DATABASE();
 
--- 1e · The one place inheriting could be wrong. quotation_ref_no will be
---      compared against quotations.ref_no, and MySQL refuses to compare two
---      columns whose collations differ ("Illegal mix of collations"). On MySQL
---      8 the database default is often utf8mb4_0900_ai_ci while an older table
---      is utf8mb4_general_ci — the same charset, a different collation.
---      Section 3 checks this AFTER the table exists and generates the fix.
-SELECT c.COLLATION_NAME AS ref_no_collation,
-       s.DEFAULT_COLLATION_NAME AS db_default_collation,
-       IF(c.COLLATION_NAME = s.DEFAULT_COLLATION_NAME,
-          'MATCH — section 2 may inherit',
-          'DIFFERENT — section 3 will generate an ALTER; run it') AS verdict
-FROM   information_schema.COLUMNS c
-JOIN   information_schema.SCHEMATA s ON s.SCHEMA_NAME = DATABASE()
-WHERE  c.TABLE_SCHEMA = DATABASE()
-  AND  c.TABLE_NAME   = 'quotations'
-  AND  c.COLUMN_NAME  = 'ref_no';
-
 -- ── GATE ─────────────────────────────────────────────────────────────────────
---   quotation_revisions must NOT already exist. If it does: STOP, inspect it
---   with 1b, and do not run section 2.
+--   Proceed to section 2 only if 1b said ABSENT.
+--   If it said CONFORMS, the table is already correct and nothing needs doing.
+--   If it said NO-GO, STOP.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -136,6 +236,9 @@ WHERE  c.TABLE_SCHEMA = DATABASE()
 --   The BEGIN/END markers below are load-bearing: tests/php/revision_storage.test.php
 --   lifts exactly this block out of this file and executes it, so the test
 --   proves the shipped migration rather than a copy of it. Do not remove them.
+--
+--   This is where the definition of record lives. It is NOT the finished state:
+--   section 3 still has to align one collation.
 -- ═════════════════════════════════════════════════════════════════════════════
 
 -- >>> SECTION 2 BEGIN
@@ -144,7 +247,7 @@ CREATE TABLE IF NOT EXISTS quotation_revisions (
   id                       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 
   -- LOGICAL reference to quotations.id. Deliberately not a foreign key; see
-  -- the header. int unsigned matches quotations.id as observed in section 1c.
+  -- the header. int unsigned matches quotations.id as observed in section 1d.
   quotation_id             INT UNSIGNED    NOT NULL,
 
   -- Monotonically increasing PER QUOTATION, starting at 1. The writer round
@@ -154,7 +257,10 @@ CREATE TABLE IF NOT EXISTS quotation_revisions (
 
   -- The quotation number as it was AT THAT REVISION. A lookup aid, and the
   -- reason a revision still names its quotation after the row is deleted.
-  -- Length matches quotations.ref_no; collation is verified in section 3.
+  -- Length matches quotations.ref_no. Its CHARACTER SET and COLLATION are set
+  -- by section 3, which reads them off quotations.ref_no — they are not
+  -- guessed here and the value this inherits from the database default is not
+  -- the final state.
   quotation_ref_no         VARCHAR(100)    NOT NULL,
 
   -- A generic label, NOT an enum and NOT constrained. This round stores
@@ -218,14 +324,47 @@ CREATE TABLE IF NOT EXISTS quotation_revisions (
   -- Baseline / Delete Policy round. Two named future queries, not a guess.
   KEY idx_quotation_revisions_created (created_at)
 ) ENGINE=InnoDB;
--- No CHARACTER SET / COLLATE clause: the table inherits the database defaults
--- read in section 1d, which is what app_users does. Section 3 checks the one
--- column where that could be the wrong answer.
 -- <<< SECTION 2 END
 
 
 -- ═════════════════════════════════════════════════════════════════════════════
--- SECTION 3 · VERIFY — READ-ONLY. Run after section 2.
+-- SECTION 3 · ALIGN THE COLLATION — REQUIRED. Not optional, not conditional.
+--
+--   quotation_ref_no is the one column compared across tables, and MySQL
+--   refuses to compare columns whose collations differ. Section 2 left it on
+--   the database default; this makes it match quotations.ref_no.
+--
+--   The statement is GENERATED from the column it has to match, so nobody
+--   hand-types a charset and this file cannot be wrong about a database it has
+--   never seen — the same discipline the NOT NULL(ref_no) migration used.
+--
+--   It is UNCONDITIONAL by design. When the collations already agree it sets
+--   them to what they already are, which is a harmless no-op, and that is
+--   better than a branch an operator has to decide about at 11pm.
+-- ═════════════════════════════════════════════════════════════════════════════
+
+-- 3a · Generate it. RUN WHAT THIS PRINTS.
+-- >>> SECTION 3 GENERATE BEGIN
+SELECT CONCAT('ALTER TABLE quotation_revisions MODIFY quotation_ref_no ',
+              r.COLUMN_TYPE,
+              ' CHARACTER SET ', q.CHARACTER_SET_NAME,
+              ' COLLATE ',       q.COLLATION_NAME,
+              ' NOT NULL;') AS run_this
+FROM   information_schema.COLUMNS q
+JOIN   information_schema.COLUMNS r
+       ON  r.TABLE_SCHEMA = q.TABLE_SCHEMA
+       AND r.TABLE_NAME   = 'quotation_revisions'
+       AND r.COLUMN_NAME  = 'quotation_ref_no'
+WHERE  q.TABLE_SCHEMA = DATABASE()
+  AND  q.TABLE_NAME   = 'quotations'
+  AND  q.COLUMN_NAME  = 'ref_no';
+-- <<< SECTION 3 GENERATE END
+--   The type comes from the column as it exists, so this changes collation and
+--   nothing else.
+
+
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION 4 · VERIFY AND GATE — READ-ONLY. Run after sections 2 and 3.
 -- ═════════════════════════════════════════════════════════════════════════════
 
 SHOW CREATE TABLE quotation_revisions;
@@ -241,44 +380,41 @@ ORDER  BY ORDINAL_POSITION;
 --   actor_display_name, snapshot_schema_version, snapshot_json, created_at.
 --   A twelfth column means something other than this file created it.
 
-SELECT INDEX_NAME, NON_UNIQUE, SEQ_IN_INDEX, COLUMN_NAME
-FROM   information_schema.STATISTICS
-WHERE  TABLE_SCHEMA = DATABASE()
-  AND  TABLE_NAME   = 'quotation_revisions'
-ORDER  BY INDEX_NAME, SEQ_IN_INDEX;
---   EXPECT: PRIMARY on id; uq_quotation_revisions_no NON_UNIQUE=0 on
---   (quotation_id, revision_no); and three ordinary keys on quotation_ref_no,
---   actor_user_id and created_at.
---   If uq_quotation_revisions_no is absent or NON_UNIQUE=1, STOP: one
---   quotation could then hold two revision 4s and its history would be
---   unorderable.
-
 SELECT COUNT(*) AS rows_now FROM quotation_revisions;
---   EXPECT 0. This migration records no history and backfills none.
+--   EXPECT 0 on a first run. This migration records no history and backfills
+--   none. On a re-run it is whatever the writer has since put there, and this
+--   file must not change it.
 
--- 3a · The collation check section 1e set up. If ref_no and quotation_ref_no
---      disagree, comparing them raises "Illegal mix of collations", and this
---      GENERATES the exact statement that fixes it rather than having anyone
---      hand-type a charset.
-SELECT CASE WHEN q.COLLATION_NAME = r.COLLATION_NAME
-            THEN 'MATCH — nothing to do'
-            ELSE CONCAT('ALTER TABLE quotation_revisions MODIFY quotation_ref_no ',
-                        r.COLUMN_TYPE, ' CHARACTER SET ', q.CHARACTER_SET_NAME,
-                        ' COLLATE ', q.COLLATION_NAME, ' NOT NULL;')
-       END AS collation_action
+-- 4a · THE COLLATION GATE. This is the authoritative post-migration state.
+-- >>> SECTION 4 GATE BEGIN
+SELECT CASE
+         WHEN q.COLUMN_TYPE = r.COLUMN_TYPE
+          AND q.CHARACTER_SET_NAME = r.CHARACTER_SET_NAME
+          AND q.COLLATION_NAME     = r.COLLATION_NAME
+           THEN CONCAT('MATCH — quotation_ref_no is ', r.COLUMN_TYPE, ' ',
+                       r.CHARACTER_SET_NAME, ' / ', r.COLLATION_NAME,
+                       ', the same as quotations.ref_no. Migration complete.')
+         ELSE CONCAT('NO-GO — quotation_ref_no is ', r.COLUMN_TYPE, ' ',
+                     r.CHARACTER_SET_NAME, ' / ', r.COLLATION_NAME,
+                     ' but quotations.ref_no is ', q.COLUMN_TYPE, ' ',
+                     q.CHARACTER_SET_NAME, ' / ', q.COLLATION_NAME,
+                     '. Run section 3 (again) before calling this done.')
+       END AS collation_gate
 FROM   information_schema.COLUMNS q
 JOIN   information_schema.COLUMNS r
-       ON r.TABLE_SCHEMA = q.TABLE_SCHEMA
-      AND r.TABLE_NAME   = 'quotation_revisions'
-      AND r.COLUMN_NAME  = 'quotation_ref_no'
+       ON  r.TABLE_SCHEMA = q.TABLE_SCHEMA
+       AND r.TABLE_NAME   = 'quotation_revisions'
+       AND r.COLUMN_NAME  = 'quotation_ref_no'
 WHERE  q.TABLE_SCHEMA = DATABASE()
   AND  q.TABLE_NAME   = 'quotations'
   AND  q.COLUMN_NAME  = 'ref_no';
---   Run whatever this prints, if it prints an ALTER. It changes collation and
---   nothing else — the type comes from the column as it exists.
+-- <<< SECTION 4 GATE END
 
--- 3b · Prove this migration touched nothing else. Compare against what you
---      recorded in section 1c.
+-- 4b · Re-run the conformance query from section 1b. After a complete
+--      migration it must read CONFORMS.
+
+-- 4c · Prove this migration touched nothing else. Compare against what you
+--      recorded in section 1d.
 SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE
 FROM   information_schema.COLUMNS
 WHERE  TABLE_SCHEMA = DATABASE()
@@ -287,16 +423,17 @@ WHERE  TABLE_SCHEMA = DATABASE()
 
 
 -- ═════════════════════════════════════════════════════════════════════════════
--- SECTION 4 · RE-RUNNING THIS FILE
+-- SECTION 5 · RE-RUNNING THIS FILE
 -- ═════════════════════════════════════════════════════════════════════════════
---   Section 2 is CREATE TABLE IF NOT EXISTS, so running this file twice creates
---   the table once and leaves it alone the second time. Sections 1 and 3 are
---   read-only and may be run as often as you like.
+--   Section 2 is CREATE TABLE IF NOT EXISTS and section 3 sets a collation to
+--   what it should already be, so running the whole file twice creates the
+--   table once, re-applies an identical column definition, and changes no row.
 --
---   IF NOT EXISTS is a seatbelt, not a substitute for section 1: it stops this
---   from destroying an existing table, but it would also silently do nothing
---   and leave you believing the schema above is what is there. Section 1 tells
---   you the truth; section 3 confirms it afterwards.
+--   IF NOT EXISTS is a seatbelt, not a substitute for section 1b. It stops this
+--   from destroying an existing table, but on its own it would also silently do
+--   nothing against a WRONG table and leave you believing the schema above is
+--   what you have. 1b is the check that tells you the truth; 4a and 4b confirm
+--   it afterwards.
 --
 --   NOTHING HERE WRITES A ROW. There is no INSERT in this file, and there is no
 --   code anywhere in the application that writes to quotation_revisions — the
@@ -304,7 +441,7 @@ WHERE  TABLE_SCHEMA = DATABASE()
 
 
 -- ═════════════════════════════════════════════════════════════════════════════
--- SECTION 5 · ROLLBACK — explicit, and NOT run as part of normal execution.
+-- SECTION 6 · ROLLBACK — explicit, and NOT run as part of normal execution.
 -- ═════════════════════════════════════════════════════════════════════════════
 --   While this table is empty, dropping it is harmless and reverses this
 --   migration completely: nothing reads it, nothing writes it, and no other

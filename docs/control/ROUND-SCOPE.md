@@ -53,7 +53,7 @@ place a snapshot can be kept. It does not put anything in it.
 | `id` | `BIGINT UNSIGNED NOT NULL AUTO_INCREMENT` | the revision row's own identity |
 | `quotation_id` | `INT UNSIGNED NOT NULL` | logical reference to `quotations.id`, matching its observed type |
 | `revision_no` | `INT UNSIGNED NOT NULL` | monotonic **per quotation**, from 1 |
-| `quotation_ref_no` | `VARCHAR(100) NOT NULL` | the number as it was; a lookup aid, and what still names the quotation after its row is deleted |
+| `quotation_ref_no` | `VARCHAR(100) NOT NULL`, charset and collation **taken from `quotations.ref_no`** | the number as it was; a lookup aid, and what still names the quotation after its row is deleted |
 | `event_type` | `VARCHAR(32) NOT NULL` | a label. **Not an ENUM, not constrained** |
 | `actor_user_id` | `INT UNSIGNED NULL` | matches `app_users.id` |
 | `actor_username` | `VARCHAR(64) NULL` | snapshot, so a rename cannot rewrite the past |
@@ -213,23 +213,64 @@ migrations established:
 5. **ROLLBACK**, commented out. While the table is empty, dropping it reverses
    the migration completely — one practical benefit of having added no FK.
 
-**The collation trap, and how section 3a answers it.** `quotation_ref_no` will
-be compared against `quotations.ref_no`, and MySQL refuses to compare columns
-whose collations differ. On MySQL 8 the database default is often
-`utf8mb4_0900_ai_ci` while an older table is `utf8mb4_general_ci` — same
-charset, different collation, and the join dies with *Illegal mix of
-collations*. Section 2 inherits the database default (as `app_users` does);
-section 3a then compares the two columns and **generates** the exact `ALTER`
-that fixes it, taking the type from the column rather than restating it — the
-same "generate, don't hand-type" discipline the `NOT NULL(ref_no)` migration
-used. The suite runs that generated statement and proves the join works
-afterwards.
+**The collation, and the one authoritative answer.** An earlier draft of this
+document described two different final schemas — "inherits the database
+default" and "section 3a may ALTER it to match". Those are not the same table,
+and the ambiguity is now removed. There is exactly one post-migration state:
+
+> `quotation_revisions.quotation_ref_no` has the **same `COLUMN_TYPE`,
+> `CHARACTER_SET_NAME` and `COLLATION_NAME` as `quotations.ref_no`.**
+
+Inheriting the database default is only where **section 2** starts, not where
+the migration ends. **Section 3 is a required step, not a conditional one**: it
+reads the charset and collation off `quotations.ref_no` and generates the
+`ALTER`, taking the type from the column rather than restating it — the same
+"generate, don't hand-type" discipline the `NOT NULL(ref_no)` migration used.
+It is unconditional by design; when the collations already agree it sets them
+to what they already are, which is harmless and better than a branch an
+operator has to decide about at 11pm. **Section 4a then gates on equality** and
+says NO-GO until it holds.
+
+Why it matters: MySQL refuses to compare columns whose collations differ, and
+on MySQL 8 the database default is commonly `utf8mb4_0900_ai_ci` while an older
+table is `utf8mb4_general_ci` — same charset, different collation, and the join
+from a revision to its quotation dies with *Illegal mix of collations*.
+
+The suite models production exactly here: its stand-in `quotations.ref_no` is
+`utf8mb4_general_ci` while the test database's default is not, so section 3 has
+real work to do. It then asserts all three attributes match, asserts the final
+collation is **not** merely the database default, and runs the join.
+
+**The conformance gate — what `IF NOT EXISTS` cannot do.** `CREATE TABLE IF NOT
+EXISTS` protects an existing table from replacement; it does **not** tell you
+whether the table that is there is the right one. Against a `quotation_revisions`
+built by hand, or by an older draft, it succeeds, changes nothing, and leaves
+the operator believing the schema above is what they have. That is a silent
+pass over a wrong schema.
+
+Section 1b is one query that compares every expected column (name, type,
+nullability, extra) and every expected index (name, uniqueness, column list and
+order) against what is actually there, counting the unexpected as well as the
+missing, and returns **ABSENT**, **CONFORMS** or **NO-GO** with the counts.
+Section 4b re-runs it after the migration. Five wrong-schema fixtures are
+proven in the suite — a missing column, `snapshot_json` as `LONGTEXT`, the
+`UNIQUE` degraded to an ordinary key, a forbidden default on
+`snapshot_schema_version`, and an unexpected extra column. For each, the suite
+first demonstrates that **section 2 alone succeeds and changes nothing**, then
+that the gate refuses it. A correct database still reads CONFORMS, so the gate
+discriminates rather than always refusing.
 
 ---
 
 ## ACCEPTANCE — WHAT MUST BE TRUE TO CLOSE
 
-- the table is created cleanly, and a second run is safe
+- the table is created cleanly, and a second run of the **complete procedure**
+  is safe — including when rows are already present, which are proven
+  byte-identical afterwards
+- `quotation_ref_no` ends with the same type, charset and collation as
+  `quotations.ref_no`, asserted attribute by attribute
+- an existing but WRONG `quotation_revisions` is refused by the conformance
+  gate rather than silently accepted by `IF NOT EXISTS`
 - it starts **empty**, and nothing writes to it
 - `quotations` and `app_users` are identical in definition afterwards
 - exactly one table is created
@@ -250,9 +291,9 @@ Then STOP. **No deploy. No production DB change.** Candidate only.
 
 | | |
 |---|---:|
-| `tests/php/revision_storage.test.php` | **103 assertions, 0 failed** |
+| `tests/php/revision_storage.test.php` | **140 assertions, 0 failed** |
 | Server it ran against | MySQL **8.4.3** |
-| Production target | MySQL **8.0.46** |
+| Production target | MySQL **8.0.46** — see below |
 
 The suite creates its own throwaway database, does everything inside it, drops
 it, and refuses to run against a schema it did not create. It **fails** rather
@@ -264,9 +305,26 @@ changed — `git diff` over `*.php` outside `tests/` and `migrations/` is empty 
 so re-running it would only reproduce the eight recorded `38-mobile-ui`
 environment failures. `php -l` is clean on both new files.
 
-**The version gap, stated rather than glossed:** this was verified on MySQL
-8.4.3 because that is what is available locally; production is 8.0.46. Every
-feature used — native `JSON` with validation, `BIGINT UNSIGNED`,
-`SMALLINT UNSIGNED`, `DATETIME DEFAULT CURRENT_TIMESTAMP`, composite `UNIQUE`,
-`CREATE TABLE IF NOT EXISTS` — behaves identically on both, and section 1 of
-the migration re-reads the real environment before section 2 runs anyway.
+**The version gap, stated rather than glossed.** This was verified on MySQL
+**8.4.3**; production is **8.0.46**. No MySQL 8.0.x is installed on the machine
+this ran on and there is no container runtime, so the 8.0 run has **not** been
+performed. MariaDB 10.4.32 is present but is not a valid stand-in: its `JSON`
+is an alias for `LONGTEXT`, so every assertion about native validation would
+measure something else.
+
+Two observable values this suite asserts are version-sensitive, and both
+thresholds sit far below the production version:
+
+| assertion | needs | production |
+|---|---|---|
+| `COLUMN_TYPE` reads `int unsigned`, not `int(10) unsigned` | MySQL **8.0.19+** (display widths dropped) | 8.0.46 ✓ |
+| `EXTRA` reads `DEFAULT_GENERATED` for `DEFAULT CURRENT_TIMESTAMP` | MySQL **8.0.13+** | 8.0.46 ✓ |
+
+Everything else used — native `JSON` with validation and errno 3140, errno 1062
+and 1048, `BIGINT`/`SMALLINT UNSIGNED`, `DATETIME DEFAULT CURRENT_TIMESTAMP`,
+composite `UNIQUE`, `CREATE TABLE IF NOT EXISTS`, `GROUP_CONCAT(... ORDER BY)`
+and derived tables — is unchanged across 5.7 → 8.4. The conformance gate's note
+records the 8.0.13 threshold in the migration itself, and section 1 re-reads
+the real environment before section 2 runs.
+
+That is an argument, not a run. The empirical 8.0.x run remains outstanding.
