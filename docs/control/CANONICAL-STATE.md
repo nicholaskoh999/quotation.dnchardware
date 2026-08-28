@@ -92,21 +92,42 @@ one difference aborts the transaction.
 Quick Add, the parser, the UI and Actor Identity are untouched, and no
 translation key changed. **Revision storage is not started.**
 
-**ACCEPTED IS NOT LIVE, and this round is where the two separate again.**
+**DEPLOYED AND PRODUCTION VERIFIED, 2026-08-28.** Accepted and deployed are
+equal again. They remain two separate fields, and the next accepted commit will
+separate them once more until it is rolled out.
 
 | | |
 |---|---|
 | Accepted application | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
-| **Deployed application** | **`e76bb85d663f96fdce3ed6c0c70b72c49d84000a`** — the Actor Identity build |
-| Item Identity in production | **NOT DEPLOYED · NOT PRODUCTION VERIFIED** |
-| `migrations/2026-08-27-backfill-item-uids.php` | **NOT APPLIED** |
-| Production items holding an `item_uid` | **none** |
+| **Deployed application** | **`649f80a09f83a7201c0f3772e01fc270ccda3e05`** |
+| Production runtime | **PHP 8.4.24** |
+| Item Identity in production | **LIVE · PRODUCTION VERIFIED** |
+| `migrations/2026-08-27-backfill-item-uids.php` | **APPLIED** |
+| Rollback | **NOT REQUIRED** |
 
-Actor Identity is still live and production verified, `app_users` is still
-applied and seeded, and production `NOT NULL(ref_no)` is unaffected. Those
-facts belong to `e76bb85` and are not disturbed by accepting `649f80a`. The
-rollout order — backup, pause edits, dry run, review, apply, deploy, smoke,
-resume — is written out in ROUND-SCOPE and **has not been started**.
+**The backfill, in numbers.** 690 quotations, 2,079 items, 2,079 holding a
+valid `item_uid`, **0** missing or invalid. The proof that it finished is the
+re-run: a dry run immediately after `--apply` reported *already had identity
+2,079 · identity minted 0 · quotation rows to write 0 · quotation rows
+unchanged 690*. Idempotence and total coverage are the same observation read
+twice.
+
+**The deploy, verified path by path.** 18 of 18 deployed application paths
+match the accepted commit — **0 drift, 0 missing** — with the file list read
+from `.cpanel.yml`'s own `APPFILES` plus `assets/icons` rather than typed out,
+and each path compared as a sha256 of the deployed file against the blob at the
+accepted commit.
+
+**The smoke.** One temporary quotation, `Q-2026-0693`: CREATE issued a
+server-generated valid `item_uid`, EDIT preserved it, RE-SAVE preserved it, and
+REOPEN showed normal business data. It was deleted afterwards — exactly one row
+removed, remaining `Q-2026-0693` = 0, and the quotation count returned to 690.
+
+Production previously ran `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`. That is
+**history, not current state**, and is recorded under
+`production.previouslyDeployedApplicationCommit`. Actor Identity remains live,
+`app_users` remains applied and seeded, and production `NOT NULL(ref_no)` is
+unaffected — accepting and deploying `649f80a` disturbed none of them.
 
 ---
 

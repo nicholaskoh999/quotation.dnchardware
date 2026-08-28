@@ -31,15 +31,15 @@ module.exports = {
      tests/suites/40-item-identity.test.js is a fortieth suite of 29, and
      tests/php/item_identity.test.php is an eighth side group of 156.
 
-     TWO SHAs, AND THEY ARE NOT THE SAME THING. APP_SHA is what has been
-     ACCEPTED. DEPLOYED_SHA is what production actually runs — still e76bb85,
-     the Actor Identity build, because Item Identity has not been deployed,
-     migrations/2026-08-27-backfill-item-uids.php has NOT been applied, and no
-     production quotation item holds an item_uid. They were equal for one
-     round; they are not equal now, and a checker that assumes they are would
-     report a live state that does not exist. */
+     TWO SHAs, AND THEY ARE STILL TWO FIELDS EVEN WHEN THEY AGREE. APP_SHA is
+     what has been ACCEPTED; DEPLOYED_SHA is what production actually runs.
+     They are equal as of the 2026-08-28 rollout — backfill applied, 18/18
+     deployed paths matching, smoke passed — and they were NOT equal the day
+     before. Do not collapse them into one constant because they happen to
+     agree today; the next accepted commit separates them again until it
+     ships. */
   APP_SHA:  '649f80a09f83a7201c0f3772e01fc270ccda3e05',
-  DEPLOYED_SHA: 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a',
+  DEPLOYED_SHA: '649f80a09f83a7201c0f3772e01fc270ccda3e05',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 40,

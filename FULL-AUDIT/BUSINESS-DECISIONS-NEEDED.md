@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **ACCEPTED, NOT DEPLOYED** — production still runs the previous accepted commit, named in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **DEPLOYED AND PRODUCTION VERIFIED 2026-08-28** — accepted and live are the same commit; the rollout evidence is in docs/control/CANONICAL-STATE under `production`.
 
 **Two questions are open. Four are decided and are recorded below as decided,
 not as open** — they were being counted as unanswered in earlier drafts of this

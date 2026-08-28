@@ -15,11 +15,11 @@ deployment, no production DB write.
 |---|---|
 | Accepted application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` |
 | Superseded application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
-| Deployed application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` — **production has NOT moved** |
+| Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — **deployed and production verified 2026-08-28** |
 | Round status | **FINAL ACCEPTED / CLOSED** |
-| DEPLOY = NO | no deployment action was taken in the promotion step |
+| DEPLOY = NO | no deployment action was taken in the promotion step; the rollout that followed was its own authorised step |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production DB change | **NO** — the backfill is prepared, NOT APPLIED |
+| Production DB change | **APPLIED 2026-08-28** — the item_uid backfill, 690 quotations / 2,079 items |
 | Revision Storage | **NOT STARTED** — identity only |
 
 ---
@@ -357,21 +357,24 @@ rebase, no force push.
 | Total assertions | **4,734** (+1,924 on the 2,810 baseline) |
 | Translation | 862 keys, 100% |
 
-**ACCEPTED IS NOT LIVE.** Production still runs
-`e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, the Actor Identity build. Item
-Identity exists in source only.
+**ROLLED OUT AND VERIFIED IN PRODUCTION, 2026-08-28.** The rollout order in
+this file was followed as written: backup, pause edits, backfill dry run,
+review, `--apply`, coverage verified, deploy, smoke, resume.
 
-- Item Identity in production — **NOT DEPLOYED, NOT PRODUCTION VERIFIED**
-- `migrations/2026-08-27-backfill-item-uids.php` — **NOT APPLIED**
-- production quotation items holding an `item_uid` — **none**
-- rollback — **not applicable; nothing was rolled out**
+- Item Identity in production — **LIVE · PRODUCTION VERIFIED**
+- `migrations/2026-08-27-backfill-item-uids.php` — **APPLIED**
+- backfill — 690 quotations, 2,079 items, **2,079** valid `item_uid`, **0**
+  missing or invalid
+- post-apply dry run — 0 minted, 0 rows to write, 690 rows unchanged
+- deployment — **18 / 18** paths match, 0 drift, 0 missing
+- smoke — `Q-2026-0693`, CREATE / EDIT / RE-SAVE preserved one uid, REOPEN
+  normal; deleted afterwards, count restored to 690
+- rollback — **NOT REQUIRED**
+- production runtime — **PHP 8.4.24**
 
-Actor Identity remains live and production verified, `app_users` remains
-applied and seeded, and production `NOT NULL(ref_no)` is untouched. Accepting
-`649f80a` disturbs none of those: they are facts about `e76bb85`, which is
-still the deployed build.
+Production previously ran `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`; that is
+history, not current state. Actor Identity remains live, `app_users` remains
+applied and seeded, and production `NOT NULL(ref_no)` is untouched.
 
-**The next production step has not been taken.** The rollout order in this file
-— backup, pause edits, backfill dry run, review, `--apply`, deploy, smoke,
-resume — is documented and unexecuted. Revision Storage Foundation is **NOT
-STARTED** and does not begin until that rollout is complete.
+**The gate this round held is lifted.** Revision Storage Foundation may begin,
+in its own round with its own scope.

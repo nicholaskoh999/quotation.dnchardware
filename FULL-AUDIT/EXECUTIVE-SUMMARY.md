@@ -2,7 +2,7 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **ACCEPTED, NOT DEPLOYED** — production still runs the previous accepted commit, named in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **DEPLOYED AND PRODUCTION VERIFIED 2026-08-28** — accepted and live are the same commit; the rollout evidence is in docs/control/CANONICAL-STATE under `production`.
 
 > **On SHAs.** `649f80a09f83a7201c0f3772e01fc270ccda3e05` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every

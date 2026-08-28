@@ -37,7 +37,7 @@ const RS = R('docs/control/ROUND-SCOPE.md');
 const APP = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 const PREV = 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a';
 /* What production RUNS, which is no longer what has been accepted. */
-const DEPLOYED = 'e76bb85d663f96fdce3ed6c0c70b72c49d84000a';
+const DEPLOYED = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
 
@@ -122,11 +122,32 @@ ck(git('cat-file','-t',APP) === 'commit', 'the accepted commit exists in this re
 let anc = true; try { git('merge-base','--is-ancestor',PREV,APP); } catch { anc = false; }
 ck(anc, `${PREV.slice(0,7)} is an ancestor of ${APP.slice(0,7)}`);
 ck(git('cat-file','-t',DEPLOYED) === 'commit', 'the DEPLOYED commit exists in this repository');
-ck(DEPLOYED !== APP, 'ACCEPTED and DEPLOYED are different commits — accepted is not live');
-ck(C.production.deployedApplicationCommit === DEPLOYED,
-   `canonical: production runs ${DEPLOYED.slice(0,7)}, not ${APP.slice(0,7)}`);
-ck(/NOT APPLIED/.test(C.production.itemUidBackfill || ''),
-   'canonical: the item_uid backfill is NOT APPLIED');
+/* Accepted and deployed are equal today. They were not equal yesterday, and
+   an earlier version of this file asserted they must DIFFER — which was true
+   of one round and would have failed the moment the rollout made them agree.
+   So the assertion is on AGREEMENT WITH CANONICAL, never on the relationship
+   between them: the checker's job is that the two fields say what canonical
+   says, not that they hold any particular relation. */
+ck(A.DEPLOYED_SHA === DEPLOYED && C.production.deployedApplicationCommit === DEPLOYED,
+   `authoritative.js and canonical agree production runs ${DEPLOYED.slice(0,7)}`);
+ck(DEPLOYED === APP
+   ? true
+   : C.production.previouslyDeployedApplicationCommit !== undefined,
+   DEPLOYED === APP
+     ? `accepted and deployed are the same commit today (${APP.slice(0,7)})`
+     : `accepted ${APP.slice(0,7)} is NOT deployed; production runs ${DEPLOYED.slice(0,7)}`);
+ck(C.production.previouslyDeployedApplicationCommit === PREV,
+   `canonical records the previously deployed build ${PREV.slice(0,7)} as history`);
+ck(/^APPLIED/.test(C.production.itemUidBackfill || ''),
+   'canonical: the item_uid backfill is APPLIED');
+{ const B = C.production.itemUidBackfillEvidence || {};
+  ck(B.itemsBackfilled === B.itemsWithValidUid && B.itemsMissingOrInvalidUid === 0,
+     `backfill coverage is total: ${B.itemsWithValidUid} of ${B.itemsBackfilled} items, 0 missing or invalid`);
+  ck(B.postApplyDryRunMinted === 0 && B.postApplyDryRunRowsToWrite === 0,
+     'the post-apply dry run minted nothing and had nothing to write — idempotent');
+  const D = C.production.deployVerification || {};
+  ck(D.pathsChecked === D.match && D.drift === 0 && D.missing === 0,
+     `${D.match} of ${D.pathsChecked} deployed paths match, 0 drift, 0 missing`); }
 let ancHead = true; try { git('merge-base','--is-ancestor',APP,'HEAD'); } catch { ancHead = false; }
 ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 /* '*.php' matches tests/php/*.test.php too, so the application half is asked

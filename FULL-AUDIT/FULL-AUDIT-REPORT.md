@@ -5,7 +5,7 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **ACCEPTED, NOT DEPLOYED** — production still runs the previous accepted commit, named in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `649f80a09f83a7201c0f3772e01fc270ccda3e05` · **DEPLOYED AND PRODUCTION VERIFIED 2026-08-28** — accepted and live are the same commit; the rollout evidence is in docs/control/CANONICAL-STATE under `production`.
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
 **4,734 assertions, 8 failed, 0 skipped** — the eight are the recorded

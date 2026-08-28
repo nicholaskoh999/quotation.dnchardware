@@ -7,8 +7,8 @@
   },
   "production": {
     "host": "quo.dnchardware.com",
-    "runtime": "PHP 8.4",
-    "deployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
+    "runtime": "PHP 8.4.24",
+    "deployedApplicationCommit": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
     "actorIdentity": "LIVE — PRODUCTION VERIFIED",
     "verifiedOn": "2026-08-27",
     "appUsersMigration": "APPLIED",
@@ -17,9 +17,35 @@
     "databaseBackupRetained": true,
     "rollbackPerformed": false,
     "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
-    "note": "Verified by a two-user production smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. The test quotation was removed afterwards and no rollback was needed. The assertion figures in tests are SOURCE test figures, measured at e76bb85; the rollout did not change them and must not be read as adding to them. ITEM IDENTITY IS ACCEPTED IN SOURCE ONLY: production still runs e76bb85, no quotation item in production holds an item_uid, and the backfill has not been applied. deployedApplicationCommit is the live build and is deliberately NOT the same field as application.acceptedCommit.",
-    "itemIdentity": "NOT DEPLOYED — production runs e76bb85, the Actor Identity build",
-    "itemUidBackfill": "NOT APPLIED — migrations/2026-08-27-backfill-item-uids.php has never been run against production"
+    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them.",
+    "itemIdentity": "LIVE — PRODUCTION VERIFIED",
+    "itemUidBackfill": "APPLIED",
+    "previouslyDeployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
+    "itemIdentityVerifiedOn": "2026-08-28",
+    "itemUidBackfillFile": "migrations/2026-08-27-backfill-item-uids.php",
+    "itemUidBackfillEvidence": {
+      "quotationsBackfilled": 690,
+      "itemsBackfilled": 2079,
+      "itemsWithValidUid": 2079,
+      "itemsMissingOrInvalidUid": 0,
+      "postApplyDryRunMinted": 0,
+      "postApplyDryRunRowsToWrite": 0,
+      "postApplyDryRunRowsUnchanged": 690,
+      "note": "The post-apply dry run is the idempotence proof: it saw 2,079 items that already had identity, minted none, and had nothing to write. Coverage is total — 2,079 of 2,079 items hold a valid item_uid and none is missing or malformed."
+    },
+    "deployVerification": {
+      "pathsChecked": 18,
+      "match": 18,
+      "drift": 0,
+      "missing": 0,
+      "method": "every path in .cpanel.yml APPFILES plus assets/icons, sha256 of the deployed file against the blob at the accepted commit — the file list read from the deploy authority rather than typed out"
+    },
+    "itemIdentitySmoke": {
+      "result": "PASS",
+      "quotation": "Q-2026-0693",
+      "proved": "CREATE issued a server-generated valid item_uid; EDIT preserved it; RE-SAVE preserved it; REOPEN showed normal business data",
+      "cleanup": "the smoke quotation was temporary and was deleted — exactly 1 row removed, remaining Q-2026-0693 = 0, and the quotation count returned to 690"
+    }
   },
   "tests": {
     "baselineAssertions": 2810,

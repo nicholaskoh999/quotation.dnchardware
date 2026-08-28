@@ -588,10 +588,16 @@ the one-time 1062 retry · `mysqli_report(MYSQLI_REPORT_OFF)` · pricing ·
 material mapping · Previous Price · Quick Add · the parser · Actor Identity.
 **Revision storage and audit rows are NOT implemented.**
 
-**ACCEPTED IS NOT LIVE.** Production runs `e76bb85`, the Actor Identity build.
-Item Identity is **not deployed**, the backfill is **NOT APPLIED**, and no
-production item holds an `item_uid`. Nothing here may be described as
-production-verified until that rollout happens and is smoke-tested.
+**LIVE IN PRODUCTION SINCE 2026-08-28.** `649f80a` is both the accepted and
+the deployed application, the backfill is **APPLIED**, and all 2,079 items
+across 690 quotations hold a valid `item_uid` — 0 missing, 0 invalid. Everything
+above is therefore protected in a live system, not only in source.
+
+One consequence that is now permanent: **every persisted item has identity, and
+`update_quotation` will refuse a quotation that loses it.** A future change that
+drops `item_uid` on save does not degrade quietly — it makes that quotation
+unsaveable until the backfill is run again. That is the intended failure mode
+and must not be softened into a silent re-mint.
 
 `tests/php/item_identity.test.php` runs the shipped `api.php` functions and
 executes the shipped migration; `tests/suites/40-item-identity.test.js` drives
