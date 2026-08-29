@@ -47,6 +47,10 @@ function defaultApi() {
     get_next_ref:           { ok: true, data: { ref_no: 'DC-TEST-001' } },
     get_price_history:      { ok: true, data: [] },
     save_quotation:         { ok: true, data: { id: 1, ref_no: 'DC-TEST-001' } },
+    /* Read-only revision history. Empty by default, exactly like the rest of
+       this table: a quotation with nothing recorded is the honest starting
+       point, and the suite that cares supplies its own revisions. */
+    get_quotation_history:  { ok: true, quotation_id: 0, revisions: [] },
   };
 }
 

@@ -516,6 +516,164 @@ function dc_build_quotation_snapshot(array $row) {
     ];
 }
 
+/* ── READ-TIME HISTORY: what changed, worked out when someone asks ────────
+
+   THE SNAPSHOTS ARE THE ONLY STORED FACT AND THIS CHANGES NONE OF THEM. Every
+   function below is pure: it takes two decoded snapshots and returns a
+   description of the difference. Nothing here writes, and the whole history
+   path is one SELECT.
+
+   WHY IT IS DERIVED RATHER THAN STORED. The accepted quotation_revisions
+   schema has eleven columns and no diff field, and refuses a twelfth — so a
+   persisted diff would need a schema this round is not allowed to change. It
+   also would not be better: two adjacent immutable snapshots already contain
+   the whole answer, and deriving it means a later, smarter renderer can say
+   more about history that has ALREADY been recorded.
+
+   WHAT IT RETURNS IS DATA, NOT PROSE. Each change carries a machine `kind` and
+   the persisted values; the page turns those into sentences through the same
+   dictionary as everything else, so history is translated like the rest of the
+   UI rather than shipping English out of the server.
+
+   HONESTY RULES, because a history that guesses is worse than none:
+     · the first recorded revision being an UPDATE means the state before it
+       was never recorded. It is reported as exactly that, and NOT as a
+       create, and NOT as a diff against nothing.
+     · a snapshot whose schema version this code does not know is reported as
+       unsupported. Its structure is not guessed at.
+     · a company that was renamed between revisions keeps the name FROZEN in
+       each snapshot. The live companies table is never consulted here; that
+       would rewrite what the document said. */
+
+/* The item fields worth naming in history, in the order a person reads them.
+   Anything else that differs is counted rather than named, so an unlabelled
+   internal key can never surface as English text in a translated screen. */
+const DC_HISTORY_ITEM_FIELDS = ['desc', 'cleanSize', 'dimensionPreview', 'size',
+                                'qty', 'finalUnitPrice', 'totalAmount',
+                                'material', 'finish', 'productType', 'sizeType',
+                                'weight', 'markup'];
+
+/* The quotation fields worth naming. id and created_at are excluded because an
+   update cannot change them, and company is handled on its own below. */
+const DC_HISTORY_QUOTATION_FIELDS = ['ref_no', 'customer_name', 'customer_phone',
+                                     'quote_date', 'valid_until', 'prepared_by',
+                                     'remarks', 'total_amount'];
+
+function dc_history_scalar($v) {
+    if ($v === null) return null;
+    if (is_bool($v)) return $v ? '1' : '0';
+    if (is_array($v)) return null;          // handled by the item/other paths
+    return (string)$v;
+}
+
+/* A label for an item, built from what the item itself carries. Trade
+   vocabulary, so it is data rather than something to translate. */
+function dc_history_item_label(array $it) {
+    foreach (['cleanSize', 'desc', 'size', 'productType'] as $k) {
+        $v = trim((string)($it[$k] ?? ''));
+        if ($v !== '') {
+            $dim = trim((string)($it['dimensionPreview'] ?? ''));
+            return ($dim !== '' && $k === 'cleanSize') ? ($v . ' · ' . $dim) : $v;
+        }
+    }
+    return '';
+}
+
+function dc_history_items_by_uid(array $items) {
+    $out = [];
+    foreach ($items as $i => $it) {
+        if (!is_array($it)) continue;
+        $uid = (isset($it['item_uid']) && is_string($it['item_uid'])) ? $it['item_uid'] : null;
+        if ($uid === null) continue;
+        $out[$uid] = ['pos' => $i, 'item' => $it];
+    }
+    return $out;
+}
+
+/* ITEM IDENTITY DECIDES EVERYTHING HERE. An item is the same item when its
+   item_uid is the same, whatever moved around it — which is what stops a
+   reorder being reported as a removal plus an addition. */
+function dc_history_item_changes(array $prevItems, array $curItems) {
+    $out  = [];
+    $was  = dc_history_items_by_uid($prevItems);
+    $now  = dc_history_items_by_uid($curItems);
+
+    foreach ($now as $uid => $cur) {
+        if (!isset($was[$uid])) {
+            $out[] = ['kind' => 'item_added', 'item' => dc_history_item_label($cur['item']),
+                      'qty' => dc_history_scalar($cur['item']['qty'] ?? null)];
+        }
+    }
+    foreach ($was as $uid => $old) {
+        if (!isset($now[$uid])) {
+            $out[] = ['kind' => 'item_removed', 'item' => dc_history_item_label($old['item']),
+                      'qty' => dc_history_scalar($old['item']['qty'] ?? null)];
+        }
+    }
+    /* Every field that moved on ONE item is grouped under that item, so a row
+       whose qty and price both changed reads as one edit and not two. */
+    foreach ($now as $uid => $cur) {
+        if (!isset($was[$uid])) continue;
+        $a = $was[$uid]['item']; $b = $cur['item'];
+        $fields = []; $other = 0;
+        foreach (DC_HISTORY_ITEM_FIELDS as $f) {
+            $x = dc_history_scalar($a[$f] ?? null);
+            $y = dc_history_scalar($b[$f] ?? null);
+            if ($x !== $y) $fields[] = ['field' => $f, 'from' => $x, 'to' => $y];
+        }
+        $named = array_flip(DC_HISTORY_ITEM_FIELDS);
+        foreach (array_keys($a + $b) as $k) {
+            if ($k === 'item_uid' || isset($named[$k])) continue;
+            $x = $a[$k] ?? null; $y = $b[$k] ?? null;
+            if (json_encode($x) !== json_encode($y)) $other++;
+        }
+        if ($fields || $other) {
+            $out[] = ['kind' => 'item_changed', 'item' => dc_history_item_label($b),
+                      'fields' => $fields, 'other' => $other];
+        }
+    }
+    /* A REORDER IS A CHANGE, and it is the change that is left when the uid SET
+       is identical and every body is identical but the sequence is not. */
+    $wasSeq = array_keys($was); $nowSeq = array_keys($now);
+    if (!$out && $wasSeq !== $nowSeq) {
+        $ws = $wasSeq; $ns = $nowSeq; sort($ws); sort($ns);
+        if ($ws === $ns) $out[] = ['kind' => 'items_reordered'];
+    }
+    return $out;
+}
+
+/* The whole difference between two adjacent recorded snapshots. */
+function dc_history_changes($prev, $cur) {
+    $out = [];
+    $pq  = is_array($prev) && isset($prev['quotation']) && is_array($prev['quotation'])
+           ? $prev['quotation'] : [];
+    $cq  = is_array($cur) && isset($cur['quotation']) && is_array($cur['quotation'])
+           ? $cur['quotation'] : [];
+
+    foreach (DC_HISTORY_QUOTATION_FIELDS as $f) {
+        $x = dc_history_scalar($pq[$f] ?? null);
+        $y = dc_history_scalar($cq[$f] ?? null);
+        if ($x !== $y) $out[] = ['kind' => 'field', 'field' => $f, 'from' => $x, 'to' => $y];
+    }
+    /* COMPANY IS ONE CHANGE, NOT TWO, and it is shown by the name each snapshot
+       FROZE rather than by the id or by whatever the companies table says
+       today. A rename recorded between two revisions is a real difference
+       between them and is reported as one. */
+    $pid = dc_history_scalar($pq['company_id'] ?? null);
+    $cid = dc_history_scalar($cq['company_id'] ?? null);
+    $pnm = dc_history_scalar($pq['company_name'] ?? null);
+    $cnm = dc_history_scalar($cq['company_name'] ?? null);
+    if ($pid !== $cid || $pnm !== $cnm) {
+        $out[] = ['kind' => 'field', 'field' => 'company', 'from' => $pnm, 'to' => $cnm];
+    }
+
+    $pi = (is_array($prev) && isset($prev['items']) && is_array($prev['items'])) ? $prev['items'] : [];
+    $ci = (is_array($cur)  && isset($cur['items'])  && is_array($cur['items']))  ? $cur['items']  : [];
+    foreach (dc_history_item_changes($pi, $ci) as $c) $out[] = $c;
+
+    return $out;
+}
+
 /* ── NO-OP SUPPRESSION: is there anything for a revision to record? ────────
 
    An UPDATE that changes nothing used to write a revision anyway. That is not
@@ -1117,6 +1275,91 @@ if ($action === 'get_next_ref') {
     } else {
         echo json_encode(['ok'=>false,'error'=>'Not found']);
     }
+
+} elseif ($action === 'get_quotation_history') {
+    /* READ ONLY. One SELECT, no transaction, no lock, and nothing in this
+       branch writes a row. Deliberately NOT joined to quotations: a revision
+       is a record of what a quotation WAS, and the architecture intends that
+       record to outlive the quotation — asking quotations to vouch for it
+       would make history disappear exactly when it is most wanted. Whether a
+       deleted quotation's history is ever SHOWN is the Baseline / Delete
+       Policy round's question and is not answered here. */
+    $id = intval($_GET['id'] ?? 0);
+    if ($id <= 0) {
+        http_response_code(400);
+        echo json_encode(['ok'=>false,'error'=>'Missing quotation id']);
+        exit;
+    }
+    $stmt = prepare_or_fail($db,
+        "SELECT revision_no, event_type, created_at, actor_user_id, actor_username, "
+      . "actor_display_name, snapshot_schema_version, snapshot_json "
+      . "FROM quotation_revisions WHERE quotation_id = ? ORDER BY revision_no ASC",
+        'Quotation history prepare failed');
+    $stmt->bind_param('i', $id);
+    execute_or_fail($stmt, 'Quotation history load failed');
+    $res  = $stmt->get_result();
+    $rows = [];
+    while ($row = $res->fetch_assoc()) $rows[] = $row;
+    $stmt->close();
+
+    /* Walked OLDEST FIRST, because each entry is a difference from the one
+       before it. The answer is reversed at the end so the page can render
+       newest first without knowing any of this. */
+    $out  = [];
+    $prevSnapshot = null;          // the last snapshot this loop could READ
+    foreach ($rows as $row) {
+        $ver = (int)$row['snapshot_schema_version'];
+        $entry = [
+            'revision_no' => (int)$row['revision_no'],
+            'event_type'  => $row['event_type'],
+            'created_at'  => $row['created_at'],
+            'actor'       => [
+                'user_id'      => $row['actor_user_id'] !== null ? (int)$row['actor_user_id'] : null,
+                'username'     => $row['actor_username'],
+                'display_name' => $row['actor_display_name'],
+            ],
+            'snapshot_schema_version' => $ver,
+        ];
+        if ($ver !== DC_SNAPSHOT_SCHEMA_VERSION) {
+            /* NOT GUESSED AT. A viewer that invented a structure for a format
+               it does not know would be worse than one that says so. */
+            $entry['changes'] = [['kind' => 'unsupported_version', 'version' => $ver]];
+            $out[] = $entry;
+            $prevSnapshot = null;   // and it cannot be a baseline for the next one
+            continue;
+        }
+        $snap = json_decode((string)$row['snapshot_json'], true);
+        if (!is_array($snap)) {
+            $entry['changes'] = [['kind' => 'unsupported_version', 'version' => $ver]];
+            $out[] = $entry;
+            $prevSnapshot = null;
+            continue;
+        }
+        if ($row['event_type'] === 'create') {
+            $q = isset($snap['quotation']) && is_array($snap['quotation']) ? $snap['quotation'] : [];
+            $entry['changes'] = [[
+                'kind'         => 'created',
+                'item_count'   => isset($snap['item_count']) ? (int)$snap['item_count']
+                                  : (isset($snap['items']) && is_array($snap['items']) ? count($snap['items']) : 0),
+                'total_amount' => dc_history_scalar($q['total_amount'] ?? null),
+                'company'      => dc_history_scalar($q['company_name'] ?? null),
+            ]];
+        } elseif ($prevSnapshot === null) {
+            /* THE FIRST RECORDED REVISION IS AN UPDATE. Baseline rollout is
+               deferred, so a quotation that existed before the writer did has
+               no recorded state to be compared against. Saying "nothing
+               changed" would be a lie and saying "created" would be a bigger
+               one. */
+            $entry['changes'] = [['kind' => 'no_previous']];
+        } else {
+            $entry['changes'] = dc_history_changes($prevSnapshot, $snap);
+        }
+        $prevSnapshot = $snap;
+        $out[] = $entry;
+    }
+
+    /* Newest first for display; the derivation above needed the other order. */
+    echo json_encode(['ok'=>true, 'quotation_id'=>$id, 'revisions'=>array_reverse($out)]);
 
 } elseif ($action === 'save_quotation') {
     $company_id  = intval($input['company_id'] ?? 0) ?: null;

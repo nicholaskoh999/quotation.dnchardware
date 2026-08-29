@@ -2992,6 +2992,7 @@ input,select,textarea{
         </div>
         <div class="qi-action-stack">
           <button class="btn btn-outline btn-sm" type="button" id="unlockSavedBtn" style="display:none" onclick="event.stopPropagation();unlockSavedQuotation()" data-i18n="editSavedQuotation">Edit Saved Quotation</button>
+          <button class="btn btn-outline btn-sm" type="button" id="historyBtn" style="display:none" onclick="event.stopPropagation();openHistoryModal()" data-i18n="histBtn">History</button>
           <button class="btn btn-outline btn-sm" type="button" id="qiToggleBtn" onclick="event.stopPropagation();toggleQIEdit()" data-i18n="editDetails">Edit Details</button>
         </div>
       </div>
@@ -4317,6 +4318,37 @@ input,select,textarea{
 </div>
 
 <!-- ═══ SAVE MODAL ═══ -->
+<!-- Revision history. Read only: it opens, it shows what was recorded, it
+     closes. No restore, no delete, no compare-any-two, no export — those are
+     later rounds and putting a button here for them would be inventing a
+     contract nothing implements. -->
+<style>
+.hist-body{max-height:60vh;overflow-y:auto}
+.hist-entry{border-top:1px solid var(--line,#e5e7eb);padding:12px 0}
+.hist-entry:first-child{border-top:0;padding-top:2px}
+.hist-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.hist-no{font-weight:700}
+.hist-event{font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:#eef2ff;color:#3730a3}
+.hist-event.is-create{background:#ecfdf5;color:#065f46}
+.hist-when{font-size:12px;opacity:.7}
+.hist-who{font-size:12px;opacity:.85;margin-top:2px}
+.hist-changes{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.hist-change{font-size:13px;line-height:1.45}
+.hist-label{font-weight:600}
+.hist-from{opacity:.65}
+.hist-arrow{opacity:.5;padding:0 4px}
+.hist-sub{font-size:12px;opacity:.75;margin-top:2px}
+.hist-note{font-size:13px;opacity:.8}
+.hist-item-fields{margin:2px 0 0 12px;display:flex;flex-direction:column;gap:2px}
+.hist-state{padding:18px 2px;font-size:13px;opacity:.8;text-align:center}
+</style>
+<div class="modal-overlay" id="historyModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title"><span data-i18n="histTitle">Revision History</span> <button class="modal-close" onclick="closeModal('historyModal')">✕</button></div>
+    <div id="historyBody" class="hist-body"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="saveModal">
   <div class="modal">
     <div class="modal-title" id="saveModalTitle"><span data-i18n="saveQuotation">Save Quotation</span> <button class="modal-close" onclick="closeModal('saveModal')">✕</button></div>
@@ -4629,6 +4661,29 @@ const I18N={
     sideQuickMenu:'Quick Menu', sideNewQuotation:'New Quotation', sideCompanies:'Companies / Saved',
     sideDefaultPrices:'Default Prices', sideDiameterSettings:'Diameter Settings',
     sidePricingGuide:'Pricing Guide', sideVersionUpdates:'Version Updates',
+    /* revision history — read only */
+    histBtn:'History', histTitle:'Revision History',
+    histEventCreate:'Created', histEventUpdate:'Updated',
+    histLoading:'Loading history…', histEmpty:'No revision history recorded yet.',
+    histError:'History could not be loaded.',
+    histCreated:'Quotation created', histCreatedSummary:'{n} items · {total}',
+    histNoPrevious:'First recorded revision',
+    histNoPreviousSub:'Previous state is not available.',
+    histUnsupported:'Snapshot format not supported by this viewer.',
+    histActorUnknown:'Legacy / Unknown',
+    histFieldRefNo:'Quotation No.', histFieldCompany:'Company',
+    histFieldCustomer:'Customer', histFieldPhone:'Phone',
+    histFieldQuoteDate:'Date', histFieldValidUntil:'Valid Until',
+    histFieldPreparedBy:'Prepared By', histFieldRemarks:'Remarks',
+    histFieldTotal:'Total', histFieldOther:'Detail',
+    histItemChanged:'Item changed', histItemAdded:'Item added',
+    histItemRemoved:'Item removed', histItemsReordered:'Items reordered',
+    histItemQty:'Qty', histItemPrice:'Unit Price', histItemAmount:'Amount',
+    histItemDesc:'Description', histItemSize:'Size', histItemSizeText:'Size Text',
+    histItemDimensions:'Dimensions', histItemMaterial:'Material',
+    histItemFinish:'Finish', histItemProduct:'Product', histItemSizeType:'Size Type',
+    histItemWeight:'Weight', histItemMarkup:'Markup',
+    histOtherDetails:'and {n} more details changed',
     /* stepper + quick open */
     step1:'Customer', step2:'Add Items', step3:'Review & Save', step4:'Print / WhatsApp',
     quickOpen:'Quick Open', open:'Open', ariaQuotationNo:'Quotation number',
@@ -5165,6 +5220,29 @@ const I18N={
     sideQuickMenu:'快捷菜单', sideNewQuotation:'新建报价', sideCompanies:'公司 / 已保存',
     sideDefaultPrices:'默认价格', sideDiameterSettings:'直径设置',
     sidePricingGuide:'价格说明', sideVersionUpdates:'版本更新',
+    /* revision history — read only */
+    histBtn:'历史记录', histTitle:'修订历史',
+    histEventCreate:'已创建', histEventUpdate:'已更新',
+    histLoading:'正在加载历史…', histEmpty:'尚未记录任何修订历史。',
+    histError:'无法加载历史记录。',
+    histCreated:'报价单已创建', histCreatedSummary:'{n} 项 · {total}',
+    histNoPrevious:'首条已记录的修订',
+    histNoPreviousSub:'之前的状态没有记录。',
+    histUnsupported:'此查看器不支持该快照格式。',
+    histActorUnknown:'旧记录 / 未知',
+    histFieldRefNo:'报价单号', histFieldCompany:'公司',
+    histFieldCustomer:'客户', histFieldPhone:'电话',
+    histFieldQuoteDate:'日期', histFieldValidUntil:'有效期至',
+    histFieldPreparedBy:'制单人', histFieldRemarks:'备注',
+    histFieldTotal:'总计', histFieldOther:'细节',
+    histItemChanged:'项目已更改', histItemAdded:'新增项目',
+    histItemRemoved:'移除项目', histItemsReordered:'项目顺序已调整',
+    histItemQty:'数量', histItemPrice:'单价', histItemAmount:'金额',
+    histItemDesc:'描述', histItemSize:'规格', histItemSizeText:'规格文字',
+    histItemDimensions:'尺寸', histItemMaterial:'材质',
+    histItemFinish:'表面处理', histItemProduct:'产品', histItemSizeType:'规格类型',
+    histItemWeight:'重量', histItemMarkup:'加价',
+    histOtherDetails:'另有 {n} 项细节更改',
     /* stepper + quick open */
     step1:'客户', step2:'添加产品', step3:'检查与保存', step4:'打印',
     quickOpen:'快速打开', open:'打开', ariaQuotationNo:'报价单号',
@@ -6176,6 +6254,10 @@ function updateQuoteLockUI(){
   ['addBtn','saveQuoteBtn','mobileSaveBtn','saveModalSubmitBtn','clearAllBtn','cancelItemEditBtn'].forEach(id=>{ const e=el(id); if(e) e.disabled=locked; });
   document.querySelectorAll('.qi-del').forEach(b=>{ b.disabled=locked; b.style.display=locked?'none':''; });
   document.querySelectorAll('.qi-edit-btn').forEach(b=>{ b.disabled=locked; b.style.display=locked?'none':''; });
+  /* History exists for a quotation that has been saved. A draft has nothing
+     recorded, so the control is not offered rather than offered and refused. */
+  const histBtn=el('historyBtn');
+  if(histBtn) histBtn.style.display=editingQuoteId?'':'none';
   const saveText=editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation');
   const saveBtn=el('saveQuoteBtn'); if(saveBtn) saveBtn.innerHTML=saveText;
   const mobileSave=el('mobileSaveBtn'); if(mobileSave) mobileSave.textContent=dcT(editingQuoteId?'btnUpdate':'btnSave');
@@ -9193,6 +9275,142 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
   m.addEventListener('click',e=>{ if(e.target===m&&m.id!=='draftRecoveryModal'&&m.id!=='wqaModal') m.classList.remove('open'); });
 });
 function openRefModal(){ openModal('refModal'); }
+
+/* ── Revision history, rendered from what the server derived ───────────────
+   The server answers with machine `kind`s and the persisted values; every
+   word a person reads is produced here, through the same dictionary as the
+   rest of the screen. Nothing below writes anything, and opening this panel
+   sends exactly one GET. */
+const DC_HIST_FIELD_KEY = {
+  ref_no:'histFieldRefNo', company:'histFieldCompany', customer_name:'histFieldCustomer',
+  customer_phone:'histFieldPhone', quote_date:'histFieldQuoteDate',
+  valid_until:'histFieldValidUntil', prepared_by:'histFieldPreparedBy',
+  remarks:'histFieldRemarks', total_amount:'histFieldTotal',
+};
+const DC_HIST_ITEM_FIELD_KEY = {
+  desc:'histItemDesc', cleanSize:'histItemSize', dimensionPreview:'histItemDimensions',
+  size:'histItemSizeText', qty:'histItemQty', finalUnitPrice:'histItemPrice',
+  totalAmount:'histItemAmount', material:'histItemMaterial', finish:'histItemFinish',
+  productType:'histItemProduct', sizeType:'histItemSizeType', weight:'histItemWeight',
+  markup:'histItemMarkup',
+};
+const DC_HIST_MONEY_FIELDS = { total_amount:1, finalUnitPrice:1, totalAmount:1 };
+const DC_HIST_DATE_FIELDS  = { quote_date:1, valid_until:1 };
+
+/* The same absent-value mark phMoney() already uses. A symbol, not a
+   sentence: it reads identically in either language and so is deliberately
+   not a dictionary key. */
+const DC_HIST_BLANK='—';
+function dcHistEsc(v){ const d=document.createElement('div'); d.textContent=String(v==null?'':v); return d.innerHTML; }
+
+/* A value the snapshot never carried is shown as absent, never invented. */
+function dcHistValue(field,v){
+  if(v===null||v===undefined||v==='') return DC_HIST_BLANK;
+  if(DC_HIST_MONEY_FIELDS[field]) return phMoney(v);
+  if(DC_HIST_DATE_FIELDS[field])  return fmtDateShort(v);
+  return String(v);
+}
+
+function dcHistWhen(ts){
+  const raw=String(ts==null?'':ts).trim();
+  if(!raw) return DC_HIST_BLANK;
+  const parts=raw.split(/[ T]/);
+  const time=(parts[1]||'').slice(0,5);
+  return fmtDateShort(parts[0])+(time?' · '+time:'');
+}
+
+/* An actor the record does not name is said to be unnamed. Never a guess and
+   never a stand-in username. */
+function dcHistWho(actor){
+  if(!actor) return dcT('histActorUnknown');
+  const name=(actor.display_name||'').trim()||(actor.username||'').trim();
+  return name||dcT('histActorUnknown');
+}
+
+function dcHistPair(labelHtml,from,to,field){
+  return '<div class="hist-change"><span class="hist-label">'+labelHtml+'</span><br>'
+       + '<span class="hist-from">'+dcHistEsc(dcHistValue(field,from))+'</span>'
+       + '<span class="hist-arrow">→</span>'
+       + '<span>'+dcHistEsc(dcHistValue(field,to))+'</span></div>';
+}
+
+function dcHistChange(c){
+  if(c.kind==='created'){
+    const bits=[dcT('histCreatedSummary').replace('{n}',String(c.item_count||0))
+                  .replace('{total}',dcHistValue('total_amount',c.total_amount))];
+    if(c.company) bits.push(dcHistEsc(c.company));
+    return '<div class="hist-change"><span class="hist-label">'+dcHistEsc(dcT('histCreated'))+'</span>'
+         + '<div class="hist-sub">'+bits.join(' · ')+'</div></div>';
+  }
+  if(c.kind==='no_previous')
+    return '<div class="hist-change"><span class="hist-label">'+dcHistEsc(dcT('histNoPrevious'))+'</span>'
+         + '<div class="hist-sub">'+dcHistEsc(dcT('histNoPreviousSub'))+'</div></div>';
+  if(c.kind==='unsupported_version')
+    return '<div class="hist-change hist-note">'+dcHistEsc(dcT('histUnsupported'))+'</div>';
+  if(c.kind==='field')
+    return dcHistPair(dcHistEsc(dcT(DC_HIST_FIELD_KEY[c.field]||'histFieldOther')),c.from,c.to,c.field);
+  if(c.kind==='items_reordered')
+    return '<div class="hist-change"><span class="hist-label">'+dcHistEsc(dcT('histItemsReordered'))+'</span></div>';
+  if(c.kind==='item_added'||c.kind==='item_removed'){
+    const key=c.kind==='item_added'?'histItemAdded':'histItemRemoved';
+    const qty=(c.qty===null||c.qty===undefined||c.qty==='')?'':(' · '+dcT('histItemQty')+' '+dcHistEsc(c.qty));
+    return '<div class="hist-change"><span class="hist-label">'+dcHistEsc(dcT(key))+'</span>'
+         + '<div class="hist-sub">'+dcHistEsc(c.item||DC_HIST_BLANK)+qty+'</div></div>';
+  }
+  if(c.kind==='item_changed'){
+    /* Every field that moved on ONE item is grouped under that item, so a row
+       whose qty and price both changed reads as one edit. */
+    let html='<div class="hist-change"><span class="hist-label">'+dcHistEsc(dcT('histItemChanged'))+'</span>'
+           + '<div class="hist-sub">'+dcHistEsc(c.item||DC_HIST_BLANK)+'</div>'
+           + '<div class="hist-item-fields">';
+    (c.fields||[]).forEach(f=>{
+      html+='<div>'+dcHistEsc(dcT(DC_HIST_ITEM_FIELD_KEY[f.field]||'histFieldOther'))+': '
+          + '<span class="hist-from">'+dcHistEsc(dcHistValue(f.field,f.from))+'</span>'
+          + '<span class="hist-arrow">→</span>'
+          + '<span>'+dcHistEsc(dcHistValue(f.field,f.to))+'</span></div>';
+    });
+    if(c.other>0) html+='<div class="hist-sub">'+dcHistEsc(dcT('histOtherDetails').replace('{n}',String(c.other)))+'</div>';
+    return html+'</div></div>';
+  }
+  return '';
+}
+
+function dcHistEntry(r){
+  const isCreate=String(r.event_type||'').toLowerCase()==='create';
+  const changes=(r.changes||[]).map(dcHistChange).join('');
+  return '<div class="hist-entry" data-hist-rev="'+dcHistEsc(r.revision_no)+'">'
+       + '<div class="hist-head">'
+       +   '<span class="hist-no">#'+dcHistEsc(r.revision_no)+'</span>'
+       +   '<span class="hist-event'+(isCreate?' is-create':'')+'">'
+       +     dcHistEsc(dcT(isCreate?'histEventCreate':'histEventUpdate'))+'</span>'
+       +   '<span class="hist-when">'+dcHistEsc(dcHistWhen(r.created_at))+'</span>'
+       + '</div>'
+       + '<div class="hist-who">'+dcHistEsc(dcHistWho(r.actor))+'</div>'
+       + '<div class="hist-changes">'+changes+'</div>'
+       + '</div>';
+}
+
+function dcHistState(key){
+  return '<div class="hist-state" data-hist-state="'+key+'">'+dcHistEsc(dcT(key))+'</div>';
+}
+
+function openHistoryModal(){
+  if(!editingQuoteId) return;          // an unsaved quotation has no history
+  const body=el('historyBody');
+  if(body) body.innerHTML=dcHistState('histLoading');
+  openModal('historyModal');
+  fetch('api.php?action=get_quotation_history&id='+encodeURIComponent(editingQuoteId))
+    .then(r=>r.json())
+    .then(res=>{
+      if(!body) return;
+      /* A failed request is never dressed up as an empty history: one says
+         nothing was recorded, the other says nothing could be read. */
+      if(!res||!res.ok){ body.innerHTML=dcHistState('histError'); return; }
+      const rows=res.revisions||[];
+      body.innerHTML=rows.length?rows.map(dcHistEntry).join(''):dcHistState('histEmpty');
+    })
+    .catch(()=>{ if(body) body.innerHTML=dcHistState('histError'); });
+}
 function switchRefTab(key){
   document.querySelectorAll('.ref-tab').forEach(t=>t.classList.toggle('active',t.getAttribute('onclick').includes("'"+key+"'")));
   ['cost','addcost','pricemode','examples'].forEach(k=>el('ref-'+k).classList.toggle('active',k===key));
