@@ -516,6 +516,99 @@ function dc_build_quotation_snapshot(array $row) {
     ];
 }
 
+/* ── NO-OP SUPPRESSION: is there anything for a revision to record? ────────
+
+   An UPDATE that changes nothing used to write a revision anyway. That is not
+   history, it is noise: revision numbers advance, a reader cannot tell which
+   entries represent an edit, and the one thing a history is for — showing what
+   changed — gets buried under entries where nothing did.
+
+   WHAT IS COMPARED, AND WHY IT IS EXACTLY THIS. Persisted BEFORE against
+   persisted AFTER — never the browser payload. The BEFORE state is the row this
+   transaction already holds FOR UPDATE; the AFTER state is the row read back
+   once the UPDATE has run. Comparing intent instead would be wrong in both
+   directions: it would miss what the database did to a value (a DECIMAL(12,2)
+   rounding 10.005 to 10.01, a VARCHAR truncating) and it would report a change
+   when the payload merely arrived differently shaped.
+
+   THE SURFACE IS THE NINE COLUMNS THE UPDATE CAN WRITE, and that is not a
+   judgement call — it is the SET list of the statement below: company_id,
+   quote_date, valid_until, prepared_by, remarks, customer_name, customer_phone,
+   items, total_amount. Everything else in the row is unreachable from here.
+   ref_no is deliberately not in the SET list, id and created_at are never
+   written, and there is no updated_at anywhere in this schema — so there is no
+   save-only metadata to filter out. If none of the nine differs the row is
+   unchanged, and a revision would record a snapshot identical to the one
+   already stored.
+
+   company_name is resolved for the snapshot but is NOT compared: it is derived
+   from company_id, which IS compared, and from companies.name, which this
+   request does not write. Both reads happen inside one transaction, so it
+   cannot differ between them.
+
+   ITEMS ARE COMPARED THROUGH item_uid, AND ORDER IS PART OF THE COMPARISON.
+   The uid sequence is stated explicitly beside the item bodies, so identity is
+   part of the answer rather than incidental to it: an added item, a removed
+   item and a reordered item all change that sequence.
+
+   A REORDER IS A CHANGE, DELIBERATELY. Item order is business fact — it is the
+   order printed on the quotation, and "Item 3 is item 3 on Screen, on Print and
+   in WhatsApp" is a protected rule. Moving row 2 above row 1 edits the
+   document, so it writes a revision. That a reorder is not a remove plus an add
+   is a separate question, and it belongs to whichever later round records WHAT
+   changed rather than WHETHER anything did.
+
+   THIS SHAPE IS NOT A STORAGE CONTRACT. Nothing here is persisted, nothing is
+   returned, and no column holds it. It exists for the length of one comparison.
+   The accepted revision schema has no diff field and there is no accepted diff
+   representation, which is why the persisted diff engine was deferred rather
+   than improvised — see ROUND-SCOPE. */
+
+/* ksort at every level so two encodings of the same item compare equal.
+   Deliberately applied to lists as well: their keys are already 0..n, so
+   sorting them changes nothing and ORDER IS PRESERVED — which is what makes a
+   reorder register as a change rather than being normalised away. */
+function dc_ksort_deep(&$v) {
+    if (!is_array($v)) return;
+    foreach ($v as &$child) dc_ksort_deep($child);
+    unset($child);
+    ksort($v);
+}
+
+/* The persisted items column, as something two saves can be compared on. */
+function dc_business_items($raw) {
+    $items = json_decode((string)$raw, true);
+    if (!is_array($items)) $items = [];
+    $uids = [];
+    foreach ($items as $k => $it) {
+        $uids[] = (is_array($it) && isset($it['item_uid']) && is_string($it['item_uid']))
+                  ? $it['item_uid'] : null;
+        dc_ksort_deep($items[$k]);
+    }
+    return ['uid_order' => $uids, 'items' => $items];
+}
+
+/* The nine writable columns, normalised so that only a real difference in
+   persisted business fact can make two of these unequal. Both rows come from
+   mysqli on the same connection, so their scalar types already match; the casts
+   state the intent rather than repair anything. total_amount is compared as the
+   DECIMAL string MySQL returns, never as a float. */
+function dc_business_state(array $row) {
+    return [
+        'company_id'     => (isset($row['company_id']) && $row['company_id'] !== null)
+                            ? (int)$row['company_id'] : null,
+        'quote_date'     => $row['quote_date']     ?? null,
+        'valid_until'    => $row['valid_until']    ?? null,
+        'prepared_by'    => $row['prepared_by']    ?? null,
+        'remarks'        => $row['remarks']        ?? null,
+        'customer_name'  => $row['customer_name']  ?? null,
+        'customer_phone' => $row['customer_phone'] ?? null,
+        'total_amount'   => (isset($row['total_amount']) && $row['total_amount'] !== null)
+                            ? (string)$row['total_amount'] : null,
+        'items'          => dc_business_items($row['items'] ?? null),
+    ];
+}
+
 /* Monotonic PER QUOTATION, allocated INSIDE the transaction.
    On the update path the quotation row is already held FOR UPDATE, so two
    updates of one quotation are serialised and cannot read the same MAX. On the
@@ -1132,6 +1225,9 @@ if ($action === 'get_next_ref') {
         echo json_encode(['ok'=>false,'error'=>'Not found']);
         exit;
     }
+    /* The BEFORE state, taken from the row this transaction already holds FOR
+       UPDATE. No extra read: the locked row IS the authoritative before. */
+    $businessBefore = dc_business_state($persisted);
     /* Reconciled against the LOCKED row, not against a copy read before it. */
     $identityError = '';
     $itemsArr = dc_reconcile_item_uids($input['items'] ?? [], $persisted['items'], $identityError);
@@ -1148,10 +1244,25 @@ if ($action === 'get_next_ref') {
     $stmt = prepare_or_fail($db, "UPDATE quotations SET company_id=?,quote_date=?,valid_until=?,prepared_by=?,remarks=?,customer_name=?,customer_phone=?,items=?,total_amount=? WHERE id=?", 'Quotation update prepare failed');
     $stmt->bind_param('isssssssdi', $company_id,$quote_date,$valid_until,$prep_by,$remarks,$cust_name,$cust_phone,$items,$total,$id);
     execute_or_fail($stmt, 'Quotation update failed');
-    /* The snapshot is read back AFTER the write, so it records what was
-       actually stored rather than what was asked for. Still inside the
-       transaction the locked read opened. */
-    dc_write_revision($db, $id, 'update');
+    /* The AFTER state, read back once the write has landed, so what is compared
+       is what the database actually holds. Still inside the transaction the
+       locked read opened, and still the row it locked. */
+    $afterRow = dc_read_quotation_snapshot_row($db, $id);
+    if ($afterRow === null) {
+        fail_json('Update not recorded: the quotation could not be read back');
+    }
+    /* THE ONE DECISION THIS ROUND ADDS. Unchanged business fact writes no
+       revision: the save still succeeds, the row is still committed, and
+       revision_no simply does not advance — nothing is allocated, so no gap
+       appears either. A changed one goes to the accepted writer untouched.
+
+       dc_write_revision() reads the row again for its snapshot rather than
+       being handed this one. That is two reads of a row this transaction holds
+       FOR UPDATE, inside that transaction: they cannot differ, and leaving the
+       accepted writer byte-identical is worth more than saving the query. */
+    if (dc_business_state($afterRow) !== $businessBefore) {
+        dc_write_revision($db, $id, 'update');
+    }
     if (!dc_txn_commit($db)) {
         fail_json('Quotation update could not be committed: ' . $db->error);
     }
