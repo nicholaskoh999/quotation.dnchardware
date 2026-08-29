@@ -806,6 +806,65 @@ and proves the 1062 recovery on a genuine race between two live connections.
 
 ---
 
+## ACCEPTED — WHEN AN UPDATE IS WORTH RECORDING
+
+Accepted in NO-OP SUPPRESSION on `5729ad5`. An `UPDATE` that changes nothing
+writes no revision: the save still succeeds, the row is still committed, and
+`revision_no` simply does not advance.
+
+Protected from here:
+
+- **PERSISTED BEFORE vs PERSISTED AFTER, never the browser payload.** BEFORE is
+  the row the transaction already holds `FOR UPDATE`; AFTER is the row read back
+  once the `UPDATE` has run. Comparing `$input` instead would miss what the
+  database did to a value — a `DECIMAL(12,2)` rounding, a `VARCHAR` truncating —
+  and would report a change when the payload merely arrived reshaped.
+- **The comparison surface is the nine columns of the UPDATE's own `SET` list**,
+  and it must stay tied to that statement rather than to a hand-kept list. If a
+  column is ever added to the `SET` list it must be added to the comparison in
+  the same change, or a real edit will be silently suppressed.
+- **`ref_no` stays out of the `SET` list**, `id` and `created_at` are never
+  written, and **no `updated_at` may be introduced** without revisiting this:
+  today there is no save-only metadata, which is why nothing has to be filtered.
+- **`total_amount` compares as the `DECIMAL` string**, never as a float.
+- **`company_name` is not compared** — it is derived from `company_id`, which is,
+  and from `companies.name`, which the request does not write.
+- **Items compare through `item_uid`, and ORDER is part of the comparison.**
+  `ksort` is applied at every level including lists, where it changes nothing
+  because their keys are already `0..n` — which is exactly what keeps order
+  significant. Removing that would make a reorder invisible.
+- **A REORDER IS A CHANGE.** Item order is the order printed on the quotation,
+  and *"Item 3 is item 3 on Screen, on Print and in WhatsApp"* is protected
+  above. It is **not** a removal plus an addition: the `item_uid` set is
+  identical, and nothing may classify it as one.
+- **Suppression happens BEFORE the writer is reached**, which is what lets a
+  no-op succeed even when the revision table cannot be written to. That ordering
+  is load-bearing and is proven in the suite.
+- **A REAL change still rolls back** if its revision cannot be written. Nothing
+  about suppression weakens that.
+- **CREATE is never suppressed.** It has no before state, and it still writes
+  exactly one revision.
+
+**THE COMPARISON IS NOT A STORAGE CONTRACT.** Nothing about it is persisted,
+returned, or held in a column; it exists for the length of one comparison. No
+diff key in the snapshot, `snapshot_schema_version` still `1`, still exactly one
+`INSERT` and no `UPDATE`/`DELETE`/`TRUNCATE` against `quotation_revisions`.
+
+**THE PERSISTED DIFF ENGINE IS DEFERRED, ON A FACT.** The accepted revision
+schema has no field for a structured diff and three artefacts refuse a twelfth
+column — the migration's CONFORMANCE gate, its §4 gate, and
+`revision_storage.test.php`. There is no accepted diff representation to conform
+to either. A later **MINIMAL HISTORY READ / UI** round may derive a
+human-readable diff **at read time** from two adjacent immutable snapshots,
+which needs no storage contract. Do not add `diff_json`, do not bump the schema
+version, and do not put a diff inside `snapshot_json` without reopening that
+decision.
+
+`tests/php/noop_suppression.test.php` drives the shipped `api.php` over real
+HTTP against MySQL 8.0.46 and 8.4.3.
+
+---
+
 ## CONTROL-ONLY ROUND
 
 **Two SHAs, and they are not the same thing.**

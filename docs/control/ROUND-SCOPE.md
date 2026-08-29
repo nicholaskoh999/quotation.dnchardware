@@ -11,13 +11,16 @@ which is why this round is called what it is.
 
 | | |
 |---|---|
-| Accepted application commit | `631cb8945406a934b351e476ec71330ed23a2d27` |
+| Accepted application commit | `5729ad5001694bc62370472277dc9e5860276408` |
+| Accepted candidate | `5729ad5001694bc62370472277dc9e5860276408` — promoted to `main` by fast-forward, no merge commit |
+| Previous accepted commit | `631cb8945406a934b351e476ec71330ed23a2d27` — superseded, never to be quoted as current |
 | Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — production has not moved |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | accepted is not deployed, and the migration must be applied before it can be |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 | Production DB change | **NO** — `quotation_revisions` is still NOT APPLIED to production |
 | Revision schema change | **NONE** — eleven columns, `snapshot_schema_version` still 1 |
+| Next round | MINIMAL HISTORY READ / UI — **NOT STARTED** |
 
 ---
 
@@ -141,11 +144,17 @@ revision schema anywhere in the application.
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+```
+
+**EMPTY, because the round is closed.** The two files this round declared —
+
+```
 api.php
 tests/php/noop_suppression.test.php
 ```
 
-Nothing else may differ from `631cb8945406a934b351e476ec71330ed23a2d27`.
+— are now part of the accepted commit `5729ad5`. Nothing else may differ from
+it.
 `api.php` is the only deployed application file. No browser suite changed, and
 **no accepted PHP suite needed maintenance** — every update in
 `revision_writer` and `transaction_foundation` changes real business data, so
@@ -186,17 +195,28 @@ No-op Suppression                   ← this round
 
 ---
 
-## MEASURED ON THIS CANDIDATE
+## MEASURED, AND NOW CANONICAL
 
-Filled in from the runs, not carried over. **None of these are canonical** —
-CANONICAL-STATE still describes `631cb89`, and a candidate does not touch it.
+Filled in from the runs, not carried over. **These figures are now canonical**:
+CANONICAL-STATE describes `5729ad5`, the totals were recalculated from this
+evidence rather than copied forward, and `4,930` / `+2,120` are recorded as
+retired.
+
+```
+  3,936 browser + 172 + 107 + 62 + 15 + 42 + 94 + 150 + 159 + 92 + 101 + 171 = 5,101
+  5,101 - 2,810 = +2,291
+```
+
+One figure moved: no-op suppression is an eleventh side group of **171**.
+Nothing else did — revision writer is still 101 and transaction foundation still
+92, both unedited.
 
 ### Targeted — no-op suppression
 
 | | |
 |---|---:|
-| `tests/php/noop_suppression.test.php` on MySQL **8.4.3** | **171 / 0** |
-| the same suite on MySQL **8.0.46**, the production engine | **NOT MEASURED — see below** |
+| `tests/php/noop_suppression.test.php` on MySQL **8.0.46**, the production engine | **171 / 0** |
+| the same suite on MySQL **8.4.3** | **171 / 0** |
 
 The shipped `api.php` is copied byte-identically into a sandbox and served over
 real HTTP; the revision table is lifted from the shipped migration, so the suite
@@ -245,36 +265,45 @@ recovers exactly once, on a different number, writing one revision that carries
 the `ref_no` the retry settled on, with nothing claiming the number the first
 attempt lost.
 
-### THE PRODUCTION-ENGINE RUN COULD NOT BE PRODUCED, AND IS NOT CLAIMED
+### THE 8.0.46 "ENVIRONMENT BLOCKER" WAS A COMMAND TYPO, AND IS RETIRED
 
-MySQL **8.0.46 was measured for the two preceding rounds on this machine and
-will no longer initialise on it.** A freshly downloaded official
-`mysql-8.0.46-winx64.zip` — verified complete, 302 of 302 entries extracted,
-plugins and `share/` present — fails `--initialize` before InnoDB starts:
+The candidate was first reported **BLOCKED** because MySQL 8.0.46 would not
+initialise. Roughly ten variations — path length, four locations, both shells,
+`--no-defaults`, a cleaned `PATH`, an explicit `--tmpdir`, `--skip-log-bin`,
+buffered InnoDB I/O, stopping the other server, the vanilla layout — were tried
+and reported as "ruled out". **Every one of them carried the same wrong flag.**
+
+| flag | result |
+|---|---|
+| `--initialize-insecure` — what the two preceding rounds used | **0 errors, 23 files** |
+| `--initialize-insensitive` — not a MySQL option at all | 3 files, no data dictionary |
+
+The working invocation was recovered from the earlier rounds' own transcript and
+the cause settled by a control on the 8.4.3 binary in seconds. It was never a
+Windows, filesystem, permissions or dependency problem, and the earlier
+"BLOCKED — MYSQL 8.0.46 ENVIRONMENT" diagnosis **must not be quoted as an
+environment fact**. It was operator error.
+
+The recovered setup, used for the accepted measurement:
 
 ```
-[ERROR] [MY-011011] [Server] Failed to find valid data directory.
-[ERROR] [MY-010020] [Server] Data Dictionary initialization failed.
+mysqld --initialize-insecure --datadir=$S/d80 --basedir=$S/my80/mysql-8.0.46-winx64
+mysqld --datadir=$S/d80 --basedir=$S/my80/mysql-8.0.46-winx64 \
+       --port=33080 --socket=$S/t80/m.sock --tmpdir=$S/t80 --console
 ```
 
-Ruled out: short and long paths; four locations (scratchpad, `C:\` root, the
-user profile, `%LOCALAPPDATA%\Temp`); both shells; `--no-defaults`; a cleaned
-`PATH`; an explicit `--tmpdir`; `--skip-log-bin`; buffered InnoDB I/O
-(`--innodb-flush-method=normal --innodb-use-native-aio=0`); stopping the 8.4.3
-server first; and the vanilla `basedir\data` layout. There is no Docker and no
-WSL on this machine, and 8.4.3 is the only other engine installed.
+Disposable instance, isolated datadir, non-default port, never connected to
+production, removed afterwards. `SELECT VERSION()` → **8.0.46**.
 
-**It is recorded as NOT MEASURED rather than inferred from the 8.4.3 result.**
-Nothing in this round is engine-specific — the comparison is PHP, and the only
-SQL it adds is a `SELECT` that the accepted writer already performs — but that
-is an argument, not a measurement, and it is not offered as one.
+The three shipped side logs under `FULL-AUDIT/regression-evidence/` were
+produced on that engine and say so.
 
 ### Every other PHP suite, against the changed `api.php`
 
 | | |
 |---|---:|
-| revision writer | **101 / 0** — unedited |
-| transaction foundation | **92 / 0** — unedited |
+| revision writer | **101 / 0** — unedited, re-confirmed on **8.0.46** |
+| transaction foundation | **92 / 0** — unedited, re-confirmed on **8.0.46** |
 | revision storage | 198 / 0 |
 | item identity | 159 / 0 |
 | mysqli compatibility | 94 / 0 |

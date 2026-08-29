@@ -34,8 +34,8 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = '631cb8945406a934b351e476ec71330ed23a2d27';
-const PREV = '1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a';
+const APP = '5729ad5001694bc62370472277dc9e5860276408';
+const PREV = '631cb8945406a934b351e476ec71330ed23a2d27';
 /* What production RUNS, which is no longer what has been accepted. */
 const DEPLOYED = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 const out = []; let bad = 0;
@@ -55,8 +55,8 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    && A.TOTAL === T.finalAssertions && A.BASELINE === T.baselineAssertions
    && A.DELTA === T.deltaAssertions && A.FAILED === T.failed && A.SKIPPED === T.skipped,
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
-ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 4930
-   && T.deltaAssertions === 2120 && T.baselineAssertions === 2810,
+ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 5101
+   && T.deltaAssertions === 2291 && T.baselineAssertions === 2810,
    'the accepted matrix is the measured run');
 /* HISTORICAL, and now named as such. These two fields read
    "BeforeThisRound" while Item Identity WAS this round; it is two rounds back,
@@ -73,9 +73,10 @@ ck(T.browserSuitesBeforeThisRound === undefined && T.browserAssertionsBeforeThis
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
    + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions
    + T.mysqliCompatAssertions + T.actorIdentityAssertions + T.itemIdentityAssertions
-   + T.transactionFoundationAssertions + T.revisionWriterAssertions === T.finalAssertions,
-   `3,936+172+107+62+15+42+94+150+159+92+101 = ${T.finalAssertions}`);
-ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,930 − 2,810 = +2,120');
+   + T.transactionFoundationAssertions + T.revisionWriterAssertions
+   + T.noopSuppressionAssertions === T.finalAssertions,
+   `3,936+172+107+62+15+42+94+150+159+92+101+171 = ${T.finalAssertions}`);
+ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '5,101 − 2,810 = +2,291');
 ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['ai-extract-php.log'] === T.aiExtractionAssertions
    && A.SIDE['pricing-workbook.log'] === T.workbookAssertions
@@ -85,12 +86,15 @@ ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['auth-identity-php.log'] === T.actorIdentityAssertions
    && A.SIDE['item-identity-php.log'] === T.itemIdentityAssertions
    && A.SIDE['transaction-foundation-php.log'] === T.transactionFoundationAssertions
-   && A.SIDE['revision-writer-php.log'] === T.revisionWriterAssertions,
-   'the ten side suites agree in both files');
-/* Transaction foundation moved 85 -> 92 in this promotion, and a moved figure
-   is exactly what a checker should be able to state rather than absorb. */
+   && A.SIDE['revision-writer-php.log'] === T.revisionWriterAssertions
+   && A.SIDE['noop-suppression-php.log'] === T.noopSuppressionAssertions,
+   'the eleven side suites agree in both files');
+/* Nothing moved in this promotion except the new group: no accepted suite
+   needed maintenance, which is itself worth asserting rather than assuming. */
 ck(T.transactionFoundationAssertions === 92 && T.revisionWriterAssertions === 101,
-   'transaction foundation is 92, up from 85, and the writer is a tenth group of 101');
+   'the two accepted revision suites are unmoved at 92 and 101');
+ck(T.noopSuppressionAssertions === 171,
+   'and no-op suppression is an eleventh group of 171');
 /* ── A failing assertion count may be recorded, but never left bare ────────
    The matrix has read "0 failed" for every accepted round until this one. It
    now reads 8, and the only thing that makes that acceptable is that the
@@ -116,18 +120,18 @@ ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 12, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554',
+ck(S.length === 13, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554 → 631cb89',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[11].sha === PREV && S[11].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[12].sha === PREV && S[12].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` — superseded by `631cb89`'),
+ck(MD.includes('`631cb8945406a934b351e476ec71330ed23a2d27` — superseded by `5729ad5`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
-ck(H.supersededAssertionTotals.includes(4822) && !H.supersededAssertionTotals.includes(4930),
-   '4,822 retired, 4,930 is not retired');
-ck(H.supersededDeltas.includes(2012) && !H.supersededDeltas.includes(2120),
-   '+2,012 retired, +2,120 is not retired');
+ck(H.supersededAssertionTotals.includes(4930) && !H.supersededAssertionTotals.includes(5101),
+   '4,930 retired, 5,101 is not retired');
+ck(H.supersededDeltas.includes(2120) && !H.supersededDeltas.includes(2291),
+   '+2,120 retired, +2,291 is not retired');
 ck(H.supersededSuiteCounts.includes(39) && !H.supersededSuiteCounts.includes(40),
    `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — 40 is current, not retired`);
 
@@ -178,10 +182,9 @@ ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**') === 'api.php',
    'the promotion carries exactly api.php');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
-   === 'tests/php/revision_storage.test.php,tests/php/revision_writer.test.php,'
-     + 'tests/php/transaction_foundation.test.php',
-   'and exactly three PHP suites — its own new one, and the two whose '
-   + '"no writer exists" guards this round was authorised to replace');
+   === 'tests/php/noop_suppression.test.php',
+   'and exactly ONE PHP suite — its own new one. No accepted suite needed '
+   + 'maintenance, because every update in them changes real business data');
 ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
    'not one of the forty accepted browser suites was modified or deleted');
 /* '*.php' matches tests/php/*.test.php too. Revision Storage added
@@ -196,8 +199,7 @@ ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') ==
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
 ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php',
-       'tests/php/revision_writer.test.php','tests/php/transaction_foundation.test.php',
-       'tests/php/revision_storage.test.php') === APP,
+       'tests/php/noop_suppression.test.php') === APP,
    'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 
@@ -290,7 +292,16 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
 // ── Snapshot Revision Writer: accepted, append-only, and still not deployable ──
 { const W = C.revisionWriter || {};
   ck(W.status === 'FINAL ACCEPTED / CLOSED', `revision writer: ${W.status}`);
-  ck(W.acceptedCandidate === APP, `its accepted candidate IS the accepted application ${APP.slice(0,7)}`);
+  /* This read `=== APP` and was right for exactly one round. The writer's
+     candidate is a HISTORICAL fact and does not move when a later round moves
+     APP; what must hold is that it names a real commit in this history which
+     the accepted application descends from. Same drift the renamed
+     "BeforeThisRound" fields carried, caught the same way. */
+  ck(git('cat-file','-t',String(W.acceptedCandidate)) === 'commit',
+     `its accepted candidate ${String(W.acceptedCandidate).slice(0,7)} exists`);
+  { let anc = true;
+    try { git('merge-base','--is-ancestor', W.acceptedCandidate, APP); } catch { anc = false; }
+    ck(anc, `and the accepted application ${APP.slice(0,7)} descends from it`); }
   ck(W.applicationCommitMoved === true
      && JSON.stringify(W.applicationFilesChanged) === JSON.stringify(['api.php']),
      'it moved the application commit, and api.php is the only application file it carries');
@@ -327,6 +338,41 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
      'and records that production still has no quotation_revisions table');
   ck(C.production.deployedApplicationCommit !== APP,
      `so the accepted application ${APP.slice(0,7)} is NOT deployed, and cannot be until it is`); }
+
+// ── No-op suppression: accepted, and it stored nothing to accept ──
+{ const N = C.noopSuppression || {};
+  ck(N.status === 'FINAL ACCEPTED / CLOSED', `no-op suppression: ${N.status}`);
+  ck(N.acceptedCandidate === APP, `its accepted candidate IS the accepted application ${APP.slice(0,7)}`);
+  ck(A.SIDE['noop-suppression-php.log'] === N.assertions && N.failed === 0,
+     `authoritative.js and canonical agree: ${N.assertions} assertions, ${N.failed} failed`);
+  { const eng = Object.keys(N.verifiedOn || {});
+    ck(eng.length === 2 && eng.some(e => /8\.0\.46/.test(e)),
+       `verified on ${eng.join(' and ')} — including the exact production engine`);
+    ck(Object.values(N.verifiedOn || {}).every(v => v.assertions === N.assertions && v.failed === 0),
+       'both engines returned the same count with no failures'); }
+  /* THE SUPPRESSION IS ON UPDATE AND ONLY ON UPDATE, and nothing about the
+     comparison is stored. Asked of the source, not taken on trust. */
+  const api = R('api.php');
+  const seg = (a, b) => api.slice(api.indexOf(a), api.indexOf(b));
+  const create = seg("$action === 'save_quotation'", "$action === 'update_quotation'");
+  const update = seg("$action === 'update_quotation'", "$action === 'delete_quotation'");
+  ck(update.includes('if (dc_business_state($afterRow) !== $businessBefore) {'),
+     'the update path writes a revision only when persisted business fact moved');
+  ck(!create.includes('dc_business_state('),
+     'and the create path is never suppressed — it has no before state');
+  ck(api.includes('const DC_SNAPSHOT_SCHEMA_VERSION = 1;'),
+     'snapshot_schema_version is still 1 — no v2, and no persisted diff');
+  ck(!/[\'"](diff|diff_json|changes|before_after)[\'"]\s*=>/.test(api),
+     'the snapshot carries no diff key — nothing about the comparison is stored');
+  ck(!api.includes('ALTER TABLE quotation_revisions'),
+     'and the application alters no revision schema');
+  ck(/^DEFERRED/.test(N.persistedDiffEngine || ''),
+     'canonical records the persisted diff engine as DEFERRED, with its reason');
+  /* The 8.0.46 blocker was OPERATOR ERROR and is retired as such. A checker
+     that let it stand as an environment fact would carry a false one forward. */
+  ck(/^RETIRED/.test(N.environmentBlockerRetired || '')
+     && /initialize-insecure/.test(N.environmentBlockerRetired || ''),
+     'and retires the 8.0.46 "environment blocker" as the command typo it was'); }
 
 // ── the investigated browser flake, recorded rather than absorbed ──
 { const F = T.browserFlakeInvestigated || {};

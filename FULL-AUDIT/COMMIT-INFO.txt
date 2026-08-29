@@ -6,8 +6,8 @@ BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                631cb8945406a934b351e476ec71330ed23a2d27
-                "The retry can see what it collided with"
+                5729ad5001694bc62370472277dc9e5860276408
+                "An update that changes nothing now records nothing"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -177,6 +177,8 @@ AUDIT COMMITS (oldest first — this list is the count)
   32faed8  docs(control): accept the transaction foundation as canonical
   7de7bb6  Every save now writes what it actually stored, or it does not save
   631cb89  The retry can see what it collided with
+  64b73ab  docs(control): accept the snapshot revision writer as canonical
+  5729ad5  An update that changes nothing now records nothing
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -344,14 +346,15 @@ TEST MATRIX AT FINAL SHA
   Item identity PHP                      159 assertions, 0 failed
   Transaction foundation PHP              92 assertions, 0 failed
   Revision writer PHP                    101 assertions, 0 failed
+  No-op suppression PHP                  171 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      4,930
+  TOTAL ASSERTIONS                      5,101
   TOTAL FAILED                              8   (environment; see CANONICAL-STATE browserFailureException)
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      4,930 assertions
-  Delta:     +2,120 assertions
+  Final:      5,101 assertions
+  Delta:     +2,291 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
@@ -383,7 +386,7 @@ EVIDENCE
   screenshots/          96 frames + INDEX.txt
   before-fix/           6 frames from the baseline commit, same inputs
   after-fix/            56 frames, the matching after
-  regression-evidence/  21 files — every log the reports claim,
+  regression-evidence/  22 files — every log the reports claim,
                         checked against the directory rather than written
                         from memory
 <<<END:EVIDENCE>>>

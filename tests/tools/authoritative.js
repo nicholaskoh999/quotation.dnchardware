@@ -15,54 +15,56 @@
 'use strict';
 
 module.exports = {
-  /* Moved twelve times. 631cb89 is the last commit that changes an
-     application file and carries SNAPSHOT REVISION WRITER - every successful
-     save_quotation and update_quotation now writes exactly ONE immutable
-     snapshot of what was actually persisted, inside the transaction that
-     persisted it, so a quotation and its history commit together or not at
-     all. api.php is the only application file it touches.
+  /* Moved thirteen times. 5729ad5 is the last commit that changes an
+     application file and carries NO-OP SUPPRESSION - an UPDATE that changes
+     nothing now records nothing. The persisted BEFORE state, which is the row
+     the transaction already holds FOR UPDATE, is compared against the persisted
+     AFTER state read back once the UPDATE has run, and the accepted writer is
+     called only if they differ. api.php is the only application file it
+     touches, and dc_write_revision itself is BYTE-IDENTICAL - it is now called
+     conditionally rather than unconditionally.
 
-     It also fixed a defect it did not create, because the round's acceptance
-     gate covered it. The one-and-only-one 1062 retry accepted at 86cf262
-     became unreachable when 1ca6554 wrapped save_quotation in a transaction:
-     under REPEATABLE READ the reallocating SELECT read the transaction's
-     original snapshot and returned the same number the INSERT had just been
-     refused for. The create transaction now opens at READ COMMITTED, so the
-     retry can see what it collided with. Maximum retry is still one and still
-     only 1062.
+     THE COMPARISON SURFACE IS NOT A JUDGEMENT CALL: it is the nine columns of
+     the UPDATE's own SET list. ref_no is not in it, id and created_at are never
+     written, and there is no updated_at in this schema, so there is no
+     save-only metadata to filter out. Items compare through item_uid with ORDER
+     part of the comparison, because a reorder is the order printed on the
+     quotation and therefore a change - though not a removal plus an addition.
 
-     1ca6554 carried READ-BEFORE-WRITE / TRANSACTION FOUNDATION, 649f80a ITEM
-     IDENTITY FOUNDATION, e76bb85 ACTOR IDENTITY FOUNDATION,
-     97a14cf the PHP 8.1+ mysqli compatibility fix, 86cf262 the 1062 retry,
-     6bb5772 QUICK ADD STABILITY, cf92f27 UI POLISH 2A, 3e89713 STAGE 1,
-     98a31e3 STAGE 0B, 33ae0da UI POLISH 2, e3d659b UI POLISH 1, 7f5bc97 came
-     before that; all twelve are recorded as superseded in CANONICAL-STATE and
-     must not be quoted as current.
+     THE PERSISTED DIFF ENGINE WAS DEFERRED, on a fact rather than a preference:
+     the accepted revision schema has no field for a diff and three authorities
+     refuse a twelfth column. Nothing about the comparison is stored -
+     snapshot_schema_version is still 1.
 
-     The BROWSER matrix did NOT move with this one - 40 suites and 3,936
-     assertions, re-run because application code changed and returning the same
-     figures and the same eight recorded environment failures. It could not
-     have moved: the harness intercepts every api.php request, so the matrix
-     never executes the one file this round changed.
-     tests/php/revision_writer.test.php is a TENTH side group of 101, measured
-     on MySQL 8.0.46 and 8.4.3, and transaction foundation moved 85 -> 92
-     because its fixture was completed and its two "no writer exists" guards
-     became the writer contract.
+     631cb89 carried SNAPSHOT REVISION WRITER, 1ca6554 READ-BEFORE-WRITE /
+     TRANSACTION FOUNDATION, 649f80a ITEM IDENTITY FOUNDATION, e76bb85 ACTOR
+     IDENTITY FOUNDATION, 97a14cf the PHP 8.1+ mysqli compatibility fix,
+     86cf262 the 1062 retry, 6bb5772 QUICK ADD STABILITY, cf92f27 UI POLISH 2A,
+     3e89713 STAGE 1, 98a31e3 STAGE 0B, 33ae0da UI POLISH 2, e3d659b UI POLISH
+     1, 7f5bc97 came before that; all thirteen are recorded as superseded in
+     CANONICAL-STATE and must not be quoted as current.
+
+     The BROWSER matrix did NOT move - 40 suites and 3,936 assertions, re-run
+     twice because application code changed, returning the same figures and the
+     same eight recorded environment failures. It could not have moved: the
+     harness intercepts every api.php request, so the matrix never executes the
+     one file this round changed. tests/php/noop_suppression.test.php is an
+     ELEVENTH side group of 171, measured on MySQL 8.0.46 - the production
+     engine - and again on 8.4.3. No accepted suite needed maintenance.
 
      TWO SHAs, AND THEY ARE STILL APART. APP_SHA is what has been ACCEPTED;
      DEPLOYED_SHA is what production actually runs, which is still 649f80a, the
-     Item Identity build. Neither the transaction foundation nor the revision
-     writer has been deployed - and the writer cannot be, in either order:
-     migrations/2026-08-28-create-quotation-revisions.sql must be APPLIED to
-     production FIRST, because with the table absent a save fails and rolls
-     back, deliberately. */
-  APP_SHA:  '631cb8945406a934b351e476ec71330ed23a2d27',
+     Item Identity build. Three accepted rounds now sit undeployed, and the
+     revision writer among them cannot be deployed at all until
+     migrations/2026-08-28-create-quotation-revisions.sql is APPLIED to
+     production FIRST. */
+  APP_SHA:  '5729ad5001694bc62370472277dc9e5860276408',
   DEPLOYED_SHA: '649f80a09f83a7201c0f3772e01fc270ccda3e05',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 40,
   BROWSER: 3936,
-  TOTAL: 4930,
+  TOTAL: 5101,
   /* NOT zero, and not to be quietly restored to zero. Eight assertions in
      38-mobile-ui fail on the runtime this matrix was re-measured on. They are
      font metrics on the companies.php modal close control, not an application
@@ -80,13 +82,14 @@ module.exports = {
      per-round breakdowns are gone: they mixed absolutes with increments and
      stopped reconciling to anything. */
   BASELINE: 2810,
-  DELTA: 2120,
+  DELTA: 2291,
   SIDE: { 'pricing-history-php.log': 172, 'ai-extract-php.log': 107,
           'pricing-workbook.log': 62, 'translation-coverage.log': 15,
           'save-retry-php.log': 42, 'mysqli-compat-php.log': 94,
           'auth-identity-php.log': 150, 'item-identity-php.log': 159,
           'transaction-foundation-php.log': 92,
-          'revision-writer-php.log': 101 },
+          'revision-writer-php.log': 101,
+          'noop-suppression-php.log': 171 },
 
   /* The Revision Storage round's own figure, kept OUT of TOTAL on purpose.
      TOTAL describes the application measured at APP_SHA; a suite that measures

@@ -1,6 +1,6 @@
 # TEST RESULTS
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `631cb8945406a934b351e476ec71330ed23a2d27`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `5729ad5001694bc62370472277dc9e5860276408`.
 Every suite below runs against the **shipped** code:
 the browser suites strip one `require` line from `index.php` / `companies.php`,
 serve the file over `http://` so localStorage behaves as it does live, answer
@@ -8,12 +8,13 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `631cb8945406a934b351e476ec71330ed23a2d27` is the last commit that changed the
+> **On SHAs.** `5729ad5001694bc62370472277dc9e5860276408` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when SNAPSHOT REVISION WRITER was accepted. Twelve application
+> when NO-OP SUPPRESSION was accepted. Thirteen application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `631cb8945406a934b351e476ec71330ed23a2d27`, accepted for SNAPSHOT REVISION WRITER;
 > superseded — `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, accepted for READ-BEFORE-WRITE / TRANSACTION FOUNDATION;
 > superseded — `649f80a09f83a7201c0f3772e01fc270ccda3e05`, accepted for ITEM IDENTITY FOUNDATION;
 > superseded — `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, accepted for ACTOR IDENTITY FOUNDATION;
@@ -49,19 +50,20 @@ against itself.
 | Item identity PHP (`tests/php/item_identity.test.php`) | 1 | **159** | **0** |
 | Transaction foundation PHP (`tests/php/transaction_foundation.test.php`) | 1 | **92** | **0** |
 | Revision writer PHP (`tests/php/revision_writer.test.php`) | 1 | **101** | **0** |
+| No-op suppression PHP (`tests/php/noop_suppression.test.php`) | 1 | **171** | **0** |
 
 ## TOTAL
 
 | | |
 |---|---:|
-| **TOTAL ASSERTIONS** | **4,930** |
+| **TOTAL ASSERTIONS** | **5,101** |
 | **TOTAL FAILED** | **8** |
 
 | | |
 |---|---:|
 | Baseline | 2,810 assertions |
-| Final | 4,930 assertions |
-| Delta | **+2,120 assertions** |
+| Final | 5,101 assertions |
+| Delta | **+2,291 assertions** |
 
 Every one of those is new coverage over a defect this audit reproduced. The
 per-round breakdown that used to sit here has been removed rather than

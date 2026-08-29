@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "631cb8945406a934b351e476ec71330ed23a2d27",
+    "acceptedCommit": "5729ad5001694bc62370472277dc9e5860276408",
     "status": "accepted",
-    "acceptedRound": "SNAPSHOT REVISION WRITER - a quotation mutation and its immutable full snapshot are one transaction, and the 1062 retry can see what it collided with (FINAL ACCEPTED)"
+    "acceptedRound": "NO-OP SUPPRESSION - an UPDATE that changes nothing records nothing; the persisted BEFORE state is compared against the persisted AFTER state and a revision is written only if business fact moved (FINAL ACCEPTED)"
   },
   "revisionStorage": {
     "round": "REVISION STORAGE FOUNDATION",
@@ -50,7 +50,7 @@
     "databaseBackupRetained": true,
     "rollbackPerformed": false,
     "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
-    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all.",
+    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5729ad5: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer and no-op suppression are all accepted in source only.",
     "itemIdentity": "LIVE — PRODUCTION VERIFIED",
     "itemUidBackfill": "APPLIED",
     "previouslyDeployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
@@ -83,8 +83,8 @@
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4930,
-    "deltaAssertions": 2120,
+    "finalAssertions": 5101,
+    "deltaAssertions": 2291,
     "failed": 8,
     "skipped": 0,
     "browserSuites": 40,
@@ -99,6 +99,7 @@
     "itemIdentityAssertions": 159,
     "transactionFoundationAssertions": 92,
     "revisionWriterAssertions": 101,
+    "noopSuppressionAssertions": 171,
     "itemIdentityBrowserAssertions": 29,
     "browserFailureException": {
       "count": 8,
@@ -115,7 +116,7 @@
       "reproducedOn": "ce26146a6a792f2bac0ebb4bab77389d19ff0660",
       "reproducedHow": "a pristine git worktree at ce26146 — this round's own starting point, before a single Item Identity byte — fails the same eight assertions with the same numbers",
       "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule.",
-      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table."
+      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table. Re-run again on 5729ad5: 40 suites and 3,936 assertions with the same eight, twice."
     },
     "browserSuitesBeforeItemIdentity": 39,
     "browserAssertionsBeforeItemIdentity": 3907,
@@ -128,12 +129,17 @@
         "candidate matrix run 1: 9 failures - the known 8 plus this one",
         "candidate matrix run 2: 8 failures",
         "pristine worktree at the accepted-at-the-time commit 1ca6554: 8 failures",
-        "suite 35 alone, five consecutive runs: 0 failures"
+        "suite 35 alone, five consecutive runs: 0 failures",
+        "no-op suppression round, candidate full matrix run 1: 9 failures",
+        "no-op suppression round, candidate full matrix run 2: 8 - so it is NOT deterministic",
+        "no-op suppression round, pristine worktree at 631cb89 full matrix: 8",
+        "suite 35 alone while the machine was BUSY: 2 of 5 on the candidate AND 2 of 5 on the pristine tree, same assertion, same expected true and actual false",
+        "suite 35 alone once the machine was quiet: 0 of 10 on each tree"
       ],
       "mechanism": "index.php, tests/suites and tests/lib are byte-identical to 1ca6554, and tests/lib/harness.js intercepts every api.php request and answers it from a stub table - so the browser matrix never executes the one file this round changed. The failure is unobserved on rerun AND unreachable by mechanism.",
       "brittleness": "the assertion ends a chain of typeCell / wqaEditDone pairs that carry no settle wait, unlike the ones above it in the same suite.",
       "fixed": false,
-      "whyNotFixed": "tests/suites is out of scope for this round and was not touched. Worth a settle wait in whichever round next opens that file."
+      "whyNotFixed": "tests/suites is out of scope for this round and was not touched. Worth a settle wait in whichever round next opens that file. Re-confirmed in the no-op suppression round against a pristine control: it tracks machine load, not the tree."
     }
   },
   "translation": {
@@ -180,7 +186,8 @@
       4399,
       4549,
       4734,
-      4822
+      4822,
+      4930
     ],
     "supersededTranslationKeys": [
       512,
@@ -206,7 +213,8 @@
       1589,
       1739,
       1924,
-      2012
+      2012,
+      2120
     ],
     "supersededSuiteCounts": [
       34,
@@ -281,6 +289,11 @@
         "sha": "1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a",
         "supersededBy": "631cb8945406a934b351e476ec71330ed23a2d27",
         "reason": "SNAPSHOT REVISION WRITER was accepted. Until this round nothing wrote a revision: quotation_revisions existed and stayed empty by design. Every successful save_quotation and update_quotation now records exactly ONE immutable snapshot of what was actually persisted, INSIDE the transaction that persisted it - the revision INSERT is before COMMIT on both paths, so a quotation and its history commit together or not at all, and every failure inside the writer goes through fail_json(), which the transaction foundation already made unwind the scope, so a revision that cannot be written takes the quotation change down with it. The row is read back out of the database after the mutation rather than snapshotted from $input, so what is recorded is what the server stored: the ref_no the allocator chose, the quote_date it defaulted, the item_uid values it minted, the total it wrote. company_name is resolved through the same LEFT JOIN companies the read paths use and FROZEN into the snapshot, so renaming a company later cannot rewrite what the document said. snapshot_schema_version = 1 lives in the column and not inside the JSON. There is no item table: identity stays inside snapshot_json exactly as it lives inside quotations.items. actor_user_id / actor_username / actor_display_name come from dc_current_user() and from nowhere else, and are NULL when no signed-in person is behind the request; prepared_by is a field of the document and is never written to an actor column. revision_no is COALESCE(MAX,0)+1 inside the transaction, with UNIQUE (quotation_id, revision_no) as the backstop. Append-only is enforced by the code the storage round said would enforce it: exactly one INSERT INTO quotation_revisions in the whole application and no UPDATE, DELETE or TRUNCATE anywhere. THIS ROUND ALSO FIXED A DEFECT IT DID NOT CREATE. The one-and-only-one 1062 retry accepted at 86cf262 became unreachable the moment READ-BEFORE-WRITE / TRANSACTION FOUNDATION wrapped save_quotation in a transaction: under REPEATABLE READ the INSERT is refused with 1062 because writes see the latest state, but next_free_ref_no() plain SELECT still reads the transaction original snapshot and returns the same number, so the single permitted attempt was spent on a number that was never going to work. It was reported as a finding and returned as a BLOCKER, because the retry is part of this round acceptance gate. The create transaction now opens at READ COMMITTED - three executable lines: an optional argument on dc_txn_begin, one SET TRANSACTION, one call site - so the reallocation sees the row it collided with. Safe there because the create transaction never reads the same thing twice expecting it not to move, and allocation is already serialised by DC_REF_LOCK; NOT applied to the update path, which depends on SELECT ... FOR UPDATE and already sees the latest committed state. SET TRANSACTION without SESSION or GLOBAL scopes to the next transaction only. Proven on a real race rather than a simulation: the save succeeds on Q-YYYY-0002, exactly one revision is written, numbered 1, recorded as a create, carrying the ref_no the retry settled on, and no revision claims the number the first attempt lost. api.php is the only application file changed. The browser matrix did not move - 40 suites and 3,936 assertions with the same eight recorded environment failures, re-run because application code changed. tests/php/revision_writer.test.php adds a tenth side group of 101, measured on MySQL 8.0.46 and 8.4.3, and transaction foundation moved 85 -> 92 because its fixture was completed and its \"no writer exists\" guards became the writer contract; so the total moved from 4,822 to 4,930 and the delta from +2,012 to +2,120. Revision storage stayed 198 and stays out of the total. At acceptance migrations/2026-08-28-create-quotation-revisions.sql was still NOT APPLIED and nothing was deployed - and that migration MUST be applied before this accepted application can ever be deployed. 1ca6554 is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "631cb8945406a934b351e476ec71330ed23a2d27",
+        "supersededBy": "5729ad5001694bc62370472277dc9e5860276408",
+        "reason": "NO-OP SUPPRESSION was accepted. An UPDATE that changes nothing now records nothing. The persisted BEFORE state - the row the transaction already holds FOR UPDATE, so no extra read - is compared against the persisted AFTER state read back once the UPDATE has run, and dc_write_revision() is called only if they differ. Comparing the browser payload instead would have been wrong in both directions: it would miss what the database did to a value and would report a change when the payload merely arrived differently shaped. The comparison surface is the NINE columns the UPDATE can write, which is the SET list of the statement itself rather than a judgement call; ref_no is not in it, id and created_at are never written, and there is no updated_at in this schema, so there is no save-only metadata to filter. Items are compared through item_uid with ORDER part of the comparison, and A REORDER IS A CHANGE, deliberately, because item order is the order printed on the quotation - though it is not a removal plus an addition, and the suite proves the uid set is identical. Nothing about the comparison is persisted: no diff key, snapshot_schema_version still 1, still exactly one INSERT and no UPDATE or DELETE or TRUNCATE against quotation_revisions. THE PERSISTED DIFF ENGINE WAS DEFERRED on a fact read out of the accepted artefacts: the schema has no field for a diff and three authorities refuse a twelfth column, and there is no accepted diff representation to conform to; a later Minimal History Read / UI round may derive one AT READ TIME from adjacent snapshots. THE ACCEPTED WRITER IS BYTE-IDENTICAL, as are nine other accepted functions, compared body for body; the round adds three functions and one if. CREATE is untouched. api.php is the only application file changed. The browser matrix did not move - 40 suites and 3,936 assertions with the same eight recorded environment failures, and it could not have moved because the harness intercepts every api.php request. tests/php/noop_suppression.test.php adds an ELEVENTH side group of 171, measured on MySQL 8.0.46 - the production engine - and again on 8.4.3, so the total moved from 4,930 to 5,101 and the delta from +2,120 to +2,291. No accepted PHP suite needed maintenance: revision writer and transaction foundation drive updates that change real business data and still measure 101 and 92 unedited, both re-confirmed on 8.0.46. The 8.0.46 run was first reported as an environment blocker; that was OPERATOR ERROR - --initialize-insensitive was used instead of --initialize-insecure - and the blocker is retired rather than carried. At acceptance migrations/2026-08-28-create-quotation-revisions.sql was still NOT APPLIED and nothing was deployed. 631cb89 is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   },
@@ -324,5 +337,43 @@
     "retryContract": "unchanged in shape and fixed in effect: maximum ONE retry, only on errno 1062, no loop. What changed is that the attempt can now see what it collided with.",
     "deploymentDependency": "migrations/2026-08-28-create-quotation-revisions.sql MUST be APPLIED to production BEFORE this accepted application can ever be deployed. With the table absent a save FAILS and rolls back - deliberately, because a save that worked but kept no history is the state this round exists to make impossible. It is a hard ordering constraint, not a fallback to soften.",
     "notInThisRound": "no diff engine, no no-op suppression, no baseline backfill, no DELETE revision, no History API, no History UI, no delete-behaviour change, no production migration, no deployment"
+  },
+  "noopSuppression": {
+    "round": "NO-OP SUPPRESSION",
+    "status": "FINAL ACCEPTED / CLOSED",
+    "acceptedCandidate": "5729ad5001694bc62370472277dc9e5860276408",
+    "acceptedOn": "2026-08-29",
+    "applicationCommitMoved": true,
+    "applicationFilesChanged": [
+      "api.php"
+    ],
+    "assertions": 171,
+    "failed": 0,
+    "countedInFinalAssertions": true,
+    "verifiedOn": {
+      "mysql-8.0.46": {
+        "assertions": 171,
+        "failed": 0,
+        "note": "the exact production engine version, official dev.mysql.com archive, isolated datadir, port 33080, never connected to production"
+      },
+      "mysql-8.4.3": {
+        "assertions": 171,
+        "failed": 0
+      }
+    },
+    "adjacentRegressionsOn8_0_46": {
+      "revision_writer": "101 / 0",
+      "transaction_foundation": "92 / 0"
+    },
+    "comparisonSurface": "the NINE columns update_quotation can write, which is the SET list of the statement itself: company_id, quote_date, valid_until, prepared_by, remarks, customer_name, customer_phone, items, total_amount. Everything else in the row is unreachable from that handler - ref_no is deliberately not in the SET list, id and created_at are never written, and there is no updated_at anywhere in this schema, so there is no save-only metadata to filter out.",
+    "comparedFact": "PERSISTED BEFORE against PERSISTED AFTER, never the browser payload. BEFORE is the row the transaction already holds FOR UPDATE, so it costs no extra read; AFTER is the row read back once the UPDATE has run. Comparing intent would miss what the database did to a value - a DECIMAL(12,2) rounding, a VARCHAR truncating - and would report a change when the payload merely arrived differently shaped. company_name is NOT compared: it is derived from company_id, which is, and from companies.name, which this request does not write. total_amount is compared as the DECIMAL string MySQL returns, never as a float.",
+    "itemMatching": "through item_uid, with ORDER part of the comparison. The normalised form states the uid sequence beside the item bodies; bodies are ksorted at every level so two encodings of the same item compare equal, and ksort is applied to lists too, where it changes nothing because their keys are already 0..n - which is what keeps order significant.",
+    "reorderRule": "A REORDER IS A CHANGE, DELIBERATELY. Item order is business fact: it is the order printed on the quotation, and \"Item 3 is item 3 on Screen, on Print and in WhatsApp\" is a rule PROJECT-GUARDRAILS protects. A reorder is NOT a removal plus an addition - every item_uid that was there is still there, and the suite proves the set is identical. Recording WHAT changed is a later round; this one only answers WHETHER anything did.",
+    "notAStorageContract": "nothing about the comparison is persisted, returned, or held in a column. It exists for the length of one comparison. The suite asserts it: no diff key in the snapshot, snapshot_schema_version still 1, still exactly one INSERT and no UPDATE/DELETE/TRUNCATE against quotation_revisions, and no ALTER of a revision schema anywhere in the application.",
+    "acceptedWriterUntouched": "dc_write_revision, dc_build_quotation_snapshot, dc_read_quotation_snapshot_row, dc_next_revision_no, dc_reconcile_item_uids, dc_lock_quotation_for_update, dc_txn_begin, next_free_ref_no, dc_save_quotation_insert and fail_json were compared function body for function body and are BYTE-IDENTICAL. The round adds three functions - dc_ksort_deep, dc_business_items, dc_business_state - one if at the call site, and one read-back.",
+    "createUnchanged": "READ COMMITTED on create only, GET_LOCK, exactly one 1062 retry with its real-race recovery, exactly one CREATE revision carrying the settled ref_no",
+    "persistedDiffEngine": "DEFERRED, and not by preference. The accepted quotation_revisions schema has no field for a structured diff and actively refuses one: the migration's conformance gate counts anything unexpected and reads NO-GO, its section 4 gate says a twelfth column means something other than that file created it, and revision_storage asserts \"eleven columns, in the documented order, and nothing else\". There is also no accepted diff representation anywhere to conform to. Two paths were put to the owner - a diff key inside snapshot_json at schema version 2, or a new diff_json column - and the decision was NEITHER, this round. A later MINIMAL HISTORY READ / UI round may derive a human-readable diff AT READ TIME from two adjacent immutable snapshots, which needs no storage contract at all.",
+    "environmentBlockerRetired": "RETIRED - it was operator error, not the machine. The candidate was first reported BLOCKED because MySQL 8.0.46 would not initialise, after roughly ten variations of path, location, shell, --no-defaults, PATH, --tmpdir, --skip-log-bin, InnoDB flush method and layout were tried and ruled out. Every one of them carried the same wrong flag: --initialize-insensitive, which is not a MySQL option, instead of --initialize-insecure, which the two preceding rounds had used. A control on the 8.4.3 binary settled it - --initialize-insecure produced 0 errors and 23 files, --initialize-insensitive produced 3 files and no data dictionary. The earlier \"BLOCKED - MYSQL 8.0.46 ENVIRONMENT\" diagnosis was wrong and must not be quoted as an environment fact.",
+    "notInThisRound": "no persisted diff, no diff_json, no schema v2, no new migration, no baseline backfill, no DELETE revision, no restore, no History API, no History UI, no delete-behaviour change, no production migration, no deployment"
   }
 }
