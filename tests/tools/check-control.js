@@ -34,8 +34,8 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = '1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a';
-const PREV = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
+const APP = '631cb8945406a934b351e476ec71330ed23a2d27';
+const PREV = '1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a';
 /* What production RUNS, which is no longer what has been accepted. */
 const DEPLOYED = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 const out = []; let bad = 0;
@@ -55,19 +55,27 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    && A.TOTAL === T.finalAssertions && A.BASELINE === T.baselineAssertions
    && A.DELTA === T.deltaAssertions && A.FAILED === T.failed && A.SKIPPED === T.skipped,
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
-ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 4822
-   && T.deltaAssertions === 2012 && T.baselineAssertions === 2810,
+ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 4930
+   && T.deltaAssertions === 2120 && T.baselineAssertions === 2810,
    'the accepted matrix is the measured run');
-ck(T.browserSuitesBeforeThisRound === 39 && T.browserAssertionsBeforeThisRound === 3907
+/* HISTORICAL, and now named as such. These two fields read
+   "BeforeThisRound" while Item Identity WAS this round; it is two rounds back,
+   and a field whose name silently re-points at whoever reads it last is the
+   drift this layer exists to stop. They are renamed for the round they
+   actually describe, and the arithmetic they record is unchanged. The browser
+   matrix has not moved since. */
+ck(T.browserSuitesBeforeItemIdentity === 39 && T.browserAssertionsBeforeItemIdentity === 3907
    && T.itemIdentityBrowserAssertions === 29
-   && T.browserAssertionsBeforeThisRound + T.itemIdentityBrowserAssertions === T.browserAssertions,
-   `the browser matrix grew by exactly the new suite: 3,907 + 29 = ${T.browserAssertions}`);
+   && T.browserAssertionsBeforeItemIdentity + T.itemIdentityBrowserAssertions === T.browserAssertions,
+   `the browser matrix last grew at Item Identity: 3,907 + 29 = ${T.browserAssertions}, and has not moved since`);
+ck(T.browserSuitesBeforeThisRound === undefined && T.browserAssertionsBeforeThisRound === undefined,
+   'and the fields no longer claim to describe "this round", whichever round is reading them');
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
    + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions
    + T.mysqliCompatAssertions + T.actorIdentityAssertions + T.itemIdentityAssertions
-   + T.transactionFoundationAssertions === T.finalAssertions,
-   `3,936+172+107+62+15+42+94+150+159+85 = ${T.finalAssertions}`);
-ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,822 − 2,810 = +2,012');
+   + T.transactionFoundationAssertions + T.revisionWriterAssertions === T.finalAssertions,
+   `3,936+172+107+62+15+42+94+150+159+92+101 = ${T.finalAssertions}`);
+ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '4,930 − 2,810 = +2,120');
 ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['ai-extract-php.log'] === T.aiExtractionAssertions
    && A.SIDE['pricing-workbook.log'] === T.workbookAssertions
@@ -76,8 +84,13 @@ ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['mysqli-compat-php.log'] === T.mysqliCompatAssertions
    && A.SIDE['auth-identity-php.log'] === T.actorIdentityAssertions
    && A.SIDE['item-identity-php.log'] === T.itemIdentityAssertions
-   && A.SIDE['transaction-foundation-php.log'] === T.transactionFoundationAssertions,
-   'the nine side suites agree in both files');
+   && A.SIDE['transaction-foundation-php.log'] === T.transactionFoundationAssertions
+   && A.SIDE['revision-writer-php.log'] === T.revisionWriterAssertions,
+   'the ten side suites agree in both files');
+/* Transaction foundation moved 85 -> 92 in this promotion, and a moved figure
+   is exactly what a checker should be able to state rather than absorb. */
+ck(T.transactionFoundationAssertions === 92 && T.revisionWriterAssertions === 101,
+   'transaction foundation is 92, up from 85, and the writer is a tenth group of 101');
 /* ── A failing assertion count may be recorded, but never left bare ────────
    The matrix has read "0 failed" for every accepted round until this one. It
    now reads 8, and the only thing that makes that acceptable is that the
@@ -103,18 +116,18 @@ ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 11, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a',
+ck(S.length === 12, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[10].sha === PREV && S[10].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[11].sha === PREV && S[11].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`649f80a09f83a7201c0f3772e01fc270ccda3e05` — superseded by `1ca6554`'),
+ck(MD.includes('`1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` — superseded by `631cb89`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
-ck(H.supersededAssertionTotals.includes(4734) && !H.supersededAssertionTotals.includes(4822),
-   '4,734 retired, 4,822 is not retired');
-ck(H.supersededDeltas.includes(1924) && !H.supersededDeltas.includes(2012),
-   '+1,924 retired, +2,012 is not retired');
+ck(H.supersededAssertionTotals.includes(4822) && !H.supersededAssertionTotals.includes(4930),
+   '4,822 retired, 4,930 is not retired');
+ck(H.supersededDeltas.includes(2012) && !H.supersededDeltas.includes(2120),
+   '+2,012 retired, +2,120 is not retired');
 ck(H.supersededSuiteCounts.includes(39) && !H.supersededSuiteCounts.includes(40),
    `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — 40 is current, not retired`);
 
@@ -165,12 +178,12 @@ ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**') === 'api.php',
    'the promotion carries exactly api.php');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
-   === 'tests/php/item_identity.test.php,tests/php/mysqli_compat.test.php,'
-     + 'tests/php/revision_storage.test.php,tests/php/transaction_foundation.test.php',
-   'and exactly four PHP suites — the two this round maintained, its own new one, and '
-   + 'revision storage, which was added by a round that moved no application commit');
+   === 'tests/php/revision_storage.test.php,tests/php/revision_writer.test.php,'
+     + 'tests/php/transaction_foundation.test.php',
+   'and exactly three PHP suites — its own new one, and the two whose '
+   + '"no writer exists" guards this round was authorised to replace');
 ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
-   'not one of the thirty-nine accepted browser suites was modified or deleted');
+   'not one of the forty accepted browser suites was modified or deleted');
 /* '*.php' matches tests/php/*.test.php too. Revision Storage added
    tests/php/revision_storage.test.php AFTER the accepted commit without
    touching the application, which is legitimate and which this assertion
@@ -183,8 +196,8 @@ ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') ==
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
 ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php',
-       'tests/php/transaction_foundation.test.php','tests/php/mysqli_compat.test.php',
-       'tests/php/item_identity.test.php') === APP,
+       'tests/php/revision_writer.test.php','tests/php/transaction_foundation.test.php',
+       'tests/php/revision_storage.test.php') === APP,
    'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 
@@ -245,7 +258,12 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
   ck(R.applicationCommitMoved === false && A.APP_SHA === APP,
      'it moved no application commit — the accepted application is still ' + APP.slice(0,7));
   ck(/^NOT APPLIED/.test(R.migrationApplied || ''), 'its migration is NOT APPLIED to production');
-  ck(/^NOT STARTED/.test(R.revisionWriter || ''), 'and the revision writer has NOT started');
+  /* This read /^NOT STARTED/ for two rounds and was correct both times. The
+     writer has now been accepted, so the assertion becomes the contract that
+     replaces the absence — which is stricter than what it replaced, because
+     "nothing writes to it" was only ever true until something did. */
+  ck(/^STARTED AND ACCEPTED/.test(R.revisionWriter || ''),
+     'the revision writer has STARTED and is accepted');
   ck(A.REVISION_STORAGE.assertions === R.assertions && A.REVISION_STORAGE.failed === R.failed,
      `authoritative.js and canonical agree: ${R.assertions} assertions, ${R.failed} failed`);
   const eng = Object.keys(R.verifiedOn || {});
@@ -268,6 +286,57 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
      changed since the accepted commit. */
   ck(git('diff','--name-only',APP+'..HEAD','--','*.sql') === '',
      'no SQL differs from the accepted commit'); }
+
+// ── Snapshot Revision Writer: accepted, append-only, and still not deployable ──
+{ const W = C.revisionWriter || {};
+  ck(W.status === 'FINAL ACCEPTED / CLOSED', `revision writer: ${W.status}`);
+  ck(W.acceptedCandidate === APP, `its accepted candidate IS the accepted application ${APP.slice(0,7)}`);
+  ck(W.applicationCommitMoved === true
+     && JSON.stringify(W.applicationFilesChanged) === JSON.stringify(['api.php']),
+     'it moved the application commit, and api.php is the only application file it carries');
+  ck(A.SIDE['revision-writer-php.log'] === W.assertions && W.failed === 0,
+     `authoritative.js and canonical agree: ${W.assertions} assertions, ${W.failed} failed`);
+  { const eng = Object.keys(W.verifiedOn || {});
+    ck(eng.length === 2 && eng.some(e => /8\.0\./.test(e)),
+       `verified on ${eng.join(' and ')} — including a production-version engine`);
+    ck(Object.values(W.verifiedOn || {}).every(v => v.assertions === W.assertions && v.failed === 0),
+       'both engines returned the same count with no failures'); }
+  /* APPEND-ONLY IS ENFORCED BY CODE, because the storage round deliberately
+     declined to add a trigger. So the code is what gets asked. */
+  const api = R('api.php');
+  ck((api.match(/INSERT INTO quotation_revisions/g) || []).length === 1,
+     'exactly one INSERT INTO quotation_revisions in the whole application');
+  ck(!/(UPDATE|DELETE\s+FROM|TRUNCATE)\s+quotation_revisions/.test(api),
+     'and no UPDATE, DELETE or TRUNCATE against it anywhere');
+  { const others = git('ls-files','*.php').split('\n')
+      .filter(f => f && f !== 'api.php' && !f.startsWith('tests/'));
+    const guilty = others.filter(f => /quotation_revisions/.test(R(f)));
+    ck(guilty.length === 0,
+       `no other application file mentions the table (checked ${others.length})`); }
+  /* THE ISOLATION IS SCOPED TO ONE TRANSACTION. Neither the session nor the
+     server may be changed — that would silently re-tune every other query. */
+  ck((api.match(/SET TRANSACTION ISOLATION LEVEL READ COMMITTED/g) || []).length === 1
+     && !/SET\s+(SESSION|GLOBAL)\s+TRANSACTION\s+ISOLATION/.test(api),
+     'READ COMMITTED is set once, for the next transaction only — no SESSION or GLOBAL form');
+  /* And the retry contract the fix exists to restore is still ONE attempt. */
+  ck((api.match(/1062/g) || []).length >= 1 && !/while\s*\(.*1062/.test(api),
+     'the 1062 retry is still a single attempt, not a loop');
+  ck(/MUST be APPLIED to production BEFORE/.test(W.deploymentDependency || ''),
+     'canonical records the deployment ORDER: the migration first, then the application');
+  ck(/^ABSENT/.test(C.production.quotationRevisionsTable || ''),
+     'and records that production still has no quotation_revisions table');
+  ck(C.production.deployedApplicationCommit !== APP,
+     `so the accepted application ${APP.slice(0,7)} is NOT deployed, and cannot be until it is`); }
+
+// ── the investigated browser flake, recorded rather than absorbed ──
+{ const F = T.browserFlakeInvestigated || {};
+  ck(/FLAKE/.test(F.classification || ''), `the ninth browser failure is recorded as: ${F.classification}`);
+  ck(Array.isArray(F.evidence) && F.evidence.length >= 4,
+     `with ${(F.evidence||[]).length} pieces of evidence rather than an assertion that it was fine`);
+  ck(F.fixed === false && typeof F.whyNotFixed === 'string' && F.whyNotFixed.length > 0,
+     'and is recorded as NOT fixed, with the reason — not quietly repaired out of scope');
+  ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','index.php') === '',
+     'which the tree confirms: no browser suite, no harness and no index.php byte moved'); }
 
 // ── guardrails carry the accepted outcomes, and only those ──
 [['STAGE 1 UI — ACCEPTED', 'the Stage 1 UI section exists'],

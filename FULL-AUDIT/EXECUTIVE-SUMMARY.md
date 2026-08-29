@@ -2,14 +2,15 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` · **ACCEPTED, NOT DEPLOYED** — production still runs the previous accepted commit; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `631cb8945406a934b351e476ec71330ed23a2d27` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
 
-> **On SHAs.** `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` is the last commit that changed the
+> **On SHAs.** `631cb8945406a934b351e476ec71330ed23a2d27` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. Eleven application
+> when SNAPSHOT REVISION WRITER was accepted. Twelve application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, accepted for READ-BEFORE-WRITE / TRANSACTION FOUNDATION;
 > superseded — `649f80a09f83a7201c0f3772e01fc270ccda3e05`, accepted for ITEM IDENTITY FOUNDATION;
 > superseded — `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`, accepted for ACTOR IDENTITY FOUNDATION;
 > superseded — `97a14cf56bad6414e382c6f49f40d13eabd97dc9`, accepted for PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY;

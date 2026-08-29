@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a",
+    "acceptedCommit": "631cb8945406a934b351e476ec71330ed23a2d27",
     "status": "accepted",
-    "acceptedRound": "READ-BEFORE-WRITE / TRANSACTION FOUNDATION — one transaction around a quotation mutation, and the persisted read moved inside it (FINAL ACCEPTED)"
+    "acceptedRound": "SNAPSHOT REVISION WRITER - a quotation mutation and its immutable full snapshot are one transaction, and the 1062 retry can see what it collided with (FINAL ACCEPTED)"
   },
   "revisionStorage": {
     "round": "REVISION STORAGE FOUNDATION",
@@ -15,7 +15,7 @@
       "tests/php/revision_storage.test.php"
     ],
     "applicationCommitMoved": false,
-    "whyNotCounted": "This round added a migration and a schema suite. It changed no application file, so application.acceptedCommit does not move and the figures under tests do not change. The 198 assertions below are deliberately NOT added to tests.finalAssertions: those figures describe the APPLICATION measured at 649f80a09f83a7201c0f3772e01fc270ccda3e05, and a suite that measures a migration is not an application assertion any more than a control-system self-test is. Adding it would make the canonical total mean two things at once.",
+    "whyNotCounted": "This round added a migration and a schema suite. It changed no application file, so it did not move application.acceptedCommit and its 198 assertions are deliberately NOT added to tests.finalAssertions: those figures describe the APPLICATION, and a suite that measures a migration is not an application assertion any more than a control-system self-test is. That still holds now that the writer exists - the writer has its own suite, tests/php/revision_writer.test.php, and THAT one does count, because it measures api.php. The storage suite was maintained by the writer round: its section 7 \"nothing writes to this table\" guard was replaced by the writer contract, and the count is unchanged at 198.",
     "assertions": 198,
     "failed": 0,
     "skipped": 0,
@@ -32,10 +32,11 @@
     },
     "table": "quotation_revisions",
     "migrationApplied": "NOT APPLIED — migrations/2026-08-28-create-quotation-revisions.sql has never been run against production, and quotation_revisions does not exist there",
-    "revisionWriter": "NOT STARTED — no application file reads or writes quotation_revisions",
+    "revisionWriter": "STARTED AND ACCEPTED - SNAPSHOT REVISION WRITER, accepted commit 631cb8945406a934b351e476ec71330ed23a2d27. api.php contains exactly one INSERT INTO quotation_revisions and no UPDATE, DELETE or TRUNCATE against it anywhere; no other application file mentions the table. Append-only is enforced by that code, which is what this round said instead of a trigger.",
     "foreignKeys": "none, deliberately — see PROJECT-GUARDRAILS and the migration header",
     "triggers": "none — append-only is an application contract, enforced by the writer round",
-    "refNoContract": "quotation_revisions.quotation_ref_no must have the same COLUMN_TYPE, CHARACTER_SET_NAME and COLLATION_NAME as quotations.ref_no. The authority is read from the live database; the migration hard-codes no charset and no collation of its own."
+    "refNoContract": "quotation_revisions.quotation_ref_no must have the same COLUMN_TYPE, CHARACTER_SET_NAME and COLLATION_NAME as quotations.ref_no. The authority is read from the live database; the migration hard-codes no charset and no collation of its own.",
+    "suiteMaintainedBy": "SNAPSHOT REVISION WRITER - the no-writer-exists guard became the writer contract. No assertion was weakened and the total stayed 198."
   },
   "production": {
     "host": "quo.dnchardware.com",
@@ -49,7 +50,7 @@
     "databaseBackupRetained": true,
     "rollbackPerformed": false,
     "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
-    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed.",
+    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all.",
     "itemIdentity": "LIVE — PRODUCTION VERIFIED",
     "itemUidBackfill": "APPLIED",
     "previouslyDeployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
@@ -77,12 +78,13 @@
       "quotation": "Q-2026-0693",
       "proved": "CREATE issued a server-generated valid item_uid; EDIT preserved it; RE-SAVE preserved it; REOPEN showed normal business data",
       "cleanup": "the smoke quotation was temporary and was deleted — exactly 1 row removed, remaining Q-2026-0693 = 0, and the quotation count returned to 690"
-    }
+    },
+    "quotationRevisionsTable": "ABSENT - the migration has never been run against production and must be applied BEFORE the accepted application is deployed"
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 4822,
-    "deltaAssertions": 2012,
+    "finalAssertions": 4930,
+    "deltaAssertions": 2120,
     "failed": 8,
     "skipped": 0,
     "browserSuites": 40,
@@ -95,9 +97,8 @@
     "mysqliCompatAssertions": 94,
     "actorIdentityAssertions": 150,
     "itemIdentityAssertions": 159,
-    "transactionFoundationAssertions": 85,
-    "browserSuitesBeforeThisRound": 39,
-    "browserAssertionsBeforeThisRound": 3907,
+    "transactionFoundationAssertions": 92,
+    "revisionWriterAssertions": 101,
     "itemIdentityBrowserAssertions": 29,
     "browserFailureException": {
       "count": 8,
@@ -114,7 +115,25 @@
       "reproducedOn": "ce26146a6a792f2bac0ebb4bab77389d19ff0660",
       "reproducedHow": "a pristine git worktree at ce26146 — this round's own starting point, before a single Item Identity byte — fails the same eight assertions with the same numbers",
       "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule.",
-      "note": "Re-measured on the accepted commit 1ca6554 with the transaction change in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them — 3,928 of 3,936 pass."
+      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table."
+    },
+    "browserSuitesBeforeItemIdentity": 39,
+    "browserAssertionsBeforeItemIdentity": 3907,
+    "browserFlakeInvestigated": {
+      "suiteFile": "tests/suites/35-edit-mode.test.js",
+      "assertion": "clearing it back to the default lets the session close",
+      "classification": "LOAD-SENSITIVE FLAKE - not a regression, and NOT FIXED",
+      "whyRecorded": "one candidate matrix run reported nine failures rather than the recorded eight. The acceptance gate treats a new browser failure as a blocker, so it was investigated rather than waved through.",
+      "evidence": [
+        "candidate matrix run 1: 9 failures - the known 8 plus this one",
+        "candidate matrix run 2: 8 failures",
+        "pristine worktree at the accepted-at-the-time commit 1ca6554: 8 failures",
+        "suite 35 alone, five consecutive runs: 0 failures"
+      ],
+      "mechanism": "index.php, tests/suites and tests/lib are byte-identical to 1ca6554, and tests/lib/harness.js intercepts every api.php request and answers it from a stub table - so the browser matrix never executes the one file this round changed. The failure is unobserved on rerun AND unreachable by mechanism.",
+      "brittleness": "the assertion ends a chain of typeCell / wqaEditDone pairs that carry no settle wait, unlike the ones above it in the same suite.",
+      "fixed": false,
+      "whyNotFixed": "tests/suites is out of scope for this round and was not touched. Worth a settle wait in whichever round next opens that file."
     }
   },
   "translation": {
@@ -160,7 +179,8 @@
       4305,
       4399,
       4549,
-      4734
+      4734,
+      4822
     ],
     "supersededTranslationKeys": [
       512,
@@ -185,7 +205,8 @@
       1495,
       1589,
       1739,
-      1924
+      1924,
+      2012
     ],
     "supersededSuiteCounts": [
       34,
@@ -255,7 +276,53 @@
         "sha": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
         "supersededBy": "1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a",
         "reason": "READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. update_quotation read the persisted items, reconciled item identity against them and then wrote, with no transaction and no lock around any of it, so between those two statements another request could change the very items that had just been reconciled. save_quotation had the same shape: the named lock serialised number allocation, but the allocation and the INSERT that used it were not one atomic write. CREATE is now validate -> mint identity -> GET_LOCK -> BEGIN -> allocate -> INSERT (one 1062 retry) -> COMMIT -> RELEASE_LOCK, with the commit deliberately before the release because letting go of the lock while the INSERT is uncommitted would hand out a number that is not yet taken. UPDATE is now BEGIN -> SELECT * ... FOR UPDATE -> reconcile against that locked row -> UPDATE -> COMMIT, and dc_lock_quotation_for_update() returns the whole row because it is the authoritative BEFORE state a later revision writer will snapshot. The awkward part was never BEGIN and COMMIT: query_or_fail, prepare_or_fail, execute_or_fail and the 1062 retry all end the request through fail_json, which echoes and exits, and an exit inside an open transaction leaves the rollback to the connection closing — a side effect of the process dying rather than a contract. The transaction scope is now recorded as the request runs and fail_json unwinds it explicitly before answering, so every existing error path became transaction safe without one call site changing and the guardrail-protected helpers did not need rewriting. The named lock and the transaction are tracked separately because GET_LOCK is SESSION scoped and COMMIT does not release it. THE CLAIM IS NARROW: two UPDATE transactions cannot hold the same quotation row at once, which gives a future writer a deterministic BEFORE state. It is NOT optimistic concurrency — a stale browser copy can still overwrite a newer edit, because nothing compares versions. api.php is the only application file changed; ref_no, the allocator, GET_LOCK, the exactly-one 1062 retry, item identity, Actor Identity, pricing, the parser and delete_quotation are untouched, and no browser suite moved. The browser matrix was re-run because application code changed and returned the same 40 suites and 3,936 assertions with the same eight recorded environment failures. tests/php/transaction_foundation.test.php adds a ninth side group of 85, measured on MySQL 8.0.46 and 8.4.3, and item identity moved 156 -> 159 because one assertion that measured a superseded contract became four stricter ones; so the total moved from 4,734 to 4,822 and the delta from +1,924 to +2,012. 649f80a is the previous accepted commit and must never be quoted as the current one — it also remains the DEPLOYED build, which is a different fact."
+      },
+      {
+        "sha": "1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a",
+        "supersededBy": "631cb8945406a934b351e476ec71330ed23a2d27",
+        "reason": "SNAPSHOT REVISION WRITER was accepted. Until this round nothing wrote a revision: quotation_revisions existed and stayed empty by design. Every successful save_quotation and update_quotation now records exactly ONE immutable snapshot of what was actually persisted, INSIDE the transaction that persisted it - the revision INSERT is before COMMIT on both paths, so a quotation and its history commit together or not at all, and every failure inside the writer goes through fail_json(), which the transaction foundation already made unwind the scope, so a revision that cannot be written takes the quotation change down with it. The row is read back out of the database after the mutation rather than snapshotted from $input, so what is recorded is what the server stored: the ref_no the allocator chose, the quote_date it defaulted, the item_uid values it minted, the total it wrote. company_name is resolved through the same LEFT JOIN companies the read paths use and FROZEN into the snapshot, so renaming a company later cannot rewrite what the document said. snapshot_schema_version = 1 lives in the column and not inside the JSON. There is no item table: identity stays inside snapshot_json exactly as it lives inside quotations.items. actor_user_id / actor_username / actor_display_name come from dc_current_user() and from nowhere else, and are NULL when no signed-in person is behind the request; prepared_by is a field of the document and is never written to an actor column. revision_no is COALESCE(MAX,0)+1 inside the transaction, with UNIQUE (quotation_id, revision_no) as the backstop. Append-only is enforced by the code the storage round said would enforce it: exactly one INSERT INTO quotation_revisions in the whole application and no UPDATE, DELETE or TRUNCATE anywhere. THIS ROUND ALSO FIXED A DEFECT IT DID NOT CREATE. The one-and-only-one 1062 retry accepted at 86cf262 became unreachable the moment READ-BEFORE-WRITE / TRANSACTION FOUNDATION wrapped save_quotation in a transaction: under REPEATABLE READ the INSERT is refused with 1062 because writes see the latest state, but next_free_ref_no() plain SELECT still reads the transaction original snapshot and returns the same number, so the single permitted attempt was spent on a number that was never going to work. It was reported as a finding and returned as a BLOCKER, because the retry is part of this round acceptance gate. The create transaction now opens at READ COMMITTED - three executable lines: an optional argument on dc_txn_begin, one SET TRANSACTION, one call site - so the reallocation sees the row it collided with. Safe there because the create transaction never reads the same thing twice expecting it not to move, and allocation is already serialised by DC_REF_LOCK; NOT applied to the update path, which depends on SELECT ... FOR UPDATE and already sees the latest committed state. SET TRANSACTION without SESSION or GLOBAL scopes to the next transaction only. Proven on a real race rather than a simulation: the save succeeds on Q-YYYY-0002, exactly one revision is written, numbered 1, recorded as a create, carrying the ref_no the retry settled on, and no revision claims the number the first attempt lost. api.php is the only application file changed. The browser matrix did not move - 40 suites and 3,936 assertions with the same eight recorded environment failures, re-run because application code changed. tests/php/revision_writer.test.php adds a tenth side group of 101, measured on MySQL 8.0.46 and 8.4.3, and transaction foundation moved 85 -> 92 because its fixture was completed and its \"no writer exists\" guards became the writer contract; so the total moved from 4,822 to 4,930 and the delta from +2,012 to +2,120. Revision storage stayed 198 and stays out of the total. At acceptance migrations/2026-08-28-create-quotation-revisions.sql was still NOT APPLIED and nothing was deployed - and that migration MUST be applied before this accepted application can ever be deployed. 1ca6554 is the previous accepted commit and must never be quoted as the current one."
       }
     ]
+  },
+  "revisionWriter": {
+    "round": "SNAPSHOT REVISION WRITER",
+    "status": "FINAL ACCEPTED / CLOSED",
+    "acceptedCandidate": "631cb8945406a934b351e476ec71330ed23a2d27",
+    "acceptedOn": "2026-08-29",
+    "applicationCommitMoved": true,
+    "applicationFilesChanged": [
+      "api.php"
+    ],
+    "assertions": 101,
+    "failed": 0,
+    "countedInFinalAssertions": true,
+    "verifiedOn": {
+      "mysql-8.0.46": {
+        "assertions": 101,
+        "failed": 0,
+        "note": "the exact production engine version, official dev.mysql.com archive, isolated datadir and port, never connected to production"
+      },
+      "mysql-8.4.3": {
+        "assertions": 101,
+        "failed": 0
+      }
+    },
+    "accepted": [
+      "CREATE and its create revision are one transaction",
+      "UPDATE and its update revision are one transaction",
+      "a revision that cannot be written rolls the quotation mutation back",
+      "a real 1062 race recovers exactly once and the save succeeds",
+      "the create revision records the ref_no the retry SETTLED on",
+      "company_name is frozen into the snapshot, not resolved at read time",
+      "item_uid is retained inside snapshot_json",
+      "the audit actor comes from the server-authenticated session, via dc_current_user()",
+      "prepared_by stays document data and is never written to an actor column"
+    ],
+    "snapshotSchemaVersion": 1,
+    "snapshotIsOfPersistedFact": "the row is read back out of the database after the mutation, inside the same transaction, so the snapshot records what the server actually stored rather than what the request asked for",
+    "isolation": "the CREATE transaction opens at READ COMMITTED - SET TRANSACTION ISOLATION LEVEL READ COMMITTED, which scopes to the next transaction only and changes neither the session nor the server. It exists so the one-and-only-one 1062 retry can SEE the row it collided with before it reallocates; under REPEATABLE READ the reallocating SELECT read the transaction original snapshot and returned the same number, so the retry was unreachable from the moment READ-BEFORE-WRITE / TRANSACTION FOUNDATION wrapped save_quotation. The UPDATE path is left at the server default: it depends on SELECT ... FOR UPDATE, a locking read that already sees the latest committed state.",
+    "retryContract": "unchanged in shape and fixed in effect: maximum ONE retry, only on errno 1062, no loop. What changed is that the attempt can now see what it collided with.",
+    "deploymentDependency": "migrations/2026-08-28-create-quotation-revisions.sql MUST be APPLIED to production BEFORE this accepted application can ever be deployed. With the table absent a save FAILS and rolls back - deliberately, because a save that worked but kept no history is the state this round exists to make impossible. It is a hard ordering constraint, not a fallback to soften.",
+    "notInThisRound": "no diff engine, no no-op suppression, no baseline backfill, no DELETE revision, no History API, no History UI, no delete-behaviour change, no production migration, no deployment"
   }
 }

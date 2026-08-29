@@ -684,7 +684,9 @@ Protected from here:
 - **A refused `COMMIT` is never reported as success**, and a refused `BEGIN`
   writes nothing.
 - **Maximum retry is still one, and still only 1062.** No retry loop was
-  introduced and none may be.
+  introduced and none may be. **It also has to be able to WORK** — see the
+  isolation rule in the revision-writer section below, which repairs a
+  side effect this round's transaction had on it.
 
 **THE CLAIM IS NARROW, AND MUST STAY NARROW.** Two UPDATE transactions cannot
 hold the same quotation row at once; the second waits. That is all. It is **not
@@ -695,12 +697,112 @@ conflict check, which are a different round.
 
 **Unchanged:** `ref_no` · the allocator · `uq_quotations_ref` ·
 `NOT NULL ref_no` · item identity · Actor Identity · pricing · Quick Add · the
-parser · `delete_quotation`. The revision writer is **NOT STARTED** and no
-application file references `quotation_revisions`.
+parser · `delete_quotation`. The revision writer was NOT STARTED when this
+section was written; it was started and accepted on `631cb89`, and the section
+below is where its rules live.
 
 `tests/php/transaction_foundation.test.php` drives the shipped `api.php` over
 real HTTP against MySQL 8.0.46 and 8.4.3, and proves the row lock on two live
 connections.
+
+---
+
+## ACCEPTED — WHAT THE PAST RECORDS, AND WHEN
+
+Accepted in SNAPSHOT REVISION WRITER on `631cb89`. Every successful
+`save_quotation` and `update_quotation` writes exactly ONE immutable snapshot of
+what was actually persisted, inside the transaction that persisted it.
+
+```
+CREATE   … → INSERT quotation (one 1062 retry) → read back
+             → write ONE revision → COMMIT → RELEASE_LOCK
+UPDATE   … → UPDATE quotation → read back
+             → write ONE revision → COMMIT
+```
+
+Protected from here:
+
+- **The revision INSERT is before `COMMIT` on both paths.** A quotation and its
+  history commit together or not at all. Moving the write after the commit, or
+  into a second transaction, breaks the only property this round has.
+- **A revision that cannot be written takes the quotation change down with it.**
+  Every failure inside the writer goes through `fail_json()`, which unwinds the
+  scope. This must never be softened into a warning, a log line, or a save that
+  succeeds without history.
+- **THE TABLE IS REQUIRED, AND SO IS THE DEPLOYMENT ORDER.** With
+  `quotation_revisions` absent a save FAILS and rolls back. That is the accepted
+  behaviour, not an oversight, and it must not be turned into a fallback —
+  a save that worked but kept no history is exactly the state this round exists
+  to make impossible. `migrations/2026-08-28-create-quotation-revisions.sql`
+  must be APPLIED to production BEFORE this application is deployed.
+- **The snapshot is of PERSISTED FACT, not of request intent.** The row is read
+  back out of the database after the mutation, inside the same transaction.
+  Snapshotting `$input` would record what the browser asked for — a different
+  and much weaker fact — and must not be substituted for it.
+- **`company_name` is FROZEN into the snapshot.** Resolving it at read time
+  instead would let a company rename rewrite what a past document said.
+- **`snapshot_schema_version` lives in the COLUMN, not inside the JSON.** Two
+  copies of one fact can disagree.
+- **The actor comes from `dc_current_user()` and from nowhere else**, and is
+  NULL when no signed-in person is behind the request. A placeholder id would
+  be a lie.
+- **`prepared_by` is document data and is NOT the actor.** It is whose name is
+  printed on the quotation. It must never be written to an actor column, in
+  either direction.
+- **APPEND-ONLY IS ENFORCED BY THE CODE.** Exactly one `INSERT INTO
+  quotation_revisions` in the whole application, and no `UPDATE`, `DELETE` or
+  `TRUNCATE` against it anywhere. The storage round deliberately declined to add
+  a trigger and said the writer would enforce it; this is that enforcement, and
+  `check-control` now asks the source directly rather than taking its word.
+- **`revision_no` is `COALESCE(MAX,0)+1` inside the transaction**, with
+  `UNIQUE (quotation_id, revision_no)` as the backstop that makes a mistake a
+  refused write rather than a silently duplicated history.
+- **No item table.** Item identity stays inside `snapshot_json`, exactly as it
+  lives inside `quotations.items`.
+
+### THE ISOLATION, AND WHY IT IS ON EXACTLY ONE PATH
+
+The CREATE transaction opens at **READ COMMITTED**. This is not a performance
+tweak and not a preference; it is what makes the one-and-only-one 1062 retry
+able to work at all.
+
+Under REPEATABLE READ a transaction holds one snapshot from its first read. When
+another session commits the `ref_no` the allocator is about to use, the INSERT is
+refused with 1062 — writes always see the latest state — but `next_free_ref_no()`
+still reads the ORIGINAL snapshot and returns THE SAME NUMBER, so the single
+permitted attempt is spent on a number that was never going to work. The retry
+accepted at `86cf262` became unreachable the moment `1ca6554` wrapped
+`save_quotation` in a transaction, and nothing said so.
+
+- **Do not remove `SET TRANSACTION ISOLATION LEVEL READ COMMITTED` from the
+  create path.** Removing it silently restores a retry that cannot recover.
+- **Do not add `SESSION` or `GLOBAL` to it.** Without them it scopes to the next
+  transaction only; with them it re-tunes every other query in the connection or
+  the server.
+- **Do not extend it to the UPDATE path.** That path depends on
+  `SELECT … FOR UPDATE`, a locking read that already sees the latest committed
+  state. It has nothing to gain, and its accepted read-before-write behaviour
+  must not be disturbed by a change it does not need.
+- **The retry contract is unchanged in shape**: maximum one attempt, only on
+  errno 1062, no loop. What changed is that the attempt can now see what it
+  collided with.
+
+**Unchanged:** `ref_no` · the allocator · `GET_LOCK` and its release ordering ·
+`SELECT … FOR UPDATE` · item identity · Actor Identity · pricing · Quick Add ·
+the parser · `delete_quotation`, **which writes no revision and is untouched** —
+what a deletion should record is the Baseline / Delete Policy round's question
+and must not be answered here by accident.
+
+**NOT in this round, and not to be drifted into:** no diff engine, no structured
+before/after, **no no-op suppression — an UPDATE with unchanged business data
+still writes an UPDATE revision, deliberately** — no baseline backfill, no
+DELETE revision, no restore, no History API, no History UI, no revision
+browsing, no optimistic concurrency.
+
+`tests/php/revision_writer.test.php` drives the shipped `api.php` over real HTTP
+against MySQL 8.0.46 and 8.4.3, lifts the revision table from the shipped
+migration so it cannot pass against a schema the migration would not produce,
+and proves the 1062 recovery on a genuine race between two live connections.
 
 ---
 

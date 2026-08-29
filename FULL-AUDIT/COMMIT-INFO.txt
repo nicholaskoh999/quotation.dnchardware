@@ -6,8 +6,8 @@ BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a
-                "One transaction around the mutation, and the read moved inside it"
+                631cb8945406a934b351e476ec71330ed23a2d27
+                "The retry can see what it collided with"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -174,6 +174,9 @@ AUDIT COMMITS (oldest first — this list is the count)
   b1fd1de  CONFORMS now means the final state, and it is proven on 8.0.46
   77a788e  docs(control): accept Revision Storage Foundation as canonical
   1ca6554  One transaction around the mutation, and the read moved inside it
+  32faed8  docs(control): accept the transaction foundation as canonical
+  7de7bb6  Every save now writes what it actually stored, or it does not save
+  631cb89  The retry can see what it collided with
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -339,15 +342,16 @@ TEST MATRIX AT FINAL SHA
   mysqli compatibility PHP                94 assertions, 0 failed
   Actor identity PHP                     150 assertions, 0 failed
   Item identity PHP                      159 assertions, 0 failed
-  Transaction foundation PHP              85 assertions, 0 failed
+  Transaction foundation PHP              92 assertions, 0 failed
+  Revision writer PHP                    101 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      4,822
+  TOTAL ASSERTIONS                      4,930
   TOTAL FAILED                              8   (environment; see CANONICAL-STATE browserFailureException)
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      4,822 assertions
-  Delta:     +2,012 assertions
+  Final:      4,930 assertions
+  Delta:     +2,120 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
@@ -379,7 +383,7 @@ EVIDENCE
   screenshots/          96 frames + INDEX.txt
   before-fix/           6 frames from the baseline commit, same inputs
   after-fix/            56 frames, the matching after
-  regression-evidence/  20 files — every log the reports claim,
+  regression-evidence/  21 files — every log the reports claim,
                         checked against the directory rather than written
                         from memory
 <<<END:EVIDENCE>>>

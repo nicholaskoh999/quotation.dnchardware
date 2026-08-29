@@ -11,12 +11,15 @@ UI, no production migration, no deployment.
 
 | | |
 |---|---|
-| Accepted application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` |
+| Accepted application commit | `631cb8945406a934b351e476ec71330ed23a2d27` |
+| Accepted candidate | `631cb8945406a934b351e476ec71330ed23a2d27` — promoted to `main` by fast-forward, no merge commit |
+| Previous accepted commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` — superseded, never to be quoted as current |
 | Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — production has not moved |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | accepted is not deployed, and this one cannot be deployed until the migration is applied |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 | Production DB change | **NO** — `quotation_revisions` is still NOT APPLIED to production |
+| Next round | DIFF ENGINE / NO-OP SUPPRESSION — **NOT STARTED** |
 
 ---
 
@@ -201,14 +204,20 @@ MySQL 8.0.46 — the production engine — and on 8.4.3.
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+```
+
+**EMPTY, because the round is closed.** Those four files —
+
+```
 api.php
 tests/php/revision_writer.test.php
 tests/php/transaction_foundation.test.php
 tests/php/revision_storage.test.php
 ```
 
-Nothing else may differ from `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`.
-`api.php` is the only deployed application file. No browser suite changed.
+— were what this round declared, and they are now part of the accepted commit
+`631cb89`. Nothing may differ from it. `api.php` was the only deployed
+application file, and no browser suite changed.
 
 ### The two accepted suites this round had to maintain
 
@@ -271,10 +280,21 @@ Snapshot Revision Writer            ← this round
 
 ---
 
-## MEASURED ON THIS CANDIDATE
+## MEASURED, AND NOW CANONICAL
 
-Filled in from the runs, not carried over. **None of these are canonical** —
-CANONICAL-STATE still describes `1ca6554`, and a candidate does not touch it.
+Filled in from the runs, not carried over. **These figures are now canonical**:
+CANONICAL-STATE describes `631cb89`, the totals were recalculated from this
+evidence rather than copied forward, and `4,822` / `+2,012` are recorded as
+retired.
+
+```
+  3,936 browser + 172 + 107 + 62 + 15 + 42 + 94 + 150 + 159 + 92 + 101 = 4,930
+  4,930 - 2,810 = +2,120
+```
+
+Two figures moved: the writer is a tenth side group of **101**, and transaction
+foundation went **85 → 92**. Revision storage stayed 198 and stays out of the
+total, because it measures a migration rather than the application.
 
 ### Targeted — the revision writer
 
@@ -303,7 +323,11 @@ is the database afterwards.
 
 `auth_identity`'s single failure is the deliberately runtime-relative assertion
 recorded in CANONICAL-STATE: it needs PHP 8.4 and gets cost 10 on this 8.3.30
-machine. Unrelated to this round.
+machine. Unrelated to this round, and **not** restated as 150 / 0.
+
+The shipped side logs are this round's runs:
+`FULL-AUDIT/regression-evidence/revision-writer-php.log` is new at 101, and
+`transaction-foundation-php.log` was regenerated at 92.
 
 ### Full browser matrix — run, because application code changed
 
