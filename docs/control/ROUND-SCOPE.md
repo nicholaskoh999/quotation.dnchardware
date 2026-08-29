@@ -126,43 +126,75 @@ table and watching a save be refused with no quotation row created.
 
 ---
 
-## A DEFECT FOUND IN A PREVIOUSLY ACCEPTED ROUND
+## THE 1062 RETRY, BROKEN BY A PREVIOUS ROUND AND FIXED HERE
 
-**The one-time 1062 retry cannot recover inside the transaction that
-READ-BEFORE-WRITE / TRANSACTION FOUNDATION introduced.** Found by this round's
-test, caused by the previous one, and **not fixed here**.
+This was reported as a finding and returned as a **BLOCKER**: the retry is part
+of this round's acceptance gate, so it is fixed in this candidate. The defect
+was not in the revision writer; it was in READ-BEFORE-WRITE / TRANSACTION
+FOUNDATION, and this round's tests are what surfaced it.
 
-MySQL's default isolation is REPEATABLE READ, which gives a transaction a
-consistent snapshot at its first read. When another session commits the `ref_no`
-the allocator is about to use:
+### What was wrong
 
-- the INSERT is refused with 1062, because writes always see the latest state;
-- but `next_free_ref_no()`'s plain `SELECT` still reads the transaction's
-  original snapshot and returns **the same number**;
-- so the single permitted retry collides again and is spent.
+MySQL's default isolation is REPEATABLE READ, which gives a transaction one
+consistent snapshot at its first read and never moves it. When another session
+commits the `ref_no` the allocator is about to use:
+
+- the INSERT is refused with **1062**, because writes always see the latest
+  state;
+- but `next_free_ref_no()`'s plain `SELECT` still reads the **original
+  snapshot** and returns **the same number**;
+- so the retry collides again and the one permitted attempt is spent.
 
 Demonstrated directly: inside a transaction, a plain `SELECT` reports the row
 absent while an `INSERT` of that very row is refused with 1062.
 
-Before the transaction existed each `SELECT` saw the latest committed data and
-the retry recovered. It no longer can.
+The retry accepted at `86cf262` became unreachable the moment `save_quotation`
+was wrapped in a transaction, and nothing said so. It failed closed, which is
+why it went unnoticed — a refused save with a duplicate-key message rather than
+anything visibly wrong.
 
-**Severity, stated plainly.** It fails CLOSED: the save is refused with the
-duplicate-key error, nothing partial is written, no wrong number is issued, and
-the operator's own retry runs in a fresh transaction with a fresh snapshot and
-succeeds. It only fires when something outside `DC_REF_LOCK` — a second
-application, an import, a manual insert — takes the exact number this request
-chose, which is the rare case the retry was built for in the first place.
+### The fix
 
-**Not fixed in this round**, because the fix is either a change of isolation
-level for the save transaction or a change to the allocator's read semantics.
-Both are Transaction Foundation decisions with their own consequences, and
-widening this round to make them would be exactly the scope creep the brief
-forbids. Recorded here for its own round.
+The **create** transaction now opens at **READ COMMITTED**:
 
-The suite therefore proves what is true rather than what was assumed: a real
-1062 race leaves **no quotation row and no revision**, and the writer is called
-exactly once, after the retrying INSERT returns, with no loop around either.
+```php
+dc_txn_begin($db, true)     →  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+                               START TRANSACTION
+```
+
+READ COMMITTED takes a fresh snapshot for each consistent read, so the
+reallocation sees the row it collided with and takes the next free number. That
+is the whole change: one optional argument, one `SET TRANSACTION`, one call
+site.
+
+**Why this is safe here.** The create transaction never reads the same thing
+twice expecting it not to move. It allocates a number, inserts, and — if
+refused — allocates again, which is precisely the read that MUST move.
+Allocation is already serialised by `DC_REF_LOCK`, so nothing changes for
+ordinary concurrent saves; this only lets the retry see reality in the rare case
+something **outside** that lock took the number.
+
+**Why it is not applied everywhere.** The update path stays at the server
+default. It depends on `SELECT … FOR UPDATE`, which is a locking read and
+already sees the latest committed state, so it has nothing to gain — and its
+accepted read-before-write behaviour is not disturbed by a change it does not
+need.
+
+**Scope of the setting.** `SET TRANSACTION` without `SESSION` or `GLOBAL`
+applies to the next transaction only. Neither the session nor the server is
+changed, and the suite asserts that no `SET SESSION` or `SET GLOBAL` form
+appears anywhere.
+
+### Proven, not argued
+
+The suite runs a **real** race — another connection holds the number
+uncommitted, the request blocks on the duplicate key, the other connection
+commits, MySQL raises a genuine 1062 — and asserts that the save now
+**succeeds** on `Q-YYYY-0002`, that **exactly one** revision was written rather
+than one per attempt, that it is numbered 1 and recorded as a `create`, that it
+carries the `ref_no` the retry **settled on** rather than the one it first
+tried, and that **no revision claims the number the first attempt lost**. On
+MySQL 8.0.46 — the production engine — and on 8.4.3.
 
 ---
 
@@ -212,8 +244,9 @@ shutdown handler.
 ## MUST NOT CHANGE — AND DOES NOT
 
 `ref_no` format · server-side allocation · `GET_LOCK` and its release ordering ·
-`uq_quotations_ref` · the exactly-one 1062 retry (unchanged, and its limitation
-is a finding, not an edit) · `SELECT … FOR UPDATE` · `item_uid` reconciliation ·
+`uq_quotations_ref` · **exactly one** 1062 retry — still one, still only 1062,
+still no loop; what changed is that it can now see what it collided with ·
+`SELECT … FOR UPDATE` · `item_uid` reconciliation ·
 Actor Identity · pricing · Quick Add · the parser · the translation dictionary ·
 `delete_quotation`, which writes no revision and is untouched.
 
@@ -247,8 +280,8 @@ CANONICAL-STATE still describes `1ca6554`, and a candidate does not touch it.
 
 | | |
 |---|---:|
-| `tests/php/revision_writer.test.php` on MySQL **8.0.46**, the production engine | **94 / 0** |
-| the same suite on MySQL **8.4.3** | **94 / 0** |
+| `tests/php/revision_writer.test.php` on MySQL **8.0.46**, the production engine | **101 / 0** |
+| the same suite on MySQL **8.4.3** | **101 / 0** |
 
 The shipped `api.php` is copied byte-identically into a sandbox and served over
 real HTTP; the revision table is lifted from the shipped migration, so the suite
@@ -280,7 +313,33 @@ machine. Unrelated to this round.
 | Assertions | **3,936** — 3,928 passed |
 | Failed | **8** |
 | Skipped | **0** |
-| Elapsed | 913.6s |
+| Elapsed | 908.1s |
+
+**A ninth failure appeared once and was chased down rather than waved through.**
+The first matrix run on this candidate reported 9: the known eight plus
+`35-edit-mode` — *"O: clearing it back to the default lets the session close"*.
+Because the acceptance gate says any new application regression blocks the
+candidate, it was treated as one until proven otherwise.
+
+| run | tree | failures |
+|---|---|---:|
+| 1 | candidate | 9 — the known 8 plus `fast edit` |
+| 2 | candidate | **8** |
+| 3 | **pristine worktree at `1ca6554`**, no writer at all | **8** |
+| 5 × | candidate, suite 35 alone | **0** |
+
+And the mechanism is closed, not merely unobserved: `index.php`, `tests/suites`
+and `tests/lib` are byte-identical to the accepted commit, and the harness
+**intercepts every `api.php` request and answers it from a stub table** — the
+matrix never executes the one file this round changed. A differing browser
+result therefore cannot be caused by it.
+
+**Recorded as an observation, not fixed here:** the assertion sits at the end of
+a chain of `typeCell()` / `wqaEditDone()` pairs that — unlike the ones above it —
+carry no settle wait, so under full-matrix load the input event can still be in
+flight when `wqaEditDone()` is asked. `tests/suites` is out of scope for this
+round and was not touched. Worth a settle wait in whichever round next has
+reason to open that file.
 
 **The 8 are the recorded environment exception, unchanged and not one more.**
 All in `38-mobile-ui`, all the `companies.php` modal close control at 1440 /
@@ -314,3 +373,7 @@ revision_no)`.
 
 CONCURRENCY — two simultaneous updates of one quotation both succeed and
 produce revisions 2 and 3, no collision and no gap.
+
+THE 1062 RETRY — a real race, recovered: the save succeeds on the next number,
+exactly one revision is written, it carries the ref_no the retry settled on, and
+nothing claims the number the first attempt lost.

@@ -79,7 +79,40 @@ if ($raw) $input = json_decode($raw, true) ?? [];
    not either. They are tracked separately and released separately. */
 $GLOBALS['DC_TXN'] = ['db' => null, 'active' => false, 'lock' => false];
 
-function dc_txn_begin($db) {
+/* $freshReads opens the transaction at READ COMMITTED instead of the server
+   default. It exists for exactly one caller and one reason.
+
+   THE 1062 RETRY CANNOT WORK UNDER REPEATABLE READ. That isolation gives a
+   transaction a consistent snapshot at its first read, and it never moves. So
+   when another session commits the ref_no the allocator is about to use:
+
+       the INSERT is refused with 1062        — writes always see the latest state
+       but next_free_ref_no()'s plain SELECT  — still reads the ORIGINAL snapshot
+       returns THE SAME NUMBER                — so the retry collides again
+
+   and the one permitted attempt is spent on a number that was never going to
+   work. The retry accepted at 86cf262 became unreachable the moment
+   save_quotation was wrapped in a transaction, and nothing said so.
+
+   READ COMMITTED takes a fresh snapshot for each consistent read, so the
+   reallocation sees the row that caused the collision and picks the next free
+   number. That is the whole fix.
+
+   WHY THIS IS SAFE HERE, AND WHY IT IS NOT APPLIED EVERYWHERE. The create
+   transaction never reads the same thing twice expecting it not to move: it
+   allocates a number, inserts, and — if refused — allocates again, which is
+   precisely the read that MUST move. Allocation is already serialised by
+   DC_REF_LOCK, so this changes nothing about ordinary concurrent saves; it
+   only lets the retry see reality in the rare case something OUTSIDE that lock
+   took the number. The update path is left at the server default: it depends
+   on SELECT ... FOR UPDATE, which is a locking read and already sees the
+   latest committed state, so it has nothing to gain and its accepted
+   read-before-write behaviour is not disturbed.
+
+   SET TRANSACTION without SESSION or GLOBAL applies to the NEXT transaction
+   only, so the scope ends when this one does. */
+function dc_txn_begin($db, $freshReads = false) {
+    if ($freshReads && !$db->query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED')) return false;
     if (!$db->begin_transaction()) return false;
     $GLOBALS['DC_TXN']['db']     = $db;
     $GLOBALS['DC_TXN']['active'] = true;
@@ -1018,8 +1051,11 @@ if ($action === 'get_next_ref') {
     /* The lock is taken FIRST and the transaction opened inside it, so the
        allocation and the INSERT that uses it are one atomic write. If BEGIN
        itself fails nothing has been written, and the lock is given back before
-       anything else is attempted. */
-    if (!dc_txn_begin($db)) {
+       anything else is attempted.
+
+       READ COMMITTED, because the 1062 retry has to be able to SEE the row it
+       collided with before it reallocates — see dc_txn_begin(). */
+    if (!dc_txn_begin($db, true)) {
         release_ref_lock($db);
         fail_json('Could not begin the save transaction: ' . $db->error);
     }

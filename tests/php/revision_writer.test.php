@@ -61,6 +61,15 @@ $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revis
     ok(strpos($API, "dc_write_revision(\$db, \$id, 'update')") !== false, '0: and the update event');
     /* prepared_by is a document field. The actor must come from the session. */
     ok(strpos($API, 'dc_current_user()') !== false, '0: the actor comes from dc_current_user()');
+    /* The isolation is scoped to the next transaction only, and only the create
+       path asks for it — the update path depends on FOR UPDATE, which is a
+       locking read and already sees the latest committed state. */
+    eq(substr_count($API, 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED'), 1,
+       '0: READ COMMITTED is set in exactly one place');
+    ok(strpos($API, 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED') !== false
+       && strpos($API, 'SET SESSION TRANSACTION ISOLATION') === false
+       && strpos($API, 'SET GLOBAL TRANSACTION ISOLATION') === false,
+       '0: scoped to the next transaction — neither the session nor the server is changed');
     ok(!preg_match('/actor_user\w*\s*=\s*\$?\w*prepared_by/i', $API),
        '0: prepared_by is never assigned to an actor column');
 }
@@ -398,36 +407,45 @@ $id1 = null; $uid1 = null;
     $body = substr($resp, strpos($resp, "\r\n\r\n") + 4);
     $j = json_decode(trim($body), true);
 
-    /* WHAT ACTUALLY HAPPENS, AND IT IS NOT WHAT THE ROUND BRIEF ASSUMED.
-       The save is REFUSED. The single 1062 retry cannot recover inside the
-       transaction the accepted Transaction Foundation opened, because MySQL's
-       default REPEATABLE READ gives the transaction a consistent snapshot at
-       its first read: after the other session commits, next_free_ref_no()'s
-       plain SELECT still cannot see the new row and returns the SAME number,
-       so the retry collides again and the one permitted attempt is spent.
-       Proven directly: inside a transaction, a plain SELECT reports the row
-       absent while the INSERT is refused with 1062 for that very row.
+    /* THE RETRY RECOVERS, and this is the assertion that proves the fix.
 
-       This is a defect in the PREVIOUSLY ACCEPTED round, surfaced here rather
-       than introduced here — before the transaction existed, each SELECT saw
-       the latest committed data and the retry recovered. It is recorded in
-       ROUND-SCOPE and NOT patched in this round, which would mean changing
-       isolation or the allocator's read semantics.
+       Under the server default, REPEATABLE READ, it could not: the transaction
+       holds one snapshot for its whole life, so after the other session
+       commits, next_free_ref_no()'s plain SELECT still returned the SAME
+       number and the single retry collided again. The create transaction now
+       opens at READ COMMITTED, so the reallocation sees the row it collided
+       with and takes the next free number.
 
-       It fails CLOSED, which is why it is a defect and not an emergency: no
-       partial write, no wrong number, and the operator's own retry runs in a
-       fresh transaction with a fresh snapshot and succeeds. What this suite
-       must prove is the atomicity property that IS in scope. */
-    ok(is_array($j) && empty($j['ok']),
-       '8: the save is refused — the retry cannot recover inside the transaction: ' . substr($body, 0, 160));
-    ok(strpos((string)($j['error'] ?? ''), 'Duplicate entry') !== false,
-       '8: with the duplicate-key error surfaced, not swallowed');
-    eq($nRevs(), 0, '8: and NO revision was written for a create that never landed');
-    eq((int)$one("SELECT COUNT(*) FROM quotations WHERE customer_name <> 'squatter'"), 0,
-       '8: nor any quotation row — the whole transaction rolled back');
+       This is a real race, not a simulation: another connection held the
+       number uncommitted, this request blocked on the duplicate key, the
+       other connection committed, and MySQL raised a genuine 1062. */
+    $body = substr($resp, strpos($resp, "\r\n\r\n") + 4);
+    $j = json_decode(trim($body), true);
+    ok(is_array($j) && !empty($j['ok']),
+       '8: the save SUCCEEDS through a real 1062 retry: ' . substr($body, 0, 200));
+
+    if (is_array($j) && !empty($j['ok'])) {
+        $newId = (int)$j['id'];
+        eq($j['ref_no'], 'Q-' . date('Y') . '-0002',
+           '8: on the NEXT number — the reallocation could see the squatter this time');
+        eq(count($revs($newId)), 1,
+           '8: and EXACTLY ONE revision was written, not one per attempt');
+        $rev = $revs($newId)[0];
+        eq((int)$rev['revision_no'], 1, '8: numbered 1 — it is still a create');
+        eq($rev['event_type'], 'create', '8: and recorded as one');
+        eq($rev['quotation_ref_no'], $j['ref_no'],
+           '8: recording the ref_no the retry SETTLED on, not the one it first tried');
+        $s8 = json_decode($rev['snapshot_json'], true);
+        eq($s8['quotation']['ref_no'], $j['ref_no'], '8: and the snapshot agrees with it');
+        /* The number it first tried belongs to the other session, and nothing
+           in this history claims it. */
+        eq((int)$one("SELECT COUNT(*) FROM quotation_revisions WHERE quotation_ref_no = 'Q-"
+                     . date('Y') . "-0001'"), 0,
+           '8: no revision claims the number the first attempt lost');
+    }
     eq((int)$one("SELECT IS_FREE_LOCK('dc_quotation_ref_alloc')"), 1, '8: the named lock was released');
 
-    /* And the property the round asked about, proven where it can be: the
+    /* And the property the round asked about, proven structurally too: the
        revision write happens ONCE, after the retry has settled, not once per
        attempt. There is no loop between them and exactly one call site. */
     $createSeg = substr($API, strpos($API, "\$action === 'save_quotation'"),
@@ -438,6 +456,8 @@ $id1 = null; $uid1 = null;
        '8: and only after the retrying INSERT has returned');
     ok(preg_match('/for\s*\(|while\s*\(/', $createSeg) === 0,
        '8: with no loop around either of them');
+    ok(strpos($createSeg, 'dc_txn_begin($db, true)') !== false,
+       '8: the create transaction asks for fresh reads, which is what makes the retry able to recover');
 
     /* Clean the directly-inserted squatter away: it never went through the
        application, so it is not part of what section 9 is measuring. */
