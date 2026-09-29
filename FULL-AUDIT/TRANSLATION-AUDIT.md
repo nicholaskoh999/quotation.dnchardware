@@ -1,6 +1,6 @@
 # TRANSLATION AUDIT — English / 中文
 
-Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `5729ad5001694bc62370472277dc9e5860276408`.
+Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d` → final `5595395fefb49adcb1140a3c9b2a1c36dc7a2186`.
 
 Three tools, and the third exists because the first two were not enough:
 
@@ -11,12 +11,13 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `5729ad5001694bc62370472277dc9e5860276408` is the last commit that changed the
+> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when NO-OP SUPPRESSION was accepted. Thirteen application
+> when MINIMAL HISTORY READ / UI was accepted. Fourteen application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `5729ad5001694bc62370472277dc9e5860276408`, accepted for NO-OP SUPPRESSION;
 > superseded — `631cb8945406a934b351e476ec71330ed23a2d27`, accepted for SNAPSHOT REVISION WRITER;
 > superseded — `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, accepted for READ-BEFORE-WRITE / TRANSACTION FOUNDATION;
 > superseded — `649f80a09f83a7201c0f3772e01fc270ccda3e05`, accepted for ITEM IDENTITY FOUNDATION;
@@ -45,7 +46,7 @@ Three tools, and the third exists because the first two were not enough:
 | index.php | 731 | 100% | 0 | 0 | 0 | 0 | 0 |
 | companies.php | 120 | 100% | 0 | 0 | 0 | 0 | 0 |
 | login.php | 11 | 100% | 0 | 0 | 0 | 0 | 0 |
-| **Total** | **862** | **100%** | **0** | **0** | **0** | **0** | **0** |
+| **Total** | **903** | **100%** | **0** | **0** | **0** | **0** | **0** |
 
 Regenerated from the final SHA. Every earlier figure — 658 overnight, 756 in
 the morning, then 843 and 853 across the closing rounds — is superseded and

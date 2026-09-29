@@ -6,8 +6,8 @@ BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                5729ad5001694bc62370472277dc9e5860276408
-                "An update that changes nothing now records nothing"
+                5595395fefb49adcb1140a3c9b2a1c36dc7a2186
+                "History, worked out when someone asks"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -179,6 +179,8 @@ AUDIT COMMITS (oldest first — this list is the count)
   631cb89  The retry can see what it collided with
   64b73ab  docs(control): accept the snapshot revision writer as canonical
   5729ad5  An update that changes nothing now records nothing
+  8689264  docs(control): accept no-op suppression as canonical
+  5595395  History, worked out when someone asks
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -335,7 +337,7 @@ FILES CHANGED (baseline -> final)
 TEST MATRIX AT FINAL SHA
 ------------------------
 <<<GENERATED:MATRIX>>>
-  Browser suites            40 suites, 3,936 assertions, 8 failed
+  Browser suites            41 suites, 4,010 assertions, 8 failed
   Pricing-history PHP                    172 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
@@ -347,14 +349,15 @@ TEST MATRIX AT FINAL SHA
   Transaction foundation PHP              92 assertions, 0 failed
   Revision writer PHP                    101 assertions, 0 failed
   No-op suppression PHP                  171 assertions, 0 failed
+  History read PHP                       126 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      5,101
+  TOTAL ASSERTIONS                      5,301
   TOTAL FAILED                              8   (environment; see CANONICAL-STATE browserFailureException)
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      5,101 assertions
-  Delta:     +2,291 assertions
+  Final:      5,301 assertions
+  Delta:     +2,491 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
@@ -386,7 +389,7 @@ EVIDENCE
   screenshots/          96 frames + INDEX.txt
   before-fix/           6 frames from the baseline commit, same inputs
   after-fix/            56 frames, the matching after
-  regression-evidence/  22 files — every log the reports claim,
+  regression-evidence/  23 files — every log the reports claim,
                         checked against the directory rather than written
                         from memory
 <<<END:EVIDENCE>>>

@@ -5,10 +5,10 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `5729ad5001694bc62370472277dc9e5860276408` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
-**5,101 assertions, 8 failed, 0 skipped** — the eight are the recorded
+**5,301 assertions, 8 failed, 0 skipped** — the eight are the recorded
 `38-mobile-ui` environment exception, not an application fault.
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
@@ -16,12 +16,13 @@ Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `5729ad5001694bc62370472277dc9e5860276408` is the last commit that changed the
+> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when NO-OP SUPPRESSION was accepted. Thirteen application
+> when MINIMAL HISTORY READ / UI was accepted. Fourteen application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `5729ad5001694bc62370472277dc9e5860276408`, accepted for NO-OP SUPPRESSION;
 > superseded — `631cb8945406a934b351e476ec71330ed23a2d27`, accepted for SNAPSHOT REVISION WRITER;
 > superseded — `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, accepted for READ-BEFORE-WRITE / TRANSACTION FOUNDATION;
 > superseded — `649f80a09f83a7201c0f3772e01fc270ccda3e05`, accepted for ITEM IDENTITY FOUNDATION;
@@ -260,7 +261,7 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **862 keys, 100% translated, nothing bypassing the
+The priority deliverable. **903 keys, 100% translated, nothing bypassing the
 translator, and no element relying on a hook that nothing applies**.
 That is up from 512 keys with **129 strings that never reached it**, then a further ~210 the
 overnight checker could not see, then 36 more and 63 unapplied hooks that the
@@ -426,19 +427,19 @@ Escape returns both the 10.6 and the word Default. R10 was tightened after it
 passed while the refusal text was empty: it now asserts the sentence, not only
 the disabled button.
 
-**TOTAL ASSERTIONS 5,101 · TOTAL FAILED 8 · SKIPPED 0.**
+**TOTAL ASSERTIONS 5,301 · TOTAL FAILED 8 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
 `browser-suite.log` (and `.json`), `pricing-history-php.log`,
 `ai-extract-php.log`, `pricing-workbook.log`, `save-retry-php.log`,
 `mysqli-compat-php.log`, `item-identity-php.log`, `transaction-foundation-php.log`,
-`revision-writer-php.log`, `noop-suppression-php.log`,
+`revision-writer-php.log`, `noop-suppression-php.log`, `history-read-php.log`,
 `translation-coverage.log` (and
 `.json`), `php-lint.log`, `responsive-matrix.log`, `quantity-suite.log`,
 `language-suite.log`, `rendered-i18n-suite.log`, `row-meta-suite.log`,
 `edit-mode-suite.log`, `diameter-suite.log`, `roles-suite.log`.
-**Twenty-two files, twenty-two claims.** The per-suite logs are slices of the single
+**Twenty-three files, twenty-three claims.** The per-suite logs are slices of the single
 full-matrix run in `browser-suite.log` — the same run against the same tree,
 not separate invocations that might each have seen something different — and
 each says so in its first two lines.
@@ -453,8 +454,8 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. The browser matrix runs 40 suites and 3,936 assertions, of which 8 fail on the
-recorded environment exception and 3,928 pass; 5,101 across everything.
+re-exercised. The browser matrix runs 41 suites and 4,010 assertions, of which 8 fail on the
+recorded environment exception and 4,002 pass; 5,301 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth
 naming because both were self-inflicted:

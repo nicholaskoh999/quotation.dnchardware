@@ -19,151 +19,130 @@ outputs being validated, not sources of truth. Checkers must read
 
 | | |
 |---|---|
-| Accepted application commit | `5729ad5001694bc62370472277dc9e5860276408` |
+| Accepted application commit | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` |
 | Application status | **ACCEPTED** |
-| Accepted round | NO-OP SUPPRESSION — an UPDATE that changes nothing records nothing, **FINAL ACCEPTED** |
+| Accepted round | MINIMAL HISTORY READ / UI — a read-only History panel, with what changed derived at read time, **FINAL ACCEPTED** |
 
-The accepted commit moved because a save that changed nothing was writing a
-revision anyway, and for no other reason. It is `5729ad5` because that is the
-last commit that changes an application file — proven from the files, not from a
-branch tip:
-
-```
-git merge-base --is-ancestor 631cb89 5729ad5  →  0   (631cb89 is an ancestor)
-git log -1 --format=%H 631cb89..HEAD -- api.php \
-        tests/php/noop_suppression.test.php
-        →  5729ad5   (derived from the files ROUND-SCOPE declared, not asserted)
-git diff --name-only 631cb89..5729ad5 -- '*.php' ':(exclude)tests/**'  →  api.php
-git diff --name-only --diff-filter=MD 631cb89..5729ad5 -- tests/suites →  (empty)
-git diff --name-only 5729ad5..HEAD -- '*.php' ':(exclude)tests/**'     →  (empty)
-```
-
-**What the change is.** An `UPDATE` that changes nothing used to write a revision
-anyway. That is not history, it is noise: revision numbers advance and a reader
-cannot tell which entries represent an edit.
+The accepted commit moved because nobody could see what a quotation used to be,
+and for no other reason. It is `5595395` because that is the last commit that
+changes an application file — proven from the files, not from a branch tip:
 
 ```
-UPDATE   BEGIN → SELECT * … FOR UPDATE → capture BEFORE
-              → reconcile identity → UPDATE quotation
-              → read AFTER → compare
-              → if changed: write ONE revision
-              → COMMIT
-CREATE   unchanged in every respect
+git merge-base --is-ancestor 5729ad5 5595395  →  0   (5729ad5 is an ancestor)
+git log -1 --format=%H 5729ad5..HEAD -- api.php index.php \
+        tests/php/history_read.test.php tests/suites/41-history.test.js
+        →  5595395   (derived from the files ROUND-SCOPE declared, not asserted)
+git diff --name-only 5729ad5..5595395 -- '*.php' ':(exclude)tests/**'
+        →  api.php, index.php
+git diff --name-only --diff-filter=MD 5729ad5..5595395 -- tests/suites →  (empty)
+git diff --name-only 5595395..HEAD -- '*.php' ':(exclude)tests/**'     →  (empty)
 ```
 
-Three helper functions and one `if`. **`dc_write_revision()` is byte-identical** —
-it is now called conditionally rather than unconditionally.
-
-### What is compared, and why it is exactly that
-
-**Persisted BEFORE against persisted AFTER. Never the browser payload.** BEFORE
-is the row the transaction already holds `FOR UPDATE`, so it costs no extra read;
-AFTER is the row read back once the `UPDATE` has run. Comparing intent instead
-would be wrong in both directions — it would miss what the database did to a
-value (a `DECIMAL(12,2)` rounding, a `VARCHAR` truncating) and would report a
-change when the payload merely arrived differently shaped.
-
-**The surface is the nine columns the UPDATE can write**, and that is not a
-judgement call — it is the `SET` list of the statement itself:
+**What the change is.** Four rounds recorded history; none of it could be read.
+A saved quotation now has a **History** panel: revision number, event, when,
+who, and what changed.
 
 ```
-company_id · quote_date · valid_until · prepared_by · remarks
-customer_name · customer_phone · items · total_amount
+GET api.php?action=get_quotation_history&id=…
+  → SELECT … FROM quotation_revisions WHERE quotation_id = ? ORDER BY revision_no ASC
+  → walk oldest → newest, comparing each snapshot with the one before it
+  → answer newest-first, with the derived changes attached
+  → the page renders them through the dictionary
 ```
 
-Everything else in the row is unreachable from this handler. `ref_no` is
-deliberately not in the `SET` list, `id` and `created_at` are never written, and
-**there is no `updated_at` anywhere in this schema** — so there is no save-only
-metadata to filter out.
+**DERIVED AT READ TIME, AND PERSISTED NOWHERE.** No `diff_json`, no revision
+column, no `ALTER`, no `snapshot_schema_version = 2`, no new migration, and
+nothing derived written back into a snapshot. The accepted eleven-column schema
+is untouched, and the suite asserts that on the shipped source.
 
-`company_name` is resolved for the snapshot but is **not compared**: it is derived
-from `company_id`, which *is* compared, and from `companies.name`, which this
-request does not write. `total_amount` is compared as the `DECIMAL` **string**
-MySQL returns, never as a float.
+**ONE SELECT, AND IT WRITES NOTHING** — no `INSERT`, no `UPDATE`, no `DELETE`,
+no `TRUNCATE`, no `dc_txn_begin`, no `dc_write_revision`, no `FOR UPDATE`. Three
+reads in a row leave the quotation row byte-identical, every revision row
+byte-identical, the revision count unmoved and no `revision_no` changed.
 
-**Items are compared through `item_uid`, and order is part of the comparison.**
-The normalised form states the uid sequence beside the item bodies, which are
-`ksort`ed at every level so two encodings of the same item compare equal —
-`ksort` applied to lists too, where it changes nothing because their keys are
-already `0..n`, which is precisely what keeps order significant.
+**Deliberately NOT joined to `quotations`.** A revision records what a quotation
+*was*, and the architecture intends that record to outlive the quotation —
+making `quotations` vouch for it would delete history exactly when it is most
+wanted. Whether a deleted quotation's history is ever *shown* is the Baseline /
+Delete Policy round's question and is not answered here.
 
-**A REORDER IS A CHANGE, DELIBERATELY.** Item order is business fact: it is the
-order printed on the quotation, and *"Item 3 is item 3 on Screen, on Print and in
-WhatsApp"* is a rule PROJECT-GUARDRAILS protects. What a reorder is **not** is a
-removal followed by an addition — every `item_uid` that was there is still there,
-and the suite proves the set is identical. Recording *what* changed is a later
-round; this one answers only *whether* anything did.
+### Items match by `item_uid`, and by nothing else
 
-**The comparison is not a storage contract.** Nothing about it is persisted,
-returned, or held in a column; it exists for the length of one comparison. The
-suite asserts it: no diff key in the snapshot, `snapshot_schema_version` still
-`1`, still exactly one `INSERT` and no `UPDATE`/`DELETE`/`TRUNCATE` against
-`quotation_revisions`, and no `ALTER` of a revision schema anywhere.
-
-### THE PERSISTED DIFF ENGINE IS DEFERRED, ON A FACT
-
-This round opened as **DIFF ENGINE / NO-OP SUPPRESSION**. The diff half was
-stopped before a line was written: **the accepted revision schema has nowhere to
-put a structured diff, and it actively refuses one.** Eleven columns, none of
-them a diff, and three accepted artefacts enforce the count — the migration's
-CONFORMANCE gate *"counts anything unexpected as well as anything missing"* and
-reads **NO-GO**; its §4 gate says *"a twelfth column means something other than
-this file created it"*; and `revision_storage.test.php` asserts *"eleven columns,
-in the documented order, and nothing else"*. Adding `diff_json` would make the
-**accepted, still-unapplied migration refuse the table it would then find**.
-There is also no accepted diff representation anywhere to conform to.
-
-A later **MINIMAL HISTORY READ / UI** round may derive a human-readable diff **at
-read time** from two adjacent immutable snapshots, which needs no storage
-contract at all.
-
-### The accepted writer, and nine other accepted functions, are byte-identical
-
-Compared function body for function body rather than assumed: `dc_write_revision`,
-`dc_build_quotation_snapshot`, `dc_read_quotation_snapshot_row`,
-`dc_next_revision_no`, `dc_reconcile_item_uids`, `dc_lock_quotation_for_update`,
-`dc_txn_begin`, `next_free_ref_no`, `dc_save_quotation_insert`, `fail_json`.
-
-**Nothing else moved.** `ref_no`, the allocator, `GET_LOCK` and its release
-ordering, READ COMMITTED on create only, the **exactly one** 1062 retry and its
-real-race recovery, exactly one CREATE revision carrying the settled `ref_no`,
-`SELECT … FOR UPDATE`, `item_uid` reconciliation, rollback when a revision cannot
-be written, Actor Identity, pricing, Quick Add, the parser, the translation
-dictionary and `delete_quotation` are untouched. `api.php` is the only
-application file changed, and **no accepted PHP suite needed maintenance** —
-every update in `revision_writer` and `transaction_foundation` changes real
-business data, so both still measure 101 and 92 unedited.
-
-### THE 8.0.46 "ENVIRONMENT BLOCKER" IS RETIRED — IT WAS A COMMAND TYPO
-
-The candidate was first reported **BLOCKED** because MySQL 8.0.46 would not
-initialise, after roughly ten variations of path, location, shell,
-`--no-defaults`, `PATH`, `--tmpdir`, `--skip-log-bin`, InnoDB flush method and
-layout had been tried and "ruled out". Every one of them carried the same wrong
-flag.
-
-| flag | result |
+| | |
 |---|---|
-| `--initialize-insecure` — what the two preceding rounds used | **0 errors, 23 files** |
-| `--initialize-insensitive` — not a MySQL option | 3 files, no data dictionary |
+| same uid, fields differ | **item changed** — every moved field grouped under that one item |
+| uid only in the newer snapshot | **item added** |
+| uid only in the older snapshot | **item removed** |
+| same uid SET, different order | **items reordered** |
 
-Recovered from the earlier rounds' own transcript and settled by a control on the
-8.4.3 binary. **The earlier diagnosis was wrong and must not be quoted as an
-environment fact.** The correct entry is operator error in the initialize
-command.
+**A REORDER IS A REAL CHANGE BUT NEVER A REMOVAL PLUS AN ADDITION.** Identity
+did not change, so it cannot be a replacement — and it is still a change, because
+No-op Suppression established that item order is business fact.
+
+**Company is ONE change**, shown by the name each snapshot **froze**. The live
+`companies` table is never consulted, and the suite proves it by renaming the row
+and reading the frozen name back unchanged.
+
+### The honesty rules, because a history that guesses is worse than none
+
+**A first recorded CREATE** says the quotation was created, with the item count,
+the persisted total and the frozen company name — and invents no before values.
+
+**A first recorded UPDATE** says *"First recorded revision · Previous state is
+not available."* Baseline rollout is deferred, so a quotation older than the
+writer genuinely has nothing recorded before that point. It is **not** quietly
+turned into a create, and **no** from/to values are invented.
+
+**A snapshot version this viewer does not know** is reported as unsupported,
+naming the version, with its readable metadata still read and its structure not
+guessed at — and it cannot serve as the baseline for the entry after it.
+
+**An actor the record does not name** is *Legacy / Unknown*. Never a stand-in
+username.
+
+**A FAILED READ IS NOT AN EMPTY HISTORY.** One says nothing was recorded, the
+other says nothing could be read, and showing the first for the second would
+quietly hide a broken deployment.
+
+### The answer is data; the words are the page's
+
+`api.php` returns a machine `kind` and the persisted values. Every sentence a
+person reads is produced in `index.php` through the same dictionary as the rest
+of the UI, so history is translated like everything else rather than shipping
+English out of the server. Thirteen item fields have labels; anything else that
+differs is **counted** rather than named, so an internal key can never surface as
+English in a translated screen. `item_uid` is used for matching and is **never
+shown** to a normal reader.
+
+### The accepted WRITE path is byte-identical
+
+Compared function body for function body rather than assumed:
+`dc_write_revision`, `dc_build_quotation_snapshot`,
+`dc_read_quotation_snapshot_row`, `dc_next_revision_no`,
+`dc_reconcile_item_uids`, `dc_lock_quotation_for_update`, `dc_txn_begin`,
+`dc_business_state`, `dc_business_items`, `dc_ksort_deep`, `next_free_ref_no`,
+`dc_save_quotation_insert`, `fail_json`.
+
+**Nothing else moved.** `ref_no` and its allocator, `GET_LOCK` and its release
+ordering, READ COMMITTED on create only, the **exactly one** 1062 retry, no-op
+suppression, rollback when a revision cannot be written, `item_uid`
+reconciliation, Actor Identity, pricing, Quick Add, the parser and
+`delete_quotation` are untouched. **The persisted Diff Engine remains
+DEFERRED.**
 
 **ACCEPTED IS NOT LIVE.**
 
 | | |
 |---|---|
-| Accepted application | `5729ad5001694bc62370472277dc9e5860276408` |
+| Accepted application | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` |
 | **Deployed application** | **`649f80a09f83a7201c0f3772e01fc270ccda3e05`** — the Item Identity build |
 | Transaction foundation in production | **NOT DEPLOYED** |
 | Snapshot revision writer in production | **NOT DEPLOYED** |
 | No-op suppression in production | **NOT DEPLOYED** |
+| History reader in production | **NOT DEPLOYED** |
 | `migrations/2026-08-28-create-quotation-revisions.sql` | **NOT APPLIED** |
 
-Three accepted rounds now sit undeployed, and the migration must be **APPLIED
+**Four accepted rounds now sit undeployed**, and the migration must be **APPLIED
 BEFORE** any of them is deployed — with the table absent a save FAILS and rolls
 back, deliberately.
 
@@ -237,12 +216,12 @@ from 198.
 | | |
 |---|---:|
 | Baseline assertions | 2,810 |
-| Current final assertions | **5,101** |
-| Delta | **+2,291** |
+| Current final assertions | **5,301** |
+| Delta | **+2,491** |
 | Failed | **8** — see the exception below |
 | Skipped | 0 |
-| Browser suites | **40** |
-| Browser assertions | **3,936** |
+| Browser suites | **41** |
+| Browser assertions | **4,010** |
 
 Other accepted assertion groups:
 
@@ -259,6 +238,7 @@ Other accepted assertion groups:
 | Transaction Foundation (api.php) | 92 |
 | Revision Writer (api.php) | 101 |
 | No-op Suppression (api.php) | 171 |
+| History Read (api.php) | 126 |
 
 **Arithmetic, which the checker performs itself rather than trusting:**
 
@@ -274,20 +254,24 @@ Other accepted assertion groups:
 +   159   item identity
 +    92   transaction foundation
 +   101   revision writer
-+   171   no-op suppression        (new)
-= 5,101   final
++   171   no-op suppression
++   126   history read             (new)
+= 5,301   final
 
-  5,101 - 2,810 = 2,291
+  5,301 - 2,810 = 2,491
 ```
 
-**One figure moved, and it is measured, not estimated.**
-`tests/php/noop_suppression.test.php` is an eleventh side group of **171**, run
-on MySQL **8.0.46** — the production engine — and again on **8.4.3**, with the
-same count and no failures on either. **Nothing else moved**: revision writer is
-still 101 and transaction foundation still 92, both **unedited** and both
-re-confirmed on 8.0.46, because every update in them changes real business data.
-Revision storage stayed 198 and stays out of this total. **4,930** and
-**+2,120** are recorded as retired.
+**Two figures moved, and both are measured, not estimated.**
+`tests/php/history_read.test.php` is a twelfth side group of **126**, run on
+MySQL **8.0.46** — the production engine — and again on **8.4.3**, with the same
+count and no failures on either. And **the browser matrix moved for the first
+time since Item Identity**: `tests/suites/41-history.test.js` is a forty-first
+suite adding **74**, so 40 / 3,936 became **41 / 4,010** with the same eight
+recorded environment failures and none added. Nothing else moved — no-op
+suppression 171, revision writer 101 and transaction foundation 92 are all
+**unedited** and all re-confirmed on 8.0.46. Revision storage stayed 198 and
+stays out of this total. **5,101**, **+2,291**, **40 suites** and **862
+translation keys** are recorded as retired.
 
 **One side suite does not read 0 failed, and is not restated as though it did.**
 `tests/php/auth_identity.test.php` measures **150 / 1** on the local PHP 8.3.30
@@ -295,8 +279,8 @@ runtime — a runtime-relative bcrypt-cost artifact, not an application fault. T
 accepted Actor Identity evidence remains the PHP 8.4.19 run recorded when that
 round closed.
 
-**The browser matrix last moved at Item Identity, and has not moved since.**
-The thirty-nine suites that existed before that round still measure **3,907**,
+**The browser matrix moved at Item Identity, and again at this round.** The
+thirty-nine suites that existed before Item Identity still measure **3,907**,
 assertion for assertion — that figure is historical from here and may only be
 quoted as such — and `tests/suites/40-item-identity.test.js` adds **29**, which
 is the whole of the difference. Not one earlier suite was modified or deleted;
@@ -364,7 +348,7 @@ executes the shipped migration as a real subprocess against a stub `db.php`.
 
 | | |
 |---|---:|
-| Keys | **862** |
+| Keys | **903** |
 | Coverage | **100%** |
 | Missing | 0 |
 | Hard-coded | 0 |
@@ -429,11 +413,11 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 
 | | superseded |
 |---|---|
-| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 · 3,958 · 4,070 · 4,172 · 4,263 · 4,305 · 4,399 · 4,549 · 4,734 · 4,822 · 4,930 |
-| Deltas | +734 · +869 · +989 · +1,017 · +1,148 · +1,260 · +1,362 · +1,453 · +1,495 · +1,589 · +1,739 · +1,924 · +2,012 · +2,120 |
-| Translation keys | 512 · 658 · 756 · 843 · 853 |
+| Assertion totals | 3,334 · 3,482 · 3,679 · 3,799 · 3,827 · 3,958 · 4,070 · 4,172 · 4,263 · 4,305 · 4,399 · 4,549 · 4,734 · 4,822 · 4,930 · 5,101 |
+| Deltas | +734 · +869 · +989 · +1,017 · +1,148 · +1,260 · +1,362 · +1,453 · +1,495 · +1,589 · +1,739 · +1,924 · +2,012 · +2,120 · +2,291 |
+| Translation keys | 512 · 658 · 756 · 843 · 853 · 862 |
 | Finding totals | 29 · 33 |
-| Suite counts | 34 · 36 · 37 · 38 · 39 |
+| Suite counts | 34 · 36 · 37 · 38 · 39 · 40 |
 | Manifest filename | `ZIP-MANIFEST.txt` |
 | Application commit | `7f5bc977197a658d6d4db995ee2c9bb5e106e21b` — superseded by `e3d659b` when UI POLISH 1 was accepted |
 | Application commit | `e3d659bba1636cd4cfc74cb89be1b52cf92aff67` — superseded by `33ae0da` when UI POLISH 2 was accepted |
@@ -448,6 +432,7 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — superseded by `1ca6554` when READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. **Still the DEPLOYED commit**, which is a different fact and is current, not superseded |
 | Application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` — superseded by `631cb89` when SNAPSHOT REVISION WRITER was accepted |
 | Application commit | `631cb8945406a934b351e476ec71330ed23a2d27` — superseded by `5729ad5` when NO-OP SUPPRESSION was accepted |
+| Application commit | `5729ad5001694bc62370472277dc9e5860276408` — superseded by `5595395` when MINIMAL HISTORY READ / UI was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

@@ -34,8 +34,8 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = '5729ad5001694bc62370472277dc9e5860276408';
-const PREV = '631cb8945406a934b351e476ec71330ed23a2d27';
+const APP = '5595395fefb49adcb1140a3c9b2a1c36dc7a2186';
+const PREV = '5729ad5001694bc62370472277dc9e5860276408';
 /* What production RUNS, which is no longer what has been accepted. */
 const DEPLOYED = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
 const out = []; let bad = 0;
@@ -55,28 +55,32 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    && A.TOTAL === T.finalAssertions && A.BASELINE === T.baselineAssertions
    && A.DELTA === T.deltaAssertions && A.FAILED === T.failed && A.SKIPPED === T.skipped,
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
-ck(T.browserSuites === 40 && T.browserAssertions === 3936 && T.finalAssertions === 5101
-   && T.deltaAssertions === 2291 && T.baselineAssertions === 2810,
+ck(T.browserSuites === 41 && T.browserAssertions === 4010 && T.finalAssertions === 5301
+   && T.deltaAssertions === 2491 && T.baselineAssertions === 2810,
    'the accepted matrix is the measured run');
-/* HISTORICAL, and now named as such. These two fields read
-   "BeforeThisRound" while Item Identity WAS this round; it is two rounds back,
-   and a field whose name silently re-points at whoever reads it last is the
-   drift this layer exists to stop. They are renamed for the round they
-   actually describe, and the arithmetic they record is unchanged. The browser
-   matrix has not moved since. */
+/* HISTORICAL, and named for the round each pair describes rather than for
+   "this round" — a field whose name silently re-points at whoever reads it last
+   is the drift this layer exists to stop. Item Identity grew the matrix to 40
+   suites and 3,936; the history round grew it again. */
 ck(T.browserSuitesBeforeItemIdentity === 39 && T.browserAssertionsBeforeItemIdentity === 3907
    && T.itemIdentityBrowserAssertions === 29
-   && T.browserAssertionsBeforeItemIdentity + T.itemIdentityBrowserAssertions === T.browserAssertions,
-   `the browser matrix last grew at Item Identity: 3,907 + 29 = ${T.browserAssertions}, and has not moved since`);
+   && T.browserAssertionsBeforeItemIdentity + T.itemIdentityBrowserAssertions === 3936,
+   'the browser matrix grew at Item Identity: 3,907 + 29 = 3,936');
+ck(T.browserSuitesBeforeHistoryRound === 40 && T.browserAssertionsBeforeHistoryRound === 3936
+   && T.historyBrowserAssertions === 74
+   && T.browserAssertionsBeforeHistoryRound + T.historyBrowserAssertions === T.browserAssertions
+   && T.browserSuitesBeforeHistoryRound + 1 === T.browserSuites,
+   `and again at the history round: 3,936 + 74 = ${T.browserAssertions} across ${T.browserSuites} suites`);
 ck(T.browserSuitesBeforeThisRound === undefined && T.browserAssertionsBeforeThisRound === undefined,
    'and the fields no longer claim to describe "this round", whichever round is reading them');
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
    + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions
    + T.mysqliCompatAssertions + T.actorIdentityAssertions + T.itemIdentityAssertions
    + T.transactionFoundationAssertions + T.revisionWriterAssertions
-   + T.noopSuppressionAssertions === T.finalAssertions,
-   `3,936+172+107+62+15+42+94+150+159+92+101+171 = ${T.finalAssertions}`);
-ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions, '5,101 − 2,810 = +2,291');
+   + T.noopSuppressionAssertions + T.historyReadAssertions === T.finalAssertions,
+   `${fmtN(T.browserAssertions)}+172+107+62+15+42+94+150+159+92+101+171+126 = ${T.finalAssertions}`);
+ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions,
+   `${fmtN(T.finalAssertions)} − 2,810 = +${fmtN(T.deltaAssertions)}`);
 ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['ai-extract-php.log'] === T.aiExtractionAssertions
    && A.SIDE['pricing-workbook.log'] === T.workbookAssertions
@@ -87,14 +91,17 @@ ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['item-identity-php.log'] === T.itemIdentityAssertions
    && A.SIDE['transaction-foundation-php.log'] === T.transactionFoundationAssertions
    && A.SIDE['revision-writer-php.log'] === T.revisionWriterAssertions
-   && A.SIDE['noop-suppression-php.log'] === T.noopSuppressionAssertions,
-   'the eleven side suites agree in both files');
+   && A.SIDE['noop-suppression-php.log'] === T.noopSuppressionAssertions
+   && A.SIDE['history-read-php.log'] === T.historyReadAssertions,
+   'the twelve side suites agree in both files');
 /* Nothing moved in this promotion except the new group: no accepted suite
    needed maintenance, which is itself worth asserting rather than assuming. */
 ck(T.transactionFoundationAssertions === 92 && T.revisionWriterAssertions === 101,
    'the two accepted revision suites are unmoved at 92 and 101');
 ck(T.noopSuppressionAssertions === 171,
    'and no-op suppression is an eleventh group of 171');
+ck(T.historyReadAssertions === 126,
+   'and history read a twelfth group of 126');
 /* ── A failing assertion count may be recorded, but never left bare ────────
    The matrix has read "0 failed" for every accepted round until this one. It
    now reads 8, and the only thing that makes that acceptable is that the
@@ -120,20 +127,22 @@ ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 13, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554 → 631cb89',
+ck(S.length === 14, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554 → 631cb89 → 5729ad5',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[12].sha === PREV && S[12].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[13].sha === PREV && S[13].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`631cb8945406a934b351e476ec71330ed23a2d27` — superseded by `5729ad5`'),
+ck(MD.includes('`5729ad5001694bc62370472277dc9e5860276408` — superseded by `5595395`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
-ck(H.supersededAssertionTotals.includes(4930) && !H.supersededAssertionTotals.includes(5101),
-   '4,930 retired, 5,101 is not retired');
-ck(H.supersededDeltas.includes(2120) && !H.supersededDeltas.includes(2291),
-   '+2,120 retired, +2,291 is not retired');
-ck(H.supersededSuiteCounts.includes(39) && !H.supersededSuiteCounts.includes(40),
-   `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — 40 is current, not retired`);
+ck(H.supersededAssertionTotals.includes(5101) && !H.supersededAssertionTotals.includes(T.finalAssertions),
+   `5,101 retired, ${fmtN(T.finalAssertions)} is not retired`);
+ck(H.supersededDeltas.includes(2291) && !H.supersededDeltas.includes(T.deltaAssertions),
+   `+2,291 retired, +${fmtN(T.deltaAssertions)} is not retired`);
+ck(H.supersededTranslationKeys.includes(862) && C.translation.keys === 903,
+   '862 translation keys retired, 903 is current');
+ck(H.supersededSuiteCounts.includes(40) && !H.supersededSuiteCounts.includes(T.browserSuites),
+   `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — ${T.browserSuites} is current, not retired`);
 
 // ── Git ──
 git('cat-file', '-t', APP);
@@ -179,14 +188,16 @@ let ancHead = true; try { git('merge-base','--is-ancestor',APP,'HEAD'); } catch 
 ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 /* '*.php' matches tests/php/*.test.php too, so the application half is asked
    for on its own — this promotion carries TWO application files. */
-ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**') === 'api.php',
-   'the promotion carries exactly api.php');
+ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**').split('\n').sort().join(',')
+   === 'api.php,index.php',
+   'the promotion carries exactly api.php and index.php');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
-   === 'tests/php/noop_suppression.test.php',
-   'and exactly ONE PHP suite — its own new one. No accepted suite needed '
-   + 'maintenance, because every update in them changes real business data');
+   === 'tests/lib/harness.js,tests/php/history_read.test.php,tests/suites/41-history.test.js',
+   'one new PHP suite, one new browser suite, and the harness default answer the '
+   + 'new action needs — no accepted suite was edited');
 ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
-   'not one of the forty accepted browser suites was modified or deleted');
+   'not one of the forty accepted browser suites was modified or deleted — the '
+   + 'forty-first was ADDED');
 /* '*.php' matches tests/php/*.test.php too. Revision Storage added
    tests/php/revision_storage.test.php AFTER the accepted commit without
    touching the application, which is legitimate and which this assertion
@@ -198,8 +209,8 @@ ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') ==
    'and no accepted PHP suite was modified or deleted after it — only added to');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
-ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php',
-       'tests/php/noop_suppression.test.php') === APP,
+ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','index.php',
+       'tests/php/history_read.test.php','tests/suites/41-history.test.js') === APP,
    'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 
@@ -342,7 +353,14 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
 // ── No-op suppression: accepted, and it stored nothing to accept ──
 { const N = C.noopSuppression || {};
   ck(N.status === 'FINAL ACCEPTED / CLOSED', `no-op suppression: ${N.status}`);
-  ck(N.acceptedCandidate === APP, `its accepted candidate IS the accepted application ${APP.slice(0,7)}`);
+  /* HISTORICAL, like the writer's above: a round's accepted candidate does not
+     move when a LATER round moves APP. What must hold is that it names a real
+     commit which the accepted application descends from. */
+  ck(git('cat-file','-t',String(N.acceptedCandidate)) === 'commit',
+     `its accepted candidate ${String(N.acceptedCandidate).slice(0,7)} exists`);
+  { let anc = true;
+    try { git('merge-base','--is-ancestor', N.acceptedCandidate, APP); } catch { anc = false; }
+    ck(anc, `and the accepted application ${APP.slice(0,7)} descends from it`); }
   ck(A.SIDE['noop-suppression-php.log'] === N.assertions && N.failed === 0,
      `authoritative.js and canonical agree: ${N.assertions} assertions, ${N.failed} failed`);
   { const eng = Object.keys(N.verifiedOn || {});
@@ -374,6 +392,52 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
      && /initialize-insecure/.test(N.environmentBlockerRetired || ''),
      'and retires the 8.0.46 "environment blocker" as the command typo it was'); }
 
+// ── The history reader: accepted, and it stored nothing to accept ──
+{ const Hr = C.historyRead || {};
+  ck(Hr.status === 'FINAL ACCEPTED / CLOSED', `history read: ${Hr.status}`);
+  ck(Hr.acceptedCandidate === APP, `its accepted candidate IS the accepted application ${APP.slice(0,7)}`);
+  ck(A.SIDE['history-read-php.log'] === Hr.assertions && Hr.failed === 0,
+     `authoritative.js and canonical agree: ${Hr.assertions} assertions, ${Hr.failed} failed`);
+  { const eng = Object.keys(Hr.verifiedOn || {});
+    ck(eng.length === 2 && eng.some(e => /8\.0\.46/.test(e)),
+       `verified on ${eng.join(' and ')} — including the exact production engine`);
+    ck(Object.values(Hr.verifiedOn || {}).every(v => v.assertions === Hr.assertions && v.failed === 0),
+       'both engines returned the same count with no failures'); }
+  /* READ ONLY, AND ASKED OF THE SOURCE. A history that could write would not be
+     a history. */
+  const api = R('api.php');
+  const hi = api.indexOf("$action === 'get_quotation_history'");
+  const hj = api.indexOf("$action === 'save_quotation'");
+  ck(hi > 0 && hj > hi, 'the history branch is in api.php, before save_quotation');
+  const hist = api.slice(hi, hj).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  ck(!/\bINSERT\b/i.test(hist) && !/\bUPDATE\s+\w/i.test(hist)
+     && !/\bDELETE\s+FROM\b/i.test(hist) && !/\bTRUNCATE\b/i.test(hist),
+     'and it contains no INSERT, UPDATE, DELETE or TRUNCATE');
+  ck(!hist.includes('dc_txn_begin(') && !hist.includes('dc_write_revision(')
+     && !hist.includes('FOR UPDATE'),
+     'opens no transaction, never reaches the writer, and takes no row lock');
+  ck(!/JOIN\s+quotations/i.test(hist),
+     'and does not join quotations — a revision outlives the quotation it describes');
+  ck(hist.includes('ORDER BY revision_no ASC') && hist.includes('bind_param'),
+     'oldest first, by a bound id');
+  /* NOTHING DERIVED IS STORED. */
+  const bare = api.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  ck(bare.includes('const DC_SNAPSHOT_SCHEMA_VERSION = 1;'),
+     'snapshot_schema_version is still 1 — no v2');
+  ck(!/[\'"](diff|diff_json)[\'"]\s*=>/.test(bare),
+     'and no diff is written into a snapshot');
+  ck(/^STILL DEFERRED/.test(Hr.persistedDiffEngine || ''),
+     'canonical records the persisted diff engine as STILL DEFERRED');
+  ck(/never a removal plus an addition/i.test(Hr.reorderRule || '')
+     || /never a removal/i.test(Hr.reorderRule || ''),
+     'and that a reorder is a real change but never a removal plus an addition');
+  ck(/previous state is not available/i.test(Hr.honesty || ''),
+     'and that a first recorded UPDATE does not fabricate a prior state');
+  ck(/unsupported/i.test(Hr.honesty || ''),
+     'and that an unknown snapshot version fails gracefully');
+  ck(/item_uid/.test(Hr.itemIdentity || ''),
+     'and that item identity is item_uid'); }
+
 // ── the investigated browser flake, recorded rather than absorbed ──
 { const F = T.browserFlakeInvestigated || {};
   ck(/FLAKE/.test(F.classification || ''), `the ninth browser failure is recorded as: ${F.classification}`);
@@ -381,8 +445,16 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
      `with ${(F.evidence||[]).length} pieces of evidence rather than an assertion that it was fine`);
   ck(F.fixed === false && typeof F.whyNotFixed === 'string' && F.whyNotFixed.length > 0,
      'and is recorded as NOT fixed, with the reason — not quietly repaired out of scope');
-  ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','index.php') === '',
-     'which the tree confirms: no browser suite, no harness and no index.php byte moved'); }
+  /* This asserted that no browser suite, harness or index.php byte moved. That
+     held for the rounds whose only application file was api.php; it does NOT
+     hold for a round that changes index.php, and an assertion kept alive past
+     the thing it described is how a control layer starts lying. What still
+     carries weight is narrower and checkable: the flaky suite ITSELF is
+     untouched, and no accepted browser suite was modified or deleted. */
+  ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites/35-edit-mode.test.js') === '',
+     `which the tree confirms: ${F.suiteFile} itself is byte-identical`);
+  ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
+     'and no accepted browser SUITE was modified or deleted'); }
 
 // ── guardrails carry the accepted outcomes, and only those ──
 [['STAGE 1 UI — ACCEPTED', 'the Stage 1 UI section exists'],
@@ -402,15 +474,17 @@ ck(GR.includes('accessories are inside the parent item’s final customer'.repla
 
 // ── the accepted logs are the accepted run ──
 const LOG = R('FULL-AUDIT/regression-evidence/browser-suite.log');
-ck(/40 suites, 3936 assertions, 8 failed/.test(LOG), 'regression-evidence/browser-suite.log is the 40 / 3,936 run');
+ck(new RegExp(`${T.browserSuites} suites, ${T.browserAssertions} assertions, ${T.failed} failed`).test(LOG),
+   `regression-evidence/browser-suite.log is the ${T.browserSuites} / ${fmtN(T.browserAssertions)} run`);
 const BJ = JSON.parse(R('FULL-AUDIT/regression-evidence/browser-suite.json'));
-ck(BJ.suites === 40 && BJ.asserts === 3936 && BJ.failures === 8, 'browser-suite.json agrees');
+ck(BJ.suites === T.browserSuites && BJ.asserts === T.browserAssertions && BJ.failures === T.failed,
+   'browser-suite.json agrees');
 ck(Array.isArray(BJ.detail) && BJ.detail.length === BJ.failures,
    `and carries all ${BJ.failures} failures in full rather than a bare count`);
 ck(BJ.detail.every(d => /phone widths/.test(d.suite)),
    'every recorded failure is in the one suite the exception names');
 const per = [...LOG.matchAll(/\((\d+) assertions/g)].reduce((a,x)=>a+Number(x[1]),0);
-ck(per === 3936, `the 40 per-suite lines sum to ${per}`);
+ck(per === T.browserAssertions, `the ${T.browserSuites} per-suite lines sum to ${per}`);
 ck(!fs.existsSync(path.join(REPO,'FULL-AUDIT/STAGE-1-TEST-RESULTS.md')),
    'the candidate-only STAGE-1-TEST-RESULTS.md is gone, not left to drift');
 

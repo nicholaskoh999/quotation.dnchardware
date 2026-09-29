@@ -53,13 +53,15 @@ const bad = (where, msg) => fail.push(`FAIL ${where} ${msg}`);
             + t.aiExtractionAssertions + t.workbookAssertions + t.translationAssertions
             + t.saveRetryAssertions + t.mysqliCompatAssertions + t.actorIdentityAssertions
             + t.itemIdentityAssertions + t.transactionFoundationAssertions
-            + t.revisionWriterAssertions + t.noopSuppressionAssertions;
+            + t.revisionWriterAssertions + t.noopSuppressionAssertions
+            + t.historyReadAssertions;
   check(sum === t.finalAssertions,
     `canonical: ${fmt(t.browserAssertions)}+${t.pricingHistoryAssertions}+${t.aiExtractionAssertions}`
     + `+${t.workbookAssertions}+${t.translationAssertions}+${t.saveRetryAssertions}`
     + `+${t.mysqliCompatAssertions}+${t.actorIdentityAssertions}+${t.itemIdentityAssertions}`
     + `+${t.transactionFoundationAssertions}+${t.revisionWriterAssertions}`
-    + `+${t.noopSuppressionAssertions} = ${fmt(sum)} = finalAssertions`);
+    + `+${t.noopSuppressionAssertions}+${t.historyReadAssertions}`
+    + ` = ${fmt(sum)} = finalAssertions`);
   check(t.finalAssertions - t.baselineAssertions === t.deltaAssertions,
     `canonical: ${fmt(t.finalAssertions)} − ${fmt(t.baselineAssertions)} = ${fmt(t.deltaAssertions)} = delta`);
   check(f.p0 + f.p1 + f.p2 + f.p3 === f.total,
@@ -435,7 +437,8 @@ for (const [f, want] of [['pricing-history-php.log', T.pricingHistoryAssertions]
                          ['item-identity-php.log', T.itemIdentityAssertions],
                          ['transaction-foundation-php.log', T.transactionFoundationAssertions],
                          ['revision-writer-php.log', T.revisionWriterAssertions],
-                         ['noop-suppression-php.log', T.noopSuppressionAssertions]]) {
+                         ['noop-suppression-php.log', T.noopSuppressionAssertions],
+                         ['history-read-php.log', T.historyReadAssertions]]) {
   if (!has(L.logs, f)) { bad(f, 'is missing'); continue; }
   const t = read(L.logs, f);
   const m = t.match(/\((\d+) assertions\)/);
@@ -636,6 +639,7 @@ if (!EXTRACTED) {
       `  Transaction foundation PHP              ${T.transactionFoundationAssertions} assertions, 0 failed`,
       `  Revision writer PHP                    ${T.revisionWriterAssertions} assertions, 0 failed`,
       `  No-op suppression PHP                  ${T.noopSuppressionAssertions} assertions, 0 failed`,
+      `  History read PHP                       ${T.historyReadAssertions} assertions, 0 failed`,
       `  ----------------------------------------------------------------`,
       `  TOTAL ASSERTIONS                     ${fmt(T.finalAssertions).padStart(6)}`,
       `  TOTAL FAILED                              ${T.failed}${T.failed ? '   (environment; see CANONICAL-STATE browserFailureException)' : ''}`,

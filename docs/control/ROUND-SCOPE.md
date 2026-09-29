@@ -11,14 +11,17 @@ recorded, and **persisted nowhere**.
 
 | | |
 |---|---|
-| Accepted application commit | `5729ad5001694bc62370472277dc9e5860276408` |
+| Accepted application commit | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` |
+| Accepted candidate | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` — promoted to `main` by fast-forward, no merge commit |
+| Previous accepted commit | `5729ad5001694bc62370472277dc9e5860276408` — superseded, never to be quoted as current |
 | Deployed application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — production has not moved |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | accepted is not deployed, and the migration must be applied before it can be |
 | STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
 | Production DB change | **NO** — `quotation_revisions` is still NOT APPLIED to production |
 | Revision schema change | **NONE** — eleven columns, `snapshot_schema_version` still 1 |
 | Persisted diff | **STILL DEFERRED** — nothing derived here is written back |
+| Next | audit / history foundation is complete for now; **OpenAI Model Upgrade Evaluation — CONFIRMED / NOT STARTED** |
 
 ---
 
@@ -171,6 +174,11 @@ nothing implements.
 ## ALLOWED TO CHANGE
 
 ```candidate-files
+```
+
+**EMPTY, because the round is closed.** The five files this round declared —
+
+```
 api.php
 index.php
 tests/php/history_read.test.php
@@ -178,7 +186,8 @@ tests/suites/41-history.test.js
 tests/lib/harness.js
 ```
 
-Nothing else may differ from `5729ad5001694bc62370472277dc9e5860276408`.
+— are now part of the accepted commit `5595395`. Nothing else may differ from
+it.
 `api.php` and `index.php` are the deployed application files; `harness.js` gains
 one default answer for the new action and nothing else.
 
@@ -197,10 +206,20 @@ parser · `delete_quotation`.
 
 ---
 
-## MEASURED ON THIS CANDIDATE
+## MEASURED, AND NOW CANONICAL
 
-Filled in from the runs, not carried over. **None of these are canonical** —
-CANONICAL-STATE still describes `5729ad5`, and a candidate does not touch it.
+Filled in from the runs, not carried over. **These figures are now canonical**:
+CANONICAL-STATE describes `5595395`, and the totals were recalculated from this
+evidence rather than copied forward.
+
+```
+  4,010 browser + 172+107+62+15+42+94+150+159+92+101+171+126 = 5,301
+  5,301 - 2,810 = +2,491
+```
+
+Two figures moved: history read is a twelfth side group of **126**, and the
+browser matrix grew to **41 suites / 4,010 assertions**. Retired: **5,101**,
+**+2,291**, **40 suites**, **862 translation keys**.
 
 ### Targeted — reading history
 

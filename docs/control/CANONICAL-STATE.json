@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "5729ad5001694bc62370472277dc9e5860276408",
+    "acceptedCommit": "5595395fefb49adcb1140a3c9b2a1c36dc7a2186",
     "status": "accepted",
-    "acceptedRound": "NO-OP SUPPRESSION - an UPDATE that changes nothing records nothing; the persisted BEFORE state is compared against the persisted AFTER state and a revision is written only if business fact moved (FINAL ACCEPTED)"
+    "acceptedRound": "MINIMAL HISTORY READ / UI - a read-only History panel on a saved quotation, with what changed DERIVED AT READ TIME from the immutable snapshots already recorded and persisted nowhere (FINAL ACCEPTED)"
   },
   "revisionStorage": {
     "round": "REVISION STORAGE FOUNDATION",
@@ -36,7 +36,8 @@
     "foreignKeys": "none, deliberately — see PROJECT-GUARDRAILS and the migration header",
     "triggers": "none — append-only is an application contract, enforced by the writer round",
     "refNoContract": "quotation_revisions.quotation_ref_no must have the same COLUMN_TYPE, CHARACTER_SET_NAME and COLLATION_NAME as quotations.ref_no. The authority is read from the live database; the migration hard-codes no charset and no collation of its own.",
-    "suiteMaintainedBy": "SNAPSHOT REVISION WRITER - the no-writer-exists guard became the writer contract. No assertion was weakened and the total stayed 198."
+    "suiteMaintainedBy": "SNAPSHOT REVISION WRITER - the no-writer-exists guard became the writer contract. No assertion was weakened and the total stayed 198.",
+    "revisionReader": "STARTED AND ACCEPTED - MINIMAL HISTORY READ / UI, accepted commit 5595395fefb49adcb1140a3c9b2a1c36dc7a2186. One read-only SELECT against quotation_revisions, with the human-readable difference DERIVED at read time and persisted nowhere. The table is still append-only and the eleven columns are untouched."
   },
   "production": {
     "host": "quo.dnchardware.com",
@@ -50,7 +51,7 @@
     "databaseBackupRetained": true,
     "rollbackPerformed": false,
     "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
-    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5729ad5: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer and no-op suppression are all accepted in source only.",
+    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5729ad5: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer and no-op suppression are all accepted in source only. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5595395: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer, no-op suppression and the history reader are all accepted in source only.",
     "itemIdentity": "LIVE — PRODUCTION VERIFIED",
     "itemUidBackfill": "APPLIED",
     "previouslyDeployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
@@ -83,12 +84,12 @@
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 5101,
-    "deltaAssertions": 2291,
+    "finalAssertions": 5301,
+    "deltaAssertions": 2491,
     "failed": 8,
     "skipped": 0,
-    "browserSuites": 40,
-    "browserAssertions": 3936,
+    "browserSuites": 41,
+    "browserAssertions": 4010,
     "pricingHistoryAssertions": 172,
     "aiExtractionAssertions": 107,
     "workbookAssertions": 62,
@@ -100,6 +101,7 @@
     "transactionFoundationAssertions": 92,
     "revisionWriterAssertions": 101,
     "noopSuppressionAssertions": 171,
+    "historyReadAssertions": 126,
     "itemIdentityBrowserAssertions": 29,
     "browserFailureException": {
       "count": 8,
@@ -116,7 +118,7 @@
       "reproducedOn": "ce26146a6a792f2bac0ebb4bab77389d19ff0660",
       "reproducedHow": "a pristine git worktree at ce26146 — this round's own starting point, before a single Item Identity byte — fails the same eight assertions with the same numbers",
       "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule.",
-      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table. Re-run again on 5729ad5: 40 suites and 3,936 assertions with the same eight, twice."
+      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table. Re-run again on 5729ad5: 40 suites and 3,936 assertions with the same eight, twice. Re-measured on the accepted commit 5595395 with the History panel in place: the same eight, in the same one suite. THE BROWSER MATRIX IS NOW REACHABLE BY A HISTORY CHANGE - index.php moved in this round - so the \"mechanically unreachable\" argument used by earlier rounds is deliberately NOT made for it."
     },
     "browserSuitesBeforeItemIdentity": 39,
     "browserAssertionsBeforeItemIdentity": 3907,
@@ -134,20 +136,26 @@
         "no-op suppression round, candidate full matrix run 2: 8 - so it is NOT deterministic",
         "no-op suppression round, pristine worktree at 631cb89 full matrix: 8",
         "suite 35 alone while the machine was BUSY: 2 of 5 on the candidate AND 2 of 5 on the pristine tree, same assertion, same expected true and actual false",
-        "suite 35 alone once the machine was quiet: 0 of 10 on each tree"
+        "suite 35 alone once the machine was quiet: 0 of 10 on each tree",
+        "minimal history read / UI round: the full matrix returned the recorded eight with no 35-edit-mode failure, run with both MySQL engines stopped - the condition under which it previously measured 0 of 10 in isolation"
       ],
       "mechanism": "index.php, tests/suites and tests/lib are byte-identical to 1ca6554, and tests/lib/harness.js intercepts every api.php request and answers it from a stub table - so the browser matrix never executes the one file this round changed. The failure is unobserved on rerun AND unreachable by mechanism.",
       "brittleness": "the assertion ends a chain of typeCell / wqaEditDone pairs that carry no settle wait, unlike the ones above it in the same suite.",
       "fixed": false,
-      "whyNotFixed": "tests/suites is out of scope for this round and was not touched. Worth a settle wait in whichever round next opens that file. Re-confirmed in the no-op suppression round against a pristine control: it tracks machine load, not the tree."
-    }
+      "whyNotFixed": "tests/suites is out of scope for this round and was not touched. Worth a settle wait in whichever round next opens that file. Re-confirmed in the no-op suppression round against a pristine control: it tracks machine load, not the tree. The history round did NOT repeat the \"unreachable by mechanism\" argument, because index.php changed in it and that argument no longer holds."
+    },
+    "browserSuitesBeforeHistoryRound": 40,
+    "browserAssertionsBeforeHistoryRound": 3936,
+    "historyBrowserAssertions": 74
   },
   "translation": {
-    "keys": 862,
+    "keys": 903,
     "coveragePercent": 100,
     "missing": 0,
     "hardcoded": 0,
-    "unapplied": 0
+    "unapplied": 0,
+    "identical": 0,
+    "note": "The History panel added its strings to both dictionaries. The em dash used for an absent value is a SYMBOL, not a key - the same reason RM, M12, PL and ZP are not translated - so it is not counted and does not appear as an identical pair."
   },
   "findings": {
     "p0": 0,
@@ -187,14 +195,16 @@
       4549,
       4734,
       4822,
-      4930
+      4930,
+      5101
     ],
     "supersededTranslationKeys": [
       512,
       658,
       756,
       843,
-      853
+      853,
+      862
     ],
     "supersededFindingTotals": [
       29,
@@ -214,14 +224,16 @@
       1739,
       1924,
       2012,
-      2120
+      2120,
+      2291
     ],
     "supersededSuiteCounts": [
       34,
       36,
       37,
       38,
-      39
+      39,
+      40
     ],
     "retiredManifestName": "ZIP-MANIFEST.txt",
     "resolvedObservation": {
@@ -294,6 +306,11 @@
         "sha": "631cb8945406a934b351e476ec71330ed23a2d27",
         "supersededBy": "5729ad5001694bc62370472277dc9e5860276408",
         "reason": "NO-OP SUPPRESSION was accepted. An UPDATE that changes nothing now records nothing. The persisted BEFORE state - the row the transaction already holds FOR UPDATE, so no extra read - is compared against the persisted AFTER state read back once the UPDATE has run, and dc_write_revision() is called only if they differ. Comparing the browser payload instead would have been wrong in both directions: it would miss what the database did to a value and would report a change when the payload merely arrived differently shaped. The comparison surface is the NINE columns the UPDATE can write, which is the SET list of the statement itself rather than a judgement call; ref_no is not in it, id and created_at are never written, and there is no updated_at in this schema, so there is no save-only metadata to filter. Items are compared through item_uid with ORDER part of the comparison, and A REORDER IS A CHANGE, deliberately, because item order is the order printed on the quotation - though it is not a removal plus an addition, and the suite proves the uid set is identical. Nothing about the comparison is persisted: no diff key, snapshot_schema_version still 1, still exactly one INSERT and no UPDATE or DELETE or TRUNCATE against quotation_revisions. THE PERSISTED DIFF ENGINE WAS DEFERRED on a fact read out of the accepted artefacts: the schema has no field for a diff and three authorities refuse a twelfth column, and there is no accepted diff representation to conform to; a later Minimal History Read / UI round may derive one AT READ TIME from adjacent snapshots. THE ACCEPTED WRITER IS BYTE-IDENTICAL, as are nine other accepted functions, compared body for body; the round adds three functions and one if. CREATE is untouched. api.php is the only application file changed. The browser matrix did not move - 40 suites and 3,936 assertions with the same eight recorded environment failures, and it could not have moved because the harness intercepts every api.php request. tests/php/noop_suppression.test.php adds an ELEVENTH side group of 171, measured on MySQL 8.0.46 - the production engine - and again on 8.4.3, so the total moved from 4,930 to 5,101 and the delta from +2,120 to +2,291. No accepted PHP suite needed maintenance: revision writer and transaction foundation drive updates that change real business data and still measure 101 and 92 unedited, both re-confirmed on 8.0.46. The 8.0.46 run was first reported as an environment blocker; that was OPERATOR ERROR - --initialize-insensitive was used instead of --initialize-insecure - and the blocker is retired rather than carried. At acceptance migrations/2026-08-28-create-quotation-revisions.sql was still NOT APPLIED and nothing was deployed. 631cb89 is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "5729ad5001694bc62370472277dc9e5860276408",
+        "supersededBy": "5595395fefb49adcb1140a3c9b2a1c36dc7a2186",
+        "reason": "MINIMAL HISTORY READ / UI was accepted. For a saved quotation there is now a read-only History panel: revision number, event, when, who, and what changed - and every word of what changed is DERIVED AT READ TIME from the immutable snapshots already recorded, and persisted nowhere. The read path is ONE SELECT against quotation_revisions with a BOUND quotation_id, ordered revision_no ASC, walked oldest to newest so each entry is a difference from the one before it, and answered newest-first; no transaction, no lock, and nothing in the branch writes, which is asserted on the shipped source rather than hoped for. It is deliberately NOT joined to quotations, because a revision records what a quotation WAS and the architecture intends that record to outlive the quotation. Items are matched by item_uid and by nothing else, so a reorder is reported as a REORDER - a real change, because item order is business fact, but never a removal plus an addition, because identity did not change. Company is one change shown by the name each snapshot FROZE, and the suite proves the live companies table is never consulted by renaming the row and reading the frozen name back unchanged. THE HONESTY RULES ARE THE POINT: a first recorded CREATE invents no before values; a first recorded UPDATE says the previous state is not available rather than fabricating one or pretending to be a create; an unknown snapshot version is reported as unsupported with its structure not guessed at; a nameless actor is Legacy / Unknown and never a stand-in username; and a failed read is not dressed up as an empty history, because that would hide a broken deployment. The answer is data and the words are the page - api.php returns a machine kind and the persisted values, and index.php builds every sentence through the same dictionary as the rest of the UI, with unlabelled item fields COUNTED rather than named so no internal key can surface as English in a translated screen. api.php and index.php are the application files it carries, and the whole accepted write path is BYTE-IDENTICAL - thirteen functions compared body for body, including dc_write_revision and the entire no-op comparison. THE PERSISTED DIFF ENGINE REMAINS DEFERRED and snapshot_schema_version remains 1. The browser matrix moved for the first time since Item Identity: tests/suites/41-history.test.js is a forty-first suite adding 74, so the matrix went from 40 suites and 3,936 assertions to 41 and 4,010, with the same eight recorded 38-mobile-ui environment failures and none added. tests/php/history_read.test.php adds a TWELFTH side group of 126, measured on MySQL 8.0.46 - the production engine - and again on 8.4.3, so the total moved from 5,101 to 5,301 and the delta from +2,291 to +2,491. No accepted PHP suite needed maintenance, and tests/lib/harness.js gained one default answer for the new action and nothing else. The translation dictionary moved 862 -> 903 keys, still 100% with no identical pair and nothing hard-coded. At acceptance migrations/2026-08-28-create-quotation-revisions.sql was still NOT APPLIED and nothing was deployed. 5729ad5 is the previous accepted commit and must never be quoted as the current one."
       }
     ]
   },
@@ -375,5 +392,53 @@
     "persistedDiffEngine": "DEFERRED, and not by preference. The accepted quotation_revisions schema has no field for a structured diff and actively refuses one: the migration's conformance gate counts anything unexpected and reads NO-GO, its section 4 gate says a twelfth column means something other than that file created it, and revision_storage asserts \"eleven columns, in the documented order, and nothing else\". There is also no accepted diff representation anywhere to conform to. Two paths were put to the owner - a diff key inside snapshot_json at schema version 2, or a new diff_json column - and the decision was NEITHER, this round. A later MINIMAL HISTORY READ / UI round may derive a human-readable diff AT READ TIME from two adjacent immutable snapshots, which needs no storage contract at all.",
     "environmentBlockerRetired": "RETIRED - it was operator error, not the machine. The candidate was first reported BLOCKED because MySQL 8.0.46 would not initialise, after roughly ten variations of path, location, shell, --no-defaults, PATH, --tmpdir, --skip-log-bin, InnoDB flush method and layout were tried and ruled out. Every one of them carried the same wrong flag: --initialize-insensitive, which is not a MySQL option, instead of --initialize-insecure, which the two preceding rounds had used. A control on the 8.4.3 binary settled it - --initialize-insecure produced 0 errors and 23 files, --initialize-insensitive produced 3 files and no data dictionary. The earlier \"BLOCKED - MYSQL 8.0.46 ENVIRONMENT\" diagnosis was wrong and must not be quoted as an environment fact.",
     "notInThisRound": "no persisted diff, no diff_json, no schema v2, no new migration, no baseline backfill, no DELETE revision, no restore, no History API, no History UI, no delete-behaviour change, no production migration, no deployment"
+  },
+  "historyRead": {
+    "round": "MINIMAL HISTORY READ / UI",
+    "status": "FINAL ACCEPTED / CLOSED",
+    "acceptedCandidate": "5595395fefb49adcb1140a3c9b2a1c36dc7a2186",
+    "acceptedOn": "2026-09-29",
+    "applicationCommitMoved": true,
+    "applicationFilesChanged": [
+      "api.php",
+      "index.php"
+    ],
+    "apiAction": "get_quotation_history",
+    "assertions": 126,
+    "failed": 0,
+    "countedInFinalAssertions": true,
+    "verifiedOn": {
+      "mysql-8.0.46": {
+        "assertions": 126,
+        "failed": 0,
+        "note": "the exact production engine version, official dev.mysql.com archive, isolated datadir, port 33080, never connected to production"
+      },
+      "mysql-8.4.3": {
+        "assertions": 126,
+        "failed": 0
+      }
+    },
+    "browserSuite": {
+      "file": "tests/suites/41-history.test.js",
+      "assertions": 74,
+      "failed": 0
+    },
+    "adjacentRegressionsOn8_0_46": {
+      "noop_suppression": "171 / 0",
+      "revision_writer": "101 / 0",
+      "transaction_foundation": "92 / 0",
+      "revision_storage": "198 / 0"
+    },
+    "derivedNotStored": "THE DIFF IS DERIVED AT READ TIME and persisted nowhere. No diff_json, no revision column, no ALTER of quotation_revisions, no snapshot_schema_version 2, no new migration, and nothing derived written back into a snapshot. The accepted eleven-column schema is untouched, and the suite asserts it on the shipped source.",
+    "readPath": "GET api.php?action=get_quotation_history&id=... reads quotation_revisions directly with a BOUND quotation_id, ORDER BY revision_no ASC, walks oldest to newest comparing each snapshot with the one before it, and answers newest-first. ONE SELECT, no transaction, no lock, and nothing in the branch writes - asserted on the source: no INSERT, no UPDATE, no DELETE, no TRUNCATE, no dc_txn_begin, no dc_write_revision, no FOR UPDATE. Three reads in a row leave the quotation row and every revision row byte-identical, the count unmoved and no revision_no changed.",
+    "notJoinedToQuotations": "DELIBERATE. A revision records what a quotation WAS, and the architecture intends that record to outlive the quotation; making quotations vouch for it would delete history exactly when it is most wanted. Whether a deleted quotation history is ever SHOWN is the Baseline / Delete Policy round question and is not answered here.",
+    "itemIdentity": "item_uid and nothing else. Same uid with moved fields is one item CHANGED with every moved field grouped under that item; a uid only in the newer snapshot is an addition, only in the older one a removal. item_uid is used for matching and is never shown to a normal reader.",
+    "reorderRule": "A REORDER IS A REAL CHANGE BUT NEVER A REMOVAL PLUS AN ADDITION. The uid SET is identical and only the sequence moved, so identity did not change - and it is still a change, because the No-op Suppression round established that item order is business fact.",
+    "honesty": "A first recorded CREATE says the quotation was created, with the item count, the persisted total and the FROZEN company name, and invents no before values. A first recorded UPDATE says the previous state is not available: baseline rollout is deferred, so a quotation older than the writer genuinely has nothing recorded before that point, and it is NOT quietly turned into a create and NO from/to values are invented. A snapshot version this viewer does not know is reported as unsupported, naming the version, with its readable metadata still read and its structure not guessed at - and it cannot serve as the baseline for the entry after it. An actor the record does not name is labelled Legacy / Unknown, never a stand-in username. A FAILED READ IS NOT AN EMPTY HISTORY, because showing the first for the second would quietly hide a broken deployment.",
+    "frozenCompanyName": "Company is ONE change, not id plus name, and it is shown by the name each snapshot FROZE. The live companies table is never consulted; the suite proves it by renaming the row and reading the frozen name back unchanged.",
+    "wordsAreThePages": "api.php returns a machine kind and the persisted values; every sentence a person reads is produced in index.php through the same dictionary as the rest of the UI, so history is translated like everything else rather than shipping English out of the server. Thirteen item fields have labels; anything else that differs is COUNTED rather than named, so an internal key can never surface as English text in a translated screen.",
+    "ui": "a History control beside Edit Details in the existing saved-quotation action area, and the existing modal pattern - no new component system. A draft does not get the control because it has nothing recorded: it is not offered rather than offered and refused, and calling the opener directly on an unsaved quotation opens nothing. No restore, no delete, no compare-any-two, no export, no filters, no analytics.",
+    "persistedDiffEngine": "STILL DEFERRED. The accepted schema has no field for a diff and three artefacts refuse a twelfth column. A later round may still choose to store one; nothing here depends on it, because two adjacent immutable snapshots already contain the whole answer.",
+    "notInThisRound": "no persisted diff, no diff_json, no schema v2, no new migration, no baseline rollout, no fabricated legacy history, no restore, no soft delete, no DELETE revision, no Saved Quotation delete UI, no change to delete_quotation, no production migration, no deployment, no ERP work"
   }
 }

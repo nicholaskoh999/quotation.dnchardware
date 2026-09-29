@@ -865,6 +865,60 @@ HTTP against MySQL 8.0.46 and 8.4.3.
 
 ---
 
+## ACCEPTED — READING THE PAST WITHOUT REWRITING IT
+
+Accepted in MINIMAL HISTORY READ / UI on `5595395`. A saved quotation has a
+read-only History panel, and what changed is **derived at read time** from the
+immutable snapshots already recorded.
+
+Protected from here:
+
+- **THE HISTORY PATH WRITES NOTHING.** One `SELECT`, no transaction, no lock, no
+  `INSERT`/`UPDATE`/`DELETE`/`TRUNCATE`, and it must never reach
+  `dc_write_revision`. A viewer that can write is not a viewer.
+- **NOTHING DERIVED IS PERSISTED.** No `diff_json`, no revision column, no
+  `ALTER` of `quotation_revisions`, no `snapshot_schema_version = 2`, and nothing
+  written back into a snapshot. The persisted Diff Engine stays **DEFERRED**; if
+  a later round chooses to store one, that is its decision to make and record,
+  not something to drift into.
+- **NOT JOINED TO `quotations`.** A revision records what a quotation *was* and
+  is meant to outlive it. Adding that join would delete history exactly when it
+  is most wanted.
+- **The requested id is BOUND**, and read as an integer.
+- **Derivation walks OLDEST → NEWEST**, so each entry is a difference from the
+  one immediately before it and not from the beginning. Reversing only the
+  *answer* is what lets the page show newest first.
+- **ITEMS MATCH BY `item_uid`.** A reorder is a real change and **never** a
+  removal plus an addition; the uid set is identical and only the sequence moved.
+- **Company is ONE change, shown by the FROZEN name.** The live `companies`
+  table must never be consulted here — that would rewrite what a past document
+  said.
+- **A first recorded UPDATE says the previous state is unavailable.** It must
+  never be presented as a creation, and no from/to values may be invented
+  against a state nobody recorded. This holds until BASELINE rollout exists, and
+  BASELINE is not an excuse to fabricate it earlier.
+- **An unknown `snapshot_schema_version` fails gracefully**, naming the version,
+  never guessing at the structure, and never becoming the baseline for the next
+  entry.
+- **A nameless actor is labelled unknown**, never given a stand-in username.
+- **A FAILED READ IS NOT AN EMPTY HISTORY.** Conflating them would hide a
+  deployment that ran the application before the migration.
+- **The words belong to the page.** The server returns a machine `kind` and the
+  persisted values; every sentence is built through the dictionary. An
+  unlabelled field is COUNTED, never emitted as raw English.
+- **The control is not offered for a draft**, and the opener does nothing when
+  called on one.
+
+**NOT in this round, and not to be drifted into:** no restore, no delete
+revision, no soft delete, no Saved Quotation delete UI, no compare-any-two, no
+export, no filters, no search, no audit analytics, no baseline backfill.
+
+`tests/php/history_read.test.php` drives the shipped `api.php` over real HTTP
+against MySQL 8.0.46 and 8.4.3; `tests/suites/41-history.test.js` drives the
+panel.
+
+---
+
 ## CONTROL-ONLY ROUND
 
 **Two SHAs, and they are not the same thing.**

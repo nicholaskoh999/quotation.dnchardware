@@ -2,14 +2,15 @@
 
 **Full-system audit · morning repair · closing repair · UI/UX polish · workflow polish · QUOTATION.DNC**
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `5729ad5001694bc62370472277dc9e5860276408` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
 
-> **On SHAs.** `5729ad5001694bc62370472277dc9e5860276408` is the last commit that changed the
+> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when NO-OP SUPPRESSION was accepted. Thirteen application
+> when MINIMAL HISTORY READ / UI was accepted. Fourteen application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `5729ad5001694bc62370472277dc9e5860276408`, accepted for NO-OP SUPPRESSION;
 > superseded — `631cb8945406a934b351e476ec71330ed23a2d27`, accepted for SNAPSHOT REVISION WRITER;
 > superseded — `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, accepted for READ-BEFORE-WRITE / TRANSACTION FOUNDATION;
 > superseded — `649f80a09f83a7201c0f3772e01fc270ccda3e05`, accepted for ITEM IDENTITY FOUNDATION;
@@ -137,7 +138,7 @@ pre-switch "Material 材料" style the language switch replaced), every empty
 state, and a guide box that was Chinese only, so an English reader was handed a
 paragraph they could not read.
 
-**862 keys, 100% translated, nothing bypassing the translator, and no element
+**903 keys, 100% translated, nothing bypassing the translator, and no element
 relying on a hook that nothing applies.** Proved by reading the rendered screen,
 not the dictionary.
 

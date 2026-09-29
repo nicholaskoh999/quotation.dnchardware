@@ -38,8 +38,9 @@
   FAIL  phone widths — the scope label, the tap targets, and the desk left alone  (102 assertions, 8 failed)
   ok    save feedback — the button, the value, the region, and the row  (91 assertions)
   ok    item identity — the page carries a uid it cannot mint  (29 assertions)
+  ok    revision history — what was recorded, and nothing more  (74 assertions)
 
-  40 suites, 3936 assertions, 8 failed
+  41 suites, 4010 assertions, 8 failed
 
   FAILURES
    - [phone widths — the scope label, the tap targets, and the desk left alone] companies 1440px: the modal × is still 24 tall, as accepted
@@ -67,4 +68,4 @@
       expected: "17"
       actual:   "16.3"
 
-  901.5s
+  915.0s
