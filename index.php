@@ -1446,6 +1446,8 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-item-bottom .qi-unit{font-size:12.5px;font-weight:600;line-height:1.2;text-transform:none;letter-spacing:0;color:var(--text-muted)}
 .qi-item-bottom .qi-price-group{gap:6px;align-items:baseline}
 .qi-item-bottom .qi-unitline{line-height:1.2}
+/* two-glyph CJK labels are visually narrower: same gap system, 2px more air */
+:root[data-lang="zh"] .qi-item-bottom .qi-unitline,:root[data-lang="zh"] .qi-item-bottom .qi-price-group{gap:8px}
 @media (max-width:640px){ .qi-item-bottom{padding-left:52px} }
 .qi-qtyweight{margin-top:4px}
 .qi-unitline strong{color:var(--text)}
