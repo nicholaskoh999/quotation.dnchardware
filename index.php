@@ -1429,20 +1429,20 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 /* Quotation list card hierarchy (display only) */
 .qi-num{min-width:0;width:auto;height:auto;padding:1px 6px;border-radius:var(--r-xs);background:transparent;border-color:transparent;font-size:11.5px;font-weight:700;color:var(--text-muted)}
 .qi-num::before{content:'#'}
-.qi-titlerow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.qi-titlerow{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:6px}
 .qi-titlerow .finish-chip{flex-shrink:0}
+.qi-finsep{color:var(--text-muted);font-weight:800}
 .qi-desc{font-size:15px;font-weight:900}
 .qi-subrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;flex-wrap:wrap}
 .qi-cw{font-size:11.5px;color:var(--text-muted);white-space:pre-line;min-width:0}
-.qi-unitline{margin-left:auto;font-size:12.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.qi-unitline{margin-left:auto;font-size:13.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .qi-unitline strong{color:var(--text)}
-.qi-breakdown{padding:0 15px 10px;background:var(--surface2);font-size:11.5px;color:var(--text-muted);font-weight:600}
+.qi-breakdown{margin-top:3px;font-size:11px;color:var(--text-muted);font-weight:600}
 .qi-item-bottom{margin-top:8px}
 .qi-meta-pill{font-size:12.5px}
-.qi-total{font-size:22px}
+.qi-total{font-size:28px;font-weight:900;line-height:1.1}
 .qi-group-weight{display:flex;justify-content:flex-end;gap:8px;align-items:baseline;margin:-2px 2px 4px;font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
 .qi-group-weight strong{font-size:13.5px;color:var(--text)}
-@media (max-width:640px){ .qi-breakdown{padding:0 12px 9px} }
 /* ═══════════════ v2.17.6 — ACCESSORIES UI POLISH ═══════════════
 .acc-panel-sub{
   display:block;font-size:11px;font-weight:600;color:var(--text-muted);
@@ -8958,9 +8958,10 @@ function renderQuote(newIdx){
         <div class="qi-item-left">
           <div class="qi-num">${i+1}</div>
           <div class="qi-body">
-            <div class="qi-titlerow"><div class="qi-desc">${escHtml(displayItemDesc(item))}</div>${chip}</div>
+            <div class="qi-titlerow"><div class="qi-desc">${escHtml(displayItemDesc(item))}</div>${chip?`<span class="qi-finsep">-</span>${chip}`:''}</div>
             <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
             <div class="qi-subrow"><div class="qi-cw">${cwLine?escHtml(cwLine):''}</div><div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</div></div>
+            ${breakdownHtml}
           </div>
         </div>
         ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
@@ -8974,7 +8975,7 @@ function renderQuote(newIdx){
           <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
           <span class="qi-total">${fmt(item.totalAmount)}</span>
         </div>
-      </div>${breakdownHtml}`;
+      </div>`;
     list.appendChild(div);
   });
   flushGroupWeight();
