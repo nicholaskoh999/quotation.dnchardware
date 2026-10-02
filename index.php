@@ -1426,7 +1426,24 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
   .qi-item-top{padding:11px 12px 0}
   .qi-item-bottom{padding:9px 12px 11px}
 }
-/* ═══════════════ v2.17.6 — ACCESSORIES UI POLISH ═══════════════ */
+/* Quotation list card hierarchy (display only) */
+.qi-num{min-width:0;width:auto;height:auto;padding:1px 6px;border-radius:var(--r-xs);background:transparent;border-color:transparent;font-size:11.5px;font-weight:700;color:var(--text-muted)}
+.qi-num::before{content:'#'}
+.qi-titlerow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.qi-titlerow .finish-chip{flex-shrink:0}
+.qi-desc{font-size:15px;font-weight:900}
+.qi-subrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;flex-wrap:wrap}
+.qi-cw{font-size:11.5px;color:var(--text-muted);white-space:pre-line;min-width:0}
+.qi-unitline{margin-left:auto;font-size:12.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.qi-unitline strong{color:var(--text)}
+.qi-breakdown{padding:0 15px 10px;background:var(--surface2);font-size:11.5px;color:var(--text-muted);font-weight:600}
+.qi-item-bottom{margin-top:8px}
+.qi-meta-pill{font-size:12.5px}
+.qi-total{font-size:22px}
+.qi-group-weight{display:flex;justify-content:flex-end;gap:8px;align-items:baseline;margin:-2px 2px 4px;font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
+.qi-group-weight strong{font-size:13.5px;color:var(--text)}
+@media (max-width:640px){ .qi-breakdown{padding:0 12px 9px} }
+/* ═══════════════ v2.17.6 — ACCESSORIES UI POLISH ═══════════════
 .acc-panel-sub{
   display:block;font-size:11px;font-weight:600;color:var(--text-muted);
   text-transform:none;letter-spacing:0;margin-top:2px;
@@ -5150,7 +5167,7 @@ const I18N={
     pgCalculatedEg:'Calculated RM3.47', pgFinalEg:'Final RM3.47',
     pgCustomerPriceEg:'Customer Price RM4.00', pgSystemUsesEg:'System uses: RM4.00',
     pgPlateEg:'Plate RM10.00', pgDrillingEg:'Drilling RM2.00',
-    qiTotalPill:'Total',
+    qiTotalPill:'Total', qiGroupWeight:'Total Weight',
     lblUnitPriceShort:'Unit Price',
     /* Written in Chinese only, so an English reader could not read it. */
     pmManualGuide:'Manual Price is the final customer unit price — accessories are not added on top again.',
@@ -5619,7 +5636,7 @@ const I18N={
     pgCalculatedEg:'计算结果 RM3.47', pgFinalEg:'最终 RM3.47',
     pgCustomerPriceEg:'客户售价 RM4.00', pgSystemUsesEg:'系统采用：RM4.00',
     pgPlateEg:'铁板 RM10.00', pgDrillingEg:'钻孔 RM2.00',
-    qiTotalPill:'合计',
+    qiTotalPill:'合计', qiGroupWeight:'总重量',
     lblUnitPriceShort:'单价',
     pmManualGuide:'Manual Price 是最终客户单价，配件不会再另外加一次。',
     pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → Manual Price 填 RM2.00',
@@ -8900,7 +8917,25 @@ function renderQuote(newIdx){
      must never renumber: under Newest First the list simply reads 3, 2, 1. */
   const displayOrder=quoteItems.map((item,i)=>({item,i}));
   if(quoteListSortOrder==='newest') displayOrder.reverse();
+  /* Group TOTAL WEIGHT is display-only: it sums each item's existing total
+     weight (unit weight x qty) over a run of CONSECUTIVE displayed cards that
+     share material / product type / size / finish. Nothing is reordered. */
+  const wGroupKey=it=>[it.material||'',it.itemType||'',it.productType||'',it.sizeCode||it.sizeType||'',it.finish||''].join('|');
+  const wItemTotal=it=>(parseFloat(it.weight)||0)*(parseInt(it.qty,10)||0);
+  let runKey=null, runSum=0, runCount=0;
+  const flushGroupWeight=()=>{
+    if(runCount>1 && runSum>0){
+      const gw=document.createElement('div');
+      gw.className='qi-group-weight';
+      gw.innerHTML=`${escHtml(dcT('qiGroupWeight'))} <strong>${runSum.toFixed(3)}kg</strong>`;
+      list.appendChild(gw);
+    }
+    runKey=null; runSum=0; runCount=0;
+  };
   displayOrder.forEach(({item,i},pos)=>{
+    const gk=wGroupKey(item);
+    if(runKey!==null && gk!==runKey) flushGroupWeight();
+    runKey=gk; runSum+=wItemTotal(item); runCount++;
     const div=document.createElement('div');
     div.className='qi-item'+(i===newIdx?' row-new':'')+(i===editingItemIndex?' editing':'');
     const chip=makeChip(item.finish);
@@ -8915,31 +8950,34 @@ function renderQuote(newIdx){
     const displaySize=item.itemType==='was'?wasDisplayData(item).size:item.size;
     const unitSuffix=item.itemType==='was'?'/set':'';
     const uboltDebugHtml=getUBoltCardDebugHtml(item);
+    const totalWtPill=(parseFloat(item.weight)>0&&parseInt(item.qty,10)>1)?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiTotalPill'))} <strong>${wItemTotal(item).toFixed(3)}kg</strong></span>`:'';
+    const unitWtPill=parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiUnitWeight'))} <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>`:'';
+    const breakdownHtml=dcItemAccUnit(item)>0?`<div class="qi-breakdown">${escHtml(dcT('qiBoltPill'))} ${fmt(dcItemBoltUnit(item))}/pc · ${escHtml(dcT('qiAccessories'))} ${fmt(dcItemAccUnit(item))}/pc</div>`:'';
     div.innerHTML=`
       <div class="qi-item-top">
         <div class="qi-item-left">
           <div class="qi-num">${i+1}</div>
           <div class="qi-body">
-            <div class="qi-desc">${escHtml(displayItemDesc(item))}${chip?' '+chip:''}</div>
-            <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${cwLine?`<span style="display:block;font-size:11.5px;color:var(--text-muted);margin-top:2px;white-space:pre-line">${escHtml(cwLine)}</span>`:''}${uboltDebugHtml}</div>
+            <div class="qi-titlerow"><div class="qi-desc">${escHtml(displayItemDesc(item))}</div>${chip}</div>
+            <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
+            <div class="qi-subrow"><div class="qi-cw">${cwLine?escHtml(cwLine):''}</div><div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</div></div>
           </div>
         </div>
         ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
         <div class="qi-meta">
-          ${parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiUnitWeight'))} <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>${parseInt(item.qty,10)>1?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiTotalPill'))} <strong>${(parseFloat(item.weight)*parseInt(item.qty,10)).toFixed(3)}kg</strong></span>`:``}`:''}
           <span class="qi-meta-pill">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
-          <span class="qi-meta-pill">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</span>
-          ${dcItemAccUnit(item)>0?`<span class="qi-meta-pill qi-bolt-pill">${escHtml(dcT('qiBoltPill'))} <strong>${fmt(dcItemBoltUnit(item))}/pc</strong></span><span class="qi-meta-pill qi-acc-pill">${escHtml(dcT('qiAccessories'))} <strong>${fmt(dcItemAccUnit(item))}/pc</strong></span>`:''}
+          ${unitWtPill}${totalWtPill}
         </div>
         <div class="qi-price-group">
           <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
           <span class="qi-total">${fmt(item.totalAmount)}</span>
         </div>
-      </div>`;
+      </div>${breakdownHtml}`;
     list.appendChild(div);
   });
+  flushGroupWeight();
   refreshWorkflow();
   updateQuoteLockUI();
   scheduleDraftAutosave();
