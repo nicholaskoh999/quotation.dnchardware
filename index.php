@@ -9632,17 +9632,22 @@ function getWAGroupTitle(item){
   if(!title) title=(item.desc||'Item').replace(/\s+\([^)]*\)\s*$/,'').trim();
   return finish ? `${title} (${finish})` : title;
 }
-function buildWAItemsText(emptyText='-'){
+function buildWAItemsText(emptyText='-', mergeIdentical=true){
   if(!quoteItems.length) return emptyText;
   const groups=[];
   const groupIndex=new Map();
   quoteItems.forEach((item,itemIndex)=>{
     const title=getWAGroupTitle(item);
-    if(!groupIndex.has(title)){
+    /* Copy mode (mergeIdentical=false) keeps the quotation's global order: a
+       new heading block starts whenever the title differs from the PREVIOUS
+       item's, so the same heading may legitimately repeat. */
+    const lastGroup=groups[groups.length-1];
+    const needNew=mergeIdentical ? !groupIndex.has(title) : !(lastGroup && lastGroup.title===title);
+    if(needNew){
       groupIndex.set(title,groups.length);
       groups.push({title,rows:[],seen:new Map(),cwLabels:[]});
     }
-    const group=groups[groupIndex.get(title)];
+    const group=mergeIdentical ? groups[groupIndex.get(title)] : groups[groups.length-1];
     // WAS: use abLine as size key; component lines appended after price line
     const wasItem=item.itemType==='was';
     const wasDisplay=wasItem?wasDisplayData(item):null;
@@ -9674,7 +9679,7 @@ function buildWAItemsText(emptyText='-'){
        tell them apart on the page — the line carries BOTH numbers rather than
        silently dropping one: "1, 4." is traceable, and a gap in the numbering
        is not. */
-    if(group.seen.has(key)){
+    if(mergeIdentical && group.seen.has(key)){
       const existing=group.rows[group.seen.get(key)];
       if(existing) existing.nos.push(itemIndex+1);
       return;
@@ -9691,9 +9696,9 @@ function buildWAItemsText(emptyText='-'){
       if(row.wasItem){
         const compPart=row.wasComp?'\n'+row.wasComp:'';
         const cwPart=row.cw?'\n   '+row.cw:'';
-        return `${no}. ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
+        return `${no}) ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
       }
-      const line=`${no}. ${row.size} - ${row.price}`;
+      const line=`${no}) ${row.size} - ${row.price}`;
       /* The print sheet carries the annotation on its own line; without it here
          two rods that differ only by it read as the same rod written twice. */
       const customPart=row.custom?'\n   '+row.custom:'';
@@ -9716,7 +9721,7 @@ function buildWAItemsText(emptyText='-'){
 function buildQuoteText(){
   const qi=getQI();
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
-  const itemLines=buildWAItemsText('-');
+  const itemLines=buildWAItemsText('-', false);   // copy: one line per original item, never merged
   const tpl=getWATemplate();
   return tpl
     .replace(/{customer}/g, qi.customer||'-')
