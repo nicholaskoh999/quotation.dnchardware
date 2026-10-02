@@ -9420,11 +9420,16 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true){
   const groupIndex=new Map();
   quoteItems.forEach((item,itemIndex)=>{
     const title=getWAGroupTitle(item);
-    if(!groupIndex.has(title)){
+    /* Copy mode (mergeIdentical=false) keeps the quotation's global order: a
+       new heading block starts whenever the title differs from the PREVIOUS
+       item's, so the same heading may legitimately repeat. */
+    const lastGroup=groups[groups.length-1];
+    const needNew=mergeIdentical ? !groupIndex.has(title) : !(lastGroup && lastGroup.title===title);
+    if(needNew){
       groupIndex.set(title,groups.length);
       groups.push({title,rows:[],seen:new Map(),cwLabels:[]});
     }
-    const group=groups[groupIndex.get(title)];
+    const group=mergeIdentical ? groups[groupIndex.get(title)] : groups[groups.length-1];
     // WAS: use abLine as size key; component lines appended after price line
     const wasItem=item.itemType==='was';
     const wasDisplay=wasItem?wasDisplayData(item):null;
