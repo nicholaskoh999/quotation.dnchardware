@@ -1435,15 +1435,17 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-desc{font-size:15px;font-weight:900}
 .qi-subrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;flex-wrap:wrap}
 .qi-cw{margin-top:5px;font-size:12px;color:var(--text-2);white-space:pre-line;min-width:0}
-.qi-unitline{font-size:13.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
-.qi-summary-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto;padding-right:7px}
+.qi-unitline{font-size:12.5px;color:var(--text-muted);font-weight:600;display:flex;align-items:baseline;justify-content:flex-start;gap:6px;flex-wrap:wrap}
+.qi-unitline strong{font-size:19px;font-weight:700;color:var(--text)}
+.qi-item-bottom .qi-price-group{margin-left:auto;padding-right:7px}
+.qi-qtyweight{margin-top:4px}
 .qi-unitline strong{color:var(--text)}
 .qi-breakdown{margin-top:1px;font-size:12px;color:var(--text-muted);font-weight:600}
-.qi-item-bottom{margin-top:8px;align-items:flex-end}
+.qi-item-bottom{margin-top:8px;align-items:baseline}
 .qi-meta{gap:6px}
 .qi-meta .qi-weight-pill::before{content:'·';margin-right:6px;color:var(--text-muted)}
 .qi-meta-pill{font-size:12.5px}
-.qi-total{font-size:28px;font-weight:900;line-height:1.1}
+.qi-total{font-size:19px;font-weight:700;line-height:1.1}
 .qi-group-weight{display:flex;justify-content:flex-end;gap:8px;align-items:baseline;margin:-2px 2px 4px;font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
 .qi-group-weight strong{font-size:13.5px;color:var(--text)}
 /* ═══════════════ v2.17.6 — ACCESSORIES UI POLISH ═══════════════
@@ -8941,7 +8943,7 @@ function renderQuote(newIdx){
     runKey=gk; runSum+=wItemTotal(item); runCount++;
     const div=document.createElement('div');
     div.className='qi-item'+(i===newIdx?' row-new':'')+(i===editingItemIndex?' editing':'');
-    const chip=makeChip(item.finish);
+    const chip=/^\s*(n\/?a|none|-|—)?\s*$/i.test(item.finish||'')?'':makeChip(item.finish);   /* display only: no "- N/A" in the title */
     const markupValue=parseFloat(item.markup)||0;
     const markupTag=markupValue>0?`<span class="qi-markup">⭐ +${markupValue}%</span>`:'';
     const itemPriceMode=item.priceMode||item.formData?.priceMode||'auto';
@@ -8964,21 +8966,19 @@ function renderQuote(newIdx){
             <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
             ${cwLine?`<div class="qi-cw">${escHtml(cwLine)}</div>`:''}
             ${breakdownHtml}
+            <div class="qi-meta qi-qtyweight">
+              <span class="qi-meta-pill">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
+              ${weightPill}
+            </div>
           </div>
         </div>
         ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
-        <div class="qi-meta">
-          <span class="qi-meta-pill">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
-          ${weightPill}
-        </div>
-        <div class="qi-summary-right">
-          <div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</div>
-          <div class="qi-price-group">
-            <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
-            <span class="qi-total">${fmt(item.totalAmount)}</span>
-          </div>
+        <div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</div>
+        <div class="qi-price-group">
+          <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
+          <span class="qi-total">${fmt(item.totalAmount)}</span>
         </div>
       </div>`;
     list.appendChild(div);
