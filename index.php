@@ -3,7 +3,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <script>
 /* Language boot. Runs before first paint so the page never flashes the wrong
    language on reload. Deliberately duplicates the few lines of dcLang() rather
@@ -4382,6 +4382,71 @@ input,select,textarea{
 .hist-note{font-size:13px;opacity:.8}
 .hist-item-fields{margin:2px 0 0 12px;display:flex;flex-direction:column;gap:2px}
 .hist-state{padding:18px 2px;font-size:13px;opacity:.8;text-align:center}
+
+/* ═══════════════ RESPONSIVE v2 — MOBILE / TABLET + KEYBOARD SAFETY ═══════════════
+   Layout-only. --vvh / --kb are written by the visualViewport script near the end
+   of the page; html.kb-open is set while an on-screen keyboard covers the page. */
+:root{--bar-h:64px; --sab:env(safe-area-inset-bottom,0px)}
+body{min-height:100vh; min-height:100dvh}
+@media (max-width:900px){
+  /* dvh: 100vh is taller than the visible area on mobile browsers with a collapsing URL bar */
+  .sidebar{height:100vh; height:100dvh; overscroll-behavior:contain}
+  .mobile-bar{
+    padding:10px 14px calc(10px + var(--sab));
+    padding-left:max(14px,env(safe-area-inset-left,0px)); padding-right:max(14px,env(safe-area-inset-right,0px));
+    transition:transform .18s ease;
+  }
+  .main{padding-bottom:calc(var(--bar-h) + var(--sab) + 56px)}
+  .toast{bottom:calc(var(--bar-h) + var(--sab) + 16px)}
+  /* the entry Add button rides just above the total bar, wherever the bar ends up */
+  @media (hover:none) and (pointer:coarse){
+    .entry-actions{bottom:calc(var(--bar-h) + var(--sab))}
+  }
+  /* a focused field scrolled into view must clear the sticky bars */
+  .field input,.field select,.field textarea,.qo-card input,
+  .modal input,.modal select,.modal textarea{scroll-margin-top:calc(var(--banner-h) + var(--header-h) + 16px); scroll-margin-bottom:calc(var(--bar-h) + var(--sab) + 96px)}
+  /* iOS zooms into any control under 16px; zoom is locked, so keep text legible instead */
+  input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:max(16px,1em)}
+}
+/* While the keyboard is up the footer would sit on top of the field being typed in. */
+html.kb-open .mobile-bar{transform:translateY(110%); pointer-events:none}
+html.kb-open .entry-actions{position:static; box-shadow:none; padding-top:14px}
+html.kb-open .main{padding-bottom:calc(var(--kb,0px) + 24px)}
+html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
+/* Modals/sheets follow the visible area, not the layout viewport */
+@media (max-width:640px){
+  html.kb-open .modal-overlay,html.kb-open .wqa-modal{max-height:var(--vvh,100dvh)}
+}
+/* Phone: tighter shell gutters, centred header text never crowds the burger */
+@media (max-width:430px){
+  .app-shell{padding:0 10px}
+  .card{padding:14px}
+  .qt-amt{font-size:21px}
+  .quote-actions .btn-save{flex:1 1 100%}
+  .quote-actions .btn-sm{flex:1 1 0}
+}
+/* Tablet 641–900: a balanced two-column composition rather than stretched phone */
+@media (min-width:641px) and (max-width:900px){
+  .app-shell{padding:0 20px}
+  .main{gap:18px}
+  .card{padding:22px}
+  .stepper{padding:12px 20px}
+  .field-grid{grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px}
+  .item-form.active{grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px}
+  .type-picker{grid-template-columns:repeat(6,1fr); gap:8px}
+  .finish-pills{grid-template-columns:repeat(4,1fr)}
+  .qo-card .qo-row,.qo-card form{max-width:560px}
+  .quote-actions{gap:10px}
+  .quote-actions .btn-save{flex:1 1 auto; min-width:200px}
+  /* sticky bar: contained, centred card instead of an edge-to-edge stripe */
+  .mobile-bar{left:50%; right:auto; width:min(720px,calc(100% - 32px)); transform:translateX(-50%);
+    bottom:calc(8px + var(--sab)); border:1px solid var(--border); border-radius:var(--r)}
+  html.kb-open .mobile-bar{transform:translate(-50%,calc(100% + 40px))}
+  @media (hover:none) and (pointer:coarse){ .entry-actions{bottom:calc(var(--bar-h) + var(--sab) + 8px)} }
+}
+@media (min-width:641px) and (max-width:900px) and (orientation:portrait){
+  .main{padding-bottom:calc(var(--bar-h) + var(--sab) + 72px)}
+}
 </style>
 <div class="modal-overlay" id="historyModal">
   <div class="modal" style="max-width:640px">
@@ -17742,6 +17807,55 @@ async function wqaAddAll(){
   setTimeout(applyDefaultPrice,100);
 })();
 
+
+/* ── Keyboard safety (visualViewport) ──────────────────────────────────────────
+   Presentation only. Tracks how much of the page an on-screen keyboard covers,
+   exposes it as --kb / --vvh, flags html.kb-open so the sticky footer steps aside,
+   and scrolls the focused control into the visible area. Does nothing on desktop. */
+(function(){
+  const root=document.documentElement, vv=window.visualViewport;
+  const isField=n=>n&&n.matches&&n.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]),select,textarea');
+  const touch=()=>window.matchMedia('(hover:none) and (pointer:coarse)').matches||window.innerWidth<=900;
+  let baseH=Math.max(window.innerHeight,vv?vv.height:0), raf=0, kbOpen=false;
+  function measure(){
+    raf=0;
+    const vh=vv?vv.height:window.innerHeight;
+    const top=vv?vv.offsetTop:0;
+    /* the layout viewport may shrink (Android) or stay put (iOS) — cover both */
+    if(!kbOpen) baseH=Math.max(baseH,window.innerHeight,vh);
+    const kb=Math.max(0,Math.round(baseH-vh-top));
+    const focused=isField(document.activeElement);
+    const open=touch()&&focused&&kb>120;
+    root.style.setProperty('--vvh',Math.round(vh)+'px');
+    root.style.setProperty('--kb',(open?kb:0)+'px');
+    if(open!==kbOpen){ kbOpen=open; root.classList.toggle('kb-open',open); if(open) reveal(); }
+    if(!open&&!focused) baseH=Math.max(window.innerHeight,vh);
+  }
+  const schedule=()=>{ if(!raf) raf=requestAnimationFrame(measure); };
+  function reveal(){
+    const t=document.activeElement;
+    if(!isField(t)||!touch()) return;
+    const vh=vv?vv.height:window.innerHeight, off=vv?vv.offsetTop:0;
+    const r=t.getBoundingClientRect();
+    const header=(parseFloat(getComputedStyle(root).getPropertyValue('--banner-h'))||0)+58+12;
+    const bottomLimit=off+vh-16;
+    if(r.top<off+header||r.bottom>bottomLimit){
+      try{ t.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'}); }catch(e){ t.scrollIntoView(); }
+    }
+  }
+  document.addEventListener('focusin',e=>{
+    if(!isField(e.target)) return;
+    schedule();
+    /* keyboard animation takes ~250-300ms; re-check once it has settled */
+    setTimeout(()=>{ measure(); reveal(); },320);
+  });
+  document.addEventListener('focusout',()=>setTimeout(()=>{ if(!isField(document.activeElement)){ kbOpen=false; root.classList.remove('kb-open'); root.style.setProperty('--kb','0px'); schedule(); } },120));
+  if(vv){ vv.addEventListener('resize',()=>{ schedule(); if(kbOpen||isField(document.activeElement)) setTimeout(reveal,60); }); vv.addEventListener('scroll',schedule); }
+  /* a real rotation changes the width; a keyboard only ever changes the height */
+  let lastW=window.innerWidth;
+  window.addEventListener('resize',()=>{ if(window.innerWidth!==lastW){ lastW=window.innerWidth; kbOpen=false; baseH=Math.max(window.innerHeight,vv?vv.height:0); } schedule(); });
+  measure();
+})();
 </script>
 </body>
 </html>
