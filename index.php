@@ -1442,6 +1442,10 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-item-bottom{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline;padding-left:55px}
 .qi-item-bottom .qi-price-group{justify-self:end;margin-left:0;padding-right:7px;white-space:nowrap}
 .qi-dim{background:none;padding:0;font-size:13px;font-weight:600;line-height:1.4;margin-top:3px}
+/* Unit / Total labels share one treatment and one label-to-value gap */
+.qi-item-bottom .qi-unit{font-size:12.5px;font-weight:600;line-height:1.2;text-transform:none;letter-spacing:0;color:var(--text-muted)}
+.qi-item-bottom .qi-price-group{gap:6px;align-items:baseline}
+.qi-item-bottom .qi-unitline{line-height:1.2}
 @media (max-width:640px){ .qi-item-bottom{padding-left:52px} }
 .qi-qtyweight{margin-top:4px}
 .qi-unitline strong{color:var(--text)}
