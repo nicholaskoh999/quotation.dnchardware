@@ -1429,16 +1429,19 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 /* Quotation list card hierarchy (display only) */
 .qi-num{min-width:0;width:auto;height:auto;padding:1px 6px;border-radius:var(--r-xs);background:transparent;border-color:transparent;font-size:11.5px;font-weight:700;color:var(--text-muted)}
 .qi-num::before{content:'#'}
-.qi-titlerow{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:6px}
+.qi-titlerow{display:flex;align-items:baseline;justify-content:flex-start;flex-wrap:wrap;gap:0 5px}
 .qi-titlerow .finish-chip{flex-shrink:0}
 .qi-finsep{color:var(--text-muted);font-weight:800}
 .qi-desc{font-size:15px;font-weight:900}
 .qi-subrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;flex-wrap:wrap}
-.qi-cw{font-size:11.5px;color:var(--text-muted);white-space:pre-line;min-width:0}
-.qi-unitline{margin-left:auto;font-size:13.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.qi-cw{margin-top:5px;font-size:12px;color:var(--text-2);white-space:pre-line;min-width:0}
+.qi-unitline{font-size:13.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.qi-summary-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto}
 .qi-unitline strong{color:var(--text)}
-.qi-breakdown{margin-top:3px;font-size:11px;color:var(--text-muted);font-weight:600}
-.qi-item-bottom{margin-top:8px}
+.qi-breakdown{margin-top:1px;font-size:11px;color:var(--text-muted);font-weight:600}
+.qi-item-bottom{margin-top:8px;align-items:flex-end}
+.qi-meta{gap:6px}
+.qi-meta .qi-weight-pill::before{content:'·';margin-right:6px;color:var(--text-muted)}
 .qi-meta-pill{font-size:12.5px}
 .qi-total{font-size:28px;font-weight:900;line-height:1.1}
 .qi-group-weight{display:flex;justify-content:flex-end;gap:8px;align-items:baseline;margin:-2px 2px 4px;font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
@@ -5167,7 +5170,7 @@ const I18N={
     pgCalculatedEg:'Calculated RM3.47', pgFinalEg:'Final RM3.47',
     pgCustomerPriceEg:'Customer Price RM4.00', pgSystemUsesEg:'System uses: RM4.00',
     pgPlateEg:'Plate RM10.00', pgDrillingEg:'Drilling RM2.00',
-    qiTotalPill:'Total', qiGroupWeight:'Total Weight',
+    qiTotalPill:'Total', qiGroupWeight:'Total Weight', qiWeight:'Weight',
     lblUnitPriceShort:'Unit Price',
     /* Written in Chinese only, so an English reader could not read it. */
     pmManualGuide:'Manual Price is the final customer unit price — accessories are not added on top again.',
@@ -5636,7 +5639,7 @@ const I18N={
     pgCalculatedEg:'计算结果 RM3.47', pgFinalEg:'最终 RM3.47',
     pgCustomerPriceEg:'客户售价 RM4.00', pgSystemUsesEg:'系统采用：RM4.00',
     pgPlateEg:'铁板 RM10.00', pgDrillingEg:'钻孔 RM2.00',
-    qiTotalPill:'合计', qiGroupWeight:'总重量',
+    qiTotalPill:'合计', qiGroupWeight:'总重量', qiWeight:'重量',
     lblUnitPriceShort:'单价',
     pmManualGuide:'Manual Price 是最终客户单价，配件不会再另外加一次。',
     pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → Manual Price 填 RM2.00',
@@ -8950,8 +8953,7 @@ function renderQuote(newIdx){
     const displaySize=item.itemType==='was'?wasDisplayData(item).size:item.size;
     const unitSuffix=item.itemType==='was'?'/set':'';
     const uboltDebugHtml=getUBoltCardDebugHtml(item);
-    const totalWtPill=(parseFloat(item.weight)>0&&parseInt(item.qty,10)>1)?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiTotalPill'))} <strong>${wItemTotal(item).toFixed(3)}kg</strong></span>`:'';
-    const unitWtPill=parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiUnitWeight'))} <strong>${parseFloat(item.weight).toFixed(3)}kg/pc</strong></span>`:'';
+    const weightPill=parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiWeight'))} <strong>${wItemTotal(item).toFixed(3)}kg</strong></span>`:'';
     const breakdownHtml=dcItemAccUnit(item)>0?`<div class="qi-breakdown">${escHtml(dcT('qiBoltPill'))} ${fmt(dcItemBoltUnit(item))}/pc · ${escHtml(dcT('qiAccessories'))} ${fmt(dcItemAccUnit(item))}/pc</div>`:'';
     div.innerHTML=`
       <div class="qi-item-top">
@@ -8960,7 +8962,7 @@ function renderQuote(newIdx){
           <div class="qi-body">
             <div class="qi-titlerow"><div class="qi-desc">${escHtml(displayItemDesc(item))}</div>${chip?`<span class="qi-finsep">-</span>${chip}`:''}</div>
             <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
-            <div class="qi-subrow"><div class="qi-cw">${cwLine?escHtml(cwLine):''}</div><div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</div></div>
+            ${cwLine?`<div class="qi-cw">${escHtml(cwLine)}</div>`:''}
             ${breakdownHtml}
           </div>
         </div>
@@ -8969,11 +8971,14 @@ function renderQuote(newIdx){
       <div class="qi-item-bottom">
         <div class="qi-meta">
           <span class="qi-meta-pill">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
-          ${unitWtPill}${totalWtPill}
+          ${weightPill}
         </div>
-        <div class="qi-price-group">
-          <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
-          <span class="qi-total">${fmt(item.totalAmount)}</span>
+        <div class="qi-summary-right">
+          <div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</div>
+          <div class="qi-price-group">
+            <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
+            <span class="qi-total">${fmt(item.totalAmount)}</span>
+          </div>
         </div>
       </div>`;
     list.appendChild(div);
