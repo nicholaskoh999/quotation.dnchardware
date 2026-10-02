@@ -9414,7 +9414,7 @@ function getWAGroupTitle(item){
   if(!title) title=(item.desc||'Item').replace(/\s+\([^)]*\)\s*$/,'').trim();
   return finish ? `${title} (${finish})` : title;
 }
-function buildWAItemsText(emptyText='-'){
+function buildWAItemsText(emptyText='-', mergeIdentical=true){
   if(!quoteItems.length) return emptyText;
   const groups=[];
   const groupIndex=new Map();
@@ -9456,7 +9456,7 @@ function buildWAItemsText(emptyText='-'){
        tell them apart on the page — the line carries BOTH numbers rather than
        silently dropping one: "1, 4." is traceable, and a gap in the numbering
        is not. */
-    if(group.seen.has(key)){
+    if(mergeIdentical && group.seen.has(key)){
       const existing=group.rows[group.seen.get(key)];
       if(existing) existing.nos.push(itemIndex+1);
       return;
@@ -9498,7 +9498,7 @@ function buildWAItemsText(emptyText='-'){
 function buildQuoteText(){
   const qi=getQI();
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
-  const itemLines=buildWAItemsText('-');
+  const itemLines=buildWAItemsText('-', false);   // copy: one line per original item, never merged
   const tpl=getWATemplate();
   return tpl
     .replace(/{customer}/g, qi.customer||'-')
