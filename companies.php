@@ -655,6 +655,13 @@ input,select,textarea{
 .lang-btn:hover{background:rgba(255,255,255,.26)}
 .lang-btn.is-on{background:#fff;color:var(--accent-2)}
 .lang-btn:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+/* Single header toggle: always shows the OTHER language. The label is CSS-only
+   (keyed on <html data-lang>, set before first paint) so it never flashes. */
+.lang-toggle::before{content:'中文'}
+:root[data-lang="zh"] .lang-toggle::before{content:'EN'}
+.lang-switch .lang-btn{min-width:56px;text-align:center}
+/* Desktop: equal-minimum nav buttons so a language switch cannot move them (<=560px they are flex:1) */
+@media (min-width:561px){ .header-actions .nav-btn{min-width:112px;justify-content:center} }
 @media (max-width:440px){ .lang-btn{padding:0 8px;font-size:10.5px} }
 
 /* Global nav states — same language as index.php */
@@ -748,8 +755,7 @@ input,select,textarea{
   <!-- Global nav: identical to index.php -->
   <div class="header-actions">
     <div class="lang-switch" role="group" data-i18n-aria="langAria" aria-label="Language">
-      <button type="button" class="lang-btn" data-lang-set="en" aria-pressed="true"  onclick="dcSetLang('en')">EN</button>
-      <button type="button" class="lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
+      <button type="button" class="lang-btn lang-toggle" onclick="dcToggleLang()" aria-label="Language / 语言"></button>
     </div>
     <a href="index.php" class="nav-btn" data-i18n-title="navCalculatorTitle" title="Quotation Calculator" data-i18n="navCalculator">Calculator</a>
     <a href="companies.php" class="nav-btn is-active" aria-current="page" data-i18n="navCompanies">Companies</a>
@@ -1083,6 +1089,7 @@ dcOnRelabel(()=>{
      the card already makes — no company, quotation or remark is written. */
   try{ if(selectedCompanyId!==null) selectCompany(selectedCompanyId); }catch(e){}
 });
+function dcToggleLang(){ dcSetLang(dcLang()==='zh'?'en':'zh'); }
 function dcSetLang(l){
   if(DC_LANGS.indexOf(l)<0) return;
   try{ localStorage.setItem(DC_LANG_KEY,l); }catch(e){}
