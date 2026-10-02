@@ -2513,6 +2513,11 @@ input,select,textarea{
 .lang-btn:hover{background:rgba(255,255,255,.26)}
 .lang-btn.is-on{background:#fff;color:var(--accent-2)}
 .lang-btn:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+/* Stable header geometry: the nav labels are translated too, so the switch and
+   the three nav buttons get fixed-minimum equal widths. Switching EN/中文 then
+   cannot move Calculator / Companies / Sign Out under a stationary mouse. */
+.lang-switch .lang-btn{min-width:48px;text-align:center}
+.hdr-actions .hdr-btn:not(.icon-only){min-width:112px;justify-content:center}
 /* The header row is hidden below 820px, so the sidebar copy is the only way in
    on tablet and phone — it gets a full 44px touch target. */
 .side-lang{display:flex;margin:2px 12px 12px;border:1.5px solid var(--border);
