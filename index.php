@@ -1436,9 +1436,9 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-subrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;flex-wrap:wrap}
 .qi-cw{margin-top:5px;font-size:12px;color:var(--text-2);white-space:pre-line;min-width:0}
 .qi-unitline{font-size:13.5px;color:var(--text-2);font-weight:600;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
-.qi-summary-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto}
+.qi-summary-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto;padding-right:7px}
 .qi-unitline strong{color:var(--text)}
-.qi-breakdown{margin-top:1px;font-size:11px;color:var(--text-muted);font-weight:600}
+.qi-breakdown{margin-top:1px;font-size:12px;color:var(--text-muted);font-weight:600}
 .qi-item-bottom{margin-top:8px;align-items:flex-end}
 .qi-meta{gap:6px}
 .qi-meta .qi-weight-pill::before{content:'·';margin-right:6px;color:var(--text-muted)}
