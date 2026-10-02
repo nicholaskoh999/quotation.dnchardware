@@ -2996,6 +2996,45 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 @media (min-width:641px) and (max-width:900px) and (orientation:portrait){
   .main{padding-bottom:calc(var(--bar-h) + var(--sab) + 72px)}
 }
+
+/* ═══════════════ RESPONSIVE v2.1 — PHONE FLOW + TABLET TWO-PANEL ═══════════════ */
+/* Phone: only the TOTAL / Save bar is sticky. Add to Quotation is a normal
+   in-flow button at the end of the item form and scrolls with it. */
+@media (max-width:640px){
+  .entry-actions{position:static; box-shadow:none; background:none; padding:0; margin-top:18px}
+  /* One column for selection / dimension rows; pricing numbers pair up 2 x 2. */
+  .item-form.active{grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+  .item-form.active>.field{grid-column:1/-1}
+  .item-form.active>.field:has(>input[id$="-costRate"]),
+  .item-form.active>.field:has(>input[id$="-addCost"]),
+  .item-form.active>.field:has(>input[id$="-markup"]),
+  .item-form.active>.field:has(>input[id$="-qty"]){grid-column:auto}
+  .type-picker{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .finish-pills{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* Tablet 700-900: Item Entry on the left, Quotation List / Review beside it.
+   DOM order is unchanged; the existing two-col grid is simply kept as two columns. */
+@media (min-width:700px) and (max-width:900px){
+  .two-col{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:16px; align-items:start}
+  .two-col>.card{min-width:0; padding:18px}
+  #step3Card{
+    position:sticky; top:calc(var(--banner-h) + var(--header-h) + 12px);
+    max-height:calc(100vh - var(--banner-h) - var(--header-h) - var(--bar-h) - var(--sab) - 36px);
+    max-height:calc(100dvh - var(--banner-h) - var(--header-h) - var(--bar-h) - var(--sab) - 36px);
+    overflow-y:auto; overscroll-behavior:contain;
+  }
+  .item-form.active{grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
+  .type-picker{grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
+  .finish-pills{grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px}
+  .quote-actions .btn{flex:1 1 calc(50% - 5px); min-width:0}
+  .quote-actions .btn-save{flex:1 1 100%}
+  /* the narrow review panel uses the phone card layout: actions under the title, price under the details */
+  #step3Card .qi-item-top{flex-wrap:wrap; padding:11px 12px 0}
+  #step3Card .qi-card-actions{width:100%; justify-content:flex-start; margin-top:6px}
+  #step3Card .qi-item-bottom{grid-template-columns:minmax(0,1fr); padding:9px 12px 11px; row-gap:6px}
+  #step3Card .qi-item-bottom .qi-price-group{justify-self:start; padding-right:0; flex-wrap:wrap}
+  #step3Card .card-head{flex-wrap:wrap}
+}
 </style>
 </head>
 <body>
