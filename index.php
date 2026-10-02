@@ -9473,9 +9473,9 @@ function buildWAItemsText(emptyText='-'){
       if(row.wasItem){
         const compPart=row.wasComp?'\n'+row.wasComp:'';
         const cwPart=row.cw?'\n   '+row.cw:'';
-        return `${no}. ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
+        return `${no}) ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
       }
-      const line=`${no}. ${row.size} - ${row.price}`;
+      const line=`${no}) ${row.size} - ${row.price}`;
       /* The print sheet carries the annotation on its own line; without it here
          two rods that differ only by it read as the same rod written twice. */
       const customPart=row.custom?'\n   '+row.custom:'';
