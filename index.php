@@ -2513,6 +2513,15 @@ input,select,textarea{
 .lang-btn:hover{background:rgba(255,255,255,.26)}
 .lang-btn.is-on{background:#fff;color:var(--accent-2)}
 .lang-btn:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+/* Stable header geometry: the nav labels are translated too, so the switch and
+   the three nav buttons get fixed-minimum equal widths. Switching EN/中文 then
+   cannot move Calculator / Companies / Sign Out under a stationary mouse. */
+/* Single header toggle: always shows the OTHER language. The label is CSS-only
+   (keyed on <html data-lang>, set before first paint) so it never flashes. */
+.lang-toggle::before{content:'中文'}
+:root[data-lang="zh"] .lang-toggle::before{content:'EN'}
+.lang-switch .lang-btn{min-width:56px;text-align:center}
+.hdr-actions .hdr-btn:not(.icon-only){min-width:112px;justify-content:center}
 /* The header row is hidden below 820px, so the sidebar copy is the only way in
    on tablet and phone — it gets a full 44px touch target. */
 .side-lang{display:flex;margin:2px 12px 12px;border:1.5px solid var(--border);
@@ -2942,8 +2951,7 @@ input,select,textarea{
        duplicated here. -->
   <div class="hdr-actions">
     <div class="lang-switch" role="group" data-i18n-aria="langAria" aria-label="Language">
-      <button type="button" class="lang-btn" data-lang-set="en" aria-pressed="true"  onclick="dcSetLang('en')">EN</button>
-      <button type="button" class="lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
+      <button type="button" class="lang-btn lang-toggle" onclick="dcToggleLang()" aria-label="Language / 语言"></button>
     </div>
     <a class="hdr-btn is-active" href="index.php" aria-current="page" data-i18n="navCalculator">Calculator</a>
     <a class="hdr-btn" href="companies.php" data-i18n="navCompanies">Companies</a>
@@ -5766,6 +5774,8 @@ function dcApplyLang(){
     b.setAttribute('aria-pressed',on?'true':'false');
   });
 }
+/* Header toggle: flips to the other language through the one existing path. */
+function dcToggleLang(){ dcSetLang(dcLang()==='zh'?'en':'zh'); }
 function dcSetLang(l){
   if(DC_LANGS.indexOf(l)<0) return;
   try{ localStorage.setItem(DC_LANG_KEY,l); }catch(e){}   // private mode: session-only, still switches
