@@ -1437,7 +1437,12 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-cw{margin-top:5px;font-size:12px;color:var(--text-2);white-space:pre-line;min-width:0}
 .qi-unitline{font-size:12.5px;color:var(--text-muted);font-weight:600;display:flex;align-items:baseline;justify-content:flex-start;gap:6px;flex-wrap:wrap}
 .qi-unitline strong{font-size:19px;font-weight:700;color:var(--text)}
-.qi-item-bottom .qi-price-group{margin-left:auto;padding-right:7px}
+/* Stable two-column price row; content edge matches the body (after the #N column) */
+.qi-num{min-width:30px;justify-content:flex-start}
+.qi-item-bottom{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline;padding-left:55px}
+.qi-item-bottom .qi-price-group{justify-self:end;margin-left:0;padding-right:7px;white-space:nowrap}
+.qi-dim{background:none;padding:0;font-size:13px;font-weight:600;line-height:1.4;margin-top:3px}
+@media (max-width:640px){ .qi-item-bottom{padding-left:52px} }
 .qi-qtyweight{margin-top:4px}
 .qi-unitline strong{color:var(--text)}
 .qi-breakdown{margin-top:1px;font-size:12px;color:var(--text-muted);font-weight:600}
