@@ -3035,6 +3035,22 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   #step3Card .qi-item-bottom .qi-price-group{justify-self:start; padding-right:0; flex-wrap:wrap}
   #step3Card .card-head{flex-wrap:wrap}
 }
+
+/* Step 4 action row: five actions fit one row wherever the panel allows; below that they wrap as before.
+   Copy + Weight is a subtle light-blue sibling of Copy, not a primary button. */
+.btn-copyw{background:var(--accent-light); border-color:var(--accent-mid); color:var(--accent)}
+.btn-copyw:hover{background:var(--accent-mid); border-color:var(--accent); color:var(--accent-2)}
+@media (min-width:901px){
+  .quote-actions{gap:6px}
+  .quote-actions .btn{white-space:nowrap}
+  .quote-actions .btn-sm{padding:7px 8px; font-size:12px}
+  .quote-actions .btn-save{padding:12px 14px; font-size:13.5px}
+}
+@media (min-width:901px) and (max-width:1439px){
+  .quote-actions{gap:5px}
+  .quote-actions .btn-sm{padding:7px 6px; font-size:11.5px}
+  .quote-actions .btn-save{padding:12px 10px; font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -3968,7 +3984,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
             <button class="btn btn-ghost btn-sm" onclick="doPrint()" data-i18n="print">Print</button>
             <button class="btn btn-wa btn-sm" onclick="doWhatsApp()">WhatsApp</button>
             <button class="btn btn-outline btn-sm" onclick="doCopyWA()" data-i18n="copy">Copy</button>
-            <button class="btn btn-outline btn-sm" onclick="doCopyWAWeight()" data-i18n="copyWeight">Copy + Weight</button>
+            <button class="btn btn-outline btn-sm btn-copyw" onclick="doCopyWAWeight()" data-i18n="copyWeight">Copy + Weight</button>
           </div>
         </div>
       </div>
