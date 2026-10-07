@@ -3968,6 +3968,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
             <button class="btn btn-ghost btn-sm" onclick="doPrint()" data-i18n="print">Print</button>
             <button class="btn btn-wa btn-sm" onclick="doWhatsApp()">WhatsApp</button>
             <button class="btn btn-outline btn-sm" onclick="doCopyWA()" data-i18n="copy">Copy</button>
+            <button class="btn btn-outline btn-sm" onclick="doCopyWAWeight()" data-i18n="copyWeight">Copy + Weight</button>
           </div>
         </div>
       </div>
@@ -5002,7 +5003,7 @@ const I18N={
     clearAll:'Clear All', noItemsYet:'No items yet',
     newestFirst:'Newest First', oldestFirst:'Oldest First', sort:'Sort',
     saveQuotation:'Save Quotation', updateQuotation:'Update Quotation',
-    print:'Print', copy:'Copy', close:'Close',
+    print:'Print', copy:'Copy', copyWeight:'Copy + Weight', close:'Close',
     restoreDraft:'Restore Draft', discardDraft:'Discard',
     preview:'Preview', copyPreview:'Copy Preview',
     saveTemplate:'Save Template', resetDefault:'Reset to Default',
@@ -5520,7 +5521,7 @@ const I18N={
     clearAll:'全部清除', noItemsYet:'暂无产品',
     newestFirst:'最新优先', oldestFirst:'最旧优先', sort:'排序',
     saveQuotation:'保存报价', updateQuotation:'更新报价',
-    print:'打印', copy:'复制', close:'关闭',
+    print:'打印', copy:'复制', copyWeight:'复制 + 重量', close:'关闭',
     restoreDraft:'恢复草稿', discardDraft:'不要恢复',
     preview:'预览', copyPreview:'复制预览',
     saveTemplate:'保存模板', resetDefault:'重置为默认',
@@ -9582,7 +9583,7 @@ function getWAGroupTitle(item){
   if(!title) title=(item.desc||'Item').replace(/\s+\([^)]*\)\s*$/,'').trim();
   return finish ? `${title} (${finish})` : title;
 }
-function buildWAItemsText(emptyText='-', mergeIdentical=true){
+function buildWAItemsText(emptyText='-', mergeIdentical=true, includeUnitWeight=false){
   if(!quoteItems.length) return emptyText;
   const groups=[];
   const groupIndex=new Map();
@@ -9635,7 +9636,11 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true){
       return;
     }
     group.seen.set(key,group.rows.length);
-    group.rows.push({size,price,cw,wasComp,wasItem,custom,nos:[itemIndex+1]});
+    /* Copy + Weight only: the stored PER-PIECE weight (item.weight — the same value the
+       list card multiplies by qty for its item total). Never qty-multiplied; omitted when
+       there is no calculated weight rather than shown as a fake 0.000kg/pc. */
+    const uw=(includeUnitWeight&&!wasItem&&parseFloat(item.weight)>0)?(parseFloat(item.weight).toFixed(3)+'kg/pc'):'';
+    group.rows.push({size,price,cw,wasComp,wasItem,custom,uw,nos:[itemIndex+1]});
     group.cwLabels.push(cw);
   });
   return groups.map(group=>{
@@ -9648,7 +9653,7 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true){
         const cwPart=row.cw?'\n   '+row.cw:'';
         return `${no}) ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
       }
-      const line=`${no}) ${row.size} - ${row.price}`;
+      const line=`${no}) ${row.size}${row.uw?' - '+row.uw:''} - ${row.price}`;
       /* The print sheet carries the annotation on its own line; without it here
          two rods that differ only by it read as the same rod written twice. */
       const customPart=row.custom?'\n   '+row.custom:'';
@@ -9668,10 +9673,10 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true){
     return `${group.title}\n${rows}${cwSuffix}`;
   }).join('\n\n');
 }
-function buildQuoteText(){
+function buildQuoteText(includeUnitWeight=false){
   const qi=getQI();
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
-  const itemLines=buildWAItemsText('-', false);   // copy: one line per original item, never merged
+  const itemLines=buildWAItemsText('-', false, includeUnitWeight);   // copy: one line per original item, never merged
   const tpl=getWATemplate();
   return tpl
     .replace(/{customer}/g, qi.customer||'-')
@@ -9709,9 +9714,9 @@ async function copyTextToClipboard(text){
   document.body.removeChild(ta);
   return ok;
 }
-async function copyWhatsApp(){
+async function copyWhatsApp(includeUnitWeight=false){
   if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return}
-  const ok=await copyTextToClipboard(buildQuoteText());
+  const ok=await copyTextToClipboard(buildQuoteText(includeUnitWeight));
   showToast(dcT(ok?'tWaCopied':'tWaCopyFailedPreview'));
 }
 function openWhatsApp(){
@@ -9853,6 +9858,7 @@ function getPrintItemDimension(item){
 function doPrint(){ if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return} sentThisSession=true; refreshWorkflow(); window.print(); }
 function doWhatsApp(){ sentThisSession=true; refreshWorkflow(); openWhatsApp(); }
 function doCopyWA(){ sentThisSession=true; refreshWorkflow(); copyWhatsApp(); }
+function doCopyWAWeight(){ sentThisSession=true; refreshWorkflow(); copyWhatsApp(true); }
 
 /* ── Previous Quoted Prices (MySQL quotation history) ── */
 const PH_EMPTY_DEFAULT='No pricing history for this exact specification yet.';
