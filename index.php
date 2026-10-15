@@ -3077,6 +3077,17 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 .uc-apply[hidden]{display:none}
 .uc-btns{display:flex; flex-wrap:wrap; gap:6px}
 .uc-foot{display:flex; justify-content:flex-end; margin-top:16px}
+/* Unit converter — inline panel under the Dimension Entry heading */
+.group-label>.uc-open{order:3; margin-left:auto; padding:6px 12px; font-size:12px; font-weight:800; letter-spacing:0; min-height:32px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; box-shadow:var(--shadow-sm)}
+.uc-panel{grid-column:1/-1; background:var(--accent-light); border:1px solid var(--accent-mid); border-radius:var(--r-sm); padding:12px 14px; min-width:0}
+.uc-panel[hidden]{display:none}
+.uc-head{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--accent-2); margin-bottom:8px}
+.uc-x{background:none; border:none; color:var(--text-muted); font-size:15px; line-height:1; cursor:pointer; padding:4px 6px; border-radius:var(--r-xs)}
+.uc-x:hover{background:var(--accent-mid); color:var(--accent-2)}
+.uc-panel .uc-in{margin:0}
+.uc-panel .uc-row{margin-top:10px}
+.uc-panel .uc-apply{margin-top:12px}
+@media (max-width:420px){ .uc-panel .uc-row{flex-direction:column; align-items:stretch} .uc-panel .uc-row .btn{width:100%} }
 </style>
 </head>
 <body>
@@ -3261,7 +3272,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="sagrod-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="sagrod-finish" value="ZP" onchange="onFinishChange('sagrod')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="sagrod-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="sagrod-finish" value="HDG" onchange="onFinishChange('sagrod')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="sagrod-diameter" step="0.1" value="10.6" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="sagrod-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="onThreadLenChange('sagrod')"></div>
           <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();addSagRod();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
@@ -3317,7 +3328,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="stud-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="stud-finish" value="ZP" onchange="onFinishChange('stud')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="stud-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="stud-finish" value="HDG" onchange="onFinishChange('stud')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="stud-diameter" step="0.1" value="10.6" oninput="calcStud()"></div>
           <div class="field"><label>L</label><input type="number" id="stud-l" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();addStud();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <button type="button" class="acc-toggle-btn full" id="stud-accToggle" onclick="toggleAccPanel('stud')">
@@ -3376,7 +3387,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="anchorbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="anchorbolt-finish" value="ZP" onchange="onFinishChange('anchorbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="anchorbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="anchorbolt-finish" value="HDG" onchange="onFinishChange('anchorbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="anchorbolt-diameter" step="0.1" value="10.6" oninput="calcAnchorBolt()"></div>
           <div class="field"><label>L</label><input type="number" id="anchorbolt-l" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();addAnchorBolt();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <div class="field"><label>TL</label><input type="text" id="anchorbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
@@ -3429,7 +3440,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="ubolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="ubolt-finish" value="ZP" onchange="onFinishChange('ubolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="ubolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="ubolt-finish" value="HDG" onchange="onFinishChange('ubolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="ubPipeSize">Pipe Size</label><select id="ubolt-pipeSize" onchange="applyUBoltPipePreset()"><option value="" data-i18n="ubPipeSel">Select Pipe Size</option></select></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="ubolt-diameter" step="0.1" oninput="calcUBolt('ubolt')"></div>
           <div class="field"><label>ID <span class="preset-tag" id="ubolt-id-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
@@ -3485,7 +3496,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="squbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="squbolt-finish" value="ZP" onchange="onFinishChange('squbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="squbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="squbolt-finish" value="HDG" onchange="onFinishChange('squbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="squbolt-diameter" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
           <div class="field"><label>OH</label><input type="number" id="squbolt-oh" placeholder="100" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
           <div class="field"><label>W</label><input type="number" id="squbolt-w" placeholder="150" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
@@ -3540,7 +3551,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="lbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="lbolt-finish" value="ZP" onchange="onFinishChange('lbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="lbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="lbolt-finish" value="HDG" onchange="onFinishChange('lbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="lbolt-diameter" step="0.1" oninput="calcLBolt('lbolt')"></div>
           <div class="field"><label>L</label><input type="number" id="lbolt-l" placeholder="500" step="0.1" oninput="calcLBolt('lbolt')"></div>
           <div class="field"><label>W</label><input type="number" id="lbolt-w" placeholder="100" step="0.1" oninput="calcLBolt('lbolt')"></div>
@@ -3595,7 +3606,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="jbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="jbolt-finish" value="ZP" onchange="onFinishChange('jbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="jbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="jbolt-finish" value="HDG" onchange="onFinishChange('jbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="jbolt-diameter" step="0.1" oninput="calcJBolt('jbolt')"></div>
           <div class="field"><label>H</label><input type="number" id="jbolt-h" placeholder="910" step="0.1" oninput="calcJBolt('jbolt')"></div>
           <div class="field"><label>ID</label><input type="number" id="jbolt-id" placeholder="80" step="0.1" oninput="calcJBolt('jbolt')"></div>
@@ -3671,7 +3682,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           </div>
 
           <!-- MS Plate Dimension Entry -->
-          <div class="group-label full" id="plate-dim-group-ms"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full" id="plate-dim-group-ms"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field" id="plate-f-l"><label data-i18n="lblLength">Length</label><input type="number" id="plate-l" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-w"><label data-i18n="lblWidth">Width</label><input type="number" id="plate-w" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-t"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-t" data-i18n-ph="phEgMm10" placeholder="mm, e.g. 10" step="0.1" min="0.1" oninput="calcPlate()"></div>
@@ -3689,7 +3700,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="field" id="plate-f-nh" style="display:none"><label data-i18n="lblHoles">Holes</label><input type="number" id="plate-nh" placeholder="e.g. 1" step="1" min="1" oninput="calcPlate()"></div>
 
           <!-- Triangle Plate Dimension Entry — hidden by default -->
-          <div class="group-label full" id="plate-dim-group-tri" style="display:none"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="openUnitConverter()" data-i18n="ucConvert">Convert</button></div>
+          <div class="group-label full" id="plate-dim-group-tri" style="display:none"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field" id="plate-f-tri-l" style="display:none"><label data-i18n="lblLength">Length</label><input type="number" id="plate-tri-l" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-h" style="display:none"><label data-i18n="lblHeight">Height</label><input type="number" id="plate-tri-h" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-cl" style="display:none"><label data-i18n="lblCutLengthOpt">Cut Length (optional)</label><input type="number" id="plate-tri-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
@@ -4064,17 +4075,14 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   <option value="1/4"><option value="5/16"><option value="3/8"><option value="1/2"><option value="5/8"><option value="3/4"><option value="7/8"><option value='1"'><option value="1-1/8"><option value="1-1/4"><option value="1-1/2">
 </datalist>
 
-<!-- ═══ UNIT CONVERTER (standalone helper — never writes to any field) ═══ -->
-<div class="modal-overlay" id="unitConvModal">
-  <div class="modal uc-modal">
-    <div class="modal-title"><span data-i18n="ucTitle">Unit Converter</span> <button class="modal-close" onclick="closeModal('unitConvModal')">✕</button></div>
-    <div class="field"><label data-i18n="ucInput">Input</label><input type="text" id="ucInput" inputmode="text" autocomplete="off" placeholder="1 1/8&quot;" oninput="updateUnitConverter()"></div>
-    <div class="uc-msg" id="ucMsg" hidden data-i18n="ucInvalid">Invalid dimension</div>
-    <div class="uc-row"><div class="uc-res"><label data-i18n="ucExact">Exact</label><strong id="ucExact">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyExactBtn" onclick="copyUnitConv('exact')" data-i18n="ucCopyExact" disabled>Copy Exact</button></div>
-    <div class="uc-row"><div class="uc-res"><label data-i18n="ucRounded">Rounded</label><strong id="ucRounded">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyRoundedBtn" onclick="copyUnitConv('rounded')" data-i18n="ucCopyRounded" disabled>Copy Rounded</button></div>
-    <div class="uc-apply" id="ucApply" hidden><label data-i18n="ucApplyTo">Apply to</label><div class="uc-btns" id="ucApplyBtns"></div></div>
-    <div class="uc-foot"><button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('unitConvModal')" data-i18n="ucClose">Close</button></div>
-  </div>
+<!-- ═══ UNIT CONVERTER — one inline panel, parked here until a Dimension Entry heading opens it ═══ -->
+<div class="uc-panel" id="unitConvPanel" hidden>
+  <div class="uc-head"><span data-i18n="ucTitle">Unit Converter</span><button type="button" class="uc-x" onclick="closeUnitConverter()" data-i18n-aria="ucClose" aria-label="Close">✕</button></div>
+  <div class="uc-in field"><label data-i18n="ucInput">Input</label><input type="text" id="ucInput" inputmode="text" autocomplete="off" placeholder="1 1/8&quot;" oninput="updateUnitConverter()"></div>
+  <div class="uc-msg" id="ucMsg" hidden data-i18n="ucInvalid">Invalid dimension</div>
+  <div class="uc-row"><div class="uc-res"><label data-i18n="ucExact">Exact</label><strong id="ucExact">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyExactBtn" onclick="copyUnitConv('exact')" data-i18n="ucCopyExact" disabled>Copy Exact</button></div>
+  <div class="uc-row"><div class="uc-res"><label data-i18n="ucRounded">Rounded</label><strong id="ucRounded">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyRoundedBtn" onclick="copyUnitConv('rounded')" data-i18n="ucCopyRounded" disabled>Copy Rounded</button></div>
+  <div class="uc-apply" id="ucApply" hidden><label data-i18n="ucApplyTo">Apply to</label><div class="uc-btns" id="ucApplyBtns"></div></div>
 </div>
 
 <!-- ═══ VERSION UPDATES MODAL ═══ -->
@@ -4847,7 +4855,7 @@ const I18N={
     lblRemarks:'Remarks / Notes', phRemarks:'Price subject to change without prior notice',
     /* step 2 — product entry */
     step2Caption:'Step 2 · Add Items', step2Sub:'Add items', itemEntry:'Item Entry',
-    ucConvert:'Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied', ucApplyTo:'Apply to', ucToL:'To L', ucToW:'To W', ucToT:'To T', ucToH:'To H', ucToS:'To S', ucToID:'To ID', ucToIH:'To IH', ucToOH:'To OH', ucToTL:'To TL',
+    ucConvert:'⇄ Unit Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied', ucApplyTo:'Apply to', ucToL:'To L', ucToW:'To W', ucToT:'To T', ucToH:'To H', ucToS:'To S', ucToID:'To ID', ucToIH:'To IH', ucToOH:'To OH', ucToTL:'To TL',
     productEntry:'Product Entry', dimensionEntry:'Dimension Entry',
     pricingEntry:'Pricing Entry', pricing:'Pricing',
     /* field labels */
@@ -5386,7 +5394,7 @@ const I18N={
     lblRemarks:'备注', phRemarks:'价格如有变动，恕不另行通知',
     /* step 2 — product entry */
     step2Caption:'第 2 步 · 添加产品', step2Sub:'添加产品', itemEntry:'产品输入',
-    ucConvert:'换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入牙长',
+    ucConvert:'⇄ 单位换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入牙长',
     productEntry:'产品资料', dimensionEntry:'尺寸资料',
     pricingEntry:'价格资料', pricing:'价格',
     /* field labels */
@@ -9514,7 +9522,7 @@ function renderUcApply(){
   el('ucApply').hidden=!ts.length;
   updateUnitConverter();
 }
-dcOnRelabel(()=>{ if(el('unitConvModal')&&el('unitConvModal').classList.contains('open')) renderUcApply(); });
+dcOnRelabel(()=>{ const pn=el('unitConvPanel'); if(pn&&!pn.hidden) renderUcApply(); });
 function ucFill(fieldId,kind){
   const f=el(fieldId); if(!f||f.offsetParent===null) return;
   const mm=parseUcInput(el('ucInput').value); if(mm===null||mm<0) return;
@@ -9531,10 +9539,19 @@ function parseUcInput(raw){
   if(v===null && /^[\d .\/-]+$/.test(t)) v=parseDimToMm(t+'"');
   return v;
 }
-function openUnitConverter(){
+/* One panel for the whole page: it is moved to sit directly under whichever Dimension Entry
+   heading opened it, and parked back at the end of <body> when collapsed. */
+function toggleUnitConverter(btn){
+  const pn=el('unitConvPanel'), label=btn&&btn.closest('.group-label'); if(!pn||!label) return;
+  if(!pn.hidden && pn.previousElementSibling===label){ closeUnitConverter(); return; }
+  label.after(pn); pn.hidden=false;
   const i=el('ucInput'); if(i) i.value='';
-  renderUcApply(); openModal('unitConvModal');
+  renderUcApply();
   setTimeout(()=>{ try{ i.focus(); }catch(e){} },60);
+}
+function closeUnitConverter(){
+  const pn=el('unitConvPanel'); if(!pn) return;
+  pn.hidden=true; document.body.appendChild(pn);
 }
 function updateUnitConverter(){
   const raw=el('ucInput').value, mm=parseUcInput(raw), ok=mm!==null&&mm>=0;
@@ -9547,7 +9564,7 @@ function updateUnitConverter(){
 async function copyUnitConv(kind){
   const t=el(kind==='exact'?'ucExact':'ucRounded').textContent;
   if(!/ mm$/.test(t)) return;
-  if(await copyTextToClipboard(t)){ showToast(dcT('ucCopied')+': '+t); closeModal('unitConvModal'); }
+  if(await copyTextToClipboard(t)){ showToast(dcT('ucCopied')+': '+t); closeUnitConverter(); }
 }
 function openModal(id){ el(id).classList.add('open'); }
 function closeModal(id){ el(id).classList.remove('open'); }
@@ -10881,6 +10898,7 @@ function ensureLBolt45Form(){
   const source=el('form-lbolt');
   if(!source) return;
   const clone=source.cloneNode(true);
+  const ucp=clone.querySelector('#unitConvPanel'); if(ucp) ucp.remove();   // the one shared converter panel is never copied
   clone.id='form-lbolt45';
   clone.dataset.type='lbolt45';
   clone.innerHTML=clone.innerHTML
