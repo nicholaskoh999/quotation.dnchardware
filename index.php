@@ -3072,6 +3072,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 .uc-res strong{font-size:19px; font-weight:800; color:var(--text); overflow-wrap:anywhere}
 .uc-msg{margin-top:8px; font-size:12px; font-weight:700; color:#c2410c}
 .uc-msg[hidden]{display:none}
+.uc-apply{margin-top:14px}
+.uc-apply label{display:block; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px}
+.uc-apply[hidden]{display:none}
+.uc-btns{display:flex; flex-wrap:wrap; gap:6px}
 .uc-foot{display:flex; justify-content:flex-end; margin-top:16px}
 </style>
 </head>
@@ -4068,6 +4072,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
     <div class="uc-msg" id="ucMsg" hidden data-i18n="ucInvalid">Invalid dimension</div>
     <div class="uc-row"><div class="uc-res"><label data-i18n="ucExact">Exact</label><strong id="ucExact">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyExactBtn" onclick="copyUnitConv('exact')" data-i18n="ucCopyExact" disabled>Copy Exact</button></div>
     <div class="uc-row"><div class="uc-res"><label data-i18n="ucRounded">Rounded</label><strong id="ucRounded">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyRoundedBtn" onclick="copyUnitConv('rounded')" data-i18n="ucCopyRounded" disabled>Copy Rounded</button></div>
+    <div class="uc-apply" id="ucApply" hidden><label data-i18n="ucApplyTo">Apply to</label><div class="uc-btns" id="ucApplyBtns"></div></div>
     <div class="uc-foot"><button type="button" class="btn btn-ghost btn-sm" onclick="closeModal('unitConvModal')" data-i18n="ucClose">Close</button></div>
   </div>
 </div>
@@ -4842,7 +4847,7 @@ const I18N={
     lblRemarks:'Remarks / Notes', phRemarks:'Price subject to change without prior notice',
     /* step 2 — product entry */
     step2Caption:'Step 2 · Add Items', step2Sub:'Add items', itemEntry:'Item Entry',
-    ucConvert:'Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied',
+    ucConvert:'Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied', ucApplyTo:'Apply to', ucToL:'To L', ucToW:'To W', ucToT:'To T', ucToH:'To H', ucToS:'To S', ucToID:'To ID', ucToIH:'To IH', ucToOH:'To OH', ucToTL:'To TL',
     productEntry:'Product Entry', dimensionEntry:'Dimension Entry',
     pricingEntry:'Pricing Entry', pricing:'Pricing',
     /* field labels */
@@ -5381,7 +5386,7 @@ const I18N={
     lblRemarks:'备注', phRemarks:'价格如有变动，恕不另行通知',
     /* step 2 — product entry */
     step2Caption:'第 2 步 · 添加产品', step2Sub:'添加产品', itemEntry:'产品输入',
-    ucConvert:'换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制',
+    ucConvert:'换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入牙长',
     productEntry:'产品资料', dimensionEntry:'尺寸资料',
     pricingEntry:'价格资料', pricing:'价格',
     /* field labels */
@@ -9485,22 +9490,64 @@ function parseDimToMm(raw){
   return (ft*12+inch)*25.4;
 }
 function fmtMm(v){ return String(Number(Number(v).toFixed(6))); }
+/* Direct fill: ROUNDED whole mm into the dimension inputs the current product's form really has.
+   [field id, label key, kind] — kind 'dbl' = TL is entered for both ends (Sag Rod, U-Bolt). Only
+   fields that are visible right now get a button; nothing is ever written to a hidden field. */
+const UC_TARGETS={
+  sagrod:[['sagrod-length','ucToL'],['sagrod-threadLen','ucToTL','dbl']],
+  stud:[['stud-l','ucToL']],
+  anchorbolt:[['anchorbolt-l','ucToL'],['anchorbolt-threadLen','ucToTL']],
+  ubolt:[['ubolt-id','ucToID'],['ubolt-ih','ucToIH'],['ubolt-threadLen','ucToTL','dbl']],
+  squbolt:[['squbolt-oh','ucToOH'],['squbolt-w','ucToW'],['squbolt-threadLen','ucToTL']],
+  lbolt:[['lbolt-l','ucToL'],['lbolt-w','ucToW'],['lbolt-threadLen','ucToTL']],
+  lbolt45:[['lbolt45-l','ucToL'],['lbolt45-w','ucToW'],['lbolt45-threadLen','ucToTL']],
+  jbolt:[['jbolt-h','ucToH'],['jbolt-id','ucToID'],['jbolt-s','ucToS'],['jbolt-threadLen','ucToTL']],
+  plate:[['plate-l','ucToL'],['plate-w','ucToW'],['plate-t','ucToT'],['plate-tri-l','ucToL'],['plate-tri-h','ucToH'],['plate-tri-t','ucToT']]
+};
+function ucVisibleTargets(){
+  return (UC_TARGETS[currentType]||[]).filter(t=>{ const f=el(t[0]); return f && f.offsetParent!==null; });
+}
+function renderUcApply(){
+  const box=el('ucApplyBtns'); if(!box) return;
+  const ts=ucVisibleTargets();
+  box.innerHTML=ts.map(t=>`<button type="button" class="btn btn-outline btn-sm" data-uc-field="${t[0]}" onclick="ucFill('${t[0]}','${t[2]||''}')">${escHtml(dcT(t[1]))}</button>`).join('');
+  el('ucApply').hidden=!ts.length;
+  updateUnitConverter();
+}
+dcOnRelabel(()=>{ if(el('unitConvModal')&&el('unitConvModal').classList.contains('open')) renderUcApply(); });
+function ucFill(fieldId,kind){
+  const f=el(fieldId); if(!f||f.offsetParent===null) return;
+  const mm=parseUcInput(el('ucInput').value); if(mm===null||mm<0) return;
+  const n=String(Math.round(Number(mm.toFixed(6))));
+  f.value=kind==='dbl'?n+'/'+n:n;
+  f.dispatchEvent(new Event('input',{bubbles:true}));      // the same handlers typing runs
+  f.dispatchEvent(new Event('change',{bubbles:true}));
+  showToast(dcT('ucCopied')+': '+f.value);
+}
+/* Bare numbers mean inches HERE ONLY — normal quotation fields never go through this. */
+function parseUcInput(raw){
+  const t=String(raw==null?'':raw).trim();
+  let v=parseDimToMm(t);
+  if(v===null && /^[\d .\/-]+$/.test(t)) v=parseDimToMm(t+'"');
+  return v;
+}
 function openUnitConverter(){
   const i=el('ucInput'); if(i) i.value='';
-  updateUnitConverter(); openModal('unitConvModal');
+  renderUcApply(); openModal('unitConvModal');
   setTimeout(()=>{ try{ i.focus(); }catch(e){} },60);
 }
 function updateUnitConverter(){
-  const raw=el('ucInput').value, mm=parseDimToMm(raw), ok=mm!==null&&mm>=0;
+  const raw=el('ucInput').value, mm=parseUcInput(raw), ok=mm!==null&&mm>=0;
   el('ucMsg').hidden=ok||!raw.trim();
   el('ucExact').textContent=ok?fmtMm(mm)+' mm':'—';
   el('ucRounded').textContent=ok?Math.round(Number(mm.toFixed(6)))+' mm':'—';
   el('ucCopyExactBtn').disabled=!ok; el('ucCopyRoundedBtn').disabled=!ok;
+  document.querySelectorAll('#ucApplyBtns button').forEach(b=>{ b.disabled=!ok; });
 }
 async function copyUnitConv(kind){
   const t=el(kind==='exact'?'ucExact':'ucRounded').textContent;
   if(!/ mm$/.test(t)) return;
-  if(await copyTextToClipboard(t)) showToast(dcT('ucCopied')+': '+t);
+  if(await copyTextToClipboard(t)){ showToast(dcT('ucCopied')+': '+t); closeModal('unitConvModal'); }
 }
 function openModal(id){ el(id).classList.add('open'); }
 function closeModal(id){ el(id).classList.remove('open'); }
