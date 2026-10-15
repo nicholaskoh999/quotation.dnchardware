@@ -3057,6 +3057,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 .tl-helper[hidden]{display:none}
 .tl-helper.ok{color:var(--green-2)}
 .tl-helper.warn{color:#c2410c}
+
+/* U-Bolt pipe-size preset marker */
+.preset-tag{display:inline-block; margin-left:4px; padding:0 6px; border-radius:var(--pill-r); background:var(--accent-light); border:1px solid var(--accent-mid); color:var(--accent); font-size:10px; font-weight:800; letter-spacing:.03em; text-transform:none; vertical-align:1px}
+.preset-tag[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -3410,10 +3414,11 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="ubolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="ubolt-finish" value="HDG" onchange="onFinishChange('ubolt')"><span class="fp-code">HDG</span></label>
             </div></div>
           <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="field"><label data-i18n="ubPipeSize">Pipe Size</label><select id="ubolt-pipeSize" onchange="applyUBoltPipePreset()"><option value="" data-i18n="ubPipeSel">Select Pipe Size</option></select></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="ubolt-diameter" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label>ID</label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label>IH</label><input type="number" id="ubolt-ih" placeholder="60" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"><div class="tl-helper" id="ubolt-tlHelper" hidden></div></div>
+          <div class="field"><label>ID <span class="preset-tag" id="ubolt-id-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
+          <div class="field"><label>IH <span class="preset-tag" id="ubolt-ih-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-ih" placeholder="60" step="0.1" oninput="calcUBolt('ubolt')"></div>
+          <div class="field"><label><span data-i18n="lblThreadLength">Thread Length</span> <span class="preset-tag" id="ubolt-threadLen-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"><div class="tl-helper" id="ubolt-tlHelper" hidden></div></div>
           <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="ubolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcUBolt('ubolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="ubolt-accToggle" onclick="toggleAccPanel('ubolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
@@ -5152,6 +5157,7 @@ const I18N={
     tOldNoRate:'Old item has no saved Cost Rate. Please confirm pricing.',
     tLegacyAccSplit:'{n} manually-priced item(s) were saved when accessories were charged separately. Their accessories are now inside the Final Unit Price. The customer total is unchanged.',
     tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
+    ubPipeSize:'Pipe Size', ubPipeSel:'Select Pipe Size', ubPreset:'Preset',
     ubTlMax:'Max recommended TL: {m}mm', ubTlOk:'\u2713 TL {tl}mm / Max {m}mm', ubTlOver:'\u26A0 TL {tl}mm exceeds max {m}mm',
     tSagRodAdded:'Sag Rod added', tStudAdded:'Stud added', tAnchorAdded:'Anchor Bolt added',
     /* ── Validation, status and the words on generated controls ────────────
@@ -5653,6 +5659,7 @@ const I18N={
     tOldNoRate:'旧项目没有保存 Cost Rate，请确认价格。',
     tLegacyAccSplit:'有 {n} 个手动定价项目建立于配件另计时期，其配件现已计入最终单价，客户总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
+    ubPipeSize:'管径', ubPipeSel:'选择管径', ubPreset:'预设',
     ubTlMax:'建议最大牙长：{m}mm', ubTlOk:'\u2713 牙长 {tl}mm / 最大 {m}mm', ubTlOver:'\u26A0 牙长 {tl}mm 超过最大 {m}mm',
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
     /* Dimension letters (L、W、H、ID、S、OH)、产品名称与 RM 保持原有写法 —
@@ -8002,9 +8009,44 @@ function getUBoltCardDebugHtml(item){
   const text=`Saved Unit ${fmt(parseFloat(item.finalUnitPrice)||0)} | Saved formData: ${dimensions} | Recalculated Unit ${fmt(data.recalculatedUnit)}`;
   return `<div class="ubolt-card-debug">${escHtml(text)}</div>`;
 }
+/* U-Bolt Pipe Size presets — INPUT ASSISTANCE ONLY. [DN, inch, ID, IH, TL]. Selecting one fills ID / IH /
+   Thread Length (all stay editable); the pipe size itself is never stored, priced or printed. */
+const UBOLT_PIPE_PRESETS=[
+  [20,'3/4',30,47,22],[25,'1',36,53,25],[32,'1-1/4',46,64,28],[40,'1-1/2',52,73,30],[50,'2',64,85,32],
+  [65,'2-1/2',80,105,35],[80,'3',92,118,35],[90,'3-1/2',104,131,40],[100,'4',118,150,55],[125,'5',144,176,55],
+  [150,'6',170,210,65],[200,'8',222,262,65],[250,'10',274,320,75],[300,'12',326,380,90],[350,'14',362,420,90],
+  [400,'16',414,470,90],[450,'18',466,530,110],[500,'20',518,585,110],[550,'22',568,640,120],[600,'24',620,690,120],
+  [650,'26',670,715,120],[700,'28',722,790,120],[750,'30',774,815,120],[800,'32',826,870,120],[850,'34',878,920,120],
+  [900,'36',930,975,120],[950,'38',982,1025,120],[1000,'40',1034,1080,120]
+];
+const UBOLT_PRESET_FIELDS=[['id',2],['ih',3],['threadLen',4]];
+let uboltPresetVals={};   // field -> value last written by a preset; dropped when the person edits that field
+(function(){
+  const sel=document.getElementById('ubolt-pipeSize'); if(!sel) return;
+  UBOLT_PIPE_PRESETS.forEach(r=>{ const o=document.createElement('option'); o.value=String(r[0]); o.textContent=r[1]+'" / DN'+r[0]; sel.appendChild(o); });
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{ const i=document.getElementById('ubolt-'+f); if(i) i.addEventListener('input',()=>{ delete uboltPresetVals[f]; renderUBoltPresetTags(); }); });
+})();
+function renderUBoltPresetTags(){
+  let any=false;
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{
+    const i=el('ubolt-'+f), t=el('ubolt-'+f+'-preset'); if(!i||!t) return;
+    const on=uboltPresetVals[f]!==undefined && String(i.value)===uboltPresetVals[f];
+    t.hidden=!on; if(on) any=true;
+  });
+  const sel=el('ubolt-pipeSize'); if(sel&&sel.value&&!any) sel.value='';   // every preset value was edited or cleared
+}
+function applyUBoltPipePreset(){
+  const sel=el('ubolt-pipeSize'); if(!sel) return;
+  uboltPresetVals={};
+  const row=UBOLT_PIPE_PRESETS.find(r=>String(r[0])===sel.value);
+  if(row){ UBOLT_PRESET_FIELDS.forEach(([f,k])=>{ const i=el('ubolt-'+f); if(i){ i.value=String(row[k]); uboltPresetVals[f]=String(row[k]); } }); }
+  calcUBolt('ubolt');   // same path as typing ID / IH: refreshes total length, preview and the TL helper
+  renderUBoltPresetTags();
+}
 /* Advisory only: max recommended thread length = IH - ID/2 - 10 (mm). Display helper —
    never clamps, blocks or changes the Thread Length value or any calculation. */
 function updateUBoltTLHelper(){
+  if(typeof renderUBoltPresetTags==='function') renderUBoltPresetTags();
   const h=el('ubolt-tlHelper'); if(!h) return;
   const id=parseFloat(fv('ubolt','id')), ih=parseFloat(fv('ubolt','ih'));
   const max=(id>0&&ih>0)?ih-(id/2)-10:0;
