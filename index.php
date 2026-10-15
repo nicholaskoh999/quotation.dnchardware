@@ -4874,7 +4874,7 @@ const I18N={
     wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
     wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
     wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
-    wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia',
+    wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia', wqaRefTop:'TO TOP', wqaRefCenter:'TO CENTER', wqaRefEnd:'TO END', wqaRefUnclear:'reference unclear',
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
     wqaAddRefused:'the calculator refused this row', fieldQty:'Qty',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
@@ -5408,7 +5408,7 @@ const I18N={
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
     wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
-    wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径',
+    wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径', wqaRefTop:'量至顶', wqaRefCenter:'量至中心', wqaRefEnd:'量至末端', wqaRefUnclear:'基准不明',
     wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
     wqaAddRefused:'计算器拒绝了此项目', fieldQty:'数量',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
@@ -12442,8 +12442,16 @@ function wqaEditThread(i,v){
    up down the list. Each is its own grid cell, so every row aligns. */
 /* Only worth saying on the row when the rows disagree — otherwise the header
    above has already said it once for all of them. */
+function wqaDimNormText(r){
+  return (r.dimNorm||[]).map(n=>{
+    const refTxt=x=>dcT('wqaRef'+String(x).charAt(0)+String(x).slice(1).toLowerCase());
+    if(!n.resolved) return n.k+' '+n.source_value+' ('+dcT('wqaRefUnclear')+')';
+    if(n.converted) return n.k+' '+n.source_value+' ('+refTxt(n.source_reference)+') \u2192 '+n.normalized_value+' ('+refTxt('END')+')';
+    return n.k+' '+n.source_value+' ('+refTxt('END')+')';
+  }).join(' · ');
+}
 function wqaRowSpecText(r){
-  if(!(wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('product')||r.bodyDia)) return '';
+  if(!(wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('product')||r.bodyDia||(r.dimNorm&&r.dimNorm.length))) return '';
   const bits=[];
   /* Named on the row only while the list holds more than one product — one
      word, in front of the material, so the compact list stays a list. */
@@ -12460,6 +12468,7 @@ function wqaRowSpecText(r){
   /* Evidence the customer gave us and we did not use for the price: shown so
      nobody wonders where it went. */
   if(r.bodyDia) bits.push(dcT('wqaBodyDia')+' '+r.bodyDia+'mm');
+  if(r.dimNorm&&r.dimNorm.length) bits.push(wqaDimNormText(r));
   return bits.join(' · ');
 }
 /* ── Warnings, on a line of their own, only when there are warnings ────────
@@ -15215,6 +15224,21 @@ async function wqaAnalyze(){
     if(token===wqa._aiReq) wqaSetAiBusy(false);
   }
 }
+/* ── L-Bolt dimension references → canonical TO END ────────────────────────
+   Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
+   centre line or TO its end; the system's canonical L and W are TO END. TOP adds D,
+   CENTER adds D/2, END adds nothing. Nominal diameter only — no bend radius. Pure:
+   returns the source untouched alongside the normalized value so the review can show both. */
+function normalizeBentDimension(value,reference,diameter){
+  const src=Number(value), ref=String(reference||'').toUpperCase(), d=Number(diameter);
+  const out={source_value:src,source_reference:ref||null,normalized_value:src,normalized_reference:'END',converted:false,resolved:true};
+  if(!(src>0)) { out.resolved=false; return out; }
+  if(ref==='END'||ref==='') return out;                       // already TO END, or the document names no reference
+  if((ref==='TOP'||ref==='CENTER') && d>0){
+    out.normalized_value=Math.round((src+(ref==='TOP'?d:d/2))*100)/100; out.converted=true; return out;
+  }
+  out.resolved=false; return out;                              // UNCLEAR, or no diameter to convert with: never guess
+}
 /* ══ THE ONE SHARED NORMALISER ══════════════════════════════════════════════
    Every input source — the deterministic text parser, the AI text fallback and
    the AI photo / PDF extraction — produces the SAME compact extraction:
@@ -15584,6 +15608,20 @@ function wqaNormalizeExtraction(d, opts){
          down to "100" and hand the row a length nobody wrote. */
       row.unclearRaw=String(it.unclear);
     }
+    /* L Bolt only: bring L and W to the canonical TO END, and keep what the drawing said.
+       Unresolved (reference unclear / no diameter) is never converted and never assumed TO END:
+       the value is held back as evidence and the row asks for it. */
+    if(rowProd==='lbolt'){
+      const dm=/^M\s*(\d+(?:\.\d+)?)/i.exec(String(row.size||'')), dia=dm?Number(dm[1]):0;
+      const norm=[['length','L',it.Lref],['w','W',it.Wref]].map(([k,lab,ref])=>{
+        if(row[k]===''||ref==null||ref==='') return null;
+        const n=normalizeBentDimension(row[k],ref,dia);
+        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); }
+        else { row[k]=''; row.aiUncertain.push((lab+' '+n.source_value+': '+(String(ref).toUpperCase()==='UNCLEAR'?'reference unclear':'needs diameter')).slice(0,40)); }
+        return Object.assign({k:lab},n);
+      }).filter(Boolean);
+      if(norm.length) row.dimNorm=norm;
+    }
     /* Product-aware, per ROW: only a product that HAS a thread can be missing
        one, and which product this is was decided a few lines above. */
     if(rEnds>0 && !row.threadLen && row.length) defaulted.threadMissing=true;

@@ -249,9 +249,15 @@ function ai_output_schema() {
                         // is not a quotation dimension and never becomes ID,
                         // S, W or H.
                         'R'        => ['type'=>['number','null']],
+                        // L_BOLT only: what the drawing measures L and W TO.
+                        // Evidence — our own code converts it to the canonical
+                        // TO END. UNCLEAR when a reference is drawn but cannot
+                        // be told; null when the document shows none at all.
+                        'Lref'     => ['type'=>['string','null'], 'enum'=>['TOP','CENTER','END','UNCLEAR',null]],
+                        'Wref'     => ['type'=>['string','null'], 'enum'=>['TOP','CENTER','END','UNCLEAR',null]],
                     ],
                     'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType','unclear',
-                                 'product','threadEnds','bodyDia','H','ID','S','R'],
+                                 'product','threadEnds','bodyDia','H','ID','S','R','Lref','Wref'],
                 ],
             ],
         ],
@@ -519,6 +525,17 @@ items — one per document row, in document order:
   W  = bend/width in mm — the short leg of an L_BOLT, the B column on an L-bolt
        table — null when absent. On a straight rod with no bend W is null: a
        dimension across the rod is M, never W.
+  Lref / Wref = L_BOLT ONLY, null on every other product. What the drawing
+       measures L (the shank) and W (the short leg) TO, read from where each
+       dimension line ends on the bend:
+         "END"    — to the outer extremity of the bent bar
+         "CENTER" — to the centre line of the bent bar
+         "TOP"    — to the near surface of the bent bar (its top edge)
+       L and W can differ. Report the dimension EXACTLY as printed in L and W —
+       never add or subtract anything yourself; our own code converts to TO END.
+       "UNCLEAR" when a dimension line clearly ends on the bend but you cannot
+       tell where; null when the document shows no reference at all (a table, a
+       text line). Never guess END because it is the common case.
   TL = thread length; a pair as the string "75/75" or "50/110", preserving
        asymmetry exactly; a single value as a number
   Bmid = centre unthreaded segment of a segmented sag rod drawing, else null.
@@ -990,6 +1007,9 @@ function ai_sanitise_data($d) {
             'ID'       => $num($it['ID'] ?? null),
             'S'        => $num($it['S'] ?? null),
             'R'        => $num($it['R'] ?? null),
+            // L-bolt dimension references, passed through as evidence only.
+            'Lref'     => in_array($it['Lref'] ?? null, ['TOP','CENTER','END','UNCLEAR'], true) ? $it['Lref'] : null,
+            'Wref'     => in_array($it['Wref'] ?? null, ['TOP','CENTER','END','UNCLEAR'], true) ? $it['Wref'] : null,
         ];
         /* A + B + C = L, checked HERE rather than trusting the model to have
            checked it. Only a flag: the printed numbers are never rewritten. */
