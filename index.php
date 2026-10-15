@@ -5152,6 +5152,7 @@ const I18N={
     tOldNoRate:'Old item has no saved Cost Rate. Please confirm pricing.',
     tLegacyAccSplit:'{n} manually-priced item(s) were saved when accessories were charged separately. Their accessories are now inside the Final Unit Price. The customer total is unchanged.',
     tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
+    ubTlMax:'Max recommended TL: {m}mm', ubTlOk:'\u2713 TL {tl}mm / Max {m}mm', ubTlOver:'\u26A0 TL {tl}mm exceeds max {m}mm',
     tSagRodAdded:'Sag Rod added', tStudAdded:'Stud added', tAnchorAdded:'Anchor Bolt added',
     /* ── Validation, status and the words on generated controls ────────────
        Every one of these used to be written straight into a showToast or a
@@ -5652,6 +5653,7 @@ const I18N={
     tOldNoRate:'旧项目没有保存 Cost Rate，请确认价格。',
     tLegacyAccSplit:'有 {n} 个手动定价项目建立于配件另计时期，其配件现已计入最终单价，客户总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
+    ubTlMax:'建议最大牙长：{m}mm', ubTlOk:'\u2713 牙长 {tl}mm / 最大 {m}mm', ubTlOver:'\u26A0 牙长 {tl}mm 超过最大 {m}mm',
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
     /* Dimension letters (L、W、H、ID、S、OH)、产品名称与 RM 保持原有写法 —
        它们是行业用语，不是需要翻译的句子。 */
@@ -8010,11 +8012,12 @@ function updateUBoltTLHelper(){
   const m=cleanNum(parseFloat(max.toFixed(2)));
   const raw=fv('ubolt','threadLen').trim(), tl=parseFloat(raw);
   let cls='tl-helper', txt;
-  if(!raw||!(tl>0)) txt='Max recommended TL: '+m+'mm';
-  else if(tl<=max){ cls+=' ok'; txt='\u2713 TL '+cleanNum(tl)+'mm / Max '+m+'mm'; }
-  else { cls+=' warn'; txt='\u26A0 TL '+cleanNum(tl)+'mm exceeds max '+m+'mm'; }
+  if(!raw||!(tl>0)) txt=dcT('ubTlMax').replace('{m}',m);
+  else if(tl<=max){ cls+=' ok'; txt=dcT('ubTlOk').replace('{tl}',cleanNum(tl)).replace('{m}',m); }
+  else { cls+=' warn'; txt=dcT('ubTlOver').replace('{tl}',cleanNum(tl)).replace('{m}',m); }
   h.className=cls; h.textContent=txt; h.hidden=false;
 }
+dcOnRelabel(updateUBoltTLHelper);   // text is computed, so re-render it on a language switch
 function calcUBolt(type,skipAuto){
   if(type==='ubolt') updateUBoltTLHelper();
   const d=fn(type,'diameter'), id=fn(type,'id'), ih=fn(type,'ih');
