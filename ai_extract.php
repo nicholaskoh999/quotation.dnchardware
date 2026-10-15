@@ -525,17 +525,37 @@ items — one per document row, in document order:
   W  = bend/width in mm — the short leg of an L_BOLT, the B column on an L-bolt
        table — null when absent. On a straight rod with no bend W is null: a
        dimension across the rod is M, never W.
-  Lref / Wref = L_BOLT ONLY, null on every other product. What the drawing
-       measures L (the shank) and W (the short leg) TO, read from where each
-       dimension line ends on the bend:
-         "END"    — to the outer extremity of the bent bar
-         "CENTER" — to the centre line of the bent bar
-         "TOP"    — to the near surface of the bent bar (its top edge)
-       L and W can differ. Report the dimension EXACTLY as printed in L and W —
-       never add or subtract anything yourself; our own code converts to TO END.
-       "UNCLEAR" when a dimension line clearly ends on the bend but you cannot
-       tell where; null when the document shows no reference at all (a table, a
-       text line). Never guess END because it is the common case.
+  Lref / Wref = L_BOLT ONLY, null on every other product. Where each dimension
+       LINE ENDS, read from the extension lines on the drawing — never from the
+       label. "L", "L2", "C", "W", "short leg" and "hook leg" are only names;
+       none of them says what the line is measured to.
+       An L bolt is a long straight leg (the SHANK, threaded at its free end)
+       and a short BENT LEG at a right angle. Orientation does not matter: the
+       drawing may be upright, lying on its side or rotated.
+       L runs along the shank, from its free threaded end to the bent leg, and
+       Lref is where that line stops on the bent leg:
+         "END"    — the FAR outer edge of the bent leg: the full outside extent
+         "TOP"    — the NEAR edge of the bent leg, the edge facing the threaded
+                    end, so the line stops before the bent leg's full thickness
+         "CENTER" — the centre line of the bent leg
+       W runs along the bent leg, from its free end to the shank, and Wref is
+       where that line stops on the shank, by the same three words (END = the
+       far outer edge of the shank, TOP = its near edge, CENTER = its centre
+       line). A short leg dimensioned over its full height or width, outside to
+       outside, is END. L and W can differ: a shank "TOP" and a short leg "END"
+       on the same drawing is ordinary.
+       Report L and W EXACTLY as printed — never add or subtract anything; our
+       own code converts to TO END. Look at the extension lines on every L_BOLT
+       drawing and give each of Lref and Wref a value: "UNCLEAR" when a dimension
+       line clearly ends on the bend but you cannot tell where. null ONLY when
+       the document draws no dimension lines for it at all (a table, a text
+       line). Never choose END just because it is the common case or because of
+       the label.
+       A canonical sheet shows the SAME bolt as D x L x C x T: D the diameter, T
+       the thread, L the long leg and C the short leg, both measured to the far
+       outer end. That is the convention our own system stores; a customer
+       drawing is read by its own dimension lines and need not look like it.
+       C, L2 and any other name for the short leg go in W.
   TL = thread length; a pair as the string "75/75" or "50/110", preserving
        asymmetry exactly; a single value as a number
   Bmid = centre unthreaded segment of a segmented sag rod drawing, else null.
