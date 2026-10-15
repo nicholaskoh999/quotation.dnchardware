@@ -4081,7 +4081,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 <!-- ═══ UNIT CONVERTER — one inline panel, parked here until a Dimension Entry heading opens it ═══ -->
 <div class="uc-panel" id="unitConvPanel" hidden>
   <div class="uc-head"><span data-i18n="ucTitle">Unit Converter</span><button type="button" class="uc-x" onclick="closeUnitConverter()" data-i18n-aria="ucClose" aria-label="Close">✕</button></div>
-  <div class="uc-in field"><label data-i18n="ucInput">Input</label><div class="uc-inrow"><input type="text" id="ucInput" inputmode="text" autocomplete="off" placeholder="1 1/8&quot;" oninput="updateUnitConverter()"><select id="ucUnit" onchange="updateUnitConverter()"><option value="auto" data-i18n="ucUnitAuto">Auto</option><option value="in" data-i18n="ucUnitIn">Inch</option><option value="ft" data-i18n="ucUnitFt">Feet</option><option value="mm" data-i18n="ucUnitMm">mm</option></select></div></div>
+  <div class="uc-in field"><label data-i18n="ucInput">Input</label><div class="uc-inrow"><input type="text" id="ucInput" inputmode="text" autocomplete="off" placeholder="1 1/8&quot;" oninput="updateUnitConverter()"><select id="ucUnit" onchange="updateUnitConverter()"><option value="auto" data-i18n="ucUnitAuto">Auto</option><option value="in" data-i18n="ucUnitIn">INCH</option><option value="ft" data-i18n="ucUnitFt">FT</option><option value="mm" data-i18n="ucUnitMm">mm</option></select></div></div>
   <div class="uc-msg" id="ucMsg" hidden data-i18n="ucInvalid">Invalid dimension</div>
   <div class="uc-row"><div class="uc-res"><label data-i18n="ucExact">Exact</label><strong id="ucExact">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyExactBtn" onclick="copyUnitConv('exact')" data-i18n="ucCopyExact" disabled>Copy Exact</button></div>
   <div class="uc-row"><div class="uc-res"><label data-i18n="ucRounded">Rounded</label><strong id="ucRounded">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyRoundedBtn" onclick="copyUnitConv('rounded')" data-i18n="ucCopyRounded" disabled>Copy Rounded</button></div>
@@ -4858,7 +4858,7 @@ const I18N={
     lblRemarks:'Remarks / Notes', phRemarks:'Price subject to change without prior notice',
     /* step 2 — product entry */
     step2Caption:'Step 2 · Add Items', step2Sub:'Add items', itemEntry:'Item Entry',
-    ucConvert:'⇄ Unit Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied', ucApplyTo:'Apply to', ucUnitAuto:'Auto', ucUnitIn:'Inch', ucUnitFt:'Feet', ucUnitMm:'mm', ucToL:'To L', ucToW:'To W', ucToT:'To T', ucToH:'To H', ucToS:'To S', ucToID:'To ID', ucToIH:'To IH', ucToOH:'To OH', ucToTL:'To TL',
+    ucConvert:'⇄ Unit Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied', ucApplyTo:'Apply to', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'To L', ucToW:'To W', ucToT:'To T', ucToH:'To H', ucToS:'To S', ucToID:'To ID', ucToIH:'To IH', ucToOH:'To OH', ucToTL:'To TL',
     productEntry:'Product Entry', dimensionEntry:'Dimension Entry',
     pricingEntry:'Pricing Entry', pricing:'Pricing',
     /* field labels */
@@ -5397,7 +5397,7 @@ const I18N={
     lblRemarks:'备注', phRemarks:'价格如有变动，恕不另行通知',
     /* step 2 — product entry */
     step2Caption:'第 2 步 · 添加产品', step2Sub:'添加产品', itemEntry:'产品输入',
-    ucConvert:'⇄ 单位换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucUnitAuto:'自动', ucUnitIn:'英寸', ucUnitFt:'英尺', ucUnitMm:'毫米', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入牙长',
+    ucConvert:'⇄ 单位换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入牙长',
     productEntry:'产品资料', dimensionEntry:'尺寸资料',
     pricingEntry:'价格资料', pricing:'价格',
     /* field labels */
