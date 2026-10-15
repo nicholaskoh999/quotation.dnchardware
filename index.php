@@ -3051,6 +3051,12 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   .quote-actions .btn-sm{padding:7px 6px; font-size:11.5px}
   .quote-actions .btn-save{padding:12px 10px; font-size:13px}
 }
+
+/* U-Bolt max thread length helper (advisory) */
+.tl-helper{font-size:11.5px; font-weight:700; margin-top:4px; line-height:1.3; color:var(--text-muted)}
+.tl-helper[hidden]{display:none}
+.tl-helper.ok{color:var(--green-2)}
+.tl-helper.warn{color:#c2410c}
 </style>
 </head>
 <body>
@@ -3407,7 +3413,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="ubolt-diameter" step="0.1" oninput="calcUBolt('ubolt')"></div>
           <div class="field"><label>ID</label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
           <div class="field"><label>IH</label><input type="number" id="ubolt-ih" placeholder="60" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"></div>
+          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"><div class="tl-helper" id="ubolt-tlHelper" hidden></div></div>
           <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="ubolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcUBolt('ubolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="ubolt-accToggle" onclick="toggleAccPanel('ubolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
@@ -7994,7 +8000,23 @@ function getUBoltCardDebugHtml(item){
   const text=`Saved Unit ${fmt(parseFloat(item.finalUnitPrice)||0)} | Saved formData: ${dimensions} | Recalculated Unit ${fmt(data.recalculatedUnit)}`;
   return `<div class="ubolt-card-debug">${escHtml(text)}</div>`;
 }
+/* Advisory only: max recommended thread length = IH - ID/2 - 10 (mm). Display helper —
+   never clamps, blocks or changes the Thread Length value or any calculation. */
+function updateUBoltTLHelper(){
+  const h=el('ubolt-tlHelper'); if(!h) return;
+  const id=parseFloat(fv('ubolt','id')), ih=parseFloat(fv('ubolt','ih'));
+  const max=(id>0&&ih>0)?ih-(id/2)-10:0;
+  if(!(max>0)){ h.hidden=true; h.textContent=''; h.className='tl-helper'; return; }
+  const m=cleanNum(parseFloat(max.toFixed(2)));
+  const raw=fv('ubolt','threadLen').trim(), tl=parseFloat(raw);
+  let cls='tl-helper', txt;
+  if(!raw||!(tl>0)) txt='Max recommended TL: '+m+'mm';
+  else if(tl<=max){ cls+=' ok'; txt='\u2713 TL '+cleanNum(tl)+'mm / Max '+m+'mm'; }
+  else { cls+=' warn'; txt='\u26A0 TL '+cleanNum(tl)+'mm exceeds max '+m+'mm'; }
+  h.className=cls; h.textContent=txt; h.hidden=false;
+}
 function calcUBolt(type,skipAuto){
+  if(type==='ubolt') updateUBoltTLHelper();
   const d=fn(type,'diameter'), id=fn(type,'id'), ih=fn(type,'ih');
   const tlEl=el(type+'-length');
   if(!skipAuto && (d>0||id>0||ih>0)){ const auto=Math.ceil((d+id)*1.57+(2*ih)-id); if(tlEl) tlEl.value=auto>0?auto:''; }
