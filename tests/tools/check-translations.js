@@ -61,6 +61,13 @@ const isCode = s => CODE_RE.test(String(s).trim());
    that shows the Chinese wording in either mode. Identical by design. */
 const isDeliberateZh = k => /Zh$/.test(k);
 
+/* Keys whose Chinese is the English on purpose, named one by one. The Unit
+   Converter's unit selector reads Auto / INCH / FT / mm in BOTH languages so
+   staff see the same unit names a customer writes (owner decision 2026-10-19,
+   0a14902). mm is already a code; the other three are listed here and only
+   here, so no other identical pair can pass under their cover. */
+const UNIVERSAL_KEYS = new Set(['ucUnitAuto', 'ucUnitIn', 'ucUnitFt']);
+
 /* The dictionary literal, lifted out and evaluated on its own. It is plain
    data — string keys to string values — so this is a parse of a literal, not
    an execution of application code. */
@@ -117,7 +124,7 @@ function dictRangeOf(src) {
    dcApplyLang — and a scan that reads documentation as code reports the
    example as a missing translation. Whole lines are blanked rather than
    deleted so every reported line number still points at the real line. */
-function stripComments(src) {
+function stripComments(src, blankRegex) {
   const out = src.split('');
   let inStr = null, esc = false, inLine = false, inBlock = false, inRe = false;
   let prev = '', prev2 = '';           // the last two significant characters
@@ -148,6 +155,10 @@ function stripComments(src) {
        comment after it read as code — which is how a block comment three
        hundred lines further down was reported as untranslated markup. */
     if (inRe) {
+      /* blankRegex: the pattern's own characters are not text either, and a
+         quote or backtick inside one (the Unit Converter's /[…`]/ for one)
+         must not open a literal for a tokenizer that knows no regexes. */
+      if (blankRegex && c !== '/' && c !== '\n') out[i] = ' ';
       if (esc) { esc = false; continue; }
       if (c === '\\') { esc = true; continue; }
       if (c === '[') inRe = 'class';
@@ -343,11 +354,22 @@ const SKIP_TEXT = [
      labels, its letterhead, its address and its contact lines. */
   /^(?:Total|Date|Customer|No\.)$/,
   /^(?:Email|Tel|Fax):/i,
+  /* The header language toggle's aria-label names both languages on purpose,
+     so a reader of either can find it (owner decision 2026-10-19). Anchored
+     to the whole bilingual label: "Language" on its own is still reported. */
+  /^Language \/ 语言$/,
 ];
 /* An attribute written as a literal is fine when the SAME element also carries
    the matching data-i18n-* hook: the literal is the English default that ships
    in the markup, and dcApplyLang overwrites it on every switch. It is a defect
    only when there is no hook, because then nothing ever rewrites it. */
+/* An element whose English default is replaced through dcT by its renderer
+   before it can be seen, and which deliberately carries no data-i18n because a
+   language switch would wipe what the renderer put there. Exempt by element id
+   AND exact text, one at a time, each checked in the browser:
+     #wqaFileInfo — wqaUpdateAiPane writes dcT('wqaNoFile') (未选择文件) when
+     Quick Add opens; the modal is closed until then (verified 2026-10-19). */
+const RUNTIME_DEFAULTS = [{ id: 'wqaFileInfo', text: 'No file selected' }];
 const HOOK_FOR = { title: 'data-i18n-title', placeholder: 'data-i18n-ph',
                    'aria-label': 'data-i18n-aria', alt: 'data-i18n-alt' };
 const lineAt = (src, index) => src.slice(0, index).split('\n').length;
@@ -366,7 +388,7 @@ function isHooked(code, text) {
   return seen > 0;
 }
 
-function hardCoded(src, code, dictRange, dictKeys) {
+function hardCoded(src, code, dictRange, dictKeys, litCode) {
   const hits = [];
   const DICT_KEYS = dictKeys || new Set();
   /* An interpolation is not text a person reads; the English AROUND it is. */
@@ -422,7 +444,10 @@ function hardCoded(src, code, dictRange, dictKeys) {
          stops at either one reports half an expression as a label. */
       const m = new RegExp('(?<![-\\w])' + attr + '="([^"]*)"').exec(t)
              || new RegExp("(?<![-\\w])" + attr + "='([^']*)'").exec(t);
-      if (m) push(line, attr, stripInterp(m[1]));
+      /* An attribute value is HTML: placeholder="1 1/8&quot;" reads 1 1/8".
+         Only the quote and ampersand entities, which is all a value carries. */
+      if (m) push(line, attr, stripInterp(m[1])
+        .replace(/&(?:quot|#34);/g, '"').replace(/&(?:apos|#39);/g, "'").replace(/&amp;/g, '&'));
     }
   }
 
@@ -509,6 +534,7 @@ function hardCoded(src, code, dictRange, dictKeys) {
     if (/\bdata-i18n\b/.test(attrs)) continue;          // the switch rewrites it
     const text = stripInterp(t[3]).replace(/\s+/g, ' ').trim();
     if (!text) continue;
+    if (RUNTIME_DEFAULTS.some(d => d.text === text && attrs.includes(`id="${d.id}"`))) continue;
     /* Statements and arrow functions also sit between a > and a <. */
     if (/[;{}]|=>|\(\)|\|\||&&/.test(text)) continue;
     if (!text.split(' ').some(x => /[A-Za-z]{2,}/.test(x))) continue;
@@ -523,7 +549,11 @@ function hardCoded(src, code, dictRange, dictKeys) {
      interpolations come out and whatever English is left is a label. */
   const litRe = /`(?:[^`\\]|\\.)*`|'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g;
   let lit;
-  while ((lit = litRe.exec(code)) !== null) {
+  /* Read off a copy with regex bodies blanked (same length, same lines): this
+     tokenizer cannot tell a regex from a string, and a backtick inside a
+     character class once turned three later lines of code into "markup". */
+  const litSrc = litCode || code;
+  while ((lit = litRe.exec(litSrc)) !== null) {
     /* The dictionary is data, not markup: its values ARE the translations. */
     if (dictRange && lit.index >= dictRange[0] && lit.index <= dictRange[1]) continue;
     const body = lit[0].slice(1, -1);
@@ -580,10 +610,11 @@ for (const file of FILES) {
   const missingKey = [...named].filter(k => en[k] === undefined && zh[k] === undefined);
   const identical  = enKeys.filter(k =>
     zh[k] !== undefined && String(zh[k]) === String(en[k])
-    && !isCode(en[k]) && !isDeliberateZh(k));
+    && !isCode(en[k]) && !isDeliberateZh(k) && !UNIVERSAL_KEYS.has(k));
   const unused     = enKeys.filter(k => !referenced.has(k));
   const raw        = hardCoded(src, code, dictRangeOf(src),
-                               new Set(enKeys.concat(Object.keys(zh))));
+                               new Set(enKeys.concat(Object.keys(zh))),
+                               stripComments(src, true));
   const unapplied  = unappliedHooks(src, code);
 
   report.files[file] = {

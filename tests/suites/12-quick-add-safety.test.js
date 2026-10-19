@@ -180,12 +180,12 @@ module.exports = async (browser, A) => {
 
   A.eq(wa.printed, '1 M20 x L 1000 | 2 M16 x L 600 | 3 M24 x L 1400 | 4 M20 x L 1000',
     'the quotation numbers its items 1,2,3,4 by position');
-  A.includes(wa.text, '1, 4. M20 x L 1000',
+  A.includes(wa.text, '1, 4) M20 x L 1000',
     'two identical items merge onto one message line that carries BOTH their numbers');
-  A.includes(wa.text, '2. M16 x L 600', 'the HDG group keeps item 2\'s own number');
-  A.includes(wa.text, '3. M24 x L 1400', 'and item 3\'s');
-  A.excludes(wa.text, '1. M16', 'the message never renumbers a row by its position in the message');
-  const nos = (wa.text.match(/^\s*([\d, ]+)\./gm) || []).map(s => s.trim().replace(/\.$/, ''));
+  A.includes(wa.text, '2) M16 x L 600', 'the HDG group keeps item 2\'s own number');
+  A.includes(wa.text, '3) M24 x L 1400', 'and item 3\'s');
+  A.excludes(wa.text, '1) M16', 'the message never renumbers a row by its position in the message');
+  const nos = (wa.text.match(/^\s*([\d, ]+)\)/gm) || []).map(s => s.trim().replace(/\)$/, ''));
   A.eq(nos.join(' / '), '1, 4 / 2 / 3',
     'every number on the message is a quotation item number, and none is missing');
 
@@ -194,8 +194,8 @@ module.exports = async (browser, A) => {
     quoteItems[3].finalUnitPrice = 13;
     return buildWAItemsText('-');
   });
-  A.includes(wa2, '1. M20 x L 1000 - RM12.00', 'a differently-priced twin is its own line');
-  A.includes(wa2, '4. M20 x L 1000 - RM13.00', 'numbered as item 4, where it sits in the quotation');
+  A.includes(wa2, '1) M20 x L 1000 - RM12.00', 'a differently-priced twin is its own line');
+  A.includes(wa2, '4) M20 x L 1000 - RM13.00', 'numbered as item 4, where it sits in the quotation');
 
   /* ── Phase 15 · a partial extraction is not a successful one ─────────────*/
   const PARTIAL = {

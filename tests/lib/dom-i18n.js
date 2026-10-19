@@ -45,6 +45,10 @@ const PHRASES = [
   'FLAT WASHER', 'Flat Washer', 'EYE BOLT', 'Eye Bolt',
   /* material / grade codes written as two tokens */
   '4140 QT', '4340 QT', '4140 QT + HARDEN', 'Y BAR',
+  /* The header language toggle's aria-label names both languages on purpose,
+     so a reader of either can find it. Accepted by the owner 2026-10-19. The
+     entry is the whole bilingual label: "Language" on its own still leaks. */
+  'Language / 语言',
 ];
 
 /* Single tokens. Compared case-insensitively against a token stripped of
@@ -88,6 +92,7 @@ const CODE_RE = [
   /^rm\/(kg|pc|pcs|set)$/i,                     // RM/kg
   /^[\d.,]+kg\/(pc|pcs|set)$/i,                 // 3.5513kg/pc
   /^(kg|mm)\/(pc|pcs|set)$/i,                   // the unit on its own: kg/pc
+  /^dn\d+$/i,                    // DN20, DN50: nominal pipe size, the U-Bolt pipe-size selector (owner 2026-10-19)
 ];
 
 /* Regions of the page that are deliberately English in both languages, each

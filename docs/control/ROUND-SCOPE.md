@@ -2,324 +2,175 @@
 
 ## ROUND
 
-**ITEM IDENTITY FOUNDATION**
+**QUICK ADD / UNIT CONVERTER HOTFIX CHAIN — CLOSING**
 
-The smallest change that gives every persisted quotation item a stable,
-immutable, server-owned identity. No revision storage, no audit rows, no
-history table, no diffing, no transaction redesign, no schema change, no
-deployment, no production DB write.
+The fast-deployed hotfix chain that production runs today, being closed. This
+document records where the close stands. It does **not** declare the round
+closed, and it does not move the accepted application commit.
 
 | | |
 |---|---|
-| Accepted application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` |
-| Round status | **CANDIDATE — READY FOR REVIEW** |
-| DEPLOY = NO | a candidate is not a deployed state |
-| STAGE 2 = NOT STARTED | nothing in Stage 2 was begun, examined or implied |
-| Production DB change | **NO** — the backfill is prepared, NOT APPLIED |
-| Revision Storage | **NOT STARTED** — identity only |
+| Production candidate | `hotfix/quickadd-integration` `91f0c0b905ef402378aaeef896c80a4e6229c442` |
+| Round status | **CLOSING — FULL SUITE RE-RUN IN PROGRESS** |
+| Owner production smoke | **PASS** |
+| DEPLOY = NO | no NEW deployment belongs to this closing round; production already runs `91f0c0b` |
+| STAGE 2 = NOT STARTED | the Stage 2 deferrals in PROJECT-GUARDRAILS stay deferred |
+| CANONICAL-STATE | **STALE — RECONCILIATION DEFERRED TO SOURCE SYNC STAGE** |
+| Production DB change | **NO** |
+| `quotation_revisions` migration | **NOT APPLIED** — not part of this round |
 
 ---
 
-## WHY THIS ROUND EXISTS
+## WHY CANONICAL-STATE IS LEFT STALE
 
-Actor Identity answered *who is asking*. It is live and production verified.
-The other half of "who changed this quotation item" is *which item* — and a
-quotation item has no identity at all:
+`CANONICAL-STATE.md` / `.json` on this branch still describe the Actor Identity
+acceptance (`e76bb85d663f96fdce3ed6c0c70b72c49d84000a`) and name it as the
+deployed application. That is no longer what production runs. They are
+deliberately **not** rewritten in this round:
 
-```php
-$items = json_encode($input['items'] ?? []);   // update_quotation, before this round
-```
+- production runs this branch, `hotfix/quickadd-integration` at `91f0c0b`;
+- `main` carries four accepted rounds that were never deployed — transaction
+  foundation, snapshot revision writer, no-op suppression and the history
+  reader — and its own CANONICAL-STATE names a different deployed commit;
+- those rounds depend on `quotation_revisions`, which is **not applied** in
+  production.
 
-The whole array is replaced on every save. An item is known only by its
-position in that array, so the server cannot tell
-
-```
-edited item 2        from   deleted item 2 and added a new one
-reordered            from   rewrote every row
-```
-
-Any audit table built on top of that would record position changes as content
-changes and content changes as position changes. Identity has to come first,
-and it has to come from the server: an id the browser can choose is a field,
-not an identity.
+Writing a new canonical lineage on either branch now would record one that is
+not yet true. The control state is reconciled at the **Source Sync** stage,
+after Full Suite, Security and Production Verify have passed, and not before.
+Until then, this file is the record of the closing round, and CANONICAL-STATE
+is the record of the last accepted round on this branch, nothing more.
 
 ---
 
-## THE CONTRACT
+## SHIPPED SCOPE — ALREADY IN PRODUCTION
 
-```
-itm_ + 32 lowercase hex        bin2hex(random_bytes(16))
-itm_6f9d7e8b9f4d4ec986f0d093e7815fd2
-```
+- Unit Converter enhancements
+- direct fill into the visible dimension fields (TL as n/n for Sag Rod and U-Bolt)
+- inline converter panel under the Dimension Entry heading
+- Auto / INCH / FT / mm selector
+- Quick Add multi-image upload
+- Ctrl+V screenshot paste
+- max 5 images
+- one-request multi-image analysis (`files[]`, one Responses request)
+- shared heading inheritance
+- Sag Rod TL normalization
+- Nut / FW extraction
+- phantom heading row fix
+- staff multi-image guidance
 
-**The server is the authority.** `dc_new_item_uid()` is the only place one is
-made, and it lives in `api.php`.
+Earlier in the same chain, also live: WhatsApp copy order and `1)` numbering,
+quotation list card polish, the single header language toggle, responsive
+mobile / tablet keyboard work, Copy with unit weight, Sag Rod entry order,
+U-Bolt max thread helper and pipe-size presets, L-Bolt dimension references.
 
-**CREATE.** Every item is given a fresh uid before persistence and any
-client-supplied one is discarded — on a create there is nothing an incoming uid
-could refer to, so accepting one would let a browser choose an identity.
+---
 
-**UPDATE.** `update_quotation` reads the persisted `items` — one column, one
-row, the minimum this needs — and reconciles before anything is written:
+## ACCEPTED BEHAVIOUR — OWNER DECISIONS, 2026-10-19
 
-| incoming | outcome |
+These are intentional production behaviour. The tests that expected the old
+behaviour were stale and have been aligned; the application was not changed.
+
+| Behaviour | Test / checker alignment |
 |---|---|
-| uid present, valid, belongs to this quotation, seen once | **preserved exactly** |
-| no uid (`absent`, `null`, `''`) | **new item**, fresh uid |
-| uid present but malformed | `ITEM_IDENTITY_MALFORMED_UID` |
-| the same uid twice | `ITEM_IDENTITY_DUPLICATE_UID` |
-| a uid this quotation does not hold | `ITEM_IDENTITY_UNKNOWN_UID` |
-| a persisted uid missing from the incoming array | **deleted** — its identity goes with it and is never reissued |
+| WhatsApp items are numbered `1)` `2)` `3)`, not `1.` | suites 12 and 38 expect `)` |
+| The language toggle's aria-label is `Language / 语言` | one exact phrase in `tests/lib/dom-i18n.js`; one anchored rule in `check-translations.js` |
+| The Unit Converter selector reads `Auto` / `INCH` / `FT` / `mm` in BOTH languages | `UNIVERSAL_KEYS` = `ucUnitAuto`, `ucUnitIn`, `ucUnitFt` in `check-translations.js` |
+| `DN20` / `DN25` / … on the U-Bolt pipe-size selector are technical trade codes | one code pattern `^dn\d+$` in `tests/lib/dom-i18n.js` |
 
-**A persisted quotation whose stored identity is missing, malformed or
-duplicated is refused** with `ITEM_IDENTITY_BACKFILL_REQUIRED`. It is **not**
-reconciled by array position. Position matching is the exact guess this round
-exists to remove, and doing it once "just for legacy rows" would put identity
-on the wrong item in the one case nobody would check.
+Checker false positives fixed in the checker only, each verified first:
 
-Every refusal returns before the `UPDATE` is prepared, so a refused save leaves
-the quotation untouched.
+- attribute values are read as HTML: `&quot;` / `&#39;` / `&amp;` are decoded,
+  so `placeholder="1 1/8&quot;"` reads as the inch value it is;
+- the markup-in-string scan reads a copy of the source with regex literal bodies
+  blanked (same length, same lines). A backtick inside the converter's
+  character class had opened a phantom template literal and turned three
+  unrelated lines into "markup";
+- `#wqaFileInfo` with exactly `No file selected` is exempt by element id AND
+  text: the renderer replaces it with `dcT('wqaNoFile')` (未选择文件) when Quick
+  Add opens, and the modal is closed until then. Checked in the browser.
 
-**Not this round.** The read-then-write in `update_quotation` is not wrapped in
-a transaction. Two simultaneous edits of one quotation can still interleave
-exactly as they always have. That is the transaction-foundation round, and
-widening this one to reach it would put the allocation, the lock and the 1062
-retry back on the table.
+Every exception is named, anchored and single-purpose. A mutation run planted a
+bare `Language` label, `No file selected` in another element, an unhooked
+entity placeholder, markup prose right after the converter regex and a new
+identical en / zh pair; the checker reported every one.
 
 ---
 
-## THE PAGE
+## KNOWN FAILURES — EXACTLY THESE EIGHT
 
-`index.php` carries identity and cannot mint it.
-
-- a loaded saved item keeps its uid
-- editing fields keeps it — including through the **three commit sites** where
-  an item rebuilt from the entry form replaces a row that already exists.
-  `dcCarryItemUid(prev, next)` moves identity across that replacement; without
-  it, editing a saved row would silently delete it and add a different one
-- reorder moves the uid with the item, because the uid is on the item
-- a new manual / Quick Add / AI-created item starts with **no** uid — that is
-  how the page asks for one
-- `dcStripItemUid()` exists so anything that copies a row clears identity: a
-  copy of an item is a different item
-- the page contains no uid literal and no generator of its own
-
-After a save the server answers with the normalized persisted items, and
-`dcAdoptServerItems()` takes the uids it issued **before** the snapshot. That
-is what makes the important case work:
+`38-mobile-ui`, Windows Chromium font metrics. Present at `649f80a`, identical to
+the failure list in `main`'s recorded browser evidence, and not an application
+fault. Not edited, not hidden:
 
 ```
-create  →  server mints uids  →  edit again WITHOUT reloading  →  save
-        →  the same uids, so the second save is an edit, not three new items
+companies 1440px: the modal × is still 24 tall, as accepted
+companies 1440px: and still 17 wide — the phone rule has not leaked onto the desk
+companies 980px: the modal × is still 24 tall, as accepted
+companies 980px: and still 17 wide — the phone rule has not leaked onto the desk
+companies 700px: the modal × is still 24 tall, as accepted
+companies 700px: and still 17 wide — the phone rule has not leaked onto the desk
+companies 600px: the modal × is still 24 tall, as accepted
+companies 600px: and still 17 wide — the phone rule has not leaked onto the desk
 ```
 
 ---
 
-## ALLOWED TO CHANGE
+## DEFERRED
+
+- **Parser: per-row "thread length 50mm".** A row written as
+  `3) 763mm thread length 50mm - 4 pcs` under a shared heading that states
+  `THREAD LENGTH 70MM` keeps 70/70; the row's own phrase does not override the
+  shared Sag Rod TL. Reproduced on `4878b02` and `0a14902`, before the current
+  round, so it is a pre-existing limitation and not a closing regression. The
+  working override form `x 50/50` (`3) 763mm x 50/50 - 4 pcs`) does override.
+  A parser task for a later round; not changed here.
+- **Main / production lineage and CANONICAL-STATE** — Source Sync stage, above.
+
+---
+
+## CLOSING GATES
+
+| Gate | State |
+|---|---|
+| Full Suite | **RE-RUN IN PROGRESS** — after test / checker alignment |
+| Security | not started in this round |
+| Production Verify | not started in this round (owner smoke PASS is supporting evidence) |
+| Source Sync | not started — `main` is not merged, reset or forced |
+| Close | not started |
+
+---
+
+## ALLOWED TO DIFFER FROM THE LAST ACCEPTED COMMIT
+
+`e76bb85` is the last commit CANONICAL-STATE on this branch accepts. These are
+the files that differ from it on this branch, by name: the Item Identity work
+this branch was cut from (`649f80a`), the hotfix chain's application files, and
+the closing test / checker alignment.
 
 ```candidate-files
+ai_extract.php
 api.php
+companies.php
 index.php
 migrations/2026-08-27-backfill-item-uids.php
 tests/php/item_identity.test.php
 tests/suites/40-item-identity.test.js
+tests/suites/12-quick-add-safety.test.js
+tests/suites/38-mobile-ui.test.js
+tests/lib/dom-i18n.js
+tests/tools/check-translations.js
 ```
 
-Nothing else may differ from `e76bb85d663f96fdce3ed6c0c70b72c49d84000a`.
-
-`auth.php`, `login.php`, `logout.php`, `companies.php`, `pricing_history.php`,
-`ai_extract.php`, `db.sample.php` and the existing thirty-nine browser suites
-are **out of scope and must not change**.
+`api.php` has not changed since `649f80a`. The hotfix chain changed
+`index.php`, `ai_extract.php` and `companies.php`.
 
 ---
 
-## MUST NOT CHANGE — AND DOES NOT
+## MUST NOT CHANGE IN THIS CLOSE
 
-`ref_no` format · server-side allocation · `GET_LOCK` · `uq_quotations_ref` ·
-`NOT NULL ref_no` · the one-time 1062 retry · `mysqli_report(MYSQLI_REPORT_OFF)`
-· quotation create / update / delete semantics · pricing · material mapping ·
-Previous Price · Quick Add · the item JSON structure apart from the one new key
-· Actor Identity · the translation dictionary.
-
-`update_quotation`'s own `UPDATE` statement is unchanged, `ref_no` is still not
-in it, and `save_quotation`'s allocation path is untouched.
-
-**No schema change.** `item_uid` lives inside the existing `quotations.items`
-JSON. There is no item table and no migration that alters one.
-
----
-
-## BACKFILL
-
-`migrations/2026-08-27-backfill-item-uids.php` — CLI only, refuses to run from
-the web, **dry run by default**, writes only with `--apply`, and requires
-`--db=/path/to/db.php` rather than guessing which database it is about to
-touch. It runs inside a transaction and rolls back on any failure.
-
-- preserves every existing valid uid
-- adds one only where it is missing
-- **detects malformed and duplicated stored uids and refuses to write anything
-  at all** — see the gate below
-- idempotent — a second run reports 0 to write
-- updates only the rows that changed
-- prints counts, and quotation ids for problem rows only. No customer data.
-
-**THE GATE, and why there is no repair flag.** This file adds identity where
-there is none. It does **not** rewrite identity that already exists, even when
-that identity is damaged, and there is no option that makes it. If any stored
-`item_uid` is malformed, or two items in one quotation claim the same one, the
-run prints those quotation ids, prints `GATE CLOSED`, rolls back and **exits
-non-zero** — in dry run and under `--apply` alike.
-
-The refusal is deliberately total: **not just the damaged rows, the whole run.**
-A backfill that quietly did the healthy rows and skipped the rest would report
-success and leave an operator believing the job was finished.
-
-Deciding which of two items keeps a duplicated uid, or what a malformed one was
-meant to be, is a decision about *which item is which*. A migration that made
-that choice on its own would be guessing precisely the thing this round exists
-to stop guessing. A person inspects those quotations and decides. Until then
-`update_quotation` refuses them with `ITEM_IDENTITY_BACKFILL_REQUIRED`, which
-is the correct refusal and not a bug to route around.
-
-**The proof it carries.** For every row, the items array is compared before and
-after **with `item_uid` stripped out**, and a single difference aborts the whole
-transaction. So the quotation id, `ref_no`, company, customer, item order,
-descriptions, sizes, materials, quantities, pricing, totals and dates cannot
-move — not because the file promises it, but because the run stops if they do.
-
-`migrations/` is **not** part of the deployed file set in `.cpanel.yml`, so the
-backfill runs from the server-side git checkout and is never reachable over
-HTTP.
-
----
-
-## ROLLOUT DESIGN — DOCUMENTED, NOT EXECUTED
-
-1. production database backup
-2. pause quotation edits briefly
-3. backfill **DRY RUN**, and read the counts
-4. review — if the dry run printed `GATE CLOSED`, step 5 will refuse; the
-   named quotations must be inspected and decided by hand first
-5. backfill `--apply`
-6. verify every persisted item now holds a valid unique uid
-7. deploy the accepted Item Identity application
-8. production smoke
-9. resume edits
-
-**Why the pause is in step 2 and not somewhere more convenient.** The build
-that is live today never reads `item_uid`, so a backfilled quotation renders,
-prices and prints under it exactly as before, and the extra JSON key changes
-nothing a customer or a calculation sees — verified: the accepted build
-contains no reference to `item_uid` at all, and its load path spreads unknown
-item keys through untouched.
-
-But the old build's *edit* path rebuilds an item object from the entry form,
-and an object it rebuilds does not carry the new key. So an item edited under
-the OLD application after the backfill loses its identity again and its
-quotation would need backfilling a second time. Nothing breaks — the backfill
-is idempotent and `update_quotation` fails closed rather than guessing — but
-the window between step 5 and step 7 is the one to keep short.
-
-Rolling the application back is the real rollback: the previous release ignores
-`item_uid` entirely, so the backfilled data stays valid and nothing has to be
-undone.
-
----
-
-## ACCEPTANCE — WHAT MUST BE TRUE TO CLOSE
-
-- CREATE: every item receives a uid; a supplied one is ignored; two new items
-  receive different uids
-- UPDATE: an ordinary edit preserves the uid; a reorder preserves the
-  uid-to-item pairing; a delete removes that uid and never reissues it; an
-  added item receives a fresh uid that differs from every retained one
-- every refusal above fails closed, by name, before anything is written
-- a legacy persisted quotation asks for the backfill rather than being guessed
-- the page: load → edit → save preserves identity; create → save → edit again
-  without reloading preserves identity; a reorder does not regenerate it
-- clone / duplicate item: **N/A — there is no such path in the application.**
-  `quoteItems.push` appears in exactly three add paths and none of them copies
-  an existing row, so there is no end-to-end clone behaviour to accept and none
-  is claimed as tested. `dcStripItemUid()` is tested as a **guard helper only**:
-  it removes `item_uid` and changes nothing else. Any future clone / duplicate
-  feature **MUST** call it before the copied row is saved, or the copy would
-  claim the original's identity and `update_quotation` would refuse the save
-  with `ITEM_IDENTITY_DUPLICATE_UID`.
-- backfill: dry run writes nothing; apply adds only what was missing; a second
-  apply is idempotent; business data identical with `item_uid` stripped, and
-  `item_uid` is the only key any item gains
-- backfill: a malformed or duplicated **stored** uid is detected, named, and
-  refuses the apply outright — nothing written, non-zero exit, and no flag
-  anywhere that would repair it instead
-- `php -l` clean on every changed PHP file
-- the existing regression, unchanged: the thirty-nine accepted browser suites,
-  translation **862 keys / 100%**, and the accepted PHP side suites at their
-  accepted figures
-
-Then STOP. **No deploy. No production DB write.** Candidate only.
-
----
-
-## MEASURED ON THIS CANDIDATE
-
-Filled in from the actual runs, not from the accepted figures. This round adds
-tests, so the totals move and are reported as they were measured. **None of
-these are canonical** — CANONICAL-STATE still describes `e76bb85`, and it is
-not touched by a candidate.
-
-| | |
-|---|---:|
-| Browser suites | **40** (39 accepted + `40-item-identity`) |
-| Browser assertions | **3,936** |
-| Item identity PHP (`tests/php/item_identity.test.php`) | **156** |
-| Pricing / History | 172 |
-| AI Extraction / Parser | 107 |
-| Workbook | 62 |
-| Translation | 15 |
-| Save retry | 42 |
-| mysqli compatibility | 94 |
-| Actor Identity | 150 |
-| **Candidate total** | **4,734** |
-| Baseline | 2,810 |
-| **Delta** | **+1,924** |
-
-```
-  3,936   browser (40 suites)
-+   172 + 107 + 62 + 15 + 42 + 94 + 150   the accepted side groups
-+   156   item identity
-= 4,734   candidate total          4,734 - 2,810 = +1,924
-```
-
-The thirty-nine accepted suites still measure **3,907** — 3,936 − 29, the new
-suite's own count. Not one existing suite's assertion count moved, which is the
-point: this round adds a key and changes no behaviour any of them measure.
-
-Translation **862 keys / 100%**, unchanged — `index.php` gained no user-visible
-string. `php -l` clean on every PHP file.
-
-### What did NOT come out green here, and why
-
-**Eight browser assertions failed, all in `38-mobile-ui`, and none of them
-belong to this round.** They are the companies.php modal `✕` desktop
-dimensions — expected 24 tall / 17 wide, measured 27 / 16.3 at 1440, 980, 700
-and 600px. `companies.php` is untouched by this candidate. Proven rather than
-asserted: a pristine `git worktree` at `ce26146` — this round's own starting
-point — fails the same eight assertions with the same numbers. They are font
-metrics on this Windows Chromium; the accepted matrix was measured in a Linux
-sandbox with a different fallback stack, and the harness strips the Google
-Fonts link. Nothing here may be read as the accepted 39/3,907 run being
-reproduced on this machine.
-
-**Two side figures are carried forward, not re-measured here:**
-
-- **Workbook 62** — `check-pricing-workbook.py` needs `openpyxl`, which is not
-  installed on this machine. Untouched by this round.
-- **Actor Identity 150** — measured on this machine as 150 assertions, **1
-  failed**: the deliberately runtime-relative bcrypt-cost assertion, which
-  needs PHP 8.4 (default cost 12) and gets 10 on the local 8.3.30. Already
-  recorded in CANONICAL-STATE. Unrelated to this round and not to be relaxed.
-
-The six suites that ran clean here — item identity 137, pricing 172, AI
-extraction 107, mysqli 94, save retry 42, translation 15 — match their accepted
-figures exactly.
+Application behaviour of any kind: `index.php`, `ai_extract.php`, `api.php`,
+`companies.php`, `auth.php`, `login.php`, `logout.php`, `pricing_history.php`;
+Quick Add parsing; the Unit Converter; WhatsApp formatting; the language toggle;
+pricing; weight; save; the database; migrations. `CANONICAL-STATE.md` /
+`.json` and `authoritative.js` are not touched until Source Sync.
