@@ -5175,6 +5175,7 @@ const I18N={
     /* The trade names stay as the customer wrote them; the sentence around
        them is what a person has to read and act on. */
     wqaAccMention:'Document mentions: {n} — accessories are never added automatically. Add them yourself if this quotation includes them.',
+    wqaAccUnsure:'Accessory not set automatically: {n} — add it yourself if this quotation includes it.',
     lblFinalUnitPrice:'Final Unit Price', lblRawPrice:'Raw Price',
     mCompany:'Company', mRemarks:'Remarks', mNoCompanyStandalone:'— No company (standalone) —',
     mRestoreTitle:'Restore unsaved draft?',
@@ -5684,6 +5685,7 @@ const I18N={
     wqaThreadHintPair:'填一个值，或两端写成 50/110',
     wqaThreadHintOne:'填一个值',
     wqaAccMention:'文件提到：{n}；配件不会自动加入，如本报价需要这些配件，请自行添加。',
+    wqaAccUnsure:'未自动设置的配件：{n}；如本报价需要，请自行添加。',
     lblFinalUnitPrice:'最终单价', lblRawPrice:'原始价格',
     mCompany:'公司', mRemarks:'备注', mNoCompanyStandalone:'— 不指定公司（独立）—',
     mRestoreTitle:'要恢复未保存的草稿吗？',
@@ -13842,6 +13844,13 @@ function wqaExtractFields(rawLine,opts){
      failed to match here left its M behind and its 20 in the number pile. */
   m=s.match(/\bm\s*(\d+(?:\.\d+)?)(?=\s*[x*×]|\b)/i);
   if(m){ f.size='M'+m[1].replace(/\.0$/,''); s=s.replace(m[0],' '); }
+  /* "10mm Dia" / "Dia 10mm" is the rod's nominal size when the table knows it.
+     Never after inside / inner / body: those are other diameters. */
+  if(!f.size){
+    m=s.match(/(?<!(?:inside|internal|inner|body|hole)\s*)\b(\d+(?:\.\d+)?)\s*mm\s*(?:dia(?:meter)?|ø)(?![a-z])|(?<!(?:inside|internal|inner|body|hole)\s*)\b(?:dia(?:meter)?|ø)\s*[:.]?\s*(\d+(?:\.\d+)?)\s*mm\b/i);
+    const dv=m && (m[1]||m[2]);
+    if(dv && wqaIsNominal(dv)){ f.size='M'+String(Number(dv)); s=s.replace(m[0],' '); }
+  }
   /* A drawing writes an undersized rod's nominal diameter as R12. The R is the
      draughtsman's notation for the round bar it is cut from, not a different
      size, and the quotation speaks in M sizes — so it is read as M12 and the
@@ -14624,6 +14633,78 @@ function wqaThreadEndEvidence(text,entries){
    20/12mm Thread" names the thread outright, so the number still standing is
    the length. Without this the word "Thread" alone turned every such row into
    a header and the whole list vanished. */
+/* ── Accessories written beside the rod ────────────────────────────────────
+   "c/w 4 nos nut & 4 nos washer" is what comes WITH each rod, not a dimension
+   and not a count of rods. Left on the line, its 4s were read as the length and
+   the quantity, so a shared heading over a numbered list became a phantom row
+   and the real rows lost the size and thread the heading gave them.
+
+   Bounded on purpose: a count written right in front of a nut or a washer,
+   after a "c/w" / "with" lead or joined to a second such part. Plain nuts and
+   plain or flat washers are the Nut and FW the quotation already has. Any
+   other kind — spring, heavy, lock — is taken off the line so it cannot become
+   a dimension, but is NOT configured: it is reported for a person to add. A
+   count nobody wrote is never guessed. Per rod, exactly as the accessory panel
+   means it. Prices are never touched here. */
+const WQA_ACC_LEAD_RE=/(?:\bc\s*\/\s*w|\bc\.w\.?|\bcomplete\s+with|\bcomes?\s+with|\bwith|\bw\/)\s*[:\-]?\s*$/i;
+const WQA_ACC_PART_RE=/(?<![\w.\/])(\d{1,3})\s*(?:nos?\.?|pcs?\.?|x)?\s*((?:[a-z0-9]+\s+){0,2}?)(nuts?|washers?|f\s*\/\s*w|fw)\b/ig;
+const WQA_ACC_JOIN_RE=/^\s*(?:&|and|\+|,|\/|;)?\s*$/i;
+const WQA_ACC_TAIL_RE=/^\s*(?:each|ea\.?|per\s*(?:pc|pcs|set|rod|item|piece))\b/i;
+const WQA_ACC_PLAIN_MODS=/^(?:hex|hexagon|hexagonal|flat|plain|normal|std|standard|m\d+(?:\.\d+)?)$/i;
+function wqaAccScan(line){
+  const s=String(line||'');
+  const parts=[];
+  const re=new RegExp(WQA_ACC_PART_RE.source,'ig');
+  let m;
+  while((m=re.exec(s))!==null){
+    parts.push({at:m.index, end:m.index+m[0].length, qty:parseInt(m[1],10),
+                mods:String(m[2]||'').trim(), type:/^n/i.test(m[3])?'nut':'fw', text:m[0].trim()});
+  }
+  if(!parts.length) return null;
+  /* Runs of parts joined only by "&", "and", "+" or a comma. */
+  const runs=[]; let cur=[parts[0]];
+  for(let i=1;i<parts.length;i++){
+    if(WQA_ACC_JOIN_RE.test(s.slice(parts[i-1].end,parts[i].at))) cur.push(parts[i]);
+    else { runs.push(cur); cur=[parts[i]]; }
+  }
+  runs.push(cur);
+  const out={nut:null, fw:null, finish:'', unsure:[]};
+  const cuts=[];
+  runs.forEach(run=>{
+    const lead=WQA_ACC_LEAD_RE.exec(s.slice(0,run[0].at));
+    if(!lead && run.length<2) return;          // "10 nos nut" alone may be an order for nuts
+    let from=lead ? lead.index : run[0].at, to=run[run.length-1].end;
+    const tail=WQA_ACC_TAIL_RE.exec(s.slice(to));
+    if(tail) to+=tail[0].length;
+    cuts.push([from,to]);
+    run.forEach(p=>{
+      const isFin=w=>WQA_FINISHES.some(x=>x.value!=='PL' && x.re.test(' '+w+' '));
+      const words=p.mods ? p.mods.split(/\s+/) : [];
+      const odd=words.filter(w=>!WQA_ACC_PLAIN_MODS.test(w) && !isFin(w));
+      if(odd.length || !(p.qty>=1 && p.qty<=50) || out[p.type]!==null){ out.unsure.push(p.text); return; }
+      out[p.type]=p.qty;
+      const fin=WQA_FINISHES.find(x=>x.value!=='PL' && x.re.test(' '+p.mods+' '));
+      if(fin) out.finish=fin.value;
+    });
+  });
+  if(!cuts.length) return null;
+  let rest=s;
+  for(let k=cuts.length-1;k>=0;k--) rest=rest.slice(0,cuts[k][0])+' '+rest.slice(cuts[k][1]);
+  out.rest=rest.replace(/\s+/g,' ').trim();
+  out.found=out.nut!==null || out.fw!==null;
+  return out;
+}
+/* The accessory panel's own object, finished like the rod unless the clause
+   named a finish of its own. Unit prices stay at the panel's default. */
+function wqaAccFromSpec(a,rowFinish){
+  if(!a || (a.nut==null && a.fw==null)) return null;
+  const acc=wqaEmptyAcc();
+  const fin=a.finish || (WQA_ACC_FINISHES.indexOf(rowFinish||'')>=0 ? (rowFinish||'') : '');
+  if(a.nut!=null){ acc.nut.enabled=true; acc.nut.qty=a.nut; acc.nut.finish=fin; }
+  if(a.fw!=null){  acc.fw.enabled=true;  acc.fw.qty=a.fw;   acc.fw.finish=fin; }
+  return acc;
+}
+
 function wqaSpecCandidate(f){
   return !!f && !!f.size && f.qty===null && f.threadLen===null && f.nums.length===1 &&
          /^\d+(?:\.\d+)?$/.test(f.nums[0]);
@@ -14722,9 +14803,16 @@ function wqaParseText(text,forceProduct){
      of its own. One L Bolt line inside a Sag Rod message therefore still speaks
      for itself and for nothing after it. */
   let secProd='';
+  const accUnsure=[];
   const entries=lines.map(raw=>{
-    const t=raw.trim();
-    if(!t) return {blank:true};
+    const t0=raw.trim();
+    if(!t0) return {blank:true};
+    /* Accessory wording leaves the line before anything reads it. */
+    const acc=wqaAccScan(t0);
+    if(acc && acc.unsure.length) accUnsure.push.apply(accUnsure,acc.unsure);
+    const t=acc ? acc.rest : t0;
+    const accSpec=acc && acc.found ? {nut:acc.nut, fw:acc.fw, finish:acc.finish} : null;
+    if(acc && !t) return accSpec ? {t:t0,n:'',accOnly:true,accSpec} : {blank:true};
     const n=wqaNorm(t);
     if(WQA_SECTION_RE.test(n)) return {t,n,section:true};          // "Length:" — structural
     const sl=wqaSizeList(n);
@@ -14738,7 +14826,7 @@ function wqaParseText(text,forceProduct){
     const ef=wqaExtractFields(t,{rodSize,product:forceProduct||dd.product||secProd||common.product});
     if(!forceProduct && dd.product && !ef.size && ef.qty==null && !(ef.dims&&Object.keys(ef.dims).length))
       secProd=dd.product;
-    return {t,n,f:ef,d:dd};
+    return {t,n,f:ef,d:dd,src:t0,accSpec};
   });
   /* Thread arrangement beats the customer's product word, decided before
      anything is read as a row — the dimension columns depend on it. Resolved by
@@ -14770,6 +14858,8 @@ function wqaParseText(text,forceProduct){
     /* Read and understood — it just does not produce a row, and does not put a
        diameter into the context either. */
     if(e.sizeList){ ctx.sizeList=e.sizeList; return; }
+    /* "c/w 2 nuts" on a line of its own: shared, like a quantity for all. */
+    if(e.accOnly){ ctx.acc=e.accSpec; return; }
     /* "UNC" on a line of its own is the thread series of the item above it —
        read, attached, and no longer reported as something we could not read. */
     if(e.noise && WQA_SERIES_RE.test(' '+(e.n||'')+' ')){
@@ -14778,7 +14868,7 @@ function wqaParseText(text,forceProduct){
       else if(!ctx.series) ctx.series=wqaSeriesValue(e.n);
       return;
     }
-    if(e.noise){ skipped.push(e.t); if(counts) unread++; return; }
+    if(e.noise){ if(e.accSpec) ctx.acc=e.accSpec; skipped.push(e.t); if(counts) unread++; return; }
     if(!common.product && !selfProduct){ if(counts) unread++; return; }
 
     const f=e.f;
@@ -14887,6 +14977,7 @@ function wqaParseText(text,forceProduct){
                Sag Rod says nothing about the Studs below it. */
             ctxEnds=null;
             ctx.threadLen=''; ctx.threadLen2=''; ctx.tlCount=0;
+            ctx.acc=null;
           }
           ctx.product=hp;
         }
@@ -14910,6 +15001,8 @@ function wqaParseText(text,forceProduct){
         used=true;
       }
       if(f.size){ ctx.size=f.size; used=true; }
+      /* A heading's accessories are every row's under it, per rod. */
+      if(e.accSpec){ ctx.acc=e.accSpec; used=true; }
       if(f.threadLen!==null){
         /* "TL60/80" written under a row is that row's pair — the same rule as a
            single value, and the reason an independent block below no longer
@@ -15030,7 +15123,10 @@ function wqaParseText(text,forceProduct){
       const m=String(r.item.M||'').trim().toUpperCase();
       return (m && stScope.sizes.indexOf(m)<0) ? '' : v;
     })();
-    items.push({...r.item, raw:e.t, specResolved:true,
+    /* The row's own accessories win, per kind, over the heading's. */
+    const accRow=(e.accSpec||ctx.acc) ? {...(ctx.acc||{}),
+      ...Object.fromEntries(Object.entries(e.accSpec||{}).filter(([k,v])=>v!==null&&v!==''))} : null;
+    items.push({...r.item, raw:e.src||e.t, specResolved:true, accSpec:accRow,
                 materialValue:pick('material'), finishValue:pick('finish'),
                 sizeTypeValue:stPick,
                 matFrom: d.material ? (d.materialDefaultedFrom||'') : (ctx.material?ctx.matFrom:common.materialDefaultedFrom||''),
@@ -15044,6 +15140,7 @@ function wqaParseText(text,forceProduct){
      whatever the context ended up carrying fills the gaps it never reached.
      ONLY gaps — a row that stated its own value keeps it, exactly as a row above
      the context would. */
+  if(ctx.acc) items.forEach((it,k)=>{ if(k>=secFrom && !it.accSpec) it.accSpec=ctx.acc; });
   if(ctx.size || ctx.threadLen || ctx.qty){
     const wantsThread=wqaThreadEnds(common.product)>0;
     const ctxTL=ctx.threadLen ? (ctx.threadLen2?ctx.threadLen+'/'+ctx.threadLen2:ctx.threadLen) : '';
@@ -15118,7 +15215,8 @@ function wqaParseText(text,forceProduct){
   /* The SAME normaliser the photo and PDF extraction goes through. Everything
      from this line downwards is shared by every source. */
   const norm=wqaNormalizeExtraction({product:common.product,threadEnds,items},{wording:text});
-  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread};
+  norm.rows.forEach((r,k)=>{ const a=items[k]&&wqaAccFromSpec(items[k].accSpec,r.finish); if(a) r.accParsed=a; });
+  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread, accUnsure};
 }
 
 /* Everything the LAST source told us that is not a row: the accessory wording
@@ -16250,7 +16348,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
     wqa.textSource = String(rawText||'');
   }
   wqa.common={...common};
-  wqa.rows=rows.map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
+  wqa.rows=rows.map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
                          priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
@@ -16407,6 +16505,8 @@ async function wqaParseAndReview(){
   }
   const q=wqaParseQuality(parsed,text);
   if(q.ok){
+    if(parsed.accUnsure && parsed.accUnsure.length)
+      wqa.aiWarnings=[{k:'wqaAccUnsure',v:parsed.accUnsure.join(', ')}];
     /* Parser understood it. No AI call, no badge, no cost. */
     await wqaEnterReview(parsed.common, parsed.rows, text, parsed.skipped);
     return;
@@ -16560,7 +16660,7 @@ function wqaChangeProduct(t){
   /* Same pipeline as the first parse, so header context and inheritance behave
      identically after a product switch. */
   wqa.rows=wqaParseText(wqa.raw,t).rows
-    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
+    .map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   rebuild();
   wqaRecomputeAll();
 }
