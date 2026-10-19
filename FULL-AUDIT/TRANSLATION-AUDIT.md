@@ -11,7 +11,7 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
+> **On SHAs.** `5f5b4a76bb704e8e3709bb2adad51babc06db322` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
@@ -46,7 +46,7 @@ Three tools, and the third exists because the first two were not enough:
 | index.php | 731 | 100% | 0 | 0 | 0 | 0 | 0 |
 | companies.php | 120 | 100% | 0 | 0 | 0 | 0 | 0 |
 | login.php | 11 | 100% | 0 | 0 | 0 | 0 | 0 |
-| **Total** | **903** | **100%** | **0** | **0** | **0** | **0** | **0** |
+| **Total** | **953** | **100%** | **0** | **0** | **0** | **0** | **0** |
 
 Regenerated from the final SHA. Every earlier figure — 658 overnight, 756 in
 the morning, then 843 and 853 across the closing rounds — is superseded and

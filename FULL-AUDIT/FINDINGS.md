@@ -1,7 +1,7 @@
 # FINDINGS
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `5f5b4a76bb704e8e3709bb2adad51babc06db322` · **ACCEPTED AND DEPLOYED** — production runs this application (deployed 2026-10-19 from integration/source-reconciliation), and `quotation_revisions` was applied first: MATCH / CONFORMS.
 
 **P0 0 · P1 13 · P2 24 · P3 2 · 39 total, all repaired.**
 F1–F6, F8–F16 and F23–F24 were the overnight round. F7 and F17–F22 came out of
@@ -27,7 +27,7 @@ usability failure · **P3** cosmetic.
 Every finding below was reproduced first, given a failing regression, then
 repaired. The regression that reproduces it is named against each one.
 
-> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
+> **On SHAs.** `5f5b4a76bb704e8e3709bb2adad51babc06db322` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit

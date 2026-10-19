@@ -13,13 +13,15 @@ moves production and `main` to it.
 |---|---|
 | Integration branch | `integration/source-reconciliation`, cut from `main` `f57b195a15e55c59d1fae2bc1bec368e7b7d21d9` |
 | Merged in | `hotfix/quickadd-integration` `091ac77abe0577240dd816eb845d293bccb101c1` (application `91f0c0b905ef402378aaeef896c80a4e6229c442`, plus closing tests / docs) |
-| Accepted application commit | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` — unchanged until this round is accepted |
-| Production application | `91f0c0b905ef402378aaeef896c80a4e6229c442` — production has not moved |
-| Round status | **CANDIDATE — VERIFIED, AWAITING OWNER BACKUP + DEPLOY** |
-| DEPLOY = NO | not deployed; the combined build needs `quotation_revisions` applied first |
+| Accepted application commit | `5f5b4a76bb704e8e3709bb2adad51babc06db322` — the merge; supersedes `5595395` |
+| Production application | `f7184f192cc087cfed734fc3df66a6afcf997d51` — deployed and VERIFIED 2026-10-19 (previously `91f0c0b`) |
+| Main | fast-forwarded `f57b195` → `f7184f1`, then this closing docs commit |
+| Active round | **NONE** |
+| Round status | **FINAL ACCEPTED / CLOSED** |
+| DEPLOY = NO | no further deploy: production already runs `f7184f1`, and the closing commit changes docs only |
 | STAGE 2 = NOT STARTED | the Stage 2 deferrals in PROJECT-GUARDRAILS stay deferred |
-| Production DB change | **NO** — `quotation_revisions` is still NOT APPLIED to production |
-| CANONICAL-STATE | records the last ACCEPTED state; production / main reconciliation is recorded here until the round is accepted |
+| Production DB change | **YES** — `quotation_revisions` APPLIED 2026-10-19, Section 4 MATCH / CONFORMS, after an owner-confirmed backup |
+| CANONICAL-STATE | reconciled: accepted `5f5b4a7`, deployed `f7184f1` |
 
 ---
 
@@ -82,16 +84,9 @@ both sides' versions.
 
 ## ALLOWED TO CHANGE
 
-Relative to the accepted `5595395`:
+Empty: the round is closed and nothing may differ from the accepted `5f5b4a7`.
 
 ```candidate-files
-ai_extract.php
-companies.php
-index.php
-tests/lib/dom-i18n.js
-tests/suites/12-quick-add-safety.test.js
-tests/suites/38-mobile-ui.test.js
-tests/tools/check-translations.js
 ```
 
 `companies.php` came to `main` with `ad4a20e` and is unchanged by this merge.
@@ -143,6 +138,23 @@ No maintenance mode exists. Run steps 2–3 when no-one is saving.
 
 ---
 
+## OUTCOME
+
+| | |
+|---|---|
+| Full suite | PASS WITH 8 DOCUMENTED KNOWN FAILURES |
+| Security | PASS |
+| Production verify | PASS (owner smoke accepted) |
+| Source reconciliation | PASS |
+| Revision history | DEPLOYED |
+| `quotation_revisions` | APPLIED / MATCH / CONFORMS |
+
+Live schema differs from what the migration was written against, accepted by the
+owner before Section 2: `quotations.id` is signed INT (ids 1–1,278, none ≤ 0) and
+the database default is utf8mb3 / utf8mb3_unicode_ci.
+
+---
+
 ## DEFERRED — NOT THIS ROUND
 
 - Parser: a row phrase written as "thread length 50mm" does not override the
@@ -150,3 +162,4 @@ No maintenance mode exists. Run steps 2–3 when no-one is saving.
 - Upload memory / `post_max_size` verification on the server for five 10 MB images.
 - CSRF token hardening (today: SameSite=Lax cookie and JSON bodies).
 - DB error text in `fail_json` responses.
+- History `item_count` is not escaped in `dcHistChange` (the server casts it to int): defense in depth, INFO.

@@ -1,6 +1,6 @@
 # NEEDS BUSINESS DECISION
 
-Final application SHA `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `5f5b4a76bb704e8e3709bb2adad51babc06db322` · **ACCEPTED AND DEPLOYED** — production runs this application (deployed 2026-10-19 from integration/source-reconciliation), and `quotation_revisions` was applied first: MATCH / CONFORMS.
 
 **Two questions are open. Four are decided and are recorded below as decided,
 not as open** — they were being counted as unanswered in earlier drafts of this
@@ -21,7 +21,7 @@ with the options laid out and what the code does today. The four decided ones
 are kept here so each decision has somewhere to live, and so nobody re-opens one
 by finding an old draft.
 
-> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
+> **On SHAs.** `5f5b4a76bb704e8e3709bb2adad51babc06db322` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit

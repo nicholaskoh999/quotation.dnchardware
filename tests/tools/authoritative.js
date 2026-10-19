@@ -65,8 +65,8 @@ module.exports = {
      revision writer among them cannot be deployed at all until
      migrations/2026-08-28-create-quotation-revisions.sql is APPLIED to
      production FIRST. */
-  APP_SHA:  '5595395fefb49adcb1140a3c9b2a1c36dc7a2186',
-  DEPLOYED_SHA: '649f80a09f83a7201c0f3772e01fc270ccda3e05',
+  APP_SHA:  '5f5b4a76bb704e8e3709bb2adad51babc06db322',
+  DEPLOYED_SHA: 'f7184f192cc087cfed734fc3df66a6afcf997d51',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
   SUITES: 41,
@@ -114,6 +114,6 @@ module.exports = {
                       engines: ['8.0.46', '8.4.3'],
                       migrationApplied: false, writerStarted: true },
 
-  KEYS: 903, COVERAGE: 100,
+  KEYS: 953, COVERAGE: 100,
   P0: 0, P1: 13, P2: 24, P3: 2, FINDINGS: 39,
 };

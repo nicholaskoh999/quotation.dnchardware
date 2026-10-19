@@ -6,8 +6,8 @@ BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                5595395fefb49adcb1140a3c9b2a1c36dc7a2186
-                "History, worked out when someone asks"
+                5f5b4a76bb704e8e3709bb2adad51babc06db322
+                "merge: reconcile production hotfix chain with main's revision history"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -181,6 +181,46 @@ AUDIT COMMITS (oldest first — this list is the count)
   5729ad5  An update that changes nothing now records nothing
   8689264  docs(control): accept no-op suppression as canonical
   5595395  History, worked out when someone asks
+  f1e952b  docs(control): accept the history reader as canonical
+  9970143  fix(copy): avoid WhatsApp ordered-list formatting
+  74ef237  fix(copy): preserve individual item order in WhatsApp text
+  392ec1c  fix(copy): preserve global quotation item order
+  fec3e43  fix(copy): sync verified WhatsApp copy behavior
+  5b39de8  fix(ui): simplify quotation list cards
+  494e172  fix(ui): tighten quotation card price hierarchy
+  4c05b55  fix(ui): refine quotation card visual hierarchy
+  0bbab07  fix(ui): polish quotation card spacing
+  09838fb  fix(ui): balance quotation card pricing layout
+  77fbe15  fix(ui): align quotation card pricing and spec
+  2119291  fix(ui): align quotation price labels
+  6a31c12  fix(ui): align bilingual quotation price labels
+  3d09fda  fix(ui): sync verified quotation list card polish
+  f541ee6  fix(ui): stabilize language switcher width
+  aafbdb1  fix(ui): use single header language toggle
+  ad4a20e  fix(ui): sync single header language toggle
+  f7ce930  fix(ui): responsive mobile tablet keyboard safety
+  4046545  fix(ui): refine mobile tablet responsive workflow
+  f57b195  fix(ui): sync responsive mobile tablet keyboard UX
+  231d87a  feat(copy): add copy with unit weight
+  99f24d4  fix(ui): fit copy weight action row
+  4878b02  fix(ui): optimize sag rod dimension entry order
+  f3977fc  feat(ui): add u-bolt max thread length helper
+  7bd39f3  fix(i18n): localize u-bolt tl helper
+  9d355b6  feat(ui): add u-bolt pipe size presets
+  7b057c9  fix(ai): normalize l-bolt dimensions to end reference
+  811c2f1  fix(ai): detect l-bolt dimension references from drawing
+  a700159  feat(ui): add imperial metric unit converter
+  b922302  feat(ui): add direct fill to unit converter
+  b037bd8  fix(ui): integrate unit converter into dimension entry
+  bd52c5d  fix(ui): add unit selector to converter
+  0a14902  fix(ui): keep converter unit labels universal
+  481f666  feat(quickadd): support multi-image upload and clipboard paste
+  8680051  fix(quickadd): inherit shared specs and accessories
+  7b9fba9  Merge branch 'hotfix/quickadd-multi-image-paste' into hotfix/quickadd-integration
+  38c2c3b  merge: integrate quick add multi-image and text extraction fixes
+  91f0c0b  fix(ui): explain quick add multi-image support
+  091ac77  test: align closing checks with accepted production behavior
+  5f5b4a7  merge: reconcile production hotfix chain with main's revision history
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind

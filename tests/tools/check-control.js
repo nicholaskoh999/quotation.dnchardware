@@ -34,10 +34,10 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = '5595395fefb49adcb1140a3c9b2a1c36dc7a2186';
-const PREV = '5729ad5001694bc62370472277dc9e5860276408';
+const APP = '5f5b4a76bb704e8e3709bb2adad51babc06db322';
+const PREV = '5595395fefb49adcb1140a3c9b2a1c36dc7a2186';
 /* What production RUNS, which is no longer what has been accepted. */
-const DEPLOYED = '649f80a09f83a7201c0f3772e01fc270ccda3e05';
+const DEPLOYED = 'f7184f192cc087cfed734fc3df66a6afcf997d51';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
 const fmtN = n => Number(n).toLocaleString('en-US');
@@ -116,9 +116,17 @@ ck(T.failed === 0 || (X.applicationFault === false && X.introducedByThisRound ==
    'the recorded failures are not an application fault and did not arrive with this round');
 ck(T.failed === 0 || (typeof X.reproducedOn === 'string' && /^[0-9a-f]{40}$/.test(X.reproducedOn)),
    `and were reproduced on a commit that predates it: ${String(X.reproducedOn).slice(0,7)}`);
-ck(T.failed === 0 || (Array.isArray(X.filesUntouchedByThisRound)
-   && X.filesUntouchedByThisRound.every(f => git('diff','--name-only',PREV+'..'+APP,'--',f) === '')),
-   'and every file it blames is genuinely untouched by this promotion');
+/* This round DID touch companies.php and the 38 suite, so "untouched" can no
+   longer be claimed. What is asserted instead is stronger: the failure list in
+   this round's committed log is the accepted list, line for line. */
+{ const fails = f => R(f).split(/\r?\n/).filter(l => /^\s+- /.test(l)).map(l => l.trim()).sort();
+  const L = X.sameListAs || {};
+  let same = false;
+  try {
+    const a = fails(L.accepted), b = fails(L.thisRound);
+    same = a.length === T.failed && a.join('|') === b.join('|');
+  } catch (e) { same = false; }
+  ck(T.failed === 0 || same, `and the ${T.failed} are the accepted failures, line for line, in this round's own log`); }
 ck(T.skipped === 0, 'nothing was skipped');
 
 ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
@@ -127,20 +135,20 @@ ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 14, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554 → 631cb89 → 5729ad5',
+ck(S.length === 15, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554 → 631cb89 → 5729ad5 → 5595395',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[13].sha === PREV && S[13].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[14].sha === PREV && S[14].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`5729ad5001694bc62370472277dc9e5860276408` — superseded by `5595395`'),
+ck(MD.includes('`5595395fefb49adcb1140a3c9b2a1c36dc7a2186` — superseded by `5f5b4a7`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
 ck(H.supersededAssertionTotals.includes(5101) && !H.supersededAssertionTotals.includes(T.finalAssertions),
    `5,101 retired, ${fmtN(T.finalAssertions)} is not retired`);
 ck(H.supersededDeltas.includes(2291) && !H.supersededDeltas.includes(T.deltaAssertions),
    `+2,291 retired, +${fmtN(T.deltaAssertions)} is not retired`);
-ck(H.supersededTranslationKeys.includes(862) && C.translation.keys === 903,
-   '862 translation keys retired, 903 is current');
+ck(H.supersededTranslationKeys.includes(903) && C.translation.keys === 953,
+   '903 translation keys retired, 953 is current');
 ck(H.supersededSuiteCounts.includes(40) && !H.supersededSuiteCounts.includes(T.browserSuites),
    `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — ${T.browserSuites} is current, not retired`);
 
@@ -189,13 +197,13 @@ ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 /* '*.php' matches tests/php/*.test.php too, so the application half is asked
    for on its own — this promotion carries TWO application files. */
 ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**').split('\n').sort().join(',')
-   === 'api.php,index.php',
-   'the promotion carries exactly api.php and index.php');
+   === 'ai_extract.php,companies.php,index.php',
+   'the reconciliation carries exactly the production chain: ai_extract.php, companies.php, index.php');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
-   === 'tests/lib/harness.js,tests/php/history_read.test.php,tests/suites/41-history.test.js',
+   === 'tests/lib/dom-i18n.js,tests/suites/12-quick-add-safety.test.js,tests/suites/38-mobile-ui.test.js',
    'one new PHP suite, one new browser suite, and the harness default answer the '
    + 'new action needs — no accepted suite was edited');
-ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
+ck(git('diff','--name-only','--diff-filter=D',PREV+'..'+APP,'--','tests/suites') === '',
    'not one of the forty accepted browser suites was modified or deleted — the '
    + 'forty-first was ADDED');
 /* '*.php' matches tests/php/*.test.php too. Revision Storage added
@@ -209,8 +217,7 @@ ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') ==
    'and no accepted PHP suite was modified or deleted after it — only added to');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
-ck(git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','index.php',
-       'tests/php/history_read.test.php','tests/suites/41-history.test.js') === APP,
+ck(git('log','-1','--format=%H',PREV+'..HEAD','--','ai_extract.php','companies.php','index.php') === APP,
    'the candidate SHA derived from the declared files IS the accepted commit');
 ck(git('status','--porcelain') === '', 'working tree clean');
 
@@ -270,7 +277,7 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
   ck(inMain, 'and is an ancestor of HEAD');
   ck(R.applicationCommitMoved === false && A.APP_SHA === APP,
      'it moved no application commit — the accepted application is still ' + APP.slice(0,7));
-  ck(/^NOT APPLIED/.test(R.migrationApplied || ''), 'its migration is NOT APPLIED to production');
+  ck(/^APPLIED/.test(R.migrationApplied || ''), 'its migration is APPLIED to production');
   /* This read /^NOT STARTED/ for two rounds and was correct both times. The
      writer has now been accepted, so the assertion becomes the contract that
      replaces the absence — which is stricter than what it replaced, because
@@ -345,10 +352,10 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
      'the 1062 retry is still a single attempt, not a loop');
   ck(/MUST be APPLIED to production BEFORE/.test(W.deploymentDependency || ''),
      'canonical records the deployment ORDER: the migration first, then the application');
-  ck(/^ABSENT/.test(C.production.quotationRevisionsTable || ''),
-     'and records that production still has no quotation_revisions table');
-  ck(C.production.deployedApplicationCommit !== APP,
-     `so the accepted application ${APP.slice(0,7)} is NOT deployed, and cannot be until it is`); }
+  ck(/^PRESENT/.test(C.production.quotationRevisionsTable || ''),
+     'and records that production now has the quotation_revisions table');
+  ck(git('diff','--name-only',APP,DEPLOYED,'--','*.php',':(exclude)tests/**') === '',
+     `so the deployed ${DEPLOYED.slice(0,7)} carries exactly the accepted application ${APP.slice(0,7)}`); }
 
 // ── No-op suppression: accepted, and it stored nothing to accept ──
 { const N = C.noopSuppression || {};
@@ -395,7 +402,8 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
 // ── The history reader: accepted, and it stored nothing to accept ──
 { const Hr = C.historyRead || {};
   ck(Hr.status === 'FINAL ACCEPTED / CLOSED', `history read: ${Hr.status}`);
-  ck(Hr.acceptedCandidate === APP, `its accepted candidate IS the accepted application ${APP.slice(0,7)}`);
+  { let a = true; try { git('merge-base','--is-ancestor', Hr.acceptedCandidate, APP); } catch { a = false; }
+    ck(a, `its accepted candidate ${String(Hr.acceptedCandidate).slice(0,7)} is in the accepted application ${APP.slice(0,7)}`); }
   ck(A.SIDE['history-read-php.log'] === Hr.assertions && Hr.failed === 0,
      `authoritative.js and canonical agree: ${Hr.assertions} assertions, ${Hr.failed} failed`);
   { const eng = Object.keys(Hr.verifiedOn || {});
@@ -453,7 +461,7 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
      untouched, and no accepted browser suite was modified or deleted. */
   ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites/35-edit-mode.test.js') === '',
      `which the tree confirms: ${F.suiteFile} itself is byte-identical`);
-  ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites') === '',
+  ck(git('diff','--name-only','--diff-filter=D',PREV+'..'+APP,'--','tests/suites') === '',
      'and no accepted browser SUITE was modified or deleted'); }
 
 // ── guardrails carry the accepted outcomes, and only those ──

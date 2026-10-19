@@ -8,7 +8,7 @@ serve the file over `http://` so localStorage behaves as it does live, answer
 parser is re-implemented and no answer is re-exported for a test to assert
 against itself.
 
-> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
+> **On SHAs.** `5f5b4a76bb704e8e3709bb2adad51babc06db322` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
@@ -287,7 +287,7 @@ paints, which is the behaviour under test.
 | Check | Result |
 |---|---|
 | `php -l` over every PHP file | clean |
-| Translation coverage | 903 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
+| Translation coverage | 953 keys, 100%, 0 bypassing `dcT`, 0 unapplied hooks |
 | Rendered 中文 DOM | 12 states scanned, 0 English runs outside the trade allowlist |
 | Browser console errors | asserted per-page in suites 30, 31 and 32 (`page._dcErrors` empty at every viewport) |
 | Pricing workbook contains no business values | 62 assertions, clean |

@@ -15,13 +15,41 @@ outputs being validated, not sources of truth. Checkers must read
 
 ---
 
+## CURRENT STATE — SOURCE RECONCILIATION CLOSED, 2026-10-19
+
+| | |
+|---|---|
+| Round status | **CLOSED** |
+| Active round | **NONE** |
+| Production | **VERIFIED** — runs `f7184f192cc087cfed734fc3df66a6afcf997d51` (`integration/source-reconciliation`) |
+| Main | `f7184f192cc087cfed734fc3df66a6afcf997d51` (fast-forwarded from `f57b195`) plus this closing docs commit |
+| Accepted application commit | `5f5b4a76bb704e8e3709bb2adad51babc06db322` — the merge; `f7184f1` adds evidence and docs only, the application files are byte-identical |
+| Previously deployed | `91f0c0b905ef402378aaeef896c80a4e6229c442` (`hotfix/quickadd-integration`) |
+| Full suite | **PASS WITH 8 DOCUMENTED KNOWN FAILURES** — 41 suites, 4,010 assertions; the eight are the `38-mobile-ui` Windows Chromium font-metric failures, line for line |
+| PHP | 11 suites, 1,412 assertions, 0 failed (MySQL 8.4.3; migration and `api.php` byte-identical to their 8.0.46 verification) |
+| Translation / workbook | 15 / 15 (953 keys) · 62 / 62 |
+| Security | **PASS** — no BLOCKER / HIGH / MEDIUM |
+| Production verify | **PASS** — owner smoke accepted |
+| Source reconciliation | **PASS** |
+| Revision history | **DEPLOYED** — transaction foundation, revision writer, no-op suppression, history reader |
+| `quotation_revisions` | **APPLIED** 2026-10-19 on MySQL 8.0.46 — Section 4 **MATCH** and **CONFORMS**; owner-confirmed backup first |
+| Schema observations, accepted by the owner | `quotations.id` is signed INT (the migration assumed INT UNSIGNED; ids 1–1,278, none ≤ 0); database default charset utf8mb3 / utf8mb3_unicode_ci |
+
+**Deferred:** a row phrase "thread length 50mm" does not override the shared
+Sag Rod TL (`x 50/50` does) · verify PHP `post_max_size` / `memory_limit` for
+five 10 MB images · CSRF token hardening · DB error text in `fail_json` ·
+history `item_count` is not escaped in `dcHistChange` (the server casts it to
+int — defense in depth, INFO).
+
+---
+
 ## APPLICATION
 
 | | |
 |---|---|
-| Accepted application commit | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` |
+| Accepted application commit | `5f5b4a76bb704e8e3709bb2adad51babc06db322` |
 | Application status | **ACCEPTED** |
-| Accepted round | MINIMAL HISTORY READ / UI — a read-only History panel, with what changed derived at read time, **FINAL ACCEPTED** |
+| Accepted round | SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT — main and the production hotfix chain are one line, and revision history is live, **FINAL ACCEPTED** |
 
 The accepted commit moved because nobody could see what a quotation used to be,
 and for no other reason. It is `5595395` because that is the last commit that
@@ -130,21 +158,20 @@ reconciliation, Actor Identity, pricing, Quick Add, the parser and
 `delete_quotation` are untouched. **The persisted Diff Engine remains
 DEFERRED.**
 
-**ACCEPTED IS NOT LIVE.**
+**ACCEPTED AND LIVE** (2026-10-19, superseding the table that stood here).
 
 | | |
 |---|---|
-| Accepted application | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` |
-| **Deployed application** | **`649f80a09f83a7201c0f3772e01fc270ccda3e05`** — the Item Identity build |
-| Transaction foundation in production | **NOT DEPLOYED** |
-| Snapshot revision writer in production | **NOT DEPLOYED** |
-| No-op suppression in production | **NOT DEPLOYED** |
-| History reader in production | **NOT DEPLOYED** |
-| `migrations/2026-08-28-create-quotation-revisions.sql` | **NOT APPLIED** |
+| Accepted application | `5f5b4a76bb704e8e3709bb2adad51babc06db322` |
+| **Deployed application** | **`f7184f192cc087cfed734fc3df66a6afcf997d51`** — the reconciliation build |
+| Transaction foundation in production | **DEPLOYED** |
+| Snapshot revision writer in production | **DEPLOYED** |
+| No-op suppression in production | **DEPLOYED** |
+| History reader in production | **DEPLOYED** |
+| `migrations/2026-08-28-create-quotation-revisions.sql` | **APPLIED** — MATCH / CONFORMS |
 
-**Four accepted rounds now sit undeployed**, and the migration must be **APPLIED
-BEFORE** any of them is deployed — with the table absent a save FAILS and rolls
-back, deliberately.
+The four rounds that sat undeployed are live. The migration was applied **before**
+the code, as the deployment order requires.
 
 ---
 
@@ -156,7 +183,7 @@ back, deliberately.
 | Status | **FINAL ACCEPTED / CLOSED**, 2026-08-28 |
 | Accepted candidate | `b1fd1de7b1623150dcd6d8d609d8014af488f70e` |
 | Table | `quotation_revisions` |
-| Migration | `migrations/2026-08-28-create-quotation-revisions.sql` — **NOT APPLIED to production** |
+| Migration | `migrations/2026-08-28-create-quotation-revisions.sql` — **APPLIED to production 2026-10-19** |
 | Revision writer | **STARTED AND ACCEPTED** — see the application section above |
 
 | verified on | assertions | failed |
@@ -348,7 +375,7 @@ executes the shipped migration as a real subprocess against a stub `db.php`.
 
 | | |
 |---|---:|
-| Keys | **903** |
+| Keys | **953** |
 | Coverage | **100%** |
 | Missing | 0 |
 | Hard-coded | 0 |
@@ -429,10 +456,11 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Application commit | `86cf2629a66434bf3bdffe2efc0acbe527c358ac` — superseded by `97a14cf` when PHP 8.1+ MYSQLI EXCEPTION COMPATIBILITY was accepted |
 | Application commit | `97a14cf56bad6414e382c6f49f40d13eabd97dc9` — superseded by `e76bb85` when ACTOR IDENTITY FOUNDATION was accepted |
 | Application commit | `e76bb85d663f96fdce3ed6c0c70b72c49d84000a` — superseded by `649f80a` when ITEM IDENTITY FOUNDATION was accepted |
-| Application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — superseded by `1ca6554` when READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. **Still the DEPLOYED commit**, which is a different fact and is current, not superseded |
+| Application commit | `649f80a09f83a7201c0f3772e01fc270ccda3e05` — superseded by `1ca6554` when READ-BEFORE-WRITE / TRANSACTION FOUNDATION was accepted. It was the deployed commit until the hotfix chain; production now runs `f7184f1` |
 | Application commit | `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a` — superseded by `631cb89` when SNAPSHOT REVISION WRITER was accepted |
 | Application commit | `631cb8945406a934b351e476ec71330ed23a2d27` — superseded by `5729ad5` when NO-OP SUPPRESSION was accepted |
 | Application commit | `5729ad5001694bc62370472277dc9e5860276408` — superseded by `5595395` when MINIMAL HISTORY READ / UI was accepted |
+| Application commit | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` — superseded by `5f5b4a7` when SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

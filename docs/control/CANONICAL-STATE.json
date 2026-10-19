@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "5595395fefb49adcb1140a3c9b2a1c36dc7a2186",
+    "acceptedCommit": "5f5b4a76bb704e8e3709bb2adad51babc06db322",
     "status": "accepted",
-    "acceptedRound": "MINIMAL HISTORY READ / UI - a read-only History panel on a saved quotation, with what changed DERIVED AT READ TIME from the immutable snapshots already recorded and persisted nowhere (FINAL ACCEPTED)"
+    "acceptedRound": "SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT - main and the production hotfix chain are one line again, and revision history is live (FINAL ACCEPTED)"
   },
   "revisionStorage": {
     "round": "REVISION STORAGE FOUNDATION",
@@ -31,7 +31,7 @@
       }
     },
     "table": "quotation_revisions",
-    "migrationApplied": "NOT APPLIED — migrations/2026-08-28-create-quotation-revisions.sql has never been run against production, and quotation_revisions does not exist there",
+    "migrationApplied": "APPLIED 2026-10-19 to production (MySQL 8.0.46), Section 4 MATCH / CONFORMS",
     "revisionWriter": "STARTED AND ACCEPTED - SNAPSHOT REVISION WRITER, accepted commit 631cb8945406a934b351e476ec71330ed23a2d27. api.php contains exactly one INSERT INTO quotation_revisions and no UPDATE, DELETE or TRUNCATE against it anywhere; no other application file mentions the table. Append-only is enforced by that code, which is what this round said instead of a trigger.",
     "foreignKeys": "none, deliberately — see PROJECT-GUARDRAILS and the migration header",
     "triggers": "none — append-only is an application contract, enforced by the writer round",
@@ -42,9 +42,9 @@
   "production": {
     "host": "quo.dnchardware.com",
     "runtime": "PHP 8.4.24",
-    "deployedApplicationCommit": "649f80a09f83a7201c0f3772e01fc270ccda3e05",
+    "deployedApplicationCommit": "f7184f192cc087cfed734fc3df66a6afcf997d51",
     "actorIdentity": "LIVE — PRODUCTION VERIFIED",
-    "verifiedOn": "2026-08-27",
+    "verifiedOn": "2026-10-19",
     "appUsersMigration": "APPLIED",
     "appUsersMigrationFile": "migrations/2026-08-26-create-app-users.sql",
     "seededUsers": 2,
@@ -54,7 +54,7 @@
     "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5729ad5: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer and no-op suppression are all accepted in source only. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5595395: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer, no-op suppression and the history reader are all accepted in source only.",
     "itemIdentity": "LIVE — PRODUCTION VERIFIED",
     "itemUidBackfill": "APPLIED",
-    "previouslyDeployedApplicationCommit": "e76bb85d663f96fdce3ed6c0c70b72c49d84000a",
+    "previouslyDeployedApplicationCommit": "91f0c0b905ef402378aaeef896c80a4e6229c442",
     "itemIdentityVerifiedOn": "2026-08-28",
     "itemUidBackfillFile": "migrations/2026-08-27-backfill-item-uids.php",
     "itemUidBackfillEvidence": {
@@ -80,7 +80,12 @@
       "proved": "CREATE issued a server-generated valid item_uid; EDIT preserved it; RE-SAVE preserved it; REOPEN showed normal business data",
       "cleanup": "the smoke quotation was temporary and was deleted — exactly 1 row removed, remaining Q-2026-0693 = 0, and the quotation count returned to 690"
     },
-    "quotationRevisionsTable": "ABSENT - the migration has never been run against production and must be applied BEFORE the accepted application is deployed"
+    "quotationRevisionsTable": "PRESENT - migrations/2026-08-28-create-quotation-revisions.sql APPLIED 2026-10-19 on MySQL 8.0.46; Section 4 MATCH and CONFORMS",
+    "deployedBranch": "integration/source-reconciliation",
+    "revisionHistory": "DEPLOYED - transaction foundation, revision writer, no-op suppression and history reader are live",
+    "productionSmoke": "OWNER ACCEPTED / PASS 2026-10-19",
+    "databaseBackup": "owner-confirmed fresh backup before the migration, 2026-10-19",
+    "schemaObservations": "quotations.id is signed INT (migration assumed INT UNSIGNED; all ids positive, 1..1278 at apply time, accepted by owner); database default charset utf8mb3/utf8mb3_unicode_ci (accepted by owner)"
   },
   "tests": {
     "baselineAssertions": 2810,
@@ -111,14 +116,18 @@
       "suiteTitle": "phone widths — the scope label, the tap targets, and the desk left alone",
       "what": "the companies.php modal close control, measured at 1440 / 980 / 700 / 600px: 27 tall where 24 was accepted, and 16.3 wide where 17 was",
       "cause": "font metrics. This matrix was re-measured on Windows Chromium; the accepted figures were measured in a Linux sandbox, and the harness strips the Google Fonts link so both fall back to whatever the host provides.",
-      "filesUntouchedByThisRound": [
-        "companies.php",
-        "tests/suites/38-mobile-ui.test.js"
-      ],
       "reproducedOn": "ce26146a6a792f2bac0ebb4bab77389d19ff0660",
       "reproducedHow": "a pristine git worktree at ce26146 — this round's own starting point, before a single Item Identity byte — fails the same eight assertions with the same numbers",
       "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule.",
-      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table. Re-run again on 5729ad5: 40 suites and 3,936 assertions with the same eight, twice. Re-measured on the accepted commit 5595395 with the History panel in place: the same eight, in the same one suite. THE BROWSER MATRIX IS NOW REACHABLE BY A HISTORY CHANGE - index.php moved in this round - so the \"mechanically unreachable\" argument used by earlier rounds is deliberately NOT made for it."
+      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table. Re-run again on 5729ad5: 40 suites and 3,936 assertions with the same eight, twice. Re-measured on the accepted commit 5595395 with the History panel in place: the same eight, in the same one suite. THE BROWSER MATRIX IS NOW REACHABLE BY A HISTORY CHANGE - index.php moved in this round - so the \"mechanically unreachable\" argument used by earlier rounds is deliberately NOT made for it. Re-measured on the reconciliation candidate 5f5b4a7 (41 suites, 4,010 assertions): the same eight, line for line. This round touched companies.php and the 38 suite, so the untouched-files argument is replaced by an exact comparison of the failure lists.",
+      "filesTouchedThisRound": [
+        "companies.php (language-toggle aria-label only)",
+        "tests/suites/38-mobile-ui.test.js (WhatsApp 1) numbering lines only)"
+      ],
+      "sameListAs": {
+        "accepted": "FULL-AUDIT/regression-evidence/browser-suite.log",
+        "thisRound": "FULL-AUDIT/stage-reconciliation/logs/browser-combined.log"
+      }
     },
     "browserSuitesBeforeItemIdentity": 39,
     "browserAssertionsBeforeItemIdentity": 3907,
@@ -149,7 +158,7 @@
     "historyBrowserAssertions": 74
   },
   "translation": {
-    "keys": 903,
+    "keys": 953,
     "coveragePercent": 100,
     "missing": 0,
     "hardcoded": 0,
@@ -204,7 +213,8 @@
       756,
       843,
       853,
-      862
+      862,
+      903
     ],
     "supersededFindingTotals": [
       29,
@@ -311,6 +321,11 @@
         "sha": "5729ad5001694bc62370472277dc9e5860276408",
         "supersededBy": "5595395fefb49adcb1140a3c9b2a1c36dc7a2186",
         "reason": "MINIMAL HISTORY READ / UI was accepted. For a saved quotation there is now a read-only History panel: revision number, event, when, who, and what changed - and every word of what changed is DERIVED AT READ TIME from the immutable snapshots already recorded, and persisted nowhere. The read path is ONE SELECT against quotation_revisions with a BOUND quotation_id, ordered revision_no ASC, walked oldest to newest so each entry is a difference from the one before it, and answered newest-first; no transaction, no lock, and nothing in the branch writes, which is asserted on the shipped source rather than hoped for. It is deliberately NOT joined to quotations, because a revision records what a quotation WAS and the architecture intends that record to outlive the quotation. Items are matched by item_uid and by nothing else, so a reorder is reported as a REORDER - a real change, because item order is business fact, but never a removal plus an addition, because identity did not change. Company is one change shown by the name each snapshot FROZE, and the suite proves the live companies table is never consulted by renaming the row and reading the frozen name back unchanged. THE HONESTY RULES ARE THE POINT: a first recorded CREATE invents no before values; a first recorded UPDATE says the previous state is not available rather than fabricating one or pretending to be a create; an unknown snapshot version is reported as unsupported with its structure not guessed at; a nameless actor is Legacy / Unknown and never a stand-in username; and a failed read is not dressed up as an empty history, because that would hide a broken deployment. The answer is data and the words are the page - api.php returns a machine kind and the persisted values, and index.php builds every sentence through the same dictionary as the rest of the UI, with unlabelled item fields COUNTED rather than named so no internal key can surface as English in a translated screen. api.php and index.php are the application files it carries, and the whole accepted write path is BYTE-IDENTICAL - thirteen functions compared body for body, including dc_write_revision and the entire no-op comparison. THE PERSISTED DIFF ENGINE REMAINS DEFERRED and snapshot_schema_version remains 1. The browser matrix moved for the first time since Item Identity: tests/suites/41-history.test.js is a forty-first suite adding 74, so the matrix went from 40 suites and 3,936 assertions to 41 and 4,010, with the same eight recorded 38-mobile-ui environment failures and none added. tests/php/history_read.test.php adds a TWELFTH side group of 126, measured on MySQL 8.0.46 - the production engine - and again on 8.4.3, so the total moved from 5,101 to 5,301 and the delta from +2,291 to +2,491. No accepted PHP suite needed maintenance, and tests/lib/harness.js gained one default answer for the new action and nothing else. The translation dictionary moved 862 -> 903 keys, still 100% with no identical pair and nothing hard-coded. At acceptance migrations/2026-08-28-create-quotation-revisions.sql was still NOT APPLIED and nothing was deployed. 5729ad5 is the previous accepted commit and must never be quoted as the current one."
+      },
+      {
+        "sha": "5595395fefb49adcb1140a3c9b2a1c36dc7a2186",
+        "supersededBy": "5f5b4a76bb704e8e3709bb2adad51babc06db322",
+        "round": "MINIMAL HISTORY READ / UI"
       }
     ]
   },
@@ -440,5 +455,14 @@
     "ui": "a History control beside Edit Details in the existing saved-quotation action area, and the existing modal pattern - no new component system. A draft does not get the control because it has nothing recorded: it is not offered rather than offered and refused, and calling the opener directly on an unsaved quotation opens nothing. No restore, no delete, no compare-any-two, no export, no filters, no analytics.",
     "persistedDiffEngine": "STILL DEFERRED. The accepted schema has no field for a diff and three artefacts refuse a twelfth column. A later round may still choose to store one; nothing here depends on it, because two adjacent immutable snapshots already contain the whole answer.",
     "notInThisRound": "no persisted diff, no diff_json, no schema v2, no new migration, no baseline rollout, no fabricated legacy history, no restore, no soft delete, no DELETE revision, no Saved Quotation delete UI, no change to delete_quotation, no production migration, no deployment, no ERP work"
-  }
+  },
+  "knownBrowserFailures": "exactly the eight 38-mobile-ui Windows Chromium font-metric failures",
+  "deferred": [
+    "parser: a row phrase \"thread length 50mm\" does not override the shared Sag Rod TL (x 50/50 does)",
+    "verify PHP post_max_size / memory_limit for 5 x 10 MB image uploads",
+    "CSRF token hardening (today SameSite=Lax + JSON bodies)",
+    "DB error text in fail_json responses",
+    "history item_count is not escaped in dcHistChange (server casts it to int) - defense in depth, INFO"
+  ],
+  "activeRound": "NONE"
 }

@@ -5,7 +5,7 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` · **ACCEPTED, NOT DEPLOYED** — production still runs the Item Identity build, and this one cannot be deployed until `migrations/2026-08-28-create-quotation-revisions.sql` is applied first; the live build and the rollout evidence are in docs/control/CANONICAL-STATE under `production`.
+Final application SHA `5f5b4a76bb704e8e3709bb2adad51babc06db322` · **ACCEPTED AND DEPLOYED** — production runs this application (deployed 2026-10-19 from integration/source-reconciliation), and `quotation_revisions` was applied first: MATCH / CONFORMS.
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
 **5,301 assertions, 8 failed, 0 skipped** — the eight are the recorded
@@ -16,7 +16,7 @@ Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` is the last commit that changed the
+> **On SHAs.** `5f5b4a76bb704e8e3709bb2adad51babc06db322` is the last commit that changed the
 > application, and no test suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
@@ -261,7 +261,7 @@ see §20 — but functionally correct.
 
 ## 20 · English / 中文
 
-The priority deliverable. **903 keys, 100% translated, nothing bypassing the
+The priority deliverable. **953 keys, 100% translated, nothing bypassing the
 translator, and no element relying on a hook that nothing applies**.
 That is up from 512 keys with **129 strings that never reached it**, then a further ~210 the
 overnight checker could not see, then 36 more and 63 unapplied hooks that the
