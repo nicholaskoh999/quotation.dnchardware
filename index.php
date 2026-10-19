@@ -2501,6 +2501,7 @@ input,select,textarea{
 .wqa-sel-size{font-size:11px;font-weight:650;color:var(--text-muted)}
 .wqa-sel-rm{flex:0 0 auto}
 .wqa-sel-count{margin-top:6px;font-size:11.5px;font-weight:700;color:var(--text-muted);text-align:left}
+.wqa-badge{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;background:rgba(127,127,127,.15);color:var(--text-2);border:1px solid var(--border)}
 .wqa-drop-paste{margin-top:7px;font-size:11.5px;font-weight:700;color:var(--text-muted)}
 /* Children must not steal dragenter/dragleave from the zone. */
 .wqa-drop.is-drag *{pointer-events:none}
@@ -4374,7 +4375,12 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
       </div>
 
       <div id="wqaUploadPane" hidden>
-        <p class="wqa-hint" data-i18n="wqaUploadHint">Upload screenshots, photos or drawings of the customer's request (up to 5 images, 10 MB each), or one PDF up to 20 MB (max 10 pages). All images are analyzed together.</p>
+        <p class="wqa-hint wqa-upload-hint">
+          <span class="wqa-badge" data-i18n="wqaUploadBadge">Up to 5 images per analysis</span>
+          <span data-i18n="wqaUploadHint">You can upload or paste up to 5 images. All images will be analyzed together.</span><br>
+          <span data-i18n="wqaUploadHint2">Choose multiple files, drag &amp; drop, or paste screenshots with Ctrl+V.</span><br>
+          <span data-i18n="wqaUploadPdf">PDF: 1 file only, max 20 MB, max 10 pages. Images: max 10 MB each.</span>
+        </p>
         <div id="wqaDropZone" class="wqa-drop" ondragenter="wqaDragEnter(event)" ondragover="wqaDragOver(event)"
              ondragleave="wqaDragLeave(event)" ondrop="wqaDrop(event)">
           <div class="wqa-drop-main" data-i18n="wqaDropMain">Drop image or PDF here</div>
@@ -4989,7 +4995,10 @@ const I18N={
     cdimRemove:'Remove this dimension', cdimPrefix:'Custom:',
     cdimHint:"Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.",
     wqaPasteHint:'Paste customer text or upload an image / PDF. Supported: {products}.',
-    wqaUploadHint:"Upload screenshots, photos or drawings of the customer's request (up to 5 images, 10 MB each), or one PDF up to 20 MB (max 10 pages). All images are analyzed together.",
+    wqaUploadBadge:'Up to 5 images per analysis',
+    wqaUploadHint:'You can upload or paste up to 5 images. All images will be analyzed together.',
+    wqaUploadHint2:'Choose multiple files, drag & drop, or paste screenshots with Ctrl+V.',
+    wqaUploadPdf:'PDF: 1 file only, max 20 MB, max 10 pages. Images: max 10 MB each.',
     wqaDropMain:'Drop images or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose Files…',
     wqaDropPaste:'or paste screenshot with Ctrl+V',
     wqaSelImages:'Selected images', wqaSelPdf:'Selected PDF', wqaImgCount:'{n} / {max} images selected',
@@ -5528,7 +5537,10 @@ const I18N={
     cdimRemove:'删除此尺寸', cdimPrefix:'自定义：',
     cdimHint:'选填。图纸上的额外尺寸，例如 A 120。不参与任何重量或价格计算，也不能代替产品本身的尺寸字段。',
     wqaPasteHint:'粘贴客户文字或上传图片 / PDF。支持识别：{products}。',
-    wqaUploadHint:'上传客户要求的截图、照片或图纸（最多 5 张，每张最大 10 MB），或一个 PDF（最大 20 MB，最多 10 页）。所有图片会一起分析。',
+    wqaUploadBadge:'每次最多 5 张图片',
+    wqaUploadHint:'可上传或粘贴最多 5 张图片，系统会一起分析。',
+    wqaUploadHint2:'可多选文件、拖放图片，或使用 Ctrl+V 直接粘贴截图。',
+    wqaUploadPdf:'PDF：仅限 1 个，最大 20 MB，最多 10 页。图片：每张最大 10 MB。',
     wqaDropMain:'拖放图片或 PDF 到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
     wqaDropPaste:'或按 Ctrl+V 粘贴截图',
     wqaSelImages:'已选图片', wqaSelPdf:'已选 PDF', wqaImgCount:'已选 {n} / {max} 张图片',
