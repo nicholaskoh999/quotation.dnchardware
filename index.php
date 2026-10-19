@@ -2491,6 +2491,17 @@ input,select,textarea{
 .wqa-drop-types{margin-top:10px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.03em}
 .wqa-drop .wqa-file-pick{justify-content:center}
 .wqa-drop .wqa-file-info{display:block;margin-top:10px}
+/* Selected-file list (multi-image Quick Add): compact rows, wrap on a phone. */
+.wqa-sel-head{font-size:12px;font-weight:800;color:var(--text);text-align:left}
+.wqa-sel-list{list-style:none;margin:6px 0 0;padding:0;text-align:left}
+.wqa-sel-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0;border-top:1px solid var(--border)}
+.wqa-sel-row:first-child{border-top:0}
+.wqa-sel-thumb{width:32px;height:32px;flex:0 0 auto;object-fit:cover;border:1px solid var(--border);border-radius:4px}
+.wqa-sel-name{flex:1 1 140px;min-width:0;font-size:12.5px;font-weight:700;color:var(--text-2);overflow-wrap:anywhere}
+.wqa-sel-size{font-size:11px;font-weight:650;color:var(--text-muted)}
+.wqa-sel-rm{flex:0 0 auto}
+.wqa-sel-count{margin-top:6px;font-size:11.5px;font-weight:700;color:var(--text-muted);text-align:left}
+.wqa-drop-paste{margin-top:7px;font-size:11.5px;font-weight:700;color:var(--text-muted)}
 /* Children must not steal dragenter/dragleave from the zone. */
 .wqa-drop.is-drag *{pointer-events:none}
 .wqa-pdf-chip{display:inline-flex;align-items:center;gap:9px;padding:10px 13px;border:1.5px solid var(--border);
@@ -4363,18 +4374,21 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
       </div>
 
       <div id="wqaUploadPane" hidden>
-        <p class="wqa-hint" data-i18n="wqaUploadHint">Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.</p>
+        <p class="wqa-hint" data-i18n="wqaUploadHint">Upload screenshots, photos or drawings of the customer's request (up to 5 images, 10 MB each), or one PDF up to 20 MB (max 10 pages). All images are analyzed together.</p>
         <div id="wqaDropZone" class="wqa-drop" ondragenter="wqaDragEnter(event)" ondragover="wqaDragOver(event)"
              ondragleave="wqaDragLeave(event)" ondrop="wqaDrop(event)">
           <div class="wqa-drop-main" data-i18n="wqaDropMain">Drop image or PDF here</div>
           <div class="wqa-drop-or" data-i18n="wqaDropOr">or</div>
           <label class="wqa-file-pick">
             <input type="file" id="wqaFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
-                   onchange="wqaFileChosen(this)">
-            <span class="btn btn-outline" data-i18n="wqaChooseFile">Choose File…</span>
+                   multiple onchange="wqaFileChosen(this)">
+            <span class="btn btn-outline" data-i18n="wqaChooseFile">Choose Files…</span>
           </label>
+          <div class="wqa-drop-paste" data-i18n="wqaDropPaste">or paste screenshot with Ctrl+V</div>
           <div class="wqa-drop-types">JPG / PNG / WEBP / PDF</div>
-          <div class="wqa-file-info" id="wqaFileInfo" data-i18n="wqaNoFile">No file selected</div>
+          <!-- Rendered by wqaUpdateAiPane (a list once files are chosen), so it
+               carries no data-i18n: a language switch must not wipe the list. -->
+          <div class="wqa-file-info" id="wqaFileInfo">No file selected</div>
         </div>
         <div class="wqa-ai-preview" id="wqaAiPreviewBox" hidden>
           <img id="wqaAiPreview" data-i18n-alt="altPreview" alt="preview" hidden>
@@ -4975,8 +4989,14 @@ const I18N={
     cdimRemove:'Remove this dimension', cdimPrefix:'Custom:',
     cdimHint:"Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.",
     wqaPasteHint:'Paste customer text or upload an image / PDF. Supported: {products}.',
-    wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
-    wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
+    wqaUploadHint:"Upload screenshots, photos or drawings of the customer's request (up to 5 images, 10 MB each), or one PDF up to 20 MB (max 10 pages). All images are analyzed together.",
+    wqaDropMain:'Drop images or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose Files…',
+    wqaDropPaste:'or paste screenshot with Ctrl+V',
+    wqaSelImages:'Selected images', wqaSelPdf:'Selected PDF', wqaImgCount:'{n} / {max} images selected',
+    wqaRemoveFile:'Remove', wqaMaxImages:'Maximum 5 images per analysis.',
+    wqaMixNoPdf:'Images are already selected. Upload either images or one PDF — remove the images first to use a PDF.',
+    wqaMixNoImg:'A PDF is already selected. Upload either one PDF or images — remove the PDF first to add images.',
+    wqaOnePdf:'Only one PDF per analysis. Remove the selected PDF first.',
     wqaNoFile:'No file selected', wqaAnalyzing:'Analyzing document…',
     wqaExtracting:'Extracting product, dimensions and quantities…',
     wqaPrivacy:'Uploaded files are used only for AI extraction and are not saved with the quotation.',
@@ -5507,8 +5527,14 @@ const I18N={
     cdimRemove:'删除此尺寸', cdimPrefix:'自定义：',
     cdimHint:'选填。图纸上的额外尺寸，例如 A 120。不参与任何重量或价格计算，也不能代替产品本身的尺寸字段。',
     wqaPasteHint:'粘贴客户文字或上传图片 / PDF。支持识别：{products}。',
-    wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
-    wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
+    wqaUploadHint:'上传客户要求的截图、照片或图纸（最多 5 张，每张最大 10 MB），或一个 PDF（最大 20 MB，最多 10 页）。所有图片会一起分析。',
+    wqaDropMain:'拖放图片或 PDF 到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
+    wqaDropPaste:'或按 Ctrl+V 粘贴截图',
+    wqaSelImages:'已选图片', wqaSelPdf:'已选 PDF', wqaImgCount:'已选 {n} / {max} 张图片',
+    wqaRemoveFile:'移除', wqaMaxImages:'每次分析最多 5 张图片。',
+    wqaMixNoPdf:'已选择图片。只能上传图片或一个 PDF — 如要使用 PDF，请先移除图片。',
+    wqaMixNoImg:'已选择 PDF。只能上传一个 PDF 或图片 — 如要添加图片，请先移除 PDF。',
+    wqaOnePdf:'每次只能分析一个 PDF。请先移除已选的 PDF。',
     wqaNoFile:'未选择文件', wqaAnalyzing:'正在分析文件…',
     wqaExtracting:'正在提取产品、尺寸与数量…',
     wqaPrivacy:'上传的文件只用于 AI 提取，不会随报价保存。',
@@ -15210,8 +15236,19 @@ function wqaAbandonAi(){
   wqa.aiBusy=false;
   const s=el('wqaAiStatus'); if(s) s.hidden=true;
 }
+/* Selected uploads, in order: up to WQA_AI_MAX_FILES images, OR one PDF —
+   never both. wqa.aiFile stays the first entry so every "is anything
+   selected" check keeps working unchanged. */
+const WQA_AI_MAX_FILES = 5;
+function wqaSyncAiFile(){
+  const a=wqa.aiFiles||(wqa.aiFiles=[]);
+  wqa.aiFile = a.length ? a[0].file : null;
+  wqa.aiIsPdf = !!(a[0] && a[0].pdf);
+}
+function wqaAiFileNames(){ return (wqa.aiFiles||[]).map(x=>x.name).join(', '); }
 function wqaClearAiFile(rerender){
-  if(wqa.aiPreviewUrl){ try{ URL.revokeObjectURL(wqa.aiPreviewUrl); }catch(e){} }
+  (wqa.aiFiles||[]).forEach(x=>{ if(x.url){ try{ URL.revokeObjectURL(x.url); }catch(e){} } });
+  wqa.aiFiles=[]; wqa._clipN=0;
   wqa.aiFile=null; wqa.aiPreviewUrl=''; wqa.aiIsPdf=false;
   wqa._dragDepth=0; wqaDragPaint(false); wqaDropBad(false);
   wqaAbandonAi();
@@ -15250,11 +15287,8 @@ function wqaDrop(e){
     wqaRejectFile(dcT('wqaDropNoFile'));
     return;
   }
-  /* One file per analysis, unchanged from V2.1: extras are ignored rather than
-     queued, and a second drop replaces the first selection outright. */
-  const many=files.length>1;
-  wqaAcceptFile(files[0]);
-  if(many && wqa.aiFile) wqaMsg('wqaAiMsg',dcT('wqaOneFileUsing').replace('{f}',wqa.aiFile.name),false);
+  /* Dropped files join the same list as chosen and pasted ones. */
+  wqaAddFiles(files);
 }
 /* Rejection is shared so the picker and the drop zone fail identically. */
 function wqaRejectFile(msg){
@@ -15263,32 +15297,75 @@ function wqaRejectFile(msg){
   wqaUpdateAiPane();
   wqaMsg('wqaAiMsg',msg,true);
 }
-/* The single entry point for a chosen file, whichever way it arrived. These are
-   the same client rules as before; the server re-validates from content and
-   remains the authority. */
-function wqaAcceptFile(f){
-  /* A note describes the drawing it was typed against. Swapping the file makes
-     it a note about something else, so it goes with the file it belonged to. */
-  if(wqa.aiFile) wqaClearNote();
-  wqaClearAiFile(false);              // revokes the previous object URL
-  wqaMsg('wqaAiMsg','',false);
-  if(!f){ wqaUpdateAiPane(); return; }
-  const isPdf = f.type==='application/pdf' || /\.pdf$/i.test(f.name);
-  const isImg = /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
-  if(!isPdf && !isImg){ wqaRejectFile(dcT('errUnsupportedType')); return; }
-  if(isPdf && f.size>WQA_AI_MAX_PDF){ wqaRejectFile(dcT('errPdfTooLarge')); return; }
-  if(!isPdf && f.size>WQA_AI_MAX_IMG){ wqaRejectFile(dcT('errImgTooLarge')); return; }
-  wqa.aiFile=f; wqa.aiIsPdf=isPdf;
-  if(!isPdf){ try{ wqa.aiPreviewUrl=URL.createObjectURL(f); }catch(e){ wqa.aiPreviewUrl=''; } }
-  /* Clear the picker after a drop so it cannot hold a stale file: re-picking
-     that same file later would otherwise fire no change event and silently
-     leave the dropped one selected. The File object above is already captured.*/
+/* The single entry point for chosen, dropped and pasted files. Each one is
+   appended to the selected list in order; a file that breaks a rule is refused
+   on its own and never clears what is already selected. Same client rules as
+   before; the server re-validates from content and remains the authority. */
+function wqaAddFiles(list){
+  list=Array.from(list||[]).filter(Boolean);
+  wqaMsg('wqaAiMsg','',false); wqaDropBad(false);
+  if(!wqa.aiFiles) wqa.aiFiles=[];
+  let err='', added=0;
+  list.forEach(f=>{
+    const isPdf = f.type==='application/pdf' || /\.pdf$/i.test(f.name);
+    const isImg = /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
+    let e='';
+    if(!isPdf && !isImg)                         e=dcT('errUnsupportedType');
+    else if(isPdf && wqa.aiFiles.length)         e=dcT(wqa.aiIsPdf ? 'wqaOnePdf' : 'wqaMixNoPdf');
+    else if(isPdf && f.size>WQA_AI_MAX_PDF)      e=dcT('errPdfTooLarge');
+    else if(!isPdf && wqa.aiIsPdf)               e=dcT('wqaMixNoImg');
+    else if(!isPdf && wqa.aiFiles.length>=WQA_AI_MAX_FILES) e=dcT('wqaMaxImages');
+    else if(!isPdf && f.size>WQA_AI_MAX_IMG)     e=dcT('errImgTooLarge');
+    if(e){ if(!err) err=e; return; }
+    let url=''; if(!isPdf){ try{ url=URL.createObjectURL(f); }catch(x){ url=''; } }
+    wqa.aiFiles.push({file:f, name:String(f.name||''), pdf:isPdf, url});
+    wqaSyncAiFile(); added++;
+  });
+  if(added) wqaAbandonAi();           // a different set: any answer in flight is for the old one
+  /* Clear the picker so it cannot hold a stale selection: re-picking the same
+     file later would otherwise fire no change event. The Files are captured. */
   if(el('wqaFileInput')) el('wqaFileInput').value='';
+  if(err){ wqaDropBad(!added); wqaMsg('wqaAiMsg',err,true); }
+  wqaUpdateAiPane();
+}
+function wqaRemoveFile(i){
+  const a=wqa.aiFiles||[], x=a[i]; if(!x) return;
+  if(x.url){ try{ URL.revokeObjectURL(x.url); }catch(e){} }
+  a.splice(i,1); wqaSyncAiFile();
+  wqaAbandonAi(); wqaDropBad(false); wqaMsg('wqaAiMsg','',false);
   wqaUpdateAiPane();
 }
 function wqaFileChosen(input){
-  wqaAcceptFile(input.files && input.files[0]);
+  wqaAddFiles(input.files);
 }
+/* ── Ctrl+V screenshot paste ──────────────────────────────────────────────
+   Active only while Quick Add is open on its input step. An image on the
+   clipboard joins the selected list as clipboard-N.png; anything else is left
+   to the browser. Text pasted into a field stays text: when the focus is in an
+   editable field and the clipboard also carries text, the paste is not touched. */
+function wqaClipFile(f){
+  const ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[f.type];
+  if(!ext) return f;                  // unsupported type: refused by name/type as usual
+  wqa._clipN=(wqa._clipN||0)+1;
+  try{ return new File([f],'clipboard-'+wqa._clipN+'.'+ext,{type:f.type}); }catch(e){ return f; }
+}
+document.addEventListener('paste',e=>{
+  const m=el('wqaModal');
+  if(!m || !m.classList.contains('open')) return;
+  if(!el('wqaStep1') || el('wqaStep1').hidden) return;
+  const cd=e.clipboardData; if(!cd) return;
+  const imgs=[];
+  Array.from(cd.items||[]).forEach(it=>{
+    if(it.kind==='file' && /^image\//.test(it.type)){ const f=it.getAsFile(); if(f) imgs.push(f); }
+  });
+  if(!imgs.length) return;            // no image: an ordinary paste
+  const t=e.target;
+  const editable=!!t && (t.isContentEditable || /^(INPUT|TEXTAREA)$/.test(t.tagName||''));
+  if(editable && Array.from(cd.types||[]).indexOf('text/plain')>=0) return;
+  e.preventDefault();
+  if(wqa.method!=='upload') wqaSetMethod('upload');
+  wqaAddFiles(imgs.map(wqaClipFile));
+});
 /* The note belongs to THIS analysis: it describes the file on screen. */
 function wqaNoteInput(){
   const e=el('wqaAiNote');
@@ -15309,16 +15386,29 @@ function wqaFmtBytes(n){ return n>=1048576 ? (n/1048576).toFixed(1)+' MB' : Math
 function wqaUpdateAiPane(){
   const info=el('wqaFileInfo'), box=el('wqaAiPreviewBox'), img=el('wqaAiPreview'),
         chip=el('wqaAiPdfChip'), pname=el('wqaAiPdfName'), btn=el('wqaAnalyzeBtn');
-  if(info) info.textContent = wqa.aiFile ? (wqa.aiFile.name+' · '+wqaFmtBytes(wqa.aiFile.size)) : dcT('wqaNoFile');
-  /* Read from the file that is selected RIGHT NOW, never from what was shown
-     before: an image gets the preview and no badge, a PDF gets the badge and no
-     preview, and replacing one with the other swaps both in the same pass. */
-  const showImg=!!wqa.aiFile && !wqa.aiIsPdf && !!wqa.aiPreviewUrl;
-  const showPdf=!!wqa.aiFile && !!wqa.aiIsPdf;
-  if(img){ img.hidden=!showImg; img.src=wqa.aiPreviewUrl||''; }
-  if(chip)  chip.hidden=!showPdf;
-  if(pname) pname.textContent = showPdf ? wqa.aiFile.name : '';
-  if(box)   box.hidden = !(showImg||showPdf);
+  const files=wqa.aiFiles||[];
+  if(info){
+    if(!files.length) info.textContent=dcT('wqaNoFile');
+    else {
+      /* Read from what is selected RIGHT NOW: numbered images with a small
+         thumbnail, or the one PDF with its badge. Each row removes itself. */
+      const rows=files.map((x,i)=>`<li class="wqa-sel-row">${x.pdf
+          ? '<span class="wqa-pdf-badge">PDF</span>'
+          : `<img class="wqa-sel-thumb" src="${escHtml(x.url)}" alt="">`}
+        <span class="wqa-sel-name" title="${escHtml(x.name)}">${x.pdf?'':(i+1)+'. '}${escHtml(x.name)}</span>
+        <span class="wqa-sel-size">${escHtml(wqaFmtBytes(x.file.size))}</span>
+        <button type="button" class="btn btn-ghost btn-sm wqa-sel-rm" onclick="wqaRemoveFile(${i})"
+          >${escHtml(dcT('wqaRemoveFile'))}</button></li>`).join('');
+      info.innerHTML=`<div class="wqa-sel-head">${escHtml(dcT(wqa.aiIsPdf?'wqaSelPdf':'wqaSelImages'))}</div>`
+        +`<ol class="wqa-sel-list">${rows}</ol>`
+        +(wqa.aiIsPdf?'':`<div class="wqa-sel-count">${escHtml(dcT('wqaImgCount').replace('{n}',files.length).replace('{max}',WQA_AI_MAX_FILES))}</div>`);
+    }
+  }
+  /* The list above carries the thumbnails; the single large preview is retired. */
+  if(img){ img.hidden=true; img.src=''; }
+  if(chip)  chip.hidden=true;
+  if(pname) pname.textContent='';
+  if(box)   box.hidden=true;
   if(btn) btn.disabled = !wqa.aiFile || !!wqa.aiBusy;
 }
 /* A file dropped ANYWHERE else in the modal would navigate the tab to it and
@@ -15340,7 +15430,11 @@ async function wqaAnalyze(){
   wqaSetAiBusy(true);
   wqaMsg('wqaAiMsg','',false);
   try{
-    const fd=new FormData(); fd.append('file', wqa.aiFile, wqa.aiFile.name);
+    /* One file goes as before ('file'); several images go as 'files[]' in the
+       selected order and are read by ONE model request on the server. */
+    const fd=new FormData(), sel=wqa.aiFiles||[];
+    if(sel.length>1) sel.forEach(x=>fd.append('files[]', x.file, x.name));
+    else fd.append('file', wqa.aiFile, wqa.aiFile.name);
     /* Supplemental context for the model — it may genuinely help it read the
        drawing. It is NOT how the override is enforced: that happens in our own
        code, after the answer comes back. Sent only when there is one, so a
@@ -15867,7 +15961,7 @@ async function wqaAiApply(d, msgTarget, meta){
      source and the panel names the file instead of inventing a transcript. */
   const fromText = !!msgTarget && msgTarget==='wqaParseMsg';
   await wqaEnterReview(norm.common, norm.rows,
-                       fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')),
+                       fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqaAiFileNames():'file')),
                        [], 'ai', fromText ? 'text' : 'file');
   return true;
 }
@@ -16151,7 +16245,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   wqa.srcKind = srcKind==='file' ? 'file' : 'text';
   if(wqa.srcKind==='file'){
     wqa.fileSource = wqa.aiFile
-      ? {name:String(wqa.aiFile.name||''), pdf:!!wqa.aiIsPdf} : null;
+      ? {name:wqaAiFileNames(), pdf:!!wqa.aiIsPdf} : null;
   } else {
     wqa.textSource = String(rawText||'');
   }

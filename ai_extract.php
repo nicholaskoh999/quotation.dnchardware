@@ -3,6 +3,8 @@
  * Der-Cheng Quotation — AI photo / PDF extraction endpoint (Quick Add V2.1)
  *
  * POST multipart/form-data { file }  -> JSON { ok, data | error }   photo / PDF
+ * POST multipart/form-data { files[] } -> same, 2..AI_MAX_IMAGES images read
+ *                                        together as ONE request, in order
  * POST                      { text }  -> JSON { ok, data | error }   pasted text
  *
  * Exactly one of the two per request. Both shapes share the same instructions,
@@ -44,6 +46,9 @@ if (!defined('AI_EXTRACT_MODEL_PRIMARY')) {
 const AI_MAX_IMAGE_BYTES = 10485760;  // 10 MB
 const AI_MAX_PDF_BYTES   = 20971520;  // 20 MB
 const AI_MAX_PDF_PAGES   = 10;
+// Images per analysis (multi-image Quick Add). All go to the model in ONE
+// request; PDFs stay one per analysis and never mix with images.
+const AI_MAX_IMAGES      = 5;
 const AI_MAX_ITEMS       = 100;
 /* Room for the answer, not a budget for it — nothing is charged for tokens the
    model does not generate.
@@ -776,20 +781,77 @@ function ai_clean_note($raw) {
     return mb_substr($t, 0, AI_MAX_NOTE_CHARS);
 }
 
-/** Build the Responses API payload for one validated upload. */
-function ai_build_payload($upload, $note = '') {
+/**
+ * Validate a multi-image upload ($_FILES['files'], PHP's per-field arrays).
+ * Every entry goes through ai_validate_upload() and must be an image — a PDF
+ * is one per analysis and never mixes with images. Order is the upload order.
+ * Returns ['ok'=>true,'kind'=>'images','parts'=>[upload...],'mime'=>...,'size'=>...]
+ * or the first failure.
+ */
+function ai_validate_uploads($files) {
+    if (!is_array($files) || !isset($files['error']) || !is_array($files['error'])) {
+        return ['ok'=>false,'error'=>'no_file','message'=>'No file was uploaded.'];
+    }
+    $n = count($files['error']);
+    if ($n < 1) {
+        return ['ok'=>false,'error'=>'no_file','message'=>'No file was uploaded.'];
+    }
+    if ($n > AI_MAX_IMAGES) {
+        return ['ok'=>false,'error'=>'too_many_files',
+                'message'=>'Maximum '.AI_MAX_IMAGES.' images per analysis.'];
+    }
+    $parts = []; $size = 0;
+    foreach (array_keys($files['error']) as $k) {
+        $one = [];
+        foreach (['name','type','tmp_name','error','size'] as $f) $one[$f] = $files[$f][$k] ?? null;
+        $u = ai_validate_upload($one);
+        if (!$u['ok']) return $u;
+        if ($u['kind'] !== 'image') {
+            return ['ok'=>false,'error'=>'mixed_upload',
+                    'message'=>'Upload either images or one PDF, not both.'];
+        }
+        $parts[] = $u; $size += $u['size'];
+    }
+    return ['ok'=>true,'kind'=>'images','parts'=>$parts,'mime'=>'images/'.count($parts),'size'=>$size];
+}
+
+/** One Responses API content part for one validated file. */
+function ai_file_part($upload) {
     $dataUrl = 'data:' . $upload['mime'] . ';base64,' . base64_encode($upload['bytes']);
     if ($upload['kind'] === 'pdf') {
-        $filePart = ['type'=>'input_file','filename'=>$upload['name'],'file_data'=>$dataUrl];
+        return ['type'=>'input_file','filename'=>$upload['name'],'file_data'=>$dataUrl];
+    }
+    // high detail: engineering text on screenshots and photos is small
+    return ['type'=>'input_image','image_url'=>$dataUrl,'detail'=>'high'];
+}
+
+/** Build the Responses API payload for one validated upload (or one image set). */
+function ai_build_payload($upload, $note = '') {
+    if ($upload['kind'] === 'images') {
+        // Several images, ONE request: the model reads them side by side so a
+        // dimension on one can be matched to the item drawn on another.
+        $n = count($upload['parts']);
+        $lead = 'Extract the quotation specification from these '.$n.' images. '
+              . 'They belong to ONE customer request: read them together and '
+              . 'cross-reference information across them. Their order (Image 1 to '
+              . 'Image '.$n.') is contextual evidence. Do not create duplicate items '
+              . 'merely because the same item appears in more than one image. If two '
+              . 'images give conflicting values for the same field, do not guess: '
+              . 'return null for that field and describe the conflict in that row\'s '
+              . '"unclear" field.';
+        $fileParts = [];
+        foreach ($upload['parts'] as $i => $p) {
+            $fileParts[] = ['type'=>'input_text', 'text'=>'Image '.($i+1).' of '.$n.':'];
+            $fileParts[] = ai_file_part($p);
+        }
     } else {
-        // high detail: engineering text on screenshots and photos is small
-        $filePart = ['type'=>'input_image','image_url'=>$dataUrl,'detail'=>'high'];
+        $fileParts = [ai_file_part($upload)];
+        $lead = 'Extract the quotation specification from this document.';
     }
     // The person who uploaded the drawing is looking at it. Where their note
     // gives a value, that value is the answer — said here so the model reads the
     // rest of the drawing in the same terms, and enforced independently by the
     // caller so a model that ignores this line changes nothing.
-    $lead = 'Extract the quotation specification from this document.';
     if ($note !== '') {
         $lead .= "\n\nThe person who sent this document added the following note about it. "
                . "Where the note gives a value for a field, that value is correct and "
@@ -800,10 +862,10 @@ function ai_build_payload($upload, $note = '') {
         'instructions' => ai_instructions(),
         'input' => [[
             'role' => 'user',
-            'content' => [
-                ['type'=>'input_text', 'text'=>$lead],
-                $filePart,
-            ],
+            'content' => array_merge(
+                [['type'=>'input_text', 'text'=>$lead]],
+                $fileParts
+            ),
         ]],
         'text' => ['format' => [
             'type'   => 'json_schema',
@@ -1088,7 +1150,8 @@ if (!defined('AI_EXTRACT_TEST')) {
     /* Two request shapes, one endpoint: a file upload (photo / PDF) or pasted
        text from the Quick Add fallback. Exactly one of them, never both, so a
        request cannot smuggle a file past the text path. */
-    $hasFile = isset($_FILES['file']);
+    $hasMulti = isset($_FILES['files']);
+    $hasFile = isset($_FILES['file']) || $hasMulti;
     $hasText = isset($_POST['text']);
     if ($hasFile === $hasText) {                 // neither, or both
         ai_json(['ok'=>false,'error'=>'no_file',
@@ -1107,6 +1170,11 @@ if (!defined('AI_EXTRACT_TEST')) {
         // Logged like the upload path: size only, never the customer's words.
         $upload['mime'] = 'text/plain';
         $upload['size'] = $upload['ok'] ? mb_strlen($upload['text']) : 0;
+    } elseif ($hasMulti) {
+        $upload = ai_validate_uploads($_FILES['files']);
+        foreach ((array)($_FILES['files']['tmp_name'] ?? []) as $tmp) {
+            if (is_string($tmp) && $tmp !== '') @unlink($tmp);
+        }
     } else {
         $upload = ai_validate_upload($_FILES['file']);
         // The temp upload is consumed into memory above; remove it immediately so
@@ -1124,7 +1192,7 @@ if (!defined('AI_EXTRACT_TEST')) {
     $payload = $upload['kind'] === 'text'
         ? ai_build_text_payload($upload['text'])
         : ai_build_payload($upload, ai_clean_note($_POST['note'] ?? ''));
-    unset($upload['bytes'], $upload['text']);    // free the raw input from memory
+    unset($upload['bytes'], $upload['text'], $upload['parts']);    // free the raw input from memory
 
     list($code, $body, $curlErr, $curlErrNo) = ai_call_openai($payload);
     $ms = (int)round((microtime(true)-$t0)*1000);
