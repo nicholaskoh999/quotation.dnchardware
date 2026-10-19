@@ -1,0 +1,88 @@
+
+== Unit Converter
+  ok   inline panel opens [false]
+  ok   panel sits directly under the Sag Rod Dimension Entry heading
+  ok   unit selector Auto / INCH / FT / mm [["Auto","INCH","FT","mm"]]
+  ok   Sag Rod direct-fill targets [["To L:sagrod-length","To TL:sagrod-threadLen"]]
+  ok   Auto: bare 1-1/8 -> Exact 28.575 / Rounded 29 [{"exact":"28.575 mm","rounded":"29 mm","bad":false}]
+  ok   Auto: bare "1 1/8" [{"exact":"28.575 mm","rounded":"29 mm","bad":false}]
+  ok   explicit inch mark wins over mm selector [{"exact":"28.575 mm","rounded":"29 mm","bad":false}]
+  ok   INCH: 2 -> 50.8 [{"exact":"50.8 mm","rounded":"51 mm","bad":false}]
+  ok   FT: 2 -> 609.6 [{"exact":"609.6 mm","rounded":"610 mm","bad":false}]
+  ok   feet+inch 1' 6" -> 457.2 [{"exact":"457.2 mm","rounded":"457 mm","bad":false}]
+  ok   explicit ft wins over mm selector [{"exact":"914.4 mm","rounded":"914 mm","bad":false}]
+  ok   mm: 28.5 -> 28.5 [{"exact":"28.5 mm","rounded":"29 mm","bad":false}]
+  ok   mm: a fraction is refused, not guessed [{"exact":"—","rounded":"—","bad":true}]
+  ok   garbage refused [{"exact":"—","rounded":"—","bad":true}]
+  ok   Sag Rod TL direct-fill writes n/n ["70/70"]
+  ok   To L fills Rounded whole mm ["29"]
+  ok   second click on the same heading closes the panel [true]
+  ok   Copy Exact copies (toast) and collapses the panel [{"hidden":true,"parked":true,"clip":"Copied: 28.575 mm"}]
+  ok   panel moves under the U-Bolt heading
+  ok   U-Bolt TL direct-fill writes n/n ["51/51"]
+     zh: {"title":"单位换算","units":["Auto","INCH","FT","mm"],"btns":["填入 ID","填入 IH","填入牙长"]}
+  ok   zh: converter title translated
+  ok   zh: unit labels stay universal (by design, 0a14902) [["Auto","INCH","FT","mm"]]
+  ok   no page errors (unit converter)
+
+== Quick Add multi-image
+     upload pane text: "Up to 5 images per analysis You can upload or paste up to 5 images. All images will be analyzed together.\nChoose multiple files, drag & drop, or paste screenshots with Ctrl+V.\nPDF: 1 file only, max 20 MB, max 10 pages. Images: max 10 MB each.\n\nDrop images or PDF here\nor\nChoose Files…\nor paste screenshot with Ctrl+V\nJPG / PNG / WEBP / PDF\nNo file selected\nAdditional info for analysis\nOp
+  ok   Ctrl+V helper text present
+  ok   "up to 5 images" staff hint present
+  ok   choose 3 images: kept in selected order [["shot-1.png","shot-2.png","shot-3.png"]]
+  ok   listed numbered in order [["1. shot-1.png","2. shot-2.png","3. shot-3.png"]]
+  ok   count line shows 3 of 5
+  ok   Ctrl+V image is taken by Quick Add
+  ok   repeated Ctrl+V taken again
+  ok   pasted images appended as clipboard-1/2.png, order preserved [["shot-1.png","shot-2.png","shot-3.png","clipboard-1.png","clipboard-2.png"]]
+  ok   a 6th image is refused (max 5) [5]
+  ok   and the refusal is stated: Maximum 5 images per analysis.
+  ok   PDF after images refused: Images are already selected. Upload either images or one PDF — remove the images first to use a PDF.
+  ok   Remove takes out exactly that image [["shot-1.png","shot-3.png","clipboard-1.png","clipboard-2.png"]]
+  ok   list renumbers after removal ["2. shot-3.png"]
+  ok   multi-image analysis = ONE ai_extract request [1]
+  ok   multipart carries files[] in selected order, no "file" [["files[]=shot-1.png","files[]=shot-3.png","files[]=clipboard-1.png","files[]=clipboard-2.png"]]
+  ok   stubbed answer flows into review rows
+  ok   one image still goes as the single "file" field [["file=shot-1.png"]]
+  ok   one PDF accepted [["po.pdf"]]
+  ok   Analyze enabled for one PDF [false]
+  ok   image after PDF refused: A PDF is already selected. Upload either one PDF or images — remove the PDF first to add images.
+  ok   second PDF refused: Only one PDF per analysis. Remove the selected PDF first.
+  ok   one PDF still goes as the single "file" field [["file=po.pdf"]]
+  ok   GIF refused client-side: Only JPG, PNG, WEBP images and PDF files are supported.
+  ok   plain text paste into the message box is left to the browser [{"prevented":false,"method":"paste","files":0}]
+  ok   text+image clipboard pasted into the textarea stays a text paste
+  ok   and adds no image [0]
+  ok   image paste outside Quick Add is not intercepted
+  ok   hostile filename rendered as text, not markup (1. <img src=x onerror=window.__x=1>.png) [{"x":0,"imgs":0}]
+  ok   no page errors (multi-image)
+
+== Quick Add text fixture
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"1070","qty":"432","nut":"4/ZP","fw":"4/ZP"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"821","qty":"4","nut":"4/ZP","fw":"4/ZP"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"763","qty":"4","nut":"4/ZP","fw":"4/ZP"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"794","qty":"4","nut":"4/ZP","fw":"4/ZP"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"657","qty":"4","nut":"4/ZP","fw":"4/ZP"}
+  ok   parsed deterministically: no AI fallback request [0]
+  ok   EXACTLY 5 items, no phantom heading row [5]
+  ok   length / qty rows [["1070/432","821/4","763/4","794/4","657/4"]]
+  ok   row 1 spec: Sag Rod / MS / Undersize / M10 / ZP / TL 70/70 / Nut 4 ZP / FW 4 ZP [{"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","nut":"4/ZP","fw":"4/ZP"}]
+  ok   row 2 spec: Sag Rod / MS / Undersize / M10 / ZP / TL 70/70 / Nut 4 ZP / FW 4 ZP [{"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","nut":"4/ZP","fw":"4/ZP"}]
+  ok   row 3 spec: Sag Rod / MS / Undersize / M10 / ZP / TL 70/70 / Nut 4 ZP / FW 4 ZP [{"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","nut":"4/ZP","fw":"4/ZP"}]
+  ok   row 4 spec: Sag Rod / MS / Undersize / M10 / ZP / TL 70/70 / Nut 4 ZP / FW 4 ZP [{"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","nut":"4/ZP","fw":"4/ZP"}]
+  ok   row 5 spec: Sag Rod / MS / Undersize / M10 / ZP / TL 70/70 / Nut 4 ZP / FW 4 ZP [{"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","nut":"4/ZP","fw":"4/ZP"}]
+  ok   no page errors (fixture)
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"1070","qty":"432","nut":"4/ZP","fw":"4/ZP"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"HDG","tl":"70/70","length":"821","qty":"4","nut":"2/HDG","fw":"4/HDG"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"763","qty":"4","nut":"4/ZP","fw":"4/ZP"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"794","qty":"4","nut":"4/ZP","fw":"4/ZP"}
+     {"product":"sagrod","material":"MS","sizeType":"UNDERSIZE","size":"M10","finish":"ZP","tl":"70/70","length":"657","qty":"4","nut":"4/ZP","fw":"4/ZP"}
+  ok   override fixture: still 5 items [5]
+  ok   row 1 keeps heading spec [["ZP","4/ZP","4/ZP","70/70"]]
+  ok   row 2 own finish + own nut count win [["HDG","2/HDG"]]
+  FAIL row 3 own thread length wins ["70/70"]  -> "50/50"
+  ok   row 4 unaffected by row 2/3 overrides [["ZP","70/70","4/ZP"]]
+
+  feature regression: 65 passed, 1 failed
+  failures:
+   - row 3 own thread length wins ["70/70"]

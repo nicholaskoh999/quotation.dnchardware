@@ -1,0 +1,5 @@
+
+Warning: Module "mysqli" is already loaded in Unknown on line 0
+
+  ok    mysqli compatibility — PHP 8.1+ reporting, and the retry it would have killed  (94 assertions)
+

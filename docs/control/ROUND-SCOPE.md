@@ -15,7 +15,7 @@ moves production and `main` to it.
 | Merged in | `hotfix/quickadd-integration` `091ac77abe0577240dd816eb845d293bccb101c1` (application `91f0c0b905ef402378aaeef896c80a4e6229c442`, plus closing tests / docs) |
 | Accepted application commit | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` — unchanged until this round is accepted |
 | Production application | `91f0c0b905ef402378aaeef896c80a4e6229c442` — production has not moved |
-| Round status | **CANDIDATE — VERIFICATION IN PROGRESS** |
+| Round status | **CANDIDATE — VERIFIED, AWAITING OWNER BACKUP + DEPLOY** |
 | DEPLOY = NO | not deployed; the combined build needs `quotation_revisions` applied first |
 | STAGE 2 = NOT STARTED | the Stage 2 deferrals in PROJECT-GUARDRAILS stay deferred |
 | Production DB change | **NO** — `quotation_revisions` is still NOT APPLIED to production |
@@ -95,6 +95,51 @@ tests/tools/check-translations.js
 ```
 
 `companies.php` came to `main` with `ad4a20e` and is unchanged by this merge.
+
+---
+
+## MEASURED ON THIS CANDIDATE
+
+Logs: `FULL-AUDIT/stage-reconciliation/logs/`.
+
+| | |
+|---|---|
+| Browser | **41 suites · 4,010 assertions · 8 failed**: exactly the eight `38-mobile-ui` Windows Chromium font-metric failures recorded on `main` |
+| PHP, 11 suites | **1,412 assertions, 0 failed** on PHP 8.4.12 and MySQL 8.4.3. Revision storage 198 · transaction 92 · writer 101 · no-op 171 · history 126 · item identity 159 · actor 150 · mysqli 94 · save retry 42 · pricing history 172 · AI extract 107 |
+| Translation | 15 / 15, 953 keys |
+| Pricing workbook | 62 / 62 |
+| Recent production features | 65 / 66, identical to `91f0c0b`; the one miss is the deferred "thread length 50mm" probe |
+| Migration, shipped file | sections 2 + 3 run twice on a legacy-collation copy: `quotations` / `companies` / `app_users` checksums unchanged, 3 rows kept, 0 revisions written, section 4 gate **MATCH** |
+| MySQL 8.0.46 | not re-run here; the migration file and `api.php` are byte-identical to what `main` verified on 8.0.46 (`b1fd1de`, `5595395`) |
+
+Security re-check: no BLOCKER / HIGH / MEDIUM. History read and the revision
+INSERT are prepared statements with bound parameters. The actor comes from the
+server session, and every history value but one goes through `dcHistEsc`. The one exception
+is `item_count`, which the server casts to `(int)` (INFO). History is readable by
+any signed-in user for any quotation, the same as the quotation itself (INFO).
+
+---
+
+## DEPLOYMENT ORDER — MIGRATION FIRST
+
+The live application (`91f0c0b`) never reads or writes `quotation_revisions`,
+so creating the table first changes nothing for it. The combined application
+REQUIRES the table: deployed first, every save would fail and roll back. So:
+
+1. **Backup** — cPanel → phpMyAdmin → the quotation database → Export (Quick, SQL).
+   Keep the file and note its size.
+2. **Migrate** — phpMyAdmin SQL tab, `migrations/2026-08-28-create-quotation-revisions.sql`:
+   run SECTION 1 and read it; run SECTION 2; run the SECTION 3 generator and then
+   the one `ALTER` it prints; run SECTION 4 — it must say **MATCH** and **CONFORMS**.
+3. **Deploy code** — cPanel → Git Version Control → Manage → check out
+   `integration/source-reconciliation` → Update from Remote → Deploy HEAD Commit.
+4. **Smoke** — sign in; open a quotation; save an edit (a revision row appears);
+   save again unchanged (no new row); open History; Quick Add, Unit Converter,
+   Copy and Copy + Weight as before.
+5. **Rollback** — redeploy `hotfix/quickadd-integration`. The table can stay:
+   the old application ignores it.
+
+No maintenance mode exists. Run steps 2–3 when no-one is saving.
 
 ---
 

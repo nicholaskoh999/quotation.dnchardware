@@ -1,0 +1,7 @@
+migration probe — migrations/2026-08-28-create-quotation-revisions.sql on MySQL 8.4.3, 2026-10-19T13:34:21Z
+before: dc_migprobe.quotations 1016829361 dc_migprobe.companies 1347587571 dc_migprobe.app_users 0 
+run 1 section 3: ALTER TABLE quotation_revisions MODIFY quotation_ref_no varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;
+run 2 section 3: ALTER TABLE quotation_revisions MODIFY quotation_ref_no varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;
+after:  dc_migprobe.quotations 1016829361 dc_migprobe.companies 1347587571 dc_migprobe.app_users 0 
+rows: quotations=3 quotation_revisions=0
+gate: MATCH — quotation_ref_no is varchar(100) utf8mb4 / utf8mb4_general_ci, the same as quotations.ref_no. Migration complete.
