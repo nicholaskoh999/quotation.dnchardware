@@ -263,7 +263,7 @@ module.exports = async (browser, A) => {
       const waLine = n.wa.split('\n').find(l => l.includes(size));
       A.eq(onScreen && onScreen.no, want, `${size} is item ${want} on screen`);
       A.eq(onPrint && onPrint.no, want, `${size} is item ${want} on the printed sheet`);
-      A.ok(waLine && waLine.trim().startsWith(want + '.'),
+      A.ok(waLine && waLine.trim().startsWith(want + ')'),
         `${size} is item ${want} in the WhatsApp message too — one item, one number, three surfaces`);
     });
 
@@ -274,7 +274,7 @@ module.exports = async (browser, A) => {
       'the printed sheet reads in insertion order');
     A.eq(n.screen.map(x => x.no).join(','), '4,3,2,1',
       'the screen list reads Newest First, which is a view and never a renumbering — DEFERRED to Stage 2');
-    const waNos = n.wa.split('\n').map(l => (l.match(/^\s*(\d+)\./) || [])[1]).filter(Boolean);
+    const waNos = n.wa.split('\n').map(l => (l.match(/^\s*(\d+)\)/) || [])[1]).filter(Boolean);
     A.eq(waNos.join(','), '1,3,2,4',
       'and the message groups by material, so its numbers are correct but not ascending — DEFERRED to Stage 2');
 

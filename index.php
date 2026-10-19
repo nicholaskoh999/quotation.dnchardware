@@ -2491,6 +2491,18 @@ input,select,textarea{
 .wqa-drop-types{margin-top:10px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.03em}
 .wqa-drop .wqa-file-pick{justify-content:center}
 .wqa-drop .wqa-file-info{display:block;margin-top:10px}
+/* Selected-file list (multi-image Quick Add): compact rows, wrap on a phone. */
+.wqa-sel-head{font-size:12px;font-weight:800;color:var(--text);text-align:left}
+.wqa-sel-list{list-style:none;margin:6px 0 0;padding:0;text-align:left}
+.wqa-sel-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0;border-top:1px solid var(--border)}
+.wqa-sel-row:first-child{border-top:0}
+.wqa-sel-thumb{width:32px;height:32px;flex:0 0 auto;object-fit:cover;border:1px solid var(--border);border-radius:4px}
+.wqa-sel-name{flex:1 1 140px;min-width:0;font-size:12.5px;font-weight:700;color:var(--text-2);overflow-wrap:anywhere}
+.wqa-sel-size{font-size:11px;font-weight:650;color:var(--text-muted)}
+.wqa-sel-rm{flex:0 0 auto}
+.wqa-sel-count{margin-top:6px;font-size:11.5px;font-weight:700;color:var(--text-muted);text-align:left}
+.wqa-badge{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;background:rgba(127,127,127,.15);color:var(--text-2);border:1px solid var(--border)}
+.wqa-drop-paste{margin-top:7px;font-size:11.5px;font-weight:700;color:var(--text-muted)}
 /* Children must not steal dragenter/dragleave from the zone. */
 .wqa-drop.is-drag *{pointer-events:none}
 .wqa-pdf-chip{display:inline-flex;align-items:center;gap:9px;padding:10px 13px;border:1.5px solid var(--border);
@@ -3035,6 +3047,62 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   #step3Card .qi-item-bottom .qi-price-group{justify-self:start; padding-right:0; flex-wrap:wrap}
   #step3Card .card-head{flex-wrap:wrap}
 }
+
+/* Step 4 action row: five actions fit one row wherever the panel allows; below that they wrap as before.
+   Copy + Weight is a subtle light-blue sibling of Copy, not a primary button. */
+.btn-copyw{background:var(--accent-light); border-color:var(--accent-mid); color:var(--accent)}
+.btn-copyw:hover{background:var(--accent-mid); border-color:var(--accent); color:var(--accent-2)}
+@media (min-width:901px){
+  .quote-actions{gap:6px}
+  .quote-actions .btn{white-space:nowrap}
+  .quote-actions .btn-sm{padding:7px 8px; font-size:12px}
+  .quote-actions .btn-save{padding:12px 14px; font-size:13.5px}
+}
+@media (min-width:901px) and (max-width:1439px){
+  .quote-actions{gap:5px}
+  .quote-actions .btn-sm{padding:7px 6px; font-size:11.5px}
+  .quote-actions .btn-save{padding:12px 10px; font-size:13px}
+}
+
+/* U-Bolt max thread length helper (advisory) */
+.tl-helper{font-size:11.5px; font-weight:700; margin-top:4px; line-height:1.3; color:var(--text-muted)}
+.tl-helper[hidden]{display:none}
+.tl-helper.ok{color:var(--green-2)}
+.tl-helper.warn{color:#c2410c}
+
+/* U-Bolt pipe-size preset marker */
+.preset-tag{display:inline-block; margin-left:4px; padding:0 6px; border-radius:var(--pill-r); background:var(--accent-light); border:1px solid var(--accent-mid); color:var(--accent); font-size:10px; font-weight:800; letter-spacing:.03em; text-transform:none; vertical-align:1px}
+.preset-tag[hidden]{display:none}
+/* Unit converter */
+.group-label>.uc-open{order:3; border:1px solid var(--accent-mid); background:var(--accent-light); color:var(--accent); border-radius:var(--pill-r); padding:2px 10px; font-size:10.5px; font-weight:800; letter-spacing:.03em; text-transform:none; cursor:pointer}
+.group-label>.uc-open:hover{background:var(--accent-mid)}
+.group-label::after{order:2}
+.uc-modal{max-width:380px; width:100%}
+.uc-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:12px}
+.uc-res{min-width:0}
+.uc-res label{display:block; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em}
+.uc-res strong{font-size:19px; font-weight:800; color:var(--text); overflow-wrap:anywhere}
+.uc-msg{margin-top:8px; font-size:12px; font-weight:700; color:#c2410c}
+.uc-msg[hidden]{display:none}
+.uc-apply{margin-top:14px}
+.uc-apply label{display:block; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px}
+.uc-apply[hidden]{display:none}
+.uc-btns{display:flex; flex-wrap:wrap; gap:6px}
+.uc-foot{display:flex; justify-content:flex-end; margin-top:16px}
+/* Unit converter — inline panel under the Dimension Entry heading */
+.group-label>.uc-open{order:3; margin-left:auto; padding:6px 12px; font-size:12px; font-weight:800; letter-spacing:0; min-height:32px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; box-shadow:var(--shadow-sm)}
+.uc-panel{grid-column:1/-1; background:var(--accent-light); border:1px solid var(--accent-mid); border-radius:var(--r-sm); padding:12px 14px; min-width:0}
+.uc-panel[hidden]{display:none}
+.uc-head{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--accent-2); margin-bottom:8px}
+.uc-x{background:none; border:none; color:var(--text-muted); font-size:15px; line-height:1; cursor:pointer; padding:4px 6px; border-radius:var(--r-xs)}
+.uc-x:hover{background:var(--accent-mid); color:var(--accent-2)}
+.uc-panel .uc-in{margin:0}
+.uc-inrow{display:flex; gap:8px; min-width:0}
+.uc-inrow input{flex:1 1 auto; min-width:0}
+.uc-inrow select{flex:0 0 auto; width:auto; min-width:84px}
+.uc-panel .uc-row{margin-top:10px}
+.uc-panel .uc-apply{margin-top:12px}
+@media (max-width:420px){ .uc-panel .uc-row{flex-direction:column; align-items:stretch} .uc-panel .uc-row .btn{width:100%} }
 </style>
 </head>
 <body>
@@ -3220,10 +3288,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="sagrod-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="sagrod-finish" value="ZP" onchange="onFinishChange('sagrod')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="sagrod-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="sagrod-finish" value="HDG" onchange="onFinishChange('sagrod')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="sagrod-diameter" step="0.1" value="10.6" oninput="calcSagRod()"></div>
-          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();addSagRod();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="sagrod-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="onThreadLenChange('sagrod')"></div>
+          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();addSagRod();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <button type="button" class="acc-toggle-btn full" id="sagrod-accToggle" onclick="toggleAccPanel('sagrod')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -3276,7 +3344,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="stud-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="stud-finish" value="ZP" onchange="onFinishChange('stud')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="stud-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="stud-finish" value="HDG" onchange="onFinishChange('stud')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="stud-diameter" step="0.1" value="10.6" oninput="calcStud()"></div>
           <div class="field"><label>L</label><input type="number" id="stud-l" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();addStud();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <button type="button" class="acc-toggle-btn full" id="stud-accToggle" onclick="toggleAccPanel('stud')">
@@ -3335,7 +3403,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="anchorbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="anchorbolt-finish" value="ZP" onchange="onFinishChange('anchorbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="anchorbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="anchorbolt-finish" value="HDG" onchange="onFinishChange('anchorbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="anchorbolt-diameter" step="0.1" value="10.6" oninput="calcAnchorBolt()"></div>
           <div class="field"><label>L</label><input type="number" id="anchorbolt-l" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();addAnchorBolt();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <div class="field"><label>TL</label><input type="text" id="anchorbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
@@ -3388,11 +3456,12 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="ubolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="ubolt-finish" value="ZP" onchange="onFinishChange('ubolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="ubolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="ubolt-finish" value="HDG" onchange="onFinishChange('ubolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
+          <div class="field"><label data-i18n="ubPipeSize">Pipe Size</label><select id="ubolt-pipeSize" onchange="applyUBoltPipePreset()"><option value="" data-i18n="ubPipeSel">Select Pipe Size</option></select></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="ubolt-diameter" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label>ID</label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label>IH</label><input type="number" id="ubolt-ih" placeholder="60" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"></div>
+          <div class="field"><label>ID <span class="preset-tag" id="ubolt-id-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
+          <div class="field"><label>IH <span class="preset-tag" id="ubolt-ih-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-ih" placeholder="60" step="0.1" oninput="calcUBolt('ubolt')"></div>
+          <div class="field"><label><span data-i18n="lblThreadLength">Thread Length</span> <span class="preset-tag" id="ubolt-threadLen-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"><div class="tl-helper" id="ubolt-tlHelper" hidden></div></div>
           <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="ubolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcUBolt('ubolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="ubolt-accToggle" onclick="toggleAccPanel('ubolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
@@ -3443,7 +3512,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="squbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="squbolt-finish" value="ZP" onchange="onFinishChange('squbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="squbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="squbolt-finish" value="HDG" onchange="onFinishChange('squbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="squbolt-diameter" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
           <div class="field"><label>OH</label><input type="number" id="squbolt-oh" placeholder="100" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
           <div class="field"><label>W</label><input type="number" id="squbolt-w" placeholder="150" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
@@ -3498,7 +3567,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="lbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="lbolt-finish" value="ZP" onchange="onFinishChange('lbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="lbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="lbolt-finish" value="HDG" onchange="onFinishChange('lbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="lbolt-diameter" step="0.1" oninput="calcLBolt('lbolt')"></div>
           <div class="field"><label>L</label><input type="number" id="lbolt-l" placeholder="500" step="0.1" oninput="calcLBolt('lbolt')"></div>
           <div class="field"><label>W</label><input type="number" id="lbolt-w" placeholder="100" step="0.1" oninput="calcLBolt('lbolt')"></div>
@@ -3553,7 +3622,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="finish-pill" id="jbolt-pill-ZP" data-i18n-title="ttZincPlated" title="Zinc Plated"><input type="radio" name="jbolt-finish" value="ZP" onchange="onFinishChange('jbolt')"><span class="fp-code">ZP</span></label>
               <label class="finish-pill" id="jbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="jbolt-finish" value="HDG" onchange="onFinishChange('jbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
-          <div class="group-label full" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="jbolt-diameter" step="0.1" oninput="calcJBolt('jbolt')"></div>
           <div class="field"><label>H</label><input type="number" id="jbolt-h" placeholder="910" step="0.1" oninput="calcJBolt('jbolt')"></div>
           <div class="field"><label>ID</label><input type="number" id="jbolt-id" placeholder="80" step="0.1" oninput="calcJBolt('jbolt')"></div>
@@ -3629,7 +3698,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           </div>
 
           <!-- MS Plate Dimension Entry -->
-          <div class="group-label full" id="plate-dim-group-ms" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full" id="plate-dim-group-ms"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field" id="plate-f-l"><label data-i18n="lblLength">Length</label><input type="number" id="plate-l" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-w"><label data-i18n="lblWidth">Width</label><input type="number" id="plate-w" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-t"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-t" data-i18n-ph="phEgMm10" placeholder="mm, e.g. 10" step="0.1" min="0.1" oninput="calcPlate()"></div>
@@ -3647,7 +3716,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="field" id="plate-f-nh" style="display:none"><label data-i18n="lblHoles">Holes</label><input type="number" id="plate-nh" placeholder="e.g. 1" step="1" min="1" oninput="calcPlate()"></div>
 
           <!-- Triangle Plate Dimension Entry — hidden by default -->
-          <div class="group-label full" id="plate-dim-group-tri" style="display:none" data-i18n="dimensionEntry">Dimension Entry</div>
+          <div class="group-label full" id="plate-dim-group-tri" style="display:none"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field" id="plate-f-tri-l" style="display:none"><label data-i18n="lblLength">Length</label><input type="number" id="plate-tri-l" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-h" style="display:none"><label data-i18n="lblHeight">Height</label><input type="number" id="plate-tri-h" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <div class="field" id="plate-f-tri-cl" style="display:none"><label data-i18n="lblCutLengthOpt">Cut Length (optional)</label><input type="number" id="plate-tri-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
@@ -3969,6 +4038,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
             <button class="btn btn-ghost btn-sm" onclick="doPrint()" data-i18n="print">Print</button>
             <button class="btn btn-wa btn-sm" onclick="doWhatsApp()">WhatsApp</button>
             <button class="btn btn-outline btn-sm" onclick="doCopyWA()" data-i18n="copy">Copy</button>
+            <button class="btn btn-outline btn-sm btn-copyw" onclick="doCopyWAWeight()" data-i18n="copyWeight">Copy + Weight</button>
           </div>
         </div>
       </div>
@@ -4020,6 +4090,16 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   <option value="M8"><option value="M10"><option value="M12"><option value="M13"><option value="M16"><option value="M18"><option value="M20"><option value="M22"><option value="M24"><option value="M25"><option value="M27"><option value="M30"><option value="M32"><option value="M33"><option value="M36"><option value="M38"><option value="M39"><option value="M40"><option value="M42"><option value="M45"><option value="M48"><option value="M50"><option value="M52"><option value="M55"><option value="M60"><option value="M65">
   <option value="1/4"><option value="5/16"><option value="3/8"><option value="1/2"><option value="5/8"><option value="3/4"><option value="7/8"><option value='1"'><option value="1-1/8"><option value="1-1/4"><option value="1-1/2">
 </datalist>
+
+<!-- ═══ UNIT CONVERTER — one inline panel, parked here until a Dimension Entry heading opens it ═══ -->
+<div class="uc-panel" id="unitConvPanel" hidden>
+  <div class="uc-head"><span data-i18n="ucTitle">Unit Converter</span><button type="button" class="uc-x" onclick="closeUnitConverter()" data-i18n-aria="ucClose" aria-label="Close">✕</button></div>
+  <div class="uc-in field"><label data-i18n="ucInput">Input</label><div class="uc-inrow"><input type="text" id="ucInput" inputmode="text" autocomplete="off" placeholder="1 1/8&quot;" oninput="updateUnitConverter()"><select id="ucUnit" onchange="updateUnitConverter()"><option value="auto" data-i18n="ucUnitAuto">Auto</option><option value="in" data-i18n="ucUnitIn">INCH</option><option value="ft" data-i18n="ucUnitFt">FT</option><option value="mm" data-i18n="ucUnitMm">mm</option></select></div></div>
+  <div class="uc-msg" id="ucMsg" hidden data-i18n="ucInvalid">Invalid dimension</div>
+  <div class="uc-row"><div class="uc-res"><label data-i18n="ucExact">Exact</label><strong id="ucExact">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyExactBtn" onclick="copyUnitConv('exact')" data-i18n="ucCopyExact" disabled>Copy Exact</button></div>
+  <div class="uc-row"><div class="uc-res"><label data-i18n="ucRounded">Rounded</label><strong id="ucRounded">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyRoundedBtn" onclick="copyUnitConv('rounded')" data-i18n="ucCopyRounded" disabled>Copy Rounded</button></div>
+  <div class="uc-apply" id="ucApply" hidden><label data-i18n="ucApplyTo">Apply to</label><div class="uc-btns" id="ucApplyBtns"></div></div>
+</div>
 
 <!-- ═══ VERSION UPDATES MODAL ═══ -->
 <div class="modal-overlay" id="versionUpdatesModal">
@@ -4296,18 +4376,26 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
       </div>
 
       <div id="wqaUploadPane" hidden>
-        <p class="wqa-hint" data-i18n="wqaUploadHint">Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.</p>
+        <p class="wqa-hint wqa-upload-hint">
+          <span class="wqa-badge" data-i18n="wqaUploadBadge">Up to 5 images per analysis</span>
+          <span data-i18n="wqaUploadHint">You can upload or paste up to 5 images. All images will be analyzed together.</span><br>
+          <span data-i18n="wqaUploadHint2">Choose multiple files, drag &amp; drop, or paste screenshots with Ctrl+V.</span><br>
+          <span data-i18n="wqaUploadPdf">PDF: 1 file only, max 20 MB, max 10 pages. Images: max 10 MB each.</span>
+        </p>
         <div id="wqaDropZone" class="wqa-drop" ondragenter="wqaDragEnter(event)" ondragover="wqaDragOver(event)"
              ondragleave="wqaDragLeave(event)" ondrop="wqaDrop(event)">
           <div class="wqa-drop-main" data-i18n="wqaDropMain">Drop image or PDF here</div>
           <div class="wqa-drop-or" data-i18n="wqaDropOr">or</div>
           <label class="wqa-file-pick">
             <input type="file" id="wqaFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
-                   onchange="wqaFileChosen(this)">
-            <span class="btn btn-outline" data-i18n="wqaChooseFile">Choose File…</span>
+                   multiple onchange="wqaFileChosen(this)">
+            <span class="btn btn-outline" data-i18n="wqaChooseFile">Choose Files…</span>
           </label>
+          <div class="wqa-drop-paste" data-i18n="wqaDropPaste">or paste screenshot with Ctrl+V</div>
           <div class="wqa-drop-types">JPG / PNG / WEBP / PDF</div>
-          <div class="wqa-file-info" id="wqaFileInfo" data-i18n="wqaNoFile">No file selected</div>
+          <!-- Rendered by wqaUpdateAiPane (a list once files are chosen), so it
+               carries no data-i18n: a language switch must not wipe the list. -->
+          <div class="wqa-file-info" id="wqaFileInfo">No file selected</div>
         </div>
         <div class="wqa-ai-preview" id="wqaAiPreviewBox" hidden>
           <img id="wqaAiPreview" data-i18n-alt="altPreview" alt="preview" hidden>
@@ -4845,6 +4933,7 @@ const I18N={
     lblRemarks:'Remarks / Notes', phRemarks:'Price subject to change without prior notice',
     /* step 2 — product entry */
     step2Caption:'Step 2 · Add Items', step2Sub:'Add items', itemEntry:'Item Entry',
+    ucConvert:'⇄ Unit Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied', ucApplyTo:'Apply to', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'To L', ucToW:'To W', ucToT:'To T', ucToH:'To H', ucToS:'To S', ucToID:'To ID', ucToIH:'To IH', ucToOH:'To OH', ucToTL:'To TL',
     productEntry:'Product Entry', dimensionEntry:'Dimension Entry',
     pricingEntry:'Pricing Entry', pricing:'Pricing',
     /* field labels */
@@ -4901,7 +4990,7 @@ const I18N={
     wqaDiscardSub:'The pasted text, parsed items, pricing entry and accessories in this session will be lost.',
     wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
     wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
-    wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia',
+    wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia', wqaRefTop:'TO TOP', wqaRefCenter:'TO CENTER', wqaRefEnd:'TO END', wqaRefUnclear:'reference unclear',
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
     wqaAddRefused:'the calculator refused this row', fieldQty:'Qty',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
@@ -4961,8 +5050,17 @@ const I18N={
     cdimRemove:'Remove this dimension', cdimPrefix:'Custom:',
     cdimHint:"Optional. Extra dimensions from a drawing — e.g. A 120. Never used in any weight or price, and never a substitute for the product's own fields.",
     wqaPasteHint:'Paste customer text or upload an image / PDF. Supported: {products}.',
-    wqaUploadHint:"Upload a screenshot, photo, drawing or PDF of the customer's request. JPG / PNG / WEBP up to 10 MB, PDF up to 20 MB (max 10 pages). One file per analysis.",
-    wqaDropMain:'Drop image or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose File…',
+    wqaUploadBadge:'Up to 5 images per analysis',
+    wqaUploadHint:'You can upload or paste up to 5 images. All images will be analyzed together.',
+    wqaUploadHint2:'Choose multiple files, drag & drop, or paste screenshots with Ctrl+V.',
+    wqaUploadPdf:'PDF: 1 file only, max 20 MB, max 10 pages. Images: max 10 MB each.',
+    wqaDropMain:'Drop images or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose Files…',
+    wqaDropPaste:'or paste screenshot with Ctrl+V',
+    wqaSelImages:'Selected images', wqaSelPdf:'Selected PDF', wqaImgCount:'{n} / {max} images selected',
+    wqaRemoveFile:'Remove', wqaMaxImages:'Maximum 5 images per analysis.',
+    wqaMixNoPdf:'Images are already selected. Upload either images or one PDF — remove the images first to use a PDF.',
+    wqaMixNoImg:'A PDF is already selected. Upload either one PDF or images — remove the PDF first to add images.',
+    wqaOnePdf:'Only one PDF per analysis. Remove the selected PDF first.',
     wqaNoFile:'No file selected', wqaAnalyzing:'Analyzing document…',
     wqaExtracting:'Extracting product, dimensions and quantities…',
     wqaPrivacy:'Uploaded files are used only for AI extraction and are not saved with the quotation.',
@@ -5057,7 +5155,7 @@ const I18N={
     clearAll:'Clear All', noItemsYet:'No items yet',
     newestFirst:'Newest First', oldestFirst:'Oldest First', sort:'Sort',
     saveQuotation:'Save Quotation', updateQuotation:'Update Quotation',
-    print:'Print', copy:'Copy', close:'Close',
+    print:'Print', copy:'Copy', copyWeight:'Copy + Weight', close:'Close',
     restoreDraft:'Restore Draft', discardDraft:'Discard',
     preview:'Preview', copyPreview:'Copy Preview',
     saveTemplate:'Save Template', resetDefault:'Reset to Default',
@@ -5141,6 +5239,7 @@ const I18N={
     /* The trade names stay as the customer wrote them; the sentence around
        them is what a person has to read and act on. */
     wqaAccMention:'Document mentions: {n} — accessories are never added automatically. Add them yourself if this quotation includes them.',
+    wqaAccUnsure:'Accessory not set automatically: {n} — add it yourself if this quotation includes it.',
     lblFinalUnitPrice:'Final Unit Price', lblRawPrice:'Raw Price',
     mCompany:'Company', mRemarks:'Remarks', mNoCompanyStandalone:'— No company (standalone) —',
     mRestoreTitle:'Restore unsaved draft?',
@@ -5184,6 +5283,8 @@ const I18N={
     tOldNoRate:'Old item has no saved Cost Rate. Please confirm pricing.',
     tLegacyAccSplit:'{n} manually-priced item(s) were saved when accessories were charged separately. Their accessories are now inside the Final Unit Price. The customer total is unchanged.',
     tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
+    ubPipeSize:'Pipe Size', ubPipeSel:'Select Pipe Size', ubPreset:'Preset',
+    ubTlMax:'Max recommended TL: {m}mm', ubTlOk:'\u2713 TL {tl}mm / Max {m}mm', ubTlOver:'\u26A0 TL {tl}mm exceeds max {m}mm',
     tSagRodAdded:'Sag Rod added', tStudAdded:'Stud added', tAnchorAdded:'Anchor Bolt added',
     /* ── Validation, status and the words on generated controls ────────────
        Every one of these used to be written straight into a showToast or a
@@ -5404,6 +5505,7 @@ const I18N={
     lblRemarks:'备注', phRemarks:'价格如有变动，恕不另行通知',
     /* step 2 — product entry */
     step2Caption:'第 2 步 · 添加产品', step2Sub:'添加产品', itemEntry:'产品输入',
+    ucConvert:'⇄ 单位换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入牙长',
     productEntry:'产品资料', dimensionEntry:'尺寸资料',
     pricingEntry:'价格资料', pricing:'价格',
     /* field labels */
@@ -5456,7 +5558,7 @@ const I18N={
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
     wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
-    wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径',
+    wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径', wqaRefTop:'量至顶', wqaRefCenter:'量至中心', wqaRefEnd:'量至末端', wqaRefUnclear:'基准不明',
     wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
     wqaAddRefused:'计算器拒绝了此项目', fieldQty:'数量',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
@@ -5513,8 +5615,17 @@ const I18N={
     cdimRemove:'删除此尺寸', cdimPrefix:'自定义：',
     cdimHint:'选填。图纸上的额外尺寸，例如 A 120。不参与任何重量或价格计算，也不能代替产品本身的尺寸字段。',
     wqaPasteHint:'粘贴客户文字或上传图片 / PDF。支持识别：{products}。',
-    wqaUploadHint:'上传客户要求的截图、照片、图纸或 PDF。JPG / PNG / WEBP 最大 10 MB，PDF 最大 20 MB（最多 10 页）。每次只分析一个文件。',
-    wqaDropMain:'把图片或 PDF 拖到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
+    wqaUploadBadge:'每次最多 5 张图片',
+    wqaUploadHint:'可上传或粘贴最多 5 张图片，系统会一起分析。',
+    wqaUploadHint2:'可多选文件、拖放图片，或使用 Ctrl+V 直接粘贴截图。',
+    wqaUploadPdf:'PDF：仅限 1 个，最大 20 MB，最多 10 页。图片：每张最大 10 MB。',
+    wqaDropMain:'拖放图片或 PDF 到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
+    wqaDropPaste:'或按 Ctrl+V 粘贴截图',
+    wqaSelImages:'已选图片', wqaSelPdf:'已选 PDF', wqaImgCount:'已选 {n} / {max} 张图片',
+    wqaRemoveFile:'移除', wqaMaxImages:'每次分析最多 5 张图片。',
+    wqaMixNoPdf:'已选择图片。只能上传图片或一个 PDF — 如要使用 PDF，请先移除图片。',
+    wqaMixNoImg:'已选择 PDF。只能上传一个 PDF 或图片 — 如要添加图片，请先移除 PDF。',
+    wqaOnePdf:'每次只能分析一个 PDF。请先移除已选的 PDF。',
     wqaNoFile:'未选择文件', wqaAnalyzing:'正在分析文件…',
     wqaExtracting:'正在提取产品、尺寸与数量…',
     wqaPrivacy:'上传的文件只用于 AI 提取，不会随报价保存。',
@@ -5598,7 +5709,7 @@ const I18N={
     clearAll:'全部清除', noItemsYet:'暂无产品',
     newestFirst:'最新优先', oldestFirst:'最旧优先', sort:'排序',
     saveQuotation:'保存报价', updateQuotation:'更新报价',
-    print:'打印', copy:'复制', close:'关闭',
+    print:'打印', copy:'复制', copyWeight:'复制 + 重量', close:'关闭',
     restoreDraft:'恢复草稿', discardDraft:'不要恢复',
     preview:'预览', copyPreview:'复制预览',
     saveTemplate:'保存模板', resetDefault:'重置为默认',
@@ -5664,6 +5775,7 @@ const I18N={
     wqaThreadHintPair:'填一个值，或两端写成 50/110',
     wqaThreadHintOne:'填一个值',
     wqaAccMention:'文件提到：{n}；配件不会自动加入，如本报价需要这些配件，请自行添加。',
+    wqaAccUnsure:'未自动设置的配件：{n}；如本报价需要，请自行添加。',
     lblFinalUnitPrice:'最终单价', lblRawPrice:'原始价格',
     mCompany:'公司', mRemarks:'备注', mNoCompanyStandalone:'— 不指定公司（独立）—',
     mRestoreTitle:'要恢复未保存的草稿吗？',
@@ -5707,6 +5819,8 @@ const I18N={
     tOldNoRate:'旧项目没有保存 Cost Rate，请确认价格。',
     tLegacyAccSplit:'有 {n} 个手动定价项目建立于配件另计时期，其配件现已计入最终单价，客户总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
+    ubPipeSize:'管径', ubPipeSel:'选择管径', ubPreset:'预设',
+    ubTlMax:'建议最大牙长：{m}mm', ubTlOk:'\u2713 牙长 {tl}mm / 最大 {m}mm', ubTlOver:'\u26A0 牙长 {tl}mm 超过最大 {m}mm',
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
     /* Dimension letters (L、W、H、ID、S、OH)、产品名称与 RM 保持原有写法 —
        它们是行业用语，不是需要翻译的句子。 */
@@ -8059,7 +8173,59 @@ function getUBoltCardDebugHtml(item){
   const text=`Saved Unit ${fmt(parseFloat(item.finalUnitPrice)||0)} | Saved formData: ${dimensions} | Recalculated Unit ${fmt(data.recalculatedUnit)}`;
   return `<div class="ubolt-card-debug">${escHtml(text)}</div>`;
 }
+/* U-Bolt Pipe Size presets — INPUT ASSISTANCE ONLY. [DN, inch, ID, IH, TL]. Selecting one fills ID / IH /
+   Thread Length (all stay editable); the pipe size itself is never stored, priced or printed. */
+const UBOLT_PIPE_PRESETS=[
+  [20,'3/4',30,47,22],[25,'1',36,53,25],[32,'1-1/4',46,64,28],[40,'1-1/2',52,73,30],[50,'2',64,85,32],
+  [65,'2-1/2',80,105,35],[80,'3',92,118,35],[90,'3-1/2',104,131,40],[100,'4',118,150,55],[125,'5',144,176,55],
+  [150,'6',170,210,65],[200,'8',222,262,65],[250,'10',274,320,75],[300,'12',326,380,90],[350,'14',362,420,90],
+  [400,'16',414,470,90],[450,'18',466,530,110],[500,'20',518,585,110],[550,'22',568,640,120],[600,'24',620,690,120],
+  [650,'26',670,715,120],[700,'28',722,790,120],[750,'30',774,815,120],[800,'32',826,870,120],[850,'34',878,920,120],
+  [900,'36',930,975,120],[950,'38',982,1025,120],[1000,'40',1034,1080,120]
+];
+const UBOLT_PRESET_FIELDS=[['id',2],['ih',3],['threadLen',4]];
+let uboltPresetVals={};   // field -> value last written by a preset; dropped when the person edits that field
+(function(){
+  const sel=document.getElementById('ubolt-pipeSize'); if(!sel) return;
+  UBOLT_PIPE_PRESETS.forEach(r=>{ const o=document.createElement('option'); o.value=String(r[0]); o.textContent=r[1]+'" / DN'+r[0]; sel.appendChild(o); });
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{ const i=document.getElementById('ubolt-'+f); if(i) i.addEventListener('input',()=>{ delete uboltPresetVals[f]; renderUBoltPresetTags(); }); });
+})();
+function renderUBoltPresetTags(){
+  let any=false;
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{
+    const i=el('ubolt-'+f), t=el('ubolt-'+f+'-preset'); if(!i||!t) return;
+    const on=uboltPresetVals[f]!==undefined && String(i.value)===uboltPresetVals[f];
+    t.hidden=!on; if(on) any=true;
+  });
+  const sel=el('ubolt-pipeSize'); if(sel&&sel.value&&!any) sel.value='';   // every preset value was edited or cleared
+}
+function applyUBoltPipePreset(){
+  const sel=el('ubolt-pipeSize'); if(!sel) return;
+  uboltPresetVals={};
+  const row=UBOLT_PIPE_PRESETS.find(r=>String(r[0])===sel.value);
+  if(row){ UBOLT_PRESET_FIELDS.forEach(([f,k])=>{ const i=el('ubolt-'+f); if(i){ i.value=String(row[k]); uboltPresetVals[f]=String(row[k]); } }); }
+  calcUBolt('ubolt');   // same path as typing ID / IH: refreshes total length, preview and the TL helper
+  renderUBoltPresetTags();
+}
+/* Advisory only: max recommended thread length = IH - ID/2 - 10 (mm). Display helper —
+   never clamps, blocks or changes the Thread Length value or any calculation. */
+function updateUBoltTLHelper(){
+  if(typeof renderUBoltPresetTags==='function') renderUBoltPresetTags();
+  const h=el('ubolt-tlHelper'); if(!h) return;
+  const id=parseFloat(fv('ubolt','id')), ih=parseFloat(fv('ubolt','ih'));
+  const max=(id>0&&ih>0)?ih-(id/2)-10:0;
+  if(!(max>0)){ h.hidden=true; h.textContent=''; h.className='tl-helper'; return; }
+  const m=cleanNum(parseFloat(max.toFixed(2)));
+  const raw=fv('ubolt','threadLen').trim(), tl=parseFloat(raw);
+  let cls='tl-helper', txt;
+  if(!raw||!(tl>0)) txt=dcT('ubTlMax').replace('{m}',m);
+  else if(tl<=max){ cls+=' ok'; txt=dcT('ubTlOk').replace('{tl}',cleanNum(tl)).replace('{m}',m); }
+  else { cls+=' warn'; txt=dcT('ubTlOver').replace('{tl}',cleanNum(tl)).replace('{m}',m); }
+  h.className=cls; h.textContent=txt; h.hidden=false;
+}
+dcOnRelabel(updateUBoltTLHelper);   // text is computed, so re-render it on a language switch
 function calcUBolt(type,skipAuto){
+  if(type==='ubolt') updateUBoltTLHelper();
   const d=fn(type,'diameter'), id=fn(type,'id'), ih=fn(type,'ih');
   const tlEl=el(type+'-length');
   if(!skipAuto && (d>0||id>0||ih>0)){ const auto=Math.ceil((d+id)*1.57+(2*ih)-id); if(tlEl) tlEl.value=auto>0?auto:''; }
@@ -9435,6 +9601,101 @@ function toggleSidebar(force){
   const open = force!==undefined ? force : !sb.classList.contains('open');
   sb.classList.toggle('open',open); bd.classList.toggle('open',open);
 }
+/* ── Unit converter: standalone helper. 1 in = 25.4 mm, 1 ft = 12 in. Units must be explicit
+   (" in ' ft mm); a bare number is refused rather than guessed. Never touches a form field. ── */
+function parseDimToMm(raw){
+  const s=String(raw==null?'':raw).trim().toLowerCase().replace(/[\u2019\u2032\u00b4`]/g,"'").replace(/[\u201d\u2033]|''/g,'"').replace(/\s+/g,' ');
+  if(!s) return null;
+  const NUM='(\\d+(?:\\.\\d+)?|\\d+ ?[- ] ?\\d+\\/\\d+|\\d+\\/\\d+)';
+  const val=t=>{
+    let m;
+    if((m=/^(\d+(?:\.\d+)?)$/.exec(t))) return parseFloat(m[1]);
+    if((m=/^(\d+)\/(\d+)$/.exec(t))) return +m[2]>0?m[1]/m[2]:NaN;
+    if((m=/^(\d+) ?[- ] ?(\d+)\/(\d+)$/.exec(t))) return +m[3]>0?(+m[1])+m[2]/m[3]:NaN;
+    return NaN;
+  };
+  let m=new RegExp('^'+NUM+' ?mm$').exec(s);
+  if(m){ const v=val(m[1]); return isFinite(v)?v:null; }
+  m=new RegExp('^(?:'+NUM+' ?(?:\'|ft|feet|foot)[ ,-]*)?(?:'+NUM+' ?(?:"|in|inch|inches))?$').exec(s);
+  if(!m || (m[1]===undefined && m[2]===undefined)) return null;
+  const ft=m[1]===undefined?0:val(m[1]), inch=m[2]===undefined?0:val(m[2]);
+  if(!isFinite(ft)||!isFinite(inch)) return null;
+  return (ft*12+inch)*25.4;
+}
+function fmtMm(v){ return String(Number(Number(v).toFixed(6))); }
+/* Direct fill: ROUNDED whole mm into the dimension inputs the current product's form really has.
+   [field id, label key, kind] — kind 'dbl' = TL is entered for both ends (Sag Rod, U-Bolt). Only
+   fields that are visible right now get a button; nothing is ever written to a hidden field. */
+const UC_TARGETS={
+  sagrod:[['sagrod-length','ucToL'],['sagrod-threadLen','ucToTL','dbl']],
+  stud:[['stud-l','ucToL']],
+  anchorbolt:[['anchorbolt-l','ucToL'],['anchorbolt-threadLen','ucToTL']],
+  ubolt:[['ubolt-id','ucToID'],['ubolt-ih','ucToIH'],['ubolt-threadLen','ucToTL','dbl']],
+  squbolt:[['squbolt-oh','ucToOH'],['squbolt-w','ucToW'],['squbolt-threadLen','ucToTL']],
+  lbolt:[['lbolt-l','ucToL'],['lbolt-w','ucToW'],['lbolt-threadLen','ucToTL']],
+  lbolt45:[['lbolt45-l','ucToL'],['lbolt45-w','ucToW'],['lbolt45-threadLen','ucToTL']],
+  jbolt:[['jbolt-h','ucToH'],['jbolt-id','ucToID'],['jbolt-s','ucToS'],['jbolt-threadLen','ucToTL']],
+  plate:[['plate-l','ucToL'],['plate-w','ucToW'],['plate-t','ucToT'],['plate-tri-l','ucToL'],['plate-tri-h','ucToH'],['plate-tri-t','ucToT']]
+};
+function ucVisibleTargets(){
+  return (UC_TARGETS[currentType]||[]).filter(t=>{ const f=el(t[0]); return f && f.offsetParent!==null; });
+}
+function renderUcApply(){
+  const box=el('ucApplyBtns'); if(!box) return;
+  const ts=ucVisibleTargets();
+  box.innerHTML=ts.map(t=>`<button type="button" class="btn btn-outline btn-sm" data-uc-field="${t[0]}" onclick="ucFill('${t[0]}','${t[2]||''}')">${escHtml(dcT(t[1]))}</button>`).join('');
+  el('ucApply').hidden=!ts.length;
+  updateUnitConverter();
+}
+dcOnRelabel(()=>{ const pn=el('unitConvPanel'); if(pn&&!pn.hidden) renderUcApply(); });
+function ucFill(fieldId,kind){
+  const f=el(fieldId); if(!f||f.offsetParent===null) return;
+  const mm=parseUcInput(el('ucInput').value); if(mm===null||mm<0) return;
+  const n=String(Math.round(Number(mm.toFixed(6))));
+  f.value=kind==='dbl'?n+'/'+n:n;
+  f.dispatchEvent(new Event('input',{bubbles:true}));      // the same handlers typing runs
+  f.dispatchEvent(new Event('change',{bubbles:true}));
+  showToast(dcT('ucCopied')+': '+f.value);
+}
+/* Units written in the input always win. A bare number follows the selector HERE ONLY (normal
+   quotation fields never go through this): Auto / Inch = inches, Feet = feet, mm = millimetres
+   (decimals only — a fraction in mm mode is refused rather than guessed). */
+function parseUcInput(raw){
+  const t=String(raw==null?'':raw).trim();
+  let v=parseDimToMm(t);
+  if(v!==null || !/^[\d .\/-]+$/.test(t)) return v;
+  const mode=(el('ucUnit')||{}).value||'auto';
+  if(mode==='ft') return parseDimToMm(t+"'");
+  if(mode==='mm') return /^\d+(?:\.\d+)?$/.test(t)?parseDimToMm(t+' mm'):null;
+  return parseDimToMm(t+'"');
+}
+/* One panel for the whole page: it is moved to sit directly under whichever Dimension Entry
+   heading opened it, and parked back at the end of <body> when collapsed. */
+function toggleUnitConverter(btn){
+  const pn=el('unitConvPanel'), label=btn&&btn.closest('.group-label'); if(!pn||!label) return;
+  if(!pn.hidden && pn.previousElementSibling===label){ closeUnitConverter(); return; }
+  label.after(pn); pn.hidden=false;
+  const i=el('ucInput'); if(i) i.value='';
+  renderUcApply();
+  setTimeout(()=>{ try{ i.focus(); }catch(e){} },60);
+}
+function closeUnitConverter(){
+  const pn=el('unitConvPanel'); if(!pn) return;
+  pn.hidden=true; document.body.appendChild(pn);
+}
+function updateUnitConverter(){
+  const raw=el('ucInput').value, mm=parseUcInput(raw), ok=mm!==null&&mm>=0;
+  el('ucMsg').hidden=ok||!raw.trim();
+  el('ucExact').textContent=ok?fmtMm(mm)+' mm':'—';
+  el('ucRounded').textContent=ok?Math.round(Number(mm.toFixed(6)))+' mm':'—';
+  el('ucCopyExactBtn').disabled=!ok; el('ucCopyRoundedBtn').disabled=!ok;
+  document.querySelectorAll('#ucApplyBtns button').forEach(b=>{ b.disabled=!ok; });
+}
+async function copyUnitConv(kind){
+  const t=el(kind==='exact'?'ucExact':'ucRounded').textContent;
+  if(!/ mm$/.test(t)) return;
+  if(await copyTextToClipboard(t)){ showToast(dcT('ucCopied')+': '+t); closeUnitConverter(); }
+}
 function openModal(id){ el(id).classList.add('open'); }
 function closeModal(id){ el(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m=>{
@@ -9800,7 +10061,7 @@ function getWAGroupTitle(item){
   if(!title) title=(item.desc||'Item').replace(/\s+\([^)]*\)\s*$/,'').trim();
   return finish ? `${title} (${finish})` : title;
 }
-function buildWAItemsText(emptyText='-', mergeIdentical=true){
+function buildWAItemsText(emptyText='-', mergeIdentical=true, includeUnitWeight=false){
   if(!quoteItems.length) return emptyText;
   const groups=[];
   const groupIndex=new Map();
@@ -9853,7 +10114,11 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true){
       return;
     }
     group.seen.set(key,group.rows.length);
-    group.rows.push({size,price,cw,wasComp,wasItem,custom,nos:[itemIndex+1]});
+    /* Copy + Weight only: the stored PER-PIECE weight (item.weight — the same value the
+       list card multiplies by qty for its item total). Never qty-multiplied; omitted when
+       there is no calculated weight rather than shown as a fake 0.000kg/pc. */
+    const uw=(includeUnitWeight&&!wasItem&&parseFloat(item.weight)>0)?(parseFloat(item.weight).toFixed(3)+'kg/pc'):'';
+    group.rows.push({size,price,cw,wasComp,wasItem,custom,uw,nos:[itemIndex+1]});
     group.cwLabels.push(cw);
   });
   return groups.map(group=>{
@@ -9866,7 +10131,7 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true){
         const cwPart=row.cw?'\n   '+row.cw:'';
         return `${no}) ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
       }
-      const line=`${no}) ${row.size} - ${row.price}`;
+      const line=`${no}) ${row.size}${row.uw?' - '+row.uw:''} - ${row.price}`;
       /* The print sheet carries the annotation on its own line; without it here
          two rods that differ only by it read as the same rod written twice. */
       const customPart=row.custom?'\n   '+row.custom:'';
@@ -9886,10 +10151,10 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true){
     return `${group.title}\n${rows}${cwSuffix}`;
   }).join('\n\n');
 }
-function buildQuoteText(){
+function buildQuoteText(includeUnitWeight=false){
   const qi=getQI();
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
-  const itemLines=buildWAItemsText('-', false);   // copy: one line per original item, never merged
+  const itemLines=buildWAItemsText('-', false, includeUnitWeight);   // copy: one line per original item, never merged
   const tpl=getWATemplate();
   return tpl
     .replace(/{customer}/g, qi.customer||'-')
@@ -9927,9 +10192,9 @@ async function copyTextToClipboard(text){
   document.body.removeChild(ta);
   return ok;
 }
-async function copyWhatsApp(){
+async function copyWhatsApp(includeUnitWeight=false){
   if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return}
-  const ok=await copyTextToClipboard(buildQuoteText());
+  const ok=await copyTextToClipboard(buildQuoteText(includeUnitWeight));
   showToast(dcT(ok?'tWaCopied':'tWaCopyFailedPreview'));
 }
 function openWhatsApp(){
@@ -10071,6 +10336,7 @@ function getPrintItemDimension(item){
 function doPrint(){ if(!quoteItems.length){showToast(dcT('tAddItemsFirst'));return} sentThisSession=true; refreshWorkflow(); window.print(); }
 function doWhatsApp(){ sentThisSession=true; refreshWorkflow(); openWhatsApp(); }
 function doCopyWA(){ sentThisSession=true; refreshWorkflow(); copyWhatsApp(); }
+function doCopyWAWeight(){ sentThisSession=true; refreshWorkflow(); copyWhatsApp(true); }
 
 /* ── Previous Quoted Prices (MySQL quotation history) ── */
 const PH_EMPTY_DEFAULT='No pricing history for this exact specification yet.';
@@ -10898,6 +11164,7 @@ function ensureLBolt45Form(){
   const source=el('form-lbolt');
   if(!source) return;
   const clone=source.cloneNode(true);
+  const ucp=clone.querySelector('#unitConvPanel'); if(ucp) ucp.remove();   // the one shared converter panel is never copied
   clone.id='form-lbolt45';
   clone.dataset.type='lbolt45';
   clone.innerHTML=clone.innerHTML
@@ -12571,8 +12838,16 @@ function wqaEditThread(i,v){
    up down the list. Each is its own grid cell, so every row aligns. */
 /* Only worth saying on the row when the rows disagree — otherwise the header
    above has already said it once for all of them. */
+function wqaDimNormText(r){
+  return (r.dimNorm||[]).map(n=>{
+    const refTxt=x=>dcT('wqaRef'+String(x).charAt(0)+String(x).slice(1).toLowerCase());
+    if(!n.resolved) return n.k+' '+n.source_value+' ('+dcT('wqaRefUnclear')+')';
+    if(n.converted) return n.k+' '+n.source_value+' ('+refTxt(n.source_reference)+') \u2192 '+n.normalized_value+' ('+refTxt('END')+')';
+    return n.k+' '+n.source_value+' ('+refTxt('END')+')';
+  }).join(' · ');
+}
 function wqaRowSpecText(r){
-  if(!(wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('product')||r.bodyDia)) return '';
+  if(!(wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('product')||r.bodyDia||(r.dimNorm&&r.dimNorm.length))) return '';
   const bits=[];
   /* Named on the row only while the list holds more than one product — one
      word, in front of the material, so the compact list stays a list. */
@@ -12589,6 +12864,7 @@ function wqaRowSpecText(r){
   /* Evidence the customer gave us and we did not use for the price: shown so
      nobody wonders where it went. */
   if(r.bodyDia) bits.push(dcT('wqaBodyDia')+' '+r.bodyDia+'mm');
+  if(r.dimNorm&&r.dimNorm.length) bits.push(wqaDimNormText(r));
   return bits.join(' · ');
 }
 /* ── Warnings, on a line of their own, only when there are warnings ────────
@@ -13798,6 +14074,13 @@ function wqaExtractFields(rawLine,opts){
      failed to match here left its M behind and its 20 in the number pile. */
   m=s.match(/\bm\s*(\d+(?:\.\d+)?)(?=\s*[x*×]|\b)/i);
   if(m){ f.size='M'+m[1].replace(/\.0$/,''); s=s.replace(m[0],' '); }
+  /* "10mm Dia" / "Dia 10mm" is the rod's nominal size when the table knows it.
+     Never after inside / inner / body: those are other diameters. */
+  if(!f.size){
+    m=s.match(/(?<!(?:inside|internal|inner|body|hole)\s*)\b(\d+(?:\.\d+)?)\s*mm\s*(?:dia(?:meter)?|ø)(?![a-z])|(?<!(?:inside|internal|inner|body|hole)\s*)\b(?:dia(?:meter)?|ø)\s*[:.]?\s*(\d+(?:\.\d+)?)\s*mm\b/i);
+    const dv=m && (m[1]||m[2]);
+    if(dv && wqaIsNominal(dv)){ f.size='M'+String(Number(dv)); s=s.replace(m[0],' '); }
+  }
   /* A drawing writes an undersized rod's nominal diameter as R12. The R is the
      draughtsman's notation for the round bar it is cut from, not a different
      size, and the quotation speaks in M sizes — so it is read as M12 and the
@@ -14580,6 +14863,78 @@ function wqaThreadEndEvidence(text,entries){
    20/12mm Thread" names the thread outright, so the number still standing is
    the length. Without this the word "Thread" alone turned every such row into
    a header and the whole list vanished. */
+/* ── Accessories written beside the rod ────────────────────────────────────
+   "c/w 4 nos nut & 4 nos washer" is what comes WITH each rod, not a dimension
+   and not a count of rods. Left on the line, its 4s were read as the length and
+   the quantity, so a shared heading over a numbered list became a phantom row
+   and the real rows lost the size and thread the heading gave them.
+
+   Bounded on purpose: a count written right in front of a nut or a washer,
+   after a "c/w" / "with" lead or joined to a second such part. Plain nuts and
+   plain or flat washers are the Nut and FW the quotation already has. Any
+   other kind — spring, heavy, lock — is taken off the line so it cannot become
+   a dimension, but is NOT configured: it is reported for a person to add. A
+   count nobody wrote is never guessed. Per rod, exactly as the accessory panel
+   means it. Prices are never touched here. */
+const WQA_ACC_LEAD_RE=/(?:\bc\s*\/\s*w|\bc\.w\.?|\bcomplete\s+with|\bcomes?\s+with|\bwith|\bw\/)\s*[:\-]?\s*$/i;
+const WQA_ACC_PART_RE=/(?<![\w.\/])(\d{1,3})\s*(?:nos?\.?|pcs?\.?|x)?\s*((?:[a-z0-9]+\s+){0,2}?)(nuts?|washers?|f\s*\/\s*w|fw)\b/ig;
+const WQA_ACC_JOIN_RE=/^\s*(?:&|and|\+|,|\/|;)?\s*$/i;
+const WQA_ACC_TAIL_RE=/^\s*(?:each|ea\.?|per\s*(?:pc|pcs|set|rod|item|piece))\b/i;
+const WQA_ACC_PLAIN_MODS=/^(?:hex|hexagon|hexagonal|flat|plain|normal|std|standard|m\d+(?:\.\d+)?)$/i;
+function wqaAccScan(line){
+  const s=String(line||'');
+  const parts=[];
+  const re=new RegExp(WQA_ACC_PART_RE.source,'ig');
+  let m;
+  while((m=re.exec(s))!==null){
+    parts.push({at:m.index, end:m.index+m[0].length, qty:parseInt(m[1],10),
+                mods:String(m[2]||'').trim(), type:/^n/i.test(m[3])?'nut':'fw', text:m[0].trim()});
+  }
+  if(!parts.length) return null;
+  /* Runs of parts joined only by "&", "and", "+" or a comma. */
+  const runs=[]; let cur=[parts[0]];
+  for(let i=1;i<parts.length;i++){
+    if(WQA_ACC_JOIN_RE.test(s.slice(parts[i-1].end,parts[i].at))) cur.push(parts[i]);
+    else { runs.push(cur); cur=[parts[i]]; }
+  }
+  runs.push(cur);
+  const out={nut:null, fw:null, finish:'', unsure:[]};
+  const cuts=[];
+  runs.forEach(run=>{
+    const lead=WQA_ACC_LEAD_RE.exec(s.slice(0,run[0].at));
+    if(!lead && run.length<2) return;          // "10 nos nut" alone may be an order for nuts
+    let from=lead ? lead.index : run[0].at, to=run[run.length-1].end;
+    const tail=WQA_ACC_TAIL_RE.exec(s.slice(to));
+    if(tail) to+=tail[0].length;
+    cuts.push([from,to]);
+    run.forEach(p=>{
+      const isFin=w=>WQA_FINISHES.some(x=>x.value!=='PL' && x.re.test(' '+w+' '));
+      const words=p.mods ? p.mods.split(/\s+/) : [];
+      const odd=words.filter(w=>!WQA_ACC_PLAIN_MODS.test(w) && !isFin(w));
+      if(odd.length || !(p.qty>=1 && p.qty<=50) || out[p.type]!==null){ out.unsure.push(p.text); return; }
+      out[p.type]=p.qty;
+      const fin=WQA_FINISHES.find(x=>x.value!=='PL' && x.re.test(' '+p.mods+' '));
+      if(fin) out.finish=fin.value;
+    });
+  });
+  if(!cuts.length) return null;
+  let rest=s;
+  for(let k=cuts.length-1;k>=0;k--) rest=rest.slice(0,cuts[k][0])+' '+rest.slice(cuts[k][1]);
+  out.rest=rest.replace(/\s+/g,' ').trim();
+  out.found=out.nut!==null || out.fw!==null;
+  return out;
+}
+/* The accessory panel's own object, finished like the rod unless the clause
+   named a finish of its own. Unit prices stay at the panel's default. */
+function wqaAccFromSpec(a,rowFinish){
+  if(!a || (a.nut==null && a.fw==null)) return null;
+  const acc=wqaEmptyAcc();
+  const fin=a.finish || (WQA_ACC_FINISHES.indexOf(rowFinish||'')>=0 ? (rowFinish||'') : '');
+  if(a.nut!=null){ acc.nut.enabled=true; acc.nut.qty=a.nut; acc.nut.finish=fin; }
+  if(a.fw!=null){  acc.fw.enabled=true;  acc.fw.qty=a.fw;   acc.fw.finish=fin; }
+  return acc;
+}
+
 function wqaSpecCandidate(f){
   return !!f && !!f.size && f.qty===null && f.threadLen===null && f.nums.length===1 &&
          /^\d+(?:\.\d+)?$/.test(f.nums[0]);
@@ -14678,9 +15033,16 @@ function wqaParseText(text,forceProduct){
      of its own. One L Bolt line inside a Sag Rod message therefore still speaks
      for itself and for nothing after it. */
   let secProd='';
+  const accUnsure=[];
   const entries=lines.map(raw=>{
-    const t=raw.trim();
-    if(!t) return {blank:true};
+    const t0=raw.trim();
+    if(!t0) return {blank:true};
+    /* Accessory wording leaves the line before anything reads it. */
+    const acc=wqaAccScan(t0);
+    if(acc && acc.unsure.length) accUnsure.push.apply(accUnsure,acc.unsure);
+    const t=acc ? acc.rest : t0;
+    const accSpec=acc && acc.found ? {nut:acc.nut, fw:acc.fw, finish:acc.finish} : null;
+    if(acc && !t) return accSpec ? {t:t0,n:'',accOnly:true,accSpec} : {blank:true};
     const n=wqaNorm(t);
     if(WQA_SECTION_RE.test(n)) return {t,n,section:true};          // "Length:" — structural
     const sl=wqaSizeList(n);
@@ -14694,7 +15056,7 @@ function wqaParseText(text,forceProduct){
     const ef=wqaExtractFields(t,{rodSize,product:forceProduct||dd.product||secProd||common.product});
     if(!forceProduct && dd.product && !ef.size && ef.qty==null && !(ef.dims&&Object.keys(ef.dims).length))
       secProd=dd.product;
-    return {t,n,f:ef,d:dd};
+    return {t,n,f:ef,d:dd,src:t0,accSpec};
   });
   /* Thread arrangement beats the customer's product word, decided before
      anything is read as a row — the dimension columns depend on it. Resolved by
@@ -14726,6 +15088,8 @@ function wqaParseText(text,forceProduct){
     /* Read and understood — it just does not produce a row, and does not put a
        diameter into the context either. */
     if(e.sizeList){ ctx.sizeList=e.sizeList; return; }
+    /* "c/w 2 nuts" on a line of its own: shared, like a quantity for all. */
+    if(e.accOnly){ ctx.acc=e.accSpec; return; }
     /* "UNC" on a line of its own is the thread series of the item above it —
        read, attached, and no longer reported as something we could not read. */
     if(e.noise && WQA_SERIES_RE.test(' '+(e.n||'')+' ')){
@@ -14734,7 +15098,7 @@ function wqaParseText(text,forceProduct){
       else if(!ctx.series) ctx.series=wqaSeriesValue(e.n);
       return;
     }
-    if(e.noise){ skipped.push(e.t); if(counts) unread++; return; }
+    if(e.noise){ if(e.accSpec) ctx.acc=e.accSpec; skipped.push(e.t); if(counts) unread++; return; }
     if(!common.product && !selfProduct){ if(counts) unread++; return; }
 
     const f=e.f;
@@ -14843,6 +15207,7 @@ function wqaParseText(text,forceProduct){
                Sag Rod says nothing about the Studs below it. */
             ctxEnds=null;
             ctx.threadLen=''; ctx.threadLen2=''; ctx.tlCount=0;
+            ctx.acc=null;
           }
           ctx.product=hp;
         }
@@ -14866,6 +15231,8 @@ function wqaParseText(text,forceProduct){
         used=true;
       }
       if(f.size){ ctx.size=f.size; used=true; }
+      /* A heading's accessories are every row's under it, per rod. */
+      if(e.accSpec){ ctx.acc=e.accSpec; used=true; }
       if(f.threadLen!==null){
         /* "TL60/80" written under a row is that row's pair — the same rule as a
            single value, and the reason an independent block below no longer
@@ -14986,7 +15353,10 @@ function wqaParseText(text,forceProduct){
       const m=String(r.item.M||'').trim().toUpperCase();
       return (m && stScope.sizes.indexOf(m)<0) ? '' : v;
     })();
-    items.push({...r.item, raw:e.t, specResolved:true,
+    /* The row's own accessories win, per kind, over the heading's. */
+    const accRow=(e.accSpec||ctx.acc) ? {...(ctx.acc||{}),
+      ...Object.fromEntries(Object.entries(e.accSpec||{}).filter(([k,v])=>v!==null&&v!==''))} : null;
+    items.push({...r.item, raw:e.src||e.t, specResolved:true, accSpec:accRow,
                 materialValue:pick('material'), finishValue:pick('finish'),
                 sizeTypeValue:stPick,
                 matFrom: d.material ? (d.materialDefaultedFrom||'') : (ctx.material?ctx.matFrom:common.materialDefaultedFrom||''),
@@ -15000,6 +15370,7 @@ function wqaParseText(text,forceProduct){
      whatever the context ended up carrying fills the gaps it never reached.
      ONLY gaps — a row that stated its own value keeps it, exactly as a row above
      the context would. */
+  if(ctx.acc) items.forEach((it,k)=>{ if(k>=secFrom && !it.accSpec) it.accSpec=ctx.acc; });
   if(ctx.size || ctx.threadLen || ctx.qty){
     const wantsThread=wqaThreadEnds(common.product)>0;
     const ctxTL=ctx.threadLen ? (ctx.threadLen2?ctx.threadLen+'/'+ctx.threadLen2:ctx.threadLen) : '';
@@ -15074,7 +15445,8 @@ function wqaParseText(text,forceProduct){
   /* The SAME normaliser the photo and PDF extraction goes through. Everything
      from this line downwards is shared by every source. */
   const norm=wqaNormalizeExtraction({product:common.product,threadEnds,items},{wording:text});
-  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread};
+  norm.rows.forEach((r,k)=>{ const a=items[k]&&wqaAccFromSpec(items[k].accSpec,r.finish); if(a) r.accParsed=a; });
+  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread, accUnsure};
 }
 
 /* Everything the LAST source told us that is not a row: the accessory wording
@@ -15192,8 +15564,19 @@ function wqaAbandonAi(){
   wqa.aiBusy=false;
   const s=el('wqaAiStatus'); if(s) s.hidden=true;
 }
+/* Selected uploads, in order: up to WQA_AI_MAX_FILES images, OR one PDF —
+   never both. wqa.aiFile stays the first entry so every "is anything
+   selected" check keeps working unchanged. */
+const WQA_AI_MAX_FILES = 5;
+function wqaSyncAiFile(){
+  const a=wqa.aiFiles||(wqa.aiFiles=[]);
+  wqa.aiFile = a.length ? a[0].file : null;
+  wqa.aiIsPdf = !!(a[0] && a[0].pdf);
+}
+function wqaAiFileNames(){ return (wqa.aiFiles||[]).map(x=>x.name).join(', '); }
 function wqaClearAiFile(rerender){
-  if(wqa.aiPreviewUrl){ try{ URL.revokeObjectURL(wqa.aiPreviewUrl); }catch(e){} }
+  (wqa.aiFiles||[]).forEach(x=>{ if(x.url){ try{ URL.revokeObjectURL(x.url); }catch(e){} } });
+  wqa.aiFiles=[]; wqa._clipN=0;
   wqa.aiFile=null; wqa.aiPreviewUrl=''; wqa.aiIsPdf=false;
   wqa._dragDepth=0; wqaDragPaint(false); wqaDropBad(false);
   wqaAbandonAi();
@@ -15232,11 +15615,8 @@ function wqaDrop(e){
     wqaRejectFile(dcT('wqaDropNoFile'));
     return;
   }
-  /* One file per analysis, unchanged from V2.1: extras are ignored rather than
-     queued, and a second drop replaces the first selection outright. */
-  const many=files.length>1;
-  wqaAcceptFile(files[0]);
-  if(many && wqa.aiFile) wqaMsg('wqaAiMsg',dcT('wqaOneFileUsing').replace('{f}',wqa.aiFile.name),false);
+  /* Dropped files join the same list as chosen and pasted ones. */
+  wqaAddFiles(files);
 }
 /* Rejection is shared so the picker and the drop zone fail identically. */
 function wqaRejectFile(msg){
@@ -15245,32 +15625,75 @@ function wqaRejectFile(msg){
   wqaUpdateAiPane();
   wqaMsg('wqaAiMsg',msg,true);
 }
-/* The single entry point for a chosen file, whichever way it arrived. These are
-   the same client rules as before; the server re-validates from content and
-   remains the authority. */
-function wqaAcceptFile(f){
-  /* A note describes the drawing it was typed against. Swapping the file makes
-     it a note about something else, so it goes with the file it belonged to. */
-  if(wqa.aiFile) wqaClearNote();
-  wqaClearAiFile(false);              // revokes the previous object URL
-  wqaMsg('wqaAiMsg','',false);
-  if(!f){ wqaUpdateAiPane(); return; }
-  const isPdf = f.type==='application/pdf' || /\.pdf$/i.test(f.name);
-  const isImg = /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
-  if(!isPdf && !isImg){ wqaRejectFile(dcT('errUnsupportedType')); return; }
-  if(isPdf && f.size>WQA_AI_MAX_PDF){ wqaRejectFile(dcT('errPdfTooLarge')); return; }
-  if(!isPdf && f.size>WQA_AI_MAX_IMG){ wqaRejectFile(dcT('errImgTooLarge')); return; }
-  wqa.aiFile=f; wqa.aiIsPdf=isPdf;
-  if(!isPdf){ try{ wqa.aiPreviewUrl=URL.createObjectURL(f); }catch(e){ wqa.aiPreviewUrl=''; } }
-  /* Clear the picker after a drop so it cannot hold a stale file: re-picking
-     that same file later would otherwise fire no change event and silently
-     leave the dropped one selected. The File object above is already captured.*/
+/* The single entry point for chosen, dropped and pasted files. Each one is
+   appended to the selected list in order; a file that breaks a rule is refused
+   on its own and never clears what is already selected. Same client rules as
+   before; the server re-validates from content and remains the authority. */
+function wqaAddFiles(list){
+  list=Array.from(list||[]).filter(Boolean);
+  wqaMsg('wqaAiMsg','',false); wqaDropBad(false);
+  if(!wqa.aiFiles) wqa.aiFiles=[];
+  let err='', added=0;
+  list.forEach(f=>{
+    const isPdf = f.type==='application/pdf' || /\.pdf$/i.test(f.name);
+    const isImg = /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
+    let e='';
+    if(!isPdf && !isImg)                         e=dcT('errUnsupportedType');
+    else if(isPdf && wqa.aiFiles.length)         e=dcT(wqa.aiIsPdf ? 'wqaOnePdf' : 'wqaMixNoPdf');
+    else if(isPdf && f.size>WQA_AI_MAX_PDF)      e=dcT('errPdfTooLarge');
+    else if(!isPdf && wqa.aiIsPdf)               e=dcT('wqaMixNoImg');
+    else if(!isPdf && wqa.aiFiles.length>=WQA_AI_MAX_FILES) e=dcT('wqaMaxImages');
+    else if(!isPdf && f.size>WQA_AI_MAX_IMG)     e=dcT('errImgTooLarge');
+    if(e){ if(!err) err=e; return; }
+    let url=''; if(!isPdf){ try{ url=URL.createObjectURL(f); }catch(x){ url=''; } }
+    wqa.aiFiles.push({file:f, name:String(f.name||''), pdf:isPdf, url});
+    wqaSyncAiFile(); added++;
+  });
+  if(added) wqaAbandonAi();           // a different set: any answer in flight is for the old one
+  /* Clear the picker so it cannot hold a stale selection: re-picking the same
+     file later would otherwise fire no change event. The Files are captured. */
   if(el('wqaFileInput')) el('wqaFileInput').value='';
+  if(err){ wqaDropBad(!added); wqaMsg('wqaAiMsg',err,true); }
+  wqaUpdateAiPane();
+}
+function wqaRemoveFile(i){
+  const a=wqa.aiFiles||[], x=a[i]; if(!x) return;
+  if(x.url){ try{ URL.revokeObjectURL(x.url); }catch(e){} }
+  a.splice(i,1); wqaSyncAiFile();
+  wqaAbandonAi(); wqaDropBad(false); wqaMsg('wqaAiMsg','',false);
   wqaUpdateAiPane();
 }
 function wqaFileChosen(input){
-  wqaAcceptFile(input.files && input.files[0]);
+  wqaAddFiles(input.files);
 }
+/* ── Ctrl+V screenshot paste ──────────────────────────────────────────────
+   Active only while Quick Add is open on its input step. An image on the
+   clipboard joins the selected list as clipboard-N.png; anything else is left
+   to the browser. Text pasted into a field stays text: when the focus is in an
+   editable field and the clipboard also carries text, the paste is not touched. */
+function wqaClipFile(f){
+  const ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[f.type];
+  if(!ext) return f;                  // unsupported type: refused by name/type as usual
+  wqa._clipN=(wqa._clipN||0)+1;
+  try{ return new File([f],'clipboard-'+wqa._clipN+'.'+ext,{type:f.type}); }catch(e){ return f; }
+}
+document.addEventListener('paste',e=>{
+  const m=el('wqaModal');
+  if(!m || !m.classList.contains('open')) return;
+  if(!el('wqaStep1') || el('wqaStep1').hidden) return;
+  const cd=e.clipboardData; if(!cd) return;
+  const imgs=[];
+  Array.from(cd.items||[]).forEach(it=>{
+    if(it.kind==='file' && /^image\//.test(it.type)){ const f=it.getAsFile(); if(f) imgs.push(f); }
+  });
+  if(!imgs.length) return;            // no image: an ordinary paste
+  const t=e.target;
+  const editable=!!t && (t.isContentEditable || /^(INPUT|TEXTAREA)$/.test(t.tagName||''));
+  if(editable && Array.from(cd.types||[]).indexOf('text/plain')>=0) return;
+  e.preventDefault();
+  if(wqa.method!=='upload') wqaSetMethod('upload');
+  wqaAddFiles(imgs.map(wqaClipFile));
+});
 /* The note belongs to THIS analysis: it describes the file on screen. */
 function wqaNoteInput(){
   const e=el('wqaAiNote');
@@ -15291,16 +15714,29 @@ function wqaFmtBytes(n){ return n>=1048576 ? (n/1048576).toFixed(1)+' MB' : Math
 function wqaUpdateAiPane(){
   const info=el('wqaFileInfo'), box=el('wqaAiPreviewBox'), img=el('wqaAiPreview'),
         chip=el('wqaAiPdfChip'), pname=el('wqaAiPdfName'), btn=el('wqaAnalyzeBtn');
-  if(info) info.textContent = wqa.aiFile ? (wqa.aiFile.name+' · '+wqaFmtBytes(wqa.aiFile.size)) : dcT('wqaNoFile');
-  /* Read from the file that is selected RIGHT NOW, never from what was shown
-     before: an image gets the preview and no badge, a PDF gets the badge and no
-     preview, and replacing one with the other swaps both in the same pass. */
-  const showImg=!!wqa.aiFile && !wqa.aiIsPdf && !!wqa.aiPreviewUrl;
-  const showPdf=!!wqa.aiFile && !!wqa.aiIsPdf;
-  if(img){ img.hidden=!showImg; img.src=wqa.aiPreviewUrl||''; }
-  if(chip)  chip.hidden=!showPdf;
-  if(pname) pname.textContent = showPdf ? wqa.aiFile.name : '';
-  if(box)   box.hidden = !(showImg||showPdf);
+  const files=wqa.aiFiles||[];
+  if(info){
+    if(!files.length) info.textContent=dcT('wqaNoFile');
+    else {
+      /* Read from what is selected RIGHT NOW: numbered images with a small
+         thumbnail, or the one PDF with its badge. Each row removes itself. */
+      const rows=files.map((x,i)=>`<li class="wqa-sel-row">${x.pdf
+          ? '<span class="wqa-pdf-badge">PDF</span>'
+          : `<img class="wqa-sel-thumb" src="${escHtml(x.url)}" alt="">`}
+        <span class="wqa-sel-name" title="${escHtml(x.name)}">${x.pdf?'':(i+1)+'. '}${escHtml(x.name)}</span>
+        <span class="wqa-sel-size">${escHtml(wqaFmtBytes(x.file.size))}</span>
+        <button type="button" class="btn btn-ghost btn-sm wqa-sel-rm" onclick="wqaRemoveFile(${i})"
+          >${escHtml(dcT('wqaRemoveFile'))}</button></li>`).join('');
+      info.innerHTML=`<div class="wqa-sel-head">${escHtml(dcT(wqa.aiIsPdf?'wqaSelPdf':'wqaSelImages'))}</div>`
+        +`<ol class="wqa-sel-list">${rows}</ol>`
+        +(wqa.aiIsPdf?'':`<div class="wqa-sel-count">${escHtml(dcT('wqaImgCount').replace('{n}',files.length).replace('{max}',WQA_AI_MAX_FILES))}</div>`);
+    }
+  }
+  /* The list above carries the thumbnails; the single large preview is retired. */
+  if(img){ img.hidden=true; img.src=''; }
+  if(chip)  chip.hidden=true;
+  if(pname) pname.textContent='';
+  if(box)   box.hidden=true;
   if(btn) btn.disabled = !wqa.aiFile || !!wqa.aiBusy;
 }
 /* A file dropped ANYWHERE else in the modal would navigate the tab to it and
@@ -15322,7 +15758,11 @@ async function wqaAnalyze(){
   wqaSetAiBusy(true);
   wqaMsg('wqaAiMsg','',false);
   try{
-    const fd=new FormData(); fd.append('file', wqa.aiFile, wqa.aiFile.name);
+    /* One file goes as before ('file'); several images go as 'files[]' in the
+       selected order and are read by ONE model request on the server. */
+    const fd=new FormData(), sel=wqa.aiFiles||[];
+    if(sel.length>1) sel.forEach(x=>fd.append('files[]', x.file, x.name));
+    else fd.append('file', wqa.aiFile, wqa.aiFile.name);
     /* Supplemental context for the model — it may genuinely help it read the
        drawing. It is NOT how the override is enforced: that happens in our own
        code, after the answer comes back. Sent only when there is one, so a
@@ -15344,6 +15784,21 @@ async function wqaAnalyze(){
     if(token===wqa._aiReq) wqaSetAiBusy(false);
   }
 }
+/* ── L-Bolt dimension references → canonical TO END ────────────────────────
+   Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
+   centre line or TO its end; the system's canonical L and W are TO END. TOP adds D,
+   CENTER adds D/2, END adds nothing. Nominal diameter only — no bend radius. Pure:
+   returns the source untouched alongside the normalized value so the review can show both. */
+function normalizeBentDimension(value,reference,diameter){
+  const src=Number(value), ref=String(reference||'').toUpperCase(), d=Number(diameter);
+  const out={source_value:src,source_reference:ref||null,normalized_value:src,normalized_reference:'END',converted:false,resolved:true};
+  if(!(src>0)) { out.resolved=false; return out; }
+  if(ref==='END'||ref==='') return out;                       // already TO END, or the document names no reference
+  if((ref==='TOP'||ref==='CENTER') && d>0){
+    out.normalized_value=Math.round((src+(ref==='TOP'?d:d/2))*100)/100; out.converted=true; return out;
+  }
+  out.resolved=false; return out;                              // UNCLEAR, or no diameter to convert with: never guess
+}
 /* ══ THE ONE SHARED NORMALISER ══════════════════════════════════════════════
    Every input source — the deterministic text parser, the AI text fallback and
    the AI photo / PDF extraction — produces the SAME compact extraction:
@@ -15713,6 +16168,20 @@ function wqaNormalizeExtraction(d, opts){
          down to "100" and hand the row a length nobody wrote. */
       row.unclearRaw=String(it.unclear);
     }
+    /* L Bolt only: bring L and W to the canonical TO END, and keep what the drawing said.
+       Unresolved (reference unclear / no diameter) is never converted and never assumed TO END:
+       the value is held back as evidence and the row asks for it. */
+    if(rowProd==='lbolt'){
+      const dm=/^M\s*(\d+(?:\.\d+)?)/i.exec(String(row.size||'')), dia=dm?Number(dm[1]):0;
+      const norm=[['length','L',it.Lref],['w','W',it.Wref]].map(([k,lab,ref])=>{
+        if(row[k]===''||ref==null||ref==='') return null;
+        const n=normalizeBentDimension(row[k],ref,dia);
+        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); }
+        else { row[k]=''; row.aiUncertain.push((lab+' '+n.source_value+': '+(String(ref).toUpperCase()==='UNCLEAR'?'reference unclear':'needs diameter')).slice(0,40)); }
+        return Object.assign({k:lab},n);
+      }).filter(Boolean);
+      if(norm.length) row.dimNorm=norm;
+    }
     /* Product-aware, per ROW: only a product that HAS a thread can be missing
        one, and which product this is was decided a few lines above. */
     if(rEnds>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
@@ -15820,7 +16289,7 @@ async function wqaAiApply(d, msgTarget, meta){
      source and the panel names the file instead of inventing a transcript. */
   const fromText = !!msgTarget && msgTarget==='wqaParseMsg';
   await wqaEnterReview(norm.common, norm.rows,
-                       fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqa.aiFile.name:'file')),
+                       fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqaAiFileNames():'file')),
                        [], 'ai', fromText ? 'text' : 'file');
   return true;
 }
@@ -16104,12 +16573,12 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   wqa.srcKind = srcKind==='file' ? 'file' : 'text';
   if(wqa.srcKind==='file'){
     wqa.fileSource = wqa.aiFile
-      ? {name:String(wqa.aiFile.name||''), pdf:!!wqa.aiIsPdf} : null;
+      ? {name:wqaAiFileNames(), pdf:!!wqa.aiIsPdf} : null;
   } else {
     wqa.textSource = String(rawText||'');
   }
   wqa.common={...common};
-  wqa.rows=rows.map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
+  wqa.rows=rows.map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
                          priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   wqa.skipped=skipped||[];
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
@@ -16266,6 +16735,8 @@ async function wqaParseAndReview(){
   }
   const q=wqaParseQuality(parsed,text);
   if(q.ok){
+    if(parsed.accUnsure && parsed.accUnsure.length)
+      wqa.aiWarnings=[{k:'wqaAccUnsure',v:parsed.accUnsure.join(', ')}];
     /* Parser understood it. No AI call, no badge, no cost. */
     await wqaEnterReview(parsed.common, parsed.rows, text, parsed.skipped);
     return;
@@ -16419,7 +16890,7 @@ function wqaChangeProduct(t){
   /* Same pipeline as the first parse, so header context and inheritance behave
      identically after a product switch. */
   wqa.rows=wqaParseText(wqa.raw,t).rows
-    .map(r=>({...r,acc:null,accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
+    .map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   rebuild();
   wqaRecomputeAll();
 }
