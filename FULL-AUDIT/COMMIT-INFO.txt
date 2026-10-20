@@ -6,8 +6,8 @@ BRANCH          main
 BASELINE SHA    f96714e33795e80b581b1d03deb9d04db1d94b8d
                 "Audit package: the polish, and what it must not have moved"
 ACCEPTED APPLICATION COMMIT
-                5f5b4a76bb704e8e3709bb2adad51babc06db322
-                "merge: reconcile production hotfix chain with main's revision history"
+                c38896c91df5e9698f905b5b954cc8168a69a8df
+                "merge: Session B — production upload capacity audit"
                 The commit the accepted implementation and its test
                 matrix were measured at. Every figure in this package
                 was produced by this tree, and docs/control/
@@ -221,6 +221,16 @@ AUDIT COMMITS (oldest first — this list is the count)
   91f0c0b  fix(ui): explain quick add multi-image support
   091ac77  test: align closing checks with accepted production behavior
   5f5b4a7  merge: reconcile production hotfix chain with main's revision history
+  f7184f1  docs(control): record reconciliation candidate evidence and deploy order
+  076e2ae  docs(control): close source reconciliation round
+  71bceb1  docs(control): open QUICK ADD TL OVERRIDE + HARDENING AUDIT round
+  6487cfa  docs(control): admit two PHP tests that pin the leaked DB error text
+  c8d1895  fix(api): keep DB driver detail out of responses; escape history item_count
+  858b1ab  docs(audit): production upload capacity audit for 5 x 10 MB Quick Add
+  9d6cb8f  fix(quickadd): a row's own thread length overrides the shared heading
+  b94d77c  merge: Session C — DB error leakage, history item_count escape, CSRF design
+  fcbad07  merge: Session A — row-level Sag Rod TL overrides the shared heading
+  c38896c  merge: Session B — production upload capacity audit
 <<<END:COMMITS>>>
 
   1cea497  The three Priority Zero items, plus the two comma defects behind
@@ -377,27 +387,28 @@ FILES CHANGED (baseline -> final)
 TEST MATRIX AT FINAL SHA
 ------------------------
 <<<GENERATED:MATRIX>>>
-  Browser suites            41 suites, 4,010 assertions, 8 failed
+  Browser suites            43 suites, 4,202 assertions, 8 failed
   Pricing-history PHP                    172 assertions, 0 failed
   AI extraction PHP                      107 assertions, 0 failed
   Pricing workbook                        62 assertions, 0 failed
   Translation coverage                    15 assertions, 0 failed
   Save retry PHP                          42 assertions, 0 failed
-  mysqli compatibility PHP                94 assertions, 0 failed
+  mysqli compatibility PHP                97 assertions, 0 failed
   Actor identity PHP                     150 assertions, 0 failed
   Item identity PHP                      159 assertions, 0 failed
   Transaction foundation PHP              92 assertions, 0 failed
   Revision writer PHP                    101 assertions, 0 failed
   No-op suppression PHP                  171 assertions, 0 failed
   History read PHP                       126 assertions, 0 failed
+  Error leakage PHP                      410 assertions, 0 failed
   ----------------------------------------------------------------
-  TOTAL ASSERTIONS                      5,301
+  TOTAL ASSERTIONS                      5,906
   TOTAL FAILED                              8   (environment; see CANONICAL-STATE browserFailureException)
   SKIPPED / ENVIRONMENT-LIMITED             0
 
   Baseline:   2,810 assertions
-  Final:      5,301 assertions
-  Delta:     +2,491 assertions
+  Final:      5,906 assertions
+  Delta:     +3,096 assertions
 <<<END:MATRIX>>>
 
   php -l over every PHP file  clean
@@ -429,7 +440,7 @@ EVIDENCE
   screenshots/          96 frames + INDEX.txt
   before-fix/           6 frames from the baseline commit, same inputs
   after-fix/            56 frames, the matching after
-  regression-evidence/  23 files — every log the reports claim,
+  regression-evidence/  24 files — every log the reports claim,
                         checked against the directory rather than written
                         from memory
 <<<END:EVIDENCE>>>

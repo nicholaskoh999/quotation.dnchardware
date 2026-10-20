@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "application": {
-    "acceptedCommit": "5f5b4a76bb704e8e3709bb2adad51babc06db322",
+    "acceptedCommit": "c38896c91df5e9698f905b5b954cc8168a69a8df",
     "status": "accepted",
-    "acceptedRound": "SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT - main and the production hotfix chain are one line again, and revision history is live (FINAL ACCEPTED)"
+    "acceptedRound": "QUICK ADD TL OVERRIDE + HARDENING AUDIT - a row's own Sag Rod thread length overrides the shared heading, DB driver detail no longer reaches the browser, and History item_count is normalised and escaped at render (FINAL ACCEPTED)"
   },
   "revisionStorage": {
     "round": "REVISION STORAGE FOUNDATION",
@@ -42,19 +42,19 @@
   "production": {
     "host": "quo.dnchardware.com",
     "runtime": "PHP 8.4.24",
-    "deployedApplicationCommit": "f7184f192cc087cfed734fc3df66a6afcf997d51",
+    "deployedApplicationCommit": "32382327de3ecdd054707de6ceefaf7fbb1aad85",
     "actorIdentity": "LIVE — PRODUCTION VERIFIED",
-    "verifiedOn": "2026-10-19",
+    "verifiedOn": "2026-10-20",
     "appUsersMigration": "APPLIED",
     "appUsersMigrationFile": "migrations/2026-08-26-create-app-users.sql",
     "seededUsers": 2,
     "databaseBackupRetained": true,
     "rollbackPerformed": false,
     "refNoNotNull": "APPLIED — separate earlier round, unaffected by this one",
-    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5729ad5: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer and no-op suppression are all accepted in source only. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5595395: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer, no-op suppression and the history reader are all accepted in source only.",
+    "note": "Actor Identity was verified in production on 2026-08-27 by a two-user smoke: concurrent login by two people, logout isolation, distinct server-side identities (nicholas id=1, testuser id=2), wrong password refused, unknown username refused, the old shared admin credentials refused, signed-out API HTTP 401, and quotation create / save / reopen / edit / re-save with ref_no generated normally and unchanged across the re-save. Item Identity was rolled out and verified on 2026-08-28: backup, edits paused, backfill dry run, review, --apply, coverage verified, application deployed, smoke, edits resumed. No rollback was needed at either stage. ACCEPTED AND DEPLOYED ARE EQUAL AGAIN as of this rollout — they are still two separate fields and the next accepted commit will separate them again until it is deployed. Production previously ran e76bb85d663f96fdce3ed6c0c70b72c49d84000a, which is history, not current state. The assertion figures under tests are SOURCE test figures; a production smoke is not an assertion and adds nothing to them. ACCEPTED AND DEPLOYED ARE SEPARATE AGAIN as of 1ca6554: production still runs 649f80a, the Item Identity build. The transaction foundation is accepted in source only and has not been deployed. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 631cb89: production still runs 649f80a, the Item Identity build. Neither the transaction foundation nor the snapshot revision writer has been deployed, and quotation_revisions still does not exist in production - which is also the hard ordering constraint, because the writer requires that table before this application can be deployed at all. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5729ad5: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer and no-op suppression are all accepted in source only. ACCEPTED AND DEPLOYED REMAIN SEPARATE as of 5595395: production still runs 649f80a, the Item Identity build. The transaction foundation, the snapshot revision writer, no-op suppression and the history reader are all accepted in source only. AS OF 2026-10-20 ACCEPTED AND DEPLOYED AGREE ON THE APPLICATION: production runs 3238232, the integration HEAD of QUICK ADD TL OVERRIDE + HARDENING AUDIT, whose application files are byte-identical to the accepted c38896c; the commit after c38896c carries evidence and control files only.",
     "itemIdentity": "LIVE — PRODUCTION VERIFIED",
     "itemUidBackfill": "APPLIED",
-    "previouslyDeployedApplicationCommit": "91f0c0b905ef402378aaeef896c80a4e6229c442",
+    "previouslyDeployedApplicationCommit": "f7184f192cc087cfed734fc3df66a6afcf997d51",
     "itemIdentityVerifiedOn": "2026-08-28",
     "itemUidBackfillFile": "migrations/2026-08-27-backfill-item-uids.php",
     "itemUidBackfillEvidence": {
@@ -68,11 +68,11 @@
       "note": "The post-apply dry run is the idempotence proof: it saw 2,079 items that already had identity, minted none, and had nothing to write. Coverage is total — 2,079 of 2,079 items hold a valid item_uid and none is missing or malformed."
     },
     "deployVerification": {
-      "pathsChecked": 18,
-      "match": 18,
+      "pathsChecked": 1,
+      "match": 1,
       "drift": 0,
       "missing": 0,
-      "method": "every path in .cpanel.yml APPFILES plus assets/icons, sha256 of the deployed file against the blob at the accepted commit — the file list read from the deploy authority rather than typed out"
+      "method": "cPanel Git deploy of integration/quickadd-tl-hardening at 3238232, completed 2026-10-20 16:02:18 as reported by the owner (Claude could not open the cPanel session). The deployable delta against the previous production f7184f1 was exactly index.php and api.php under the .cpanel.yml allowlist. index.php was verified from what production SERVES: all 31 lines the round added are present and both lines it replaced are absent. api.php is server-side and cannot be read over HTTP; it was verified by behaviour - a staff create (16:05) and update (16:07) of Q-2026-1295 on the new build both wrote usable History revisions, and no production failure was manufactured to probe the error text."
     },
     "itemIdentitySmoke": {
       "result": "PASS",
@@ -81,26 +81,36 @@
       "cleanup": "the smoke quotation was temporary and was deleted — exactly 1 row removed, remaining Q-2026-0693 = 0, and the quotation count returned to 690"
     },
     "quotationRevisionsTable": "PRESENT - migrations/2026-08-28-create-quotation-revisions.sql APPLIED 2026-10-19 on MySQL 8.0.46; Section 4 MATCH and CONFORMS",
-    "deployedBranch": "integration/source-reconciliation",
-    "revisionHistory": "DEPLOYED - transaction foundation, revision writer, no-op suppression and history reader are live",
-    "productionSmoke": "OWNER ACCEPTED / PASS 2026-10-19",
+    "deployedBranch": "integration/quickadd-tl-hardening",
+    "revisionHistory": "DEPLOYED / VERIFIED - still live after this round's deploy; create and update revisions were recorded and readable on 2026-10-20",
+    "productionSmoke": "OWNER ACCEPTED / PASS 2026-10-20 - basic production, Quick Add TL owner smoke (70/70, 'thread length 50mm' 50/50, next row 70/70, x 50/50), regression (Quick Add, manual Sag Rod, Unit Converter, Copy, Copy + Weight, History), History item count, and a non-Sag-Rod parser spot check identical to the base on 8 inputs. Rollback: NO.",
     "databaseBackup": "owner-confirmed fresh backup before the migration, 2026-10-19",
-    "schemaObservations": "quotations.id is signed INT (migration assumed INT UNSIGNED; all ids positive, 1..1278 at apply time, accepted by owner); database default charset utf8mb3/utf8mb3_unicode_ci (accepted by owner)"
+    "schemaObservations": "quotations.id is signed INT (migration assumed INT UNSIGNED; all ids positive, 1..1278 at apply time, accepted by owner); database default charset utf8mb3/utf8mb3_unicode_ci (accepted by owner)",
+    "previousDeployVerification": {
+      "pathsChecked": 18,
+      "match": 18,
+      "drift": 0,
+      "missing": 0,
+      "method": "every path in .cpanel.yml APPFILES plus assets/icons, sha256 of the deployed file against the blob at the accepted commit — the file list read from the deploy authority rather than typed out"
+    },
+    "databaseChangeLastRound": "NONE - QUICK ADD TL OVERRIDE + HARDENING AUDIT applied no migration",
+    "configChangeLastRound": "NONE - no php.ini, LiteSpeed, db.php or cPanel setting was changed",
+    "uploadCapacity": "UNVERIFIED - docs/audit/2026-10-20-upload-capacity.md: FAIL at PHP defaults; 5 x 10 MB needs upload_max_filesize >= 10M, post_max_size >= 51M, memory_limit 256M. Production values still to be read by the owner in cPanel."
   },
   "tests": {
     "baselineAssertions": 2810,
-    "finalAssertions": 5301,
-    "deltaAssertions": 2491,
+    "finalAssertions": 5906,
+    "deltaAssertions": 3096,
     "failed": 8,
     "skipped": 0,
-    "browserSuites": 41,
-    "browserAssertions": 4010,
+    "browserSuites": 43,
+    "browserAssertions": 4202,
     "pricingHistoryAssertions": 172,
     "aiExtractionAssertions": 107,
     "workbookAssertions": 62,
     "translationAssertions": 15,
     "saveRetryAssertions": 42,
-    "mysqliCompatAssertions": 94,
+    "mysqliCompatAssertions": 97,
     "actorIdentityAssertions": 150,
     "itemIdentityAssertions": 159,
     "transactionFoundationAssertions": 92,
@@ -119,14 +129,11 @@
       "reproducedOn": "ce26146a6a792f2bac0ebb4bab77389d19ff0660",
       "reproducedHow": "a pristine git worktree at ce26146 — this round's own starting point, before a single Item Identity byte — fails the same eight assertions with the same numbers",
       "doNot": "Do not relax these assertions and do not restate this total as 0 failed. The accepted desktop dimensions are protected by PROJECT-GUARDRAILS; what is unproven here is the measurement environment, not the rule.",
-      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table. Re-run again on 5729ad5: 40 suites and 3,936 assertions with the same eight, twice. Re-measured on the accepted commit 5595395 with the History panel in place: the same eight, in the same one suite. THE BROWSER MATRIX IS NOW REACHABLE BY A HISTORY CHANGE - index.php moved in this round - so the \"mechanically unreachable\" argument used by earlier rounds is deliberately NOT made for it. Re-measured on the reconciliation candidate 5f5b4a7 (41 suites, 4,010 assertions): the same eight, line for line. This round touched companies.php and the 38 suite, so the untouched-files argument is replaced by an exact comparison of the failure lists.",
-      "filesTouchedThisRound": [
-        "companies.php (language-toggle aria-label only)",
-        "tests/suites/38-mobile-ui.test.js (WhatsApp 1) numbering lines only)"
-      ],
+      "note": "Re-measured on the accepted commit 631cb89 with the revision writer and the isolation fix in place: the same eight assertions, the same four widths, the same numbers. This round added none of them and fixed none of them - 3,928 of 3,936 pass. The browser matrix cannot reach this round change at all: the harness intercepts every api.php request and answers it from a stub table. Re-run again on 5729ad5: 40 suites and 3,936 assertions with the same eight, twice. Re-measured on the accepted commit 5595395 with the History panel in place: the same eight, in the same one suite. THE BROWSER MATRIX IS NOW REACHABLE BY A HISTORY CHANGE - index.php moved in this round - so the \"mechanically unreachable\" argument used by earlier rounds is deliberately NOT made for it. Re-measured on the reconciliation candidate 5f5b4a7 (41 suites, 4,010 assertions): the same eight, line for line. This round touched companies.php and the 38 suite, so the untouched-files argument is replaced by an exact comparison of the failure lists. Re-measured on the TL override / hardening candidate c38896c (43 suites, 4,202 assertions): the same eight, line for line. companies.php and the 38 suite are untouched by that round.",
+      "filesTouchedThisRound": [],
       "sameListAs": {
         "accepted": "FULL-AUDIT/regression-evidence/browser-suite.log",
-        "thisRound": "FULL-AUDIT/stage-reconciliation/logs/browser-combined.log"
+        "thisRound": "FULL-AUDIT/stage-tl-hardening/logs/browser-combined.log"
       }
     },
     "browserSuitesBeforeItemIdentity": 39,
@@ -146,7 +153,9 @@
         "no-op suppression round, pristine worktree at 631cb89 full matrix: 8",
         "suite 35 alone while the machine was BUSY: 2 of 5 on the candidate AND 2 of 5 on the pristine tree, same assertion, same expected true and actual false",
         "suite 35 alone once the machine was quiet: 0 of 10 on each tree",
-        "minimal history read / UI round: the full matrix returned the recorded eight with no 35-edit-mode failure, run with both MySQL engines stopped - the condition under which it previously measured 0 of 10 in isolation"
+        "minimal history read / UI round: the full matrix returned the recorded eight with no 35-edit-mode failure, run with both MySQL engines stopped - the condition under which it previously measured 0 of 10 in isolation",
+        "TL override / hardening round: suite 35 alone on base 076e2ae failed 2 of 4, same assertion, same expected true / actual false",
+        "TL override / hardening round: suite 35 alone on Session C c8d1895 failed 2 of 3 and on integration c38896c 2 of 3; the integration full matrix returned the recorded eight with no 35 failure (FULL-AUDIT/stage-tl-hardening/logs/35-runs.log)"
       ],
       "mechanism": "index.php, tests/suites and tests/lib are byte-identical to 1ca6554, and tests/lib/harness.js intercepts every api.php request and answers it from a stub table - so the browser matrix never executes the one file this round changed. The failure is unobserved on rerun AND unreachable by mechanism.",
       "brittleness": "the assertion ends a chain of typeCell / wqaEditDone pairs that carry no settle wait, unlike the ones above it in the same suite.",
@@ -155,7 +164,12 @@
     },
     "browserSuitesBeforeHistoryRound": 40,
     "browserAssertionsBeforeHistoryRound": 3936,
-    "historyBrowserAssertions": 74
+    "historyBrowserAssertions": 74,
+    "errorLeakageAssertions": 410,
+    "browserSuitesBeforeTlHardeningRound": 41,
+    "browserAssertionsBeforeTlHardeningRound": 4010,
+    "tlHardeningBrowserAssertions": 192,
+    "workbookNote": "62 carried forward from the accepted run: tests/tools/check-pricing-workbook.py needs pricing-engine-v2-input.xlsx, which is not in the repository, and the TL override / hardening round changed nothing it measures."
   },
   "translation": {
     "keys": 953,
@@ -205,7 +219,8 @@
       4734,
       4822,
       4930,
-      5101
+      5101,
+      5301
     ],
     "supersededTranslationKeys": [
       512,
@@ -235,7 +250,8 @@
       1924,
       2012,
       2120,
-      2291
+      2291,
+      2491
     ],
     "supersededSuiteCounts": [
       34,
@@ -243,7 +259,8 @@
       37,
       38,
       39,
-      40
+      40,
+      41
     ],
     "retiredManifestName": "ZIP-MANIFEST.txt",
     "resolvedObservation": {
@@ -326,6 +343,11 @@
         "sha": "5595395fefb49adcb1140a3c9b2a1c36dc7a2186",
         "supersededBy": "5f5b4a76bb704e8e3709bb2adad51babc06db322",
         "round": "MINIMAL HISTORY READ / UI"
+      },
+      {
+        "sha": "5f5b4a76bb704e8e3709bb2adad51babc06db322",
+        "supersededBy": "c38896c91df5e9698f905b5b954cc8168a69a8df",
+        "round": "SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT"
       }
     ]
   },
@@ -466,37 +488,79 @@
       "reproducedOn": "076e2aeb135c5bc8d232beae35210c4742d461a2",
       "evidence": "isolated runs of the 35 suite: base 076e2ae failed 2 of 4; Session C c8d1895 failed 2 of 3; integration c38896c failed 2 of 3 (FULL-AUDIT/stage-tl-hardening/logs/35-runs.log); it passed inside the integration full-suite run",
       "acceptedBy": "owner, 2026-10-20, because it reproduces on the base",
-      "doNot": "Do not count it among the eight and do not relax it. A failure of any OTHER assertion in that suite is a regression."
+      "doNot": "Do not count it among the eight and do not relax it. A failure of any OTHER assertion in that suite is a regression.",
+      "sameRecordAs": "tests.browserFlakeInvestigated - the same load-sensitive 35-edit-mode assertion, first investigated in earlier rounds"
     }
   ],
-  "currentRound": {
+  "deferred": [
+    "HIGH PRIORITY: production db.php connection-error leak - manual server-side hardening required; potentially reachable before login if production db.php matches db.sample.php behaviour (docs/audit/2026-10-20-error-leakage.md section 3)",
+    "VERIFY: production display_errors is Off",
+    "VERIFY: production upload_max_filesize",
+    "VERIFY: production post_max_size",
+    "VERIFY: production memory_limit",
+    "VERIFY: max_file_uploads / related request limits (docs/audit/2026-10-20-upload-capacity.md section 7)",
+    "LATER ROUND: CSRF implementation using the layered design (docs/audit/2026-10-20-csrf-design.md)",
+    "LATER ROUND: remove / tighten Access-Control-Allow-Origin: * in api.php",
+    "LATER ROUND: misleading Quick Add error when PHP upload/request limits are exceeded (ai_extract.php)",
+    "LATER ROUND: save-start log ordering - release_ref_lock can overwrite the BEGIN error in the log line (client unaffected)"
+  ],
+  "tlHardeningRound": {
     "round": "QUICK ADD TL OVERRIDE + HARDENING AUDIT",
-    "status": "CANDIDATE - INTEGRATED, READY FOR REVIEW",
+    "status": "FINAL ACCEPTED / CLOSED",
     "base": "076e2aeb135c5bc8d232beae35210c4742d461a2",
     "integrationBranch": "integration/quickadd-tl-hardening",
-    "candidateApplicationCommit": "c38896c",
     "mergeOrder": [
-      { "session": "C - error leakage, history escape, CSRF design", "branch": "round/quo-c-error-escape-csrf", "sha": "c8d189555a83fa24c4f14d6782a4101bc8c2f6a3" },
-      { "session": "A - Sag Rod TL override", "branch": "round/quo-a-sagrod-tl-override", "sha": "9d6cb8ffac75ca15ce8199ad37d8866e958a394c" },
-      { "session": "B - upload capacity audit", "branch": "round/quo-b-upload-capacity-audit", "sha": "858b1ab39d0f7228705bd12fae203a3bcb4d5b17" }
+      {
+        "session": "C - error leakage, history escape, CSRF design",
+        "branch": "round/quo-c-error-escape-csrf",
+        "sha": "c8d189555a83fa24c4f14d6782a4101bc8c2f6a3"
+      },
+      {
+        "session": "A - Sag Rod TL override",
+        "branch": "round/quo-a-sagrod-tl-override",
+        "sha": "9d6cb8ffac75ca15ce8199ad37d8866e958a394c"
+      },
+      {
+        "session": "B - upload capacity audit",
+        "branch": "round/quo-b-upload-capacity-audit",
+        "sha": "858b1ab39d0f7228705bd12fae203a3bcb4d5b17"
+      }
     ],
     "conflicts": "none; index.php CRLF on every side (18,401 CRLF, 0 LF-only), the 67 bare CRs pre-exist byte for byte on the base, and the index.php diff is exactly A's 23 + C's 12 lines (33 insertions, 2 deletions)",
-    "browser": { "suites": 43, "assertions": 4202, "failed": 8, "failedAre": "exactly the accepted eight 38-mobile-ui lines, compared line for line", "log": "FULL-AUDIT/stage-tl-hardening/logs/browser-combined.log", "delta": "+173 (42-quickadd-tl-override) +19 (43-history-escape) over 41 / 4,010" },
-    "php": { "files": 12, "assertions": 1825, "failed": 0, "runtime": "PHP 8.4.12 CLI, MySQL 8.4.11 for the DB suites", "newFile": "tests/php/error_leakage.test.php 410", "maintained": "mysqli_compat 94 -> 97 (asserts the driver text is ABSENT), save_retry 42 -> 42" },
+    "browser": {
+      "suites": 43,
+      "assertions": 4202,
+      "failed": 8,
+      "failedAre": "exactly the accepted eight 38-mobile-ui lines, compared line for line",
+      "log": "FULL-AUDIT/stage-tl-hardening/logs/browser-combined.log",
+      "delta": "+173 (42-quickadd-tl-override) +19 (43-history-escape) over 41 / 4,010"
+    },
+    "php": {
+      "files": 12,
+      "assertions": 1825,
+      "failed": 0,
+      "runtime": "PHP 8.4.12 CLI, MySQL 8.4.11 for the DB suites",
+      "newFile": "tests/php/error_leakage.test.php 410",
+      "maintained": "mysqli_compat 94 -> 97 (asserts the driver text is ABSENT), save_retry 42 -> 42"
+    },
     "translation": "953 keys, 100%, unchanged",
-    "applicationFiles": [ "api.php", "index.php" ],
-    "productionDbChange": "NO",
-    "productionConfigChange": "NO - Session B proposes; the owner decides",
-    "deploy": "NO - not deployed; acceptedCommit and deployedApplicationCommit are deliberately NOT moved until review"
+    "applicationFiles": [
+      "api.php",
+      "index.php"
+    ],
+    "productionDbChange": "NONE THIS ROUND",
+    "productionConfigChange": "NONE THIS ROUND",
+    "deploy": "DONE - 3238232, owner-run cPanel deploy 2026-10-20 16:02:18; no second deploy needed for the close",
+    "closedOn": "2026-10-20",
+    "acceptedApplicationCommit": "c38896c91df5e9698f905b5b954cc8168a69a8df",
+    "productionHead": "32382327de3ecdd054707de6ceefaf7fbb1aad85",
+    "production": "VERIFIED",
+    "roundResult": "PASS",
+    "fullSuite": "PASS WITH 8 DOCUMENTED KNOWN 38-mobile-ui FAILURES",
+    "preExistingFlake": "35-edit-mode - documented under tests.browserFlakeInvestigated, reproduced on base and candidate, not candidate-caused",
+    "security": "PASS FOR THIS ROUND",
+    "revisionHistory": "STILL DEPLOYED / VERIFIED",
+    "uploadCapacity": "UNVERIFIED - owner/cPanel check remains"
   },
-  "deferred": [
-    "CSRF implementation - layered design in docs/audit/2026-10-20-csrf-design.md (allowlisted mutating actions + Origin enforcement, then token); remove Access-Control-Allow-Origin: * from api.php",
-    "production upload limits UNVERIFIED (cPanel not signed in): need upload_max_filesize >= 10M, post_max_size >= 51M, memory_limit 256M for 5 x 10 MB - docs/audit/2026-10-20-upload-capacity.md section 7 lists the owner retrieval steps",
-    "post_max_size / memory_limit exceeded gives the user a misleading Quick Add message - code follow-up recommended in the upload audit, ai_extract.php out of this round's scope",
-    "db.php getDB() on the server (not in Git) may echo connect_error, reachable unauthenticated via login.php - owner edit on the server, db.sample.php in a later round",
-    "confirm production display_errors=Off",
-    "dc_db_fail after release_ref_lock can log the RELEASE_LOCK error instead of the BEGIN error (log only, client unaffected)",
-    "35-edit-mode intermittent 'O:' assertion - pre-existing on 076e2ae, see preExistingFlakes"
-  ],
-  "activeRound": "QUICK ADD TL OVERRIDE + HARDENING AUDIT"
+  "activeRound": "NONE"
 }

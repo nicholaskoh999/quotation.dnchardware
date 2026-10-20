@@ -39,8 +39,10 @@
   ok    save feedback — the button, the value, the region, and the row  (91 assertions)
   ok    item identity — the page carries a uid it cannot mint  (29 assertions)
   ok    revision history — what was recorded, and nothing more  (74 assertions)
+  ok    quick add — a row's own thread length overrides the shared heading  (173 assertions)
+  ok    revision history — created summary is escaped and normalised  (19 assertions)
 
-  41 suites, 4010 assertions, 8 failed
+  43 suites, 4202 assertions, 8 failed
 
   FAILURES
    - [phone widths — the scope label, the tap targets, and the desk left alone] companies 1440px: the modal × is still 24 tall, as accepted
@@ -68,4 +70,4 @@
       expected: "17"
       actual:   "16.3"
 
-  915.0s
+  942.1s

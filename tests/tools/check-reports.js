@@ -54,13 +54,13 @@ const bad = (where, msg) => fail.push(`FAIL ${where} ${msg}`);
             + t.saveRetryAssertions + t.mysqliCompatAssertions + t.actorIdentityAssertions
             + t.itemIdentityAssertions + t.transactionFoundationAssertions
             + t.revisionWriterAssertions + t.noopSuppressionAssertions
-            + t.historyReadAssertions;
+            + t.historyReadAssertions + t.errorLeakageAssertions;
   check(sum === t.finalAssertions,
     `canonical: ${fmt(t.browserAssertions)}+${t.pricingHistoryAssertions}+${t.aiExtractionAssertions}`
     + `+${t.workbookAssertions}+${t.translationAssertions}+${t.saveRetryAssertions}`
     + `+${t.mysqliCompatAssertions}+${t.actorIdentityAssertions}+${t.itemIdentityAssertions}`
     + `+${t.transactionFoundationAssertions}+${t.revisionWriterAssertions}`
-    + `+${t.noopSuppressionAssertions}+${t.historyReadAssertions}`
+    + `+${t.noopSuppressionAssertions}+${t.historyReadAssertions}+${t.errorLeakageAssertions}`
     + ` = ${fmt(sum)} = finalAssertions`);
   check(t.finalAssertions - t.baselineAssertions === t.deltaAssertions,
     `canonical: ${fmt(t.finalAssertions)} − ${fmt(t.baselineAssertions)} = ${fmt(t.deltaAssertions)} = delta`);
@@ -438,7 +438,8 @@ for (const [f, want] of [['pricing-history-php.log', T.pricingHistoryAssertions]
                          ['transaction-foundation-php.log', T.transactionFoundationAssertions],
                          ['revision-writer-php.log', T.revisionWriterAssertions],
                          ['noop-suppression-php.log', T.noopSuppressionAssertions],
-                         ['history-read-php.log', T.historyReadAssertions]]) {
+                         ['history-read-php.log', T.historyReadAssertions],
+                         ['error-leakage-php.log', T.errorLeakageAssertions]]) {
   if (!has(L.logs, f)) { bad(f, 'is missing'); continue; }
   const t = read(L.logs, f);
   const m = t.match(/\((\d+) assertions\)/);
@@ -640,6 +641,7 @@ if (!EXTRACTED) {
       `  Revision writer PHP                    ${T.revisionWriterAssertions} assertions, 0 failed`,
       `  No-op suppression PHP                  ${T.noopSuppressionAssertions} assertions, 0 failed`,
       `  History read PHP                       ${T.historyReadAssertions} assertions, 0 failed`,
+      `  Error leakage PHP                      ${T.errorLeakageAssertions} assertions, 0 failed`,
       `  ----------------------------------------------------------------`,
       `  TOTAL ASSERTIONS                     ${fmt(T.finalAssertions).padStart(6)}`,
       `  TOTAL FAILED                              ${T.failed}${T.failed ? '   (environment; see CANONICAL-STATE browserFailureException)' : ''}`,

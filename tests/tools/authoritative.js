@@ -15,7 +15,20 @@
 'use strict';
 
 module.exports = {
-  /* Moved fourteen times. 5595395 is the last commit that changes an
+  /* CURRENT (QUICK ADD TL OVERRIDE + HARDENING AUDIT, closed 2026-10-20):
+     APP_SHA c38896c is the integration merge that carries api.php (DB driver
+     detail kept out of responses, logged with a short ref) and index.php (a
+     row's own Sag Rod TL overrides the shared heading; History item_count
+     normalised and escaped). Two suites were added (42: 173, 43: 19), so the
+     matrix is 43 suites / 4,202 with the same eight 38-mobile-ui failures;
+     tests/php/error_leakage.test.php is a THIRTEENTH side group of 410, and
+     mysqli_compat moved 94 -> 97 by an owner-approved scope amendment.
+     DEPLOYED_SHA 3238232 is the integration HEAD production runs; its
+     application files are byte-identical to APP_SHA, so accepted and deployed
+     agree on the application. Everything below this paragraph is the
+     HISTORICAL record of earlier rounds and is not current.
+
+     Moved fourteen times. 5595395 is the last commit that changes an
      application file and carries MINIMAL HISTORY READ / UI - a read-only
      History panel on a saved quotation, with what changed DERIVED AT READ TIME
      from the immutable snapshots already recorded and persisted nowhere.
@@ -65,13 +78,13 @@ module.exports = {
      revision writer among them cannot be deployed at all until
      migrations/2026-08-28-create-quotation-revisions.sql is APPLIED to
      production FIRST. */
-  APP_SHA:  '5f5b4a76bb704e8e3709bb2adad51babc06db322',
-  DEPLOYED_SHA: 'f7184f192cc087cfed734fc3df66a6afcf997d51',
+  APP_SHA:  'c38896c91df5e9698f905b5b954cc8168a69a8df',
+  DEPLOYED_SHA: '32382327de3ecdd054707de6ceefaf7fbb1aad85',
   BASELINE_SHA: 'f96714e33795e80b581b1d03deb9d04db1d94b8d',
 
-  SUITES: 41,
-  BROWSER: 4010,
-  TOTAL: 5301,
+  SUITES: 43,
+  BROWSER: 4202,
+  TOTAL: 5906,
   /* NOT zero, and not to be quietly restored to zero. Eight assertions in
      38-mobile-ui fail on the runtime this matrix was re-measured on. They are
      font metrics on the companies.php modal close control, not an application
@@ -89,15 +102,16 @@ module.exports = {
      per-round breakdowns are gone: they mixed absolutes with increments and
      stopped reconciling to anything. */
   BASELINE: 2810,
-  DELTA: 2491,
+  DELTA: 3096,
   SIDE: { 'pricing-history-php.log': 172, 'ai-extract-php.log': 107,
           'pricing-workbook.log': 62, 'translation-coverage.log': 15,
-          'save-retry-php.log': 42, 'mysqli-compat-php.log': 94,
+          'save-retry-php.log': 42, 'mysqli-compat-php.log': 97,
           'auth-identity-php.log': 150, 'item-identity-php.log': 159,
           'transaction-foundation-php.log': 92,
           'revision-writer-php.log': 101,
           'noop-suppression-php.log': 171,
-          'history-read-php.log': 126 },
+          'history-read-php.log': 126,
+          'error-leakage-php.log': 410 },
 
   /* The Revision Storage round's own figure, kept OUT of TOTAL on purpose.
      TOTAL describes the application measured at APP_SHA; a suite that measures

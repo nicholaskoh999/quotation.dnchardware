@@ -11,12 +11,15 @@ Three tools, and the third exists because the first two were not enough:
   walks the RENDERED DOM of eleven reachable states and reports any English
   that is not in one explicit table of trade vocabulary.
 
-> **On SHAs.** `5f5b4a76bb704e8e3709bb2adad51babc06db322` is the last commit that changed the
-> application, and no test suite has moved since it — it is the ONE SHA every
+> **On SHAs.** `c38896c91df5e9698f905b5b954cc8168a69a8df` is the accepted application: the
+> integration merge that carries the last application change, and no test
+> suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when MINIMAL HISTORY READ / UI was accepted. Fourteen application
+> when QUICK ADD TL OVERRIDE + HARDENING AUDIT was accepted. Sixteen application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `5f5b4a76bb704e8e3709bb2adad51babc06db322`, accepted for SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT;
+> superseded — `5595395fefb49adcb1140a3c9b2a1c36dc7a2186`, accepted for MINIMAL HISTORY READ / UI;
 > superseded — `5729ad5001694bc62370472277dc9e5860276408`, accepted for NO-OP SUPPRESSION;
 > superseded — `631cb8945406a934b351e476ec71330ed23a2d27`, accepted for SNAPSHOT REVISION WRITER;
 > superseded — `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, accepted for READ-BEFORE-WRITE / TRANSACTION FOUNDATION;

@@ -5,10 +5,10 @@ closed what external review found, and the final closing repair that read the
 RENDERED screen rather than the source.
 
 Baseline `f96714e33795e80b581b1d03deb9d04db1d94b8d`
-Final application SHA `5f5b4a76bb704e8e3709bb2adad51babc06db322` · **ACCEPTED AND DEPLOYED** — production runs this application (deployed 2026-10-19 from integration/source-reconciliation), and `quotation_revisions` was applied first: MATCH / CONFORMS.
+Final application SHA `c38896c91df5e9698f905b5b954cc8168a69a8df` · **ACCEPTED AND DEPLOYED** — production runs this application (deployed 2026-10-20 from integration/quickadd-tl-hardening; the deployed HEAD adds evidence and control files only). No migration this round; `quotation_revisions` stays applied, MATCH / CONFORMS.
 
 **P0 0 · P1 13 · P2 24 · P3 2 — 39 findings, all repaired.**
-**5,301 assertions, 8 failed, 0 skipped** — the eight are the recorded
+**5,906 assertions, 8 failed, 0 skipped** — the eight are the recorded
 `38-mobile-ui` environment exception, not an application fault.
 
 Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
@@ -16,12 +16,15 @@ Read `EXECUTIVE-SUMMARY.md` first if you have five minutes.
 `BUSINESS-DECISIONS-NEEDED.md` has the two questions still open, and the four
 that have since been decided.
 
-> **On SHAs.** `5f5b4a76bb704e8e3709bb2adad51babc06db322` is the last commit that changed the
-> application, and no test suite has moved since it — it is the ONE SHA every
+> **On SHAs.** `c38896c91df5e9698f905b5b954cc8168a69a8df` is the accepted application: the
+> integration merge that carries the last application change, and no test
+> suite has moved since it — it is the ONE SHA every
 > number in this package was measured against, and it is the only current
 > application SHA any of these documents names. It became the accepted commit
-> when MINIMAL HISTORY READ / UI was accepted. Fourteen application
+> when QUICK ADD TL OVERRIDE + HARDENING AUDIT was accepted. Sixteen application
 > SHAs are superseded by it and must never be quoted as current:
+> superseded — `5f5b4a76bb704e8e3709bb2adad51babc06db322`, accepted for SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT;
+> superseded — `5595395fefb49adcb1140a3c9b2a1c36dc7a2186`, accepted for MINIMAL HISTORY READ / UI;
 > superseded — `5729ad5001694bc62370472277dc9e5860276408`, accepted for NO-OP SUPPRESSION;
 > superseded — `631cb8945406a934b351e476ec71330ed23a2d27`, accepted for SNAPSHOT REVISION WRITER;
 > superseded — `1ca65543cacb2d2fe3ef84522deb01d1bfce2a7a`, accepted for READ-BEFORE-WRITE / TRANSACTION FOUNDATION;
@@ -427,7 +430,7 @@ Escape returns both the 10.6 and the word Default. R10 was tightened after it
 passed while the refusal text was empty: it now asserts the sentence, not only
 the disabled button.
 
-**TOTAL ASSERTIONS 5,301 · TOTAL FAILED 8 · SKIPPED 0.**
+**TOTAL ASSERTIONS 5,906 · TOTAL FAILED 8 · SKIPPED 0.**
 
 Every log the package claims exists is in `regression-evidence/`, and the list
 below was checked against the directory rather than written from memory:
@@ -454,8 +457,8 @@ does not exist.
 After all repairs the full matrix was re-run from a clean tree, and Quick Add,
 pricing, weight, Previous Price, Companies, save/reopen, English, 中文,
 print/WhatsApp, SS304/316, 8.8/10.9, Qty and Thread Reference were each
-re-exercised. The browser matrix runs 41 suites and 4,010 assertions, of which 8 fail on the
-recorded environment exception and 4,002 pass; 5,301 across everything.
+re-exercised. The browser matrix runs 43 suites and 4,202 assertions, of which 8 fail on the
+recorded environment exception and 4,194 pass; 5,906 across everything.
 
 Two defects were caught by re-checking rather than by a test, and both are worth
 naming because both were self-inflicted:

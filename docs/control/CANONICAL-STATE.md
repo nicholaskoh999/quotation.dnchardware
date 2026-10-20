@@ -15,7 +15,39 @@ outputs being validated, not sources of truth. Checkers must read
 
 ---
 
-## CURRENT STATE — SOURCE RECONCILIATION CLOSED, 2026-10-19
+## CURRENT STATE — QUICK ADD TL OVERRIDE + HARDENING AUDIT CLOSED, 2026-10-20
+
+| | |
+|---|---|
+| Round status | **CLOSED** |
+| Active round | **NONE** |
+| Production | **VERIFIED** — runs `32382327de3ecdd054707de6ceefaf7fbb1aad85` (`integration/quickadd-tl-hardening`) |
+| Main | fast-forwarded `076e2ae` → `3238232`, plus this closing docs commit |
+| Accepted application commit | `c38896c91df5e9698f905b5b954cc8168a69a8df` — the C → A → B integration merge; `3238232` adds evidence and control files only, the application files are byte-identical |
+| Previously deployed | `f7184f192cc087cfed734fc3df66a6afcf997d51` (`integration/source-reconciliation`) |
+| Full suite | **PASS WITH 8 DOCUMENTED KNOWN FAILURES** — 43 suites, 4,202 assertions; the eight are the `38-mobile-ui` Windows Chromium font-metric failures, line for line |
+| Pre-existing flake | 35-edit-mode "clearing it back to the default lets the session close" — the load-sensitive flake recorded below; reproduced on base `076e2ae`, not candidate-caused |
+| PHP | 12 files, 1,825 assertions, 0 failed (PHP 8.4.12, MySQL 8.4.11) |
+| Translation / workbook | 15 / 15 (953 keys) · 62 / 62 (carried forward; its input workbook is not in the repository and nothing it measures moved) |
+| Security | **PASS FOR THIS ROUND** — DB driver detail no longer reaches the browser; History `item_count` escaped |
+| Production verify | **PASS** — owner accepted 2026-10-20 |
+| Round result | **PASS** |
+| Revision history | **STILL DEPLOYED / VERIFIED** |
+| Database change | **NONE THIS ROUND** |
+| Production config change | **NONE THIS ROUND** |
+| Upload capacity | **UNVERIFIED** — owner / cPanel check remains |
+
+**Deferred.** HIGH PRIORITY: the production `db.php` connection-error leak
+(manual server-side hardening; potentially reachable before login if it matches
+`db.sample.php`). VERIFY: `display_errors` Off; `upload_max_filesize`,
+`post_max_size`, `memory_limit`, `max_file_uploads` and related limits. LATER
+ROUND: CSRF (layered design), `Access-Control-Allow-Origin: *`, the misleading
+Quick Add error when upload limits are exceeded, save-start log ordering.
+Machine copy: `CANONICAL-STATE.json` `deferred` and `tlHardeningRound`.
+
+---
+
+## PREVIOUS ROUND (historical) — SOURCE RECONCILIATION CLOSED, 2026-10-19
 
 | | |
 |---|---|
@@ -43,33 +75,21 @@ int — defense in depth, INFO).
 
 ---
 
-## ROUND IN REVIEW — QUICK ADD TL OVERRIDE + HARDENING AUDIT, 2026-10-20
-
-A **candidate**, not an accepted state. Every accepted and deployed fact below
-is unchanged: accepted `5f5b4a7`, deployed `f7184f1`.
-
-| | |
-|---|---|
-| Integration | `integration/quickadd-tl-hardening`, candidate `c38896c`, base `076e2ae` |
-| Merged, in order | C `c8d1895` · A `9d6cb8f` · B `858b1ab` — no conflicts |
-| Application files | `api.php`, `index.php` |
-| Browser | 43 suites, 4,202 assertions, **8 failed**: the accepted eight 38-mobile-ui, line for line |
-| PHP | 12 files, 1,825 assertions, 0 failed (PHP 8.4.12, MySQL 8.4.11) |
-| Pre-existing flake | 35-edit-mode "O: clearing it back to the default…": intermittent, reproduces on `076e2ae` (2 of 4), owner-accepted as pre-existing. NOT one of the eight |
-| Deploy | NO |
-
-Evidence: `FULL-AUDIT/stage-tl-hardening/logs/`. Detail: `CANONICAL-STATE.json`
-`currentRound`, `preExistingFlakes`, `deferred`.
-
----
-
 ## APPLICATION
 
 | | |
 |---|---|
-| Accepted application commit | `5f5b4a76bb704e8e3709bb2adad51babc06db322` |
+| Accepted application commit | `c38896c91df5e9698f905b5b954cc8168a69a8df` |
 | Application status | **ACCEPTED** |
-| Accepted round | SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT — main and the production hotfix chain are one line, and revision history is live, **FINAL ACCEPTED** |
+| Accepted round | QUICK ADD TL OVERRIDE + HARDENING AUDIT — a row's own Sag Rod TL overrides the shared heading, DB driver detail stays out of responses, History `item_count` escaped, **FINAL ACCEPTED** |
+
+`c38896c` carries two application files. `index.php`: under a shared heading
+such as `THREAD LENGTH 70MM`, a row's own `thread length 50mm`,
+`THREAD LENGTH 50MM` or `TL 50` is that row's TL and no other's; and History's
+created summary normalises `item_count` and escapes it. `api.php`:
+`dc_db_fail()` answers the browser with the call site's label and a short ref,
+and writes the errno and driver text to `error_log` under the same ref. The
+paragraphs that follow describe the earlier accepted rounds this one builds on.
 
 The accepted commit moved because nobody could see what a quotation used to be,
 and for no other reason. It is `5595395` because that is the last commit that
@@ -182,8 +202,8 @@ DEFERRED.**
 
 | | |
 |---|---|
-| Accepted application | `5f5b4a76bb704e8e3709bb2adad51babc06db322` |
-| **Deployed application** | **`f7184f192cc087cfed734fc3df66a6afcf997d51`** — the reconciliation build |
+| Accepted application | `c38896c91df5e9698f905b5b954cc8168a69a8df` |
+| **Deployed application** | **`32382327de3ecdd054707de6ceefaf7fbb1aad85`** — the TL override / hardening build; application files identical to `c38896c` |
 | Transaction foundation in production | **DEPLOYED** |
 | Snapshot revision writer in production | **DEPLOYED** |
 | No-op suppression in production | **DEPLOYED** |
@@ -263,12 +283,12 @@ from 198.
 | | |
 |---|---:|
 | Baseline assertions | 2,810 |
-| Current final assertions | **5,301** |
-| Delta | **+2,491** |
+| Current final assertions | **5,906** |
+| Delta | **+3,096** |
 | Failed | **8** — see the exception below |
 | Skipped | 0 |
-| Browser suites | **41** |
-| Browser assertions | **4,010** |
+| Browser suites | **43** |
+| Browser assertions | **4,202** |
 
 Other accepted assertion groups:
 
@@ -279,36 +299,47 @@ Other accepted assertion groups:
 | Workbook | 62 |
 | Translation | 15 |
 | Save retry (api.php 1062) | 42 |
-| mysqli compatibility (PHP 8.1+) | 94 |
+| mysqli compatibility (PHP 8.1+) | 97 |
 | Actor Identity (auth.php / login.php) | 150 |
 | Item Identity (api.php / index.php) | 159 |
 | Transaction Foundation (api.php) | 92 |
 | Revision Writer (api.php) | 101 |
 | No-op Suppression (api.php) | 171 |
 | History Read (api.php) | 126 |
+| Error Leakage (api.php) | 410 |
 
 **Arithmetic, which the checker performs itself rather than trusting:**
 
 ```
-  3,936   browser (40 suites)
+  4,202   browser (43 suites)
 +   172   pricing / history
 +   107   AI extraction / parser
 +    62   workbook
 +    15   translation
 +    42   save retry
-+    94   mysqli compatibility
++    97   mysqli compatibility     (94 -> 97, amended)
 +   150   actor identity
 +   159   item identity
 +    92   transaction foundation
 +   101   revision writer
 +   171   no-op suppression
-+   126   history read             (new)
-= 5,301   final
++   126   history read
++   410   error leakage            (new)
+= 5,906   final
 
-  5,301 - 2,810 = 2,491
+  5,906 - 2,810 = 3,096
 ```
 
-**Two figures moved, and both are measured, not estimated.**
+**At the TL override / hardening round three figures moved, all measured.**
+`tests/php/error_leakage.test.php` is a thirteenth side group of **410**;
+`tests/php/mysqli_compat.test.php` moved 94 → **97** under an owner-approved
+amendment that ADDED three checks that the driver text is absent and weakened
+none; and two browser suites were added — `42-quickadd-tl-override` (**173**)
+and `43-history-escape` (**19**) — so 41 / 4,010 became **43 / 4,202** with the
+same eight recorded environment failures and none added. **5,301**, **+2,491**
+and **41 suites** are recorded as retired.
+
+**At the history round (historical), two figures moved, and both were measured.**
 `tests/php/history_read.test.php` is a twelfth side group of **126**, run on
 MySQL **8.0.46** — the production engine — and again on **8.4.3**, with the same
 count and no failures on either. And **the browser matrix moved for the first
@@ -385,6 +416,14 @@ flake, with the brittleness named — the assertion ends a chain of
 it in the same suite. **Not fixed**: `tests/suites` is out of scope for this
 round and was not touched. Worth a settle wait in whichever round next opens
 that file.
+
+**Seen again at the TL override / hardening round, and classified the same
+way.** Suite 35 alone failed the same assertion 2 of 4 on base `076e2ae`, 2 of 3
+on Session C and 2 of 3 on the integration candidate, while the integration
+full matrix returned exactly the recorded eight. It reproduces on the base, so
+it is pre-existing and not candidate-caused; the owner accepted it as such.
+Still not fixed, still not counted among the eight
+(`FULL-AUDIT/stage-tl-hardening/logs/35-runs.log`).
 
 `tests/php/item_identity.test.php` runs the shipped `api.php` functions and
 executes the shipped migration as a real subprocess against a stub `db.php`.
@@ -481,6 +520,7 @@ Recorded so a checker can recognise them as stale rather than re-deriving them.
 | Application commit | `631cb8945406a934b351e476ec71330ed23a2d27` — superseded by `5729ad5` when NO-OP SUPPRESSION was accepted |
 | Application commit | `5729ad5001694bc62370472277dc9e5860276408` — superseded by `5595395` when MINIMAL HISTORY READ / UI was accepted |
 | Application commit | `5595395fefb49adcb1140a3c9b2a1c36dc7a2186` — superseded by `5f5b4a7` when SOURCE RECONCILIATION / REVISION HISTORY DEPLOYMENT was accepted |
+| Application commit | `5f5b4a76bb704e8e3709bb2adad51babc06db322` — superseded by `c38896c` when QUICK ADD TL OVERRIDE + HARDENING AUDIT was accepted |
 
 2,810 is a superseded *total* but remains the current *baseline*, and is the
 one number in that column that a current line may legitimately quote — always

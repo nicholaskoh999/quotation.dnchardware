@@ -34,10 +34,10 @@ const A = require(path.join(REPO, 'tests/tools/authoritative.js'));
 const MD = R('docs/control/CANONICAL-STATE.md');
 const GR = R('docs/control/PROJECT-GUARDRAILS.md');
 const RS = R('docs/control/ROUND-SCOPE.md');
-const APP = '5f5b4a76bb704e8e3709bb2adad51babc06db322';
-const PREV = '5595395fefb49adcb1140a3c9b2a1c36dc7a2186';
+const APP = 'c38896c91df5e9698f905b5b954cc8168a69a8df';
+const PREV = '5f5b4a76bb704e8e3709bb2adad51babc06db322';
 /* What production RUNS, which is no longer what has been accepted. */
-const DEPLOYED = 'f7184f192cc087cfed734fc3df66a6afcf997d51';
+const DEPLOYED = '32382327de3ecdd054707de6ceefaf7fbb1aad85';
 const out = []; let bad = 0;
 const ck = (ok, m) => { out.push((ok ? 'ok   ' : 'FAIL ') + m); if (!ok) bad++; };
 const fmtN = n => Number(n).toLocaleString('en-US');
@@ -55,8 +55,8 @@ ck(A.SUITES === T.browserSuites && A.BROWSER === T.browserAssertions
    && A.TOTAL === T.finalAssertions && A.BASELINE === T.baselineAssertions
    && A.DELTA === T.deltaAssertions && A.FAILED === T.failed && A.SKIPPED === T.skipped,
    `authoritative.js and canonical agree: ${A.SUITES} / ${A.BROWSER} / ${A.TOTAL} / +${A.DELTA} / ${A.FAILED} failed`);
-ck(T.browserSuites === 41 && T.browserAssertions === 4010 && T.finalAssertions === 5301
-   && T.deltaAssertions === 2491 && T.baselineAssertions === 2810,
+ck(T.browserSuites === 43 && T.browserAssertions === 4202 && T.finalAssertions === 5906
+   && T.deltaAssertions === 3096 && T.baselineAssertions === 2810,
    'the accepted matrix is the measured run');
 /* HISTORICAL, and named for the round each pair describes rather than for
    "this round" — a field whose name silently re-points at whoever reads it last
@@ -68,17 +68,22 @@ ck(T.browserSuitesBeforeItemIdentity === 39 && T.browserAssertionsBeforeItemIden
    'the browser matrix grew at Item Identity: 3,907 + 29 = 3,936');
 ck(T.browserSuitesBeforeHistoryRound === 40 && T.browserAssertionsBeforeHistoryRound === 3936
    && T.historyBrowserAssertions === 74
-   && T.browserAssertionsBeforeHistoryRound + T.historyBrowserAssertions === T.browserAssertions
-   && T.browserSuitesBeforeHistoryRound + 1 === T.browserSuites,
-   `and again at the history round: 3,936 + 74 = ${T.browserAssertions} across ${T.browserSuites} suites`);
+   && T.browserAssertionsBeforeHistoryRound + T.historyBrowserAssertions === T.browserAssertionsBeforeTlHardeningRound
+   && T.browserSuitesBeforeHistoryRound + 1 === T.browserSuitesBeforeTlHardeningRound,
+   'and again at the history round: 3,936 + 74 = 4,010 across forty-one');
+ck(T.browserSuitesBeforeTlHardeningRound === 41 && T.browserAssertionsBeforeTlHardeningRound === 4010
+   && T.tlHardeningBrowserAssertions === 192
+   && T.browserAssertionsBeforeTlHardeningRound + T.tlHardeningBrowserAssertions === T.browserAssertions
+   && T.browserSuitesBeforeTlHardeningRound + 2 === T.browserSuites,
+   `and at the TL override / hardening round: 4,010 + 173 + 19 = ${T.browserAssertions} across ${T.browserSuites} suites`);
 ck(T.browserSuitesBeforeThisRound === undefined && T.browserAssertionsBeforeThisRound === undefined,
    'and the fields no longer claim to describe "this round", whichever round is reading them');
 ck(T.browserAssertions + T.pricingHistoryAssertions + T.aiExtractionAssertions
    + T.workbookAssertions + T.translationAssertions + T.saveRetryAssertions
    + T.mysqliCompatAssertions + T.actorIdentityAssertions + T.itemIdentityAssertions
    + T.transactionFoundationAssertions + T.revisionWriterAssertions
-   + T.noopSuppressionAssertions + T.historyReadAssertions === T.finalAssertions,
-   `${fmtN(T.browserAssertions)}+172+107+62+15+42+94+150+159+92+101+171+126 = ${T.finalAssertions}`);
+   + T.noopSuppressionAssertions + T.historyReadAssertions + T.errorLeakageAssertions === T.finalAssertions,
+   `${fmtN(T.browserAssertions)}+172+107+62+15+42+97+150+159+92+101+171+126+410 = ${T.finalAssertions}`);
 ck(T.finalAssertions - T.baselineAssertions === T.deltaAssertions,
    `${fmtN(T.finalAssertions)} − 2,810 = +${fmtN(T.deltaAssertions)}`);
 ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
@@ -92,8 +97,9 @@ ck(A.SIDE['pricing-history-php.log'] === T.pricingHistoryAssertions
    && A.SIDE['transaction-foundation-php.log'] === T.transactionFoundationAssertions
    && A.SIDE['revision-writer-php.log'] === T.revisionWriterAssertions
    && A.SIDE['noop-suppression-php.log'] === T.noopSuppressionAssertions
-   && A.SIDE['history-read-php.log'] === T.historyReadAssertions,
-   'the twelve side suites agree in both files');
+   && A.SIDE['history-read-php.log'] === T.historyReadAssertions
+   && A.SIDE['error-leakage-php.log'] === T.errorLeakageAssertions,
+   'the thirteen side suites agree in both files');
 /* Nothing moved in this promotion except the new group: no accepted suite
    needed maintenance, which is itself worth asserting rather than assuming. */
 ck(T.transactionFoundationAssertions === 92 && T.revisionWriterAssertions === 101,
@@ -102,6 +108,11 @@ ck(T.noopSuppressionAssertions === 171,
    'and no-op suppression is an eleventh group of 171');
 ck(T.historyReadAssertions === 126,
    'and history read a twelfth group of 126');
+/* The TL override / hardening round: error_leakage is a thirteenth group, and
+   mysqli_compat moved 94 -> 97 by an owner-approved scope amendment that ADDED
+   three checks (the driver text is absent) and weakened none. */
+ck(T.errorLeakageAssertions === 410 && T.mysqliCompatAssertions === 97 && T.saveRetryAssertions === 42,
+   'error leakage is a thirteenth group of 410; mysqli_compat 94 -> 97, save_retry unmoved at 42');
 /* ── A failing assertion count may be recorded, but never left bare ────────
    The matrix has read "0 failed" for every accepted round until this one. It
    now reads 8, and the only thing that makes that acceptable is that the
@@ -135,21 +146,21 @@ ck(A.KEYS === C.translation.keys && A.COVERAGE === C.translation.coveragePercent
 
 // ── supersession ──
 const S = C.history.supersededApplicationCommits;
-ck(S.length === 15, `${S.length} superseded application commits recorded`);
-ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554 → 631cb89 → 5729ad5 → 5595395',
+ck(S.length === 16, `${S.length} superseded application commits recorded`);
+ck(S.map(x => x.sha.slice(0,7)).join(' → ') === '7f5bc97 → e3d659b → 33ae0da → 98a31e3 → 3e89713 → cf92f27 → 6bb5772 → 86cf262 → 97a14cf → e76bb85 → 649f80a → 1ca6554 → 631cb89 → 5729ad5 → 5595395 → 5f5b4a7',
    'the historical chain is intact: ' + S.map(x => x.sha.slice(0,7)).join(' → '));
-ck(S[14].sha === PREV && S[14].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
+ck(S[15].sha === PREV && S[15].supersededBy === APP, `${PREV.slice(0,7)} is recorded superseded by ${APP.slice(0,7)}`);
 ck(!S.some(x => x.sha === APP), 'the accepted commit is not also listed as superseded');
-ck(MD.includes('`5595395fefb49adcb1140a3c9b2a1c36dc7a2186` — superseded by `5f5b4a7`'),
+ck(MD.includes('`5f5b4a76bb704e8e3709bb2adad51babc06db322` — superseded by `c38896c`'),
    'CANONICAL-STATE.md records the same supersession');
 const H = C.history;
-ck(H.supersededAssertionTotals.includes(5101) && !H.supersededAssertionTotals.includes(T.finalAssertions),
-   `5,101 retired, ${fmtN(T.finalAssertions)} is not retired`);
-ck(H.supersededDeltas.includes(2291) && !H.supersededDeltas.includes(T.deltaAssertions),
-   `+2,291 retired, +${fmtN(T.deltaAssertions)} is not retired`);
+ck(H.supersededAssertionTotals.includes(5301) && !H.supersededAssertionTotals.includes(T.finalAssertions),
+   `5,301 retired, ${fmtN(T.finalAssertions)} is not retired`);
+ck(H.supersededDeltas.includes(2491) && !H.supersededDeltas.includes(T.deltaAssertions),
+   `+2,491 retired, +${fmtN(T.deltaAssertions)} is not retired`);
 ck(H.supersededTranslationKeys.includes(903) && C.translation.keys === 953,
    '903 translation keys retired, 953 is current');
-ck(H.supersededSuiteCounts.includes(40) && !H.supersededSuiteCounts.includes(T.browserSuites),
+ck(H.supersededSuiteCounts.includes(41) && !H.supersededSuiteCounts.includes(T.browserSuites),
    `suite counts retired: ${H.supersededSuiteCounts.join(' · ')} — ${T.browserSuites} is current, not retired`);
 
 // ── Git ──
@@ -197,15 +208,16 @@ ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 /* '*.php' matches tests/php/*.test.php too, so the application half is asked
    for on its own — this promotion carries TWO application files. */
 ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**').split('\n').sort().join(',')
-   === 'ai_extract.php,companies.php,index.php',
-   'the reconciliation carries exactly the production chain: ai_extract.php, companies.php, index.php');
+   === 'api.php,index.php',
+   'the TL override / hardening round carries exactly api.php and index.php');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
-   === 'tests/lib/dom-i18n.js,tests/suites/12-quick-add-safety.test.js,tests/suites/38-mobile-ui.test.js',
-   'one new PHP suite, one new browser suite, and the harness default answer the '
-   + 'new action needs — no accepted suite was edited');
-ck(git('diff','--name-only','--diff-filter=D',PREV+'..'+APP,'--','tests/suites') === '',
-   'not one of the forty accepted browser suites was modified or deleted — the '
-   + 'forty-first was ADDED');
+   === 'tests/php/error_leakage.test.php,tests/php/mysqli_compat.test.php,tests/php/save_retry.test.php,'
+     + 'tests/suites/42-quickadd-tl-override.test.js,tests/suites/43-history-escape.test.js',
+   'one new PHP suite, two new browser suites, and the two PHP suites the owner-approved '
+   + 'amendment moved from the leaked driver text to the generic-error contract');
+ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites','tests/lib') === '',
+   'not one of the forty-one accepted browser suites, nor the harness, was modified or deleted — '
+   + 'the forty-second and forty-third were ADDED');
 /* '*.php' matches tests/php/*.test.php too. Revision Storage added
    tests/php/revision_storage.test.php AFTER the accepted commit without
    touching the application, which is legitimate and which this assertion
@@ -217,8 +229,14 @@ ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') ==
    'and no accepted PHP suite was modified or deleted after it — only added to');
 ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === '',
    'no browser-test byte differs from the accepted commit');
-ck(git('log','-1','--format=%H',PREV+'..HEAD','--','ai_extract.php','companies.php','index.php') === APP,
-   'the candidate SHA derived from the declared files IS the accepted commit');
+/* APP is the integration merge the round named. The application files last
+   moved one merge earlier (Session A), and the final merge (Session B, docs
+   only) left them untouched - so the derived commit is asked to be IN the
+   accepted one, with no application byte between them. */
+{ const last = git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','index.php');
+  let inApp = true; try { git('merge-base','--is-ancestor',last,APP); } catch { inApp = false; }
+  ck(inApp && git('diff','--name-only',last,APP,'--','*.php',':(exclude)tests/**') === '',
+     `the declared files last moved at ${last.slice(0,7)}, which the accepted ${APP.slice(0,7)} contains byte for byte`); }
 ck(git('status','--porcelain') === '', 'working tree clean');
 
 // ── the candidate block is empty, and means it ──
