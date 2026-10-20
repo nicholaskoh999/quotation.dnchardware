@@ -84,9 +84,17 @@ index.php
 api.php
 tests/suites/42-quickadd-tl-override.test.js
 tests/php/error_leakage.test.php
+tests/php/mysqli_compat.test.php
+tests/php/save_retry.test.php
 tests/suites/43-history-escape.test.js
 docs/audit/
 ```
+
+Amended 2026-10-20 for Session C: `tests/php/mysqli_compat.test.php` §3 and
+`tests/php/save_retry.test.php` §5 asserted the leaked driver text
+(`Lookup failed: Table missing`, `fail_json('Quotation save failed: ' .
+$stmt->error)`). They are updated to the generic-error contract; their JSON,
+no-fatal and return-value checks are unchanged.
 
 A session that needs a file not listed here stops and asks; the list is amended
 in this document before the file changes. `ai_extract.php`, `auth.php`,
