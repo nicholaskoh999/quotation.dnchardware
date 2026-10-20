@@ -14161,6 +14161,26 @@ function wqaExtractFields(rawLine,opts){
   }
   /* qty as a bare trailing "- 4" once the markers above found nothing */
   if(f.qty===null){ m=s.match(/-\s*(\d+)\s*$/); if(m){ f.qty=parseInt(m[1],10); s=s.slice(0,m.index); } }
+  /* ── A row's own thread, labelled and with no ends named ─────────────────
+     "821mm - 4 pcs thread length 50mm" under a heading that says THREAD
+     LENGTH 70MM is a 50 thread for THIS row. Left in the pile, the 50 was an
+     extra number and the row quietly took the heading's 70 instead.
+
+     Bounded: the line must already be an item — a quantity and a number still
+     standing for its length — so a heading or a thread line of its own is
+     still read by the header plan exactly as before. Never where the ends were
+     named (that reader above owns those), never over an inch line, and never
+     for an L Bolt or J Bolt, whose TL is read by its own labelled schema. */
+  if(f.threadLen===null && f.qty!==null && !ev.found.length && !inch.length &&
+     !/^(?:lbolt|jbolt)$/.test((opts&&opts.product)||'')){
+    m=WQA_ROW_TL_RE.exec(s);
+    const v=m ? Number(m[1]) : NaN;
+    const rest=m ? s.slice(0,m.index)+' '+s.slice(m.index+m[0].length) : '';
+    if(v>0 && v<=WQA_THREAD_MAX && /\d/.test(rest)){
+      f.threadLen=String(v);
+      s=rest.replace(/\s+/g,' ').trim();
+    }
+  }
   /* Whatever numbers remain, in the order written. "mm" is kept as a per-number
      flag: an explicitly dimensional value next to a bare one is a strong clue
      that the bare one is a count, not another dimension. Leading zeros are
@@ -14416,6 +14436,9 @@ function wqaLineHasSignal(line,common){
    but the parse is reported as low confidence, which sends the message to the
    existing AI fallback rather than showing a thread length as an item.      */
 const WQA_THREAD_WORD_RE=/\b(?:thread|threaded|thd|tl\d?|t\s*\/\s*l)\b/i;
+/* "thread length 50mm", "THREAD 50", "TL 50", "TL50" — a label, then the value.
+   "TL1 60" names an END and is left to the thread-line reader. */
+const WQA_ROW_TL_RE=/\b(?:thread(?:ed)?(?:\s*(?:length|len|lg))?|thd|tl(?![12]\b)|t\s*\/\s*l)\s*[:=\-]?\s*(\d+(?:\.\d+)?)\s*(?:mm\b)?(?![\d.])(?!\s*(?:pcs?|nos?|no\.|sets?|units?|items?)\b)/i;
 const WQA_THREAD_MAX=200;    /* beyond this a bare number is a length, not a
                                 thread — the catalogue's longest is 150 */
 const WQA_HEADER_RATIO=3;    // "much larger": the list is at least 3x the spec
