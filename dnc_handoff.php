@@ -128,18 +128,29 @@ function dc_handoff_ip() {
  * Quotation's own database (replay table and rate limits), through the same
  * db.php / getDB() every other entry point uses, opened only when a handoff
  * endpoint needs it. MYSQLI_REPORT_OFF first, as api.php and login.php do.
+ *
+ * Fails CLOSED and SILENT: null, and a reason code in the log. A db.php that
+ * throws (PDO, or mysqli in exception mode) is caught here and its message —
+ * which can carry a DSN, user, host or SQLSTATE — is never used. A db.php that
+ * prints and die()s cannot be caught by any code; handoff.php's containment
+ * discards what it printed and answers with the generic failure instead.
  */
 function dc_handoff_quo_db() {
     static $db = null;
     if ($db !== null) return $db ?: null;
     mysqli_report(MYSQLI_REPORT_OFF);
-    if (!function_exists('getDB')) {
-        $path = __DIR__ . '/db.php';
-        if (!is_file($path)) { $db = false; return null; }
-        require_once $path;
+    $h = null;
+    try {
+        if (!function_exists('getDB')) {
+            $path = __DIR__ . '/db.php';
+            if (is_file($path)) require_once $path;
+        }
+        $h = function_exists('getDB') ? getDB() : null;
+    } catch (Throwable $e) {
+        $h = null;
     }
-    $h = function_exists('getDB') ? getDB() : null;
-    $db = ($h instanceof mysqli) ? $h : false;
+    $db = ($h instanceof mysqli && !$h->connect_errno) ? $h : false;
+    if (!$db) dc_handoff_log('quo_db.unavailable');
     return $db ?: null;
 }
 
@@ -169,13 +180,22 @@ function dc_dnc_users_db($reset = false) {
     if ($host === '' || $name === '' || $user === '') { $db = false; return null; }
 
     mysqli_report(MYSQLI_REPORT_OFF);
-    $h = mysqli_init();
-    if (!$h) { $db = false; return null; }
-    @$h->options(MYSQLI_OPT_CONNECT_TIMEOUT, 5);
-    if (!@$h->real_connect($host, $user, $pass, $name, $port > 0 ? $port : 3306)
-        || !$h->set_charset('utf8mb4')
-        || !$h->query('SET SESSION TRANSACTION READ ONLY')) {
-        dc_handoff_log('dnc_users_db.unavailable', ['errno' => (int)$h->connect_errno ?: (int)$h->errno]);
+    /* Warnings are suppressed and exceptions caught: a failed connection is a
+       reason code and an errno in the log, never the driver's text (which
+       names the user and host) in a response. */
+    try {
+        $h = mysqli_init();
+        if (!$h) { $db = false; return null; }
+        @$h->options(MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+        if (!@$h->real_connect($host, $user, $pass, $name, $port > 0 ? $port : 3306)
+            || !@$h->set_charset('utf8mb4')
+            || !@$h->query('SET SESSION TRANSACTION READ ONLY')) {
+            dc_handoff_log('dnc_users_db.unavailable', ['errno' => (int)$h->connect_errno ?: (int)$h->errno]);
+            $db = false;
+            return null;
+        }
+    } catch (Throwable $e) {
+        dc_handoff_log('dnc_users_db.unavailable', ['errno' => (int)$e->getCode()]);
         $db = false;
         return null;
     }
@@ -313,17 +333,13 @@ function dc_handoff_prune_jtis($db, $now) {
 
 // ── Responses ────────────────────────────────────────────────────────────────
 
-/** Every handoff answer: 303 (or 429), empty body, no-referrer, no-store. */
+/**
+ * Every handoff answer: 303 (or 429), empty body, no-referrer, no-store.
+ * handoff.php's dc_handoff_send() writes it, after discarding anything else
+ * the request printed.
+ */
 function dc_handoff_response($status, $location = null) {
     return ['status' => $status, 'location' => $location];
-}
-
-function dc_handoff_emit(array $r) {
-    http_response_code($r['status']);
-    if ($r['location'] !== null) header('Location: ' . $r['location']);
-    header('Referrer-Policy: no-referrer');
-    header('Cache-Control: no-store, private');
-    header('Content-Length: 0');
 }
 
 function dc_handoff_fail($reason, ?array $claims = null) {

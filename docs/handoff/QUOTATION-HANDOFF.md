@@ -113,6 +113,35 @@ Browser: 303 `/login.php`, one message ("That sign-in link is invalid or has exp
 paths/methods), empty body, `Referrer-Policy: no-referrer`, `Cache-Control: no-store, private`. Never logged: token,
 state, secret, password, session id.
 
+### 9.1 Error containment (pre-integration fix)
+
+The production `db.php` is server-only. If it behaves like `db.sample.php`, a failed connection sets 500, prints the
+driver's error (DB user, host) and `die()`s, after mysqli raises a warning that `display_errors` renders with a
+filesystem path. Reproduced on `2f4ebf7`: both endpoints answered **500** with `Access denied for user '…'@'…'` and
+the server path. `db.php` is **not** changed; the handoff path contains it:
+
+1. `handoff.php` sets up the guard **before loading any other file**: `display_errors=0` for the request, an output
+   buffer that is always discarded, and a shutdown function.
+2. Each endpoint runs in `try/catch (Throwable)` → generic failure (`reason=internal_error`); the message is never used.
+3. `dc_handoff_quo_db()` and `dc_dnc_users_db()` catch any Throwable (PDO, `mysqli_sql_exception`) and suppress
+   warnings; they log `quo_db.unavailable` / `dnc_users_db.unavailable errno=N` only.
+4. A `die()`/`exit`/fatal underneath reaches the shutdown function, which discards everything printed, drops every
+   header except `Set-Cookie`, and sends the generic failure: **303 `/login.php`**, empty body, `no-referrer`,
+   `no-store`, plus the one flash message.
+
+Engine messages still go to the **server** error log (operators need them); nothing goes to the browser.
+`login.php`'s own POST path still uses `getDB()` as before: that is the pre-existing deferred item, unchanged here.
+
+### 9.2 Replay expiry and time zones
+
+`expires_at`/`consumed_at` are `TIMESTAMP`, written with `FROM_UNIXTIME(<unix seconds>)` and pruned with
+`expires_at < FROM_UNIXTIME(now − 3600)`; no PHP date formatting is involved. The session time zone is applied on the
+way in and reversed on the way out, so the stored instant is exact in every zone. The Carbon issue Session B found in
+the contract's sample code (`Carbon::createFromTimestamp(exp)`, 8 h early under Asia/Kuala_Lumpur) does not apply.
+`tests/php/handoff_flow.test.php` §T proves it for writer × cleaner in {Asia/Kuala_Lumpur, +08:00, +00:00, SYSTEM}
+with PHP in Asia/Kuala_Lumpur, end to end through the callback, with a control showing the Carbon-style write is
+caught.
+
 ## 10. Where Quotation differs from the reference controller (mechanics only, not protocol)
 
 | Contract (Laravel reference) | Quotation |

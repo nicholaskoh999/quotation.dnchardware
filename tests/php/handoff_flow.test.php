@@ -878,6 +878,221 @@ if ($up) {
     ok(stripos($all, 'Fatal') === false && stripos($all, 'Warning') === false, 'R: no PHP warning or fatal on any path');
 }
 
+// ══ S · a database failure never reaches the browser ═══════════════════════
+/* The production db.php is server-only and unseen; db.sample.php is what it
+   was copied from, and on a failed connection it sets 500, prints the
+   driver's error (user, host) and die()s, after mysqli has raised a warning
+   that display_errors would render with a filesystem path. S serves the
+   handoff with the WORST php.ini — display_errors=1, html_errors=1 — against
+   five db.php variants and an unreachable canonical database, and requires
+   the plain generic failure every time. */
+$S_PORT = $PORT + 1;
+$S_LOG  = "$SB/php-error-s.log";
+$LEAK_USER = 'quo_leak_user'; $LEAK_DB = 'quo_leak_schema'; $LEAK_PASS = 'quo-leak-pass-' . bin2hex(random_bytes(4));
+$DNC_LEAK_USER = 'dnc_leak_user'; $DNC_LEAK_PASS = 'dnc-leak-pass-' . bin2hex(random_bytes(4));
+$leakNeedles = [$LEAK_USER, $LEAK_DB, $LEAK_PASS, $DNC_LEAK_USER, $DNC_LEAK_PASS, $UDB, 'SQLSTATE', 'Access denied',
+                'DB connection failed', 'Warning', 'Fatal', 'Stack trace', 'Uncaught', $SB, '/home5/', '.php on line', 'mysqli'];
+$GOOD_DB = file_get_contents("$SB/db.php");
+$sample  = file_get_contents("$ROOT/db.sample.php");
+$legacy  = str_replace(["'localhost'", "define('DB_USER', 'REPLACE_ME')", "define('DB_PASS', 'REPLACE_ME')", "define('DB_NAME', 'REPLACE_ME')"],
+                       [var_export($H, true), "define('DB_USER', '$LEAK_USER')", "define('DB_PASS', '$LEAK_PASS')", "define('DB_NAME', '$LEAK_DB')"], $sample);
+ok(strpos($legacy, "die(json_encode(['error' => 'DB connection failed: ' . \$conn->connect_error]))") !== false
+   && strpos($legacy, $LEAK_USER) !== false, 'S: the legacy variant IS the shipped db.sample.php, with credentials that fail');
+$BROKEN = [
+    'legacy db.sample.php (500 + driver text + die)' => $legacy,
+    'PDO db.php (throws PDOException with SQLSTATE and DSN)' =>
+        "<?php function getDB(){ return new PDO('mysql:host={$H};port={$P};dbname={$LEAK_DB}', '{$LEAK_USER}', '{$LEAK_PASS}'); }",
+    'mysqli exception mode (mysqli_sql_exception)' =>
+        "<?php function getDB(){ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); return new mysqli('{$H}', '{$LEAK_USER}', '{$LEAK_PASS}', '{$LEAK_DB}', {$P}); }",
+    'prints a stack trace and exits' =>
+        "<?php function getDB(){ echo 'SQLSTATE[HY000] [1045] {$LEAK_USER}@{$LEAK_DB} Stack trace: #0 /home5/dnchardw/quo.dnchardware.com/db.php(9)'; exit(1); }",
+    'fatal error inside getDB()' =>
+        "<?php function getDB(){ return dc_no_such_function_{$LEAK_USER}(); }",
+];
+$writeConfig();
+$env['PHP_CLI_SERVER_WORKERS'] = '1';
+$srvS = proc_open([PHP_BINARY, '-d', "error_log=$S_LOG", '-d', 'log_errors=1', '-d', 'display_errors=1', '-d', 'html_errors=1',
+                   '-d', 'display_startup_errors=1', '-d', 'error_reporting=-1',
+                   '-d', "session.save_path=$SESS", '-S', "127.0.0.1:{$S_PORT}", '-t', $SB, "$SB/router.php"],
+                  [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $srvSPipes, $SB, $env);
+register_shutdown_function(function () use (&$srvS, &$srvSPipes) {
+    if (is_resource($srvS)) { proc_terminate($srvS); foreach ($srvSPipes as $sp) if (is_resource($sp)) fclose($sp); proc_close($srvS); }
+});
+$upS = false;
+for ($i = 0; $i < 60 && !$upS; $i++) { $fp = @fsockopen('127.0.0.1', $S_PORT, $e1, $e2, 0.3); if ($fp) { fclose($fp); $upS = true; } else usleep(200000); }
+ok($upS, "S: a second sandbox server with display_errors=1, html_errors=1 is listening on {$S_PORT}");
+
+/** No leak in the body or any header a browser would see. */
+function no_leak(array $r, string $label) {
+    global $leakNeedles;
+    $seen = $r['body'] . "\n" . implode("\n", $r['cookies']);
+    foreach ($r['h'] as $k => $v) if (!in_array($k, ['host', 'date', 'location'], true)) $seen .= "\n$k: $v";
+    $hits = array_values(array_filter($leakNeedles, fn ($n) => stripos($seen, $n) !== false));
+    eq($hits, [], "$label: nothing of the database, its driver, a path or a credential reaches the browser");
+}
+function generic(array $r, string $label) {
+    eq([$r['status'], $r['h']['location'] ?? null, $r['body']], [303, '/login.php', ''], "$label: the generic failure — 303 /login.php, empty body");
+    eq($r['h']['referrer-policy'] ?? null, 'no-referrer', "$label: no-referrer");
+    ok(strpos($r['h']['cache-control'] ?? '', 'no-store') !== false, "$label: no-store");
+    no_leak($r, $label);
+}
+
+if ($upS) {
+    $savedPort = $PORT; $PORT = $S_PORT;
+
+    /* Control: the defect is real. The same legacy db.php, opened the way
+       every entry point opens it (MYSQLI_REPORT_OFF, then getDB()) but with
+       no containment, prints the driver's error to the browser. */
+    file_put_contents("$SB/db.php", $legacy);
+    file_put_contents("$SB/naked.php", '<?php mysqli_report(MYSQLI_REPORT_OFF); require __DIR__ . "/db.php"; getDB();');
+    $naked = http('GET', '/naked.php');
+    ok($naked['status'] === 500 && strpos($naked['body'], $LEAK_USER) !== false && strpos($naked['body'], 'Access denied') !== false,
+       'S: control — without containment this db.php sends 500 with the driver text and the DB user');
+    @unlink("$SB/naked.php");
+
+    foreach ($BROKEN as $label => $code) {
+        // 1 · /start with the Quotation database unavailable
+        file_put_contents("$SB/db.php", $code);
+        $r = http('GET', '/auth/handoff/start');
+        generic($r, "S: /start, $label");
+        ok(count($r['cookies']) <= 1, "S: /start, $label: at most the session cookie is set");
+
+        // 2 · /callback with the Quotation database unavailable (state made while it was up)
+        file_put_contents("$SB/db.php", $GOOD_DB);
+        $st = http('GET', '/auth/handoff/start');
+        $ck = jar($st, null);
+        $tok = portal(['location' => $st['h']['location'] ?? ''], 42, 'alson', 'member', time());
+        $SECRETS_SEEN[] = explode('=', (string)$ck, 2)[1] ?? '';
+        file_put_contents("$SB/db.php", $code);
+        $cb = http('GET', '/auth/handoff/callback?token=' . $tok, $ck);
+        generic($cb, "S: /callback, $label");
+        $lp = http('GET', '/login.php', jar($cb, $ck));
+        ok(strpos($lp['body'], 'That sign-in link is invalid or has expired. Please sign in.') !== false,
+           "S: /callback, $label: the sign-in page shows the one generic message");
+        no_leak(['body' => $lp['body'], 'h' => [], 'cookies' => []], "S: /callback, $label: the sign-in page");
+    }
+    file_put_contents("$SB/db.php", $GOOD_DB);
+
+    // 3 · the canonical DNC users database unavailable
+    foreach (['wrong password' => ['DNC_USERS_DB_USERNAME' => $DNC_LEAK_USER, 'DNC_USERS_DB_PASSWORD' => $DNC_LEAK_PASS],
+              'missing schema' => ['DNC_USERS_DB_DATABASE' => $LEAK_DB],
+              'nothing listening' => ['DNC_USERS_DB_PORT' => '1']] as $label => $over) {
+        $writeConfig();
+        $st = http('GET', '/auth/handoff/start');
+        $ck = jar($st, null);
+        $tok = portal(['location' => $st['h']['location'] ?? ''], 42, 'alson', 'member', time());
+        $writeConfig($over);
+        $cb = http('GET', '/auth/handoff/callback?token=' . $tok, $ck);
+        generic($cb, "S: canonical users DB $label, /callback");
+
+        // and the per-request check on a page and on the API
+        $writeConfig();
+        $st = http('GET', '/auth/handoff/start');
+        $ck = jar($st, null);
+        $tok = portal(['location' => $st['h']['location'] ?? ''], 42, 'alson', 'member', time());
+        $in = jar(http('GET', '/auth/handoff/callback?token=' . $tok, $ck), $ck);
+        $writeConfig($over);
+        $pg = http('GET', '/index.php', $in);
+        eq([$pg['status'], strpos($pg['h']['location'] ?? '', 'login.php') === 0], [302, true],
+           "S: canonical users DB $label, a signed-in DNC page request is refused");
+        no_leak($pg, "S: canonical users DB $label, the page");
+        $ap = http('POST', '/api.php?action=get_companies', $in, true, '{}');
+        eq($ap['status'], 401, "S: canonical users DB $label, the API answers 401");
+        no_leak($ap, "S: canonical users DB $label, the API");
+    }
+    $writeConfig();
+
+    $slog = (string)@file_get_contents($S_LOG);
+    ok(strpos($slog, 'reason=internal_error') !== false || strpos($slog, 'quo_db.unavailable') !== false,
+       'S: the server log records the failure as a reason code');
+    ok(strpos($slog, 'dnc_users_db.unavailable errno=') !== false, 'S: and the canonical failure as a reason code and errno');
+    $leaks = [];
+    foreach (array_merge($TOKENS, $STATES, $SECRETS_SEEN, [$LEAK_PASS, $DNC_LEAK_PASS]) as $s) {
+        foreach (explode('.', (string)$s) as $part) if (strlen($part) >= 16 && strpos($slog, $part) !== false) $leaks[] = substr($part, 0, 12) . '…';
+    }
+    eq($leaks, [], 'S: the server log holds no token, state, secret, password or session id');
+    $PORT = $savedPort;
+}
+
+// ══ T · replay expiry under Asia/Kuala_Lumpur ══════════════════════════════
+/* The Portal's sample target code stored the replay expiry with
+   Carbon::createFromTimestamp(exp), which under Asia/Kuala_Lumpur (UTC+8)
+   could land 8 hours early — so the hourly cleanup could delete a FRESH row
+   and the token could be replayed. Quotation writes and compares with
+   FROM_UNIXTIME(<unix seconds>) into a TIMESTAMP column: the session's time
+   zone is applied on the way in and reversed on the way out. Proven here for
+   the writer and the cleaner in every combination of zones, with PHP itself
+   in Asia/Kuala_Lumpur, and with a control showing the same assertions catch
+   the Carbon-style bug. */
+{
+    $phpTz = date_default_timezone_get();
+    date_default_timezone_set('Asia/Kuala_Lumpur');
+    $named = $root->query("SELECT CONVERT_TZ('2026-01-01 00:00:00','UTC','Asia/Kuala_Lumpur')")->fetch_row()[0] ?? null;
+    ok($named === '2026-01-01 08:00:00', 'T: the server knows Asia/Kuala_Lumpur by name (UTC+8)');
+    $zones = ['Asia/Kuala_Lumpur', '+08:00', '+00:00', 'SYSTEM'];
+    $conn = function ($tz) use ($H, $U, $W, $QDB, $P) {
+        $c = new mysqli($H, $U, $W, $QDB, $P);
+        $c->query("SET time_zone = '" . $c->real_escape_string($tz) . "'");
+        return $c;
+    };
+    $now = time();
+    foreach ($zones as $wz) foreach ($zones as $cz) {
+        $writer = $conn($wz); $cleaner = $conn($cz);
+        $jti = HandoffToken::newJti();
+        $exp = $now + 60;
+        eq(dc_handoff_consume_jti($writer, ['jti' => $jti, 'sub' => '42', 'exp' => $exp], $now), null, "T: [$wz → $cz] fresh token consumed");
+        $stored = (int)$writer->query("SELECT UNIX_TIMESTAMP(expires_at) FROM handoff_consumed_tokens WHERE jti='$jti'")->fetch_row()[0];
+        eq($stored, $exp, "T: [$wz → $cz] expires_at is exactly exp, read back in the writer's zone");
+        $back = (int)$cleaner->query("SELECT UNIX_TIMESTAMP(expires_at) FROM handoff_consumed_tokens WHERE jti='$jti'")->fetch_row()[0];
+        eq($back, $exp, "T: [$wz → $cz] and in the cleaner's zone");
+        dc_handoff_prune_jtis($cleaner, $now);
+        dc_handoff_prune_jtis($cleaner, $exp + DC_HANDOFF_REPLAY_KEEP - 1);
+        eq((int)$cleaner->query("SELECT COUNT(*) FROM handoff_consumed_tokens WHERE jti='$jti'")->fetch_row()[0], 1,
+           "T: [$wz → $cz] cleanup now, and up to an hour past exp, keeps the row");
+        eq(dc_handoff_consume_jti($cleaner, ['jti' => $jti, 'sub' => '42', 'exp' => $exp], $now), 'replayed',
+           "T: [$wz → $cz] immediate reuse is rejected");
+        dc_handoff_prune_jtis($cleaner, $exp + DC_HANDOFF_REPLAY_KEEP + 1);
+        eq((int)$cleaner->query("SELECT COUNT(*) FROM handoff_consumed_tokens WHERE jti='$jti'")->fetch_row()[0], 0,
+           "T: [$wz → $cz] and only after exp + 1 h is it cleaned up");
+        $writer->close(); $cleaner->close();
+    }
+
+    /* Control: the Carbon-style write — a wall-clock string formatted in UTC,
+       stored by a +08:00 session — lands 8 hours early, and these same checks
+       see it: the very first cleanup deletes the fresh row and reuse succeeds. */
+    $c = $conn('Asia/Kuala_Lumpur');
+    $jti = HandoffToken::newJti(); $exp = $now + 60;
+    $c->query("INSERT INTO handoff_consumed_tokens VALUES ('$jti', 42, '" . gmdate('Y-m-d H:i:s', $exp) . "', '" . gmdate('Y-m-d H:i:s', $now) . "')");
+    eq((int)$c->query("SELECT UNIX_TIMESTAMP(expires_at) FROM handoff_consumed_tokens WHERE jti='$jti'")->fetch_row()[0], $exp - 8 * 3600,
+       'T: control — a UTC wall-clock string under Asia/Kuala_Lumpur is stored 8 h early');
+    dc_handoff_prune_jtis($c, $now + 1800);
+    eq(dc_handoff_consume_jti($c, ['jti' => $jti, 'sub' => '42', 'exp' => $exp], $now + 1800), null,
+       'T: control — and that row is cleaned up early and the token replays: the bug these checks catch');
+    $c->close();
+
+    /* The real flow, end to end: Quotation's connection in Asia/Kuala_Lumpur,
+       a handoff, then a second one (whose success runs the cleanup), then the
+       first token again with its state put back. */
+    $q->query("SET time_zone = 'Asia/Kuala_Lumpur'");
+    $a = browser();
+    $r1 = start($a, [], $now);
+    $t1 = portal($r1, 42, 'alson', 'member', $now);
+    $pending = $a->session[DC_HANDOFF_STATES];
+    eq(callback($a, $t1, $now), HOME, 'T: Asia/Kuala_Lumpur — a handoff succeeds');
+    $b = browser();
+    eq(callback($b, portal(start($b, [], $now + 5), 43, 'ck', 'admin', $now + 5), $now + 5), HOME,
+       'T: a second handoff succeeds and runs the replay cleanup');
+    $j1 = json_decode(base64_decode(strtr(explode('.', $t1)[1], '-_', '+/')), true)['jti'];
+    eq((int)$q->query("SELECT COUNT(*) FROM handoff_consumed_tokens WHERE jti='$j1'")->fetch_row()[0], 1,
+       'T: the first token\'s replay row survived that cleanup');
+    req($a, function () use ($pending) { dc_session_start(); $_SESSION[DC_HANDOFF_STATES] = $pending; });
+    $n = count($LOG);
+    eq(callback($a, $t1, $now + 6), LOGIN, 'T: and reusing the first token is rejected');
+    ok(logged($n, 'reason=replayed'), 'T: as replayed');
+    $q->query("SET time_zone = 'SYSTEM'");
+    date_default_timezone_set($phpTz);
+}
+
 // ── report ──────────────────────────────────────────────────────────────────
 $label = 'DNC handoff — Quotation as a target, contract v2';
 if ($failures) {
