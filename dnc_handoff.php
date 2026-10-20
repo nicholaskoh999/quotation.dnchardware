@@ -17,7 +17,7 @@
  * IDENTITY. A handoff session is a DNC identity, never an app_users one. The
  * canonical users.id lives only in the session (dc_dnc_user_id) for the
  * per-request recheck; dc_current_user() reports source "dnc" and id NULL, so
- * quotation_revisions.actor_user_id stays NULL for these sessions and an
+ * revision history records actor_user_id NULL for these sessions and an
  * app_users id and a canonical id can never be confused.
  *
  * CANONICAL USERS are Internal PO's `users` table, read through a separate
@@ -45,7 +45,7 @@ const DC_HANDOFF_RATE_LIMIT  = 30;
 const DC_HANDOFF_RATE_WINDOW = 60;
 /** §7: consumed jtis are kept an hour past their expiry. */
 const DC_HANDOFF_REPLAY_KEEP = 3600;
-/** quotation_revisions.actor_display_name is VARCHAR(100). */
+/** The revision history's actor_display_name column is VARCHAR(100). */
 const DC_DNC_DISPLAY_MAX     = 100;
 
 // ── Configuration ────────────────────────────────────────────────────────────
