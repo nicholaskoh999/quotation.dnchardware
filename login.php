@@ -6,6 +6,14 @@ $next  = dc_safe_next($_GET['next'] ?? ($_POST['next'] ?? '/index.php'));
 $error = '';
 $errorCode = '';
 
+/* A DNC Workspace handoff that failed (dnc_handoff.php) leaves one flash. The
+   browser is told only that the link did not work — never why. */
+if (($_SESSION['dc_flash'] ?? null) === 'handoff_failed') {
+    $error = 'That sign-in link is invalid or has expired. Please sign in.';
+    $errorCode = 'errHandoff';
+}
+unset($_SESSION['dc_flash']);
+
 // Already signed in? Go straight through.
 if (dc_is_logged_in() && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
     header('Location: ' . $next, true, 302);
@@ -310,7 +318,8 @@ const I18N={
        lblUsername:'Username', lblPassword:'Password', showPassword:'Show password',
        stays7Days:'Stays signed in for about 7 days on this device.',
        errLoginMissing:'Please enter both username and password.',
-       errLoginBad:'Wrong username or password.' },
+       errLoginBad:'Wrong username or password.',
+       errHandoff:'That sign-in link is invalid or has expired. Please sign in.' },
   zh:{ langAria:'语言',
        brandSub:'报价系统', signIn:'登录',
        signInSub:'使用您的个人账号登录以继续。',
@@ -318,7 +327,8 @@ const I18N={
        lblUsername:'用户名', lblPassword:'密码', showPassword:'显示密码',
        stays7Days:'此设备约保持登录 7 天。',
        errLoginMissing:'请输入用户名和密码。',
-       errLoginBad:'用户名或密码错误。' },
+       errLoginBad:'用户名或密码错误。',
+       errHandoff:'登录链接无效或已过期，请重新登录。' },
 };
 function dcLang(){
   try{ const v=localStorage.getItem(DC_LANG_KEY); if(DC_LANGS.indexOf(v)>=0) return v; }catch(e){}

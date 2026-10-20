@@ -2,85 +2,101 @@
 
 ## ROUND
 
-**QUICK ADD TL OVERRIDE + HARDENING AUDIT**
+**DNC WORKSPACE V1 — SESSION C: QUOTATION HANDOFF**
 
-A bounded round that picked up the deferrals the source-reconciliation close
-left behind: one deterministic-parser limitation and four hardening items. One
-parser fix, one hardening change, and two audits that changed no application
-byte. Accepted, deployed, production-verified and closed.
+Seamless sign-in from DNC Workspace (`portal.dnchardware.com`) into Quotation,
+implementing the accepted DNC Handoff Contract v2 as a **target** with audience
+`quotation`, plus a "DNC Workspace" link back. Auth integration and navigation
+only: no business-logic change.
 
 | | |
 |---|---|
-| Canonical base | `main` `076e2aeb135c5bc8d232beae35210c4742d461a2` |
-| Integration branch | `integration/quickadd-tl-hardening` |
-| Accepted application commit | `c38896c91df5e9698f905b5b954cc8168a69a8df` — the C → A → B integration merge |
-| Production | `32382327de3ecdd054707de6ceefaf7fbb1aad85` — deployed 2026-10-20, **VERIFIED**; application files identical to `c38896c` |
-| Main | fast-forwarded `076e2ae` → `3238232`, then this closing docs commit |
-| Active round | **NONE** |
-| Round status | **FINAL ACCEPTED / CLOSED** |
-| DEPLOY = NO | no further deploy: production already runs `3238232`, and the closing commit changes no deployable file |
+| Canonical base | `main` `664c0d845c09a635d792009e5cc08349279e6633` |
+| Round branch | `round/r5-c-portal-handoff`, cut from the canonical base |
+| Contract | `nicholaskoh999/dnc-portal` `round/a-portal-foundation` `bab1b67e8e52bc8ce63d6e196281f4f82acdd55d` `docs/HANDOFF-CONTRACT.md` |
+| Accepted application commit | `c38896c91df5e9698f905b5b954cc8168a69a8df` (unchanged until this round is accepted) |
+| Production application | `32382327de3ecdd054707de6ceefaf7fbb1aad85` (unchanged) |
+| Previous round | QUICK ADD TL OVERRIDE + HARDENING AUDIT — FINAL ACCEPTED / CLOSED |
+| Active round | **DNC WORKSPACE V1 — SESSION C** |
+| Round status | **OPEN — CANDIDATE ON round/r5-c-portal-handoff** |
+| DEPLOY = NO | nothing is deployed until the owner accepts; the handoff ships with `DNC_HANDOFF_ENABLED=false` |
 | STAGE 2 = NOT STARTED | the Stage 2 deferrals in PROJECT-GUARDRAILS stay deferred |
-| Production DB change | **NONE THIS ROUND** |
-| Production config change | **NONE THIS ROUND** |
-| CANONICAL-STATE | reconciled: accepted `c38896c`, deployed `3238232` |
+| Production DB change | **PROPOSED, NOT APPLIED** — `migrations/2026-10-20-create-handoff-tables.sql` (two new tables in Quotation's DB) and a SELECT-only grant on the canonical `users` table |
+| Production config change | **PROPOSED, NOT APPLIED** — `dnc_config.php` / env, two `.htaccess` rewrite lines, cookie renamed to `__Host-DCQUOSESS` (one-time sign-out) |
+| CANONICAL-STATE | **not edited**; updated at acceptance / close only |
+| Portal / Internal PO repositories | **untouched** |
+
+Setup, configuration and the production facts still needed:
+`docs/handoff/QUOTATION-HANDOFF.md`.
 
 ---
 
-## WHAT THE ROUND DID
+## OWNER DECISIONS (2026-10-20, before code)
 
-| Session | Branch / SHA | Result |
-|---|---|---|
-| A — Sag Rod TL override | `round/quo-a-sagrod-tl-override` `9d6cb8f` | a row's own `thread length 50mm` / `THREAD LENGTH 50MM` / `TL 50` overrides the shared heading's TL for that row only; `x 50/50` unchanged; no phantom rows; accessory inheritance unchanged |
-| B — upload capacity audit | `round/quo-b-upload-capacity-audit` `858b1ab` | `docs/audit/2026-10-20-upload-capacity.md`: FAIL at PHP defaults, production values UNVERIFIED; proposal only, nothing applied |
-| C — error leakage, History escape, CSRF design | `round/quo-c-error-escape-csrf` `c8d1895` | `dc_db_fail()` keeps driver text out of every `api.php` response and logs it with a short ref; History `item_count` normalised and escaped; CSRF designed, not built |
-
-Scope amendment, owner-approved before the files moved:
-`tests/php/mysqli_compat.test.php` §3 and `tests/php/save_retry.test.php` §5
-asserted the leaked driver text and were moved to the generic-error contract
-(`mysqli_compat` 94 → 97, adding three checks that the driver text is absent;
-`save_retry` 42 → 42).
+1. **History attribution.** A DNC session records `actor_user_id` **NULL**,
+   `actor_username` = canonical username, `actor_display_name` = canonical
+   `users.name` (else the username). The canonical id is never stored in
+   `actor_user_id`; the revisions schema is not altered. `dc_current_user()`
+   reports `source = 'dnc'`. A later round may add `actor_source` /
+   `canonical_user_id`.
+2. **Password login (`app_users`) unchanged** — with the handoff on or off. The
+   per-request canonical recheck applies to DNC sessions only.
+3. **Rate limit** per contract §6.1/§6.3 via a DB-backed limiter
+   (`handoff_rate_limits`), 30/min per IP per endpoint.
 
 ---
 
 ## ALLOWED TO CHANGE
 
-Empty: the round is closed and nothing may differ from the accepted `c38896c`.
-
 ```candidate-files
+app/Handoff/Contract/HandoffToken.php
+app/Handoff/Contract/InvalidHandoffToken.php
+dnc_handoff.php
+handoff.php
+dnc_config.sample.php
+auth.php
+login.php
+index.php
+companies.php
+.cpanel.yml
+.gitignore
+migrations/2026-10-20-create-handoff-tables.sql
+tests/php/handoff/
+tests/php/handoff_contract.test.php
+tests/php/handoff_flow.test.php
+tests/php/auth_identity.test.php
+tests/suites/44-dnc-workspace-link.test.js
+docs/handoff/
+docs/control/ROUND-SCOPE.md
+docs/control/PROJECT-GUARDRAILS.md
 ```
 
----
+`index.php` and `companies.php`: the one navigation link and its two
+dictionary entries only. `api.php`, `ai_extract.php`, `pricing_history.php`,
+every existing migration, pricing, numbering, revisions, customers, print,
+Quick Add, Sag Rod TL and upload behaviour are **out of scope**.
 
-## MEASURED
-
-Logs: `FULL-AUDIT/stage-tl-hardening/logs/`, promoted to
-`FULL-AUDIT/regression-evidence/`.
-
-| | |
-|---|---|
-| Browser | 43 suites, 4,202 assertions, 8 failed — the accepted eight 38-mobile-ui lines, line for line |
-| PHP | 12 files, 1,825 assertions, 0 failed (PHP 8.4.12; MySQL 8.4.11) |
-| Application total | 5,906 assertions; baseline 2,810; delta +3,096 |
-| Pre-existing flake | 35-edit-mode "O: clearing it back to the default lets the session close" — the load-sensitive flake already recorded in CANONICAL-STATE; reproduced on base `076e2ae` 2 of 4; not candidate-caused |
-| Translation | 953 keys, 100% |
+**Scope amendment (owner-approved via the round brief):**
+`tests/php/auth_identity.test.php` §S pinned `session_name('DCQUOSESS')` and
+"auth.php requires nothing". The brief requires a `__Host-` production cookie
+and a per-request canonical recheck. Both pins are narrowed, not removed: the
+name is `DCQUOSESS` (`__Host-` on HTTPS) and host-only; the only require is
+`dnc_handoff.php`, inside the DNC-session branch, so an app_users request still
+loads no database. 150 → 152 assertions.
 
 ---
 
-## OUTCOME
+## EXPECTED WHILE OPEN
 
-| | |
-|---|---|
-| Full suite | PASS WITH 8 DOCUMENTED KNOWN FAILURES |
-| Security | PASS FOR THIS ROUND |
-| Production verify | PASS (owner accepted 2026-10-20) |
-| Round result | PASS |
-| Revision history | STILL DEPLOYED / VERIFIED |
-| Upload capacity | UNVERIFIED — owner / cPanel check remains |
-
-Production smoke on 2026-10-20: Quick Add TL (70/70, 50/50, next row 70/70,
-`x 50/50`), manual Sag Rod, Unit Converter, Copy, Copy + Weight, History and
-its item count, and a non-Sag-Rod parser spot check identical to the base on
-eight inputs. Rollback: not required.
+`node tests/tools/check-control.js` is pinned to the CLOSED state of the
+previous round and reports, by design, that application bytes differ from
+`c38896c`, that the candidate block is not empty and that the status is not
+FINAL ACCEPTED / CLOSED; `check-control-assertions.test.js` §6 likewise
+reports that the Round status field is not FINAL ACCEPTED / CLOSED. Those
+disagreements clear at acceptance, when CANONICAL-STATE and the checker are
+moved to the accepted commit. `check-reports.js` already reported its
+COMMIT-INFO.txt packaging blocks stale on the untouched base `664c0d8`;
+packaging is not part of this round.
 
 ---
 

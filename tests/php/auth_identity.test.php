@@ -435,12 +435,25 @@ function freshSession() {
     ok(strpos($auth, "'httponly' => true") !== false,          'S: the cookie stays HttpOnly');
     ok(strpos($auth, "'samesite' => 'Lax'") !== false,         'S: SameSite stays Lax');
     ok(strpos($auth, "'secure'   => dc_is_https()") !== false, 'S: Secure still follows HTTPS');
-    ok(strpos($auth, "session_name('DCQUOSESS')") !== false,   'S: the session name is unchanged');
+    /* DNC WORKSPACE V1 SESSION C (owner-approved scope amendment): production
+       cookie gains the __Host- prefix and is forced host-only (DNC handoff
+       contract v2 §14.2). The name is otherwise unchanged. */
+    ok(strpos($auth, "return dc_is_https() ? '__Host-DCQUOSESS' : 'DCQUOSESS';") !== false
+       && strpos($auth, 'session_name(dc_session_cookie_name())') !== false,
+       'S: the session name is DCQUOSESS, __Host- prefixed on HTTPS');
+    ok(strpos($auth, "'domain'   => ''") !== false,            'S: and host-only — no Domain, ever');
     ok(strpos($auth, 'session_destroy()') !== false,           'S: logout still destroys this session only');
 
     // auth.php must remain free of any database dependency
-    ok(!preg_match('/^\s*(require|include)(_once)?\s/m', $auth),
-       'S: auth.php requires nothing — it still loads no database');
+    /* SESSION C amendment: a DNC Workspace session is re-checked against the
+       canonical users row on every request, which needs dnc_handoff.php. That
+       is the ONE require, and it sits inside the DNC-session branch: an
+       app_users request still loads nothing and opens no connection. */
+    preg_match_all('/^\s*(require|include)(_once)?\s.*$/m', $auth, $rq);
+    ok(array_map('trim', $rq[0]) === ["require_once __DIR__ . '/dnc_handoff.php';"],
+       'S: auth.php requires nothing but dnc_handoff.php');
+    ok(preg_match("/if \\(\\(\\\$user\\['source'\\] \\?\\? null\\) === 'dnc'\\) \\{\\s*require_once __DIR__ \\. '\\/dnc_handoff\\.php';/", $auth) === 1,
+       'S: and only inside the DNC-session branch — an app_users request still loads no database');
     ok(strpos($auth, 'getDB(') === false, 'S: and never calls getDB()');
     ok(preg_match('/function dc_login\(\$db,/', $auth),
        'S: dc_login takes the handle as an argument');

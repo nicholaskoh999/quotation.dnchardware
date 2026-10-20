@@ -22,6 +22,12 @@
  * Deliberately NOT included, and not in this round's scope: roles, permissions,
  * account lockout, rate limiting, password reset, OTP, 2FA, SSO, API tokens and
  * any user-management screen. Accounts are created by an operator in SQL.
+ *
+ * DNC WORKSPACE HANDOFF (dnc_handoff.php) adds a second kind of session: one
+ * established from the Portal, whose identity is a canonical DNC user and not
+ * an app_users row. dc_current_user() reports it with source 'dnc'. Only for
+ * such a session does dc_is_logged_in() load dnc_handoff.php and re-read the
+ * canonical row; app_users sessions behave exactly as before.
  */
 
 // Stay signed in for ~7 days.
@@ -57,9 +63,20 @@ function dc_is_https() {
 }
 
 /**
+ * The session cookie's name. On HTTPS (the live site) it carries the __Host-
+ * prefix, which browsers accept only with Secure, Path=/ and NO Domain — so no
+ * other *.dnchardware.com host can plant or overwrite a Quotation session
+ * (DNC handoff contract §14.2). Plain HTTP (local only) cannot carry the
+ * prefix and keeps the bare name. Renaming the cookie signs everyone out once.
+ */
+function dc_session_cookie_name() {
+    return dc_is_https() ? '__Host-DCQUOSESS' : 'DCQUOSESS';
+}
+
+/**
  * Start the app session with cookie flags: HttpOnly, SameSite=Lax,
- * Secure (on HTTPS — the live site), 7-day lifetime.
- * Safe to call more than once.
+ * Secure (on HTTPS — the live site), Path=/, host-only (no Domain), 7-day
+ * lifetime. Safe to call more than once.
  */
 function dc_session_start() {
     if (session_status() === PHP_SESSION_ACTIVE) return;
@@ -68,11 +85,15 @@ function dc_session_start() {
     @ini_set('session.gc_maxlifetime', (string)DC_AUTH_LIFETIME);
     @ini_set('session.use_strict_mode', '1'); // reject attacker-supplied session ids
 
-    session_name('DCQUOSESS');
+    session_name(dc_session_cookie_name());
 
     $params = [
         'lifetime' => DC_AUTH_LIFETIME,
         'path'     => '/',
+        /* Explicitly empty: host-only, whatever session.cookie_domain the host
+           sets. Never .dnchardware.com — Portal, PO and Quotation never share
+           a cookie. */
+        'domain'   => '',
         'secure'   => dc_is_https(),
         'httponly' => true,
         'samesite' => 'Lax',
@@ -102,13 +123,30 @@ function dc_is_logged_in() {
        trusted, which is deliberate: on cutover every shared 'admin' session
        must stop being accepted rather than quietly become an actor nobody can
        name. It is also what makes a half-written session fail safely. */
-    if (dc_current_user() === null) return false;
+    $user = dc_current_user();
+    if ($user === null) return false;
 
     // Absolute 7-day cap, independent of how the host prunes session files.
     $since = (int)($_SESSION['dc_login_time'] ?? 0);
     if ($since <= 0 || (time() - $since) > DC_AUTH_LIFETIME) {
         dc_logout();
         return false;
+    }
+
+    /* A DNC Workspace session is re-checked against the canonical users row on
+       EVERY protected request, so disabling someone in Internal PO ends their
+       Quotation access on their next request. Only DNC sessions pay for this:
+       dnc_handoff.php (and its read-only connection) is loaded for them alone,
+       and an app_users session still queries nothing per request. */
+    if (($user['source'] ?? null) === 'dnc') {
+        require_once __DIR__ . '/dnc_handoff.php';
+        $check = dc_dnc_session_check($user);
+        if ($check === 'unavailable') return false;   // refuse this request, keep the session
+        if ($check !== 'ok') {
+            dc_handoff_log('auth.dnc_session_revoked', ['reason' => $check, 'sub' => $user['dnc_user_id']]);
+            dc_logout();
+            return false;
+        }
     }
     return true;
 }
@@ -125,6 +163,22 @@ function dc_is_logged_in() {
 function dc_current_user() {
     dc_session_start();
     if (empty($_SESSION['dc_auth']) || $_SESSION['dc_auth'] !== true) return null;
+
+    /* A DNC Workspace handoff session (dnc_handoff.php). Its identity is the
+       canonical users.id, which is NOT an app_users id: it is reported as
+       dnc_user_id with source 'dnc', and id is NULL, so nothing can record it
+       as an app_users actor (revision history records actor_user_id NULL). */
+    if (array_key_exists('dc_auth_source', $_SESSION)) {
+        if ($_SESSION['dc_auth_source'] !== 'dnc') return null;
+        $did     = $_SESSION['dc_dnc_user_id'] ?? null;
+        $user    = $_SESSION['dc_username'] ?? null;
+        $display = $_SESSION['dc_display_name'] ?? null;
+        if (!is_int($did) || $did <= 0)                return null;
+        if (!is_string($user) || $user === '')         return null;
+        if (!is_string($display) || $display === '')   return null;
+        return ['id' => null, 'username' => $user, 'display_name' => $display,
+                'source' => 'dnc', 'dnc_user_id' => $did];
+    }
 
     $id      = $_SESSION['dc_user_id'] ?? null;
     $user    = $_SESSION['dc_username'] ?? null;
@@ -221,6 +275,9 @@ function dc_login($db, $username, $password) {
     }
 
     session_regenerate_id(true);       // new id after login (session fixation)
+    /* A password sign-in is an app_users identity: nothing of an earlier DNC
+       Workspace session in this browser may survive into it. */
+    unset($_SESSION['dc_auth_source'], $_SESSION['dc_dnc_user_id'], $_SESSION['dc_dnc_role']);
     $_SESSION['dc_auth']         = true;
     $_SESSION['dc_user_id']      = $id;
     $_SESSION['dc_username']     = $stored;

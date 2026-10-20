@@ -3,6 +3,7 @@
 # templates. Nothing here may enter Git, a patch, or a release ZIP.
 ai_config.php
 db.php
+dnc_config.php
 
 # ── Production runtime output ────────────────────────────────────────────────
 error_log

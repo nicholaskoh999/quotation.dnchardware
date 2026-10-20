@@ -35,14 +35,19 @@
 #   db.php          real database credentials — server-only, absent from Git
 #   error_log       production runtime log
 #   php.ini         cPanel-generated, managed via MultiPHP INI Editor
+#   dnc_config.php  DNC Workspace handoff secret + canonical-users DB
+#                   credentials — server-only, absent from Git
+#   .htaccess       NOT in APPFILES: the two /auth/handoff/* rewrite rules are
+#                   merged into the live file by hand
+#                   (docs/handoff/QUOTATION-HANDOFF.md §5), never overwritten
 # ─────────────────────────────────────────────────────────────────────────────
 
 deployment:
   tasks:
     # ── Target and file lists ────────────────────────────────────────────────
     - 'export DEPLOYPATH=/home5/dnchardw/quo.dnchardware.com/'
-    - 'export APPFILES="index.php api.php companies.php ai_extract.php pricing_history.php auth.php login.php logout.php manifest.webmanifest ai_config.sample.php db.sample.php"'
-    - 'export PROTECTED="ai_config.php db.php error_log php.ini"'
+    - 'export APPFILES="index.php api.php companies.php ai_extract.php pricing_history.php auth.php login.php logout.php manifest.webmanifest ai_config.sample.php db.sample.php handoff.php dnc_handoff.php dnc_config.sample.php app/Handoff/Contract/HandoffToken.php app/Handoff/Contract/InvalidHandoffToken.php"'
+    - 'export PROTECTED="ai_config.php db.php dnc_config.php error_log php.ini .htaccess"'
 
     # ── Phase 1: preflight. Abort before touching anything. ──────────────────
     # Braces, not parentheses: { } runs in the current shell so exit aborts the
@@ -60,6 +65,7 @@ deployment:
 
     # ── Phase 2: copy. mkdir -p is safe on an existing directory. ────────────
     - 'mkdir -p "${DEPLOYPATH}assets/icons" || { echo "FATAL: cannot create ${DEPLOYPATH}assets/icons" >&2; exit 1; }'
+    - 'mkdir -p "${DEPLOYPATH}app/Handoff/Contract" || { echo "FATAL: cannot create ${DEPLOYPATH}app/Handoff/Contract" >&2; exit 1; }'
     - 'for f in $APPFILES; do case " $PROTECTED " in *" $f "*) echo "  REFUSED (production-only, never overwritten): $f"; continue;; esac; cp -f "$f" "${DEPLOYPATH}$f" || { echo "FATAL: copy failed: $f" >&2; exit 1; }; test "$(wc -c < "$f")" = "$(wc -c < "${DEPLOYPATH}$f")" || { echo "FATAL: size mismatch after copy (disk full or quota?): $f" >&2; exit 1; }; test -z "$CMP" || "$CMP" -s "$f" "${DEPLOYPATH}$f" || { echo "FATAL: content mismatch after copy: $f" >&2; exit 1; }; echo "  deployed: $f"; done'
     - 'for f in assets/icons/*; do test -f "$f" || continue; cp -f "$f" "${DEPLOYPATH}$f" || { echo "FATAL: copy failed: $f" >&2; exit 1; }; test "$(wc -c < "$f")" = "$(wc -c < "${DEPLOYPATH}$f")" || { echo "FATAL: size mismatch after copy (disk full or quota?): $f" >&2; exit 1; }; test -z "$CMP" || "$CMP" -s "$f" "${DEPLOYPATH}$f" || { echo "FATAL: content mismatch after copy: $f" >&2; exit 1; }; echo "  deployed: $f"; done'
 

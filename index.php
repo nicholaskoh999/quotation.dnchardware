@@ -3143,6 +3143,8 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
       <button class="side-link" onclick="openDSModal();toggleSidebar(false)"><span class="side-link-inner" data-i18n="sideDiameterSettings">Diameter Settings</span></button>
       <button class="side-link" onclick="openRefModal();toggleSidebar(false)"><span class="side-link-inner" data-i18n="sidePricingGuide">Pricing Guide</span></button>
       <button class="side-link" onclick="openModal('versionUpdatesModal');toggleSidebar(false)"><span class="side-link-inner" data-i18n="sideVersionUpdates">Version Updates</span></button>
+      <!-- Back to the DNC Workspace launcher: a plain link, same tab, no token. -->
+      <a class="side-link" href="https://portal.dnchardware.com"><span class="side-link-inner" data-i18n="navWorkspace">DNC Workspace</span></a>
       <a class="side-link" href="logout.php"><span class="side-link-inner" data-i18n="navSignOut">Sign Out</span></a>
     </div>
     <!-- The header switch is hidden below 820px; this is the tablet/phone route. -->
@@ -4892,7 +4894,7 @@ const I18N={
     navSignOutTitle:'Sign out on this device only',
     sideQuickMenu:'Quick Menu', sideNewQuotation:'New Quotation', sideCompanies:'Companies / Saved',
     sideDefaultPrices:'Default Prices', sideDiameterSettings:'Diameter Settings',
-    sidePricingGuide:'Pricing Guide', sideVersionUpdates:'Version Updates',
+    sidePricingGuide:'Pricing Guide', sideVersionUpdates:'Version Updates', navWorkspace:'DNC Workspace',
     /* revision history — read only */
     histBtn:'History', histTitle:'Revision History',
     histEventCreate:'Created', histEventUpdate:'Updated',
@@ -5464,7 +5466,7 @@ const I18N={
     navSignOutTitle:'只退出此设备',
     sideQuickMenu:'快捷菜单', sideNewQuotation:'新建报价', sideCompanies:'公司 / 已保存',
     sideDefaultPrices:'默认价格', sideDiameterSettings:'直径设置',
-    sidePricingGuide:'价格说明', sideVersionUpdates:'版本更新',
+    sidePricingGuide:'价格说明', sideVersionUpdates:'版本更新', navWorkspace:'DNC 工作台',
     /* revision history — read only */
     histBtn:'历史记录', histTitle:'修订历史',
     histEventCreate:'已创建', histEventUpdate:'已更新',

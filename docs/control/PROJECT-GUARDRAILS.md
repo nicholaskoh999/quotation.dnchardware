@@ -919,6 +919,33 @@ panel.
 
 ---
 
+## CANDIDATE — DNC WORKSPACE HANDOFF (NOT YET ACCEPTED)
+
+Built on `round/r5-c-portal-handoff`, **not accepted, not deployed**. Recorded
+here so the next round reads it before touching `auth.php`. Becomes protected
+only at acceptance. Detail: `docs/handoff/QUOTATION-HANDOFF.md`.
+
+- **Two kinds of session, never mixed.** app_users (password, unchanged, the
+  four identity facts above) and DNC (`dc_auth_source = 'dnc'`, canonical
+  `dc_dnc_user_id`, no `dc_user_id`). `dc_current_user()` returns `id => null`
+  and `source => 'dnc'` for the second; `dc_login()` clears every DNC key.
+- **History:** DNC sessions record `actor_user_id` NULL plus the canonical
+  username / name. A canonical users.id is never written where an app_users id
+  belongs. `api.php` is unchanged.
+- **Canonical users** are Internal PO's `users`, read through a separate
+  read-only connection (`DNC_USERS_DB_*`), matched by `users.id` only. Quotation
+  keeps no second users table for them.
+- **Per-request recheck for DNC sessions only.** `auth.php` lazily loads
+  `dnc_handoff.php` inside the DNC branch; an app_users request still loads no
+  database and queries nothing.
+- **Contract code is the Portal's, byte for byte** (`app/Handoff/Contract/*`,
+  blob ids pinned in `tests/php/handoff_contract.test.php`). It is never edited
+  here; a change is a new contract version agreed across all three apps.
+- **Production cookie `__Host-DCQUOSESS`**, host-only. Never `.dnchardware.com`.
+- **Ships with `DNC_HANDOFF_ENABLED=false`.**
+
+---
+
 ## CONTROL-ONLY ROUND
 
 **Two SHAs, and they are not the same thing.**

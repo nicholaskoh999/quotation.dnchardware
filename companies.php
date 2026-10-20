@@ -759,6 +759,8 @@ input,select,textarea{
     </div>
     <a href="index.php" class="nav-btn" data-i18n-title="navCalculatorTitle" title="Quotation Calculator" data-i18n="navCalculator">Calculator</a>
     <a href="companies.php" class="nav-btn is-active" aria-current="page" data-i18n="navCompanies">Companies</a>
+    <!-- Back to the DNC Workspace launcher: a plain link, same tab, no token. -->
+    <a href="https://portal.dnchardware.com" class="nav-btn is-secondary" data-i18n="navWorkspace">DNC Workspace</a>
     <a href="logout.php" class="nav-btn is-secondary" data-i18n-title="navSignOutTitle" title="Sign out on this device only" data-i18n="navSignOut">Sign Out</a>
   </div>
 </div>
@@ -899,7 +901,7 @@ const I18N={
   en:{
     language:'Language', langAria:'Language', langSwitched:'Language set to English',
     navCalculator:'Calculator', navCalculatorTitle:'Quotation Calculator',
-    navCompanies:'Companies', navSignOut:'Sign Out',
+    navCompanies:'Companies', navSignOut:'Sign Out', navWorkspace:'DNC Workspace',
     navSignOutTitle:'Sign out on this device only',
     pageCompanies:'Companies', pageCompaniesSub:'Manage customers & saved quotations',
     tabRecent:'📋 Recent Quotations', tabCustomers:'🏢 Customers',
@@ -979,7 +981,7 @@ const I18N={
   zh:{
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
     navCalculator:'计算器', navCalculatorTitle:'报价计算器',
-    navCompanies:'公司', navSignOut:'退出',
+    navCompanies:'公司', navSignOut:'退出', navWorkspace:'DNC 工作台',
     navSignOutTitle:'只退出此设备',
     pageCompanies:'公司', pageCompaniesSub:'管理客户与已保存报价',
     tabRecent:'📋 最新报价', tabCustomers:'🏢 客户',
