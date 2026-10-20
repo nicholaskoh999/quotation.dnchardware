@@ -1,0 +1,5 @@
+  ok    fast edit — one state, and everything it holds still  (77 assertions)
+  FAIL  fast edit — one state, and everything it holds still  (77 assertions, 1 failed)
+   - [fast edit — one state, and everything it holds still] O: clearing it back to the default lets the session close
+  FAIL  fast edit — one state, and everything it holds still  (77 assertions, 1 failed)
+   - [fast edit — one state, and everything it holds still] O: clearing it back to the default lets the session close

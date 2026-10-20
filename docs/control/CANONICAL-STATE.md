@@ -43,6 +43,26 @@ int — defense in depth, INFO).
 
 ---
 
+## ROUND IN REVIEW — QUICK ADD TL OVERRIDE + HARDENING AUDIT, 2026-10-20
+
+A **candidate**, not an accepted state. Every accepted and deployed fact below
+is unchanged: accepted `5f5b4a7`, deployed `f7184f1`.
+
+| | |
+|---|---|
+| Integration | `integration/quickadd-tl-hardening`, candidate `c38896c`, base `076e2ae` |
+| Merged, in order | C `c8d1895` · A `9d6cb8f` · B `858b1ab` — no conflicts |
+| Application files | `api.php`, `index.php` |
+| Browser | 43 suites, 4,202 assertions, **8 failed**: the accepted eight 38-mobile-ui, line for line |
+| PHP | 12 files, 1,825 assertions, 0 failed (PHP 8.4.12, MySQL 8.4.11) |
+| Pre-existing flake | 35-edit-mode "O: clearing it back to the default…": intermittent, reproduces on `076e2ae` (2 of 4), owner-accepted as pre-existing. NOT one of the eight |
+| Deploy | NO |
+
+Evidence: `FULL-AUDIT/stage-tl-hardening/logs/`. Detail: `CANONICAL-STATE.json`
+`currentRound`, `preExistingFlakes`, `deferred`.
+
+---
+
 ## APPLICATION
 
 | | |

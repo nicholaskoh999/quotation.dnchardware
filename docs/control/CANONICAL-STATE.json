@@ -457,12 +457,46 @@
     "notInThisRound": "no persisted diff, no diff_json, no schema v2, no new migration, no baseline rollout, no fabricated legacy history, no restore, no soft delete, no DELETE revision, no Saved Quotation delete UI, no change to delete_quotation, no production migration, no deployment, no ERP work"
   },
   "knownBrowserFailures": "exactly the eight 38-mobile-ui Windows Chromium font-metric failures",
-  "deferred": [
-    "parser: a row phrase \"thread length 50mm\" does not override the shared Sag Rod TL (x 50/50 does)",
-    "verify PHP post_max_size / memory_limit for 5 x 10 MB image uploads",
-    "CSRF token hardening (today SameSite=Lax + JSON bodies)",
-    "DB error text in fail_json responses",
-    "history item_count is not escaped in dcHistChange (server casts it to int) - defense in depth, INFO"
+  "preExistingFlakes": [
+    {
+      "suite": "tests/suites/35-edit-mode.test.js",
+      "suiteTitle": "fast edit — one state, and everything it holds still",
+      "assertion": "O: clearing it back to the default lets the session close",
+      "classification": "PRE-EXISTING INTERMITTENT - not one of the eight, not introduced by any round session",
+      "reproducedOn": "076e2aeb135c5bc8d232beae35210c4742d461a2",
+      "evidence": "isolated runs of the 35 suite: base 076e2ae failed 2 of 4; Session C c8d1895 failed 2 of 3; integration c38896c failed 2 of 3 (FULL-AUDIT/stage-tl-hardening/logs/35-runs.log); it passed inside the integration full-suite run",
+      "acceptedBy": "owner, 2026-10-20, because it reproduces on the base",
+      "doNot": "Do not count it among the eight and do not relax it. A failure of any OTHER assertion in that suite is a regression."
+    }
   ],
-  "activeRound": "NONE"
+  "currentRound": {
+    "round": "QUICK ADD TL OVERRIDE + HARDENING AUDIT",
+    "status": "CANDIDATE - INTEGRATED, READY FOR REVIEW",
+    "base": "076e2aeb135c5bc8d232beae35210c4742d461a2",
+    "integrationBranch": "integration/quickadd-tl-hardening",
+    "candidateApplicationCommit": "c38896c",
+    "mergeOrder": [
+      { "session": "C - error leakage, history escape, CSRF design", "branch": "round/quo-c-error-escape-csrf", "sha": "c8d189555a83fa24c4f14d6782a4101bc8c2f6a3" },
+      { "session": "A - Sag Rod TL override", "branch": "round/quo-a-sagrod-tl-override", "sha": "9d6cb8ffac75ca15ce8199ad37d8866e958a394c" },
+      { "session": "B - upload capacity audit", "branch": "round/quo-b-upload-capacity-audit", "sha": "858b1ab39d0f7228705bd12fae203a3bcb4d5b17" }
+    ],
+    "conflicts": "none; index.php CRLF on every side (18,401 CRLF, 0 LF-only), the 67 bare CRs pre-exist byte for byte on the base, and the index.php diff is exactly A's 23 + C's 12 lines (33 insertions, 2 deletions)",
+    "browser": { "suites": 43, "assertions": 4202, "failed": 8, "failedAre": "exactly the accepted eight 38-mobile-ui lines, compared line for line", "log": "FULL-AUDIT/stage-tl-hardening/logs/browser-combined.log", "delta": "+173 (42-quickadd-tl-override) +19 (43-history-escape) over 41 / 4,010" },
+    "php": { "files": 12, "assertions": 1825, "failed": 0, "runtime": "PHP 8.4.12 CLI, MySQL 8.4.11 for the DB suites", "newFile": "tests/php/error_leakage.test.php 410", "maintained": "mysqli_compat 94 -> 97 (asserts the driver text is ABSENT), save_retry 42 -> 42" },
+    "translation": "953 keys, 100%, unchanged",
+    "applicationFiles": [ "api.php", "index.php" ],
+    "productionDbChange": "NO",
+    "productionConfigChange": "NO - Session B proposes; the owner decides",
+    "deploy": "NO - not deployed; acceptedCommit and deployedApplicationCommit are deliberately NOT moved until review"
+  },
+  "deferred": [
+    "CSRF implementation - layered design in docs/audit/2026-10-20-csrf-design.md (allowlisted mutating actions + Origin enforcement, then token); remove Access-Control-Allow-Origin: * from api.php",
+    "production upload limits UNVERIFIED (cPanel not signed in): need upload_max_filesize >= 10M, post_max_size >= 51M, memory_limit 256M for 5 x 10 MB - docs/audit/2026-10-20-upload-capacity.md section 7 lists the owner retrieval steps",
+    "post_max_size / memory_limit exceeded gives the user a misleading Quick Add message - code follow-up recommended in the upload audit, ai_extract.php out of this round's scope",
+    "db.php getDB() on the server (not in Git) may echo connect_error, reachable unauthenticated via login.php - owner edit on the server, db.sample.php in a later round",
+    "confirm production display_errors=Off",
+    "dc_db_fail after release_ref_lock can log the RELEASE_LOCK error instead of the BEGIN error (log only, client unaffected)",
+    "35-edit-mode intermittent 'O:' assertion - pre-existing on 076e2ae, see preExistingFlakes"
+  ],
+  "activeRound": "QUICK ADD TL OVERRIDE + HARDENING AUDIT"
 }
