@@ -126,8 +126,8 @@ foreach ([2006 => 'server has gone away', 1146 => 'table does not exist',
         '5: save_quotation commits through the retry, by reference');
     ok(strpos($save, 'next_free_ref_no($db)') !== false,
         '5: and re-allocates with the EXISTING allocation logic, not a new one');
-    ok(strpos($save, "fail_json('Quotation save failed: ' . \$stmt->error)") !== false,
-        '5: a failure still reports the same message it always did');
+    ok(strpos($save, "dc_db_fail('Quotation save failed', \$stmt)") !== false,
+        '5: a failure still reports the same label, with the driver detail sent to error_log');
     ok(strpos($save, 'acquire_ref_lock($db)') !== false,
         '5: GET_LOCK is still acquired — the retry does not replace the lock');
     ok(strpos($save, 'release_ref_lock($db)') !== false, '5: and still released');

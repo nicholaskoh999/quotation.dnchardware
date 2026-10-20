@@ -9763,10 +9763,18 @@ function dcHistPair(labelHtml,from,to,field){
        + '<span>'+dcHistEsc(dcHistValue(field,to))+'</span></div>';
 }
 
+/* item_count is an int on the server, but this is the one place a value from
+   the response is formatted straight into markup. Normalised to a non-negative
+   integer and escaped anyway, so a malformed or hostile value renders as 0. */
+function dcHistCount(v){
+  const n=Math.floor(Number(v));
+  return Number.isFinite(n)&&n>0 ? n : 0;
+}
+
 function dcHistChange(c){
   if(c.kind==='created'){
-    const bits=[dcT('histCreatedSummary').replace('{n}',String(c.item_count||0))
-                  .replace('{total}',dcHistValue('total_amount',c.total_amount))];
+    const bits=[dcHistEsc(dcT('histCreatedSummary').replace('{n}',String(dcHistCount(c.item_count)))
+                  .replace('{total}',dcHistValue('total_amount',c.total_amount)))];
     if(c.company) bits.push(dcHistEsc(c.company));
     return '<div class="hist-change"><span class="hist-label">'+dcHistEsc(dcT('histCreated'))+'</span>'
          + '<div class="hist-sub">'+bits.join(' · ')+'</div></div>';
