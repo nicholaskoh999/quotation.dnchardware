@@ -34,8 +34,9 @@ dc_require_api_login();
    call also covers every query, prepare and execute that follows.
 
    Deliberate and accepted: OFF also silences mysqli warnings. That is exactly
-   what PHP 8.0 does today, and this file reports $db->error / $stmt->error in
-   its own JSON, so nothing the application relies on is lost.            */
+   what PHP 8.0 does today, and this file reads $db->error / $stmt->error itself
+   after every failed call, so nothing the application relies on is lost. That
+   text is written to error_log by dc_db_fail(), never into the JSON.      */
 mysqli_report(MYSQLI_REPORT_OFF);
 
 require_once 'db.php';
@@ -158,20 +159,43 @@ function fail_json($error) {
     exit;
 }
 
+/* ── What a database failure tells the browser ──────────────────────────────
+   The driver's own text — "Table 'x.quotations' doesn't exist", "Unknown
+   column ...", "Duplicate entry ... for key ...", the SQL near an error — names
+   tables, columns, keys and values, and it is never the browser's business.
+   The client gets the label the call site chose, which is written for a
+   person, and a short reference id. error_log gets the same id with the errno
+   and the driver text, so a screenshot of the toast is enough to find the
+   line. The response shape is unchanged: {ok:false, error:"<label> (ref ...)"}.
+
+   $handle is the mysqli or mysqli_stmt that failed, or a string of detail for
+   the log, or null. The properties are read directly rather than through
+   isset(), which does not see mysqli's driver properties on every PHP version.
+   Nothing is thrown and nothing is caught: this sits on the same return-value
+   contract as the helpers below. */
+function dc_db_fail($label, $handle = null) {
+    $ref    = bin2hex(random_bytes(4));
+    $errno  = is_object($handle) ? (int)@$handle->errno : 0;
+    $detail = is_object($handle) ? (string)@$handle->error : (string)$handle;
+    error_log('[api] ref=' . $ref . ' action=' . ($GLOBALS['action'] ?? '') . ' ' . $label
+              . ($errno ? ' errno=' . $errno : '') . ($detail !== '' ? ': ' . $detail : ''));
+    fail_json($label . ' (ref ' . $ref . ')');
+}
+
 function query_or_fail($db, $sql, $label = 'Database query failed') {
     $res = $db->query($sql);
-    if (!$res) fail_json($label . ': ' . $db->error);
+    if (!$res) dc_db_fail($label, $db);
     return $res;
 }
 
 function prepare_or_fail($db, $sql, $label = 'Database prepare failed') {
     $stmt = $db->prepare($sql);
-    if (!$stmt) fail_json($label . ': ' . $db->error);
+    if (!$stmt) dc_db_fail($label, $db);
     return $stmt;
 }
 
 function execute_or_fail($stmt, $label = 'Database execute failed') {
-    if (!$stmt->execute()) fail_json($label . ': ' . $stmt->error);
+    if (!$stmt->execute()) dc_db_fail($label, $stmt);
 }
 
 function table_exists($db, $table) {
@@ -182,7 +206,7 @@ function table_exists($db, $table) {
 
 function require_table($db, $table) {
     if (!table_exists($db, $table)) {
-        fail_json("Missing database table {$table}. Import database-safe-patch.sql in phpMyAdmin.");
+        dc_db_fail('Missing database table. Import database-safe-patch.sql in phpMyAdmin', "table {$table}");
     }
 }
 
@@ -823,7 +847,7 @@ function dc_write_revision($db, $quotationId, $eventType) {
                       $actorId, $actorUser, $actorName, $ver, $json);
     if (!$stmt->execute()) {
         /* Rolls back the quotation mutation too. No unrevisioned save. */
-        fail_json('Revision write failed: ' . $stmt->error);
+        dc_db_fail('Revision write failed', $stmt);
     }
     $stmt->close();
     return $revNo;
@@ -1393,7 +1417,7 @@ if ($action === 'get_next_ref') {
        collided with before it reallocates — see dc_txn_begin(). */
     if (!dc_txn_begin($db, true)) {
         release_ref_lock($db);
-        fail_json('Could not begin the save transaction: ' . $db->error);
+        dc_db_fail('Could not begin the save transaction', $db);
     }
     if ($requested_ref !== '' && !ref_no_in_use($db, $requested_ref)) {
         $ref_no = $requested_ref;               // previewed / custom number still free — keep it
@@ -1409,7 +1433,7 @@ if ($action === 'get_next_ref') {
     if (!dc_save_quotation_insert($stmt, $ref_no, function () use ($db) { return next_free_ref_no($db); })) {
         /* fail_json rolls the transaction back and gives the named lock back
            before it answers. Nothing partial survives. */
-        fail_json('Quotation save failed: ' . $stmt->error);
+        dc_db_fail('Quotation save failed', $stmt);
     }
     $new_id = $db->insert_id;
     /* Exactly ONE revision, written after the 1062 retry has settled so a
@@ -1422,7 +1446,7 @@ if ($action === 'get_next_ref') {
        request allocating the same number; letting go of it while this INSERT
        is still uncommitted would hand out a number that is not yet taken. */
     if (!dc_txn_commit($db)) {
-        fail_json('Quotation save could not be committed: ' . $db->error);
+        dc_db_fail('Quotation save could not be committed', $db);
     }
     release_ref_lock($db);
     /* The normalized persisted items travel back, so the page that saved can
@@ -1459,7 +1483,7 @@ if ($action === 'get_next_ref') {
        Every refusal past this point rolls back explicitly and leaves the
        quotation exactly as it was. */
     if (!dc_txn_begin($db)) {
-        fail_json('Could not begin the update transaction: ' . $db->error);
+        dc_db_fail('Could not begin the update transaction', $db);
     }
     $persisted = dc_lock_quotation_for_update($db, $id);
     if ($persisted === null) {
@@ -1507,7 +1531,7 @@ if ($action === 'get_next_ref') {
         dc_write_revision($db, $id, 'update');
     }
     if (!dc_txn_commit($db)) {
-        fail_json('Quotation update could not be committed: ' . $db->error);
+        dc_db_fail('Quotation update could not be committed', $db);
     }
     echo json_encode(['ok'=>true,'items'=>$itemsArr]);
 

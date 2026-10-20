@@ -130,6 +130,7 @@ function lift($src, $name) {
     $GLOBALS['DC_TXN'] = ['db' => null, 'active' => false, 'lock' => false];
     eval(lift($src, 'dc_txn_cleanup'));
     eval(lift($src, 'fail_json'));
+    eval(lift($src, 'dc_db_fail'));
     eval(lift($src, 'query_or_fail'));
     eval(lift($src, 'prepare_or_fail'));
     eval(lift($src, 'execute_or_fail'));
@@ -171,6 +172,7 @@ function lift($src, $name) {
 $GLOBALS['DC_TXN'] = ['db' => null, 'active' => false, 'lock' => false];
 eval(lift($src, 'dc_txn_cleanup'));
 eval(lift($src, 'fail_json'));
+eval(lift($src, 'dc_db_fail'));
 eval(lift($src, 'query_or_fail'));
 eval(lift($src, 'prepare_or_fail'));
 eval(lift($src, 'execute_or_fail'));
@@ -189,16 +191,22 @@ CHILD;
     $tmp = tempnam(sys_get_temp_dir(), 'dcmc') . '.php';
     file_put_contents($tmp, "<?php\n" . $child);
     $api = __DIR__ . '/../../api.php';
-    foreach ([['query','Lookup failed: Table missing'],
-              ['prepare','Prepare failed: Table missing'],
-              ['execute','Execute failed: Constraint failed']] as [$case, $want]) {
-        $cmd = escapeshellarg(PHP_BINARY) . ' -d error_reporting=E_ALL -d display_errors=stderr '
+    /* The client is told the label and a reference id; the driver text goes
+       to error_log only (dc_db_fail). Pinned both ways: the new message is
+       there, and the driver text is not. */
+    foreach ([['query','Lookup failed','Table missing'],
+              ['prepare','Prepare failed','Table missing'],
+              ['execute','Execute failed','Constraint failed']] as [$case, $want, $driver]) {
+        $cmd = escapeshellarg(PHP_BINARY) . ' -d error_reporting=E_ALL -d display_errors=stderr -d log_errors=0 '
              . escapeshellarg($tmp) . ' ' . escapeshellarg($api) . ' ' . escapeshellarg($case) . ' 2>&1';
         $out = shell_exec($cmd);
         $decoded = json_decode(trim($out), true);
         ok(is_array($decoded), "3: $case failure returns parseable JSON, not a fatal (got: " . trim((string)$out) . ')');
         ok(($decoded['ok'] ?? null) === false, "3: $case failure returns ok:false");
-        eq($decoded['error'] ?? null, $want, "3: $case failure carries the existing message");
+        ok(preg_match('/^' . preg_quote($want, '/') . ' \(ref [0-9a-f]{8}\)$/', (string)($decoded['error'] ?? '')) === 1,
+           "3: $case failure carries the label and a reference id (got: " . ($decoded['error'] ?? 'null') . ')');
+        ok(strpos((string)$out, $driver) === false,
+           "3: $case failure does NOT carry the driver text \"$driver\"");
         ok(strpos((string)$out, 'REACHED_END_WITHOUT_FAILING') === false,
            "3: $case really did stop at the failure branch");
         ok(stripos((string)$out, 'Uncaught') === false && stripos((string)$out, 'Fatal') === false,
