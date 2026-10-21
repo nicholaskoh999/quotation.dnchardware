@@ -1,0 +1,160 @@
+{
+    "_about": "Small legacy QUOTATION.DNC dataset mirroring real saved shapes: every pricing vintage (accessory-inclusive, bolt-separate, legacy), a description-only legacy item, a legacy item with accessories and no price mode (ambiguous), a Welding Anchor Set, hardened combined materials, 4140 / 4140_PLAIN / 4340 / Y_BAR, an inch size, malformed JSON, a non-object item, an empty items array, and a quotation with no company. Seeded by tests/Support/LegacyFixtureDatabase.php with json_encode() defaults, so an inch size is stored \"1\\/2\" exactly as api.php writes it.",
+    "companies": [
+        { "id": 1, "name": "ACME ENGINEERING SDN BHD", "short_code": "ACM", "phone": "012-345 6789", "address": "LOT 1, JALAN KLANG LAMA" },
+        { "id": 2, "name": "BINA STEEL WORKS", "short_code": "BSW9", "phone": "03-5555 1234", "address": null },
+        { "id": 3, "name": "ZENITH FABRICATION", "short_code": "", "phone": null, "address": null }
+    ],
+    "quotations": [
+        {
+            "id": 101, "company_id": 1, "ref_no": "Q-2026-0001", "quote_date": "2026-03-01", "valid_until": "2026-03-31",
+            "prepared_by": "Nicholas", "remarks": "Price subject to change without prior notice",
+            "customer_name": "ACME ENGINEERING SDN BHD", "customer_phone": "012-345 6789",
+            "total_amount": "158.60", "created_at": "2026-03-01 09:00:00",
+            "items": [
+                {
+                    "item_uid": "itm_0123456789abcdef0123456789abcdef",
+                    "itemType": "sagrod", "productType": "SAG ROD", "desc": "MS UNDERSIZE SAG ROD",
+                    "material": "MS", "sizeType": "UNDERSIZE", "finish": "ZP", "cleanSize": "M12", "sizeCode": "M12",
+                    "size": "M12 x L 1000 x TL 100/100mm", "dimensionPreview": "L 1000 x TL 100/100mm",
+                    "qty": 10, "finalUnitPrice": 2.5, "boltUnitPrice": 2.5, "accessoryUnitPrice": 0, "lineUnitPrice": 2.5,
+                    "accessoryTotal": 0, "totalAmount": 25, "pricingModel": "accessory-inclusive",
+                    "markup": 0, "weight": 0.6928, "accessories": null, "priceMode": "auto",
+                    "formData": { "costRate": "4.20", "addCost": "0.60", "markup": "0", "priceMode": "auto" }
+                },
+                {
+                    "item_uid": "itm_fedcba9876543210fedcba9876543210",
+                    "itemType": "lbolt", "productType": "L BOLT", "desc": "4140 QT FULLSIZE L BOLT",
+                    "material": "4140", "sizeType": "FULLSIZE", "finish": "HDG", "cleanSize": "M20", "sizeCode": "M20",
+                    "size": "M20 x L 1000 x W 100 x TL 150mm", "dimensionPreview": "L 1000 x W 100 x TL 150mm",
+                    "qty": 4, "finalUnitPrice": 33.4, "boltUnitPrice": 31.1, "accessoryUnitPrice": 2.3, "lineUnitPrice": 33.4,
+                    "accessoryTotal": 9.2, "totalAmount": 133.6, "pricingModel": "accessory-inclusive",
+                    "markup": 20, "weight": 2.5911, "priceMode": "auto",
+                    "accessories": {
+                        "nut": { "enabled": true, "qty": 2, "unitPrice": 1, "finish": "HDG" },
+                        "fw": { "enabled": true, "qty": 1, "unitPrice": 0.3, "finish": "HDG" },
+                        "custom": { "enabled": false, "text": "", "unitPrice": 0 }
+                    },
+                    "formData": { "costRate": "9.80", "addCost": "1.00", "markup": "20", "priceMode": "auto" }
+                }
+            ]
+        },
+        {
+            "id": 102, "company_id": 1, "ref_no": "Q-2026-0002", "quote_date": null, "valid_until": null,
+            "prepared_by": "Alson", "remarks": null, "customer_name": "", "customer_phone": null,
+            "total_amount": "120.50", "created_at": "2026-05-02 10:00:00",
+            "items": [
+                {
+                    "itemType": "stud", "productType": "STUD", "desc": "S45C + HARDEN = G8.8 STUD",
+                    "material": "S45C_HARDEN_G8_8", "sizeType": "", "finish": "PL", "cleanSize": "M16", "sizeCode": "M16",
+                    "size": "M16 x L 300mm", "dimensionPreview": "L 300mm",
+                    "qty": 20, "finalUnitPrice": 4.1, "accessoryUnitPrice": 0.7, "lineUnitPrice": 4.8,
+                    "totalAmount": 96, "pricingModel": "bolt-separate", "priceMode": "auto", "weight": 0.4734,
+                    "accessories": { "nut": { "enabled": true, "qty": 2, "unitPrice": 0.35 } },
+                    "formData": { "costRate": "6.50", "addCost": "0", "markup": "25", "priceMode": "auto" }
+                },
+                {
+                    "itemType": "stud", "productType": "STUD", "desc": "4140_HARDEN_G10_9 STUD",
+                    "material": "4140_HARDEN_G10_9", "sizeType": "", "finish": "PL", "cleanSize": "M20", "sizeCode": "M20",
+                    "size": "M20 x L 400mm", "dimensionPreview": "L 400mm",
+                    "qty": 5, "finalUnitPrice": 4.9, "boltUnitPrice": 4.9, "accessoryUnitPrice": 0, "lineUnitPrice": 4.9,
+                    "totalAmount": 24.5, "pricingModel": "accessory-inclusive", "priceMode": "manual", "accessories": null
+                }
+            ]
+        },
+        {
+            "id": 103, "company_id": 2, "ref_no": "Q-2026-0003", "quote_date": "2026-04-15", "valid_until": null,
+            "prepared_by": "Nicholas", "remarks": "", "customer_name": "BINA STEEL WORKS", "customer_phone": "03-5555 1234",
+            "total_amount": "281.40", "created_at": "2026-04-15 08:30:00",
+            "items": [
+                { "desc": "MS UNDERSIZE SAG ROD", "size": "M12 x L 1000 x TL 100/100mm", "qty": 5, "finalUnitPrice": 2.2, "totalAmount": 11, "finish": "ZP" },
+                {
+                    "itemType": "sagrod", "productType": "SAG ROD", "desc": "MS FULLSIZE SAG ROD",
+                    "material": "MS", "sizeType": "FULLSIZE", "finish": "PL", "cleanSize": "M16",
+                    "size": "M16 x L 1200 x TL 100/100mm", "dimensionPreview": "L 1200 x TL 100/100mm",
+                    "qty": 10, "finalUnitPrice": 3.5, "totalAmount": 35,
+                    "accessories": { "nut": { "enabled": true, "qty": 2, "unitPrice": 0.25 } }
+                },
+                {
+                    "itemType": "ubolt", "productType": "U BOLT", "desc": "MS FULLSIZE U BOLT",
+                    "material": "MS", "sizeType": "FULLSIZE", "finish": "ZP", "cleanSize": "M12",
+                    "size": "M12 x ID 60 x IH 100 x TL 50mm", "dimensionPreview": "ID 60 x IH 100 x TL 50mm",
+                    "qty": 2, "finalUnitPrice": 5, "totalAmount": 10, "priceMode": "auto",
+                    "accessories": { "fw": { "enabled": true, "qty": 1, "unitPrice": 0.3 } }
+                },
+                {
+                    "itemType": "was", "productType": "WELDING ANCHOR SET", "desc": "WELDING ANCHOR SET",
+                    "material": "MS", "sizeType": "", "finish": "HDG", "cleanSize": "", "sizeCode": "",
+                    "size": "M20 x L 600 x TL 100mm\nBase Plate: 200 x 200 x 12mm\nTriangle Plate: 100 x 100 x 10mm",
+                    "dimensionPreview": "M20 x L 600 x TL 100mm",
+                    "qty": 2, "finalUnitPrice": 85.5, "totalAmount": 171, "markup": 30, "weight": 6.12, "priceMode": "auto",
+                    "accessories": { "nut": { "enabled": true, "qty": 2, "unitPrice": 1.2 } },
+                    "wasData": { "abLine": "M20 x L 600 x TL 100mm", "compLines": "Base Plate: 200 x 200 x 12mm\nTriangle Plate: 100 x 100 x 10mm" },
+                    "formData": { "trianglePlateQtyPerSet": "0", "anchorCostRate": "4.00", "markup": "30", "priceMode": "auto" }
+                },
+                {
+                    "itemType": "sagrod", "productType": "SAG ROD", "desc": "MS UNDERSIZE SAG ROD",
+                    "material": "MS", "sizeType": "UNDERSIZE", "finish": "ZP", "cleanSize": "1/2", "sizeCode": "1/2",
+                    "size": "1/2\" x L 1000 x TL 100/100mm", "dimensionPreview": "L 1000 x TL 100/100mm",
+                    "qty": 10, "finalUnitPrice": 2.6, "boltUnitPrice": 2.6, "accessoryUnitPrice": 0,
+                    "totalAmount": 26, "pricingModel": "accessory-inclusive", "priceMode": "auto", "accessories": null
+                },
+                {
+                    "itemType": "stud", "productType": "STUD", "desc": "4140 STUD",
+                    "material": "4140_PLAIN", "sizeType": "", "finish": "PL", "cleanSize": "M16",
+                    "size": "M16 x L 250mm", "dimensionPreview": "L 250mm",
+                    "qty": 3, "finalUnitPrice": 5.2, "boltUnitPrice": 5.2, "accessoryUnitPrice": 0,
+                    "totalAmount": 15.6, "pricingModel": "accessory-inclusive", "priceMode": "auto", "accessories": null
+                },
+                {
+                    "itemType": "sagrod", "productType": "SAG ROD", "desc": "Y BAR FULLSIZE SAG ROD",
+                    "material": "Y_BAR", "sizeType": "FULLSIZE", "finish": "PL", "cleanSize": "M12",
+                    "size": "M12 x L 800 x TL 80/80mm", "dimensionPreview": "L 800 x TL 80/80mm",
+                    "qty": 2, "finalUnitPrice": 6.4, "boltUnitPrice": 6.4, "accessoryUnitPrice": 0,
+                    "totalAmount": 12.8, "pricingModel": "accessory-inclusive", "priceMode": "auto", "accessories": null
+                }
+            ]
+        },
+        {
+            "id": 104, "company_id": null, "ref_no": "Q-2026-0004", "quote_date": "2026-06-01", "valid_until": null,
+            "prepared_by": "Nicholas", "remarks": null, "customer_name": "WALK-IN CUSTOMER", "customer_phone": "011-2222 3333",
+            "total_amount": "50.00", "created_at": "2026-06-01 15:45:00",
+            "items_raw": "[{\"desc\":\"MS UNDERSIZE SAG ROD\",\"size\":\"M12 x L 1000"
+        },
+        {
+            "id": 105, "company_id": 2, "ref_no": "Q-2026-0005", "quote_date": "2026-02-10", "valid_until": null,
+            "prepared_by": "Nicholas", "remarks": null, "customer_name": "BINA STEEL WORKS", "customer_phone": null,
+            "total_amount": "99.90", "created_at": "2026-07-01 11:00:00",
+            "items": [
+                "a bare string where an item object belongs",
+                {
+                    "itemType": "anchorbolt", "productType": "ANCHOR BOLT", "desc": "4340 FULLSIZE ANCHOR BOLT",
+                    "material": "4340", "sizeType": "FULLSIZE", "finish": "HDG", "cleanSize": "M24",
+                    "size": "M24 x L 900 x TL 150mm", "dimensionPreview": "L 900 x TL 150mm",
+                    "qty": 5, "finalUnitPrice": 9.9, "boltUnitPrice": 9.9, "accessoryUnitPrice": 0,
+                    "totalAmount": 49.5, "pricingModel": "accessory-inclusive", "priceMode": "auto", "accessories": null
+                },
+                { "desc": ["not", "a", "string"], "size": "M12" }
+            ]
+        },
+        {
+            "id": 106, "company_id": 1, "ref_no": "Q-2025-0100", "quote_date": "2025-11-01", "valid_until": null,
+            "prepared_by": "Nicholas", "remarks": null, "customer_name": "ACME ENGINEERING SDN BHD", "customer_phone": null,
+            "total_amount": "0.00", "created_at": "2025-11-01 12:00:00",
+            "items": []
+        }
+    ],
+    "quotation_revisions": [
+        { "quotation_id": 101, "revision_no": 1, "quotation_ref_no": "Q-2026-0001", "event_type": "create", "actor_user_id": 7, "actor_username": "nicholas", "actor_display_name": "Nicholas Koh", "snapshot_schema_version": 1, "snapshot_json": "{\"quotation\":{\"total_amount\":\"158.60\"}}", "created_at": "2026-03-01 09:00:00" },
+        { "quotation_id": 101, "revision_no": 2, "quotation_ref_no": "Q-2026-0001", "event_type": "update", "actor_user_id": 8, "actor_username": "alson", "actor_display_name": "Alson", "snapshot_schema_version": 1, "snapshot_json": "{\"quotation\":{\"total_amount\":\"158.60\"}}", "created_at": "2026-03-02 14:10:00" }
+    ],
+    "whatsapp_templates": [
+        { "id": 1, "template_name": "Old", "template_body": "Old body {items}", "is_default": 0 },
+        { "id": 2, "template_name": "Shop default", "template_body": "Hello {customer}\nValid Until: {validUntil}\nItems:\n{items}\n\n\n\nTotal: RM{total}", "is_default": 1 }
+    ],
+    "default_prices": [],
+    "diameter_settings": [
+        { "id": 1, "product_type": "sagrod", "material": "MS", "size_type": "UNDERSIZE", "size": "M12", "diameter": "10.600", "is_active": 1 },
+        { "id": 2, "product_type": "sagrod", "material": "4140", "size_type": "UNDERSIZE", "size": "M12", "diameter": "10.700", "is_active": 0 }
+    ]
+}

@@ -1,0 +1,89 @@
+import { Link, router } from '@inertiajs/react';
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { useState, type FormEvent, type ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import type { Paginated } from '@/types/legacy';
+
+/* Small, plain building blocks for the Wave 1 read pages. Session A owns the
+   real app shell and visual system; these stay deliberately simple so the
+   integration round can restyle them in one place. */
+
+export function PageHeader({ title, subtitle, children }: { title: string; subtitle?: ReactNode; children?: ReactNode }) {
+    return (
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+                <h1 className="truncate text-xl font-semibold">{title}</h1>
+                {subtitle ? <div className="mt-1 text-sm text-muted-foreground">{subtitle}</div> : null}
+            </div>
+            {children ? <div className="flex flex-wrap items-center gap-2">{children}</div> : null}
+        </div>
+    );
+}
+
+/** GET search form — the query lives in the URL, so a search can be shared or reloaded. */
+export function SearchForm({ action, value, placeholder, label, extra }: {
+    action: string;
+    value: string;
+    placeholder: string;
+    label: string;
+    extra?: Record<string, string | number>;
+}) {
+    const [q, setQ] = useState(value);
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        const query: Record<string, string | number> = { ...(extra ?? {}) };
+        if (q.trim() !== '') query.q = q.trim();
+        router.get(action, query, { preserveState: true, replace: true });
+    };
+    return (
+        <form role="search" onSubmit={submit} className="mb-4 flex gap-2">
+            <label className="sr-only" htmlFor="read-search">{label}</label>
+            <input
+                id="read-search"
+                type="search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={placeholder}
+                className="h-9 min-w-0 flex-1 rounded-[var(--radius-md)] border border-border bg-surface px-3 text-sm shadow-xs placeholder:text-subtle-foreground"
+            />
+            <Button type="submit" variant="secondary">
+                <Search aria-hidden="true" /> Search
+            </Button>
+        </form>
+    );
+}
+
+export function Pager<T>({ page, href }: { page: Paginated<T>; href: (n: number) => string }) {
+    if (page.lastPage <= 1) return null;
+    return (
+        <nav aria-label="Pagination" className="mt-4 flex items-center justify-between gap-2 text-sm">
+            <span className="text-muted-foreground">
+                Page {page.page} of {page.lastPage} · {page.total} total
+            </span>
+            <span className="flex gap-2">
+                {page.page > 1 ? (
+                    <Button asChild variant="secondary" size="sm">
+                        <Link href={href(page.page - 1)} preserveScroll>
+                            <ChevronLeft aria-hidden="true" /> Previous
+                        </Link>
+                    </Button>
+                ) : null}
+                {page.page < page.lastPage ? (
+                    <Button asChild variant="secondary" size="sm">
+                        <Link href={href(page.page + 1)} preserveScroll>
+                            Next <ChevronRight aria-hidden="true" />
+                        </Link>
+                    </Button>
+                ) : null}
+            </span>
+        </nav>
+    );
+}
+
+export function EmptyState({ children }: { children: ReactNode }) {
+    return (
+        <div className="rounded-[var(--radius-lg)] border border-dashed border-border-strong bg-surface p-8 text-center text-sm text-muted-foreground">
+            {children}
+        </div>
+    );
+}

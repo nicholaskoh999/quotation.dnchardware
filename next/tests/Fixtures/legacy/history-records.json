@@ -1,0 +1,470 @@
+{
+    "_about": "Inputs of fixtures/golden/history.json, copied from tests/characterisation/history.php (R0b) so the Pest parity test can run the PHP port over exactly the records the golden was generated from. Do not edit by hand.",
+    "want": {
+        "productType": "SAG ROD",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "finish": "ZP",
+        "cleanSize": "M12",
+        "dimensionPreview": "L 1000 x TL 100/100mm",
+        "companyId": 7
+    },
+    "records": [
+        {
+            "label": "other customer, exact dims, newest",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 310,
+                "refNo": "Q-2026-0310",
+                "date": "2026-10-01",
+                "customer": "OTHER CO",
+                "companyId": 9
+            }
+        },
+        {
+            "label": "same customer, exact dims, older",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.4,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 120,
+                "refNo": "Q-2026-0120",
+                "date": "2026-03-01",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "same customer, L1200, newer",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1200 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.9,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 200,
+                "refNo": "Q-2026-0200",
+                "date": "2026-06-01",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "same customer, PL finish (flagged)",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "PL",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.0,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 250,
+                "refNo": "Q-2026-0250",
+                "date": "2026-08-01",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "same customer, exact dims, same date, higher id",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.45,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 121,
+                "refNo": "Q-2026-0121",
+                "date": "2026-03-01",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "M10 — must NOT match M12",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M10",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 400,
+                "refNo": "Q-2026-0400",
+                "date": "2026-10-02",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "FULLSIZE — must NOT match UNDERSIZE",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "FULLSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 401,
+                "refNo": "Q-2026-0401",
+                "date": "2026-10-02",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "4140 — must NOT match MS",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "4140",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 402,
+                "refNo": "Q-2026-0402",
+                "date": "2026-10-02",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "qty differs — qty is not identity",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 999,
+                "finalUnitPrice": 2.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": null,
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                }
+            },
+            "meta": {
+                "quotationId": 130,
+                "refNo": "Q-2026-0130",
+                "date": "2026-04-01",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        },
+        {
+            "label": "accessory-inclusive with nuts",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 3.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": {
+                    "nut": {
+                        "enabled": true,
+                        "qty": 2,
+                        "unitPrice": 0.5
+                    }
+                },
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                },
+                "boltUnitPrice": 2.5,
+                "accessoryUnitPrice": 1.0,
+                "pricingModel": "accessory-inclusive"
+            },
+            "meta": {
+                "quotationId": 140,
+                "refNo": "Q-2026-0140",
+                "date": "2026-05-01",
+                "customer": "OTHER CO",
+                "companyId": 9
+            }
+        },
+        {
+            "label": "bolt-separate vintage with nuts",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 2.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": {
+                    "nut": {
+                        "enabled": true,
+                        "qty": 2,
+                        "unitPrice": 0.5
+                    }
+                },
+                "priceMode": "auto",
+                "formData": {
+                    "costRate": "4.20",
+                    "addCost": "0.60",
+                    "markup": "0",
+                    "priceMode": "auto"
+                },
+                "accessoryUnitPrice": 1.0,
+                "lineUnitPrice": 3.5,
+                "pricingModel": "bolt-separate"
+            },
+            "meta": {
+                "quotationId": 141,
+                "refNo": "Q-2026-0141",
+                "date": "2026-05-02",
+                "customer": "OTHER CO",
+                "companyId": 9
+            }
+        },
+        {
+            "label": "legacy vintage, accessories, no mode (ambiguous)",
+            "item": {
+                "itemType": "sagrod",
+                "productType": "SAG ROD",
+                "desc": "MS UNDERSIZE SAG ROD",
+                "material": "MS",
+                "sizeType": "UNDERSIZE",
+                "finish": "ZP",
+                "cleanSize": "M12",
+                "sizeCode": "M12",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "dimensionPreview": "L 1000 x TL 100/100mm",
+                "qty": 10,
+                "finalUnitPrice": 3.5,
+                "totalAmount": 25.0,
+                "markup": 0,
+                "weight": 0.6928,
+                "accessories": {
+                    "nut": {
+                        "enabled": true,
+                        "qty": 2,
+                        "unitPrice": 0.5
+                    }
+                },
+                "priceMode": null,
+                "formData": []
+            },
+            "meta": {
+                "quotationId": 142,
+                "refNo": "Q-2026-0142",
+                "date": "2026-05-03",
+                "customer": "OTHER CO",
+                "companyId": 9
+            }
+        },
+        {
+            "label": "legacy description-only item",
+            "item": {
+                "desc": "MS UNDERSIZE SAG ROD (ZP)",
+                "size": "M12 x L 1000 x TL 100/100mm",
+                "qty": 5,
+                "finalUnitPrice": 2.2,
+                "finish": "ZP"
+            },
+            "meta": {
+                "quotationId": 50,
+                "refNo": "Q-2025-0050",
+                "date": "2025-11-01",
+                "customer": "ACME",
+                "companyId": 7
+            }
+        }
+    ]
+}
