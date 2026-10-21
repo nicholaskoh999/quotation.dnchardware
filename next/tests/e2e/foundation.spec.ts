@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { requireAuthDb, signIn } from './support/auth';
 
 test('health answers with the app up and no secrets', async ({ request }) => {
     const res = await request.get('/health');
@@ -9,7 +10,8 @@ test('health answers with the app up and no secrets', async ({ request }) => {
 });
 
 test('home renders, and the logo returns home', async ({ page }) => {
-    await page.goto('/');
+    requireAuthDb();
+    await signIn(page);
     await expect(page.getByRole('heading', { name: /QUOTATION NEXT/i })).toBeVisible();
     await page.getByRole('link', { name: /DNC Quotation — Home/i }).click();
     await expect(page).toHaveURL(/\/$/);

@@ -9,8 +9,20 @@ export interface ReleaseInfo {
     environment: string;
 }
 
+/** The signed-in person (server: App\Services\Identity\Actor::toSharedArray). */
+export interface AuthUser {
+    /** app_users id; null for a DNC Workspace session (canonical ids never cross over). */
+    id: number | null;
+    username: string;
+    displayName: string;
+    source: 'app_users' | 'dnc';
+}
+
 export interface SharedProps {
     appName: string;
+    auth: { user: AuthUser | null };
+    /** "Back to DNC Workspace" target (https origin), or null. */
+    workspace: { url: string | null };
     release: ReleaseInfo;
     flash: { success?: string | null; error?: string | null };
     [key: string]: unknown;
