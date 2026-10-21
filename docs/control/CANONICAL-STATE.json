@@ -562,5 +562,17 @@
     "revisionHistory": "STILL DEPLOYED / VERIFIED",
     "uploadCapacity": "UNVERIFIED - owner/cPanel check remains"
   },
-  "activeRound": "NONE"
+  "activeRound": "NONE",
+  "quotationNext": {
+    "ownerAuthority": "docs/quotation-next/OWNER-APPROVED-REWRITE-HANDOFF.md",
+    "round": "R0 FINAL",
+    "ownerDecisions": "LOCKED",
+    "baseline": "664c0d845c09a635d792009e5cc08349279e6633",
+    "date": "2026-10-21",
+    "applicationChange": "NONE",
+    "databaseChange": "NONE",
+    "deployment": "NONE",
+    "productionGate": "PRODUCTION APPROVED BY OWNER",
+    "nextRound": "R0b - Characterisation / golden fixtures / CI baseline"
+  }
 }

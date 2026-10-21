@@ -15,6 +15,22 @@ outputs being validated, not sources of truth. Checkers must read
 
 ---
 
+## QUOTATION NEXT — OWNER AUTHORITY (R0 FINAL, 2026-10-21)
+
+The owner-approved rewrite specification for QUOTATION NEXT is
+**`docs/quotation-next/OWNER-APPROVED-REWRITE-HANDOFF.md`** — the current owner
+authority for the new application, superseding earlier UI concepts and planning
+notes where they conflict. R0 owner decisions: **LOCKED**. Next round: **R0b —
+Characterisation / golden fixtures**.
+
+R0 FINAL was documentation only: no application byte, database, configuration
+or deployment changed, and the legacy state recorded below is unaffected. The
+legacy application remains the oracle until parity / cutover; production for the
+new track is gated on the explicit instruction `PRODUCTION APPROVED BY OWNER`.
+Machine copy: `CANONICAL-STATE.json` `quotationNext`.
+
+---
+
 ## CURRENT STATE — QUICK ADD TL OVERRIDE + HARDENING AUDIT CLOSED, 2026-10-20
 
 | | |
