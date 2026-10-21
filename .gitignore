@@ -37,3 +37,6 @@ Thumbs.db
 # Generated when the release archive is built: it names the commit it was
 # built FROM, which is a thing a committed file cannot do about itself.
 ZIP-MANIFEST.txt
+
+# QUOTATION NEXT release artefacts (next/scripts/build-release.sh)
+/release-out/
