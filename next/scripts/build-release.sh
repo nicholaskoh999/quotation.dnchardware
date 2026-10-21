@@ -33,6 +33,9 @@ APP="$STAGE/next"
 
 # 2. production PHP dependencies
 ( cd "$APP" && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --classmap-authoritative --no-progress )
+# If Composer had to fall back to git clones (dist downloads unavailable), the
+# packages carry their .git directories — never ship those to a server.
+find "$APP/vendor" -type d -name .git -prune -exec rm -rf {} +
 
 # 3. frontend assets (Node runs HERE, never on the server)
 ( cd "$APP" && npm ci --no-audit --no-fund && GIT_SHA="$SHA" node scripts/release-stamp.mjs && npx vite build )
