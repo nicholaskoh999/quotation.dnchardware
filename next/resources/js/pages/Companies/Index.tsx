@@ -5,7 +5,7 @@ import { formatDate, orDash } from '@/components/legacy/format';
 import { EmptyState, PageHeader, SearchForm } from '@/components/legacy/read-parts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import FoundationLayout from '@/layouts/foundation-layout';
+import AppLayout from '@/layouts/app-layout';
 import type { CompaniesIndexProps, CompanyRow } from '@/types/legacy';
 
 /* Customer directory (handoff §11): search · list · usage metadata · open
@@ -13,7 +13,7 @@ import type { CompaniesIndexProps, CompanyRow } from '@/types/legacy';
    shown; a search may still match it as a hidden alias. */
 export default function CompaniesIndex({ source, search, companies }: CompaniesIndexProps) {
     return (
-        <FoundationLayout>
+        <AppLayout>
             <Head title="Companies" />
             <PageHeader title="Companies" subtitle={<ReadOnlyNote />}>
                 <Button asChild variant="ghost" size="sm">
@@ -32,7 +32,7 @@ export default function CompaniesIndex({ source, search, companies }: CompaniesI
                     )}
                 </>
             )}
-        </FoundationLayout>
+        </AppLayout>
     );
 }
 

@@ -7,7 +7,7 @@ import { QuotationList } from '@/components/legacy/quotation-list';
 import { EmptyState, PageHeader, Pager } from '@/components/legacy/read-parts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import FoundationLayout from '@/layouts/foundation-layout';
+import AppLayout from '@/layouts/app-layout';
 import type { CompanyShowProps } from '@/types/legacy';
 
 const TABS = [
@@ -21,7 +21,7 @@ type TabId = (typeof TABS)[number]['id'];
 export default function CompanyShow({ source, companyId, company, quotations }: CompanyShowProps) {
     const [tab, setTab] = useState<TabId>(quotations && quotations.page > 1 ? 'quotations' : 'overview');
     return (
-        <FoundationLayout>
+        <AppLayout>
             <Head title={company?.name ?? 'Company'} />
             <Button asChild variant="ghost" size="sm" className="mb-3">
                 <Link href="/companies">
@@ -96,7 +96,7 @@ export default function CompanyShow({ source, companyId, company, quotations }: 
                     ) : null}
                 </>
             )}
-        </FoundationLayout>
+        </AppLayout>
     );
 }
 

@@ -38,4 +38,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->where('id', '[0-9]{1,10}')->name('companies.show');
     Route::get('/quotations', [QuotationController::class, 'index'])->name('quotations.index');
     Route::get('/quotations/{id}', [QuotationController::class, 'show'])->where('id', '[0-9]{1,10}')->name('quotations.show');
+
+    /* App-shell routes (Wave 1 · Session A). Honest placeholder pages; later
+       waves replace the page component behind a route, never its name. */
+    Route::inertia('/quotations/new', 'Quotations/Create')->name('quotations.create');
+    Route::inertia('/price-lookup', 'PriceLookup')->name('price-lookup');
+    Route::inertia('/calculator', 'Calculator')->name('calculator');
+    Route::inertia('/system-health', 'SystemHealth')->name('system-health');
+    Route::inertia('/settings', 'Settings')->name('settings');
 });

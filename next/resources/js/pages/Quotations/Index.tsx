@@ -4,7 +4,7 @@ import { DataSourceNotice, ReadOnlyNote } from '@/components/legacy/data-source-
 import { QuotationList } from '@/components/legacy/quotation-list';
 import { EmptyState, PageHeader, Pager, SearchForm } from '@/components/legacy/read-parts';
 import { Button } from '@/components/ui/button';
-import FoundationLayout from '@/layouts/foundation-layout';
+import AppLayout from '@/layouts/app-layout';
 import type { QuotationsIndexProps } from '@/types/legacy';
 
 /* Saved quotations, most recent first. Read-only: no New / Edit / Delete. */
@@ -17,7 +17,7 @@ export default function QuotationsIndex({ source, filters, quotations }: Quotati
         return `/quotations?${p.toString()}`;
     };
     return (
-        <FoundationLayout>
+        <AppLayout>
             <Head title="Quotations" />
             <PageHeader title="Quotations" subtitle={<ReadOnlyNote />}>
                 <Button asChild variant="ghost" size="sm">
@@ -54,6 +54,6 @@ export default function QuotationsIndex({ source, filters, quotations }: Quotati
                     )}
                 </>
             )}
-        </FoundationLayout>
+        </AppLayout>
     );
 }

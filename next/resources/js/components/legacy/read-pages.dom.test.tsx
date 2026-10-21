@@ -17,7 +17,7 @@ vi.mock('@inertiajs/react', () => ({
     router: { get: vi.fn() },
     usePage: () => ({ props: { release: { version: '0.1.0', shortSha: null } } }),
 }));
-vi.mock('@/layouts/foundation-layout', () => ({ default: ({ children }: { children: ReactNode }) => <main>{children}</main> }));
+vi.mock('@/layouts/app-layout', () => ({ default: ({ children }: { children: ReactNode }) => <main>{children}</main> }));
 
 afterEach(cleanup);
 

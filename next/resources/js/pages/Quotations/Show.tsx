@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/legacy/read-parts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import FoundationLayout from '@/layouts/foundation-layout';
+import AppLayout from '@/layouts/app-layout';
 import type { QuotationDetail, QuotationItem, QuotationShowProps, ReadableItem, RevisionHistory } from '@/types/legacy';
 
 /* A saved legacy quotation, read only: header, the items in their saved order
@@ -16,7 +16,7 @@ import type { QuotationDetail, QuotationItem, QuotationShowProps, ReadableItem, 
    Cost / Markup — the page payload does not even carry them. */
 export default function QuotationShow({ source, quotation, revisions }: QuotationShowProps) {
     return (
-        <FoundationLayout>
+        <AppLayout>
             <Head title={quotation?.refNo ?? 'Quotation'} />
             <Button asChild variant="ghost" size="sm" className="mb-3">
                 <Link href="/quotations">
@@ -41,7 +41,7 @@ export default function QuotationShow({ source, quotation, revisions }: Quotatio
                     <RevisionsSection history={revisions} />
                 </>
             )}
-        </FoundationLayout>
+        </AppLayout>
     );
 }
 

@@ -1,7 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import FoundationLayout from '@/layouts/foundation-layout';
+import AppLayout from '@/layouts/app-layout';
 
 const MESSAGES: Record<number, { title: string; body: string }> = {
     403: { title: 'Not allowed', body: 'You do not have access to this page.' },
@@ -17,8 +17,7 @@ const MESSAGES: Record<number, { title: string; body: string }> = {
 export default function ErrorPage({ status, reference }: { status: number; reference?: string | null }) {
     const m = MESSAGES[status] ?? MESSAGES[500]!;
     return (
-        <FoundationLayout>
-            <Head title={m.title} />
+        <AppLayout title={m.title}>
             <div role="alert" className="mx-auto max-w-md rounded-[var(--radius-lg)] border border-border bg-surface p-6 text-center shadow-xs">
                 <AlertTriangle className="mx-auto mb-3 size-8 text-danger" aria-hidden="true" />
                 <h1 className="text-lg font-semibold">
@@ -30,6 +29,6 @@ export default function ErrorPage({ status, reference }: { status: number; refer
                     <Link href="/">Back to Home</Link>
                 </Button>
             </div>
-        </FoundationLayout>
+        </AppLayout>
     );
 }
