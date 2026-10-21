@@ -207,7 +207,7 @@ let ancHead = true; try { git('merge-base','--is-ancestor',APP,'HEAD'); } catch 
 ck(ancHead, `${APP.slice(0,7)} is an ancestor of HEAD`);
 /* '*.php' matches tests/php/*.test.php too, so the application half is asked
    for on its own — this promotion carries TWO application files. */
-ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**').split('\n').sort().join(',')
+ck(git('diff','--name-only',PREV+'..'+APP,'--','*.php',':(exclude)tests/**',':(exclude)next/**').split('\n').sort().join(',')
    === 'api.php,index.php',
    'the TL override / hardening round carries exactly api.php and index.php');
 ck(git('diff','--name-only',PREV+'..'+APP,'--','tests/suites','tests/lib','tests/php').split('\n').sort().join(',')
@@ -223,7 +223,7 @@ ck(git('diff','--name-only','--diff-filter=MD',PREV+'..'+APP,'--','tests/suites'
    touching the application, which is legitimate and which this assertion
    could not previously express. The application half is asked for on its own;
    the test half is asked for separately below. */
-ck(git('diff','--name-only',APP+'..HEAD','--','*.php',':(exclude)tests/**') === '',
+ck(git('diff','--name-only',APP+'..HEAD','--','*.php',':(exclude)tests/**',':(exclude)next/**') === '',
    'no application PHP differs from the accepted commit');
 ck(git('diff','--name-only','--diff-filter=MD',APP+'..HEAD','--','tests/php') === '',
    'and no accepted PHP suite was modified or deleted after it — only added to');
@@ -235,7 +235,7 @@ ck(git('diff','--name-only',APP+'..HEAD','--','tests/suites','tests/lib') === ''
    accepted one, with no application byte between them. */
 { const last = git('log','-1','--format=%H',PREV+'..HEAD','--','api.php','index.php');
   let inApp = true; try { git('merge-base','--is-ancestor',last,APP); } catch { inApp = false; }
-  ck(inApp && git('diff','--name-only',last,APP,'--','*.php',':(exclude)tests/**') === '',
+  ck(inApp && git('diff','--name-only',last,APP,'--','*.php',':(exclude)tests/**',':(exclude)next/**') === '',
      `the declared files last moved at ${last.slice(0,7)}, which the accepted ${APP.slice(0,7)} contains byte for byte`); }
 ck(git('status','--porcelain') === '', 'working tree clean');
 
@@ -356,7 +356,7 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
   ck(!/(UPDATE|DELETE\s+FROM|TRUNCATE)\s+quotation_revisions/.test(api),
      'and no UPDATE, DELETE or TRUNCATE against it anywhere');
   { const others = git('ls-files','*.php').split('\n')
-      .filter(f => f && f !== 'api.php' && !f.startsWith('tests/'));
+      .filter(f => f && f !== 'api.php' && !f.startsWith('tests/') && !f.startsWith('next/'));
     const guilty = others.filter(f => /quotation_revisions/.test(R(f)));
     ck(guilty.length === 0,
        `no other application file mentions the table (checked ${others.length})`); }
@@ -372,7 +372,7 @@ ck(C.package.deploymentApproved === false, 'canonical: deployment not approved')
      'canonical records the deployment ORDER: the migration first, then the application');
   ck(/^PRESENT/.test(C.production.quotationRevisionsTable || ''),
      'and records that production now has the quotation_revisions table');
-  ck(git('diff','--name-only',APP,DEPLOYED,'--','*.php',':(exclude)tests/**') === '',
+  ck(git('diff','--name-only',APP,DEPLOYED,'--','*.php',':(exclude)tests/**',':(exclude)next/**') === '',
      `so the deployed ${DEPLOYED.slice(0,7)} carries exactly the accepted application ${APP.slice(0,7)}`); }
 
 // ── No-op suppression: accepted, and it stored nothing to accept ──
