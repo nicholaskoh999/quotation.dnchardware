@@ -32,12 +32,8 @@ export interface SharedProps {
    components/shell/NOTES.md). Every one is OPTIONAL: the shell renders an
    honest placeholder when a provider (Session C / D) has not shipped yet. */
 
-/** Named, authenticated user (Session C shares it as `auth.user`). */
-export interface ShellUser {
-    id: number | string;
-    username: string;
-    displayName: string;
-}
+/** Named, authenticated user — Session C's AuthUser is the single shape. */
+export type ShellUser = AuthUser;
 
 /** One row of Home's "Recent Quotations" (Session D provides the data). */
 export interface RecentQuotation {
@@ -50,7 +46,6 @@ export interface RecentQuotation {
     total: string | number | null;
 }
 
-export interface ShellSharedProps extends SharedProps {
-    auth?: { user?: ShellUser | null } | null;
-    workspace?: { url?: string | null } | null;
-}
+/* W1 integration: Session C now always shares auth / workspace, so the shell
+   reads the one SharedProps contract (its null checks stay valid). */
+export type ShellSharedProps = SharedProps;

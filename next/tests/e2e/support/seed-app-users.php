@@ -4,21 +4,27 @@
  * E2E ONLY. Creates a THROWAWAY schema on the LOCAL MySQL (127.0.0.1) with an
  * app_users table shaped like migrations/2026-08-26-create-app-users.sql and
  * test-only accounts. Never points anywhere but 127.0.0.1; refuses any schema
- * name not starting with "quo_next_e2e". Run by tests/e2e/global-setup.ts.
+ * name not starting with "quo_next_e2e" / "dnc_next_e2e". Run by
+ * tests/e2e/global-setup.ts. With --into-existing it adds app_users to a schema
+ * the legacy fixture already created (W1 integration: one e2e data source).
  *
  *   php tests/e2e/support/seed-app-users.php <schema>
  */
 
 $schema = $argv[1] ?? '';
-if (preg_match('/^quo_next_e2e[a-z0-9_]*$/', $schema) !== 1) {
+if (preg_match('/^(quo_next_e2e|dnc_next_e2e)[a-z0-9_]*$/', $schema) !== 1) {
     fwrite(STDERR, "refusing schema name\n");
     exit(2);
 }
 
 try {
     $pdo = new PDO('mysql:host=127.0.0.1;port=3306', 'root', '', [PDO::ATTR_TIMEOUT => 3, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $pdo->exec("DROP DATABASE IF EXISTS `$schema`");
-    $pdo->exec("CREATE DATABASE `$schema`");
+    if (in_array('--into-existing', $argv, true)) {
+        $pdo->exec("DROP TABLE IF EXISTS `$schema`.app_users");
+    } else {
+        $pdo->exec("DROP DATABASE IF EXISTS `$schema`");
+        $pdo->exec("CREATE DATABASE `$schema`");
+    }
     $pdo->exec("CREATE TABLE `$schema`.app_users (
         id INT UNSIGNED NOT NULL AUTO_INCREMENT,
         username VARCHAR(64) NOT NULL,

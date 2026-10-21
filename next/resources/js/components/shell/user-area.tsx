@@ -1,4 +1,5 @@
-import { UserRound } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { LogOut, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ShellUser } from '@/types';
 
@@ -30,7 +31,9 @@ export function UserArea({ user, compact = false, className }: { user: ShellUser
             <div className="min-w-0 leading-tight">
                 {user ? (
                     <>
-                        <p className="truncate text-sm font-medium text-foreground">{user.displayName || user.username}</p>
+                        <p className="truncate text-sm font-medium text-foreground" data-testid={compact ? undefined : 'current-user'}>
+                            {user.displayName || user.username}
+                        </p>
                         {!compact && <p className="truncate text-xs text-muted-foreground">@{user.username}</p>}
                     </>
                 ) : (
@@ -41,5 +44,24 @@ export function UserArea({ user, compact = false, className }: { user: ShellUser
                 )}
             </div>
         </div>
+    );
+}
+
+/* Desktop / tablet Sign out (W1 integration: Session C's POST /logout, CSRF
+   protected by Inertia's XSRF cookie). Rendered only for a signed-in user. */
+export function SignOutButton({ className }: { className?: string }) {
+    return (
+        <Link
+            href="/logout"
+            method="post"
+            as="button"
+            className={cn(
+                'inline-flex h-8 items-center gap-2 rounded-[var(--radius-md)] px-2 text-sm text-muted-foreground hover:bg-danger-soft hover:text-danger [&_svg]:size-4',
+                className,
+            )}
+        >
+            <LogOut aria-hidden="true" />
+            Sign out
+        </Link>
     );
 }

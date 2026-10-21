@@ -52,7 +52,13 @@ test.describe('with a throwaway app_users schema', () => {
         await expect(page).toHaveURL(/\/$/);
         if (!isMobile) await expect(page.getByTestId('current-user')).toHaveText(E2E_USER.displayName);
 
-        await page.getByRole('button', { name: 'Sign out' }).click();
+        if (isMobile) {
+            // Phone: Sign Out lives in the More sheet (handoff §8).
+            await page.getByTestId('bottom-nav').getByRole('button', { name: 'More' }).click();
+            await page.getByRole('dialog', { name: 'More' }).getByRole('button', { name: 'Sign Out' }).click();
+        } else {
+            await page.getByTestId('sidebar').getByRole('button', { name: 'Sign out' }).click();
+        }
         await expect(page).toHaveURL(/\/login$/);
         await expect(page.getByRole('status')).toHaveText('You have been signed out on this device.');
 

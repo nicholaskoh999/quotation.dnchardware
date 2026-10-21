@@ -1,7 +1,17 @@
 import { expect, test, type Page } from '@playwright/test';
+import { requireAuthDb, signIn } from './support/auth';
+import { E2E_USER } from './support/env';
 
 /* App shell (Wave 1 Session A): handoff §4 navigation, §8 mobile shell,
-   §9 responsive. Projects: desktop 1440 · phone 393 (playwright.config.ts). */
+   §9 responsive. Projects: desktop 1440 · phone 393 (playwright.config.ts).
+   W1 integration: every shell page is behind sign-in (Session C), so each
+   test signs in as the throwaway e2e user; Home's Recent Quotations now come
+   from the seeded legacy fixture (Session D). */
+
+async function signedIn(page: Page) {
+    requireAuthDb();
+    await signIn(page);
+}
 
 const SHELL_ROUTES = ['/', '/quotations', '/quotations/new', '/companies', '/price-lookup', '/calculator', '/system-health', '/settings'];
 const DESKTOP_ITEMS = ['Overview', 'Quotations', 'New Quotation', 'Companies', 'Price Lookup', 'Calculator', 'System Health', 'Settings'];
@@ -16,7 +26,10 @@ async function expectNoHorizontalScroll(page: Page) {
 }
 
 test.describe('desktop shell', () => {
-    test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== 'desktop', 'desktop only'));
+    test.beforeEach(async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'desktop', 'desktop only');
+        await signedIn(page);
+    });
 
     test('sidebar shows the locked items and no retired item', async ({ page }) => {
         await page.goto('/');
@@ -34,7 +47,7 @@ test.describe('desktop shell', () => {
             await expect(page.getByText(label)).toHaveCount(0);
         }
         await expect(page.getByTestId('bottom-nav')).toBeHidden();
-        await expect(page.getByTestId('user-area').first()).toContainText('Not signed in');
+        await expect(page.getByTestId('user-area').first()).toContainText(E2E_USER.displayName);
     });
 
     test('sidebar navigates, marks the current page, and the logo returns Home', async ({ page }) => {
@@ -50,12 +63,14 @@ test.describe('desktop shell', () => {
         await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
     });
 
-    test('desktop Overview: honest draft and recent-quotation states, no fake data', async ({ page }) => {
+    test('desktop Overview: honest draft state, recent quotations read from the legacy data', async ({ page }) => {
         await page.goto('/');
         const overview = page.getByTestId('desktop-overview');
         await expect(overview.getByTestId('draft-card')).toContainText('No draft');
-        await expect(overview.getByTestId('recent-quotations')).toContainText('Not connected yet');
-        await expect(overview.getByTestId('recent-quotation-card')).toHaveCount(0);
+        const cards = overview.getByTestId('recent-quotation-card');
+        await expect(cards.first()).toBeVisible();
+        expect(await cards.count()).toBeLessThanOrEqual(5);
+        await expect(cards.first()).toContainText(/Q-\d{4}-\d{4}/);
         await expect(page.getByTestId('phone-home')).toBeHidden();
     });
 
@@ -71,7 +86,10 @@ test.describe('desktop shell', () => {
 
 test.describe('tablet portrait (768px)', () => {
     test.use({ viewport: { width: 768, height: 1024 } });
-    test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== 'desktop', 'run once, in the desktop project'));
+    test.beforeEach(async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'desktop', 'run once, in the desktop project');
+        await signedIn(page);
+    });
 
     test('single main column, nav in a sheet, no sidebar and no bottom nav', async ({ page }) => {
         await page.goto('/');
@@ -99,7 +117,10 @@ test.describe('tablet portrait (768px)', () => {
 });
 
 test.describe('phone shell (393px)', () => {
-    test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== 'phone', 'phone only'));
+    test.beforeEach(async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'phone', 'phone only');
+        await signedIn(page);
+    });
 
     test('bottom nav is visible, sidebar is not', async ({ page }) => {
         await page.goto('/');
@@ -125,7 +146,7 @@ test.describe('phone shell (393px)', () => {
         await expect(page.getByTestId('bottom-nav').getByRole('link', { name: 'Quotes' })).toHaveAttribute('aria-current', 'page');
     });
 
-    test('More opens a sheet with its items; Sign Out is honestly disabled when signed out', async ({ page }) => {
+    test('More opens a sheet with its items; Sign Out signs the named user out', async ({ page }) => {
         await page.goto('/');
         await page.getByTestId('bottom-nav').getByRole('button', { name: 'More' }).click();
         const sheet = page.getByRole('dialog', { name: 'More' });
@@ -136,7 +157,8 @@ test.describe('phone shell (393px)', () => {
         for (const label of ['DNC Workspace', 'Language', 'Sign Out']) {
             await expect(sheet.getByText(label, { exact: true })).toBeVisible();
         }
-        await expect(sheet.getByTestId('sign-out-disabled')).toHaveAttribute('aria-disabled', 'true');
+        await expect(sheet.getByTestId('sign-out-disabled')).toHaveCount(0);
+        await expect(sheet.getByRole('button', { name: 'Sign Out' })).toBeEnabled();
         for (const label of RETIRED) {
             await expect(sheet.getByText(label)).toHaveCount(0);
         }
@@ -151,15 +173,16 @@ test.describe('phone shell (393px)', () => {
         await expect(home).toBeVisible();
         await expect(page.getByTestId('desktop-overview')).toBeHidden();
         await expect(page.getByTestId('app-bar')).toContainText('DNC Quotation');
-        await expect(page.getByTestId('app-bar')).toContainText('Not signed in');
+        await expect(page.getByTestId('app-bar')).toContainText(E2E_USER.displayName);
 
         await expect(home.getByTestId('draft-card')).toContainText('No draft');
         const qa = home.getByTestId('quick-actions');
         for (const label of ['New Quotation', 'Quick Add', 'Companies', 'Price Lookup', 'Calculator']) {
             await expect(qa.getByRole('link', { name: label })).toBeVisible();
         }
-        await expect(qa.getByTestId('internal-po-disabled')).toContainText('Coming later');
-        await expect(home.getByTestId('recent-quotations')).toContainText('Not connected yet');
+        // W1 integration: Session C shares workspace.url, so Internal PO opens the DNC Workspace.
+        await expect(qa.getByRole('link', { name: /Internal PO/ })).toHaveAttribute('href', /^https:\/\//);
+        await expect(home.getByTestId('recent-quotation-card').first()).toBeVisible();
         for (const label of ['Sag Rod', 'L Bolt', 'U-Bolt', 'Stud', 'J Bolt', 'Anchor Bolt']) {
             await expect(home.getByTestId('frequent-products').getByRole('link', { name: label })).toBeVisible();
         }
@@ -194,6 +217,7 @@ test.describe('phone shell (393px)', () => {
 });
 
 test('an unknown URL renders the safe error page inside the shell, with a way Home', async ({ page }) => {
+    await signedIn(page);
     const res = await page.goto('/definitely-not-a-page');
     expect(res?.status()).toBe(404);
     await expect(page.getByRole('alert')).toContainText('Page not found');

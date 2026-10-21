@@ -3,14 +3,16 @@ import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import type { ComponentType } from 'react';
 
-const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx', { eager: true });
+/* One chunk per page (W1 integration): the shell + engine no longer ship as a
+   single >500 kB bundle; Inertia awaits the page module. */
+const pages = import.meta.glob<{ default: ComponentType }>('./pages/**/*.tsx');
 
 createInertiaApp({
     title: (title) => (title ? `${title} · DNC Quotation` : 'DNC Quotation'),
-    resolve: (name) => {
-        const page = pages[`./pages/${name}.tsx`];
-        if (!page) throw new Error(`Unknown Inertia page: ${name}`);
-        return page;
+    resolve: async (name) => {
+        const load = pages[`./pages/${name}.tsx`];
+        if (!load) throw new Error(`Unknown Inertia page: ${name}`);
+        return load();
     },
     setup({ el, App, props }) {
         createRoot(el).render(<App {...props} />);

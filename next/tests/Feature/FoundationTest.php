@@ -47,3 +47,25 @@ it('exposes no framework storage route (and so no public PUT upload)', function 
     $uris = collect(app('router')->getRoutes()->getRoutes())->map(fn ($r) => $r->uri());
     expect($uris->filter(fn ($u) => str_starts_with($u, 'storage')))->toBeEmpty();
 });
+
+it('pins the web PHP to ea-php84 in public/.htaccess (LiteSpeed would otherwise fall back to PHP 8.0)', function () {
+    expect(file_get_contents(public_path('.htaccess')))->toContain('AddHandler application/x-httpd-ea-php84');
+});
+
+it('keeps every deploy / release shell script free of process substitution and rsync (ServerFreak CageFS has no /dev/fd, the host has no rsync)', function () {
+    $scripts = array_merge(glob(base_path('scripts/*.sh')) ?: [], glob(base_path('deploy/preview/*.sh')) ?: []);
+    expect($scripts)->not->toBeEmpty();
+    foreach ($scripts as $f) {
+        $src = file_get_contents($f);
+        expect($src)->not->toMatch('/<\(/')->not->toMatch('/>\(/')->not->toMatch('/\brsync\b(?!.*(?:no|never))/i')
+            ->and(str_starts_with($src, "#!/bin/sh"))->toBeTrue();
+    }
+});
+
+it('marks the preview deploy as proposed and denies the production host and docroot', function () {
+    $conf = file_get_contents(base_path('deploy/preview/quo-preview.conf'));
+    expect($conf)->toContain('PROPOSED ONLY')->toContain('DENY_HOSTS="quo.dnchardware.com"')->toContain('/home5/dnchardw/quo.dnchardware.com');
+    foreach (glob(base_path('deploy/preview/*.sh')) as $f) {
+        expect(file_get_contents($f))->toContain('PROPOSED ONLY — NOT EXECUTED');
+    }
+});

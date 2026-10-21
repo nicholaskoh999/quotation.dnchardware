@@ -8,7 +8,7 @@ import { BottomNav } from './bottom-nav';
 import { MoreSheet, PlusSheet } from './mobile-sheets';
 import { SidebarNav } from './sidebar-nav';
 import { useShell } from './use-shell';
-import { UserArea } from './user-area';
+import { SignOutButton, UserArea } from './user-area';
 
 /* The QUOTATION NEXT app shell (handoff §4 / §8 / §9). Breakpoints — see
    NOTES.md:
@@ -40,6 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <SidebarNav currentUrl={url} workspaceUrl={workspaceUrl} />
                 <div className="flex flex-col gap-2 border-t border-border px-1 pt-3">
                     <UserArea user={user} />
+                    {user ? <SignOutButton className="self-start" /> : null}
                     {releaseLabel ? (
                         <span className="px-1 text-[11px] text-subtle-foreground" data-testid="release">
                             {releaseLabel}
@@ -89,8 +90,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <SheetContent side="left" title="Navigation" hideTitle data-testid="nav-sheet">
                     <AppLogo className="px-2 pr-10" />
                     <SidebarNav currentUrl={url} workspaceUrl={workspaceUrl} onNavigate={() => setNavOpen(false)} />
-                    <div className="border-t border-border px-1 pt-3">
+                    <div className="flex flex-col gap-2 border-t border-border px-1 pt-3">
                         <UserArea user={user} />
+                        {user ? <SignOutButton className="self-start" /> : null}
                     </div>
                 </SheetContent>
             </Sheet>

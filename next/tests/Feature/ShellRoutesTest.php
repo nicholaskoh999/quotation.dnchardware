@@ -2,6 +2,9 @@
 
 use Inertia\Testing\AssertableInertia as Assert;
 
+// W1 integration: every shell page is behind sign-in (Session C).
+beforeEach(fn () => $this->actingAs(namedUser()));
+
 dataset('shell routes', [
     'home' => ['home', '/', 'Home'],
     'quotations.index' => ['quotations.index', '/quotations', 'Quotations/Index'],
@@ -41,4 +44,18 @@ it('does not route any retired legacy settings page', function () {
 
 it('does not fake recent quotations on Home before a data source exists', function () {
     $this->get('/')->assertInertia(fn (Assert $page) => $page->component('Home')->missing('recentQuotations'));
+});
+
+it('shows the newest five saved quotations on Home, read from the legacy data', function () {
+    \Tests\Support\LegacyFixtureDatabase::for('sqlite');
+    try {
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Home')
+            ->has('recentQuotations')
+            ->where('recentQuotations', fn ($rows) => count($rows) >= 1 && count($rows) <= 5
+                && isset($rows[0]['id'], $rows[0]['refNo'])
+                && preg_match('/^Q-\d{4}-\d{4}$/', $rows[0]['refNo']) === 1));
+    } finally {
+        \Tests\Support\LegacyFixtureDatabase::downAll();
+    }
 });

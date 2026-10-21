@@ -23,3 +23,21 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# ── ServerFreak / LiteSpeed (W1 integration) ────────────────────────────────
+# Do not advertise the PHP version.
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
+</IfModule>
+
+# LOAD-BEARING on the shared host: under LiteSpeed the AddHandler line picks
+# the WEB PHP, not only the cPanel MultiPHP mapping. Sibling DNC apps on the
+# same account fell back to ea-php80 (500 errors) when it was missing
+# (internal-po docs/R3-PRODUCTION.md, verified 2026-10-18). This application
+# needs PHP >= 8.3; the proposed preview deploy refuses a release without it.
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php84” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php84 .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit

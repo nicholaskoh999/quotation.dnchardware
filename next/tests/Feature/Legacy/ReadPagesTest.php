@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\LegacyFixtureDatabase;
 
+// W1 integration: the read pages are behind sign-in (Session C).
+beforeEach(fn () => $this->actingAs(namedUser()));
 afterEach(fn () => LegacyFixtureDatabase::downAll());
 
 it('renders the company directory with usage figures and no short code', function (string $driver) {

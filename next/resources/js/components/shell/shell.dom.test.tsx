@@ -43,7 +43,7 @@ describe('SidebarNav', () => {
 
 describe('UserArea', () => {
     it('shows the named user when shared, a neutral placeholder otherwise', () => {
-        render(<UserArea user={{ id: 1, username: 'nicholas', displayName: 'Nicholas Koh' }} />);
+        render(<UserArea user={{ id: 1, username: 'nicholas', displayName: 'Nicholas Koh', source: 'app_users' }} />);
         expect(screen.getByText('Nicholas Koh')).toBeTruthy();
         expect(screen.getByText('@nicholas')).toBeTruthy();
         cleanup();

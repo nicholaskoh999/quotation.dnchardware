@@ -3,10 +3,10 @@
 use App\Http\Controllers\Auth\HandoffController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Read\CompanyController;
 use App\Http\Controllers\Read\QuotationController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
  * PUBLIC — and nothing else is. Every application page goes in the `auth`
@@ -31,7 +31,7 @@ Route::get('/auth/handoff/callback', [HandoffController::class, 'callback'])->na
  * SIGNED-IN — every application page (home, quotations, companies, …).
  */
 Route::middleware('auth')->group(function () {
-    Route::get('/', fn () => Inertia::render('Home'))->name('home');
+    Route::get('/', HomeController::class)->name('home');
 
     /* Wave 1 · Session D — legacy data, READ ONLY. GET routes only. */
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
