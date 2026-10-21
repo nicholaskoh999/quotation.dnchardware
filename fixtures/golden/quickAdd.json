@@ -1,0 +1,1108 @@
+{
+  "_meta": {
+    "family": "quickAdd",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": "M12 x 1000 x 100/100 ZP 50pcs sag rod",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "ZP",
+            "sizeType": "",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "100",
+            "threadLen2": "100",
+            "thread": "100/100",
+            "qty": "50",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "ZP",
+            "sizeType": "",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "100",
+            "threadLen2": "100",
+            "thread": "100/100",
+            "qty": "50",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "sag rod M12 undersize ZP\n1000mm x 50\n1200mm x 30",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "ZP",
+            "sizeType": "UNDERSIZE",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "50",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Thread",
+              "Cost Rate"
+            ]
+          },
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "ZP",
+            "sizeType": "UNDERSIZE",
+            "size": "M12",
+            "length": "1200",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "30",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Thread",
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "ZP",
+            "sizeType": "UNDERSIZE",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "50",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Thread",
+              "Cost Rate"
+            ]
+          },
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "ZP",
+            "sizeType": "UNDERSIZE",
+            "size": "M12",
+            "length": "1200",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "30",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Thread",
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "MS UNDERSIZE SAG ROD M12 ZP\nL1000 TL 100/100 qty 100",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "MS",
+            "finish": "ZP",
+            "sizeType": "UNDERSIZE",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "100",
+            "threadLen2": "100",
+            "thread": "100/100",
+            "qty": "100",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "MS",
+            "finish": "ZP",
+            "sizeType": "UNDERSIZE",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "100",
+            "threadLen2": "100",
+            "thread": "100/100",
+            "qty": "100",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "L bolt M20 x 1000 x 100 HDG 4140 qty 8",
+      "legacy": {
+        "product": "lbolt",
+        "rows": [
+          {
+            "product": "lbolt",
+            "material": "4140",
+            "finish": "HDG",
+            "sizeType": "FULLSIZE",
+            "size": "M20",
+            "length": "1000",
+            "w": "100",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "8",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Thread",
+              "Cost Rate",
+              "Additional Cost"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "lbolt",
+        "rows": [
+          {
+            "product": "lbolt",
+            "material": "4140",
+            "finish": "HDG",
+            "sizeType": "FULLSIZE",
+            "size": "M20",
+            "length": "1000",
+            "w": "100",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "8",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Thread",
+              "Cost Rate",
+              "Additional Cost"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "J bolt M20 H910 ID60 S150 qty 10",
+      "legacy": {
+        "product": "jbolt",
+        "rows": [
+          {
+            "product": "jbolt",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "M20",
+            "length": "",
+            "w": "",
+            "h": "910",
+            "id": "60",
+            "s": "150",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type",
+              "Thread"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "jbolt",
+        "rows": [
+          {
+            "product": "jbolt",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "M20",
+            "length": "",
+            "w": "",
+            "h": "910",
+            "id": "60",
+            "s": "150",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type",
+              "Thread"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "U bolt 1/2 ID 64 IH 85 HDG 20 pcs",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "HDG",
+            "sizeType": "",
+            "size": "",
+            "length": "64",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "1",
+            "threadLen2": "2",
+            "thread": "1/2",
+            "qty": "20",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size",
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "HDG",
+            "sizeType": "",
+            "size": "",
+            "length": "64",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "1",
+            "threadLen2": "2",
+            "thread": "1/2",
+            "qty": "20",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size",
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "knownFailure": true,
+      "note": "known failure: read as a Sag Rod with no size, length 64, TL 1/2 — the U-bolt word and the inch size are lost. Recorded so the Wave 3 Quick Add rewrite can improve on it knowingly; a rewrite must not regress the successful patterns in this file."
+    },
+    {
+      "input": "stud M16 x 300 8.8 qty 20",
+      "legacy": {
+        "product": "stud",
+        "rows": [
+          {
+            "product": "stud",
+            "material": "4140",
+            "finish": "",
+            "sizeType": "",
+            "size": "M16",
+            "length": "300",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "20",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "stud",
+        "rows": [
+          {
+            "product": "stud",
+            "material": "4140",
+            "finish": "",
+            "sizeType": "",
+            "size": "M16",
+            "length": "300",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "20",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "stud M20 x 400 10.9 qty 5",
+      "legacy": {
+        "product": "stud",
+        "rows": [
+          {
+            "product": "stud",
+            "material": "4340",
+            "finish": "",
+            "sizeType": "",
+            "size": "M20",
+            "length": "400",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "5",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "stud",
+        "rows": [
+          {
+            "product": "stud",
+            "material": "4340",
+            "finish": "",
+            "sizeType": "",
+            "size": "M20",
+            "length": "400",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "5",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "anchor bolt M20 x 600 c/w 2 nut 1 washer qty 12",
+      "legacy": {
+        "product": "anchorbolt",
+        "rows": [
+          {
+            "product": "anchorbolt",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "M20",
+            "length": "600",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "12",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type",
+              "Thread"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "anchorbolt",
+        "rows": [
+          {
+            "product": "anchorbolt",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "M20",
+            "length": "600",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "12",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type",
+              "Thread"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "SS304 sag rod M10 x 500 TL 50/50 qty 4",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "SS304",
+            "finish": "",
+            "sizeType": "",
+            "size": "M10",
+            "length": "500",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "50",
+            "threadLen2": "50",
+            "thread": "50/50",
+            "qty": "4",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "SS304",
+            "finish": "",
+            "sizeType": "",
+            "size": "M10",
+            "length": "500",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "50",
+            "threadLen2": "50",
+            "thread": "50/50",
+            "qty": "4",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "sagrod M12 1000 TL 100 qty 10",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "100",
+            "threadLen2": "100",
+            "thread": "100/100",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "M12",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "100",
+            "threadLen2": "100",
+            "thread": "100/100",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "ref": "§21",
+      "note": "already consistent with §21: Quick Add reads a single Sag Rod TL 100 as 100/100."
+    },
+    {
+      "input": "J hook M10 L150 W50 TL50 qty 30",
+      "legacy": {
+        "product": "",
+        "rows": [],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "B",
+      "expected": {
+        "product": "J HOOK",
+        "size": "M10",
+        "L": 150,
+        "W": 50,
+        "TL": 50,
+        "qty": 30,
+        "suggestedDevelopedLength": 200
+      },
+      "ref": "§19",
+      "note": "J Hook / Eye Bolt become official products; the legacy parser has no such product. expected is the canonical structured target, legacy is kept as evidence of what is parsed today."
+    },
+    {
+      "input": "eye bolt M12 L150 ID40 TL60 qty 6",
+      "legacy": {
+        "product": "",
+        "rows": [],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "B",
+      "expected": {
+        "product": "EYE BOLT",
+        "size": "M12",
+        "L": 150,
+        "ID": 40,
+        "TL": 60,
+        "qty": 6,
+        "S": null,
+        "developedLength": "manual"
+      },
+      "ref": "§20",
+      "note": "J Hook / Eye Bolt become official products; the legacy parser has no such product. expected is the canonical structured target, legacy is kept as evidence of what is parsed today."
+    },
+    {
+      "input": "sag rod 1/2\" BSW x 1000mm qty 25 HDG",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "HDG",
+            "sizeType": "",
+            "size": "1/2",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "25",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type",
+              "Thread"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "HDG",
+            "sizeType": "",
+            "size": "1/2",
+            "length": "1000",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "",
+            "threadLen2": "",
+            "thread": "",
+            "qty": "25",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Size Type",
+              "Thread"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "M16 sag rod fullsize\nthread length 70mm\n800 x 10\n900 x 10 thread length 50mm",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "FULLSIZE",
+            "size": "M16",
+            "length": "800",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "70",
+            "threadLen2": "70",
+            "thread": "70/70",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Cost Rate"
+            ]
+          },
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "FULLSIZE",
+            "size": "M16",
+            "length": "900",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "70",
+            "threadLen2": "70",
+            "thread": "70/70",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "FULLSIZE",
+            "size": "M16",
+            "length": "800",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "70",
+            "threadLen2": "70",
+            "thread": "70/70",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Cost Rate"
+            ]
+          },
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "FULLSIZE",
+            "size": "M16",
+            "length": "900",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "70",
+            "threadLen2": "70",
+            "thread": "70/70",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Material",
+              "Cost Rate"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      }
+    },
+    {
+      "input": "72 x 1000 sag rod qty 5",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "",
+            "length": "72",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "1000",
+            "threadLen2": "1000",
+            "thread": "1000/1000",
+            "qty": "5",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size",
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "",
+            "length": "72",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "1000",
+            "threadLen2": "1000",
+            "thread": "1000/1000",
+            "qty": "5",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size",
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "knownFailure": true,
+      "ref": "§12",
+      "note": "known failure: 72 is read as the LENGTH and 1000 as TL 1000/1000. §12 requires a bare 72 to surface as Needs Review, never as a silent value."
+    },
+    {
+      "input": "sagrod 6 x 300 qty 10",
+      "legacy": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "",
+            "length": "6",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "300",
+            "threadLen2": "300",
+            "thread": "300/300",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size",
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "sagrod",
+        "rows": [
+          {
+            "product": "sagrod",
+            "material": "",
+            "finish": "",
+            "sizeType": "",
+            "size": "",
+            "length": "6",
+            "w": "",
+            "h": "",
+            "id": "",
+            "s": "",
+            "threadLen": "300",
+            "threadLen2": "300",
+            "thread": "300/300",
+            "qty": "10",
+            "grade": "",
+            "unsupported": "",
+            "missing": [
+              "Size",
+              "Material",
+              "Size Type"
+            ]
+          }
+        ],
+        "skipped": 0,
+        "risky": false
+      },
+      "knownFailure": true,
+      "note": "known failure: bare 6 is read as the LENGTH and 300 as TL 300/300 — the §12 \"bare 6 → M6\" rule concerns stored historical sizes, and the parser does not apply it. Recorded so the Wave 3 Quick Add rewrite can improve on it knowingly; a rewrite must not regress the successful patterns in this file."
+    },
+    {
+      "input": "U-bolt M12 for 2\" pipe qty 10",
+      "legacy": {
+        "product": "",
+        "rows": [],
+        "skipped": 0,
+        "risky": false
+      },
+      "cls": "A",
+      "expected": {
+        "product": "",
+        "rows": [],
+        "skipped": 0,
+        "risky": false
+      },
+      "knownFailure": true,
+      "note": "known failure: nothing is read (no rows); pipe-size wording is not understood. Recorded so the Wave 3 Quick Add rewrite can improve on it knowingly; a rewrite must not regress the successful patterns in this file."
+    }
+  ]
+}

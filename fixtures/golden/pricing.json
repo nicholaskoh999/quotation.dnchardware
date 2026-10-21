@@ -1,0 +1,620 @@
+{
+  "_meta": {
+    "family": "pricing",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 10.6,
+        "length": 1000,
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.54,
+        "finalUnitPrice": 2.54
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.54,
+        "finalUnitPrice": 2.54
+      },
+      "note": "Sag Rod: weight × rate + add, × (1+markup), round05"
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 12,
+        "length": 1000,
+        "costRate": "3.50",
+        "addCost": "0.60",
+        "markup": "10"
+      },
+      "legacy": {
+        "weight": 0.8878176,
+        "rawUnitPrice": 4.07809776,
+        "roundedUnitPrice": 4.08,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4.08,
+        "finalUnitPrice": 4.08
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.8878176,
+        "rawUnitPrice": 4.07809776,
+        "roundedUnitPrice": 4.08,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4.08,
+        "finalUnitPrice": 4.08
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "no_round",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 10.6,
+        "length": 1000,
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.54,
+        "finalUnitPrice": 2.54
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.54,
+        "finalUnitPrice": 2.54
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "manual",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 10.6,
+        "length": 1000,
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0",
+        "manualUnitPrice": "5.00"
+      },
+      "legacy": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 5,
+        "finalUnitPrice": 5
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 5,
+        "finalUnitPrice": 5
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "finish": "PL",
+        "size": "M12",
+        "diameter": 10.6,
+        "length": 1000,
+        "threadLen": "100/100",
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 4,
+        "roundedUnitPrice": 4,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4,
+        "finalUnitPrice": 4
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 4,
+        "roundedUnitPrice": 4,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4,
+        "finalUnitPrice": 4
+      },
+      "note": "MS UNDERSIZE M12 PL TL 100/100 L1000 — price-list RM4.00 overrides the formula"
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "finish": "PL",
+        "size": "M12",
+        "diameter": 10.6,
+        "length": 1200,
+        "threadLen": "100/100",
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 0.831293213,
+        "rawUnitPrice": 4.2,
+        "roundedUnitPrice": 4.2,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4.2,
+        "finalUnitPrice": 4.2
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.831293213,
+        "rawUnitPrice": 4.2,
+        "roundedUnitPrice": 4.2,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4.2,
+        "finalUnitPrice": 4.2
+      },
+      "note": "price-list RM4.20 at L1200"
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "no_round",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "finish": "PL",
+        "size": "M12",
+        "diameter": 10.6,
+        "length": 1200,
+        "threadLen": "100/100",
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 0.831293213,
+        "rawUnitPrice": 4.2,
+        "roundedUnitPrice": 4.2,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4.2,
+        "finalUnitPrice": 4.2
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.831293213,
+        "rawUnitPrice": 4.2,
+        "roundedUnitPrice": 4.2,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 4.2,
+        "finalUnitPrice": 4.2
+      },
+      "note": "the price-list entry survives No Round"
+    },
+    {
+      "input": {
+        "type": "stud",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 10.6,
+        "l": 300,
+        "costRate": "6.00",
+        "addCost": "0.50",
+        "markup": "5"
+      },
+      "legacy": {
+        "weight": 0.207823303,
+        "rawUnitPrice": 1.83428681,
+        "roundedUnitPrice": 1.83,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 1.83,
+        "finalUnitPrice": 1.83
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.207823303,
+        "rawUnitPrice": 1.83428681,
+        "roundedUnitPrice": 1.83,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 1.83,
+        "finalUnitPrice": 1.83
+      }
+    },
+    {
+      "input": {
+        "type": "anchorbolt",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 20,
+        "l": 600,
+        "costRate": "4.00",
+        "addCost": "1.00",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 1.479696,
+        "rawUnitPrice": 6.918784,
+        "roundedUnitPrice": 6.92,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 6.92,
+        "finalUnitPrice": 6.92
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 1.479696,
+        "rawUnitPrice": 6.918784,
+        "roundedUnitPrice": 6.92,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 6.92,
+        "finalUnitPrice": 6.92
+      }
+    },
+    {
+      "input": {
+        "type": "ubolt",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 12,
+        "id": 64,
+        "ih": 85,
+        "costRate": "5.00",
+        "addCost": "1.50",
+        "markup": "10"
+      },
+      "legacy": {
+        "weight": 0.200646778,
+        "rawUnitPrice": 2.753557277,
+        "roundedUnitPrice": 2.8,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.8,
+        "finalUnitPrice": 2.8
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.200646778,
+        "rawUnitPrice": 2.753557277,
+        "roundedUnitPrice": 2.8,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.8,
+        "finalUnitPrice": 2.8
+      },
+      "note": "U-Bolt uses roundCustom10"
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 20,
+        "l": 1000,
+        "w": 100,
+        "costRate": "5.00",
+        "addCost": "4.00",
+        "markup": "4"
+      },
+      "legacy": {
+        "weight": 2.6387912,
+        "rawUnitPrice": 17.88171424,
+        "roundedUnitPrice": 17.9,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 17.9,
+        "finalUnitPrice": 17.9
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 2.6387912,
+        "rawUnitPrice": 17.88171424,
+        "roundedUnitPrice": 17.9,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 17.9,
+        "finalUnitPrice": 17.9
+      }
+    },
+    {
+      "input": {
+        "type": "jbolt",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 20,
+        "h": 910,
+        "id": 60,
+        "s": 150,
+        "costRate": "5.00",
+        "addCost": "3.00",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 2.67824976,
+        "rawUnitPrice": 16.3912488,
+        "roundedUnitPrice": 16.4,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 16.4,
+        "finalUnitPrice": 16.4
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 2.67824976,
+        "rawUnitPrice": 16.3912488,
+        "roundedUnitPrice": 16.4,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 16.4,
+        "finalUnitPrice": 16.4
+      }
+    },
+    {
+      "input": {
+        "type": "squbolt",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 12,
+        "oh": 100,
+        "w": 80,
+        "costRate": "5.00",
+        "addCost": "1.00",
+        "markup": "0"
+      },
+      "legacy": {
+        "weight": 0.216627494,
+        "rawUnitPrice": 2.083137472,
+        "roundedUnitPrice": 2.1,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.1,
+        "finalUnitPrice": 2.1
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.216627494,
+        "rawUnitPrice": 2.083137472,
+        "roundedUnitPrice": 2.1,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.1,
+        "finalUnitPrice": 2.1
+      }
+    },
+    {
+      "input": {
+        "type": "plate",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "l": 200,
+        "w": 200,
+        "t": 10,
+        "costRate": "4.50",
+        "addCost": "0.50",
+        "markup": "0",
+        "plateType": "ms_plate"
+      },
+      "legacy": {
+        "weight": 3.14,
+        "rawUnitPrice": 14.63,
+        "roundedUnitPrice": 14.63,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 14.63,
+        "finalUnitPrice": 14.63
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 3.14,
+        "rawUnitPrice": 14.63,
+        "roundedUnitPrice": 14.63,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 14.63,
+        "finalUnitPrice": 14.63
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 10.6,
+        "length": 1000,
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0",
+        "accessories": {
+          "nut": {
+            "qty": "2",
+            "price": "0.50"
+          }
+        }
+      },
+      "legacy": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 1,
+        "boltUnitPrice": 2.54,
+        "finalUnitPrice": 3.54
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 1,
+        "boltUnitPrice": 2.54,
+        "finalUnitPrice": 3.54
+      },
+      "note": "accessory-inclusive: final = rounded bolt + Σ accessories"
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 20,
+        "l": 1000,
+        "w": 100,
+        "costRate": "5.00",
+        "addCost": "4.00",
+        "markup": "4",
+        "accessories": {
+          "nut": {
+            "qty": "2",
+            "price": "1.00"
+          },
+          "fw": {
+            "qty": "1",
+            "price": "0.30"
+          },
+          "custom": {
+            "text": "welding",
+            "price": "2.00"
+          }
+        }
+      },
+      "legacy": {
+        "weight": 2.6387912,
+        "rawUnitPrice": 17.88171424,
+        "roundedUnitPrice": 17.9,
+        "accessoriesCost": 4.3,
+        "boltUnitPrice": 17.9,
+        "finalUnitPrice": 22.2
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 2.6387912,
+        "rawUnitPrice": 17.88171424,
+        "roundedUnitPrice": 17.9,
+        "accessoriesCost": 4.3,
+        "boltUnitPrice": 17.9,
+        "finalUnitPrice": 22.2
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "priceMode": "manual",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "diameter": 10.6,
+        "length": 1000,
+        "costRate": "2.80",
+        "addCost": "0.60",
+        "markup": "0",
+        "manualUnitPrice": "10.00",
+        "accessories": {
+          "nut": {
+            "qty": "2",
+            "price": "1.00"
+          }
+        }
+      },
+      "legacy": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 2,
+        "boltUnitPrice": 8,
+        "finalUnitPrice": 10
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.692744344,
+        "rawUnitPrice": 2.539684163,
+        "roundedUnitPrice": 2.54,
+        "accessoriesCost": 2,
+        "boltUnitPrice": 8,
+        "finalUnitPrice": 10
+      },
+      "note": "manual price is the CUSTOMER price; accessories come out of it (bolt RM8)"
+    },
+    {
+      "input": {
+        "type": "others",
+        "priceMode": "auto",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "finish": "PL",
+        "productName": "SPECIAL",
+        "dimensionText": "X",
+        "diameter": 12,
+        "length": 500,
+        "costRate": "5.00",
+        "addCost": "0.33",
+        "markup": "3"
+      },
+      "legacy": {
+        "weight": 0.4439088,
+        "rawUnitPrice": 2.62603032,
+        "roundedUnitPrice": 2.63,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.63,
+        "finalUnitPrice": 2.63
+      },
+      "cls": "A",
+      "expected": {
+        "weight": 0.4439088,
+        "rawUnitPrice": 2.62603032,
+        "roundedUnitPrice": 2.63,
+        "accessoriesCost": 0,
+        "boltUnitPrice": 2.63,
+        "finalUnitPrice": 2.63
+      },
+      "note": "Others: no rounding rule — money2"
+    }
+  ]
+}

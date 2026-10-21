@@ -1,0 +1,524 @@
+{
+  "_meta": {
+    "family": "history",
+    "source": "pricing_history.php (DB-free)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "topic": "record matching + pricing vintage split",
+      "want": {
+        "productType": "SAG ROD",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "finish": "ZP",
+        "cleanSize": "M12",
+        "dimensionPreview": "L 1000 x TL 100/100mm",
+        "companyId": 7
+      },
+      "cls": "A",
+      "legacy": [
+        {
+          "label": "other customer, exact dims, newest",
+          "quotationId": 310,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, exact dims, older",
+          "quotationId": 120,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.4,
+            "boltUnitPrice": 2.4,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, L1200, newer",
+          "quotationId": 200,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": false,
+            "dimDistance": 200,
+            "lineUnitPrice": 2.9,
+            "boltUnitPrice": 2.9,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, PL finish (flagged)",
+          "quotationId": 250,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": false,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2,
+            "boltUnitPrice": 2,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, exact dims, same date, higher id",
+          "quotationId": 121,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.45,
+            "boltUnitPrice": 2.45,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "M10 — must NOT match M12",
+          "quotationId": 400,
+          "matched": false,
+          "result": null
+        },
+        {
+          "label": "FULLSIZE — must NOT match UNDERSIZE",
+          "quotationId": 401,
+          "matched": false,
+          "result": null
+        },
+        {
+          "label": "4140 — must NOT match MS",
+          "quotationId": 402,
+          "matched": false,
+          "result": null
+        },
+        {
+          "label": "qty differs — qty is not identity",
+          "quotationId": 130,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "accessory-inclusive with nuts",
+          "quotationId": 140,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 3.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 1,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "bolt-separate vintage with nuts",
+          "quotationId": 141,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 3.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 1,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "legacy vintage, accessories, no mode (ambiguous)",
+          "quotationId": 142,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 3.5,
+            "boltUnitPrice": null,
+            "accessoryCost": 1,
+            "accessoryAmbiguous": true,
+            "priceModeLabel": "Legacy / Unknown",
+            "costRate": null,
+            "addCost": null,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "legacy description-only item",
+          "quotationId": 50,
+          "matched": false,
+          "result": null
+        }
+      ],
+      "expected": [
+        {
+          "label": "other customer, exact dims, newest",
+          "quotationId": 310,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, exact dims, older",
+          "quotationId": 120,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.4,
+            "boltUnitPrice": 2.4,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, L1200, newer",
+          "quotationId": 200,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": false,
+            "dimDistance": 200,
+            "lineUnitPrice": 2.9,
+            "boltUnitPrice": 2.9,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, PL finish (flagged)",
+          "quotationId": 250,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": false,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2,
+            "boltUnitPrice": 2,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "same customer, exact dims, same date, higher id",
+          "quotationId": 121,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.45,
+            "boltUnitPrice": 2.45,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "M10 — must NOT match M12",
+          "quotationId": 400,
+          "matched": false,
+          "result": null
+        },
+        {
+          "label": "FULLSIZE — must NOT match UNDERSIZE",
+          "quotationId": 401,
+          "matched": false,
+          "result": null
+        },
+        {
+          "label": "4140 — must NOT match MS",
+          "quotationId": 402,
+          "matched": false,
+          "result": null
+        },
+        {
+          "label": "qty differs — qty is not identity",
+          "quotationId": 130,
+          "matched": true,
+          "result": {
+            "own": true,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 2.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 0,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "accessory-inclusive with nuts",
+          "quotationId": 140,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 3.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 1,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "bolt-separate vintage with nuts",
+          "quotationId": 141,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 3.5,
+            "boltUnitPrice": 2.5,
+            "accessoryCost": 1,
+            "accessoryAmbiguous": false,
+            "priceModeLabel": "Auto Round",
+            "costRate": 4.2,
+            "addCost": 0.6,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "legacy vintage, accessories, no mode (ambiguous)",
+          "quotationId": 142,
+          "matched": true,
+          "result": {
+            "own": false,
+            "finishMatch": true,
+            "exactDims": true,
+            "dimDistance": 0,
+            "lineUnitPrice": 3.5,
+            "boltUnitPrice": null,
+            "accessoryCost": 1,
+            "accessoryAmbiguous": true,
+            "priceModeLabel": "Legacy / Unknown",
+            "costRate": null,
+            "addCost": null,
+            "markup": 0,
+            "legacy": false
+          }
+        },
+        {
+          "label": "legacy description-only item",
+          "quotationId": 50,
+          "matched": false,
+          "result": null
+        }
+      ],
+      "note": "identity: product, material, size type, exact clean size (M12 never matches M10/M14); finish mismatch kept but flagged; qty is not identity."
+    },
+    {
+      "topic": "ranking order",
+      "cls": "A",
+      "legacy": [
+        130,
+        121,
+        120,
+        200,
+        250,
+        310,
+        142,
+        141,
+        140
+      ],
+      "expected": [
+        130,
+        121,
+        120,
+        200,
+        250,
+        310,
+        142,
+        141,
+        140
+      ],
+      "note": "same customer first; then exact finish before flagged finish; then nearest dimensions; then newest date; then highest quotation id. §23 adds product/material/size-type/size keys — those are identity filters here, so the order is consistent with §23."
+    },
+    {
+      "topic": "imperial LIKE prefilter (json-escaped slash)",
+      "cls": "A",
+      "legacy": [
+        {
+          "cleanSize": "M12",
+          "storedBlob": "[{\"cleanSize\":\"M12\"}]",
+          "prefilterMatches": true
+        },
+        {
+          "cleanSize": "1/2",
+          "storedBlob": "[{\"cleanSize\":\"1\\/2\"}]",
+          "prefilterMatches": true
+        },
+        {
+          "cleanSize": "1-1/4",
+          "storedBlob": "[{\"cleanSize\":\"1-1\\/4\"}]",
+          "prefilterMatches": true
+        }
+      ],
+      "expected": [
+        {
+          "cleanSize": "M12",
+          "storedBlob": "[{\"cleanSize\":\"M12\"}]",
+          "prefilterMatches": true
+        },
+        {
+          "cleanSize": "1/2",
+          "storedBlob": "[{\"cleanSize\":\"1\\/2\"}]",
+          "prefilterMatches": true
+        },
+        {
+          "cleanSize": "1-1/4",
+          "storedBlob": "[{\"cleanSize\":\"1-1\\/4\"}]",
+          "prefilterMatches": true
+        }
+      ]
+    },
+    {
+      "topic": "reference-number format",
+      "cls": "A",
+      "legacy": {
+        "format": "sprintf('Q-%s-%04d', date('Y'), MAX+1)",
+        "timezone": "Asia/Kuala_Lumpur",
+        "samples": [
+          "Q-2026-0001",
+          "Q-2026-1317",
+          "Q-2026-10000"
+        ]
+      },
+      "expected": {
+        "format": "sprintf('Q-%s-%04d', date('Y'), MAX+1)",
+        "timezone": "Asia/Kuala_Lumpur",
+        "samples": [
+          "Q-2026-0001",
+          "Q-2026-1317",
+          "Q-2026-10000"
+        ]
+      },
+      "note": "write path (GET_LOCK, READ COMMITTED create, one 1062 retry, item_uid, revisions, no-op suppression) is pinned by tests/php/{save_retry,item_identity,transaction_foundation,revision_writer,noop_suppression}.test.php — not re-implemented here."
+    }
+  ]
+}

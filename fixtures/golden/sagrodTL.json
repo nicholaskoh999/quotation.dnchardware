@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "family": "sagrodTL",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": {
+        "threadLen": "100/100"
+      },
+      "legacy": {
+        "size": "M12 x L 1000 x TL 100/100mm",
+        "threadLen": "100/100"
+      },
+      "cls": "A",
+      "expected": {
+        "size": "M12 x L 1000 x TL 100/100mm",
+        "threadLen": "100/100"
+      }
+    },
+    {
+      "input": {
+        "threadLen": "100"
+      },
+      "legacy": {
+        "size": "M12 x L 1000 x TL 100mm",
+        "threadLen": "100"
+      },
+      "cls": "B",
+      "expected": {
+        "threadLen": "100/100",
+        "size": "M12 x L 1000 x TL 100/100mm"
+      },
+      "ref": "§21",
+      "note": "Sag Rod threads both ends: single 100 canonicalises to 100/100. Legacy manual form prints \"TL 100mm\"; legacy Quick Add already reads 100 → 100/100 (see quickAdd.json)."
+    },
+    {
+      "input": {
+        "threadLen": "70"
+      },
+      "legacy": {
+        "size": "M12 x L 1000 x TL 70mm",
+        "threadLen": "70"
+      },
+      "cls": "B",
+      "expected": {
+        "threadLen": "70/70",
+        "size": "M12 x L 1000 x TL 70/70mm"
+      },
+      "ref": "§21"
+    },
+    {
+      "input": {
+        "threadLen": ""
+      },
+      "legacy": {
+        "size": "M12 x L 1000",
+        "threadLen": ""
+      },
+      "cls": "A",
+      "expected": {
+        "size": "M12 x L 1000",
+        "threadLen": ""
+      }
+    },
+    {
+      "input": {
+        "threadLen": "75/50"
+      },
+      "legacy": {
+        "size": "M12 x L 1000 x TL 75/50mm",
+        "threadLen": "75/50"
+      },
+      "cls": "A",
+      "expected": {
+        "size": "M12 x L 1000 x TL 75/50mm",
+        "threadLen": "75/50"
+      }
+    }
+  ]
+}

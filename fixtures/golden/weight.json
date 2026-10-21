@@ -1,0 +1,309 @@
+{
+  "_meta": {
+    "family": "weight",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": {
+        "type": "sagrod",
+        "diameter": 10.6,
+        "length": 1000
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 0.692744344
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 0.692744344
+      },
+      "note": "normal rod: d² × L × 0.0000061654"
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "diameter": 12,
+        "length": 1000
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 0.8878176
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 0.8878176
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "diameter": 13,
+        "length": 1200
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 1.25034312
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 1.25034312
+      }
+    },
+    {
+      "input": {
+        "type": "stud",
+        "diameter": 10.6,
+        "l": 300
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 0.207823303
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 0.207823303
+      }
+    },
+    {
+      "input": {
+        "type": "anchorbolt",
+        "diameter": 20,
+        "l": 600
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 1.479696
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 1.479696
+      }
+    },
+    {
+      "input": {
+        "type": "ubolt",
+        "diameter": 12,
+        "id": 64,
+        "ih": 85
+      },
+      "legacy": {
+        "developedLength": 226,
+        "weight": 0.200646778
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 226,
+        "weight": 0.200646778
+      },
+      "note": "U: ceil((d+ID)×1.57 + 2×IH − ID)"
+    },
+    {
+      "input": {
+        "type": "ubolt",
+        "diameter": 10,
+        "id": 30,
+        "ih": 47
+      },
+      "legacy": {
+        "developedLength": 127,
+        "weight": 0.07830058
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 127,
+        "weight": 0.07830058
+      }
+    },
+    {
+      "input": {
+        "type": "squbolt",
+        "diameter": 12,
+        "oh": 100,
+        "w": 80
+      },
+      "legacy": {
+        "developedLength": 244,
+        "weight": 0.216627494
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 244,
+        "weight": 0.216627494
+      },
+      "note": "SQ-U: ceil(((W/2+OH) − 1.5d) × 2)"
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "diameter": 20,
+        "l": 1000,
+        "w": 100
+      },
+      "legacy": {
+        "developedLength": 1070,
+        "weight": 2.6387912
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 1070,
+        "weight": 2.6387912
+      },
+      "note": "L: ceil(L + W − 1.5d)"
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "diameter": 24,
+        "l": 600,
+        "w": 150
+      },
+      "legacy": {
+        "developedLength": 714,
+        "weight": 2.535607066
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 714,
+        "weight": 2.535607066
+      }
+    },
+    {
+      "input": {
+        "type": "lbolt45",
+        "diameter": 20,
+        "l": 1000,
+        "w": 100
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 0
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 0
+      },
+      "note": "L45: no auto developed length — total length stays manual (blank → 0 kg)"
+    },
+    {
+      "input": {
+        "type": "lbolt45",
+        "diameter": 20,
+        "l": 1000,
+        "w": 100,
+        "length": 1080
+      },
+      "legacy": {
+        "developedLength": 1080,
+        "weight": 2.6634528
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 1080,
+        "weight": 2.6634528
+      },
+      "note": "L45 with a manual developed length"
+    },
+    {
+      "input": {
+        "type": "jbolt",
+        "diameter": 20,
+        "h": 910,
+        "id": 60,
+        "s": 150
+      },
+      "legacy": {
+        "developedLength": 1086,
+        "weight": 2.67824976
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 1086,
+        "weight": 2.67824976
+      },
+      "note": "J: ceil((H−S) + (d+ID)×1.57 + 2(S−d) − ID)"
+    },
+    {
+      "input": {
+        "type": "jbolt",
+        "diameter": 16,
+        "h": 500,
+        "id": 40,
+        "s": 100
+      },
+      "legacy": {
+        "developedLength": 616,
+        "weight": 0.972258918
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 616,
+        "weight": 0.972258918
+      }
+    },
+    {
+      "input": {
+        "type": "plate",
+        "l": 200,
+        "w": 200,
+        "t": 10,
+        "plateType": "ms_plate"
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 3.14
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 3.14
+      },
+      "note": "plate: L × W × T × 0.00000785"
+    },
+    {
+      "input": {
+        "type": "plate",
+        "tri-l": 180,
+        "tri-h": 180,
+        "tri-t": 8,
+        "plateType": "triangle_plate"
+      },
+      "legacy": {
+        "developedLength": null,
+        "weight": 2.03472
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": null,
+        "weight": 2.03472
+      },
+      "note": "triangle plate: L × H × T × 0.00000785 (no ½)"
+    },
+    {
+      "input": {
+        "type": "ubolt",
+        "diameter": 12,
+        "length": 800.5,
+        "manualDevelopedLength": true
+      },
+      "legacy": {
+        "developedLength": 800.5,
+        "weight": 0.711141898
+      },
+      "cls": "A",
+      "expected": {
+        "developedLength": 800.5,
+        "weight": 0.711141898
+      },
+      "note": "manual total length is weighed ceil()ed"
+    }
+  ]
+}

@@ -1,0 +1,826 @@
+{
+  "_meta": {
+    "family": "defaultPrice",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16",
+      "expected": {
+        "costRate": 3.5,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16",
+      "expected": {
+        "costRate": 5,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16 (HDG default 6.50; UI may show 6.50–7.00 typical, engine stores one number)",
+      "note": "Additional Cost 1.60 (HDG thread brushing) is legacy and is NOT restated by the owner; it is preserved (A) for the add-cost half of the rule.",
+      "expected": {
+        "costRate": 6.5,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M16",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16",
+      "expected": {
+        "costRate": 3.5,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M16",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16",
+      "expected": {
+        "costRate": 5,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M16",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16 (HDG default 6.50; UI may show 6.50–7.00 typical, engine stores one number)",
+      "note": "Additional Cost 1.60 (HDG thread brushing) is legacy and is NOT restated by the owner; it is preserved (A) for the add-cost half of the rule.",
+      "expected": {
+        "costRate": 6.5,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "1/2",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16",
+      "expected": {
+        "costRate": 3.5,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "1/2",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16",
+      "expected": {
+        "costRate": 5,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "1/2",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "B",
+      "ref": "§16 (HDG default 6.50; UI may show 6.50–7.00 typical, engine stores one number)",
+      "note": "Additional Cost 1.60 (HDG thread brushing) is legacy and is NOT restated by the owner; it is preserved (A) for the add-cost half of the rule.",
+      "expected": {
+        "costRate": 6.5,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M12",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M12",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M12",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M10",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M10",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M10",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 2.8,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 4.2,
+        "addCost": 0,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 6,
+        "addCost": 1.6,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 8.5,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 8.5,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 10,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 10,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 11.7,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 11.7,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M16",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 6.5,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 6.5,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M16",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 8,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 8,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M16",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 9.7,
+        "addCost": 4.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 9.7,
+        "addCost": 4.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M12",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 9.5,
+        "addCost": 2,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 9.5,
+        "addCost": 2,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M12",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 11,
+        "addCost": 2,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 11,
+        "addCost": 2,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M12",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 12.7,
+        "addCost": 3,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 12.7,
+        "addCost": 3,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M16",
+        "finish": "PL"
+      },
+      "legacy": {
+        "costRate": 8,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 8,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M16",
+        "finish": "ZP"
+      },
+      "legacy": {
+        "costRate": 9.5,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 9.5,
+        "addCost": 2.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M16",
+        "finish": "HDG"
+      },
+      "legacy": {
+        "costRate": 11.2,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      },
+      "cls": "A",
+      "expected": {
+        "costRate": 11.2,
+        "addCost": 3.5,
+        "markup": 0,
+        "source": "system"
+      }
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M20",
+        "finish": "PL"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M20",
+        "finish": "ZP"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M20",
+        "finish": "HDG"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "PL"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "ZP"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M12",
+        "finish": "HDG"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M20",
+        "finish": "PL"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M20",
+        "finish": "ZP"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M20",
+        "finish": "HDG"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M12",
+        "finish": "PL"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M12",
+        "finish": "ZP"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M12",
+        "finish": "HDG"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    }
+  ]
+}

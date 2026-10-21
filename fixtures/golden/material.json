@@ -1,0 +1,180 @@
+{
+  "_meta": {
+    "family": "material",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": "MS",
+      "legacy": {
+        "label": "MS",
+        "hasFinish": true,
+        "descSample": "MS STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "MS",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": true
+      }
+    },
+    {
+      "input": "S45C",
+      "legacy": {
+        "label": "S45C",
+        "hasFinish": true,
+        "descSample": "S45C STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "S45C",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": true
+      }
+    },
+    {
+      "input": "S45C_HARDEN_G8_8",
+      "legacy": {
+        "label": "S45C + HARDEN = G8.8",
+        "hasFinish": true,
+        "descSample": "S45C + HARDEN = G8.8 STUD"
+      },
+      "cls": "B",
+      "ref": "§13 / §14 / §34 C-7",
+      "note": "legacy combined value stays READABLE; the new model is Material · Treatment · Property Class, and customer wording is \"<MAT> <PRODUCT> · HARDENED TO G<PC> (<FINISH>)\".",
+      "expected": {
+        "material": "S45C",
+        "treatment": "HARDEN",
+        "propertyClass": "8.8",
+        "hasFinish": true,
+        "customerWordingSample": "S45C STUD · HARDENED TO G8.8 (PL)"
+      }
+    },
+    {
+      "input": "4140",
+      "legacy": {
+        "label": "4140 QT",
+        "hasFinish": true,
+        "descSample": "4140 QT STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "4140 QT",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": true
+      }
+    },
+    {
+      "input": "4140_HARDEN_G10_9",
+      "legacy": {
+        "label": "4140 QT + HARDEN = G10.9",
+        "hasFinish": true,
+        "descSample": "4140 QT + HARDEN = G10.9 STUD"
+      },
+      "cls": "B",
+      "ref": "§13 / §14 / §34 C-7",
+      "note": "legacy combined value stays READABLE; the new model is Material · Treatment · Property Class, and customer wording is \"<MAT> <PRODUCT> · HARDENED TO G<PC> (<FINISH>)\".",
+      "expected": {
+        "material": "4140 QT",
+        "treatment": "HARDEN",
+        "propertyClass": "10.9",
+        "hasFinish": true,
+        "customerWordingSample": "4140 QT STUD · HARDENED TO G10.9 (PL)"
+      }
+    },
+    {
+      "input": "4140_PLAIN",
+      "legacy": {
+        "label": "4140",
+        "hasFinish": true,
+        "descSample": "4140 STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "4140",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": true
+      }
+    },
+    {
+      "input": "4340",
+      "legacy": {
+        "label": "4340 QT",
+        "hasFinish": true,
+        "descSample": "4340 QT STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "4340 QT",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": true
+      }
+    },
+    {
+      "input": "SS304",
+      "legacy": {
+        "label": "SS304",
+        "hasFinish": false,
+        "descSample": "SS304 STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "SS304",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": false
+      }
+    },
+    {
+      "input": "SS316",
+      "legacy": {
+        "label": "SS316",
+        "hasFinish": false,
+        "descSample": "SS316 STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "SS316",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": false
+      }
+    },
+    {
+      "input": "Y_BAR",
+      "legacy": {
+        "label": "Y BAR",
+        "hasFinish": true,
+        "descSample": "Y BAR STUD"
+      },
+      "cls": "A",
+      "expected": {
+        "material": "Y BAR",
+        "treatment": null,
+        "propertyClass": null,
+        "hasFinish": true
+      }
+    },
+    {
+      "input": "4140 QT + HARDEN + 12.9",
+      "legacy": null,
+      "cls": "B",
+      "ref": "§13 (12.9 owner-approved new option)",
+      "note": "No legacy material value exists for 12.9 (historically unobserved). Absence is not prohibition: the new model accepts it.",
+      "expected": {
+        "material": "4140 QT",
+        "treatment": "HARDEN",
+        "propertyClass": "12.9",
+        "hasFinish": true,
+        "customerWordingSample": "4140 QT STUD · HARDENED TO G12.9 (PL)"
+      }
+    }
+  ]
+}

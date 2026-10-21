@@ -1,0 +1,99 @@
+{
+  "_meta": {
+    "family": "was",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": {
+        "ab-diameter": 18,
+        "ab-length": 600,
+        "ab-qty": 4,
+        "bp-l": 250,
+        "bp-w": 250,
+        "bp-t": 12,
+        "bp-qty": 1,
+        "tp-qty": 0,
+        "anchorCostRate": "4.00",
+        "basePlateCostRate": "3.50",
+        "addCost": "5.00",
+        "markup": "10",
+        "accessories": {
+          "nut": {
+            "qty": "2",
+            "price": "0.50"
+          }
+        }
+      },
+      "legacy": {
+        "setWeight": 10.68171504,
+        "anchorWeight": 4.79421504,
+        "basePlateWeight": 5.8875,
+        "trianglePlateWeight": 0,
+        "basePrice": 39.78311016,
+        "accessories": 1,
+        "rawUnitPrice": 50.361421176,
+        "roundedUnitPrice": 50.36,
+        "finalUnitPrice": 50.36
+      },
+      "cls": "A",
+      "expected": {
+        "setWeight": 10.68171504,
+        "anchorWeight": 4.79421504,
+        "basePlateWeight": 5.8875,
+        "trianglePlateWeight": 0,
+        "basePrice": 39.78311016,
+        "accessories": 1,
+        "rawUnitPrice": 50.361421176,
+        "roundedUnitPrice": 50.36,
+        "finalUnitPrice": 50.36
+      },
+      "note": "WAS: (base + add + ACCESSORIES) × (1+markup) → round05; accessories are marked up, unlike every other product"
+    },
+    {
+      "input": {
+        "ab-diameter": 18,
+        "ab-length": 600,
+        "ab-qty": 4,
+        "bp-l": 250,
+        "bp-w": 250,
+        "bp-t": 12,
+        "bp-qty": 1,
+        "tp-l": 180,
+        "tp-h": 180,
+        "tp-t": 8,
+        "tp-qty": 4,
+        "anchorCostRate": "4.00",
+        "basePlateCostRate": "3.50",
+        "trianglePlateCostRate": "3.50",
+        "addCost": "5.00",
+        "markup": "0"
+      },
+      "legacy": {
+        "setWeight": 18.82059504,
+        "anchorWeight": 4.79421504,
+        "basePlateWeight": 5.8875,
+        "trianglePlateWeight": 8.13888,
+        "basePrice": 68.26919016,
+        "accessories": 0,
+        "rawUnitPrice": 73.26919016,
+        "roundedUnitPrice": 73.27,
+        "finalUnitPrice": 73.27
+      },
+      "cls": "A",
+      "expected": {
+        "setWeight": 18.82059504,
+        "anchorWeight": 4.79421504,
+        "basePlateWeight": 5.8875,
+        "trianglePlateWeight": 8.13888,
+        "basePrice": 68.26919016,
+        "accessories": 0,
+        "rawUnitPrice": 73.26919016,
+        "roundedUnitPrice": 73.27,
+        "finalUnitPrice": 73.27
+      }
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "_meta": {
+    "family": "output",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": {
+    "input": {
+      "items": [
+        {
+          "itemType": "sagrod",
+          "productType": "SAG ROD",
+          "material": "MS",
+          "sizeType": "UNDERSIZE",
+          "finish": "ZP",
+          "desc": "MS UNDERSIZE SAG ROD",
+          "size": "M12 x L 1000 x TL 100/100mm",
+          "cleanSize": "M12",
+          "qty": 10,
+          "finalUnitPrice": 2.5,
+          "boltUnitPrice": 2.5,
+          "accessoryUnitPrice": 0,
+          "lineUnitPrice": 2.5,
+          "totalAmount": 25,
+          "pricingModel": "accessory-inclusive",
+          "weight": 0.6928,
+          "accessories": null
+        },
+        {
+          "itemType": "lbolt",
+          "productType": "L BOLT",
+          "material": "4140",
+          "sizeType": "FULLSIZE",
+          "finish": "HDG",
+          "desc": "4140 QT FULLSIZE L BOLT",
+          "size": "M20 x L 1000 x W 100 x TL 150mm",
+          "cleanSize": "M20",
+          "qty": 4,
+          "finalUnitPrice": 33.4,
+          "boltUnitPrice": 31.1,
+          "accessoryUnitPrice": 2.3,
+          "lineUnitPrice": 33.4,
+          "totalAmount": 133.6,
+          "pricingModel": "accessory-inclusive",
+          "weight": 0.6928,
+          "accessories": {
+            "nut": {
+              "enabled": true,
+              "qty": 2,
+              "unitPrice": 1
+            },
+            "fw": {
+              "enabled": true,
+              "qty": 1,
+              "unitPrice": 0.3
+            },
+            "custom": {
+              "enabled": false
+            }
+          }
+        },
+        {
+          "itemType": "sagrod",
+          "productType": "SAG ROD",
+          "material": "MS",
+          "sizeType": "UNDERSIZE",
+          "finish": "ZP",
+          "desc": "MS UNDERSIZE SAG ROD",
+          "size": "M12 x L 1000 x TL 100/100mm",
+          "cleanSize": "M12",
+          "qty": 10,
+          "finalUnitPrice": 2.5,
+          "boltUnitPrice": 2.5,
+          "accessoryUnitPrice": 0,
+          "lineUnitPrice": 2.5,
+          "totalAmount": 25,
+          "pricingModel": "accessory-inclusive",
+          "weight": 0.6928,
+          "accessories": null
+        },
+        {
+          "itemType": "stud",
+          "productType": "STUD",
+          "material": "S45C_HARDEN_G8_8",
+          "sizeType": "",
+          "finish": "PL",
+          "desc": "S45C + HARDEN = G8.8 STUD",
+          "size": "M16 x L 300mm",
+          "cleanSize": "M16",
+          "qty": 20,
+          "finalUnitPrice": 4.1,
+          "boltUnitPrice": 4.1,
+          "accessoryUnitPrice": 0,
+          "lineUnitPrice": 4.1,
+          "totalAmount": 82,
+          "pricingModel": "accessory-inclusive",
+          "weight": 0.6928,
+          "accessories": null
+        },
+        {
+          "itemType": "stud",
+          "productType": "STUD",
+          "material": "4140_HARDEN_G10_9",
+          "sizeType": "",
+          "finish": "PL",
+          "desc": "4140 QT + HARDEN = G10.9 STUD",
+          "size": "M20 x L 400mm",
+          "cleanSize": "M20",
+          "qty": 5,
+          "finalUnitPrice": 9.9,
+          "boltUnitPrice": 9.9,
+          "accessoryUnitPrice": 0,
+          "lineUnitPrice": 9.9,
+          "totalAmount": 49.5,
+          "pricingModel": "accessory-inclusive",
+          "weight": 0.6928,
+          "accessories": null
+        },
+        {
+          "itemType": "sagrod",
+          "productType": "SAG ROD",
+          "material": "SS304",
+          "sizeType": "FULLSIZE",
+          "finish": "",
+          "desc": "SS304 FULLSIZE SAG ROD",
+          "size": "M10 x L 500 x TL 50/50mm",
+          "cleanSize": "M10",
+          "qty": 2,
+          "finalUnitPrice": 6,
+          "boltUnitPrice": 6,
+          "accessoryUnitPrice": 0,
+          "lineUnitPrice": 6,
+          "totalAmount": 12,
+          "pricingModel": "accessory-inclusive",
+          "weight": 0.6928,
+          "accessories": null
+        }
+      ],
+      "meta": {
+        "customer": "ACME ENGINEERING SDN BHD",
+        "refno": "Q-2026-1317",
+        "date": "2026-10-21",
+        "prepby": "Nicholas"
+      }
+    },
+    "legacy": {
+      "perItem": [
+        {
+          "no": 1,
+          "waGroupTitle": "MS UNDERSIZE SAG ROD (ZP)",
+          "printDescription": "MS UNDERSIZE SAG ROD (ZP)",
+          "printDimension": "M12 x L 1000 x TL 100/100mm",
+          "customerUnitPrice": 2.5
+        },
+        {
+          "no": 2,
+          "waGroupTitle": "4140 QT FULLSIZE L BOLT (HDG)",
+          "printDescription": "4140 QT FULLSIZE L BOLT (HDG)",
+          "printDimension": "M20 x L 1000 x W 100 x TL 150mm\ncw 2nut & 1fw",
+          "customerUnitPrice": 33.4
+        },
+        {
+          "no": 3,
+          "waGroupTitle": "MS UNDERSIZE SAG ROD (ZP)",
+          "printDescription": "MS UNDERSIZE SAG ROD (ZP)",
+          "printDimension": "M12 x L 1000 x TL 100/100mm",
+          "customerUnitPrice": 2.5
+        },
+        {
+          "no": 4,
+          "waGroupTitle": "S45C + HARDEN = G8.8 STUD (PL)",
+          "printDescription": "S45C + HARDEN = G8.8 STUD (PL)",
+          "printDimension": "M16 x L 300mm",
+          "customerUnitPrice": 4.1
+        },
+        {
+          "no": 5,
+          "waGroupTitle": "4140 QT + HARDEN = G10.9 STUD (PL)",
+          "printDescription": "4140 QT + HARDEN = G10.9 STUD (PL)",
+          "printDimension": "M20 x L 400mm",
+          "customerUnitPrice": 9.9
+        },
+        {
+          "no": 6,
+          "waGroupTitle": "SS304 FULLSIZE SAG ROD",
+          "printDescription": "SS304 FULLSIZE SAG ROD",
+          "printDimension": "M10 x L 500 x TL 50/50mm",
+          "customerUnitPrice": 6
+        }
+      ],
+      "whatsappPreviewItems": "MS UNDERSIZE SAG ROD (ZP)\n1, 3) M12 x L 1000 x TL 100/100mm - RM2.50\n\n4140 QT FULLSIZE L BOLT (HDG)\n2) M20 x L 1000 x W 100 x TL 150mm - RM33.40\ncw 2nut & 1fw\n\nS45C + HARDEN = G8.8 STUD (PL)\n4) M16 x L 300mm - RM4.10\n\n4140 QT + HARDEN = G10.9 STUD (PL)\n5) M20 x L 400mm - RM9.90\n\nSS304 FULLSIZE SAG ROD\n6) M10 x L 500 x TL 50/50mm - RM6.00",
+      "whatsappSentText": "Hi ACME ENGINEERING SDN BHD,\nQuotation Q-2026-1317 is ready.\nDate: 2026-10-21\n\nItems:\nMS UNDERSIZE SAG ROD (ZP)\n1) M12 x L 1000 x TL 100/100mm - RM2.50\n\n4140 QT FULLSIZE L BOLT (HDG)\n2) M20 x L 1000 x W 100 x TL 150mm - RM33.40\ncw 2nut & 1fw\n\nMS UNDERSIZE SAG ROD (ZP)\n3) M12 x L 1000 x TL 100/100mm - RM2.50\n\nS45C + HARDEN = G8.8 STUD (PL)\n4) M16 x L 300mm - RM4.10\n\n4140 QT + HARDEN = G10.9 STUD (PL)\n5) M20 x L 400mm - RM9.90\n\nSS304 FULLSIZE SAG ROD\n6) M10 x L 500 x TL 50/50mm - RM6.00\n\nTotal: RM327.10\n\nPrepared by: Nicholas\nThank you.",
+      "whatsappCopyWithWeight": "Hi ACME ENGINEERING SDN BHD,\nQuotation Q-2026-1317 is ready.\nDate: 2026-10-21\n\nItems:\nMS UNDERSIZE SAG ROD (ZP)\n1) M12 x L 1000 x TL 100/100mm - 0.693kg/pc - RM2.50\n\n4140 QT FULLSIZE L BOLT (HDG)\n2) M20 x L 1000 x W 100 x TL 150mm - 0.693kg/pc - RM33.40\ncw 2nut & 1fw\n\nMS UNDERSIZE SAG ROD (ZP)\n3) M12 x L 1000 x TL 100/100mm - 0.693kg/pc - RM2.50\n\nS45C + HARDEN = G8.8 STUD (PL)\n4) M16 x L 300mm - 0.693kg/pc - RM4.10\n\n4140 QT + HARDEN = G10.9 STUD (PL)\n5) M20 x L 400mm - 0.693kg/pc - RM9.90\n\nSS304 FULLSIZE SAG ROD\n6) M10 x L 500 x TL 50/50mm - 0.693kg/pc - RM6.00\n\nTotal: RM327.10\n\nPrepared by: Nicholas\nThank you.",
+      "grandTotal": 327.1,
+      "defaultTemplate": "Hi {customer},\nQuotation {quotationNo} is ready.\nDate: {date}\n\nItems:\n{items}\n\nTotal: RM{total}\n\nPrepared by: {preparedBy}\nThank you."
+    },
+    "checks": {
+      "noCostAddMarkupLeak": true,
+      "previewEqualsSent": false
+    },
+    "divergences": [
+      {
+        "cls": "B",
+        "ref": "§26",
+        "topic": "WhatsApp preview must equal the sent / copied content",
+        "note": "legacy preview (buildWAItemsText mergeIdentical=true) merges identical rows (\"1, 3)\") and groups by title across the quotation; the sent text (buildQuoteText → mergeIdentical=false) keeps one line per item and starts a new heading whenever the title changes. See checks.previewEqualsSent."
+      },
+      {
+        "cls": "B",
+        "ref": "§14",
+        "topic": "hardened customer wording",
+        "note": "legacy prints \"S45C + HARDEN = G8.8 STUD (PL)\"; owner wording is \"S45C STUD · HARDENED TO G8.8 (PL)\"."
+      },
+      {
+        "cls": "A",
+        "ref": "§26 / §34 C-4",
+        "topic": "insertion-order numbering and WhatsApp material/finish grouping are kept"
+      },
+      {
+        "cls": "A",
+        "ref": "PROJECT-GUARDRAILS ACCESSORIES",
+        "topic": "one inclusive customer price; accessories are wording only (cw 2nut & 1fw)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,431 @@
+{
+  "_meta": {
+    "family": "size",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": "12",
+      "legacy": {
+        "normalised": "M12",
+        "known": true,
+        "display": "M12",
+        "inchKey": "",
+        "nominalDiameter": 12
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "M12",
+        "system": "metric",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "m12",
+      "legacy": {
+        "normalised": "M12",
+        "known": true,
+        "display": "M12",
+        "inchKey": "",
+        "nominalDiameter": 12
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "M12",
+        "system": "metric",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "M 12",
+      "legacy": {
+        "normalised": "M12",
+        "known": true,
+        "display": "M12",
+        "inchKey": "",
+        "nominalDiameter": 12
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "M12",
+        "system": "metric",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "12mm",
+      "legacy": {
+        "normalised": "M12",
+        "known": true,
+        "display": "M12",
+        "inchKey": "",
+        "nominalDiameter": 12
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "M12",
+        "system": "metric",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "M12",
+      "legacy": {
+        "normalised": "M12",
+        "known": true,
+        "display": "M12",
+        "inchKey": "",
+        "nominalDiameter": 12
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "M12",
+        "system": "metric",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1/2",
+      "legacy": {
+        "normalised": "1/2",
+        "known": true,
+        "display": "1/2\"",
+        "inchKey": "1/2",
+        "nominalDiameter": 12.7
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1/2",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1/2\"",
+      "legacy": {
+        "normalised": "1/2",
+        "known": true,
+        "display": "1/2\"",
+        "inchKey": "1/2",
+        "nominalDiameter": 12.7
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1/2",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "3/8",
+      "legacy": {
+        "normalised": "3/8",
+        "known": true,
+        "display": "3/8\"",
+        "inchKey": "3/8",
+        "nominalDiameter": null
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "3/8",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1-1/4",
+      "legacy": {
+        "normalised": "1-1/4",
+        "known": true,
+        "display": "1-1/4\"",
+        "inchKey": "1-1/4",
+        "nominalDiameter": 31.75
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1-1/4",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1 1/4",
+      "legacy": {
+        "normalised": "1-1/4",
+        "known": true,
+        "display": "1-1/4\"",
+        "inchKey": "1-1/4",
+        "nominalDiameter": 31.75
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1-1/4",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1-1/4\"",
+      "legacy": {
+        "normalised": "1-1/4",
+        "known": true,
+        "display": "1-1/4\"",
+        "inchKey": "1-1/4",
+        "nominalDiameter": 31.75
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1-1/4",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1\"",
+      "legacy": {
+        "normalised": "1\"",
+        "known": true,
+        "display": "1\"",
+        "inchKey": "1",
+        "nominalDiameter": 25.4
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1\"",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1 INCH",
+      "legacy": {
+        "normalised": "1\"",
+        "known": true,
+        "display": "1\"",
+        "inchKey": "1",
+        "nominalDiameter": 25.4
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1\"",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "1in",
+      "legacy": {
+        "normalised": "1\"",
+        "known": true,
+        "display": "1\"",
+        "inchKey": "1",
+        "nominalDiameter": 25.4
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "1\"",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "5/8 in",
+      "legacy": {
+        "normalised": "5/8",
+        "known": true,
+        "display": "5/8\"",
+        "inchKey": "5/8",
+        "nominalDiameter": 15.875
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "5/8",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "3/4”",
+      "legacy": {
+        "normalised": "3/4",
+        "known": true,
+        "display": "3/4\"",
+        "inchKey": "3/4",
+        "nominalDiameter": 19.05
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "3/4",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "7/8",
+      "legacy": {
+        "normalised": "7/8",
+        "known": true,
+        "display": "7/8\"",
+        "inchKey": "7/8",
+        "nominalDiameter": 22.225
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "7/8",
+        "system": "imperial",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "6",
+      "legacy": {
+        "normalised": "M6",
+        "known": true,
+        "display": "M6",
+        "inchKey": "",
+        "nominalDiameter": 6
+      },
+      "cls": "A",
+      "note": "historical bare 6 — owner §12: normalise as M6",
+      "expected": {
+        "normalised": "M6",
+        "system": "metric",
+        "needsReview": false
+      }
+    },
+    {
+      "input": "72",
+      "legacy": {
+        "normalised": "M72",
+        "known": false,
+        "display": "M72",
+        "inchKey": "",
+        "nominalDiameter": 72
+      },
+      "cls": "B",
+      "ref": "§12",
+      "note": "owner §12: bare 72 must NOT be blindly normalised; mark Needs Review. Legacy writes M72 and only then reports it unknown.",
+      "expected": {
+        "normalised": "72",
+        "system": "unknown",
+        "needsReview": true
+      }
+    },
+    {
+      "input": "23",
+      "legacy": {
+        "normalised": "M23",
+        "known": false,
+        "display": "M23",
+        "inchKey": "",
+        "nominalDiameter": 23
+      },
+      "cls": "A",
+      "note": "a metric number we do not stock is still read as M23, then reported unknown",
+      "expected": {
+        "normalised": "M23",
+        "system": "metric",
+        "needsReview": true
+      }
+    },
+    {
+      "input": "1",
+      "legacy": {
+        "normalised": "M1",
+        "known": false,
+        "display": "M1",
+        "inchKey": "",
+        "nominalDiameter": 1
+      },
+      "cls": "A",
+      "note": "a bare 1 is metric M1 — an inch needs its mark",
+      "expected": {
+        "normalised": "M1",
+        "system": "metric",
+        "needsReview": true
+      }
+    },
+    {
+      "input": "",
+      "legacy": {
+        "normalised": "",
+        "known": false,
+        "display": "",
+        "inchKey": "",
+        "nominalDiameter": null
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "",
+        "system": "unknown",
+        "needsReview": true
+      }
+    },
+    {
+      "input": "abc",
+      "legacy": {
+        "normalised": "ABC",
+        "known": false,
+        "display": "ABC",
+        "inchKey": "",
+        "nominalDiameter": null
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "ABC",
+        "system": "unknown",
+        "needsReview": true
+      }
+    },
+    {
+      "input": "M12x1.75",
+      "legacy": {
+        "normalised": "M12X1.75",
+        "known": false,
+        "display": "M12X1.75",
+        "inchKey": "",
+        "nominalDiameter": null
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "M12X1.75",
+        "system": "metric",
+        "needsReview": true
+      }
+    },
+    {
+      "input": "M10.5",
+      "legacy": {
+        "normalised": "M10.5",
+        "known": false,
+        "display": "M10.5",
+        "inchKey": "",
+        "nominalDiameter": 10.5
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "M10.5",
+        "system": "metric",
+        "needsReview": true
+      }
+    },
+    {
+      "input": "2-1/2",
+      "legacy": {
+        "normalised": "2-1/2",
+        "known": false,
+        "display": "2-1/2\"",
+        "inchKey": "2-1/2",
+        "nominalDiameter": null
+      },
+      "cls": "A",
+      "expected": {
+        "normalised": "2-1/2",
+        "system": "imperial",
+        "needsReview": true
+      }
+    }
+  ]
+}

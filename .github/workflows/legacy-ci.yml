@@ -1,0 +1,95 @@
+# Legacy oracle CI — R0b baseline.
+#
+# Proves, on every push / PR, that the legacy PHP application (the behavioural
+# oracle for QUOTATION NEXT) is still the application the golden fixtures were
+# taken from. It never deploys anything and never touches a real database: the
+# PHP suites create and drop their own throwaway schemas on the service MySQL.
+name: legacy-ci
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: static sanity
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: php -l (every tracked PHP file)
+        run: git ls-files '*.php' | xargs -n1 php -l > /dev/null
+      - name: node --check (test tooling)
+        run: git ls-files 'tests/*.js' 'tests/**/*.js' | xargs -n1 node --check
+      - name: golden fixtures are valid JSON
+        run: for f in fixtures/golden/*.json; do node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" || exit 1; done
+
+  php:
+    name: PHP suites (MySQL 8.0 — the production engine)
+    runs-on: ubuntu-24.04
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DC_TEST_DB_HOST: 127.0.0.1
+      DC_TEST_DB_PORT: '3306'
+      DC_TEST_DB_USER: root
+      DC_TEST_DB_PASS: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mysqli
+          coverage: none
+          # dc_db_fail() writes to error_log; with none configured the CLI sends
+          # it to stderr and mysqli_compat's 2>&1 capture reads it as output.
+          ini-values: error_log=/tmp/php-cli-error.log
+      - name: run every tests/php/*.test.php
+        run: |
+          rc=0
+          for f in tests/php/*.test.php; do
+            echo "::group::$f"
+            php "$f" || rc=1
+            echo "::endgroup::"
+          done
+          exit $rc
+
+  browser:
+    name: legacy browser matrix + R0b golden oracle
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: install Playwright (pinned to the version the suites were measured on)
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: R0b golden oracle — fail on any drift from fixtures/golden
+        run: node tests/characterisation/run.js --check
+      - name: browser suites
+        run: DC_TEST_JSON=browser.json node tests/run.js || true
+      - name: gate — known pre-existing failures are reported, new ones fail
+        run: node tests/tools/ci-browser-gate.js browser.json

@@ -1,0 +1,3727 @@
+{
+  "_meta": {
+    "family": "diameter",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M6"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M8"
+      },
+      "legacy": 8,
+      "cls": "A",
+      "expected": 8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M10"
+      },
+      "legacy": 10,
+      "cls": "A",
+      "expected": 10
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 12,
+      "cls": "A",
+      "expected": 12
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M14"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M16"
+      },
+      "legacy": 16,
+      "cls": "A",
+      "expected": 16
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M20"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M22"
+      },
+      "legacy": 22,
+      "cls": "A",
+      "expected": 22
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M25"
+      },
+      "legacy": 25,
+      "cls": "A",
+      "expected": 25
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M30"
+      },
+      "legacy": 30,
+      "cls": "A",
+      "expected": 30
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "3/8"
+      },
+      "legacy": 9.525,
+      "cls": "A",
+      "expected": 9.525
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "1/2"
+      },
+      "legacy": 12.7,
+      "cls": "A",
+      "expected": 12.7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "5/8"
+      },
+      "legacy": 15.875,
+      "cls": "A",
+      "expected": 15.875
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "3/4"
+      },
+      "legacy": 19.05,
+      "cls": "A",
+      "expected": 19.05
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "1\""
+      },
+      "legacy": 25.4,
+      "cls": "C",
+      "ref": "§15 candidate 1\" → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; legacy 25.4 kept until scoped.",
+      "expected": 25.4
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": 31.75,
+      "cls": "A",
+      "expected": 31.75
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "C",
+      "ref": "§15 candidate UNDERSIZE M10 → Ø8.9/9.0",
+      "gate": "DG-1",
+      "note": "candidate convention (two values in the evidence); legacy 8.8 kept.",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M6"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M8"
+      },
+      "legacy": 8,
+      "cls": "A",
+      "expected": 8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M10"
+      },
+      "legacy": 10,
+      "cls": "A",
+      "expected": 10
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 13,
+      "cls": "A",
+      "expected": 13
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M14"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M16"
+      },
+      "legacy": 16,
+      "cls": "A",
+      "expected": 16
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M20"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M22"
+      },
+      "legacy": 22,
+      "cls": "A",
+      "expected": 22
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M25"
+      },
+      "legacy": 25,
+      "cls": "A",
+      "expected": 25
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M30"
+      },
+      "legacy": 30,
+      "cls": "A",
+      "expected": 30
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "3/8"
+      },
+      "legacy": 9.525,
+      "cls": "A",
+      "expected": 9.525
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "1/2"
+      },
+      "legacy": 12.7,
+      "cls": "A",
+      "expected": 12.7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "5/8"
+      },
+      "legacy": 15.875,
+      "cls": "A",
+      "expected": 15.875
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "3/4"
+      },
+      "legacy": 19.05,
+      "cls": "A",
+      "expected": 19.05
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "1\""
+      },
+      "legacy": 25.4,
+      "cls": "C",
+      "ref": "§15 candidate 1\" → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; legacy 25.4 kept until scoped.",
+      "expected": 25.4
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": 31.75,
+      "cls": "A",
+      "expected": 31.75
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "C",
+      "ref": "§15 candidate UNDERSIZE M10 → Ø8.9/9.0",
+      "gate": "DG-1",
+      "note": "candidate convention (two values in the evidence); legacy 8.8 kept.",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M6"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M8"
+      },
+      "legacy": 8,
+      "cls": "A",
+      "expected": 8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M10"
+      },
+      "legacy": 10,
+      "cls": "A",
+      "expected": 10
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 12,
+      "cls": "B",
+      "ref": "§15 (4140 plain M12 → Ø13 — LOCKED)",
+      "note": "legacy DIA_FULLSIZE_SPECIAL is gated on material 4140|4340 (QT); plain 4140 falls through to 12.",
+      "expected": 13
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M14"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M16"
+      },
+      "legacy": 16,
+      "cls": "A",
+      "expected": 16
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M20"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M22"
+      },
+      "legacy": 22,
+      "cls": "A",
+      "expected": 22
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M25"
+      },
+      "legacy": 25,
+      "cls": "A",
+      "expected": 25
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M30"
+      },
+      "legacy": 30,
+      "cls": "A",
+      "expected": 30
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "3/8"
+      },
+      "legacy": 9.525,
+      "cls": "A",
+      "expected": 9.525
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "1/2"
+      },
+      "legacy": 12.7,
+      "cls": "A",
+      "expected": 12.7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "5/8"
+      },
+      "legacy": 15.875,
+      "cls": "A",
+      "expected": 15.875
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "3/4"
+      },
+      "legacy": 19.05,
+      "cls": "A",
+      "expected": 19.05
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "1\""
+      },
+      "legacy": 25.4,
+      "cls": "C",
+      "ref": "§15 candidate 1\" → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; legacy 25.4 kept until scoped.",
+      "expected": 25.4
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": 31.75,
+      "cls": "A",
+      "expected": 31.75
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "C",
+      "ref": "§15 candidate UNDERSIZE M10 → Ø8.9/9.0",
+      "gate": "DG-1",
+      "note": "candidate convention (two values in the evidence); legacy 8.8 kept.",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M6"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M8"
+      },
+      "legacy": 8,
+      "cls": "A",
+      "expected": 8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M10"
+      },
+      "legacy": 10,
+      "cls": "A",
+      "expected": 10
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 13,
+      "cls": "A",
+      "expected": 13
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M14"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M16"
+      },
+      "legacy": 16,
+      "cls": "A",
+      "expected": 16
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M20"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M22"
+      },
+      "legacy": 22,
+      "cls": "A",
+      "expected": 22
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M25"
+      },
+      "legacy": 25,
+      "cls": "A",
+      "expected": 25
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M30"
+      },
+      "legacy": 30,
+      "cls": "A",
+      "expected": 30
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "3/8"
+      },
+      "legacy": 9.525,
+      "cls": "A",
+      "expected": 9.525
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "1/2"
+      },
+      "legacy": 12.7,
+      "cls": "A",
+      "expected": 12.7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "5/8"
+      },
+      "legacy": 15.875,
+      "cls": "A",
+      "expected": 15.875
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "3/4"
+      },
+      "legacy": 19.05,
+      "cls": "A",
+      "expected": 19.05
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "1\""
+      },
+      "legacy": 25.4,
+      "cls": "C",
+      "ref": "§15 candidate 1\" → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; legacy 25.4 kept until scoped.",
+      "expected": 25.4
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": 31.75,
+      "cls": "A",
+      "expected": 31.75
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "C",
+      "ref": "§15 candidate UNDERSIZE M10 → Ø8.9/9.0",
+      "gate": "DG-1",
+      "note": "candidate convention (two values in the evidence); legacy 8.8 kept.",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M6"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M8"
+      },
+      "legacy": 8,
+      "cls": "A",
+      "expected": 8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M10"
+      },
+      "legacy": 10,
+      "cls": "A",
+      "expected": 10
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 12,
+      "cls": "A",
+      "expected": 12
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M14"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M16"
+      },
+      "legacy": 16,
+      "cls": "A",
+      "expected": 16
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M20"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M22"
+      },
+      "legacy": 22,
+      "cls": "A",
+      "expected": 22
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M25"
+      },
+      "legacy": 25,
+      "cls": "A",
+      "expected": 25
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M30"
+      },
+      "legacy": 30,
+      "cls": "A",
+      "expected": 30
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "3/8"
+      },
+      "legacy": 9.525,
+      "cls": "A",
+      "expected": 9.525
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "1/2"
+      },
+      "legacy": 12.7,
+      "cls": "A",
+      "expected": 12.7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "5/8"
+      },
+      "legacy": 15.875,
+      "cls": "A",
+      "expected": 15.875
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "3/4"
+      },
+      "legacy": 19.05,
+      "cls": "A",
+      "expected": 19.05
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "1\""
+      },
+      "legacy": 25.4,
+      "cls": "C",
+      "ref": "§15 candidate 1\" → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; legacy 25.4 kept until scoped.",
+      "expected": 25.4
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": 31.75,
+      "cls": "A",
+      "expected": 31.75
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "C",
+      "ref": "§15 candidate UNDERSIZE M10 → Ø8.9/9.0",
+      "gate": "DG-1",
+      "note": "candidate convention (two values in the evidence); legacy 8.8 kept.",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "sagrod",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "A",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Stud reads the undersize table; it inherits the M12 undersize gate.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "MS",
+        "sizeType": "",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "A",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Stud reads the undersize table; it inherits the M12 undersize gate.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140",
+        "sizeType": "",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "A",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Stud reads the undersize table; it inherits the M12 undersize gate.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4140_PLAIN",
+        "sizeType": "",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "A",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Stud reads the undersize table; it inherits the M12 undersize gate.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "4340",
+        "sizeType": "",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M6"
+      },
+      "legacy": 5.2,
+      "cls": "A",
+      "expected": 5.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M8"
+      },
+      "legacy": 7,
+      "cls": "A",
+      "expected": 7
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M10"
+      },
+      "legacy": 8.8,
+      "cls": "A",
+      "expected": 8.8
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Stud reads the undersize table; it inherits the M12 undersize gate.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M14"
+      },
+      "legacy": 12.5,
+      "cls": "A",
+      "expected": 12.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M16"
+      },
+      "legacy": 14.5,
+      "cls": "A",
+      "expected": 14.5
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M20"
+      },
+      "legacy": 18,
+      "cls": "A",
+      "expected": 18
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M22"
+      },
+      "legacy": 20,
+      "cls": "A",
+      "expected": 20
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M24"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M25"
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M27"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M30"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M33"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "M72"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "3/8"
+      },
+      "legacy": 8.2,
+      "cls": "A",
+      "expected": 8.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "1/2"
+      },
+      "legacy": 10.9,
+      "cls": "A",
+      "expected": 10.9
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "5/8"
+      },
+      "legacy": 14.2,
+      "cls": "A",
+      "expected": 14.2
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "3/4"
+      },
+      "legacy": 17.1,
+      "cls": "A",
+      "expected": 17.1
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "1\""
+      },
+      "legacy": 23,
+      "cls": "A",
+      "expected": 23
+    },
+    {
+      "input": {
+        "type": "stud",
+        "material": "SS304",
+        "sizeType": "",
+        "size": "1-1/4"
+      },
+      "legacy": null,
+      "cls": "A",
+      "expected": null
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 12,
+      "cls": "A",
+      "expected": 12
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "MS",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 13,
+      "cls": "A",
+      "expected": 13
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "C",
+      "ref": "§15 candidate scoped 4140 QT L Bolt M27 → Ø28",
+      "gate": "DG-1",
+      "note": "scoped candidate; legacy 27 kept until the export proves the scope.",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 12,
+      "cls": "B",
+      "ref": "§15 (4140 plain M12 → Ø13 — LOCKED)",
+      "note": "legacy DIA_FULLSIZE_SPECIAL is gated on material 4140|4340 (QT); plain 4140 falls through to 12.",
+      "expected": 13
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140_PLAIN",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4140_PLAIN",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 13,
+      "cls": "A",
+      "expected": 13
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4340",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "4340",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M12"
+      },
+      "legacy": 12,
+      "cls": "A",
+      "expected": 12
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M24"
+      },
+      "legacy": 24,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M24 → Ø25",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 24 kept.",
+      "expected": 24
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M27"
+      },
+      "legacy": 27,
+      "cls": "A",
+      "expected": 27
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "SS304",
+        "sizeType": "FULLSIZE",
+        "size": "M33"
+      },
+      "legacy": 33,
+      "cls": "C",
+      "ref": "§15 candidate FULLSIZE M33 → Ø32",
+      "gate": "DG-1",
+      "note": "candidate convention; scope unproven without the read-only historical export. Legacy 33 kept.",
+      "expected": 33
+    },
+    {
+      "input": {
+        "type": "lbolt",
+        "material": "SS304",
+        "sizeType": "UNDERSIZE",
+        "size": "M12"
+      },
+      "legacy": 10.6,
+      "cls": "C",
+      "ref": "§15 / §34 C-2",
+      "gate": "OG-1",
+      "note": "Historical evidence repeats Ø10.7, but its scope (product / material / period / customer) is not provable from repository evidence. The safe legacy 10.6 stays until OG-1 is answered.",
+      "expected": 10.6
+    }
+  ]
+}

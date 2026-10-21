@@ -1,0 +1,189 @@
+{
+  "_meta": {
+    "family": "accessories",
+    "source": "index.php @ legacy oracle (harness: tests/lib/harness.js)",
+    "generator": "tests/characterisation/run.js",
+    "classes": "A preserve · B owner-approved replacement · C owner gate"
+  },
+  "cases": [
+    {
+      "input": {
+        "nut": {
+          "qty": "2",
+          "price": "0.50"
+        }
+      },
+      "legacy": {
+        "nutQty": 2,
+        "fwQty": null,
+        "accessoryUnitTotal": 1,
+        "cwLabel": "cw 2nut"
+      },
+      "cls": "A",
+      "expected": {
+        "nutQty": 2,
+        "fwQty": null,
+        "accessoryUnitTotal": 1,
+        "cwLabel": "cw 2nut"
+      }
+    },
+    {
+      "input": {
+        "nut": {
+          "qty": "",
+          "price": "0.50"
+        }
+      },
+      "legacy": {
+        "nutQty": 2,
+        "fwQty": null,
+        "accessoryUnitTotal": 1,
+        "cwLabel": "cw 2nut"
+      },
+      "cls": "A",
+      "expected": {
+        "nutQty": 2,
+        "fwQty": null,
+        "accessoryUnitTotal": 1,
+        "cwLabel": "cw 2nut"
+      },
+      "note": "blank nut qty → default 2"
+    },
+    {
+      "input": {
+        "fw": {
+          "qty": "",
+          "price": "0.30"
+        }
+      },
+      "legacy": {
+        "nutQty": null,
+        "fwQty": 1,
+        "accessoryUnitTotal": 0.3,
+        "cwLabel": "cw 1fw"
+      },
+      "cls": "A",
+      "expected": {
+        "nutQty": null,
+        "fwQty": 1,
+        "accessoryUnitTotal": 0.3,
+        "cwLabel": "cw 1fw"
+      },
+      "note": "blank FW qty → default 1"
+    },
+    {
+      "input": {
+        "nut": {
+          "qty": "0",
+          "price": "0.50"
+        }
+      },
+      "legacy": {
+        "nutQty": 2,
+        "fwQty": null,
+        "accessoryUnitTotal": 1,
+        "cwLabel": "cw 2nut"
+      },
+      "cls": "B",
+      "expected": {
+        "nutQty": 0,
+        "fwQty": null,
+        "accessoryUnitTotal": 0,
+        "cwLabel": null
+      },
+      "ref": "§18 / §34 C-5",
+      "note": "LOCKED bug fix: explicit 0 stays 0. Legacy parseFloat(\"0\")||2 turns it into 2. Customer wording for a zero-quantity accessory is not decided by the handoff; expected.cwLabel is left null (no \"cw 0nut\" is invented)."
+    },
+    {
+      "input": {
+        "fw": {
+          "qty": "0",
+          "price": "0.30"
+        }
+      },
+      "legacy": {
+        "nutQty": null,
+        "fwQty": 1,
+        "accessoryUnitTotal": 0.3,
+        "cwLabel": "cw 1fw"
+      },
+      "cls": "B",
+      "expected": {
+        "nutQty": null,
+        "fwQty": 0,
+        "accessoryUnitTotal": 0,
+        "cwLabel": null
+      },
+      "ref": "§18 / §34 C-5",
+      "note": "LOCKED bug fix: explicit 0 stays 0. Legacy turns it into 1. Customer wording for a zero-quantity accessory is not decided by the handoff; expected.cwLabel is left null (no \"cw 0nut\" is invented)."
+    },
+    {
+      "input": {
+        "nut": {
+          "qty": "4",
+          "price": "0.25"
+        },
+        "fw": {
+          "qty": "2",
+          "price": "0.10"
+        }
+      },
+      "legacy": {
+        "nutQty": 4,
+        "fwQty": 2,
+        "accessoryUnitTotal": 1.2,
+        "cwLabel": "cw 4nut & 2fw"
+      },
+      "cls": "A",
+      "expected": {
+        "nutQty": 4,
+        "fwQty": 2,
+        "accessoryUnitTotal": 1.2,
+        "cwLabel": "cw 4nut & 2fw"
+      }
+    },
+    {
+      "input": {
+        "custom": {
+          "text": "welding",
+          "price": "2.00"
+        }
+      },
+      "legacy": {
+        "nutQty": null,
+        "fwQty": null,
+        "accessoryUnitTotal": 2,
+        "cwLabel": "cw welding"
+      },
+      "cls": "A",
+      "expected": {
+        "nutQty": null,
+        "fwQty": null,
+        "accessoryUnitTotal": 2,
+        "cwLabel": "cw welding"
+      }
+    },
+    {
+      "input": {
+        "custom": {
+          "text": "4140 QT",
+          "price": "1.00"
+        }
+      },
+      "legacy": {
+        "nutQty": null,
+        "fwQty": null,
+        "accessoryUnitTotal": 1,
+        "cwLabel": ""
+      },
+      "cls": "A",
+      "expected": {
+        "nutQty": null,
+        "fwQty": null,
+        "accessoryUnitTotal": 1,
+        "cwLabel": ""
+      },
+      "note": "custom text that is a material label is not printed as cw"
+    }
+  ]
+}
