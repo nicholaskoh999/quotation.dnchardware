@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { FileText } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { UserMenu } from '@/components/auth/user-menu';
 import { Toaster } from '@/components/ui/sonner';
 import type { SharedProps } from '@/types';
 
@@ -17,10 +18,13 @@ export default function FoundationLayout({ children }: { children: ReactNode }) 
                         <FileText className="size-5 text-accent" aria-hidden="true" />
                         DNC Quotation
                     </Link>
-                    <span className="text-xs text-subtle-foreground" data-testid="release">
-                        v{release.version}
-                        {release.shortSha ? ` · ${release.shortSha}` : ''}
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs text-subtle-foreground" data-testid="release">
+                            v{release.version}
+                            {release.shortSha ? ` · ${release.shortSha}` : ''}
+                        </span>
+                        <UserMenu />
+                    </div>
                 </div>
             </header>
             <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>

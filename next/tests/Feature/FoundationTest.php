@@ -3,7 +3,7 @@
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('renders the Home page through Inertia with shared release props', function () {
-    $this->get('/')
+    $this->actingAs(namedUser())->get('/')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Home')

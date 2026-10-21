@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Str;
-
 return [
 
     /*
@@ -127,10 +125,9 @@ return [
     |
     */
 
-    'cookie' => env(
-        'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session'
-    ),
+    /* Never collides with the legacy app's DCQUOSESS / __Host-DCQUOSESS
+       (app/Auth/NOTES.md). Host-only: leave SESSION_DOMAIN unset. */
+    'cookie' => env('SESSION_COOKIE', 'dcquo_next_session'),
 
     /*
     |--------------------------------------------------------------------------
