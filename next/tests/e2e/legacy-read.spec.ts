@@ -68,7 +68,9 @@ test.describe('with the seeded legacy fixture', () => {
         await expect(page.getByTestId('quotation-total')).toHaveText('RM 158.60');
         await expect(page.getByTestId('revision-list')).toContainText('Nicholas Koh');
         await expect(page.getByRole('button', { name: /edit|delete|save/i })).toHaveCount(0);
-        await expect(page.locator('body')).not.toContainText(/cost rate|markup/i);
+        // Owner Smoke Loop #2–#4: the INTERNAL detail shows a Markup column / ⭐ badge;
+        // the pricing recipe (cost rate, additional cost) never appears.
+        await expect(page.locator('body')).not.toContainText(/cost rate|additional cost/i);
         const html = await page.content();
         expect(html).not.toMatch(/costRate|formData|rawItems/);
     });

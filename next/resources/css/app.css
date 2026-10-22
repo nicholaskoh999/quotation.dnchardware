@@ -75,3 +75,47 @@
         outline-offset: 2px;
     }
 }
+
+/* Quotation detail item grid (Owner Smoke Loop #4). One element per item at
+   every width; cells are placed by grid areas:
+     phone   #n  specification (+ secondary lines)
+                 Qty · Weight
+                 Unit · Markup · Total
+     ≥ md    # · Specification · Qty · Weight · Unit · Markup · Total */
+@layer components {
+    .qd-row {
+        display: grid;
+        align-items: start;
+        column-gap: 0.5rem;
+        row-gap: 0.25rem;
+        /* phone: fixed tracks so every row puts Qty / Weight and Unit / Markup /
+           Total at the same x; Unit takes the slack, Total has room for
+           `Total RM 12,345.67` */
+        grid-template-columns: 1.75rem minmax(0, 1fr) 4rem 7.5rem;
+        grid-template-areas:
+            'num spec spec spec'
+            '. qty weight weight'
+            '. unit markup total';
+    }
+    @media (min-width: 48rem) {
+        .qd-row {
+            column-gap: 0.75rem;
+            row-gap: 0;
+            grid-template-columns: 2rem minmax(0, 1fr) 3.5rem 6rem 6.5rem 4.5rem 6.5rem;
+            grid-template-areas: 'num spec qty weight unit markup total';
+        }
+    }
+    @media (min-width: 64rem) {
+        .qd-row {
+            column-gap: 1rem;
+            grid-template-columns: 2.25rem minmax(0, 1fr) 4rem 6.5rem 7rem 5rem 7.5rem;
+        }
+    }
+    .qd-num { grid-area: num; }
+    .qd-spec { grid-area: spec; }
+    .qd-qty { grid-area: qty; }
+    .qd-weight { grid-area: weight; }
+    .qd-unit { grid-area: unit; }
+    .qd-markup { grid-area: markup; }
+    .qd-total { grid-area: total; }
+}

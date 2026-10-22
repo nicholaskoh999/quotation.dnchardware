@@ -170,7 +170,9 @@ describe('legacy read pages', () => {
         expect(screen.getAllByTestId('item-size').map((n) => n.textContent)).toEqual(['M20 × L400', 'M16 × L1200']);
         expect(screen.getAllByTestId('item-qty').map((n) => n.textContent)).toEqual(['Qty 5', 'Qty 10']);
         expect(screen.getByTestId('item-accessories').textContent).toBe('+ 2 Nut HDG');
-        expect(screen.getByTestId('item-weight').textContent).toBe('Weight 6.000 kg');
+        expect(screen.getAllByTestId('item-weight').map((n) => n.textContent)).toEqual(['Weight 6.000 kg', 'Weight —']);
+        // two single-item groups: no group Total Weight, and Overall Weight shows the one weight there is
+        expect(screen.getByTestId('overall-weight').textContent).toBe('Overall Weight6.000 kg');
         // a single-item group does not repeat the weight as a group total
         expect(screen.queryByTestId('group-total-weight')).toBeNull();
         expect(container.textContent).toContain('Quotation Total');
@@ -206,14 +208,15 @@ describe('legacy read pages', () => {
         const groups = screen.getAllByTestId('item-group');
         expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['FULLSIZE L BOLT', 'MS UNDERSIZE SAG ROD · ZP']);
         // original numbers kept inside the group
-        expect(within(groups[0]!).getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#1', '#3', '#4']);
+        expect(within(groups[0]!).getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['1', '3', '4']);
         // mixed material / finish: each row carries its own plain-text identity
         expect(within(groups[0]!).getAllByTestId('item-identity').map((n) => n.textContent)).toEqual(['4140 QT · PL', 'MS · PL', 'MS · HDG']);
         expect(within(groups[0]!).getByTestId('group-meta').textContent).toBe('3 items');
         // uniform group: identity moves to the header, rows start with #n + dimensions
         expect(within(groups[1]!).getByTestId('group-meta').textContent).toBe('1 item');
         expect(within(groups[1]!).queryByTestId('item-identity')).toBeNull();
-        expect(within(groups[1]!).getByTestId('item-line').textContent).toBe('M12 × L1245 × TL100/100·Qty 30');
+        expect(within(groups[1]!).getByTestId('item-size').textContent).toBe('M12 × L1245 × TL100/100');
+        expect(within(groups[1]!).getByTestId('item-qty').textContent).toBe('Qty 30');
         expect(within(groups[1]!).getByTestId('item-accessories').textContent).toBe('+ 4 Nut ZP + 4 FW ZP');
         expect(within(groups[1]!).getByTestId('item-weight').textContent).toBe('Weight 25.874 kg');
         // markup badge, manual label, no badge for 0 %
@@ -221,22 +224,37 @@ describe('legacy read pages', () => {
         expect(within(groups[0]!).getAllByTestId('item-manual').map((n) => n.textContent)).toEqual(['Manual']);
         expect(screen.getAllByTestId('item-markup')).toHaveLength(1);
         // Total Weight only for the multi-item group: 5.000 + 5.000 + 6.860
-        expect(within(groups[0]!).getByTestId('group-total-weight').textContent).toBe('Total Weight 16.860 kg');
+        expect(within(groups[0]!).getByTestId('group-total-weight-value').textContent).toBe('16.860 kg');
         expect(within(groups[1]!).queryByTestId('group-total-weight')).toBeNull();
+        // two groups → Overall Weight = 16.860 + 25.874, as its own summary row before the total
+        expect(screen.getByTestId('overall-weight-value').textContent).toBe('42.734 kg');
+        // one aligned grid: exact column order, sort on the Items header row
+        expect(within(screen.getByTestId('item-grid-header')).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['#', 'Specification', 'Qty', 'Weight', 'Unit', 'Markup', 'Total']);
+        expect(within(screen.getByTestId('items-header')).getByTestId('item-order')).toBeTruthy();
+        for (const g of groups) expect(within(g).queryByTestId('item-order')).toBeNull();
+        // accessories sit inside the Specification cell, never in a column of their own
+        expect(within(groups[1]!).getByTestId('item-spec').contains(within(groups[1]!).getByTestId('item-accessories'))).toBe(true);
         // no invented UOM
         expect(document.body.textContent).not.toMatch(/\b(pcs|PCS|SET|LOT|LENGTH)\b|\d\s*pc\b/);
+    });
+
+    it('does not repeat a single group’s weight as Overall Weight', () => {
+        const oneGroup = { ...grouped, items: grouped.items.filter((i) => i.state === 'ok' && i.productType === 'L BOLT') };
+        render(<QuotationShow source="connected" quotationId={1} quotation={oneGroup} revisions={{ state: 'empty', entries: [] }} />);
+        expect(screen.getByTestId('group-total-weight-value').textContent).toBe('16.860 kg');
+        expect(screen.queryByTestId('overall-weight')).toBeNull();
     });
 
     it('re-orders items newest / oldest without renumbering', () => {
         render(<QuotationShow source="connected" quotationId={1} quotation={grouped} revisions={{ state: 'empty', entries: [] }} />);
         const order = screen.getByTestId('item-order');
         expect(within(order).getByText('Oldest first').getAttribute('aria-pressed')).toBe('true');
-        expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#1', '#3', '#4', '#2']);
+        expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['1', '3', '4', '2']);
         fireEvent.click(within(order).getByText('Newest first'));
         expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['FULLSIZE L BOLT', 'MS UNDERSIZE SAG ROD · ZP']);
-        expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#4', '#3', '#1', '#2']);
+        expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['4', '3', '1', '2']);
         fireEvent.click(within(order).getByText('Oldest first'));
-        expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#1', '#3', '#4', '#2']);
+        expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['1', '3', '4', '2']);
     });
 
     it('says when a quotation’s items could not be read, and when history is empty', () => {

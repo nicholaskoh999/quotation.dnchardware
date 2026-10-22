@@ -25,7 +25,10 @@ async function expectNoHorizontalScroll(page: Page) {
 
 async function expectNoRecipeOrUom(page: Page) {
     await expect(page.locator('body')).not.toContainText(/cost rate|additional cost/i);
-    await expect(page.locator('body')).not.toContainText(/\b(pcs|PCS|SET|LOT|LENGTH)\b/);
+    // no invented UOM: Qty is the bare stored number; no "30 pcs / 2 sets / 1 lot"
+    // (product names such as WELDING ANCHOR SET are not units)
+    for (const t of await page.getByTestId('item-qty').allTextContents()) expect(t.trim()).toMatch(/^(Qty )?(\d+|—)$/);
+    await expect(page.locator('body')).not.toContainText(/\d\s*(pcs?|sets?|lots?|lengths?)\b/i);
     expect(await page.content()).not.toMatch(/costRate|addCost|formData|rawItems/);
 }
 
@@ -93,21 +96,15 @@ test.describe('desktop', () => {
         await expect(page.getByTestId('group-title')).toHaveText(['MS UNDERSIZE SAG ROD · ZP', '4140 QT FULLSIZE L BOLT · HDG']);
         const [sag, lbolt] = [page.getByTestId('item-group').nth(0), page.getByTestId('item-group').nth(1)];
         await expect(sag.getByTestId('group-meta')).toHaveText('1 item');
-        await expect(sag.getByTestId('item-line')).toHaveText('M12 × L1000 × TL100/100·Qty 10');
+        await expect(sag.getByTestId('item-size')).toHaveText('M12 × L1000 × TL100/100');
+        await expect(sag.getByTestId('item-qty')).toHaveText('Qty 10');
         await expect(sag.getByTestId('item-weight')).toHaveText('Weight 6.928 kg');
         await expect(sag.getByTestId('item-markup')).toHaveCount(0);
-        await expect(lbolt.getByTestId('item-number')).toHaveText('#2');
+        await expect(lbolt.getByTestId('item-number')).toHaveText('2');
         await expect(lbolt.getByTestId('item-weight')).toHaveText('Weight 10.364 kg');
         await expect(lbolt.getByTestId('item-markup')).toHaveText('⭐ +20%');
         await expect(lbolt.getByTestId('item-accessories')).toContainText('+ ');
-        // four levels, top to bottom: dimensions · Qty / accessories / Weight / price
-        const r = lbolt.getByTestId('item-row');
-        const ys = [];
-        for (const id of ['item-line', 'item-accessories', 'item-weight', 'item-price']) ys.push((await r.getByTestId(id).boundingBox())!.y);
-        expect([...ys].sort((a, b) => a - b)).toEqual(ys);
-        expect(new Set(ys).size).toBe(4);
-        // the price row keeps a readable measure instead of stretching across the page
-        expect((await r.getByTestId('item-price').boundingBox())!.width).toBeLessThanOrEqual(680);
+        // Loop #4 replaced the stacked rows with the aligned grid (owner-smoke-loop4.spec.ts).
         // single-item groups: no repeated Total Weight
         await expect(page.getByTestId('group-total-weight')).toHaveCount(0);
         await expect(page.getByTestId('quotation-total')).toHaveText('RM 158.60');
@@ -124,13 +121,13 @@ test.describe('desktop', () => {
         // Loop #3: #1 has no item-level markup (only a form copy) → no badge
         await expect(g.getByTestId('item-markup')).toHaveCount(0);
         await expect(g.getByTestId('item-manual')).toHaveText('Manual');
-        await expect(g.getByTestId('group-total-weight')).toHaveText('Total Weight 9.468 kg');
+        await expect(g.getByTestId('group-total-weight-value')).toHaveText('9.468 kg');
 
-        await expect(g.getByTestId('item-number')).toHaveText(['#1', '#2']);
+        await expect(g.getByTestId('item-number')).toHaveText(['1', '2']);
         await page.getByTestId('item-order').getByText('Newest first').click();
-        await expect(g.getByTestId('item-number')).toHaveText(['#2', '#1']);
+        await expect(g.getByTestId('item-number')).toHaveText(['2', '1']);
         await page.getByTestId('item-order').getByText('Oldest first').click();
-        await expect(g.getByTestId('item-number')).toHaveText(['#1', '#2']);
+        await expect(g.getByTestId('item-number')).toHaveText(['1', '2']);
         await expectNoRecipeOrUom(page);
     });
 
@@ -138,10 +135,10 @@ test.describe('desktop', () => {
         await page.goto('/quotations/103');
         const fullsize = page.getByTestId('item-group').filter({ has: page.getByTestId('group-title').getByText('FULLSIZE SAG ROD', { exact: true }) });
         // mixed material: heading = Size Type + Product; rows carry material · finish
-        await expect(fullsize.getByTestId('item-number')).toHaveText(['#2', '#7']);
+        await expect(fullsize.getByTestId('item-number')).toHaveText(['2', '7']);
         await expect(fullsize.getByTestId('item-identity')).toHaveText(['MS · PL', 'Y BAR · PL']);
         const undersize = page.getByTestId('item-group').filter({ has: page.getByTestId('group-title').getByText('MS UNDERSIZE SAG ROD · ZP', { exact: true }) });
-        expect(await undersize.getByTestId('item-number').allTextContents()).toContain('#5');
+        expect(await undersize.getByTestId('item-number').allTextContents()).toContain('5');
         await expectNoHorizontalScroll(page);
     });
 });
@@ -192,11 +189,7 @@ test.describe('phone', () => {
             await expectNoHorizontalScroll(page);
 
             await page.goto('/quotations/101');
-            const row = page.getByTestId('item-row').first();
-            const y = async (id: string) => (await row.getByTestId(id).boundingBox())!.y;
-            // dimensions · Qty, then Weight, then the price row
-            expect(await y('item-line')).toBeLessThan(await y('item-weight'));
-            expect(await y('item-weight')).toBeLessThan(await y('item-price'));
+            await expect(page.getByTestId('item-row').first()).toBeVisible();
             await expect(page.getByTestId('bottom-nav')).toBeVisible();
             await expectNoRecipeOrUom(page);
             await expectNoHorizontalScroll(page);

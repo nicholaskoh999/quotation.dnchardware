@@ -84,3 +84,31 @@
   card's source. The price-form copy is no longer read, so no legacy
   quotation gains a badge it never showed (e.g. Q-2026-0002 #1). Manual and
   0 % unchanged.
+
+## Loop #4 — quotation detail as an aligned grid
+
+Reference: the DNC Workspace Activity table (density, alignment, restrained
+borders). Same data and business semantics; visual order only.
+
+- **One grid, one element per item** (`.qd-row` in `resources/css/app.css`,
+  placed by grid areas):
+  - ≥ md: `# · Specification · Qty · Weight · Unit · Markup · Total` with a
+    column header once at the top; Specification flexible, numeric columns
+    fixed and right-aligned (they line up across every group); Total
+    strongest. Subtle row separators, no per-item cards.
+  - < md: fixed three-row structure — `#n  specification (+ secondary lines)` /
+    `Qty n · Weight x kg` / `Unit RMx · ⭐ +n% · Total RMx` — on fixed tracks,
+    so every row puts each field at the same x; Total right-aligned.
+- **Group header band**: shared material + finish → `MS UNDERSIZE SAG ROD · ZP`;
+  mixed → `FULLSIZE SAG ROD` with each row's `MS · PL` as secondary text under
+  the specification. Item count small / muted on the right.
+- **Accessories** stay a secondary line inside the Specification cell (no
+  column; nothing when absent); figures stay on the first line.
+- **Weights**: per-item Weight column; `Total Weight` footer (value under the
+  Weight column) for groups of 2+ items; **Overall Weight** as its own summary
+  row before the Quotation Total only when the quotation has more than one
+  visual group.
+- **Markup**: narrow column — `⭐ +n%` (item's own saved markup only), `Manual`,
+  or a muted `—` for alignment on desktop.
+- **Sort** (Oldest / Newest first) on the Items header row, never inside a
+  group. Display only; numbers unchanged.

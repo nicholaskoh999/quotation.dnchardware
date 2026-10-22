@@ -244,6 +244,25 @@ export function groupItems(items: QuotationItem[], order: ItemOrder = 'oldest'):
 }
 
 /**
+ * Overall Weight (Loop #4): the sum of every displayed line weight, shown
+ * only when the quotation has more than one visual group (one group's own
+ * Total Weight already says it) and there is any weight at all.
+ */
+export function overallWeight(groups: ItemGroup[]): number | null {
+    const withItems = groups.filter((g) => g.items.some((i) => i.state === 'ok'));
+    if (withItems.length < 2) return null;
+    let sum = 0;
+    for (const g of withItems) {
+        for (const i of g.items) {
+            if (i.state !== 'ok') continue;
+            const w = lineWeight(i);
+            if (w !== null) sum += w;
+        }
+    }
+    return sum > 0 ? sum : null;
+}
+
+/**
  * Material + Size Type + Product (+ hardened wording) · Finish for one item:
  * `4140 QT FULLSIZE L BOLT · PL`, `S45C STUD · HARDENED TO G8.8 · PL`.
  * `title` is the item's Size Type + Product (or its material-free description).

@@ -30,7 +30,8 @@ async function contentWidth(page: Page): Promise<number> {
 }
 
 async function expectNoCostLeak(page: Page) {
-    await expect(page.locator('body')).not.toContainText(/cost rate|additional cost|markup/i);
+    // Markup is an approved internal-detail column since Loop #2/#4; the recipe never shows.
+    await expect(page.locator('body')).not.toContainText(/cost rate|additional cost/i);
     expect(await page.content()).not.toMatch(/costRate|addCost|formData|rawItems/);
 }
 
