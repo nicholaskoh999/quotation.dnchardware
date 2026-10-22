@@ -47,16 +47,16 @@ function CompanyDirectory({ companies }: { companies: CompanyRow[] }) {
                 <table className="w-full text-sm" data-testid="company-table">
                     <thead className="bg-surface-muted text-left text-xs uppercase tracking-wide text-muted-foreground">
                         <tr>
-                            <th scope="col" className="px-4 py-2 font-medium">Company</th>
-                            <th scope="col" className="px-4 py-2 font-medium">Phone</th>
-                            <th scope="col" className="px-4 py-2 text-right font-medium">Quotations</th>
-                            <th scope="col" className="px-4 py-2 font-medium">Last quoted</th>
+                            <th scope="col" className="px-5 py-2.5 font-medium">Company</th>
+                            <th scope="col" className="w-52 px-5 py-2.5 font-medium">Phone</th>
+                            <th scope="col" className="w-36 px-5 py-2.5 text-right font-medium">Quotations</th>
+                            <th scope="col" className="w-40 px-5 py-2.5 font-medium">Last quoted</th>
                         </tr>
                     </thead>
                     <tbody>
                         {companies.map((c) => (
-                            <tr key={c.id} className="border-t border-border">
-                                <td className="px-4 py-2">
+                            <tr key={c.id} className="border-t border-border hover:bg-surface-muted/60">
+                                <td className="px-5 py-2.5">
                                     <span className="flex flex-wrap items-center gap-2">
                                         <Link href={`/companies/${c.id}`} className="font-medium text-accent hover:underline">
                                             {c.name}
@@ -64,9 +64,9 @@ function CompanyDirectory({ companies }: { companies: CompanyRow[] }) {
                                         <AliasHint c={c} />
                                     </span>
                                 </td>
-                                <td className="px-4 py-2">{orDash(c.phone)}</td>
-                                <td className="px-4 py-2 text-right tabular-nums">{c.quotationCount}</td>
-                                <td className="px-4 py-2">{formatDate(c.lastQuotedDate)}</td>
+                                <td className="px-5 py-2.5 whitespace-nowrap text-muted-foreground">{orDash(c.phone)}</td>
+                                <td className="px-5 py-2.5 text-right tabular-nums">{c.quotationCount}</td>
+                                <td className="px-5 py-2.5 whitespace-nowrap">{formatDate(c.lastQuotedDate)}</td>
                             </tr>
                         ))}
                     </tbody>

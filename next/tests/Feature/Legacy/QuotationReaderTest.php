@@ -41,7 +41,7 @@ it('lists quotations recent first, paginated, filterable by company and text', f
     expect(collect($all['rows'])->firstWhere('refNo', 'Q-2026-0002')['customerDisplay'])->toBe('ACME ENGINEERING SDN BHD');
 })->with('legacy drivers');
 
-it('reads the header, and says plainly that the issuer was never stored', function (string $driver) {
+it('reads the header, and notes briefly that the issuer was not stored', function (string $driver) {
     LegacyFixtureDatabase::for($driver);
     $q = legacyQuote(101);
 
@@ -50,7 +50,7 @@ it('reads the header, and says plainly that the issuer was never stored', functi
         'preparedBy' => 'Nicholas', 'customerName' => 'ACME ENGINEERING SDN BHD', 'customerPhone' => '012-345 6789',
         'remarks' => 'Price subject to change without prior notice', 'companyId' => 1, 'totalAmount' => '158.60',
         'issuer' => null, 'itemsState' => 'ok', 'itemCount' => 2,
-    ])->and($q['issuerNote'])->toContain('never saved server-side');
+    ])->and($q['issuerNote'])->toBe('Legacy quotation — issuer was not stored.');
 })->with('legacy drivers');
 
 it('preserves the raw items JSON byte for byte, and the raw object per item', function (string $driver) {

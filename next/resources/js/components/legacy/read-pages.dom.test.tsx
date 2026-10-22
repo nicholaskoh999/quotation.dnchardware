@@ -32,7 +32,7 @@ const summary: QuotationSummary = {
 };
 const detail: QuotationDetail = {
     ...summary, previousRefNo: null, remarks: 'Price subject to change', issuer: null,
-    issuerNote: 'Issued By was never saved server-side by the legacy application.',
+    issuerNote: 'Legacy quotation — issuer was not stored.',
     itemsState: 'ok', itemCount: 3, unreadableItemCount: 1,
     items: [
         {
@@ -88,7 +88,25 @@ describe('legacy read pages', () => {
         fireEvent.click(screen.getByRole('tab', { name: 'Quotations' }));
         expect(within(screen.getByTestId('quotation-table')).getByText('Q-2026-0001')).toBeTruthy();
         fireEvent.click(screen.getByRole('tab', { name: 'Price History' }));
-        expect(screen.getByText(/arrives in a later release/)).toBeTruthy();
+        expect(screen.getByText(/Price history is coming soon/)).toBeTruthy();
+    });
+
+    it('fills the profile Overview with existing data only: facts + latest quotations', () => {
+        render(<CompanyShow source="connected" companyId={1} company={acme} quotations={{ rows: [summary], total: 1, page: 1, perPage: 25, lastPage: 1 }} />);
+        const overview = screen.getByTestId('company-overview');
+        expect(within(overview).getByText('Latest quotation')).toBeTruthy();
+        expect(within(screen.getByTestId('company-recent')).getByText('Q-2026-0001')).toBeTruthy();
+        // the active tab is marked by aria-selected and weight, not colour alone
+        const active = screen.getByRole('tab', { name: 'Overview' });
+        expect(active.getAttribute('aria-selected')).toBe('true');
+        expect(active.className).toContain('font-semibold');
+    });
+
+    it('gives Prepared By no column of its own in quotation lists', () => {
+        render(<CompanyShow source="connected" companyId={1} company={acme} quotations={{ rows: [{ ...summary, preparedBy: null }], total: 1, page: 2, perPage: 25, lastPage: 2 }} />);
+        const table = screen.getByTestId('quotation-table');
+        expect(within(table).queryByText(/prepared by/i)).toBeNull();
+        expect(within(table).getByText('Valid until')).toBeTruthy();
     });
 
     it('shows a saved quotation read-only: customer unit price, stored total, no recipe, no edit', () => {
@@ -107,7 +125,20 @@ describe('legacy read pages', () => {
         expect(screen.getByText('G10.9')).toBeTruthy();
         expect(screen.getByTestId('item-unreadable').textContent).toContain('Item 2');
         expect(screen.getByText('Accessory charge inside price')).toBeTruthy();
-        expect(screen.getByText('Not recorded')).toBeTruthy();
+        // Issued By: compact "Not recorded" + a short hint, no developer wording
+        const issued = screen.getByTestId('issued-by');
+        expect(issued.textContent).toBe('Not recorded');
+        expect(within(issued).getByRole('button', { name: 'Legacy quotation — issuer was not stored.' })).toBeTruthy();
+        expect(container.textContent).not.toMatch(/server-side|legacy application/i);
+        // Title: product identity first, material + finish as chips, no repeated material
+        expect(screen.getAllByTestId('item-title').map((n) => n.textContent)).toEqual(['STUD', 'FULLSIZE SAG ROD']);
+        const chips = screen.getAllByTestId('item-chips')[0]!;
+        expect(within(chips).getByText('4140 QT')).toBeTruthy();
+        expect(within(chips).getByText('PL')).toBeTruthy();
+        // Canonical dimensions
+        expect(screen.getAllByTestId('item-size').map((n) => n.textContent)).toEqual(['M20 × L400', 'M16 × L1200']);
+        expect(container.textContent).toContain('Quotation Total');
+        expect(container.textContent).not.toContain('(as saved)');
         expect(screen.getByTestId('revision-list').textContent).toContain('Nicholas Koh');
         // The bolt component (31.10) is internal and is not printed as a price.
         expect(container.textContent).not.toContain('31.10');
@@ -126,5 +157,18 @@ describe('legacy read pages', () => {
         );
         expect(screen.getByTestId('items-unreadable')).toBeTruthy();
         expect(screen.getByTestId('revision-state').getAttribute('data-state')).toBe('empty');
+    });
+
+    it('never infers Prepared By from the revision creator', () => {
+        render(
+            <QuotationShow
+                source="connected"
+                quotationId={101}
+                quotation={{ ...detail, preparedBy: null }}
+                revisions={{ state: 'ok', entries: [{ revisionNo: 1, event: 'create', createdAt: '2026-03-01 09:00:00', actor: { userId: 7, username: 'nicholas', displayName: 'Nicholas Koh' }, schemaVersion: 1 }] }}
+            />,
+        );
+        expect(screen.getByTestId('prepared-by-missing').textContent).toBe('Not recorded');
+        expect(screen.getByTestId('revision-list').textContent).toContain('Nicholas Koh');
     });
 });

@@ -1,7 +1,7 @@
 #!/bin/sh
 # ════════════════════════════════════════════════════════════════════════════
 #  QUOTATION NEXT — PREVIEW DEPLOY (server side, ServerFreak)
-#  PROPOSED ONLY — NOT EXECUTED.
+#  PREVIEW ONLY — refuses a production base, APP_URL or a missing guard.
 #
 #  sh quo-preview-server.sh deploy   <run-id> <sha>
 #  sh quo-preview-server.sh rollback <run-id>
@@ -11,17 +11,23 @@
 #    shared/.env         server-owned, created by hand once (mode 600), never copied
 #    shared/storage/     sessions, cache, logs — survives releases
 #    current ->          releases/<sha12>   (document root = current/public)
+#    shared/well-known/  stable ACME dir; each release's public/.well-known
+#                        links here, so AutoSSL renewals survive every switch
+#    stubs/              cPanel / AutoSSL `current/` stubs moved aside (kept)
 #    runs/<run-id>/      artefact, checksum, record.log
 #
 #  POSIX sh. No /dev/fd, no process substitution, no rsync, no composer, no
 #  npm, no migrate, no DB writes, no DNS/cron/.htaccess edits outside the
-#  release. Nothing is ever deleted: rollback repoints `current`.
+#  release. Nothing is ever deleted: rollback repoints `current`; a real
+#  `current/` directory is moved aside only when it holds nothing but the
+#  known cPanel / AutoSSL stub entries, otherwise the deploy stops.
 # ════════════════════════════════════════════════════════════════════════════
 set -eu
 umask 022
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/quo-preview.conf"
+. "$HERE/quo-preview-lib.sh"
 BASE=$(eval echo "$PREVIEW_BASE")
 PHP=$SERVER_PHP
 CMD=${1:-}; RUN=${2:-}
@@ -29,7 +35,8 @@ LOG="$BASE/runs/$RUN/record.log"
 say() { printf '%s %s\n' "$(date '+%F %T')" "$*" | tee -a "$LOG"; }
 die() { say "FAIL: $*"; exit 1; }
 
-for p in $DENY_PATHS; do case "$BASE" in "$p"*) echo "FATAL: base $BASE is a denied path" >&2; exit 3;; esac; done
+case "$BASE" in /?*) ;; *) echo "FATAL: base '$BASE' did not resolve to an absolute path" >&2; exit 3;; esac
+qp_deny_check "${PREVIEW_HOST:-}" "$BASE" || exit 3
 
 exec 9>"$BASE/.lock"
 command -v flock >/dev/null && { flock -n 9 || die "another run holds the lock"; }
@@ -47,6 +54,11 @@ deploy)
     grep -q '^QUOTATION_PRODUCTION_APPROVED=false' "$BASE/shared/.env" || die "production guard must be false on preview"
     grep -Eq '^APP_URL=https://quo\.dnchardware\.com' "$BASE/shared/.env" && die "APP_URL is the PRODUCTION host"
     FREE=$(df -Pm "$BASE" | awk 'NR==2{print $4}'); [ "$FREE" -ge "$MIN_FREE_MB" ] || die "low disk ${FREE}MB"
+    SLOT=$(qp_classify_current "$BASE")
+    case "$SLOT" in
+        symlink | absent | known-stub) say "current slot: $SLOT" ;;
+        *) die "$BASE/current is a real directory with unexpected content — nothing moved; inspect it by hand" ;;
+    esac
 
     REL="$BASE/releases/$SHORT"
     [ ! -e "$REL" ] || die "release $SHORT already exists (deploy a new commit or roll back)"
@@ -66,11 +78,17 @@ deploy)
     find "$REL/public" -type d -exec chmod 755 {} +
     find "$REL/public" -type f -exec chmod 644 {} +
     chmod 755 "$REL"
+    qp_link_acme "$BASE" "$REL" || die "could not link the shared ACME challenge directory"
 
     ( cd "$REL" && "$PHP" artisan config:cache >/dev/null && "$PHP" artisan route:cache >/dev/null && "$PHP" artisan view:cache >/dev/null ) \
         || die "artisan cache step failed"
     ( cd "$REL" && "$PHP" artisan about --only=environment >/dev/null ) || die "app does not boot"
 
+    if [ "$(qp_classify_current "$BASE")" = known-stub ]; then
+        PARKED=$(qp_park_stub "$BASE" "$RUN") || die "could not move the cPanel/AutoSSL current/ stub aside"
+        say "moved cPanel/AutoSSL stub current/ -> $PARKED (ACME files kept in shared/well-known)"
+    fi
+    [ ! -e "$BASE/current" ] || [ -L "$BASE/current" ] || die "$BASE/current is still a real directory"
     PREV=$(readlink "$BASE/current" 2>/dev/null || true)
     printf '%s\n' "$PREV" > "$BASE/runs/$RUN/previous"
     ln -sfn "$REL" "$BASE/current.new" && mv -T "$BASE/current.new" "$BASE/current"

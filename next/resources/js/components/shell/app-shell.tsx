@@ -79,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </header>
 
             <main
-                className="mx-auto w-full max-w-6xl px-4 pt-5 pb-[calc(var(--shell-bottom-nav-height)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 sm:pb-8 lg:px-8 lg:pt-8"
+                className="mx-auto w-full max-w-[var(--shell-content-max)] px-4 pt-5 pb-[calc(var(--shell-bottom-nav-height)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 sm:pb-8 lg:px-8 lg:pt-6"
                 data-testid="main"
             >
                 {children}

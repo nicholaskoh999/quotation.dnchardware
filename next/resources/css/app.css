@@ -49,6 +49,10 @@
     /* App shell geometry (components/shell/NOTES.md). Breakpoints are the
        Tailwind defaults: phone < sm(640) · tablet sm–lg · desktop >= lg(1024). */
     --shell-sidebar-width: 16rem;
+    /* One content width for every page (Owner Smoke #1 §2): ~1260px of
+       content beside the sidebar on wide desktops; narrower screens simply
+       use the space they have. */
+    --shell-content-max: 83rem;
     --shell-bottom-nav-height: 64px;
 }
 

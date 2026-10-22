@@ -38,10 +38,10 @@ export function BottomNav({ currentUrl, onPlus, onMore }: { currentUrl: string; 
                     const content = (
                         <>
                             <Icon className="size-5" aria-hidden="true" />
-                            <span className="text-[11px] font-medium">{item.label}</span>
+                            <span className="max-w-full truncate px-0.5 text-[11px] leading-none font-medium whitespace-nowrap">{item.label}</span>
                         </>
                     );
-                    const cls = 'flex h-full w-full flex-col items-center justify-center gap-0.5';
+                    const cls = 'flex h-full w-full min-w-0 flex-col items-center justify-center gap-1';
                     if (!item.href) {
                         return (
                             <li key={item.key}>
@@ -57,7 +57,7 @@ export function BottomNav({ currentUrl, onPlus, onMore }: { currentUrl: string; 
                             <Link
                                 href={item.href}
                                 aria-current={isActive ? 'page' : undefined}
-                                className={cn(cls, isActive ? 'text-accent' : 'text-muted-foreground')}
+                                className={cn(cls, isActive ? 'text-accent [&>span]:font-semibold' : 'text-muted-foreground')}
                             >
                                 {content}
                             </Link>

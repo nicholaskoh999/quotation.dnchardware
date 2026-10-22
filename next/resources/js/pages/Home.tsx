@@ -20,7 +20,7 @@ export default function Home({ recentQuotations }: { recentQuotations?: RecentQu
     return (
         <AppLayout title="Home">
             {/* phone Home */}
-            <div className="flex flex-col gap-5 sm:hidden" data-testid="phone-home">
+            <div className="flex flex-col gap-4 sm:hidden" data-testid="phone-home">
                 <p className="text-sm text-muted-foreground">{user ? `Hello, ${user.displayName}` : 'Welcome to DNC Quotation'}</p>
                 <DraftCard />
                 <QuickActions workspaceUrl={workspaceUrl} />
@@ -42,14 +42,17 @@ export default function Home({ recentQuotations }: { recentQuotations?: RecentQu
                         </Button>
                     }
                 />
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="flex flex-col gap-6 lg:col-span-2">
+                {/* Main column takes the width; the side column keeps a fixed,
+                    uncompressed width for Draft + Quick Actions. One primary CTA
+                    (the header button); the others are secondary entry points. */}
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_21rem] xl:grid-cols-[minmax(0,1fr)_23rem]">
+                    <div className="flex min-w-0 flex-col gap-5">
                         <RecentQuotations items={items} />
                         <FrequentProducts />
                     </div>
-                    <div className="flex flex-col gap-6">
-                        <DraftCard />
-                        <QuickActions workspaceUrl={workspaceUrl} />
+                    <div className="flex flex-col gap-5">
+                        <DraftCard ctaVariant="secondary" />
+                        <QuickActions workspaceUrl={workspaceUrl} layout="list" />
                     </div>
                 </div>
             </div>

@@ -62,10 +62,10 @@ it('keeps every deploy / release shell script free of process substitution and r
     }
 });
 
-it('marks the preview deploy as proposed and denies the production host and docroot', function () {
+it('marks the preview deploy as preview-only and denies the production host and docroot', function () {
     $conf = file_get_contents(base_path('deploy/preview/quo-preview.conf'));
-    expect($conf)->toContain('PROPOSED ONLY')->toContain('DENY_HOSTS="quo.dnchardware.com"')->toContain('/home5/dnchardw/quo.dnchardware.com');
+    expect($conf)->toContain('PREVIEW ONLY')->toContain('DENY_HOSTS="quo.dnchardware.com"')->toContain('/home5/dnchardw/quo.dnchardware.com');
     foreach (glob(base_path('deploy/preview/*.sh')) as $f) {
-        expect(file_get_contents($f))->toContain('PROPOSED ONLY — NOT EXECUTED');
+        expect(file_get_contents($f))->toContain('PREVIEW ONLY');
     }
 });

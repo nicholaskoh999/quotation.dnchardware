@@ -12,7 +12,7 @@ export function PageHeader({ title, subtitle, children }: { title: string; subti
     return (
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-                <h1 className="truncate text-xl font-semibold">{title}</h1>
+                <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
                 {subtitle ? <div className="mt-1 text-sm text-muted-foreground">{subtitle}</div> : null}
             </div>
             {children ? <div className="flex flex-wrap items-center gap-2">{children}</div> : null}
@@ -36,7 +36,7 @@ export function SearchForm({ action, value, placeholder, label, extra }: {
         router.get(action, query, { preserveState: true, replace: true });
     };
     return (
-        <form role="search" onSubmit={submit} className="mb-4 flex gap-2">
+        <form role="search" onSubmit={submit} className="mb-4 flex gap-2 md:max-w-2xl">
             <label className="sr-only" htmlFor="read-search">{label}</label>
             <input
                 id="read-search"
@@ -44,7 +44,7 @@ export function SearchForm({ action, value, placeholder, label, extra }: {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder={placeholder}
-                className="h-9 min-w-0 flex-1 rounded-[var(--radius-md)] border border-border bg-surface px-3 text-sm shadow-xs placeholder:text-subtle-foreground"
+                className="h-10 min-w-0 flex-1 rounded-[var(--radius-md)] border border-border bg-surface px-3 text-sm shadow-xs placeholder:text-subtle-foreground"
             />
             <Button type="submit" variant="secondary">
                 <Search aria-hidden="true" /> Search

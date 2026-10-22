@@ -2,11 +2,12 @@ import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle, ArrowLeft, Clock, FileWarning, Info } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { DataSourceNotice, ReadOnlyNote } from '@/components/legacy/data-source-notice';
-import { formatDate, formatPrice, formatStoredMoney, orDash } from '@/components/legacy/format';
+import { formatDate, formatDimensions, formatPrice, formatStoredMoney, itemTitle, orDash, showsMaterialChips } from '@/components/legacy/format';
 import { PageHeader } from '@/components/legacy/read-parts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import type { QuotationDetail, QuotationItem, QuotationShowProps, ReadableItem, RevisionHistory } from '@/types/legacy';
 
@@ -30,9 +31,9 @@ export default function QuotationShow({ source, quotation, revisions }: Quotatio
                     <PageHeader title={quotation.refNo || `Quotation #${quotation.id}`} subtitle={<ReadOnlyNote />} />
                     <HeaderCard q={quotation} />
                     <ItemsSection q={quotation} />
-                    <Card className="mt-4">
-                        <CardContent className="flex items-baseline justify-between pt-5">
-                            <span className="text-sm text-muted-foreground">Quotation total (as saved)</span>
+                    <Card className="mt-3">
+                        <CardContent className="flex items-baseline justify-between p-4 sm:px-5">
+                            <span className="text-sm font-medium text-muted-foreground">Quotation Total</span>
                             <span className="text-lg font-semibold tabular-nums" data-testid="quotation-total">
                                 {formatStoredMoney(quotation.totalAmount)}
                             </span>
@@ -48,7 +49,7 @@ export default function QuotationShow({ source, quotation, revisions }: Quotatio
 function HeaderCard({ q }: { q: QuotationDetail }) {
     return (
         <Card>
-            <CardContent className="grid gap-4 pt-5 sm:grid-cols-2 lg:grid-cols-3">
+            <CardContent className="grid gap-x-6 gap-y-3 p-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
                 <Fact label="Customer">
                     {q.customerDisplay ?? '—'}
                     {q.companyId !== null && q.companyName ? (
@@ -62,14 +63,16 @@ function HeaderCard({ q }: { q: QuotationDetail }) {
                 <Fact label="Contact / phone">{orDash(q.customerPhone)}</Fact>
                 <Fact label="Date">{formatDate(q.quoteDate ?? q.createdAt)}</Fact>
                 <Fact label="Valid until">{formatDate(q.validUntil)}</Fact>
-                <Fact label="Prepared by">{orDash(q.preparedBy)}</Fact>
+                {/* Legacy rows may have no Prepared By: shown as not recorded, never inferred. */}
+                <Fact label="Prepared by">
+                    {q.preparedBy ? q.preparedBy : <span className="text-muted-foreground" data-testid="prepared-by-missing">Not recorded</span>}
+                </Fact>
                 <Fact label="Issued by">
-                    <span className="text-muted-foreground">Not recorded</span>
-                    <div className="text-xs text-subtle-foreground">{q.issuerNote}</div>
+                    <NotRecorded hint={q.issuerNote} testId="issued-by" />
                 </Fact>
                 {q.previousRefNo ? <Fact label="Formerly">{q.previousRefNo}</Fact> : null}
                 {q.remarks ? (
-                    <div className="sm:col-span-2 lg:col-span-3">
+                    <div className="sm:col-span-2 lg:col-span-4">
                         <Fact label="Remarks">{q.remarks}</Fact>
                     </div>
                 ) : null}
@@ -80,8 +83,8 @@ function HeaderCard({ q }: { q: QuotationDetail }) {
 
 function ItemsSection({ q }: { q: QuotationDetail }) {
     return (
-        <section aria-labelledby="items-heading" className="mt-6">
-            <h2 id="items-heading" className="mb-3 text-base font-semibold">
+        <section aria-labelledby="items-heading" className="mt-5">
+            <h2 id="items-heading" className="mb-2 text-base font-semibold">
                 Items <span className="font-normal text-muted-foreground">({q.itemCount})</span>
             </h2>
             {q.itemsState === 'unreadable' ? (
@@ -92,7 +95,7 @@ function ItemsSection({ q }: { q: QuotationDetail }) {
             {q.itemsState === 'empty' || q.itemsState === 'missing' ? (
                 <Notice icon={<Info className="size-5 text-subtle-foreground" aria-hidden="true" />}>No items were saved with this quotation.</Notice>
             ) : null}
-            <ol className="flex flex-col gap-3" data-testid="quotation-items">
+            <ol className="flex flex-col gap-2" data-testid="quotation-items">
                 {q.items.map((item) => (
                     <li key={item.position}>
                         <ItemCard item={item} />
@@ -117,61 +120,85 @@ function ItemCard({ item }: { item: QuotationItem }) {
 function ReadableItemCard({ item }: { item: ReadableItem }) {
     const m = item.material;
     const p = item.pricing;
+    const chips = m && showsMaterialChips(m);
+    const size = formatDimensions(item.sizeLabel);
     return (
-        <Card data-testid="item-card">
-            <CardHeader className="pb-2">
-                <CardTitle className="flex flex-wrap items-baseline gap-2">
-                    <span className="text-muted-foreground">{item.position}.</span>
-                    <span>{item.displayDescription || item.productType || 'Item'}</span>
-                    {item.finishLabel ? <Badge tone="neutral">{item.finishLabel}</Badge> : null}
-                </CardTitle>
-                {m && (m.treatment || m.key !== null) ? (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                        <Badge tone="accent">{m.label}</Badge>
-                        {m.treatment ? <Badge tone="special">{m.treatment === 'HARDEN' ? 'Hardened' : m.treatment}</Badge> : null}
-                        {m.propertyClass ? <Badge tone="special">G{m.propertyClass}</Badge> : null}
+        <Card data-testid="item-card" className="grid gap-3 p-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6">
+            <div className="min-w-0">
+                {/* Product / size type is the identity; material and finish are supporting chips. */}
+                <h3 className="flex items-baseline gap-2 text-base leading-snug font-semibold">
+                    <span className="text-muted-foreground tabular-nums">{item.position}.</span>
+                    <span data-testid="item-title">{itemTitle(item)}</span>
+                </h3>
+                {chips || item.finishLabel ? (
+                    <div className="mt-1.5 flex flex-wrap gap-1" data-testid="item-chips">
+                        {chips && m ? <Badge tone="accent">{m.label}</Badge> : null}
+                        {m?.treatment ? <Badge tone="special">{m.treatment === 'HARDEN' ? 'Hardened' : m.treatment}</Badge> : null}
+                        {m?.propertyClass ? <Badge tone="special">G{m.propertyClass}</Badge> : null}
+                        {item.finishLabel ? <Badge tone="neutral">{item.finishLabel}</Badge> : null}
                     </div>
                 ) : null}
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <div className="min-w-0">
-                    <div className="whitespace-pre-line text-sm">{item.sizeLabel || '—'}</div>
-                    {item.accessories?.summary ? (
-                        <div className="mt-1 text-xs text-muted-foreground">With {item.accessories.summary}</div>
-                    ) : null}
-                    {p.ambiguous ? (
-                        <div className="mt-2">
-                            <Badge tone="warning">
-                                <AlertTriangle aria-hidden="true" /> Accessory charge inside price
-                            </Badge>
-                        </div>
-                    ) : null}
+                <div className="mt-2 text-sm whitespace-pre-line tabular-nums" data-testid="item-size">
+                    {size || '—'}
                 </div>
-                <dl className="grid grid-cols-3 gap-x-4 text-right text-sm sm:min-w-72">
-                    <div>
-                        <dt className="text-xs text-subtle-foreground">Qty</dt>
-                        <dd className="tabular-nums">{orDash(item.qty)}</dd>
+                {item.accessories?.summary ? <div className="mt-1 text-xs text-muted-foreground">With {item.accessories.summary}</div> : null}
+                {p.ambiguous ? (
+                    <div className="mt-2">
+                        <Badge tone="warning">
+                            <AlertTriangle aria-hidden="true" /> Accessory charge inside price
+                        </Badge>
                     </div>
-                    <div>
-                        <dt className="text-xs text-subtle-foreground">Unit price</dt>
-                        <dd className="tabular-nums" data-testid="item-unit-price">
-                            {formatPrice(p.customerUnitPrice)}
-                            {item.unitSuffix}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-xs text-subtle-foreground">Amount</dt>
-                        <dd className="font-medium tabular-nums">{formatPrice(p.total)}</dd>
-                    </div>
-                </dl>
-            </CardContent>
+                ) : null}
+            </div>
+            <dl className="grid grid-cols-3 gap-x-4 border-t border-border pt-3 text-right text-sm md:min-w-80 md:border-t-0 md:pt-0">
+                <div>
+                    <dt className="text-xs text-subtle-foreground">Qty</dt>
+                    <dd className="tabular-nums">{orDash(item.qty)}</dd>
+                </div>
+                <div>
+                    <dt className="text-xs text-subtle-foreground">Unit price</dt>
+                    <dd className="tabular-nums" data-testid="item-unit-price">
+                        {formatPrice(p.customerUnitPrice)}
+                        {item.unitSuffix}
+                    </dd>
+                </div>
+                <div>
+                    <dt className="text-xs text-subtle-foreground">Amount</dt>
+                    <dd className="font-medium tabular-nums">{formatPrice(p.total)}</dd>
+                </div>
+            </dl>
         </Card>
+    );
+}
+
+/* "Not recorded", with a short hint behind an info button (hover, focus or tap). */
+function NotRecorded({ hint, testId }: { hint: string; testId?: string }) {
+    return (
+        <span className="inline-flex items-center gap-1.5" data-testid={testId}>
+            <span className="text-muted-foreground">Not recorded</span>
+            {hint ? (
+                <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                type="button"
+                                aria-label={hint}
+                                className="inline-flex size-6 items-center justify-center rounded-full text-subtle-foreground hover:bg-surface-muted hover:text-muted-foreground"
+                            >
+                                <Info className="size-3.5" aria-hidden="true" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{hint}</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            ) : null}
+        </span>
     );
 }
 
 function RevisionsSection({ history }: { history: RevisionHistory }) {
     return (
-        <section aria-labelledby="history-heading" className="mt-6">
+        <section aria-labelledby="history-heading" className="mt-5">
             <h2 id="history-heading" className="mb-3 flex items-center gap-2 text-base font-semibold">
                 <Clock className="size-4" aria-hidden="true" /> Revision history
             </h2>
@@ -209,7 +236,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 
 function Notice({ icon, children, testId }: { icon: ReactNode; children: ReactNode; testId?: string }) {
     return (
-        <div role="status" data-testid={testId} className="mb-3 flex items-start gap-3 rounded-[var(--radius-lg)] border border-border bg-surface p-4 text-sm shadow-xs">
+        <div role="status" data-testid={testId} className="mb-2 flex items-start gap-3 rounded-[var(--radius-lg)] border border-border bg-surface p-4 text-sm shadow-xs">
             {icon}
             <div>{children}</div>
         </div>

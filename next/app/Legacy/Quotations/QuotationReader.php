@@ -17,7 +17,9 @@ use App\Legacy\Support\Money;
  */
 final class QuotationReader
 {
-    public const ISSUER_NOTE = 'Issued By was never saved server-side by the legacy application; it cannot be shown for saved quotations.';
+    // Issued By was never persisted server-side by the legacy app (D-1). The
+    // page shows "Not recorded" with this short, employee-facing hint.
+    public const ISSUER_NOTE = 'Legacy quotation — issuer was not stored.';
 
     private const SUMMARY_COLUMNS = 'q.id, q.ref_no, q.quote_date, q.valid_until, q.prepared_by, q.customer_name,
         q.customer_phone, q.total_amount, q.created_at, q.company_id, c.name AS company_name';
