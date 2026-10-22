@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatDimensions, formatPrice, formatStoredMoney, itemTitle, orDash } from './format';
+import { displayFinish, formatDate, formatDimensions, formatMarkup, formatPrice, formatStoredMoney, itemSummaryText, itemTitle, orDash } from './format';
 
 describe('legacy read formatting', () => {
     it('formats ISO dates without a timezone shift', () => {
@@ -65,5 +65,33 @@ describe('saved item display', () => {
         expect(itemTitle({ displayDescription: 'MS', productType: null, material: mat('MS', 'MS') })).toBe('MS');
         expect(itemTitle({ displayDescription: 'MSX BOLT', productType: null, material: mat('MS', 'MS') })).toBe('MSX BOLT');
         expect(itemTitle({ displayDescription: '', productType: 'STUD', material: null })).toBe('STUD');
+    });
+});
+
+describe('list item summary', () => {
+    const first = (over: Record<string, unknown>) => ({ displayDescription: 'MS UNDERSIZE SAG ROD', productType: 'SAG ROD', sizeType: 'UNDERSIZE', material: 'MS', finish: 'ZP', ...over });
+
+    it('reads Material + Size Type + Product (+ hardened wording) · Finish, then +N', () => {
+        expect(itemSummaryText({ count: 1, first: first({}) })).toBe('MS UNDERSIZE SAG ROD · ZP');
+        expect(itemSummaryText({ count: 5, first: first({}) })).toBe('MS UNDERSIZE SAG ROD · ZP +4');
+        expect(itemSummaryText({ count: 2, first: first({ material: '4140', productType: 'L BOLT', sizeType: 'FULLSIZE', finish: 'PL' }) })).toBe('4140 QT FULLSIZE L BOLT · PL +1');
+        expect(itemSummaryText({ count: 1, first: first({ material: 'S45C_HARDEN_G8_8', productType: 'STUD', sizeType: '', finish: 'PL' }) })).toBe('S45C STUD · HARDENED TO G8.8 · PL');
+        expect(itemSummaryText({ count: 1, first: first({ material: 'SS304', productType: 'STUD', sizeType: null, finish: 'N/A' }) })).toBe('SS304 STUD');
+    });
+
+    it('falls back to the stored description, and says nothing when nothing is readable', () => {
+        expect(itemSummaryText({ count: 3, first: first({ material: 'XYZ', productType: null, displayDescription: 'XYZ SPECIAL BRACKET', finish: '' }) })).toBe('XYZ SPECIAL BRACKET +2');
+        expect(itemSummaryText({ count: 2, first: null })).toBeNull();
+        expect(itemSummaryText(null)).toBeNull();
+        expect(itemSummaryText(undefined)).toBeNull();
+    });
+
+    it('prints a finish only when it is a real finish, and markup as stored', () => {
+        expect(displayFinish('N/A')).toBeNull();
+        expect(displayFinish(' - ')).toBeNull();
+        expect(displayFinish('')).toBeNull();
+        expect(displayFinish('HDG')).toBe('HDG');
+        expect(formatMarkup(5)).toBe('+5%');
+        expect(formatMarkup(2.5)).toBe('+2.5%');
     });
 });

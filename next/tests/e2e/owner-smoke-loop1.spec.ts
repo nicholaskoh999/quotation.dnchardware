@@ -110,12 +110,10 @@ test.describe('desktop', () => {
         await expectNoHorizontalScroll(page);
     });
 
-    test('Quotation detail: title + chips, canonical dimensions, compact Issued By, Quotation Total', async ({ page }) => {
+    test('Quotation detail: canonical dimensions, compact Issued By, Quotation Total', async ({ page }) => {
+        // Loop #2 replaced the title + chips with plain-text Product + Size Type groups.
         await page.goto('/quotations/101');
-        await expect(page.getByTestId('item-title').first()).toHaveText('UNDERSIZE SAG ROD');
-        const chips = page.getByTestId('item-chips').first();
-        await expect(chips.getByText('MS', { exact: true })).toBeVisible();
-        await expect(chips.getByText('ZP', { exact: true })).toBeVisible();
+        await expect(page.getByTestId('group-title').first()).toHaveText('UNDERSIZE SAG ROD');
         await expect(page.getByTestId('item-size').first()).toHaveText('M12 × L1000 × TL100/100');
 
         const issued = page.getByTestId('issued-by');
@@ -126,14 +124,6 @@ test.describe('desktop', () => {
         await expect(page.getByText('Quotation Total', { exact: true })).toBeVisible();
         await expect(page.getByText(/as saved/)).toHaveCount(0);
         await expect(page.getByTestId('quotation-total')).toHaveText('RM 158.60');
-        await expectNoCostLeak(page);
-
-        // hardened item: material, treatment and class are chips, not repeated in the title
-        await page.goto('/quotations/102');
-        const titles = await page.getByTestId('item-title').allTextContents();
-        expect(titles).toContain('STUD');
-        expect(titles.join(' ')).not.toMatch(/HARDEN|S45C|4140/);
-        await expect(page.getByText('Hardened').first()).toBeVisible();
         await expectNoCostLeak(page);
     });
 });

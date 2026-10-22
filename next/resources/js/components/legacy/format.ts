@@ -1,6 +1,10 @@
 /* Display formatting for the legacy read pages. Presentation only: it never
-   computes a price, a weight or a size — those arrive finished from the
-   server read layer. */
+   computes a price or a size — those arrive finished from the server read
+   layer. The one piece of arithmetic is the legacy item card's own display
+   rule for weight (per-piece weight × qty, summed per group, 3 dp). */
+
+import { parseMaterial, treatmentWording } from '@/domain/material';
+import type { ItemSummary, MaterialReading, QuotationItem, ReadableItem } from '@/types/legacy';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
@@ -108,4 +112,125 @@ export function itemTitle(item: ItemTitleInput): string {
         }
     }
     return full;
+}
+
+/* ── Owner Smoke Loop #2: list item summary, detail grouping, weight ──────
+   No colour chips for material / product / size type / finish: plain text
+   hierarchy. No UOM: the system has no canonical UOM field yet, so
+   quantities read `Qty 30`, never `30 pcs`.
+   TODO(Wave 2): formal UOM field / semantics, designed with the Builder. */
+
+/** A finish worth printing: blank, N/A, none and dashes print nothing (legacy chip rule). */
+export function displayFinish(finish: string | null | undefined): string | null {
+    const f = String(finish ?? '').trim();
+    return /^(n\/?a|none|-|—)?$/i.test(f) ? null : f;
+}
+
+/**
+ * List "Item Summary": Material + Size Type + Product (+ hardened wording) · Finish,
+ * then `+N` for the other items. `4140 QT FULLSIZE L BOLT · PL`,
+ * `S45C STUD · HARDENED TO G8.8 · PL`, `MS UNDERSIZE SAG ROD · ZP +4`.
+ * Never dimensions, accessories, weight or prices. null when nothing is readable.
+ */
+export function itemSummaryText(summary: ItemSummary | null | undefined): string | null {
+    if (!summary || !summary.first) return null;
+    const f = summary.first;
+    const sm = parseMaterial(f.material);
+    let parts: string[];
+    if (sm && f.productType) {
+        const head = [sm.material, f.sizeType ?? '', f.productType].map((p) => p.trim()).filter(Boolean).join(' ');
+        parts = [head, treatmentWording(sm) ?? '', displayFinish(f.finish) ?? ''];
+    } else {
+        parts = [f.displayDescription || f.productType || '', displayFinish(f.finish) ?? ''];
+    }
+    const text = parts.filter((p) => p !== '').join(' · ');
+    if (text === '') return null;
+    const more = summary.count - 1;
+    return more > 0 ? `${text} +${more}` : text;
+}
+
+/** Plain-text material identity for a detail row: `4140 QT`, `S45C · HARDENED TO G8.8`. */
+export function materialText(m: MaterialReading | null): string | null {
+    if (!m || !showsMaterialChips(m)) return null;
+    if (m.treatment === 'HARDEN') return `${m.label} · ${m.propertyClass ? `HARDENED TO G${m.propertyClass}` : 'HARDENED'}`;
+    return m.label;
+}
+
+/** `4140 QT · PL` — material and finish as one plain line (either may be absent). */
+export function itemIdentity(item: ReadableItem): string {
+    return [materialText(item.material), displayFinish(item.finishLabel)].filter(Boolean).join(' · ');
+}
+
+/** Legacy item-card weight: stored per-piece weight × qty; null when there is none. */
+export function lineWeight(item: ReadableItem): number | null {
+    const w = item.weight;
+    if (w === null || !Number.isFinite(w) || w <= 0) return null;
+    return w * (item.qty ?? 0);
+}
+
+export function formatWeight(kg: number): string {
+    return `${kg.toFixed(3)} kg`;
+}
+
+export type ItemOrder = 'oldest' | 'newest';
+
+export interface ItemGroup {
+    key: string;
+    /** `FULLSIZE L BOLT` — Size Type + Product (the visual grouping key) */
+    title: string;
+    items: QuotationItem[];
+    /** the material · finish line when every readable item in the group shares it */
+    sharedIdentity: string | null;
+    /** sum of the line weights when the group has more than one item and any weight */
+    totalWeight: number | null;
+}
+
+const norm = (v: string | null | undefined) => String(v ?? '').trim().replace(/\s+/g, ' ').toUpperCase();
+
+function groupKey(item: QuotationItem): string {
+    if (item.state !== 'ok') return `unreadable:${item.position}`;
+    if (item.productType) return `${norm(item.sizeType)}|${norm(item.productType)}`;
+    return `title:${norm(itemTitle(item))}`;
+}
+
+function groupTitle(item: QuotationItem): string {
+    if (item.state !== 'ok') return '';
+    if (item.productType) return [item.sizeType ?? '', item.productType].map((p) => p.trim()).filter(Boolean).join(' ');
+    return itemTitle(item);
+}
+
+/**
+ * Quotation detail groups: same Product + Size Type together, whatever the
+ * material, finish or accessories. Order is presentation only — `newest`
+ * reverses the saved order; every item keeps its original number
+ * (`position`), and nothing is renumbered or re-saved.
+ */
+export function groupItems(items: QuotationItem[], order: ItemOrder = 'oldest'): ItemGroup[] {
+    const ordered = order === 'newest' ? [...items].reverse() : items;
+    const groups = new Map<string, ItemGroup>();
+    for (const item of ordered) {
+        const key = groupKey(item);
+        let g = groups.get(key);
+        if (!g) {
+            g = { key, title: groupTitle(item), items: [], sharedIdentity: null, totalWeight: null };
+            groups.set(key, g);
+        }
+        g.items.push(item);
+    }
+    for (const g of groups.values()) {
+        const readable = g.items.filter((i): i is ReadableItem => i.state === 'ok');
+        const ids = new Set(readable.map(itemIdentity));
+        g.sharedIdentity = readable.length > 0 && ids.size === 1 ? [...ids][0] || null : null;
+        if (g.items.length > 1) {
+            const weights = readable.map(lineWeight).filter((w): w is number => w !== null);
+            const sum = weights.reduce((a, b) => a + b, 0);
+            g.totalWeight = sum > 0 ? sum : null;
+        }
+    }
+    return [...groups.values()];
+}
+
+/** `+5%` — the stored markup as written (legacy `⭐ +${markup}%`). */
+export function formatMarkup(percent: number): string {
+    return `+${Number(percent.toFixed(4))}%`;
 }

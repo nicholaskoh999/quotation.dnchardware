@@ -25,18 +25,19 @@ class QuotationController extends Controller
         $companyId = is_scalar($company) && ctype_digit((string) $company) ? (int) $company : null;
         $search = trim((string) $request->query('q', ''));
         $page = max(1, (int) $request->query('page', 1));
+        $sort = $request->query('sort') === QuotationReader::SORT_OLDEST ? QuotationReader::SORT_OLDEST : QuotationReader::SORT_NEWEST;
 
         $source = DataSource::CONNECTED;
         $list = null;
         try {
-            $list = $reader->list($companyId, $page, 25, $search);
+            $list = $reader->list($companyId, $page, 25, $search, $sort);
         } catch (LegacyNotConfigured|LegacyUnavailable $e) {
             $source = DataSource::fromThrowable($e);
         }
 
         return Inertia::render('Quotations/Index', [
             'source' => $source,
-            'filters' => ['company' => $companyId, 'search' => $search, 'page' => $page],
+            'filters' => ['company' => $companyId, 'search' => $search, 'page' => $page, 'sort' => $sort],
             'quotations' => $list,
         ]);
     }

@@ -67,8 +67,17 @@ it('renders the quotation list and detail without raw JSON or the pricing recipe
         ->where('revisions.state', 'ok')
         ->has('revisions.entries', 2));
 
-    foreach (['costRate', 'addCost', 'markup', 'formData', 'rawItems'] as $leak) {
+    // Owner Smoke Loop #2: the internal detail may carry the derived markup
+    // badge (pricing.markupPercent / manual); never the pricing recipe.
+    foreach (['costRate', 'addCost', 'formData', 'rawItems', 'priceMode', '&quot;markup&quot;'] as $leak) {
         expect($res->getContent())->not->toContain($leak);
+    }
+
+    $list = $this->get('/quotations?sort=oldest')->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('filters.sort', 'oldest')
+        ->has('quotations.rows.0.itemSummary'));
+    foreach (['costRate', 'addCost', 'formData', 'markup', 'preparedBy&quot;:&quot;X'] as $leak) {
+        expect($list->getContent())->not->toContain($leak);
     }
 
     $this->get('/quotations/104')->assertOk()->assertInertia(fn (Assert $page) => $page

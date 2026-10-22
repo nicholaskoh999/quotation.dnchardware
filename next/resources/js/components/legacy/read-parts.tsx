@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { Paginated } from '@/types/legacy';
 
 /* Small, plain building blocks for the Wave 1 read pages. Session A owns the
@@ -79,6 +80,54 @@ export function Pager<T>({ page, href }: { page: Paginated<T>; href: (n: number)
         </nav>
     );
 }
+
+/**
+ * Two-option order switch (Newest first / Oldest first). Presentation only:
+ * the selected option is marked with aria-pressed / aria-current and weight,
+ * not colour alone. Each option is either a link (server-sorted lists) or a
+ * button (client-side order).
+ */
+export function OrderToggle<T extends string>({
+    label,
+    value,
+    options,
+    href,
+    onChange,
+    testId,
+}: {
+    label: string;
+    value: T;
+    options: { value: T; label: string }[];
+    href?: (v: T) => string;
+    onChange?: (v: T) => void;
+    testId?: string;
+}) {
+    const cls = (active: boolean) =>
+        cn(
+            'inline-flex h-8 items-center rounded-[var(--radius-sm)] px-3 text-xs whitespace-nowrap',
+            active ? 'bg-surface font-semibold text-foreground shadow-xs' : 'font-medium text-muted-foreground hover:text-foreground',
+        );
+    return (
+        <div role="group" aria-label={label} className="inline-flex shrink-0 gap-0.5 rounded-[var(--radius-md)] bg-surface-muted p-0.5" data-testid={testId}>
+            {options.map((o) =>
+                href ? (
+                    <Link key={o.value} href={href(o.value)} preserveScroll aria-current={o.value === value ? 'true' : undefined} className={cls(o.value === value)}>
+                        {o.label}
+                    </Link>
+                ) : (
+                    <button key={o.value} type="button" aria-pressed={o.value === value} onClick={() => onChange?.(o.value)} className={cls(o.value === value)}>
+                        {o.label}
+                    </button>
+                ),
+            )}
+        </div>
+    );
+}
+
+export const ORDER_OPTIONS = [
+    { value: 'newest' as const, label: 'Newest first' },
+    { value: 'oldest' as const, label: 'Oldest first' },
+];
 
 export function EmptyState({ children }: { children: ReactNode }) {
     return (

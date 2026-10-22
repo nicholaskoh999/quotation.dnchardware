@@ -1,20 +1,35 @@
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle, ArrowLeft, Clock, FileWarning, Info } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { DataSourceNotice, ReadOnlyNote } from '@/components/legacy/data-source-notice';
-import { formatDate, formatDimensions, formatPrice, formatStoredMoney, itemTitle, orDash, showsMaterialChips } from '@/components/legacy/format';
-import { PageHeader } from '@/components/legacy/read-parts';
+import {
+    formatDate,
+    formatDimensions,
+    formatMarkup,
+    formatPrice,
+    formatStoredMoney,
+    formatWeight,
+    groupItems,
+    itemIdentity,
+    lineWeight,
+    orDash,
+    type ItemGroup,
+    type ItemOrder,
+} from '@/components/legacy/format';
+import { OrderToggle, PageHeader } from '@/components/legacy/read-parts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
-import type { QuotationDetail, QuotationItem, QuotationShowProps, ReadableItem, RevisionHistory } from '@/types/legacy';
+import type { QuotationDetail, QuotationShowProps, ReadableItem, RevisionHistory } from '@/types/legacy';
 
-/* A saved legacy quotation, read only: header, the items in their saved order
-   (insertion order is the item number), the customer unit price per item and
-   the total AS SAVED. No Edit / Delete / Save, and no Cost Rate / Additional
-   Cost / Markup — the page payload does not even carry them. */
+/* A saved legacy quotation, read only, for INTERNAL use: header, the items
+   grouped by Product + Size Type (insertion order is the item number and is
+   never changed), per item the dimensions + Qty, accessories, weight and the
+   customer unit price with its markup badge, then the total AS SAVED. No
+   Edit / Delete / Save; Cost Rate and Additional Cost never reach the page.
+   No UOM: the system has no canonical UOM field yet (Wave 2 Builder). */
 export default function QuotationShow({ source, quotation, revisions }: QuotationShowProps) {
     return (
         <AppLayout>
@@ -81,12 +96,25 @@ function HeaderCard({ q }: { q: QuotationDetail }) {
     );
 }
 
+const ITEM_ORDER_OPTIONS = [
+    { value: 'oldest' as const, label: 'Oldest first' },
+    { value: 'newest' as const, label: 'Newest first' },
+];
+
 function ItemsSection({ q }: { q: QuotationDetail }) {
+    // Default = the historical order (item #1 first). Display order only.
+    const [order, setOrder] = useState<ItemOrder>('oldest');
+    const groups = groupItems(q.items, order);
     return (
         <section aria-labelledby="items-heading" className="mt-5">
-            <h2 id="items-heading" className="mb-2 text-base font-semibold">
-                Items <span className="font-normal text-muted-foreground">({q.itemCount})</span>
-            </h2>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h2 id="items-heading" className="text-base font-semibold">
+                    Items <span className="font-normal text-muted-foreground">({q.itemCount})</span>
+                </h2>
+                {q.items.length > 1 ? (
+                    <OrderToggle label="Item order" value={order} options={ITEM_ORDER_OPTIONS} onChange={setOrder} testId="item-order" />
+                ) : null}
+            </div>
             {q.itemsState === 'unreadable' ? (
                 <Notice icon={<FileWarning className="size-5 text-danger" aria-hidden="true" />} testId="items-unreadable">
                     The items saved with this quotation could not be read. The saved total below is still the quotation’s total.
@@ -95,79 +123,141 @@ function ItemsSection({ q }: { q: QuotationDetail }) {
             {q.itemsState === 'empty' || q.itemsState === 'missing' ? (
                 <Notice icon={<Info className="size-5 text-subtle-foreground" aria-hidden="true" />}>No items were saved with this quotation.</Notice>
             ) : null}
-            <ol className="flex flex-col gap-2" data-testid="quotation-items">
-                {q.items.map((item) => (
-                    <li key={item.position}>
-                        <ItemCard item={item} />
-                    </li>
+            <div className="flex flex-col gap-3" data-testid="quotation-items">
+                {groups.map((g) => (
+                    <ItemGroupSection key={g.key} group={g} />
                 ))}
-            </ol>
+            </div>
         </section>
     );
 }
 
-function ItemCard({ item }: { item: QuotationItem }) {
-    if (item.state === 'unreadable') {
+/* One Product + Size Type group: a plain-text header, then compact rows. */
+function ItemGroupSection({ group }: { group: ItemGroup }) {
+    const only = group.items.length === 1 ? group.items[0]! : null;
+    if (only && only.state === 'unreadable') {
         return (
             <Notice icon={<AlertTriangle className="size-5 text-warning" aria-hidden="true" />} testId="item-unreadable">
-                <span className="font-medium">Item {item.position}</span> — {item.reason}
+                <span className="font-medium">Item {only.position}</span> — {only.reason}
             </Notice>
         );
     }
-    return <ReadableItemCard item={item} />;
+    const n = group.items.length;
+    return (
+        <Card data-testid="item-group" className="overflow-hidden">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-border bg-surface-muted/50 px-4 py-2.5 sm:px-5">
+                <h3 className="text-sm font-semibold tracking-wide" data-testid="group-title">
+                    {group.title}
+                </h3>
+                <span className="text-xs text-muted-foreground" data-testid="group-meta">
+                    {[group.sharedIdentity, `${n} item${n === 1 ? '' : 's'}`].filter(Boolean).join(' · ')}
+                </span>
+            </div>
+            <ul className="divide-y divide-border">
+                {group.items.map((item) =>
+                    item.state === 'ok' ? (
+                        <ItemRow key={item.position} item={item} showIdentity={group.sharedIdentity === null} />
+                    ) : (
+                        <li key={item.position} className="flex gap-3 px-4 py-3 text-sm sm:px-5" data-testid="item-unreadable">
+                            <span className="w-8 shrink-0 font-medium text-muted-foreground tabular-nums">#{item.position}</span>
+                            <span className="text-muted-foreground">{item.reason}</span>
+                        </li>
+                    ),
+                )}
+            </ul>
+            {group.totalWeight !== null ? (
+                <div className="flex justify-end border-t border-border px-4 py-2 text-xs text-muted-foreground sm:px-5" data-testid="group-total-weight">
+                    Total Weight <span className="ml-1.5 font-semibold text-foreground tabular-nums">{formatWeight(group.totalWeight)}</span>
+                </div>
+            ) : null}
+        </Card>
+    );
 }
 
-function ReadableItemCard({ item }: { item: ReadableItem }) {
-    const m = item.material;
+/* Item row, owner-approved order:
+     (material · finish, only when it differs within the group)
+     1  #n  dimensions · Qty n          (no UOM)
+     2  + accessories                   (only when present)
+     3  Weight x.xxx kg                 (per-piece weight × qty, as the legacy card)
+     4  Unit RMx.xx  ⭐ +5% | Manual      Total RMx.xx */
+function ItemRow({ item, showIdentity }: { item: ReadableItem; showIdentity: boolean }) {
     const p = item.pricing;
-    const chips = m && showsMaterialChips(m);
-    const size = formatDimensions(item.sizeLabel);
+    // Multi-line sizes (Welding Anchor Sets): Qty follows the first line; the
+    // component lines sit beneath it.
+    const [sizeHead = '', ...sizeRest] = formatDimensions(item.sizeLabel).split('\n');
+    const identity = showIdentity ? itemIdentity(item) : '';
+    const weight = lineWeight(item);
     return (
-        <Card data-testid="item-card" className="grid gap-3 p-4 sm:px-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6">
-            <div className="min-w-0">
-                {/* Product / size type is the identity; material and finish are supporting chips. */}
-                <h3 className="flex items-baseline gap-2 text-base leading-snug font-semibold">
-                    <span className="text-muted-foreground tabular-nums">{item.position}.</span>
-                    <span data-testid="item-title">{itemTitle(item)}</span>
-                </h3>
-                {chips || item.finishLabel ? (
-                    <div className="mt-1.5 flex flex-wrap gap-1" data-testid="item-chips">
-                        {chips && m ? <Badge tone="accent">{m.label}</Badge> : null}
-                        {m?.treatment ? <Badge tone="special">{m.treatment === 'HARDEN' ? 'Hardened' : m.treatment}</Badge> : null}
-                        {m?.propertyClass ? <Badge tone="special">G{m.propertyClass}</Badge> : null}
-                        {item.finishLabel ? <Badge tone="neutral">{item.finishLabel}</Badge> : null}
+        <li className="flex gap-3 px-4 py-3 sm:px-5" data-testid="item-row" data-position={item.position}>
+            <span className="w-8 shrink-0 pt-px text-sm font-semibold text-muted-foreground tabular-nums" data-testid="item-number">
+                #{item.position}
+            </span>
+            <div className="min-w-0 flex-1 text-sm">
+                {identity ? (
+                    <div className="font-medium" data-testid="item-identity">
+                        {identity}
                     </div>
                 ) : null}
-                <div className="mt-2 text-sm whitespace-pre-line tabular-nums" data-testid="item-size">
-                    {size || '—'}
+                <div className="flex flex-wrap gap-x-1.5" data-testid="item-line">
+                    <span className="tabular-nums" data-testid="item-size">
+                        {sizeHead || '—'}
+                    </span>
+                    <span className="text-muted-foreground" aria-hidden="true">
+                        ·
+                    </span>
+                    <span className="whitespace-nowrap tabular-nums" data-testid="item-qty">
+                        Qty {orDash(item.qty)}
+                    </span>
                 </div>
-                {item.accessories?.summary ? <div className="mt-1 text-xs text-muted-foreground">With {item.accessories.summary}</div> : null}
-                {p.ambiguous ? (
-                    <div className="mt-2">
-                        <Badge tone="warning">
-                            <AlertTriangle aria-hidden="true" /> Accessory charge inside price
-                        </Badge>
+                {sizeRest.length > 0 ? (
+                    <div className="whitespace-pre-line text-muted-foreground tabular-nums" data-testid="item-size-detail">
+                        {sizeRest.join('\n')}
                     </div>
                 ) : null}
+                {item.accessories?.summary ? (
+                    <div className="mt-0.5 text-muted-foreground" data-testid="item-accessories">
+                        + {item.accessories.summary}
+                    </div>
+                ) : null}
+                {weight !== null ? (
+                    <div className="mt-0.5 text-xs text-muted-foreground" data-testid="item-weight">
+                        Weight <span className="tabular-nums">{formatWeight(weight)}</span>
+                    </div>
+                ) : null}
+                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1" data-testid="item-price">
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <span className="text-muted-foreground">
+                            Unit{' '}
+                            <span className="font-medium text-foreground tabular-nums" data-testid="item-unit-price">
+                                {formatPrice(p.customerUnitPrice)}
+                                {item.unitSuffix}
+                            </span>
+                        </span>
+                        {p.manual ? (
+                            <span className="text-xs font-medium text-muted-foreground" data-testid="item-manual">
+                                Manual
+                            </span>
+                        ) : p.markupPercent ? (
+                            <span className="text-xs font-medium text-muted-foreground" data-testid="item-markup" title="Markup on the calculated price">
+                                <span aria-hidden="true">⭐ </span>
+                                {formatMarkup(p.markupPercent)}
+                            </span>
+                        ) : null}
+                        {p.ambiguous ? (
+                            <Badge tone="warning">
+                                <AlertTriangle aria-hidden="true" /> Accessory charge inside price
+                            </Badge>
+                        ) : null}
+                    </div>
+                    <span className="text-muted-foreground">
+                        Total{' '}
+                        <span className="font-semibold text-foreground tabular-nums" data-testid="item-total">
+                            {formatPrice(p.total)}
+                        </span>
+                    </span>
+                </div>
             </div>
-            <dl className="grid grid-cols-3 gap-x-4 border-t border-border pt-3 text-right text-sm md:min-w-80 md:border-t-0 md:pt-0">
-                <div>
-                    <dt className="text-xs text-subtle-foreground">Qty</dt>
-                    <dd className="tabular-nums">{orDash(item.qty)}</dd>
-                </div>
-                <div>
-                    <dt className="text-xs text-subtle-foreground">Unit price</dt>
-                    <dd className="tabular-nums" data-testid="item-unit-price">
-                        {formatPrice(p.customerUnitPrice)}
-                        {item.unitSuffix}
-                    </dd>
-                </div>
-                <div>
-                    <dt className="text-xs text-subtle-foreground">Amount</dt>
-                    <dd className="font-medium tabular-nums">{formatPrice(p.total)}</dd>
-                </div>
-            </dl>
-        </Card>
+        </li>
     );
 }
 

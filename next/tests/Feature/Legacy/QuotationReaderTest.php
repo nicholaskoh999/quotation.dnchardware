@@ -1,5 +1,6 @@
 <?php
 
+use App\Legacy\Quotations\ItemReader;
 use App\Legacy\Quotations\QuotationPresenter;
 use App\Legacy\Quotations\QuotationReader;
 use Tests\Support\LegacyFixtureDatabase;
@@ -168,7 +169,48 @@ it('strips raw JSON and the internal pricing recipe from the page payload', func
     expect($page)->not->toHaveKey('rawItems')
         ->and($page['items'][0])->not->toHaveKey('raw')
         ->and($page['items'][0])->not->toHaveKey('internal');
-    foreach (['costRate', 'addCost', 'markup', 'formData', 'priceMode'] as $leak) {
+    foreach (['costRate', 'addCost', 'formData', 'priceMode', '"markup"', 'manualUnitPrice'] as $leak) {
         expect($json)->not->toContain($leak);
     }
+    // Owner Smoke Loop #2: only the derived markup badge facts reach the internal detail.
+    expect($page['items'][0]['pricing'])->toMatchArray(['markupPercent' => null, 'manual' => false]);
+})->with('legacy drivers');
+
+it('derives the markup badge: shown when > 0 on a calculated price, "manual" instead of a percentage', function () {
+    $item = fn (array $over) => ItemReader::read([
+        'itemType' => 'stud', 'productType' => 'STUD', 'material' => 'MS', 'sizeType' => '', 'cleanSize' => 'M12',
+        'finalUnitPrice' => 4.2, 'totalAmount' => 42, 'qty' => 10, 'pricingModel' => 'accessory-inclusive', ...$over,
+    ], 1);
+    $page = fn (array $over) => QuotationPresenter::item($item($over))['pricing'];
+
+    expect($page(['markup' => 5, 'priceMode' => 'auto']))->toMatchArray(['markupPercent' => 5.0, 'manual' => false])
+        ->and($page(['formData' => ['markup' => '25', 'costRate' => '6.5', 'priceMode' => 'auto']]))->toMatchArray(['markupPercent' => 25.0, 'manual' => false])
+        ->and($page(['markup' => 0]))->toMatchArray(['markupPercent' => null, 'manual' => false])
+        ->and($page(['markup' => 15, 'priceMode' => 'manual']))->toMatchArray(['markupPercent' => null, 'manual' => true])
+        ->and(json_encode(QuotationPresenter::item($item(['formData' => ['costRate' => '6.5', 'addCost' => '1.2']]))))->not->toContain('6.5')->not->toContain('costRate');
+});
+
+it('gives each list row a compact item summary, never the raw items', function (string $driver) {
+    LegacyFixtureDatabase::for($driver);
+    $rows = app(QuotationReader::class)->list(1)['rows'];
+    $byRef = array_column($rows, null, 'refNo');
+
+    expect($byRef['Q-2026-0001']['itemSummary'])->toBe([
+        'count' => 2,
+        'first' => ['displayDescription' => 'MS UNDERSIZE SAG ROD', 'productType' => 'SAG ROD', 'sizeType' => 'UNDERSIZE', 'material' => 'MS', 'finish' => 'ZP'],
+    ]);
+    $json = json_encode($rows);
+    foreach (['formData', 'costRate', 'finalUnitPrice', 'items"', 'size"', 'weight'] as $leak) {
+        expect($json)->not->toContain($leak);
+    }
+})->with('legacy drivers');
+
+it('sorts the list newest or oldest first without changing any row', function (string $driver) {
+    LegacyFixtureDatabase::for($driver);
+    $reader = app(QuotationReader::class);
+    $newest = array_column($reader->list(null, 1, 25)['rows'], 'refNo');
+    $oldest = array_column($reader->list(null, 1, 25, null, QuotationReader::SORT_OLDEST)['rows'], 'refNo');
+
+    expect($oldest)->toBe(array_reverse($newest))
+        ->and($reader->list(null, 1, 25, null, 'anything-else')['rows'][0]['refNo'])->toBe($newest[0]);
 })->with('legacy drivers');

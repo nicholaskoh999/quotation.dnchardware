@@ -26,14 +26,22 @@ final class QuotationReader
 
     public function __construct(private readonly LegacyReader $reader) {}
 
+    public const SORT_NEWEST = 'newest';
+
+    public const SORT_OLDEST = 'oldest';
+
     /**
-     * Recent first (created_at, then id), paginated, optionally for one company
-     * and/or narrowed by a plain text filter on ref no / customer / company.
+     * Recent first (created_at, then id) — or oldest first — paginated,
+     * optionally for one company and/or narrowed by a plain text filter on
+     * ref no / customer / company. Each row carries a compact `itemSummary`
+     * (first readable item + item count) for the list; never the raw items.
+     * Sorting only changes the presentation order: nothing is renumbered.
      *
      * @return array{rows: list<array<string, mixed>>, total: int, page: int, perPage: int, lastPage: int}
      */
-    public function list(?int $companyId = null, int $page = 1, int $perPage = 25, ?string $search = null): array
+    public function list(?int $companyId = null, int $page = 1, int $perPage = 25, ?string $search = null, string $sort = self::SORT_NEWEST): array
     {
+        $direction = $sort === self::SORT_OLDEST ? 'ASC' : 'DESC';
         $perPage = min(100, max(1, $perPage));
         $page = max(1, $page);
         $where = [];
@@ -59,13 +67,13 @@ final class QuotationReader
         $offset = ($page - 1) * $perPage;
 
         $rows = $this->reader->select(
-            'SELECT '.self::SUMMARY_COLUMNS.' FROM quotations q LEFT JOIN companies c ON q.company_id = c.id'
-            .$whereSql.' ORDER BY q.created_at DESC, q.id DESC LIMIT '.(int) $perPage.' OFFSET '.(int) $offset,
+            'SELECT '.self::SUMMARY_COLUMNS.', q.items FROM quotations q LEFT JOIN companies c ON q.company_id = c.id'
+            .$whereSql.' ORDER BY q.created_at '.$direction.', q.id '.$direction.' LIMIT '.(int) $perPage.' OFFSET '.(int) $offset,
             $bindings,
         );
 
         return [
-            'rows' => array_map(self::summary(...), $rows),
+            'rows' => array_map(fn (array $row) => [...self::summary($row), 'itemSummary' => self::itemSummary($row['items'] ?? null)], $rows),
             'total' => $total,
             'page' => $page,
             'perPage' => $perPage,
@@ -131,6 +139,37 @@ final class QuotationReader
         }
 
         return ['ok', $items];
+    }
+
+    /**
+     * What a list row says about the items: the first readable item's
+     * identity (stored order, item #1 first) and how many items there are.
+     * Identity fields only — no size, accessories, weight or prices.
+     *
+     * @return array{count: int, first: array{displayDescription: string, productType: string|null, sizeType: string|null, material: string|null, finish: string|null}|null}|null
+     */
+    public static function itemSummary(mixed $rawItems): ?array
+    {
+        [$state, $items] = self::items($rawItems);
+        if ($state !== 'ok') {
+            return null;
+        }
+        foreach ($items as $item) {
+            if ($item['state'] === 'ok') {
+                return [
+                    'count' => count($items),
+                    'first' => [
+                        'displayDescription' => $item['displayDescription'],
+                        'productType' => $item['productType'],
+                        'sizeType' => $item['sizeType'],
+                        'material' => $item['material']['code'] ?? null,
+                        'finish' => $item['finish'],
+                    ],
+                ];
+            }
+        }
+
+        return ['count' => count($items), 'first' => null];
     }
 
     /**

@@ -34,7 +34,23 @@ export interface QuotationSummary {
     /** stored DECIMAL(12,2) as text — the authority, never recomputed */
     totalAmount: string | null;
     createdAt: string | null;
+    /** list rows only: first readable item's identity + item count (no prices, sizes or weights) */
+    itemSummary?: ItemSummary | null;
 }
+
+export interface ItemSummary {
+    count: number;
+    first: {
+        displayDescription: string;
+        productType: string | null;
+        sizeType: string | null;
+        /** stored legacy material code */
+        material: string | null;
+        finish: string | null;
+    } | null;
+}
+
+export type ListSort = 'newest' | 'oldest';
 
 export interface Paginated<T> {
     rows: T[];
@@ -71,6 +87,10 @@ export interface ItemPricing {
     total: number | null;
     totalSource: 'stored' | 'derived-legacy-rule' | 'missing';
     note: string | null;
+    /** internal detail only (Owner Smoke Loop #2): markup % when > 0 and calculated, else null */
+    markupPercent?: number | null;
+    /** internal detail only: the typed price replaced the calculated one */
+    manual?: boolean;
 }
 
 export interface AccessoryPart {
@@ -109,6 +129,7 @@ export interface ReadableItem {
     qty: number | null;
     unitSuffix: '' | '/set';
     pricing: ItemPricing;
+    /** stored weight PER PIECE (per set for a Welding Anchor Set), kg */
     weight: number | null;
     accessories: ItemAccessories | null;
 }
@@ -161,7 +182,7 @@ export interface CompanyShowProps {
 
 export interface QuotationsIndexProps {
     source: DataSourceState;
-    filters: { company: number | null; search: string; page: number };
+    filters: { company: number | null; search: string; page: number; sort: ListSort };
     quotations: Paginated<QuotationSummary> | null;
 }
 
