@@ -121,14 +121,22 @@ describe('legacy read pages', () => {
         const table = screen.getByTestId('quotation-table');
         const headers = within(table).getAllByRole('columnheader').map((h) => h.textContent);
         expect(headers).toEqual(['Quotation', 'Date', 'Customer', 'Item Summary', 'Valid until', 'Total']);
-        expect(within(table).getAllByTestId('item-summary').map((n) => n.textContent)).toEqual([
-            '4140 QT FULLSIZE L BOLT · PL +2',
+        // main summary and a separate, muted "+N more" (never glued to the finish)
+        expect(within(table).getAllByTestId('item-summary-main').map((n) => n.textContent)).toEqual([
+            '4140 QT FULLSIZE L BOLT · PL',
             'S45C STUD · HARDENED TO G8.8 · PL',
         ]);
+        const more = within(table).getAllByTestId('item-summary-more');
+        expect(more.map((n) => n.textContent)).toEqual(['+2 more']);
+        expect(more[0]!.className).toContain('text-muted-foreground');
+        expect(more[0]!.className).toContain('font-normal');
+        expect(more[0]!.className).not.toMatch(/\bbg-|rounded/);
         expect(table.textContent).not.toMatch(/Nicholas|prepared|× L|Weight|Markup/i);
         // phone cards: customer + total, quotation no. · date, item summary — nothing else
         const card = within(screen.getByTestId('quotation-cards')).getAllByTestId('quotation-card')[0]!;
-        expect(card.textContent).toBe('ACME ENGINEERING SDN BHDRM 1,158.60Q-2026-0001 · 1 Mar 20264140 QT FULLSIZE L BOLT · PL +2');
+        expect(card.textContent).toBe('ACME ENGINEERING SDN BHDRM 1,158.60Q-2026-0001 · 1 Mar 20264140 QT FULLSIZE L BOLT · PL+2 more');
+        // phone: the count may wrap to its own line
+        expect(within(card).getByTestId('item-summary').className).toContain('flex-wrap');
         // sort: newest is the default; oldest keeps the filters in the URL
         const sort = screen.getByTestId('quotation-sort');
         expect(within(sort).getByText('Newest first').getAttribute('aria-current')).toBe('true');
@@ -155,8 +163,9 @@ describe('legacy read pages', () => {
         expect(within(issued).getByRole('button', { name: 'Legacy quotation — issuer was not stored.' })).toBeTruthy();
         expect(container.textContent).not.toMatch(/server-side|legacy application/i);
         // groups: plain text, no coloured material / finish chips
-        expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['STUD', 'FULLSIZE SAG ROD']);
-        expect(screen.getAllByTestId('group-meta').map((n) => n.textContent)).toEqual(['4140 QT · HARDENED TO G10.9 · PL · 1 item', 'MS · PL · 1 item']);
+        // shared material + finish: one natural heading, the count alone on the right
+        expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['4140 QT STUD · HARDENED TO G10.9 · PL', 'MS FULLSIZE SAG ROD · PL']);
+        expect(screen.getAllByTestId('group-meta').map((n) => n.textContent)).toEqual(['1 item', '1 item']);
         expect(screen.queryByTestId('item-chips')).toBeNull();
         expect(screen.getAllByTestId('item-size').map((n) => n.textContent)).toEqual(['M20 × L400', 'M16 × L1200']);
         expect(screen.getAllByTestId('item-qty').map((n) => n.textContent)).toEqual(['Qty 5', 'Qty 10']);
@@ -195,14 +204,14 @@ describe('legacy read pages', () => {
     it('groups items by Product + Size Type; material, finish and accessories do not split a group', () => {
         render(<QuotationShow source="connected" quotationId={1} quotation={grouped} revisions={{ state: 'empty', entries: [] }} />);
         const groups = screen.getAllByTestId('item-group');
-        expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['FULLSIZE L BOLT', 'UNDERSIZE SAG ROD']);
+        expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['FULLSIZE L BOLT', 'MS UNDERSIZE SAG ROD · ZP']);
         // original numbers kept inside the group
         expect(within(groups[0]!).getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#1', '#3', '#4']);
         // mixed material / finish: each row carries its own plain-text identity
         expect(within(groups[0]!).getAllByTestId('item-identity').map((n) => n.textContent)).toEqual(['4140 QT · PL', 'MS · PL', 'MS · HDG']);
         expect(within(groups[0]!).getByTestId('group-meta').textContent).toBe('3 items');
         // uniform group: identity moves to the header, rows start with #n + dimensions
-        expect(within(groups[1]!).getByTestId('group-meta').textContent).toBe('MS · ZP · 1 item');
+        expect(within(groups[1]!).getByTestId('group-meta').textContent).toBe('1 item');
         expect(within(groups[1]!).queryByTestId('item-identity')).toBeNull();
         expect(within(groups[1]!).getByTestId('item-line').textContent).toBe('M12 × L1245 × TL100/100·Qty 30');
         expect(within(groups[1]!).getByTestId('item-accessories').textContent).toBe('+ 4 Nut ZP + 4 FW ZP');
@@ -224,7 +233,7 @@ describe('legacy read pages', () => {
         expect(within(order).getByText('Oldest first').getAttribute('aria-pressed')).toBe('true');
         expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#1', '#3', '#4', '#2']);
         fireEvent.click(within(order).getByText('Newest first'));
-        expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['FULLSIZE L BOLT', 'UNDERSIZE SAG ROD']);
+        expect(screen.getAllByTestId('group-title').map((n) => n.textContent)).toEqual(['FULLSIZE L BOLT', 'MS UNDERSIZE SAG ROD · ZP']);
         expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#4', '#3', '#1', '#2']);
         fireEvent.click(within(order).getByText('Oldest first'));
         expect(screen.getAllByTestId('item-number').map((n) => n.textContent)).toEqual(['#1', '#3', '#4', '#2']);

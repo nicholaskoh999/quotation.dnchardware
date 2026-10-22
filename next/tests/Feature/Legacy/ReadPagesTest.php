@@ -40,7 +40,7 @@ it('renders a company profile with its quotations', function (string $driver) {
         ->where('source', 'connected')
         ->where('company.name', 'BINA STEEL WORKS')
         ->where('quotations.total', 2)
-        ->where('quotations.rows.0.refNo', 'Q-2026-0005'));
+        ->where('quotations.rows.0.refNo', 'Q-2026-0003'));
 
     $this->get('/companies/999')->assertNotFound();
 })->with('legacy drivers');

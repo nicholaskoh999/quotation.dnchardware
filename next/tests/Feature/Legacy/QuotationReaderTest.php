@@ -19,15 +19,17 @@ it('lists quotations recent first, paginated, filterable by company and text', f
     LegacyFixtureDatabase::for($driver);
     $reader = app(QuotationReader::class);
 
+    // Loop #3: "recent" = the quotation's date (quote_date, else the day it was
+    // saved), so Q-2026-0005 (dated 10 Feb, saved 1 Jul) sits after March.
     $all = $reader->list();
     expect($all['total'])->toBe(6)
-        ->and(array_column($all['rows'], 'refNo'))->toBe(['Q-2026-0005', 'Q-2026-0004', 'Q-2026-0002', 'Q-2026-0003', 'Q-2026-0001', 'Q-2025-0100']);
+        ->and(array_column($all['rows'], 'refNo'))->toBe(['Q-2026-0004', 'Q-2026-0002', 'Q-2026-0003', 'Q-2026-0001', 'Q-2026-0005', 'Q-2025-0100']);
 
     $page2 = $reader->list(null, 2, 4);
     expect($page2['lastPage'])->toBe(2)
-        ->and(array_column($page2['rows'], 'refNo'))->toBe(['Q-2026-0001', 'Q-2025-0100']);
+        ->and(array_column($page2['rows'], 'refNo'))->toBe(['Q-2026-0005', 'Q-2025-0100']);
 
-    expect(array_column($reader->list(2)['rows'], 'refNo'))->toBe(['Q-2026-0005', 'Q-2026-0003'])
+    expect(array_column($reader->list(2)['rows'], 'refNo'))->toBe(['Q-2026-0003', 'Q-2026-0005'])
         ->and(array_column($reader->list(null, 1, 25, 'walk-in')['rows'], 'refNo'))->toBe(['Q-2026-0004'])
         ->and(array_column($reader->list(null, 1, 25, '2026-000')['rows'], 'id'))->toHaveCount(5)
         ->and($reader->list(null, 1, 25, '100%')['total'])->toBe(0);
@@ -184,7 +186,10 @@ it('derives the markup badge: shown when > 0 on a calculated price, "manual" ins
     $page = fn (array $over) => QuotationPresenter::item($item($over))['pricing'];
 
     expect($page(['markup' => 5, 'priceMode' => 'auto']))->toMatchArray(['markupPercent' => 5.0, 'manual' => false])
-        ->and($page(['formData' => ['markup' => '25', 'costRate' => '6.5', 'priceMode' => 'auto']]))->toMatchArray(['markupPercent' => 25.0, 'manual' => false])
+        // Loop #3: only the item's own saved markup (the legacy card's source) — never the form copy
+        ->and($page(['formData' => ['markup' => '25', 'costRate' => '6.5', 'priceMode' => 'auto']]))->toMatchArray(['markupPercent' => null, 'manual' => false])
+        ->and($page(['markup' => '7.5', 'formData' => ['markup' => '25']]))->toMatchArray(['markupPercent' => 7.5])
+        ->and($page(['formData' => ['priceMode' => 'manual']]))->toMatchArray(['markupPercent' => null, 'manual' => true])
         ->and($page(['markup' => 0]))->toMatchArray(['markupPercent' => null, 'manual' => false])
         ->and($page(['markup' => 15, 'priceMode' => 'manual']))->toMatchArray(['markupPercent' => null, 'manual' => true])
         ->and(json_encode(QuotationPresenter::item($item(['formData' => ['costRate' => '6.5', 'addCost' => '1.2']]))))->not->toContain('6.5')->not->toContain('costRate');
@@ -213,4 +218,20 @@ it('sorts the list newest or oldest first without changing any row', function (s
 
     expect($oldest)->toBe(array_reverse($newest))
         ->and($reader->list(null, 1, 25, null, 'anything-else')['rows'][0]['refNo'])->toBe($newest[0]);
+})->with('legacy drivers');
+
+it('orders by the quotation date, not by when the row was saved (non-monotonic dates)', function (string $driver) {
+    // Fixture dates (quote_date, else DATE(created_at)): 0001 1 Mar · 0002 2 May
+    // (no quote_date, saved 2 May) · 0003 15 Apr · 0004 1 Jun · 0005 10 Feb but
+    // SAVED 1 Jul · 0100 1 Nov 2025. Saved-order sorting put 0005 first.
+    LegacyFixtureDatabase::for($driver);
+    $reader = app(QuotationReader::class);
+    $dates = fn (string $sort) => array_map(
+        fn (array $r) => $r['quoteDate'] ?? substr((string) $r['createdAt'], 0, 10),
+        $reader->list(null, 1, 25, null, $sort)['rows'],
+    );
+
+    expect($dates(QuotationReader::SORT_NEWEST))->toBe(['2026-06-01', '2026-05-02', '2026-04-15', '2026-03-01', '2026-02-10', '2025-11-01'])
+        ->and($dates(QuotationReader::SORT_OLDEST))->toBe(['2025-11-01', '2026-02-10', '2026-03-01', '2026-04-15', '2026-05-02', '2026-06-01'])
+        ->and(array_column($reader->list(null, 1, 25)['rows'], 'refNo'))->toBe(['Q-2026-0004', 'Q-2026-0002', 'Q-2026-0003', 'Q-2026-0001', 'Q-2026-0005', 'Q-2025-0100']);
 })->with('legacy drivers');

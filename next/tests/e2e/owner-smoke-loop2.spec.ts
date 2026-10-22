@@ -43,9 +43,21 @@ test.describe('desktop', () => {
         await expect(table).not.toContainText('Nicholas');
 
         const row = (ref: string) => table.getByTestId('quotation-row').filter({ hasText: ref });
-        await expect(row('Q-2026-0001').getByTestId('item-summary')).toHaveText('MS UNDERSIZE SAG ROD · ZP +1');
-        await expect(row('Q-2026-0002').getByTestId('item-summary')).toHaveText('S45C STUD · HARDENED TO G8.8 · PL +1');
-        await expect(row('Q-2026-0005').getByTestId('item-summary')).toHaveText('4340 QT FULLSIZE ANCHOR BOLT · HDG +2');
+        await expect(row('Q-2026-0001').getByTestId('item-summary-main')).toHaveText('MS UNDERSIZE SAG ROD · ZP');
+        await expect(row('Q-2026-0001').getByTestId('item-summary-more')).toHaveText('+1 more');
+        await expect(row('Q-2026-0002').getByTestId('item-summary-main')).toHaveText('S45C STUD · HARDENED TO G8.8 · PL');
+        await expect(row('Q-2026-0005').getByTestId('item-summary-main')).toHaveText('4340 QT FULLSIZE ANCHOR BOLT · HDG');
+        await expect(row('Q-2026-0005').getByTestId('item-summary-more')).toHaveText('+2 more');
+        // "+N more" is secondary: muted, smaller, normal weight, spaced from the finish
+        const more = row('Q-2026-0001').getByTestId('item-summary-more');
+        const main = row('Q-2026-0001').getByTestId('item-summary-main');
+        const style = await more.evaluate((el) => ({ size: parseFloat(getComputedStyle(el).fontSize), weight: Number(getComputedStyle(el).fontWeight), bg: getComputedStyle(el).backgroundColor }));
+        const mainSize = await main.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+        expect(style.size).toBeLessThan(mainSize);
+        expect(style.weight).toBeLessThanOrEqual(400);
+        expect(style.bg).toBe('rgba(0, 0, 0, 0)');
+        const gap = (await more.boundingBox())!.x - ((await main.boundingBox())!.x + (await main.boundingBox())!.width);
+        expect(gap).toBeGreaterThanOrEqual(8);
         await expect(row('Q-2026-0004').getByTestId('item-summary')).toHaveText('—');
         await expect(table).not.toContainText(/× L|Weight|⭐/);
 
@@ -57,7 +69,8 @@ test.describe('desktop', () => {
         // newest first by default; oldest reverses the presentation only
         const refs = () => table.getByTestId('quotation-row').locator('td:first-child').allTextContents();
         const newest = await refs();
-        expect(newest[0]).toBe('Q-2026-0005');
+        // true chronological order by quotation date
+        expect(newest).toEqual(['Q-2026-0004', 'Q-2026-0002', 'Q-2026-0003', 'Q-2026-0001', 'Q-2026-0005', 'Q-2025-0100']);
         await page.getByTestId('quotation-sort').getByText('Oldest first').click();
         await expect(page).toHaveURL(/sort=oldest/);
         await expect(table.getByTestId('quotation-row').first()).toContainText('Q-2025-0100');
@@ -70,14 +83,16 @@ test.describe('desktop', () => {
         await page.getByRole('tab', { name: 'Quotations' }).click();
         const table = page.getByTestId('quotation-table');
         await expect(table.getByRole('columnheader')).toHaveText(['Quotation', 'Date', 'Item Summary', 'Valid until', 'Total']);
-        await expect(table.getByTestId('quotation-row').filter({ hasText: 'Q-2026-0001' }).getByTestId('item-summary')).toHaveText('MS UNDERSIZE SAG ROD · ZP +1');
+        await expect(table.getByTestId('quotation-row').filter({ hasText: 'Q-2026-0001' }).getByTestId('item-summary-main')).toHaveText('MS UNDERSIZE SAG ROD · ZP');
+        await expect(table.getByTestId('quotation-row').filter({ hasText: 'Q-2026-0001' }).getByTestId('item-summary-more')).toHaveText('+1 more');
+        await expect(table).not.toContainText(/prepared/i);
     });
 
     test('detail (multi-group): Product + Size Type groups, numbers kept, Qty, Weight, ⭐ markup', async ({ page }) => {
         await page.goto('/quotations/101');
-        await expect(page.getByTestId('group-title')).toHaveText(['UNDERSIZE SAG ROD', 'FULLSIZE L BOLT']);
+        await expect(page.getByTestId('group-title')).toHaveText(['MS UNDERSIZE SAG ROD · ZP', '4140 QT FULLSIZE L BOLT · HDG']);
         const [sag, lbolt] = [page.getByTestId('item-group').nth(0), page.getByTestId('item-group').nth(1)];
-        await expect(sag.getByTestId('group-meta')).toHaveText('MS · ZP · 1 item');
+        await expect(sag.getByTestId('group-meta')).toHaveText('1 item');
         await expect(sag.getByTestId('item-line')).toHaveText('M12 × L1000 × TL100/100·Qty 10');
         await expect(sag.getByTestId('item-weight')).toHaveText('Weight 6.928 kg');
         await expect(sag.getByTestId('item-markup')).toHaveCount(0);
@@ -85,6 +100,14 @@ test.describe('desktop', () => {
         await expect(lbolt.getByTestId('item-weight')).toHaveText('Weight 10.364 kg');
         await expect(lbolt.getByTestId('item-markup')).toHaveText('⭐ +20%');
         await expect(lbolt.getByTestId('item-accessories')).toContainText('+ ');
+        // four levels, top to bottom: dimensions · Qty / accessories / Weight / price
+        const r = lbolt.getByTestId('item-row');
+        const ys = [];
+        for (const id of ['item-line', 'item-accessories', 'item-weight', 'item-price']) ys.push((await r.getByTestId(id).boundingBox())!.y);
+        expect([...ys].sort((a, b) => a - b)).toEqual(ys);
+        expect(new Set(ys).size).toBe(4);
+        // the price row keeps a readable measure instead of stretching across the page
+        expect((await r.getByTestId('item-price').boundingBox())!.width).toBeLessThanOrEqual(680);
         // single-item groups: no repeated Total Weight
         await expect(page.getByTestId('group-total-weight')).toHaveCount(0);
         await expect(page.getByTestId('quotation-total')).toHaveText('RM 158.60');
@@ -98,7 +121,8 @@ test.describe('desktop', () => {
         const g = page.getByTestId('item-group');
         await expect(g.getByTestId('group-meta')).toHaveText('2 items');
         await expect(g.getByTestId('item-identity')).toHaveText(['S45C · HARDENED TO G8.8 · PL', '4140 QT · HARDENED TO G10.9 · PL']);
-        await expect(g.getByTestId('item-markup')).toHaveText('⭐ +25%');
+        // Loop #3: #1 has no item-level markup (only a form copy) → no badge
+        await expect(g.getByTestId('item-markup')).toHaveCount(0);
         await expect(g.getByTestId('item-manual')).toHaveText('Manual');
         await expect(g.getByTestId('group-total-weight')).toHaveText('Total Weight 9.468 kg');
 
@@ -113,9 +137,10 @@ test.describe('desktop', () => {
     test('detail: material differences do not split a Product + Size Type group', async ({ page }) => {
         await page.goto('/quotations/103');
         const fullsize = page.getByTestId('item-group').filter({ has: page.getByTestId('group-title').getByText('FULLSIZE SAG ROD', { exact: true }) });
+        // mixed material: heading = Size Type + Product; rows carry material · finish
         await expect(fullsize.getByTestId('item-number')).toHaveText(['#2', '#7']);
         await expect(fullsize.getByTestId('item-identity')).toHaveText(['MS · PL', 'Y BAR · PL']);
-        const undersize = page.getByTestId('item-group').filter({ has: page.getByTestId('group-title').getByText('UNDERSIZE SAG ROD', { exact: true }) });
+        const undersize = page.getByTestId('item-group').filter({ has: page.getByTestId('group-title').getByText('MS UNDERSIZE SAG ROD · ZP', { exact: true }) });
         expect(await undersize.getByTestId('item-number').allTextContents()).toContain('#5');
         await expectNoHorizontalScroll(page);
     });
@@ -158,10 +183,11 @@ test.describe('phone', () => {
             const cards = page.getByTestId('quotation-cards');
             await expect(cards).toBeVisible();
             const card = cards.getByTestId('quotation-card').filter({ hasText: 'Q-2026-0001' });
-            await expect(card.getByTestId('item-summary')).toHaveText('MS UNDERSIZE SAG ROD · ZP +1');
+            await expect(card.getByTestId('item-summary-main')).toHaveText('MS UNDERSIZE SAG ROD · ZP');
+            await expect(card.getByTestId('item-summary-more')).toHaveText('+1 more');
             await expect(card).not.toContainText(/Nicholas|×|Weight/);
             for (const h of await cards.getByTestId('quotation-card').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) {
-                expect(h, 'at most ~3 lines').toBeLessThanOrEqual(100);
+                expect(h, 'compact: ~3 lines, +N more may wrap').toBeLessThanOrEqual(120);
             }
             await expectNoHorizontalScroll(page);
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { displayFinish, formatDate, formatDimensions, formatMarkup, formatPrice, formatStoredMoney, itemSummaryText, itemTitle, orDash } from './format';
+import { displayFinish, formatDate, formatDimensions, formatMarkup, formatPrice, formatStoredMoney, itemSummaryParts, moreLabel, itemTitle, orDash } from './format';
 
 describe('legacy read formatting', () => {
     it('formats ISO dates without a timezone shift', () => {
@@ -71,19 +71,22 @@ describe('saved item display', () => {
 describe('list item summary', () => {
     const first = (over: Record<string, unknown>) => ({ displayDescription: 'MS UNDERSIZE SAG ROD', productType: 'SAG ROD', sizeType: 'UNDERSIZE', material: 'MS', finish: 'ZP', ...over });
 
-    it('reads Material + Size Type + Product (+ hardened wording) · Finish, then +N', () => {
-        expect(itemSummaryText({ count: 1, first: first({}) })).toBe('MS UNDERSIZE SAG ROD · ZP');
-        expect(itemSummaryText({ count: 5, first: first({}) })).toBe('MS UNDERSIZE SAG ROD · ZP +4');
-        expect(itemSummaryText({ count: 2, first: first({ material: '4140', productType: 'L BOLT', sizeType: 'FULLSIZE', finish: 'PL' }) })).toBe('4140 QT FULLSIZE L BOLT · PL +1');
-        expect(itemSummaryText({ count: 1, first: first({ material: 'S45C_HARDEN_G8_8', productType: 'STUD', sizeType: '', finish: 'PL' }) })).toBe('S45C STUD · HARDENED TO G8.8 · PL');
-        expect(itemSummaryText({ count: 1, first: first({ material: 'SS304', productType: 'STUD', sizeType: null, finish: 'N/A' }) })).toBe('SS304 STUD');
+    it('reads Material + Size Type + Product (+ hardened wording) · Finish; the count is separate', () => {
+        expect(itemSummaryParts({ count: 1, first: first({}) })).toEqual({ main: 'MS UNDERSIZE SAG ROD · ZP', more: 0 });
+        expect(itemSummaryParts({ count: 6, first: first({ finish: 'PL' }) })).toEqual({ main: 'MS UNDERSIZE SAG ROD · PL', more: 5 });
+        expect(itemSummaryParts({ count: 2, first: first({ material: '4140', productType: 'L BOLT', sizeType: 'FULLSIZE', finish: 'PL' }) })!.main).toBe('4140 QT FULLSIZE L BOLT · PL');
+        expect(itemSummaryParts({ count: 1, first: first({ material: 'S45C_HARDEN_G8_8', productType: 'STUD', sizeType: '', finish: 'PL' }) })!.main).toBe('S45C STUD · HARDENED TO G8.8 · PL');
+        expect(itemSummaryParts({ count: 1, first: first({ material: 'SS304', productType: 'STUD', sizeType: null, finish: 'N/A' }) })!.main).toBe('SS304 STUD');
+        expect(moreLabel(5)).toBe('+5 more');
+        expect(moreLabel(1)).toBe('+1 more');
+        expect(moreLabel(0)).toBeNull();
     });
 
     it('falls back to the stored description, and says nothing when nothing is readable', () => {
-        expect(itemSummaryText({ count: 3, first: first({ material: 'XYZ', productType: null, displayDescription: 'XYZ SPECIAL BRACKET', finish: '' }) })).toBe('XYZ SPECIAL BRACKET +2');
-        expect(itemSummaryText({ count: 2, first: null })).toBeNull();
-        expect(itemSummaryText(null)).toBeNull();
-        expect(itemSummaryText(undefined)).toBeNull();
+        expect(itemSummaryParts({ count: 3, first: first({ material: 'XYZ', productType: null, displayDescription: 'XYZ SPECIAL BRACKET', finish: '' }) })).toEqual({ main: 'XYZ SPECIAL BRACKET', more: 2 });
+        expect(itemSummaryParts({ count: 2, first: null })).toBeNull();
+        expect(itemSummaryParts(null)).toBeNull();
+        expect(itemSummaryParts(undefined)).toBeNull();
     });
 
     it('prints a finish only when it is a real finish, and markup as stored', () => {

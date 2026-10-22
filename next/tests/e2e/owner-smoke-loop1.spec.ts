@@ -111,9 +111,9 @@ test.describe('desktop', () => {
     });
 
     test('Quotation detail: canonical dimensions, compact Issued By, Quotation Total', async ({ page }) => {
-        // Loop #2 replaced the title + chips with plain-text Product + Size Type groups.
+        // Loop #2/#3: plain-text Product + Size Type groups; a shared material + finish joins the heading.
         await page.goto('/quotations/101');
-        await expect(page.getByTestId('group-title').first()).toHaveText('UNDERSIZE SAG ROD');
+        await expect(page.getByTestId('group-title').first()).toHaveText('MS UNDERSIZE SAG ROD · ZP');
         await expect(page.getByTestId('item-size').first()).toHaveText('M12 × L1000 × TL100/100');
 
         const issued = page.getByTestId('issued-by');

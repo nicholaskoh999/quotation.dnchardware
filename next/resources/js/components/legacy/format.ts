@@ -127,12 +127,14 @@ export function displayFinish(finish: string | null | undefined): string | null 
 }
 
 /**
- * List "Item Summary": Material + Size Type + Product (+ hardened wording) · Finish,
- * then `+N` for the other items. `4140 QT FULLSIZE L BOLT · PL`,
- * `S45C STUD · HARDENED TO G8.8 · PL`, `MS UNDERSIZE SAG ROD · ZP +4`.
- * Never dimensions, accessories, weight or prices. null when nothing is readable.
+ * List "Item Summary": the first item as Material + Size Type + Product
+ * (+ hardened wording) · Finish — `4140 QT FULLSIZE L BOLT · PL`,
+ * `S45C STUD · HARDENED TO G8.8 · PL` — plus how many other items there are,
+ * which the list renders separately and muted as `+5 more` (Loop #3), so the
+ * count never reads as part of the finish. Never dimensions, accessories,
+ * weight or prices. null when nothing is readable.
  */
-export function itemSummaryText(summary: ItemSummary | null | undefined): string | null {
+export function itemSummaryParts(summary: ItemSummary | null | undefined): { main: string; more: number } | null {
     if (!summary || !summary.first) return null;
     const f = summary.first;
     const sm = parseMaterial(f.material);
@@ -143,10 +145,14 @@ export function itemSummaryText(summary: ItemSummary | null | undefined): string
     } else {
         parts = [f.displayDescription || f.productType || '', displayFinish(f.finish) ?? ''];
     }
-    const text = parts.filter((p) => p !== '').join(' · ');
-    if (text === '') return null;
-    const more = summary.count - 1;
-    return more > 0 ? `${text} +${more}` : text;
+    const main = parts.filter((p) => p !== '').join(' · ');
+    if (main === '') return null;
+    return { main, more: Math.max(0, summary.count - 1) };
+}
+
+/** `+5 more`, or null for a single item. */
+export function moreLabel(more: number): string | null {
+    return more > 0 ? `+${more} more` : null;
 }
 
 /** Plain-text material identity for a detail row: `4140 QT`, `S45C · HARDENED TO G8.8`. */
@@ -178,6 +184,12 @@ export interface ItemGroup {
     key: string;
     /** `FULLSIZE L BOLT` — Size Type + Product (the visual grouping key) */
     title: string;
+    /**
+     * The group heading (Loop #3): when every readable item shares material +
+     * finish, the whole natural identity (`MS UNDERSIZE SAG ROD · ZP`);
+     * otherwise just `title`, and each row carries its own material · finish.
+     */
+    heading: string;
     items: QuotationItem[];
     /** the material · finish line when every readable item in the group shares it */
     sharedIdentity: string | null;
@@ -212,7 +224,7 @@ export function groupItems(items: QuotationItem[], order: ItemOrder = 'oldest'):
         const key = groupKey(item);
         let g = groups.get(key);
         if (!g) {
-            g = { key, title: groupTitle(item), items: [], sharedIdentity: null, totalWeight: null };
+            g = { key, title: groupTitle(item), heading: groupTitle(item), items: [], sharedIdentity: null, totalWeight: null };
             groups.set(key, g);
         }
         g.items.push(item);
@@ -221,6 +233,7 @@ export function groupItems(items: QuotationItem[], order: ItemOrder = 'oldest'):
         const readable = g.items.filter((i): i is ReadableItem => i.state === 'ok');
         const ids = new Set(readable.map(itemIdentity));
         g.sharedIdentity = readable.length > 0 && ids.size === 1 ? [...ids][0] || null : null;
+        if (readable.length > 0 && ids.size === 1) g.heading = naturalTitle(readable[0]!, g.title);
         if (g.items.length > 1) {
             const weights = readable.map(lineWeight).filter((w): w is number => w !== null);
             const sum = weights.reduce((a, b) => a + b, 0);
@@ -228,6 +241,18 @@ export function groupItems(items: QuotationItem[], order: ItemOrder = 'oldest'):
         }
     }
     return [...groups.values()];
+}
+
+/**
+ * Material + Size Type + Product (+ hardened wording) · Finish for one item:
+ * `4140 QT FULLSIZE L BOLT · PL`, `S45C STUD · HARDENED TO G8.8 · PL`.
+ * `title` is the item's Size Type + Product (or its material-free description).
+ */
+function naturalTitle(item: ReadableItem, title: string): string {
+    const m = item.material;
+    const material = m && showsMaterialChips(m) ? m.label : null;
+    const treatment = m && m.treatment === 'HARDEN' ? (m.propertyClass ? `HARDENED TO G${m.propertyClass}` : 'HARDENED') : null;
+    return [[material, title].filter(Boolean).join(' '), treatment, displayFinish(item.finishLabel)].filter(Boolean).join(' · ');
 }
 
 /** `+5%` — the stored markup as written (legacy `⭐ +${markup}%`). */

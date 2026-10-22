@@ -145,12 +145,14 @@ function ItemGroupSection({ group }: { group: ItemGroup }) {
     const n = group.items.length;
     return (
         <Card data-testid="item-group" className="overflow-hidden">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-border bg-surface-muted/50 px-4 py-2.5 sm:px-5">
-                <h3 className="text-sm font-semibold tracking-wide" data-testid="group-title">
-                    {group.title}
+            {/* Shared material + finish: one natural heading (`MS UNDERSIZE SAG ROD · ZP`).
+                Mixed: Size Type + Product only, each row names its own material · finish. */}
+            <div className="flex items-baseline justify-between gap-3 border-b border-border bg-surface-muted/50 px-4 py-2.5 sm:px-5">
+                <h3 className="min-w-0 text-sm font-semibold tracking-wide" data-testid="group-title">
+                    {group.heading}
                 </h3>
-                <span className="text-xs text-muted-foreground" data-testid="group-meta">
-                    {[group.sharedIdentity, `${n} item${n === 1 ? '' : 's'}`].filter(Boolean).join(' · ')}
+                <span className="shrink-0 text-xs text-muted-foreground" data-testid="group-meta">
+                    {`${n} item${n === 1 ? '' : 's'}`}
                 </span>
             </div>
             <ul className="divide-y divide-border">
@@ -188,11 +190,14 @@ function ItemRow({ item, showIdentity }: { item: ReadableItem; showIdentity: boo
     const identity = showIdentity ? itemIdentity(item) : '';
     const weight = lineWeight(item);
     return (
-        <li className="flex gap-3 px-4 py-3 sm:px-5" data-testid="item-row" data-position={item.position}>
+        <li className="flex gap-3 px-4 py-3.5 sm:px-5" data-testid="item-row" data-position={item.position}>
             <span className="w-8 shrink-0 pt-px text-sm font-semibold text-muted-foreground tabular-nums" data-testid="item-number">
                 #{item.position}
             </span>
-            <div className="min-w-0 flex-1 text-sm">
+            {/* Four levels, same on every width: dimensions · Qty / accessories /
+                Weight / price row. A readable measure on wide screens keeps the
+                price row from stretching into an accounting line. */}
+            <div className="min-w-0 flex-1 space-y-1 text-sm md:max-w-2xl">
                 {identity ? (
                     <div className="font-medium" data-testid="item-identity">
                         {identity}
@@ -210,22 +215,22 @@ function ItemRow({ item, showIdentity }: { item: ReadableItem; showIdentity: boo
                     </span>
                 </div>
                 {sizeRest.length > 0 ? (
-                    <div className="whitespace-pre-line text-muted-foreground tabular-nums" data-testid="item-size-detail">
+                    <div className="-mt-0.5 whitespace-pre-line text-muted-foreground tabular-nums" data-testid="item-size-detail">
                         {sizeRest.join('\n')}
                     </div>
                 ) : null}
                 {item.accessories?.summary ? (
-                    <div className="mt-0.5 text-muted-foreground" data-testid="item-accessories">
+                    <div className="text-muted-foreground" data-testid="item-accessories">
                         + {item.accessories.summary}
                     </div>
                 ) : null}
                 {weight !== null ? (
-                    <div className="mt-0.5 text-xs text-muted-foreground" data-testid="item-weight">
+                    <div className="text-xs text-muted-foreground" data-testid="item-weight">
                         Weight <span className="tabular-nums">{formatWeight(weight)}</span>
                     </div>
                 ) : null}
-                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1" data-testid="item-price">
-                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 pt-1" data-testid="item-price">
+                    <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
                         <span className="text-muted-foreground">
                             Unit{' '}
                             <span className="font-medium text-foreground tabular-nums" data-testid="item-unit-price">
@@ -251,7 +256,7 @@ function ItemRow({ item, showIdentity }: { item: ReadableItem; showIdentity: boo
                     </div>
                     <span className="text-muted-foreground">
                         Total{' '}
-                        <span className="font-semibold text-foreground tabular-nums" data-testid="item-total">
+                        <span className="text-base font-semibold text-foreground tabular-nums" data-testid="item-total">
                             {formatPrice(p.total)}
                         </span>
                     </span>

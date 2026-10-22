@@ -31,7 +31,11 @@ final class QuotationReader
     public const SORT_OLDEST = 'oldest';
 
     /**
-     * Recent first (created_at, then id) — or oldest first — paginated,
+     * Newest first by the quotation's own date — COALESCE(quote_date,
+     * DATE(created_at)), the same "last quoted" reading as the company
+     * directory — then created_at and id as tie-breaks; or oldest first.
+     * Loop #3: ordering by created_at alone put a quotation dated 10 Feb but
+     * saved in July above June quotations. Paginated,
      * optionally for one company and/or narrowed by a plain text filter on
      * ref no / customer / company. Each row carries a compact `itemSummary`
      * (first readable item + item count) for the list; never the raw items.
@@ -68,7 +72,8 @@ final class QuotationReader
 
         $rows = $this->reader->select(
             'SELECT '.self::SUMMARY_COLUMNS.', q.items FROM quotations q LEFT JOIN companies c ON q.company_id = c.id'
-            .$whereSql.' ORDER BY q.created_at '.$direction.', q.id '.$direction.' LIMIT '.(int) $perPage.' OFFSET '.(int) $offset,
+            .$whereSql.' ORDER BY COALESCE(q.quote_date, DATE(q.created_at)) '.$direction.', q.created_at '.$direction.', q.id '.$direction
+            .' LIMIT '.(int) $perPage.' OFFSET '.(int) $offset,
             $bindings,
         );
 

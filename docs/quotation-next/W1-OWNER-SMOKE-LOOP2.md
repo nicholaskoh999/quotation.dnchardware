@@ -59,3 +59,28 @@
   only; groups re-form in that order; numbers unchanged.
 - Multi-line sizes (Welding Anchor Sets): `Qty` follows the first line, the
   component lines sit beneath it.
+
+## Loop #3 — final W1 display polish
+
+- **`+N more`**: the list shows the main summary in primary text and the
+  other-item count separately — `+5 more`, smaller, muted, normal weight,
+  spaced from the finish, no badge / background. Phone cards may wrap it to
+  its own line. Same in the global list, company tab and phone cards.
+- **Group heading**: when every item in a Product + Size Type group shares
+  material + finish, the heading is the whole natural identity
+  (`MS UNDERSIZE SAG ROD · ZP`, `4140 QT FULLSIZE L BOLT · HDG`) with only the
+  item count on the right; when they differ, the heading is Size Type +
+  Product and each row carries its own `4140 QT · PL`.
+- **Detail rhythm**: four levels on every width — dimensions · Qty /
+  accessories / Weight / price row — with spacing between them and a
+  readable measure (max ≈ 42 rem) so the price row never stretches into an
+  accounting line; Total is the strongest figure, on the right.
+- **Sort**: the list now orders by the quotation's own date,
+  `COALESCE(quote_date, DATE(created_at))` (the company directory's "last
+  quoted" reading), then `created_at`, then `id`. Ordering by `created_at`
+  alone had put a quotation dated 10 Feb but saved on 1 Jul above June.
+  Regression test with non-monotonic dates (both drivers).
+- **Markup source**: only the item's own saved `markup` — the legacy item
+  card's source. The price-form copy is no longer read, so no legacy
+  quotation gains a badge it never showed (e.g. Q-2026-0002 #1). Manual and
+  0 % unchanged.

@@ -2,6 +2,8 @@
 
 namespace App\Legacy\Quotations;
 
+use App\Legacy\Support\Money;
+
 /**
  * What a Wave 1 read PAGE may carry. An Inertia page embeds its props in the
  * HTML, so the page payload drops:
@@ -16,6 +18,10 @@ namespace App\Legacy\Quotations;
  * `markupPercent` (only when > 0 and the price was calculated) and `manual`
  * (the typed price replaced the calculated one). Cost rate and additional cost
  * never reach a page. Customer output (print / WhatsApp / copy) is unaffected.
+ * Loop #3: the markup comes ONLY from the item's own saved `markup` — the
+ * legacy item card's source (`parseFloat(item.markup)`) — never from the
+ * price-form copy, so no legacy quotation gains a badge it never showed.
+ * Manual follows the legacy card too: item.priceMode, else the form's.
  *
  * The full read DTO (with raw and internal) stays available to server code.
  */
@@ -41,8 +47,9 @@ final class QuotationPresenter
     {
         if (($item['state'] ?? null) === 'ok' && isset($item['pricing']) && is_array($item['pricing'])) {
             $internal = is_array($item['internal'] ?? null) ? $item['internal'] : [];
+            $raw = is_array($item['raw'] ?? null) ? $item['raw'] : [];
             $manual = ($internal['priceMode'] ?? '') === 'manual';
-            $markup = $internal['markup'] ?? null;
+            $markup = Money::number($raw['markup'] ?? null);
             $item['pricing']['manual'] = $manual;
             $item['pricing']['markupPercent'] = (! $manual && is_float($markup) && $markup > 0) ? $markup : null;
         }

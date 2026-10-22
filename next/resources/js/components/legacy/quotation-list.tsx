@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { formatDate, formatStoredMoney, itemSummaryText, orDash } from '@/components/legacy/format';
+import { formatDate, formatStoredMoney, itemSummaryParts, moreLabel, orDash } from '@/components/legacy/format';
 import type { QuotationSummary } from '@/types/legacy';
 
 /* Saved quotations: one compact row per quotation on desktop / tablet, a
@@ -8,7 +8,8 @@ import type { QuotationSummary } from '@/types/legacy';
      desktop  Quotation · Date · Customer · Item Summary · Valid until · Total
      tablet   Quotation · Date · Customer · Item Summary · Total
      phone    customer + total / quotation no. · date / item summary
-   Item Summary takes the flexible width and ellipsises. No Prepared By (it
+   Item Summary takes the flexible width; the main summary ellipsises while
+   the other-item count stays visible as a separate, muted `+N more`. No Prepared By (it
    stays on the quotation detail), no sizes, accessories, weight or pricing
    recipe in a list. */
 export function QuotationList({ rows, showCustomer = true }: { rows: QuotationSummary[]; showCustomer?: boolean }) {
@@ -28,7 +29,6 @@ export function QuotationList({ rows, showCustomer = true }: { rows: QuotationSu
                     </thead>
                     <tbody>
                         {rows.map((q) => {
-                            const summary = itemSummaryText(q.itemSummary);
                             return (
                                 <tr key={q.id} className="border-t border-border hover:bg-surface-muted/60" data-testid="quotation-row">
                                     <td className="truncate px-3 py-2.5 font-medium lg:px-5">
@@ -42,8 +42,8 @@ export function QuotationList({ rows, showCustomer = true }: { rows: QuotationSu
                                             {orDash(q.customerDisplay)}
                                         </td>
                                     ) : null}
-                                    <td className="truncate px-3 py-2.5 whitespace-nowrap text-foreground lg:px-5" title={summary ?? undefined} data-testid="item-summary">
-                                        {summary ?? <span className="text-subtle-foreground">—</span>}
+                                    <td className="px-3 py-2.5 lg:px-5">
+                                        <ItemSummaryLine q={q} />
                                     </td>
                                     <td className="hidden truncate px-3 py-2.5 whitespace-nowrap text-muted-foreground lg:table-cell lg:px-5">{formatDate(q.validUntil)}</td>
                                     <td className="px-3 py-2.5 text-right font-medium whitespace-nowrap tabular-nums lg:px-5">{formatStoredMoney(q.totalAmount)}</td>
@@ -55,7 +55,6 @@ export function QuotationList({ rows, showCustomer = true }: { rows: QuotationSu
             </div>
             <ul className="flex flex-col gap-2 md:hidden" data-testid="quotation-cards">
                 {rows.map((q) => {
-                    const summary = itemSummaryText(q.itemSummary);
                     const ref = q.refNo || `#${q.id}`;
                     return (
                         <li key={q.id}>
@@ -73,16 +72,40 @@ export function QuotationList({ rows, showCustomer = true }: { rows: QuotationSu
                                     {showCustomer ? ' · ' : null}
                                     {formatDate(q.quoteDate ?? q.createdAt)}
                                 </div>
-                                {summary ? (
-                                    <div className="mt-1.5 truncate text-sm text-foreground" data-testid="item-summary">
-                                        {summary}
-                                    </div>
-                                ) : null}
+                                <ItemSummaryLine q={q} wrap className="mt-1.5" />
                             </Link>
                         </li>
                     );
                 })}
             </ul>
         </>
+    );
+}
+
+/* Main summary in primary text; `+N more` lighter, smaller, normal weight,
+   clearly spaced — never a badge. `wrap` (phone cards) lets the count drop to
+   its own line when space is tight; in a table cell the summary ellipsises
+   and the count stays on the line. */
+function ItemSummaryLine({ q, wrap = false, className }: { q: QuotationSummary; wrap?: boolean; className?: string }) {
+    const parts = itemSummaryParts(q.itemSummary);
+    if (!parts) {
+        return wrap ? null : <span className="text-subtle-foreground" data-testid="item-summary">—</span>;
+    }
+    const more = moreLabel(parts.more);
+    return (
+        <div
+            className={`flex min-w-0 items-baseline gap-x-3 ${wrap ? 'flex-wrap' : ''} ${className ?? ''}`}
+            title={more ? `${parts.main} (${more})` : parts.main}
+            data-testid="item-summary"
+        >
+            <span className={`min-w-0 truncate text-sm text-foreground ${wrap ? 'max-w-full' : ''}`} data-testid="item-summary-main">
+                {parts.main}
+            </span>
+            {more ? (
+                <span className="shrink-0 text-xs font-normal whitespace-nowrap text-muted-foreground" data-testid="item-summary-more">
+                    {more}
+                </span>
+            ) : null}
+        </div>
     );
 }
