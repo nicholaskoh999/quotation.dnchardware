@@ -119,3 +119,59 @@
     .qd-markup { grid-area: markup; }
     .qd-total { grid-area: total; }
 }
+
+/* Quick Add rows (Session E): stacked on phones; one aligned row per item
+   from md up. The column template comes from the product (--qa-cols). */
+@layer components {
+    .qa-row-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 48rem) {
+        .qa-row-grid {
+            grid-template-columns: var(--qa-cols);
+            align-items: start;
+        }
+    }
+}
+
+/* Builder items (Session E) — same grid language as the W1 detail .qd-row:
+     phone   n  item (title, dimensions, accessories, issues)         ⋯
+                Qty · Weight
+                Unit · Markup · Total
+     ≥ md    # · Item · Qty · Weight · Unit · Markup · Total · ⋯ */
+@layer components {
+    .bd-row {
+        display: grid;
+        align-items: start;
+        column-gap: 0.5rem;
+        row-gap: 0.25rem;
+        grid-template-columns: 1.75rem minmax(0, 1fr) 3.25rem 6.5rem 2.25rem;
+        grid-template-areas:
+            'num item item item menu'
+            '. qty weight weight weight'
+            '. unit markup total total';
+    }
+    @media (min-width: 48rem) {
+        .bd-row {
+            column-gap: 0.75rem;
+            row-gap: 0;
+            grid-template-columns: 2rem minmax(0, 1fr) 3.5rem 6rem 6.5rem 4.5rem 6.5rem 2.25rem;
+            grid-template-areas: 'num item qty weight unit markup total menu';
+        }
+    }
+    @media (min-width: 64rem) {
+        .bd-row {
+            column-gap: 1rem;
+            grid-template-columns: 2.25rem minmax(0, 1fr) 4rem 6.5rem 7rem 5rem 7.5rem 2.25rem;
+        }
+    }
+    .bd-num { grid-area: num; }
+    .bd-item { grid-area: item; }
+    .bd-qty { grid-area: qty; }
+    .bd-weight { grid-area: weight; }
+    .bd-unit { grid-area: unit; }
+    .bd-markup { grid-area: markup; }
+    .bd-total { grid-area: total; }
+    .bd-menu { grid-area: menu; }
+}

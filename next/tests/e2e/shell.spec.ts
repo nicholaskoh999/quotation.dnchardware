@@ -143,7 +143,9 @@ test.describe('phone shell (393px)', () => {
         await expect(links).toHaveText(['New Quotation', 'Quick Add', 'Manual Add']);
         await sheet.getByRole('link', { name: 'Quick Add' }).click();
         await expect(page).toHaveURL(/\/quotations\/new\?mode=quick$/);
-        await expect(page.getByTestId('bottom-nav').getByRole('link', { name: 'Quotes' })).toHaveAttribute('aria-current', 'page');
+        // Session E: Quick Add opens as a modal task (the nav behind it is inert), and "Quotes" stays current.
+        await expect(page.getByTestId('quick-add')).toBeVisible();
+        await expect(page.getByTestId('bottom-nav').locator('a[href="/quotations"]')).toHaveAttribute('aria-current', 'page');
     });
 
     test('More opens a sheet with its items; Sign Out signs the named user out', async ({ page }) => {
@@ -192,7 +194,9 @@ test.describe('phone shell (393px)', () => {
 
         await home.getByTestId('frequent-products').getByRole('link', { name: 'Sag Rod' }).click();
         await expect(page).toHaveURL(/\/quotations\/new\?product=sagrod$/);
-        await expect(page.getByText('Selected product:')).toBeVisible();
+        // Wave 2 · Session E: the builder opens Quick Add on that product.
+        await expect(page.getByTestId('quick-add')).toBeVisible();
+        await expect(page.getByTestId('quick-add').locator('#qa-product')).toHaveValue('sagrod');
     });
 
     test('logo returns Home from another page', async ({ page }) => {

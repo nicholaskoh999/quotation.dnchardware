@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\HandoffController;
+use App\Http\Controllers\Builder\CustomerSearchController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HomeController;
@@ -42,6 +43,8 @@ Route::middleware('auth')->group(function () {
     /* App-shell routes (Wave 1 · Session A). Honest placeholder pages; later
        waves replace the page component behind a route, never its name. */
     Route::inertia('/quotations/new', 'Quotations/Create')->name('quotations.create');
+    /* Wave 2 · Session E — Builder customer picker (read-only JSON). */
+    Route::get('/quotations/new/customers', CustomerSearchController::class)->name('quotations.create.customers');
     Route::inertia('/price-lookup', 'PriceLookup')->name('price-lookup');
     Route::inertia('/calculator', 'Calculator')->name('calculator');
     Route::inertia('/system-health', 'SystemHealth')->name('system-health');
