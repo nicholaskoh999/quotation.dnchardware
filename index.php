@@ -50,7 +50,7 @@
   --wa:#25d366; --wa-hover:#1db954;
   --red:#dc2626; --red-light:#fef2f2; --red-mid:#fecaca;
   --amber:#b45309; --amber-light:#fffbeb; --amber-mid:#fde68a;
-  --amber-ink:#9a6700;   /* staff-only pricing text on Quotation List cards */
+  --amber-ink:#b8892d; --amber-ink-strong:#9a6e1f;   /* staff-only pricing text on Quotation List cards */
   /* Softer but deeper: a hairline to seat the edge, then a wider low-opacity
      spread so a white card lifts off the tinted page without a hard drop. */
   --shadow-sm:0 1px 2px rgba(20,25,40,.06), 0 2px 8px rgba(20,25,40,.07);
@@ -1454,9 +1454,9 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-unitline strong{color:var(--text)}
 .qi-breakdown{margin-top:1px;font-size:12px;color:var(--text-muted);font-weight:600}
 /* Internal pricing composition on the Quotation List card — staff only, never printed */
-.qi-pricing{margin-top:4px;font-size:10.5px;line-height:1.4;color:var(--amber-ink);font-weight:600;letter-spacing:.01em;overflow-wrap:anywhere}
+.qi-pricing{margin-top:4px;font-size:9px;line-height:1.45;color:var(--amber-ink);font-weight:500;letter-spacing:.01em;overflow-wrap:anywhere}
 .qi-pricing .qi-pr{white-space:nowrap}
-.qi-pricing .qi-pr-auto{font-size:11px;font-weight:800}
+.qi-pricing .qi-pr-auto{font-size:10px;font-weight:600;color:var(--amber-ink-strong)}
 .qi-override{margin-top:3px;font-size:11.5px;font-weight:700;color:#b45309;line-height:1.2}
 .qi-override.neg{color:#b91c1c}
 .qi-unitcol{min-width:0}
