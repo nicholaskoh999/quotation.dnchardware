@@ -18,6 +18,7 @@ resources/js/builder/            framework-free logic (no React)
                     interpretSize → effectiveDiameter → computeGeometry → findDefaultPrice
                     (+ tlSurcharge) → priceItem → buildDimension; field-level errors / warnings
   quotation.ts      readQuotation(): every item computed once, summary, header validation
+  quick-add-demo.ts fixed local demo extraction (NOT AI) for the Quick Add review preview
   dates.ts          day-first DD-MM-YYYY ⇄ ISO (never month-first)
   draft-storage.ts  local draft per named user: dnc-quo:builder-draft:v1:<user>:new
   use-builder.ts    reducer + autosave + explicit recovery + leave protection
@@ -25,8 +26,10 @@ resources/js/components/builder/  presentation
   combobox.tsx       searchable combobox (no native <datalist>), free text always allowed
   fields.tsx         compact field / select / segmented / headings
   item-fields.tsx    shared sections: identity · size & dimensions · accessories · pricing · preview
-  item-editor.tsx    Manual Add / Edit (side sheet; full screen on a phone)
-  quick-add.tsx      Quick Add (group first, rows second)
+  item-editor.tsx    Manual Add / Edit (centred dialog; full screen on a phone); continuous entry
+  batch-add.tsx      Batch Add (group first, rows second; 20–30 rows)
+  quick-add.tsx      Quick Add (AI intake + review; analyzer = Session I; demo review fixture)
+  task-dialog.tsx    shared centred task dialog / phone full-screen task
   customer-section.tsx  header: customer search / card, contact, phone, dates, Prepared By, remarks
   items-table.tsx    aligned item grid (same language as the W1 detail; .bd-* grid areas)
 resources/js/pages/Quotations/Create.tsx   the Builder page (route quotations.create)
@@ -132,3 +135,52 @@ All three emit the same `DraftItem`. Entry: `?mode=quick|manual|batch`;
   the calculated price. Historical / customer price suggestions are Session F.
 - **Local drafts** saved before this loop (v1) are carried forward (manual →
   override, quick rows → batch), never dropped.
+
+## Owner Smoke #2 · Loop #2 — continuous entry, Batch efficiency, Quick Add demo review
+
+Loop #1 semantics unchanged (Quick = AI extraction · Manual = one item ·
+Batch = similar rows). No engine, schema, auth or write-path change.
+
+- **Manual Add continuous entry.** Footer `Cancel · Add & another (primary) ·
+  Add item`; Edit keeps `Cancel · Save item`. *Add & another* appends the item
+  (always at the end, in entry order), keeps the dialog open on the next
+  number and starts from `nextItemFrom(prev)`: keeps Product · Material ·
+  Treatment · Property class · Size Type · Finish · plate type and the typed
+  Cost rate / Additional cost / Markup; resets Size, Bar Ø custom, dimensions,
+  developed-length custom, Qty → 1, override, No Round, accessories (none —
+  conservative) and errors. Focus returns to Size on desktop / tablet (phone:
+  scrolls there, no keyboard pop-up). Footer context `N items · RM x`.
+- **Keyboard.** Enter = Add & another (Save on Edit) · Ctrl/⌘+Enter = Add
+  and close · Esc = Cancel. Ignored: held (repeat) Enter, IME composition,
+  Enter that picks a combobox option or lands on an open suggestion list
+  (it only closes the list), selects, buttons, checkboxes, textareas. An
+  invalid item runs normal validation and adds nothing. Muted `<kbd>` hints
+  on ≥ 640 px only (⌘ on Mac); none on phones.
+- **Toast.** `Item #7 added to quotation` / `M12 × L1070 × TL100/100 · Qty 1
+  · RM 2.78`, 3 s, one id (rapid adds replace instead of stacking). Phone
+  toasts clear the task footer (TaskDialog publishes `--task-footer-h`).
+- **Batch Add (20–30 rows).** Rows scroll inside the dialog; each row shows
+  weight · unit · line total. Enter moves to the next cell (Qty → next row's
+  Size, a new row after the last) and never submits; Ctrl/⌘+Enter adds all.
+  `+ Row` keeps focus on itself (so repeated clicks are never covered by the
+  new row's size list). Footer `20 valid rows · Total RM…` / `Add 20 items`;
+  with a problem `19 ready · 1 needs attention` and the add is blocked
+  (`aria-disabled`; a click only reveals the cells to fix). Blank rows ignored.
+- **Pricing de-duplication.** The ladder (Calculated / Override / Final +
+  Override / Use calculated) is the only place prices appear; the preview now
+  shows supporting values only — Dimension, Bar Ø, Developed length (when
+  any), Weight, Accessories / pc (when > 0), Line total. On a phone the ladder
+  is a compact label-left / value-right list; Advanced stays collapsed.
+- **Quick Add demo review.** The real **Analyze** stays disabled
+  (`quickAddAnalyzer = null`). A separate **View demo analysis** opens the
+  review on `demoExtraction()` — fixed, local, input ignored, no network /
+  upload / storage — under a persistent banner *Demo extracted items — not
+  real AI output*. Item A (MS UNDERSIZE ZP Sag Rod M12 · Bar Ø 10.7 · L1245
+  · TL100 · Qty 30) is **Ready**; item B (4140 QT FULLSIZE PL L Bolt M16 ·
+  Bar Ø 17 · L900 · W70 · TL150 · Qty 20, uncertain finish + cost rate) is
+  **Needs review**. Each row: number, identity, Size, Bar Ø, Dims, Qty, total,
+  status. **Edit / Fix** opens the shared `ItemEditor`; saving clears the
+  uncertainty. Summary `2 items · 1 needs review`; `Add confirmed items` is
+  blocked until nothing needs review. Added items are normal `DraftItem`s
+  (`entryMode 'quick'`). The same review UI serves the Session I analyzer.
+

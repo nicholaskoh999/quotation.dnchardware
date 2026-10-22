@@ -3,7 +3,8 @@ import { priceItem, rodWeight, round05, tlSurcharge } from '@/domain';
 import { computeItem, itemTitle, materialCodeOf, toAccessoryInput } from './compute';
 import { formatDayFirst, parseDayFirst, todayIso } from './dates';
 import { clearDraft, draftKey, loadDraft, saveDraft } from './draft-storage';
-import { duplicateItem, emptyItem, emptyQuotation, isMeaningful, type DraftItem } from './model';
+import { duplicateItem, emptyItem, emptyQuotation, isMeaningful, nextItemFrom, type DraftItem } from './model';
+import { DEMO_LABEL, demoExtraction } from './quick-add-demo';
 import { readQuotation } from './quotation';
 
 function item(over: Partial<DraftItem> = {}, dims: Partial<DraftItem['dims']> = {}): DraftItem {
@@ -344,3 +345,53 @@ describe('local draft storage', () => {
         expect(isMeaningful({ ...q, items: [item()] })).toBe(true);
     });
 });
+
+describe('Add & another — nextItemFrom (Owner Smoke #2 Loop #2)', () => {
+    it('keeps the common context and resets everything per item', () => {
+        const prev: DraftItem = {
+            ...emptyItem('lbolt', 'manual'),
+            material: '4140 QT',
+            treatment: 'HARDEN',
+            propertyClass: '10.9',
+            sizeType: 'UNDERSIZE',
+            finish: 'HDG',
+            size: 'M20',
+            diameterOverride: '19.5',
+            qty: '30',
+            dims: { ...emptyItem().dims, l: '900', w: '70', threadLen: '150', developedLength: '980' },
+            accessories: { nut: { qty: '2', finish: 'HDG', unitPrice: '' }, fw: null, custom: null },
+            pricing: { costRate: '8.50', addCost: '0.40', markup: '5', noRound: true, override: '20.00' },
+        };
+        const next = nextItemFrom(prev);
+        expect(next.uid).not.toBe(prev.uid);
+        expect(next).toMatchObject({ product: 'lbolt', entryMode: 'manual', material: '4140 QT', treatment: 'HARDEN', propertyClass: '10.9', sizeType: 'UNDERSIZE', finish: 'HDG' });
+        expect(next.pricing).toEqual({ costRate: '8.50', addCost: '0.40', markup: '5', noRound: false, override: null });
+        expect(next.size).toBe('');
+        expect(next.diameterOverride).toBe('');
+        expect(next.qty).toBe('1');
+        expect(next.dims).toEqual(emptyItem().dims);
+        expect(next.accessories).toEqual({ nut: null, fw: null, custom: null });
+    });
+});
+
+describe('Quick Add demo fixture (not AI)', () => {
+    it('is deterministic: Item A ready, Item B needs review', () => {
+        const [a, b] = demoExtraction();
+        expect(DEMO_LABEL).toBe('Demo extracted items — not real AI output');
+        expect(demoExtraction().map((x) => ({ ...x, item: { ...x.item, uid: '' } }))).toEqual([a, b].map((x) => ({ ...x!, item: { ...x!.item, uid: '' } })));
+        const ca = computeItem(a!.item);
+        expect(a!.uncertain).toEqual([]);
+        expect(ca.valid).toBe(true);
+        expect(ca.title).toBe('MS UNDERSIZE SAG ROD · ZP');
+        expect(ca.diameter).toBe(10.7);
+        expect(ca.threadLen).toBe('100/100');
+        expect(a!.item.qty).toBe('30');
+        const cb = computeItem(b!.item);
+        expect(b!.uncertain).toEqual(['finish', 'costRate']);
+        expect(cb.title).toBe('4140 QT FULLSIZE L BOLT · PL');
+        expect(cb.diameter).toBe(17);
+        expect(cb.errors.costRate).toMatch(/No default rate/);
+        expect(b!.item.qty).toBe('20');
+    });
+});
+

@@ -3,8 +3,11 @@ import { PHONE_QUERY, useMediaQuery } from '@/components/shell/use-media-query';
 
 /* Toast placement per handoff §3: desktop/tablet top-right; phone ABOVE the
    bottom navigation (64px bar + gap + home-indicator safe area). Sonner's own
-   "mobile" switch is at 600px, ours is 640px, so the position is chosen here. */
-export const PHONE_TOAST_OFFSET = 'calc(var(--shell-bottom-nav-height, 64px) + 12px + env(safe-area-inset-bottom))';
+   "mobile" switch is at 600px, ours is 640px, so the position is chosen here.
+   While a full-screen builder task is open its sticky footer is the bottom
+   edge instead, so the toast also clears --task-footer-h (set by TaskDialog). */
+export const PHONE_TOAST_OFFSET =
+    'max(calc(var(--shell-bottom-nav-height, 64px) + 12px + env(safe-area-inset-bottom)), calc(var(--task-footer-h, 0px) + 8px))';
 
 export function toasterPlacement(isPhone: boolean): Pick<ToasterProps, 'position' | 'offset' | 'mobileOffset'> {
     return isPhone

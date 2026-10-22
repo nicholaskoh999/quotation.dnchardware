@@ -25,6 +25,16 @@ async function pickCustomer(page: Page, q = 'acme') {
     await expect(page.getByTestId('customer-card')).toContainText('ACME ENGINEERING SDN BHD');
 }
 
+async function fillSagRod(page: Page, l: string, qty = '1') {
+    const ed = page.getByTestId('item-editor');
+    await ed.locator('#ed-size').fill('M12');
+    await ed.locator('#ed-length').fill(l);
+    await ed.locator('#ed-threadLen').fill('100');
+    await ed.locator('#ed-qty').fill(qty);
+}
+
+const toast = (page: Page) => page.locator('[data-sonner-toast]').filter({ hasText: 'added to quotation' });
+
 async function batchAddSagRods(page: Page) {
     await page.getByTestId('open-batch-add').click();
     const sheet = page.getByTestId('batch-add');
@@ -37,7 +47,7 @@ async function batchAddSagRods(page: Page) {
     await sheet.getByLabel('Row 2 L').fill('310');
     await sheet.getByLabel('Row 2 TL').fill('100');
     await sheet.getByLabel('Row 2 Qty').fill('2');
-    await expect(sheet.getByTestId('ba-status')).toHaveText('2 rows ready');
+    await expect(sheet.getByTestId('ba-status')).toHaveText('2 valid rows · Total RM 137.22');
     await sheet.getByTestId('ba-submit').click();
     await expect(sheet).toBeHidden();
 }
@@ -115,7 +125,7 @@ test.describe('desktop', () => {
         await ed.locator('#ed-costRate').fill('8.50');
         await ed.locator('#ed-markup').fill('5');
         await expect(ed.getByTestId('ed-title')).toHaveText('4140 QT FULLSIZE L BOLT · HARDENED TO G10.9 · PL');
-        await expect(ed.getByTestId('ed-preview-markup')).toHaveText('+5%');
+        await expect(ed.getByTestId('ed-preview-markup')).toHaveCount(0); // markup is in the rate field, not repeated
         await ed.getByTestId('ed-submit').click();
         await expect(ed).toBeHidden();
         const row = page.getByTestId('builder-item').first();
@@ -332,6 +342,114 @@ test.describe('desktop', () => {
         await expect(page.getByTestId('error-validUntil')).toHaveText('Use DD-MM-YYYY');
     });
 
+    test('Manual Add continuous entry: Add & another keeps the dialog, toast with item number / spec / Qty / total, items append in order', async ({ page }) => {
+        await openBuilder(page);
+        await page.getByTestId('open-manual-add').click();
+        const ed = page.getByTestId('item-editor');
+        await expect(ed.getByTestId('ed-add-another')).toContainText('Add & another');
+        await expect(ed.getByTestId('kbd-hint').first()).toBeVisible();
+        await ed.getByRole('radio', { name: 'ZP' }).click();
+        await ed.locator('#ed-costRate').fill('5.20');
+        await fillSagRod(page, '1070');
+        await ed.getByTestId('ed-add-another').click();
+        await expect(toast(page)).toHaveCount(1);
+        await expect(toast(page)).toContainText('Item #1 added to quotation');
+        await expect(toast(page).locator('[data-description]')).toHaveText(/^M12 × L1070 × TL100\/100 · Qty 1 · RM \d+\.\d{2}$/);
+        // still open, next number; context kept (finish, cost rate), per-item fields reset
+        await expect(ed).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Manual Add · item 2' })).toBeVisible();
+        await expect(ed.getByRole('radio', { name: 'ZP' })).toHaveAttribute('aria-checked', 'true');
+        await expect(ed.locator('#ed-costRate')).toHaveValue('5.20');
+        await expect(ed.locator('#ed-size')).toHaveValue('');
+        await expect(ed.locator('#ed-length')).toHaveValue('');
+        await expect(ed.locator('#ed-qty')).toHaveValue('1');
+        await expect(ed.locator('#ed-size')).toBeFocused();
+        await expect(ed.getByTestId('ed-context')).toHaveText(/^1 item · RM \d+\.\d{2}$/);
+        // keyboard: Enter = Add & another
+        await fillSagRod(page, '1245', '30');
+        await ed.locator('#ed-qty').press('Enter');
+        await expect(toast(page)).toContainText('Item #2 added to quotation');
+        await expect(toast(page)).toHaveCount(1); // replaced, not stacked
+        await expect(ed.getByTestId('ed-context')).toHaveText(/^2 items · RM /);
+        // Ctrl+Enter = add and close
+        await fillSagRod(page, '310', '2');
+        await ed.locator('#ed-qty').press('Control+Enter');
+        await expect(ed).toBeHidden();
+        await expect(page.getByTestId('builder-item-dims')).toHaveText(['M12 × L1070 × TL100/100', 'M12 × L1245 × TL100/100', 'M12 × L310 × TL100/100']);
+        await expect(page.getByTestId('builder-item-title').first()).toHaveText('MS FULLSIZE SAG ROD · ZP');
+        // Esc cancels without adding; Enter on an incomplete item adds nothing
+        await page.getByTestId('open-manual-add').click();
+        await ed.locator('#ed-qty').press('Enter');
+        await expect(ed.getByTestId('error-ed-size')).toHaveText('Enter a size');
+        await page.keyboard.press('Escape');
+        await expect(ed).toBeHidden();
+        await expect(page.getByTestId('builder-item')).toHaveCount(3);
+    });
+
+    test('Batch Add: 22 rows scroll inside the dialog, Enter moves cells, footer total, invalid row blocks, Ctrl+Enter adds', async ({ page }) => {
+        await openBuilder(page);
+        await page.getByTestId('open-batch-add').click();
+        const ba = page.getByTestId('batch-add');
+        for (let i = 0; i < 19; i++) await ba.getByTestId('ba-add-row').click();
+        await expect(ba.getByTestId('ba-row')).toHaveCount(22);
+        await ba.getByLabel('Row 1 size').fill('M12');
+        await ba.getByLabel('Row 1 size').press('Enter');
+        await expect(ba.getByLabel('Row 1 L')).toBeFocused();
+        for (let n = 1; n <= 20; n++) {
+            await ba.getByLabel(`Row ${n} size`).fill('M12');
+            await ba.getByLabel(`Row ${n} L`).fill(String(1000 + n * 10));
+            await ba.getByLabel(`Row ${n} TL`).fill('100');
+        }
+        await ba.getByLabel('Row 20 Qty').press('Enter');
+        await expect(ba.getByLabel('Row 21 size')).toBeFocused();
+        await expect(ba.getByTestId('ba-status')).toHaveText(/^20 valid rows · Total RM [\d,]+\.\d{2}$/);
+        await expect(ba.getByTestId('ba-submit')).toContainText('Add 20 items');
+        await expect(ba.getByTestId('ba-row').nth(19).getByTestId('ba-row-weight')).toHaveText(/kg$/);
+        // the page never scrolls sideways; the dialog stays within the viewport and its body scrolls
+        const box = (await ba.boundingBox())!;
+        expect(box.height).toBeLessThanOrEqual(page.viewportSize()!.height * 0.86);
+        await expectNoHorizontalScroll(page);
+        await ba.getByLabel('Row 21 size').fill('M12');
+        await expect(ba.getByTestId('ba-status')).toHaveText('20 ready · 1 needs attention');
+        await expect(ba.getByTestId('ba-submit')).toHaveAttribute('aria-disabled', 'true');
+        await ba.getByTestId('ba-submit').click({ force: true }); // a blocked attempt only reveals what needs attention
+        await expect(page.getByText('Fix 1 row before adding')).toBeVisible();
+        await expect(ba).toBeVisible();
+        await expect(page.getByTestId('builder-item')).toHaveCount(0);
+        await ba.getByLabel('Row 21 L').fill('900');
+        await ba.getByLabel('Row 21 L').press('Control+Enter');
+        await expect(ba).toBeHidden();
+        await expect(page.getByTestId('builder-item')).toHaveCount(21);
+        await expect(page.getByTestId('summary-items')).toHaveText('21');
+    });
+
+    test('Quick Add demo analysis: labelled demo, Ready / Needs review, fix in the shared editor, then add', async ({ page }) => {
+        await openBuilder(page);
+        await page.getByTestId('open-quick-add').click();
+        const qa = page.getByTestId('quick-add');
+        await expect(qa.getByTestId('qa-analyze')).toBeDisabled();
+        await qa.getByTestId('qa-demo').click();
+        await expect(qa.getByTestId('qa-demo-banner')).toContainText('Demo extracted items — not real AI output');
+        const items = qa.getByTestId('qa-review-item');
+        await expect(items).toHaveCount(2);
+        await expect(items.nth(0).getByTestId('qa-status')).toHaveText('Ready');
+        await expect(items.nth(1).getByTestId('qa-status')).toHaveText('Needs review');
+        await expect(qa.getByTestId('qa-summary')).toHaveText('2 items · 1 needs review');
+        await expect(qa.getByTestId('qa-add-confirmed')).toBeDisabled();
+        await items.nth(1).getByTestId('qa-edit').click();
+        const ed = page.getByTestId('item-editor');
+        await expect(page.getByRole('heading', { name: 'Demo item 2 · review' })).toBeVisible();
+        await expect(ed.locator('#ed-diameter')).toHaveValue('17');
+        await ed.locator('#ed-costRate').fill('9.00');
+        await ed.getByTestId('ed-submit').click();
+        await expect(ed).toBeHidden();
+        await expect(items.nth(1).getByTestId('qa-status')).toHaveText('Ready');
+        await expect(qa.getByTestId('qa-add-confirmed')).toHaveText('Add confirmed items (2)');
+        await qa.getByTestId('qa-add-confirmed').click();
+        await expect(qa).toBeHidden();
+        await expect(page.getByTestId('builder-item-title')).toHaveText(['MS UNDERSIZE SAG ROD · ZP', '4140 QT FULLSIZE L BOLT · PL']);
+    });
+
     test('entry points: ?product opens Manual Add on that product; ?mode=quick / manual / batch open their mode', async ({ page }) => {
         await openBuilder(page, '/quotations/new?product=lbolt');
         await expect(page.getByTestId('item-editor')).toBeVisible();
@@ -369,6 +487,14 @@ test.describe('tablet (768px)', () => {
         const dlg = (await page.getByTestId('item-editor').boundingBox())!;
         expect(Math.abs(dlg.x + dlg.width / 2 - 384)).toBeLessThanOrEqual(2);
         expect(dlg.width).toBeLessThan(768);
+        // continuous-entry footer with keyboard hints on a tablet
+        await expect(page.getByTestId('ed-add-another')).toBeVisible();
+        await expect(page.getByTestId('ed-add-another').getByTestId('kbd-hint')).toBeVisible();
+        await expectNoHorizontalScroll(page);
+        await page.keyboard.press('Escape');
+        await page.getByTestId('open-quick-add').click();
+        await page.getByTestId('qa-demo').click();
+        await expect(page.getByTestId('qa-demo-banner')).toBeVisible();
         await expectNoHorizontalScroll(page);
     });
 });
@@ -397,11 +523,42 @@ test.describe('phone', () => {
             await expect(page.getByTestId('item-editor').getByRole('button', { name: 'Back' })).toBeVisible();
             const submit = (await page.getByTestId('ed-submit').boundingBox())!;
             expect(submit.y + submit.height).toBeLessThanOrEqual(852);
+            for (const id of ['ed-cancel', 'ed-add-another', 'ed-submit']) {
+                const b = (await page.getByTestId(id).boundingBox())!;
+                expect(b.x, `${id} inside`).toBeGreaterThanOrEqual(0);
+                expect(b.x + b.width, `${id} inside`).toBeLessThanOrEqual(width);
+            }
+            await expect(page.getByTestId('kbd-hint').first()).toBeHidden(); // no keyboard hints on a phone
+            // compact pricing: the ladder is label-left / value-right, the preview does not repeat it
+            await expect(page.getByTestId('ed-preview-final')).toHaveCount(0);
+            await fillSagRod(page, '1070');
+            await page.getByTestId('ed-add-another').click();
+            await expect(toast(page)).toBeVisible();
+            const footerTop = (await page.getByTestId('item-editor').locator('footer').boundingBox())!.y;
+            // once the enter animation settles, the toast sits above the task footer
+            await expect.poll(async () => {
+                const t = (await toast(page).boundingBox())!;
+                return t.y + t.height <= footerTop;
+            }, { message: 'toast clears the task footer' }).toBe(true);
             await expectNoHorizontalScroll(page);
             await page.getByTestId('item-editor').getByRole('button', { name: 'Back' }).click();
             await page.getByTestId('open-quick-add').click();
             expect(Math.round((await page.getByTestId('quick-add').boundingBox())!.width)).toBe(width);
             await expect(page.getByTestId('qa-analyze')).toBeVisible();
+            await page.getByTestId('qa-demo').click();
+            await expect(page.getByTestId('qa-demo-banner')).toBeVisible();
+            await expect(page.getByTestId('qa-review-item')).toHaveCount(2);
+            await expectNoHorizontalScroll(page);
+            await page.getByTestId('quick-add').getByRole('button', { name: 'Back' }).first().click();
+            // Batch Add with many rows stays inside the phone width
+            await page.getByTestId('open-batch-add').click();
+            const ba = page.getByTestId('batch-add');
+            for (let i = 0; i < 9; i++) await ba.getByTestId('ba-add-row').click();
+            await expect(ba.getByTestId('ba-row')).toHaveCount(12);
+            await ba.getByLabel('Row 12 size').fill('M12');
+            await expectNoHorizontalScroll(page);
+            const add = (await ba.getByTestId('ba-submit').boundingBox())!;
+            expect(add.y + add.height).toBeLessThanOrEqual(852);
         });
     }
 

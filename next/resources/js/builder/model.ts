@@ -191,6 +191,30 @@ export function emptyQuotation(todayIso: string): DraftQuotation {
     };
 }
 
+/**
+ * The next item for "Add & another" (Owner Smoke #2 Loop #2): keeps the
+ * common context of the item just added — product, material, treatment,
+ * property class, size type, finish, plate type and typed pricing defaults
+ * (cost rate / additional cost / markup) — and resets everything that changes
+ * per item: size, Bar Ø custom, dimensions, developed-length custom, Qty → 1,
+ * override, No Round, accessories (conservatively: none) and weld.
+ */
+export function nextItemFrom(prev: DraftItem): DraftItem {
+    const fresh = emptyItem(prev.product, prev.entryMode);
+    return {
+        ...fresh,
+        productName: prev.productName,
+        material: prev.material,
+        treatment: prev.treatment,
+        propertyClass: prev.propertyClass,
+        sizeType: prev.sizeType,
+        finish: prev.finish,
+        plateType: prev.plateType,
+        holeOption: prev.holeOption,
+        pricing: { ...fresh.pricing, costRate: prev.pricing.costRate, addCost: prev.pricing.addCost, markup: prev.pricing.markup },
+    };
+}
+
 /** A copy of an item with a fresh identity (Duplicate). */
 export function duplicateItem(item: DraftItem): DraftItem {
     return {

@@ -550,16 +550,16 @@ export function PricingFields({ prefix, item, computed, onChange, err }: { prefi
             </div>
             {hdgHint ? <p className="text-xs text-subtle-foreground">{MS_FULLSIZE_HDG_RATE_HINT} — the suggested rate is one number (6.50).</p> : null}
 
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-2 rounded-[var(--radius-md)] border border-border p-3 sm:grid-cols-3" data-testid={`${prefix}-price-ladder`}>
-                <div>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 rounded-[var(--radius-md)] border border-border px-3 py-2 sm:grid-cols-3 sm:gap-y-2 sm:py-3" data-testid={`${prefix}-price-ladder`}>
+                <div className="flex min-h-8 items-center justify-between gap-3 sm:block sm:min-h-0">
                     <dt className="text-xs text-muted-foreground">Calculated unit{p.noRound ? ' · No round' : ''}</dt>
                     <dd className="font-medium tabular-nums" data-testid={`${prefix}-calculated-unit`}>
                         {calcUnit}
                     </dd>
                 </div>
-                <div>
+                <div className="flex min-h-8 items-center justify-between gap-3 sm:block sm:min-h-0">
                     <dt className="text-xs text-muted-foreground">Override unit</dt>
-                    <dd className="tabular-nums">
+                    <dd className={cn('tabular-nums', overriding && 'w-40 sm:w-auto')}>
                         {overriding ? (
                             <div className="flex flex-col gap-1">
                                 <div className="relative">
@@ -586,7 +586,7 @@ export function PricingFields({ prefix, item, computed, onChange, err }: { prefi
                         )}
                     </dd>
                 </div>
-                <div>
+                <div className="flex min-h-8 items-center justify-between gap-3 border-t border-border pt-1.5 sm:block sm:min-h-0 sm:border-0 sm:pt-0">
                     <dt className="text-xs text-muted-foreground">Final unit</dt>
                     <dd className={cn('font-semibold tabular-nums', overriding && 'text-warning')} data-testid={`${prefix}-final-unit`}>
                         {finalUnit}
@@ -642,29 +642,29 @@ export function PricingFields({ prefix, item, computed, onChange, err }: { prefi
     );
 }
 
-/* ── Live calculation preview (internal) ─────────────────────────────────── */
+/* ── Live calculation preview (internal) ─────────────────────────────────
+   Supporting values only (Loop #2 de-duplication): the price ladder above
+   already shows Calculated / Override / Final unit and the rate fields show
+   the markup, so they are not repeated here. ────────────────────────────── */
 export function PricePreview({ computed, testId }: { computed: ComputedItem; testId?: string }) {
     const pr = computed.pricing;
     const calc = computed.calculated;
-    const markup = Number(computed.effective.markup) || 0;
-    const rows: [string, string, string?][] = [
-        ['Dimension', computed.dimensionLine ? formatDimensions(computed.dimensionLine) : '—'],
-        ['Bar Ø', computed.diameter !== null ? `${computed.diameter} mm${computed.diameterSource === 'custom' ? ' · custom' : ''}` : '—', 'bar'],
-        ['Weight', computed.unitWeight > 0 ? `${computed.unitWeight.toFixed(3)} kg/pc${computed.lineWeight !== null ? ` · ${computed.lineWeight.toFixed(3)} kg` : ''}` : '—', 'weight'],
-        ['Calculated unit', calc && calc.finalUnitPrice > 0 ? formatPrice(calc.finalUnitPrice) : '—', 'calculated'],
-        ['Accessories / pc', calc && calc.accessoriesCost > 0 ? formatPrice(calc.accessoriesCost) : '—'],
-        ['Override unit', computed.overrideUnitPrice !== null ? formatPrice(computed.overrideUnitPrice) : '—', 'override'],
-        ['Final unit', pr && pr.finalUnitPrice > 0 ? formatPrice(pr.finalUnitPrice) : '—', 'final'],
-        ['Markup', markup ? `+${markup}%` : '—', 'markup'],
-        ['Line total', pr && pr.totalAmount > 0 ? formatPrice(pr.totalAmount) : '—', 'total'],
+    const dev = computed.geometry?.developedLength ?? null;
+    const rows: { label: string; value: string; id?: string; wide?: boolean; strong?: boolean }[] = [
+        { label: 'Dimension', value: computed.dimensionLine && /\d/.test(computed.dimensionLine) ? formatDimensions(computed.dimensionLine) : '—', id: 'dimension', wide: true },
+        { label: 'Bar Ø', value: computed.diameter !== null ? `${computed.diameter} mm${computed.diameterSource === 'custom' ? ' · custom' : ''}` : '—', id: 'bar' },
+        ...(dev !== null ? [{ label: 'Developed length', value: `${dev} mm${computed.developedLengthSource === 'custom' ? ' · custom' : ''}`, id: 'developed' }] : []),
+        { label: 'Weight', value: computed.unitWeight > 0 ? `${computed.unitWeight.toFixed(3)} kg/pc${computed.lineWeight !== null ? ` · ${computed.lineWeight.toFixed(3)} kg` : ''}` : '—', id: 'weight' },
+        ...(calc && calc.accessoriesCost > 0 ? [{ label: 'Accessories / pc', value: formatPrice(calc.accessoriesCost), id: 'accessories' }] : []),
+        { label: 'Line total', value: pr && pr.totalAmount > 0 ? formatPrice(pr.totalAmount) : '—', id: 'total', strong: true },
     ];
     return (
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-[var(--radius-md)] border border-border bg-surface-muted/60 p-3 text-sm sm:grid-cols-4" data-testid={testId}>
-            {rows.map(([k, v, id]) => (
-                <div key={k} className={cn('min-w-0', k === 'Dimension' && 'col-span-2 sm:col-span-4')}>
-                    <dt className="text-xs text-muted-foreground">{k}</dt>
-                    <dd className={cn('truncate tabular-nums', k === 'Line total' || k === 'Final unit' ? 'font-semibold' : '')} data-testid={id && testId ? `${testId}-${id}` : undefined}>
-                        {v}
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-[var(--radius-md)] border border-border bg-surface-muted/60 px-3 py-2 text-sm sm:grid-cols-4 sm:py-3" data-testid={testId}>
+            {rows.map((r) => (
+                <div key={r.label} className={cn('min-w-0', r.wide && 'col-span-2 sm:col-span-4')}>
+                    <dt className="text-xs text-muted-foreground">{r.label}</dt>
+                    <dd className={cn('truncate tabular-nums', r.strong && 'font-semibold')} data-testid={r.id && testId ? `${testId}-${r.id}` : undefined}>
+                        {r.value}
                     </dd>
                 </div>
             ))}

@@ -9,5 +9,7 @@ export const notify = {
     info: (message: string) => toast(message),
     undoable: (message: string, onUndo: () => void) =>
         toast(message, { action: { label: 'Undo', onClick: onUndo }, duration: 8000 }),
+    /** "Item #7 added to quotation" + spec · Qty · total. One id, so rapid adds replace instead of stacking. */
+    added: (title: string, detail: string) => toast.success(title, { description: detail, duration: 3000, id: 'builder-item-added' }),
     promise: <T,>(p: Promise<T>, msgs: { loading: string; success: string; error: string }) => toast.promise(p, msgs),
 };

@@ -1,6 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { ArrowLeft, X } from 'lucide-react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /* Builder task dialog (Owner Smoke #2): Quick Add · Manual Add · Batch Add ·
@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils';
      phone (< 640)             full-screen task: Back / title header, scrolling
                                body, sticky footer actions
    Never a right-side inspector drawer. Focus trap, Escape and scroll lock come
-   from Radix Dialog. */
+   from Radix Dialog. While open, the footer height is published as
+   --task-footer-h so phone toasts sit above the task's actions. */
 export function TaskDialog({
     open,
     onOpenChange,
@@ -31,6 +32,20 @@ export function TaskDialog({
     children: ReactNode;
     testId?: string;
 }) {
+    const footerRef = useRef<HTMLElement | null>(null);
+    useEffect(() => {
+        const el = footerRef.current;
+        if (!open || !el || typeof ResizeObserver === 'undefined') return;
+        const root = document.documentElement;
+        const publish = () => root.style.setProperty('--task-footer-h', `${Math.ceil(el.getBoundingClientRect().height)}px`);
+        publish();
+        const ro = new ResizeObserver(publish);
+        ro.observe(el);
+        return () => {
+            ro.disconnect();
+            root.style.removeProperty('--task-footer-h');
+        };
+    });
     return (
         <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
             <DialogPrimitive.Portal>
@@ -65,7 +80,7 @@ export function TaskDialog({
                     </header>
                     {children}
                     {footer ? (
-                        <footer className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:rounded-b-[var(--radius-lg)] sm:px-6">
+                        <footer ref={footerRef} className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:rounded-b-[var(--radius-lg)] sm:px-6">
                             {footer}
                         </footer>
                     ) : null}

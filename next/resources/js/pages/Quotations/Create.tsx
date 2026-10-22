@@ -1,7 +1,8 @@
 import { ClipboardCopy, Layers, Lock, MessageCircle, PencilLine, Printer, Save, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatDayFirst, todayIso } from '@/builder/dates';
-import { emptyItem, type DraftItem } from '@/builder/model';
+import { computeItem } from '@/builder/compute';
+import { emptyItem, nextItemFrom, type DraftItem } from '@/builder/model';
 import { BATCH_ADD_PRODUCTS, BUILDER_PRODUCTS, type BuilderProduct } from '@/builder/products';
 import { useBuilder, type DraftStatus } from '@/builder/use-builder';
 import { CustomerSection } from '@/components/builder/customer-section';
@@ -9,7 +10,7 @@ import { ItemEditor } from '@/components/builder/item-editor';
 import { ItemsTable } from '@/components/builder/items-table';
 import { BatchAdd } from '@/components/builder/batch-add';
 import { QuickAdd } from '@/components/builder/quick-add';
-import { formatPrice } from '@/components/legacy/format';
+import { formatDimensions, formatPrice } from '@/components/legacy/format';
 import { useShell } from '@/components/shell/use-shell';
 import { Button } from '@/components/ui/button';
 import { InlineAlert } from '@/components/ui/inline-alert';
@@ -34,6 +35,14 @@ import { cn } from '@/lib/utils';
    Add on that product) open the matching entry mode. */
 
 type EditorState = { open: false } | { open: true; isNew: boolean; index: number; item: DraftItem };
+
+/** Toast detail for an added item: "M12 × L1070 × TL100/100 · Qty 1 · RM 2.78". */
+function addedDetail(item: DraftItem): string {
+    const c = computeItem(item);
+    const parts = [c.dimensionLine ? formatDimensions(c.dimensionLine) : c.title, `Qty ${item.qty.trim() || '—'}`];
+    if (c.pricing && c.pricing.totalAmount > 0) parts.push(formatPrice(c.pricing.totalAmount));
+    return parts.join(' · ');
+}
 
 function timeOf(iso: string): string {
     const d = new Date(iso);
@@ -98,11 +107,18 @@ export default function QuotationsCreate() {
         setBatchOpen(true);
     };
 
-    const saveFromEditor = (item: DraftItem) => {
+    const saveFromEditor = (item: DraftItem, { keepOpen }: { keepOpen: boolean }) => {
         if (!editor.open) return;
         if (editor.isNew) {
+            // always appended at the end, in the order entered
+            const n = quotation.items.length + 1;
             actions.addItems([item]);
-            notify.success(`Item ${quotation.items.length + 1} added`);
+            notify.added(`Item #${n} added to quotation`, addedDetail(item));
+            if (keepOpen) {
+                // Add & another: same dialog, next number, common context kept
+                setEditor({ open: true, isNew: true, index: n, item: nextItemFrom(item) });
+                return;
+            }
         } else {
             actions.updateItem(item);
             notify.success(`Item ${editor.index + 1} updated`);
@@ -330,6 +346,7 @@ export default function QuotationsCreate() {
                     isNew={editor.isNew}
                     itemNumber={editor.index + 1}
                     onSave={saveFromEditor}
+                    context={s.itemCount > 0 ? `${s.itemCount} item${s.itemCount === 1 ? '' : 's'} · ${formatPrice(s.total)}` : undefined}
                 />
             ) : null}
             <QuickAdd
