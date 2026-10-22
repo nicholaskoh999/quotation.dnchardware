@@ -35,6 +35,7 @@ describe('saved item display', () => {
         expect(formatDimensions('1/2" x L 300')).toBe('1/2" × L300');
         expect(formatDimensions('L 200 x W 150 x T 10mm')).toBe('L200 × W150 × T10');
         expect(formatDimensions('M12 x L 1000 x TL 100/100mm')).toBe('M12 × L1000 × TL100/100');
+        expect(formatDimensions('Ø25-M24 x L 1000 x W 100 x TL 100mm')).toBe('Ø25-M24 × L1000 × W100 × TL100');
         expect(formatDimensions('M12 x ID 60 x IH 100 x TL 75mm')).toBe('M12 × ID60 × IH100 × TL75');
     });
 

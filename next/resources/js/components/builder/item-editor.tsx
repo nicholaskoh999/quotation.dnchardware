@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { computeItem, type ComputedItem, type FieldKey } from '@/builder/compute';
 import type { DraftItem } from '@/builder/model';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { notify } from '@/lib/feedback';
-import { SectionTitle, SheetHeading } from './fields';
+import { SectionTitle } from './fields';
 import { AccessoriesFields, IdentityFields, PricePreview, PricingFields, SizeAndDimensionFields, type ErrFn } from './item-fields';
+import { TaskBody, TaskDialog } from './task-dialog';
 
-/* Manual Add / Edit item — one full item form in a side sheet on desktop and
-   a full-screen task on a phone (handoff §10). Errors appear next to the
+/* Manual Add / Edit item — ONE item keyed by hand: Product → Material →
+   Treatment → Size Type → Finish → Size → Bar Ø → dimensions → Qty →
+   Accessories → Pricing. A centred large dialog on desktop / tablet and a
+   full-screen task on a phone (handoff §10, Owner Smoke #2). Errors appear next to the
    field: as soon as a field holds something malformed, and for missing
    required fields once the person tries to add / save. */
 
@@ -36,8 +38,8 @@ function hasContent(item: DraftItem, f: FieldKey): boolean {
         case 'addCost':
         case 'markup':
             return item.pricing[f] !== null;
-        case 'manualUnitPrice':
-            return item.pricing.manualUnitPrice.trim() !== '';
+        case 'override':
+            return item.pricing.override !== null && item.pricing.override.trim() !== '';
         default: {
             const v = (item.dims as unknown as Record<string, string>)[f];
             return typeof v === 'string' && v.trim() !== '';
@@ -87,67 +89,67 @@ export function ItemEditor({
         onSave(item);
     };
 
+    const title = isNew ? `Manual Add · item ${itemNumber}` : `Edit item ${itemNumber}`;
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent
-                side="right"
-                title={isNew ? `Add item ${itemNumber}` : `Edit item ${itemNumber}`}
-                description={isNew ? 'Manual Add — any product, every field.' : computed.title}
-                hideTitle
-                className="w-full max-w-none gap-0 p-0 sm:w-[min(48rem,94vw)]"
-                data-testid="item-editor"
-                onOpenAutoFocus={(e) => e.preventDefault()}
+        <TaskDialog
+            open={open}
+            onOpenChange={onOpenChange}
+            title={title}
+            description={isNew ? 'Enter one item manually.' : computed.title}
+            width={880}
+            testId="item-editor"
+            footer={
+                <>
+                    <p className="min-w-0 truncate text-sm text-muted-foreground" data-testid="ed-title">
+                        {computed.title}
+                    </p>
+                    <div className="flex shrink-0 gap-2">
+                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" form="item-editor-form" variant="primary" data-testid="ed-submit">
+                            {isNew ? 'Add item' : 'Save item'}
+                        </Button>
+                    </div>
+                </>
+            }
+        >
+            <form
+                id="item-editor-form"
+                className="flex min-h-0 flex-1 flex-col"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    submit();
+                }}
+                noValidate
             >
-                <SheetHeading title={isNew ? `Add item ${itemNumber}` : `Edit item ${itemNumber}`} description={isNew ? 'Manual Add — any product, every field.' : computed.title} />
-                <form
-                    className="flex min-h-0 flex-1 flex-col"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        submit();
-                    }}
-                    noValidate
-                >
-                    <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 sm:px-6">
-                        <div className="flex flex-col gap-6">
-                            <section className="flex flex-col gap-3">
-                                <SectionTitle>Item</SectionTitle>
-                                <IdentityFields prefix="ed" item={item} computed={computed} onChange={setItem} err={err} />
-                            </section>
-                            <section className="flex flex-col gap-3">
-                                <SectionTitle>{computed.spec.hasSize ? 'Size & dimensions' : 'Dimensions'}</SectionTitle>
-                                <SizeAndDimensionFields prefix="ed" item={item} computed={computed} onChange={setItem} err={err} />
-                            </section>
-                            <section className="flex flex-col gap-3">
-                                <SectionTitle>Accessories</SectionTitle>
-                                <AccessoriesFields prefix="ed" value={item.accessories} onChange={(accessories) => setItem({ ...item, accessories })} err={err} />
-                            </section>
-                            <section className="flex flex-col gap-3">
-                                <SectionTitle>Pricing</SectionTitle>
-                                <PricingFields prefix="ed" item={item} computed={computed} onChange={setItem} err={err} />
-                                {computed.errors.price && (attempted || computed.pricing?.finalUnitPrice === 0) ? (
-                                    <p role="alert" className="text-xs text-danger" data-testid="error-ed-price">
-                                        {computed.errors.price}
-                                    </p>
-                                ) : null}
-                                <PricePreview computed={computed} testId="ed-preview" />
-                            </section>
-                        </div>
+                <TaskBody>
+                    <div className="flex flex-col gap-6">
+                        <section className="flex flex-col gap-3">
+                            <SectionTitle>Item</SectionTitle>
+                            <IdentityFields prefix="ed" item={item} computed={computed} onChange={setItem} err={err} />
+                        </section>
+                        <section className="flex flex-col gap-3">
+                            <SectionTitle>{computed.spec.hasSize ? 'Size, Bar Ø & dimensions' : 'Dimensions'}</SectionTitle>
+                            <SizeAndDimensionFields prefix="ed" item={item} computed={computed} onChange={setItem} err={err} />
+                        </section>
+                        <section className="flex flex-col gap-3">
+                            <SectionTitle>Accessories</SectionTitle>
+                            <AccessoriesFields prefix="ed" value={item.accessories} onChange={(accessories) => setItem({ ...item, accessories })} err={err} />
+                        </section>
+                        <section className="flex flex-col gap-3">
+                            <SectionTitle>Pricing</SectionTitle>
+                            <PricingFields prefix="ed" item={item} computed={computed} onChange={setItem} err={err} />
+                            {computed.errors.price && attempted ? (
+                                <p role="alert" className="text-xs text-danger" data-testid="error-ed-price">
+                                    {computed.errors.price}
+                                </p>
+                            ) : null}
+                            <PricePreview computed={computed} testId="ed-preview" />
+                        </section>
                     </div>
-                    <div className="flex items-center justify-between gap-2 border-t border-border bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
-                        <p className="min-w-0 truncate text-sm text-muted-foreground" data-testid="ed-title">
-                            {computed.title}
-                        </p>
-                        <div className="flex shrink-0 gap-2">
-                            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                                Cancel
-                            </Button>
-                            <Button type="submit" variant="primary" data-testid="ed-submit">
-                                {isNew ? 'Add item' : 'Save item'}
-                            </Button>
-                        </div>
-                    </div>
-                </form>
-            </SheetContent>
-        </Sheet>
+                </TaskBody>
+            </form>
+        </TaskDialog>
     );
 }

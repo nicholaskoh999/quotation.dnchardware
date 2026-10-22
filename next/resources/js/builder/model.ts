@@ -1,9 +1,13 @@
-import type { Material, PriceMode, ProductType } from '@/domain';
+import type { Material, ProductType } from '@/domain';
 
 /* ── Quotation Builder state (Wave 2 · Session E) ───────────────────────────
    ONE item model for every entry mode (handoff §25 "both create the exact
-   same canonical quotation item model"). Quick Add and Manual Add differ only
-   in `entryMode` (provenance) and in how fields are presented.
+   same canonical quotation item model"):
+     quick   Quick Add — AI-assisted extraction from pasted text / image / PDF,
+             reviewed before adding (the analyzer itself is Session I)
+     manual  Manual Add — one item keyed by hand
+     batch   Batch Add — common fields once, several similar rows
+   They differ only in `entryMode` (provenance) and presentation.
 
    Field values are kept as the person typed them (strings) so nothing is
    rounded, defaulted or reinterpreted behind their back; the domain engine
@@ -11,7 +15,7 @@ import type { Material, PriceMode, ProductType } from '@/domain';
    suggested value" — the suggestion follows the item identity, a typed value
    never gets overwritten (§24 "do not silently overwrite pricing"). */
 
-export type EntryMode = 'quick' | 'manual';
+export type EntryMode = 'quick' | 'manual' | 'batch';
 
 /** Every dimension input the supported products use (legacy add* field names). */
 export interface ItemDimensions {
@@ -27,7 +31,11 @@ export interface ItemDimensions {
     s: string;
     /** Thread length (TL); Sag Rod canonicalises `100` → `100/100` (§21). */
     threadLen: string;
-    /** A typed developed (cut) length — manual products, or an override. */
+    /**
+     * Developed (cut) length. '' = AUTO: formula products use the calculated
+     * value (shown in the field); a typed value = CUSTOM and drives weight /
+     * price until "Use calculated". Manual / suggestion products must type it.
+     */
     developedLength: string;
     /** Plate. */
     t: string;
@@ -67,10 +75,14 @@ export interface ItemPricingDraft {
     costRate: string | null;
     addCost: string | null;
     markup: string | null;
-    /** Calculated (normal) · Manual override (explicit action) · No Round (Advanced only). §17. */
-    mode: PriceMode;
-    /** The customer's final unit price, read only in manual mode. */
-    manualUnitPrice: string;
+    /** No Round (Advanced only, §17): the calculated price is not DNC-rounded. */
+    noRound: boolean;
+    /**
+     * Override unit price — an explicit human override of the FINAL unit price
+     * (Owner Smoke #2: "Override unit price"). null = no override. The
+     * calculated unit price is always kept and shown beside it.
+     */
+    override: string | null;
 }
 
 export interface DraftItem {
@@ -89,7 +101,12 @@ export interface DraftItem {
     finish: string;
     /** As typed; the engine interprets it (§12). */
     size: string;
-    /** A typed bar diameter that outranks the built-in table (unknown sizes, special bar). */
+    /**
+     * Bar Ø (mm). '' = AUTO: the suggestion from Size · Material · Size Type is
+     * used and follows them. Any typed value = CUSTOM: it outranks the table,
+     * drives weight / geometry / price, and is never overwritten automatically
+     * (nominal size ≠ actual bar: M12 UNDERSIZE may be Ø10.7, M24 may be Ø25).
+     */
     diameterOverride: string;
     dims: ItemDimensions;
     /** Plate only. */
@@ -157,9 +174,10 @@ export function emptyItem(product: ProductType = 'sagrod', entryMode: EntryMode 
         plateType: 'ms_plate',
         holeOption: 'none',
         weld: false,
-        qty: '',
+        // Every new item starts at Qty 1 (owner rule) — a default, not the customer's word.
+        qty: '1',
         accessories: noAccessoriesDraft(),
-        pricing: { costRate: null, addCost: null, markup: null, mode: 'calculated', manualUnitPrice: '' },
+        pricing: { costRate: null, addCost: null, markup: null, noRound: false, override: null },
     };
 }
 

@@ -1,4 +1,5 @@
 import { Plus, RotateCcw, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { useState } from 'react';
 import { MATERIALS, MS_FULLSIZE_HDG_RATE_HINT, PROPERTY_CLASS_OPTIONS, materialHasFinish, type Material, type ProductType } from '@/domain';
 import { FINISH_OPTIONS, type ComputedItem, type FieldKey } from '@/builder/compute';
 import { emptyItem, type AccessoriesDraft, type DraftItem, type ItemDimensions } from '@/builder/model';
@@ -24,6 +25,48 @@ const FINISHES = FINISH_OPTIONS.map((f) => ({ value: f, label: f }));
 
 function aria(id: string, error?: string) {
     return { id, 'aria-invalid': error ? (true as const) : undefined, 'aria-describedby': error ? `${id}-error` : undefined };
+}
+
+/**
+ * An input that shows an AUTO value (suggestion / calculation) until the person
+ * types: a typed value is CUSTOM and is never overwritten; emptying the field
+ * and leaving it returns to AUTO. While focused the person's text is kept as
+ * typed (clearing to retype never snaps back to the suggestion mid-edit).
+ */
+export function AutoValueInput({
+    id,
+    autoValue,
+    customValue,
+    onCustom,
+    error,
+    inputMode = 'decimal',
+    testId,
+}: {
+    id: string;
+    autoValue: string;
+    customValue: string;
+    onCustom: (text: string) => void;
+    error?: string;
+    inputMode?: 'decimal' | 'numeric' | 'text';
+    testId?: string;
+}) {
+    const [editing, setEditing] = useState<string | null>(null);
+    const shown = editing !== null ? editing : customValue.trim() !== '' ? customValue : autoValue;
+    return (
+        <TextInput
+            {...aria(id, error)}
+            inputMode={inputMode}
+            value={shown}
+            data-testid={testId}
+            data-state={customValue.trim() !== '' ? 'custom' : 'auto'}
+            onFocus={() => setEditing(shown)}
+            onChange={(e) => {
+                setEditing(e.target.value);
+                onCustom(e.target.value);
+            }}
+            onBlur={() => setEditing(null)}
+        />
+    );
 }
 
 /** Switching product keeps material / finish / qty / accessories; product-specific inputs reset. */
@@ -174,7 +217,10 @@ export function SizeAndDimensionFields({
     const set = (patch: Partial<DraftItem>) => onChange({ ...item, ...patch });
     const dims: DimField[] = item.product === 'plate' ? PLATE_DIMS[item.plateType] : spec.dims;
     const g = computed.geometry;
-    const needsDiameter = !!err('diameter') || !!computed.errors.size || item.diameterOverride.trim() !== '';
+    const hasBar = spec.hasSize || (item.product === 'others' && item.size.trim() !== '');
+    const customBar = item.diameterOverride.trim() !== '';
+    const sizeTypeLabel = spec.hasSizeType && item.sizeType ? (item.sizeType === 'UNDERSIZE' ? 'Undersize' : 'Fullsize') : '';
+    const fmtDia = (v: number) => String(Math.round(v * 1000) / 1000);
     return (
         <div className="flex flex-col gap-3">
             {item.product === 'plate' ? (
@@ -211,7 +257,7 @@ export function SizeAndDimensionFields({
                         required={spec.hasSize}
                         error={err('size')}
                         warning={computed.warnings.size}
-                        hint={computed.size?.label ? `${computed.size.label}${computed.diameter ? ` · Ø${computed.diameter}` : ''}` : 'M12, 12, 1/2 …'}
+                        hint={computed.size?.label || 'M12, 12, 1/2 …'}
                         className="col-span-2 sm:col-span-1"
                     >
                         <Combobox
@@ -224,9 +270,36 @@ export function SizeAndDimensionFields({
                         />
                     </Field>
                 ) : null}
-                {needsDiameter ? (
-                    <Field id={`${prefix}-diameter`} label="Bar Ø (mm)" error={err('diameter')} hint="Overrides the built-in table">
-                        <TextInput {...aria(`${prefix}-diameter`, err('diameter'))} inputMode="decimal" value={item.diameterOverride} onChange={(e) => set({ diameterOverride: e.target.value })} />
+                {hasBar ? (
+                    <Field
+                        id={`${prefix}-diameter`}
+                        label="Bar Ø (mm)"
+                        error={err('diameter')}
+                        hint={
+                            customBar ? (
+                                <span className="inline-flex flex-wrap items-center gap-x-1.5" data-testid={`${prefix}-diameter-state`}>
+                                    <span className="font-medium text-foreground">Custom</span>
+                                    {computed.suggestedDiameter !== null && Number(item.diameterOverride) !== computed.suggestedDiameter ? (
+                                        <button type="button" className="text-accent hover:underline" onClick={() => set({ diameterOverride: '' })} data-testid={`${prefix}-diameter-use-suggested`}>
+                                            Use suggested Ø{fmtDia(computed.suggestedDiameter)}
+                                        </button>
+                                    ) : null}
+                                </span>
+                            ) : computed.suggestedDiameter !== null ? (
+                                <span data-testid={`${prefix}-diameter-state`}>Suggested from {[computed.size?.display, sizeTypeLabel].filter(Boolean).join(' · ')}</span>
+                            ) : (
+                                <span data-testid={`${prefix}-diameter-state`}>Enter the bar diameter</span>
+                            )
+                        }
+                    >
+                        <AutoValueInput
+                            id={`${prefix}-diameter`}
+                            autoValue={computed.suggestedDiameter !== null ? fmtDia(computed.suggestedDiameter) : ''}
+                            customValue={item.diameterOverride}
+                            onCustom={(t) => set({ diameterOverride: t })}
+                            error={err('diameter')}
+                            testId={`${prefix}-diameter-input`}
+                        />
                     </Field>
                 ) : null}
                 {dims.map((f) => (
@@ -260,22 +333,50 @@ export function SizeAndDimensionFields({
                         ) : null}
                     </>
                 ) : null}
-                {spec.developedLength !== 'none' ? (
+                {spec.developedLength === 'formula' ? (
                     <Field
                         id={`${prefix}-developedLength`}
                         label="Developed length"
-                        required={spec.developedLength === 'manual' || spec.developedLength === 'suggested'}
                         error={err('developedLength')}
                         hint={
-                            spec.developedLength === 'formula'
-                                ? g?.source === 'formula' && g.developedLength
-                                    ? `Formula ${g.developedLength} — type to override`
-                                    : 'From the formula'
-                                : g?.suggestedDevelopedLength
-                                  ? `Suggested ${g.suggestedDevelopedLength} (editable)`
-                                  : spec.developedLength === 'manual'
-                                    ? 'No formula — enter it'
-                                    : 'No hard formula — enter it'
+                            computed.developedLengthSource === 'custom' ? (
+                                <span className="inline-flex flex-wrap items-center gap-x-1.5" data-testid={`${prefix}-developedLength-state`}>
+                                    <span className="font-medium text-foreground">Custom</span>
+                                    {computed.calculatedDevelopedLength !== null ? (
+                                        <>
+                                            <span>· Calculated: {computed.calculatedDevelopedLength} mm</span>
+                                            <button type="button" className="text-accent hover:underline" onClick={() => setDim('developedLength', '')} data-testid={`${prefix}-developedLength-use-calculated`}>
+                                                Use calculated
+                                            </button>
+                                        </>
+                                    ) : null}
+                                </span>
+                            ) : (
+                                <span data-testid={`${prefix}-developedLength-state`}>{computed.calculatedDevelopedLength !== null ? 'Calculated — edit to override' : 'Calculated once the dimensions are in'}</span>
+                            )
+                        }
+                    >
+                        <AutoValueInput
+                            id={`${prefix}-developedLength`}
+                            autoValue={computed.calculatedDevelopedLength !== null ? String(computed.calculatedDevelopedLength) : ''}
+                            customValue={item.dims.developedLength}
+                            onCustom={(t) => setDim('developedLength', t)}
+                            error={err('developedLength')}
+                            testId={`${prefix}-developedLength-input`}
+                        />
+                    </Field>
+                ) : spec.developedLength !== 'none' ? (
+                    <Field
+                        id={`${prefix}-developedLength`}
+                        label="Developed length"
+                        required
+                        error={err('developedLength')}
+                        hint={
+                            g?.suggestedDevelopedLength
+                                ? `Suggested ${g.suggestedDevelopedLength} (editable — Apply or type)`
+                                : spec.developedLength === 'manual'
+                                  ? 'No formula — enter it'
+                                  : 'No hard formula — enter it'
                         }
                     >
                         <div className="flex gap-2">
@@ -284,7 +385,6 @@ export function SizeAndDimensionFields({
                                 inputMode="decimal"
                                 value={item.dims.developedLength}
                                 onChange={(e) => setDim('developedLength', e.target.value)}
-                                placeholder={spec.developedLength === 'formula' && g?.source === 'formula' && g.developedLength ? String(g.developedLength) : undefined}
                             />
                             {g?.suggestedDevelopedLength && !item.dims.developedLength.trim() ? (
                                 <Button type="button" variant="secondary" size="sm" className="h-11 shrink-0 sm:h-10" onClick={() => setDim('developedLength', String(g.suggestedDevelopedLength))}>
@@ -387,12 +487,21 @@ export function AccessoriesFields({ prefix, value, onChange, err, compact = fals
     );
 }
 
-/* ── Pricing (§17): Calculated by default, Manual override as an explicit
-   action, No Round only under Advanced. No "price mode" dropdown. ────────── */
+/* ── Pricing (§17 + Owner Smoke #2):
+     Calculated Unit  — always computed and always shown (Bar Ø, developed
+                        length, weight, rates, rounding)
+     Override Unit    — an explicit human override ("Override unit price")
+     Final Unit       — the price used: the override, else the calculated one
+   No price-mode dropdown; No Round only under Advanced. Historical / customer
+   price suggestions are Session F. ───────────────────────────────────────── */
 export function PricingFields({ prefix, item, computed, onChange, err }: { prefix: string; item: DraftItem; computed: ComputedItem; onChange: Change; err: ErrFn }) {
     const p = item.pricing;
     const s = computed.suggested;
     const setP = (patch: Partial<DraftItem['pricing']>) => onChange({ ...item, pricing: { ...p, ...patch } });
+    const overriding = p.override !== null;
+    const calc = computed.calculated;
+    const calcUnit = calc && calc.finalUnitPrice > 0 ? formatPrice(calc.finalUnitPrice) : '—';
+    const finalUnit = computed.pricing && computed.pricing.finalUnitPrice > 0 ? formatPrice(computed.pricing.finalUnitPrice) : '—';
     const rate = (key: 'costRate' | 'addCost' | 'markup', label: string, suggestion: string | null, unit: string) => {
         const typed = p[key] !== null;
         return (
@@ -434,23 +543,70 @@ export function PricingFields({ prefix, item, computed, onChange, err }: { prefi
     const hdgHint = item.product === 'sagrod' && item.material === 'MS' && item.sizeType === 'FULLSIZE' && item.finish === 'HDG' && item.treatment === null;
     return (
         <div className="flex flex-col gap-3" data-testid={`${prefix}-pricing`}>
+            <div className="grid grid-cols-3 gap-3">
+                {rate('costRate', 'Cost rate', s.costRate !== null ? s.costRate.toFixed(2) : null, 'RM/kg')}
+                {rate('addCost', 'Additional cost', s.addCost.toFixed(2), 'RM')}
+                {rate('markup', 'Markup', String(s.markup), '%')}
+            </div>
+            {hdgHint ? <p className="text-xs text-subtle-foreground">{MS_FULLSIZE_HDG_RATE_HINT} — the suggested rate is one number (6.50).</p> : null}
+
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-2 rounded-[var(--radius-md)] border border-border p-3 sm:grid-cols-3" data-testid={`${prefix}-price-ladder`}>
+                <div>
+                    <dt className="text-xs text-muted-foreground">Calculated unit{p.noRound ? ' · No round' : ''}</dt>
+                    <dd className="font-medium tabular-nums" data-testid={`${prefix}-calculated-unit`}>
+                        {calcUnit}
+                    </dd>
+                </div>
+                <div>
+                    <dt className="text-xs text-muted-foreground">Override unit</dt>
+                    <dd className="tabular-nums">
+                        {overriding ? (
+                            <div className="flex flex-col gap-1">
+                                <div className="relative">
+                                    <TextInput
+                                        {...aria(`${prefix}-override`, err('override'))}
+                                        inputMode="decimal"
+                                        value={p.override ?? ''}
+                                        onChange={(e) => setP({ override: e.target.value })}
+                                        className="pl-9"
+                                        data-testid={`${prefix}-override-input`}
+                                    />
+                                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs text-subtle-foreground">RM</span>
+                                </div>
+                                {err('override') ? (
+                                    <p id={`${prefix}-override-error`} role="alert" className="text-xs text-danger" data-testid={`error-${prefix}-override`}>
+                                        {err('override')}
+                                    </p>
+                                ) : null}
+                            </div>
+                        ) : (
+                            <span className="text-muted-foreground" data-testid={`${prefix}-override-none`}>
+                                —
+                            </span>
+                        )}
+                    </dd>
+                </div>
+                <div>
+                    <dt className="text-xs text-muted-foreground">Final unit</dt>
+                    <dd className={cn('font-semibold tabular-nums', overriding && 'text-warning')} data-testid={`${prefix}-final-unit`}>
+                        {finalUnit}
+                    </dd>
+                </div>
+            </dl>
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm" data-testid={`${prefix}-price-mode`}>
-                    {p.mode === 'manual' ? (
-                        <span className="font-semibold text-warning">Manual override</span>
-                    ) : (
-                        <span className="font-semibold text-foreground">Calculated{p.mode === 'no_round' ? ' · No round' : ''}</span>
-                    )}
+                    {overriding ? <span className="font-semibold text-warning">Override</span> : <span className="font-semibold text-foreground">Calculated</span>}
                 </span>
-                {p.mode === 'manual' ? (
+                {overriding ? (
                     <Button
                         type="button"
                         variant="secondary"
                         size="sm"
                         onClick={() => {
-                            setP({ mode: 'calculated' });
+                            setP({ override: null });
                             notify.info('Calculated price restored');
                         }}
+                        data-testid={`${prefix}-use-calculated`}
                     >
                         <Undo2 aria-hidden="true" /> Use calculated price
                     </Button>
@@ -460,49 +616,28 @@ export function PricingFields({ prefix, item, computed, onChange, err }: { prefi
                         variant="secondary"
                         size="sm"
                         onClick={() => {
-                            setP({ mode: 'manual', manualUnitPrice: p.manualUnitPrice || (computed.pricing && computed.pricing.finalUnitPrice > 0 ? computed.pricing.finalUnitPrice.toFixed(2) : '') });
-                            notify.info('Manual price enabled — the calculated price stays as the reference');
+                            setP({ override: calc && calc.finalUnitPrice > 0 ? calc.finalUnitPrice.toFixed(2) : '' });
+                            notify.info('Unit price overridden — the calculated price stays visible');
                         }}
-                        data-testid={`${prefix}-set-manual`}
+                        data-testid={`${prefix}-override-unit`}
                     >
-                        Set manual price
+                        Override unit price
                     </Button>
                 )}
             </div>
-            {p.mode === 'manual' ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                    <Field id={`${prefix}-manualUnitPrice`} label="Manual final unit price (RM)" required error={err('manualUnitPrice')}>
-                        <TextInput {...aria(`${prefix}-manualUnitPrice`, err('manualUnitPrice'))} inputMode="decimal" value={p.manualUnitPrice} onChange={(e) => setP({ manualUnitPrice: e.target.value })} />
-                    </Field>
-                    <div className="flex flex-col justify-end gap-0.5 pb-1 text-sm text-muted-foreground">
-                        <span>Calculated reference</span>
-                        <span className="font-medium text-foreground tabular-nums" data-testid={`${prefix}-calculated-reference`}>
-                            {computed.pricing && computed.pricing.roundedUnitPrice > 0 ? formatPrice(computed.pricing.roundedUnitPrice + computed.pricing.accessoriesCost) : '—'}
-                        </span>
-                    </div>
-                </div>
-            ) : null}
-            <div className="grid grid-cols-3 gap-3">
-                {rate('costRate', 'Cost rate', s.costRate !== null ? s.costRate.toFixed(2) : null, 'RM/kg')}
-                {rate('addCost', 'Additional cost', s.addCost.toFixed(2), 'RM')}
-                {rate('markup', 'Markup', String(s.markup), '%')}
-            </div>
-            {hdgHint ? <p className="text-xs text-subtle-foreground">{MS_FULLSIZE_HDG_RATE_HINT} — the suggested rate is one number (6.50).</p> : null}
-            {p.mode !== 'manual' ? (
-                <details className="text-sm">
-                    <summary className="cursor-pointer text-xs font-medium text-muted-foreground">Advanced</summary>
-                    <label className="mt-2 flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            className="size-4 accent-[var(--color-accent)]"
-                            checked={p.mode === 'no_round'}
-                            onChange={(e) => setP({ mode: e.target.checked ? 'no_round' : 'calculated' })}
-                            data-testid={`${prefix}-no-round`}
-                        />
-                        No Round — use the unrounded calculated price
-                    </label>
-                </details>
-            ) : null}
+            <details className="text-sm">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground">Advanced</summary>
+                <label className="mt-2 flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        className="size-4 accent-[var(--color-accent)]"
+                        checked={p.noRound}
+                        onChange={(e) => setP({ noRound: e.target.checked })}
+                        data-testid={`${prefix}-no-round`}
+                    />
+                    No Round — the calculated price is not DNC-rounded
+                </label>
+            </details>
         </div>
     );
 }
@@ -510,14 +645,17 @@ export function PricingFields({ prefix, item, computed, onChange, err }: { prefi
 /* ── Live calculation preview (internal) ─────────────────────────────────── */
 export function PricePreview({ computed, testId }: { computed: ComputedItem; testId?: string }) {
     const pr = computed.pricing;
+    const calc = computed.calculated;
     const markup = Number(computed.effective.markup) || 0;
     const rows: [string, string, string?][] = [
         ['Dimension', computed.dimensionLine ? formatDimensions(computed.dimensionLine) : '—'],
+        ['Bar Ø', computed.diameter !== null ? `${computed.diameter} mm${computed.diameterSource === 'custom' ? ' · custom' : ''}` : '—', 'bar'],
         ['Weight', computed.unitWeight > 0 ? `${computed.unitWeight.toFixed(3)} kg/pc${computed.lineWeight !== null ? ` · ${computed.lineWeight.toFixed(3)} kg` : ''}` : '—', 'weight'],
-        ['Calculated unit', pr && pr.roundedUnitPrice > 0 ? formatPrice(pr.roundedUnitPrice) : '—', 'calculated'],
-        ['Accessories / pc', pr && pr.accessoriesCost > 0 ? formatPrice(pr.accessoriesCost) : '—'],
+        ['Calculated unit', calc && calc.finalUnitPrice > 0 ? formatPrice(calc.finalUnitPrice) : '—', 'calculated'],
+        ['Accessories / pc', calc && calc.accessoriesCost > 0 ? formatPrice(calc.accessoriesCost) : '—'],
+        ['Override unit', computed.overrideUnitPrice !== null ? formatPrice(computed.overrideUnitPrice) : '—', 'override'],
         ['Final unit', pr && pr.finalUnitPrice > 0 ? formatPrice(pr.finalUnitPrice) : '—', 'final'],
-        ['Markup', pr?.priceMode === 'manual' ? 'Manual' : markup ? `+${markup}%` : '—', 'markup'],
+        ['Markup', markup ? `+${markup}%` : '—', 'markup'],
         ['Line total', pr && pr.totalAmount > 0 ? formatPrice(pr.totalAmount) : '—', 'total'],
     ];
     return (

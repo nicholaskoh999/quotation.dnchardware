@@ -6,7 +6,7 @@ import type { DraftQuotation } from './model';
    is wrapped — private mode, a full quota or blocked storage simply means no
    recovery, never a broken Builder. */
 
-export const DRAFT_VERSION = 1;
+export const DRAFT_VERSION = 2;
 const PREFIX = 'dnc-quo:builder-draft';
 
 export interface StoredDraft {
@@ -30,6 +30,31 @@ function storage(): Storage | null {
     }
 }
 
+/**
+ * v1 drafts (Session E before Owner Smoke #2 Loop #1) priced with a single
+ * `mode` + `manualUnitPrice`, and called Batch Add rows 'quick'. They are
+ * carried forward, never dropped: manual → override, no_round → noRound,
+ * 'quick' → 'batch'.
+ */
+export function migrateV1(q: DraftQuotation): DraftQuotation {
+    return {
+        ...q,
+        items: q.items.map((raw) => {
+            const it = raw as unknown as Record<string, unknown> & { pricing: Record<string, unknown> };
+            const pr = it.pricing ?? {};
+            const mode = String(pr.mode ?? 'calculated');
+            const pricing = {
+                costRate: (pr.costRate as string | null) ?? null,
+                addCost: (pr.addCost as string | null) ?? null,
+                markup: (pr.markup as string | null) ?? null,
+                noRound: mode === 'no_round',
+                override: mode === 'manual' ? String(pr.manualUnitPrice ?? '') : null,
+            };
+            return { ...(it as object), entryMode: it.entryMode === 'quick' ? 'batch' : it.entryMode, pricing } as unknown as DraftQuotation['items'][number];
+        }),
+    };
+}
+
 function looksLikeQuotation(v: unknown): v is DraftQuotation {
     if (!v || typeof v !== 'object') return false;
     const q = v as Record<string, unknown>;
@@ -47,9 +72,11 @@ export function loadDraft(username: string, slot = 'new'): StoredDraft | null {
     const s = storage();
     if (!s) return null;
     try {
-        const raw = s.getItem(draftKey(username, slot));
+        // a v1 draft lives under the v1 key until it is carried forward
+        const raw = s.getItem(draftKey(username, slot)) ?? s.getItem(draftKey(username, slot).replace(`:v${DRAFT_VERSION}:`, ':v1:'));
         if (!raw) return null;
-        const parsed = JSON.parse(raw) as Partial<StoredDraft>;
+        let parsed = JSON.parse(raw) as Omit<Partial<StoredDraft>, 'v'> & { v?: number };
+        if (parsed.v === 1 && looksLikeQuotation(parsed.quotation)) parsed = { ...parsed, v: DRAFT_VERSION, quotation: migrateV1(parsed.quotation) };
         if (parsed.v !== DRAFT_VERSION || parsed.username !== username || !looksLikeQuotation(parsed.quotation) || typeof parsed.savedAt !== 'string') {
             return null;
         }
@@ -78,6 +105,7 @@ export function clearDraft(username: string, slot = 'new'): void {
     if (!s) return;
     try {
         s.removeItem(draftKey(username, slot));
+        s.removeItem(draftKey(username, slot).replace(`:v${DRAFT_VERSION}:`, ':v1:'));
     } catch {
         /* nothing to clear */
     }

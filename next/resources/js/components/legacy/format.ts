@@ -43,8 +43,9 @@ const DIM_SEPARATOR = /\s+x\s+/i;
 // A single labelled dimension as the legacy builders write it: "L 900", "TL 150mm",
 // "W 70.5", and the sag rod's both-ends thread length "TL 100/100mm".
 const LABELLED_DIM = /^([A-Z]{1,3})\s*(\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?)(?:\s*mm)?$/;
-// The leading size token: "M20", "M20mm", "1/2\"".
-const SIZE_TOKEN = /^(M\d+(?:\.\d+)?|\d+(?:\/\d+)?")(?:\s*mm)?$/i;
+// The leading size token: "M20", "M20mm", "1/2\"", and the legacy special-bar
+// spelling "Ø25-M24" (bar diameter ≠ nominal size), kept as written.
+const SIZE_TOKEN = /^((?:Ø\d+(?:\.\d+)?-)?(?:M\d+(?:\.\d+)?|\d+(?:\/\d+)?"))(?:\s*mm)?$/i;
 
 function formatDimensionLine(line: string): string {
     const trimmed = line.trim();

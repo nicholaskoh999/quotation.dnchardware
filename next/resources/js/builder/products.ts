@@ -38,51 +38,51 @@ export interface ProductSpec {
     hasSizeType: boolean;
     dims: DimField[];
     developedLength: DevelopedLengthKind;
-    /** Offered in Quick Add (known high-frequency DNC products). */
-    quickAdd: boolean;
+    /** Offered in Batch Add (known high-frequency DNC products). */
+    batchAdd: boolean;
 }
 
 const TL: DimField = { key: 'threadLen', label: 'TL', required: false, kind: 'tl', hint: 'Thread length' };
 
 export const PRODUCT_SPECS: Record<Exclude<ProductType, 'was'>, ProductSpec> = {
     sagrod: {
-        product: 'sagrod', label: 'Sag Rod', hasSize: true, hasSizeType: true, developedLength: 'none', quickAdd: true,
+        product: 'sagrod', label: 'Sag Rod', hasSize: true, hasSizeType: true, developedLength: 'none', batchAdd: true,
         dims: [{ key: 'length', label: 'L', required: true }, { ...TL, hint: 'Both ends: 100 means 100/100' }],
     },
     stud: {
-        product: 'stud', label: 'Stud', hasSize: true, hasSizeType: false, developedLength: 'none', quickAdd: true,
+        product: 'stud', label: 'Stud', hasSize: true, hasSizeType: false, developedLength: 'none', batchAdd: true,
         dims: [{ key: 'l', label: 'L', required: true }],
     },
     anchorbolt: {
-        product: 'anchorbolt', label: 'Anchor Bolt', hasSize: true, hasSizeType: true, developedLength: 'none', quickAdd: true,
+        product: 'anchorbolt', label: 'Anchor Bolt', hasSize: true, hasSizeType: true, developedLength: 'none', batchAdd: true,
         dims: [{ key: 'l', label: 'L', required: true }, TL],
     },
     ubolt: {
-        product: 'ubolt', label: 'U-Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', quickAdd: true,
+        product: 'ubolt', label: 'U-Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', batchAdd: true,
         dims: [{ key: 'id', label: 'ID', required: true }, { key: 'ih', label: 'IH', required: true }, TL],
     },
     squbolt: {
-        product: 'squbolt', label: 'SQ U-Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', quickAdd: true,
+        product: 'squbolt', label: 'SQ U-Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', batchAdd: true,
         dims: [{ key: 'oh', label: 'OH', required: true }, { key: 'w', label: 'W', required: true }, TL],
     },
     lbolt: {
-        product: 'lbolt', label: 'L Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', quickAdd: true,
+        product: 'lbolt', label: 'L Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', batchAdd: true,
         dims: [{ key: 'l', label: 'L', required: true }, { key: 'w', label: 'W', required: true }, TL],
     },
     lbolt45: {
-        product: 'lbolt45', label: 'L Bolt 45°', hasSize: true, hasSizeType: true, developedLength: 'manual', quickAdd: false,
+        product: 'lbolt45', label: 'L Bolt 45°', hasSize: true, hasSizeType: true, developedLength: 'manual', batchAdd: false,
         dims: [{ key: 'l', label: 'L', required: true }, { key: 'w', label: 'W', required: true }, TL],
     },
     jbolt: {
-        product: 'jbolt', label: 'J Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', quickAdd: true,
+        product: 'jbolt', label: 'J Bolt', hasSize: true, hasSizeType: true, developedLength: 'formula', batchAdd: true,
         dims: [{ key: 'h', label: 'H', required: true }, { key: 'id', label: 'ID', required: true }, { key: 's', label: 'S', required: true }, TL],
     },
     jhook: {
-        product: 'jhook', label: 'J Hook', hasSize: true, hasSizeType: true, developedLength: 'suggested', quickAdd: false,
+        product: 'jhook', label: 'J Hook', hasSize: true, hasSizeType: true, developedLength: 'suggested', batchAdd: false,
         dims: [{ key: 'l', label: 'L', required: true }, { key: 'w', label: 'W', required: true }, TL],
     },
     eyebolt: {
-        product: 'eyebolt', label: 'Eye Bolt', hasSize: true, hasSizeType: true, developedLength: 'suggested', quickAdd: false,
+        product: 'eyebolt', label: 'Eye Bolt', hasSize: true, hasSizeType: true, developedLength: 'suggested', batchAdd: false,
         dims: [
             { key: 'l', label: 'L', required: true },
             { key: 'id', label: 'ID', required: true },
@@ -91,18 +91,18 @@ export const PRODUCT_SPECS: Record<Exclude<ProductType, 'was'>, ProductSpec> = {
         ],
     },
     plate: {
-        product: 'plate', label: 'Plate', hasSize: false, hasSizeType: false, developedLength: 'none', quickAdd: false,
+        product: 'plate', label: 'Plate', hasSize: false, hasSizeType: false, developedLength: 'none', batchAdd: false,
         dims: [],
     },
     others: {
-        product: 'others', label: 'Others / Special', hasSize: false, hasSizeType: false, developedLength: 'none', quickAdd: false,
+        product: 'others', label: 'Others / Special', hasSize: false, hasSizeType: false, developedLength: 'none', batchAdd: false,
         dims: [{ key: 'dimensionText', label: 'Dimension', required: true, kind: 'text', hint: 'As it should read on the quotation' }],
     },
 };
 
 /** Products the Builder can create in Session E (WAS needs its own form — deferred). */
 export const BUILDER_PRODUCTS = Object.keys(PRODUCT_SPECS) as Exclude<ProductType, 'was'>[];
-export const QUICK_ADD_PRODUCTS = BUILDER_PRODUCTS.filter((p) => PRODUCT_SPECS[p].quickAdd);
+export const BATCH_ADD_PRODUCTS = BUILDER_PRODUCTS.filter((p) => PRODUCT_SPECS[p].batchAdd);
 
 export type BuilderProduct = (typeof BUILDER_PRODUCTS)[number];
 

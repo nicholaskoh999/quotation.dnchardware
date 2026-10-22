@@ -1,320 +1,300 @@
-import { Plus, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { computeItem, type ComputedItem, type FieldKey } from '@/builder/compute';
-import { emptyDimensions, emptyItem, newUid, type DraftItem, type ItemDimensions } from '@/builder/model';
-import { QUICK_ADD_PRODUCTS, SIZE_OPTIONS, specFor, type BuilderProduct } from '@/builder/products';
-import { formatPrice } from '@/components/legacy/format';
+import { CheckSquare, ClipboardPaste, FileUp, Layers, PencilLine, Square, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { computeItem, type FieldKey } from '@/builder/compute';
+import type { DraftItem } from '@/builder/model';
+import { formatDimensions, formatPrice } from '@/components/legacy/format';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { notify } from '@/lib/feedback';
+import { InlineAlert } from '@/components/ui/inline-alert';
 import { cn } from '@/lib/utils';
-import { Combobox } from './combobox';
-import { Field, SectionTitle, SheetHeading, TextInput } from './fields';
-import { AccessoriesFields, IdentityFields, type ErrFn } from './item-fields';
+import { controlClass, SectionTitle } from './fields';
+import { makeErr } from './item-editor';
+import { AccessoriesFields, IdentityFields, PricePreview, PricingFields, SizeAndDimensionFields } from './item-fields';
+import { TaskBody, TaskDialog } from './task-dialog';
 
-/* Quick Add (Session E §8) — fast structured entry for known DNC products.
-   Group first, row exceptions second (handoff §25): the group fixes Product ·
-   Material · Size Type · Finish · accessories · pricing defaults; each row is
-   just Size · dimensions · Qty. Every row becomes the SAME DraftItem a Manual
-   Add would create (entryMode 'quick'), priced by the same engine call.
-   Text / WhatsApp image / PDF analysis is Wave 3 Session I. */
+/* QUICK ADD (Owner Smoke #2, locked definition) — AI-assisted extraction from
+   what the customer sent:
 
-interface QuickRow {
-    key: string;
-    size: string;
-    dims: Partial<ItemDimensions>;
-    qty: string;
+     INPUT (pasted / WhatsApp text · image / photo / screenshot · PDF)
+     → ANALYZE / EXTRACT → REVIEW extracted items → FIX uncertain fields
+     → CALCULATE / PRICE → ADD CONFIRMED ITEMS
+
+   It is NOT the grouped multi-row form (that is Batch Add). Every extracted
+   item is a normal DraftItem (entryMode 'quick'), fixed with the same shared
+   field sections as Manual Add and priced by the same engine call.
+
+   The analyzer (AI / OCR / PDF backend) is Wave 3 Session I. Until it exists
+   `quickAddAnalyzer` is null: the intake is shown, Analyze is honestly
+   unavailable, and nothing typed or chosen here is analysed or sent anywhere.
+   No parsing is invented. */
+
+export type QuickAddInput = { kind: 'text'; text: string } | { kind: 'file'; file: File };
+
+export interface ExtractedItem {
+    /** A normal DraftItem; Qty stays at the default 1 when the source gave none. */
+    item: DraftItem;
+    /** Fields the analyzer was not sure about — highlighted for review (no invented confidence scores). */
+    uncertain: FieldKey[];
+    /** The source line / region the item came from, for the reviewer. */
+    source?: string;
 }
 
-const blankRow = (): QuickRow => ({ key: newUid(), size: '', dims: {}, qty: '' });
+export type QuickAddAnalyzer = (input: QuickAddInput) => Promise<ExtractedItem[]>;
 
-function rowIsBlank(r: QuickRow): boolean {
-    return !r.size.trim() && !r.qty.trim() && Object.values(r.dims).every((v) => !String(v ?? '').trim());
-}
+/** Session I connects the real analyzer here. Null = not available yet. */
+export const quickAddAnalyzer: QuickAddAnalyzer | null = null;
 
-export function rowToItem(group: DraftItem, row: QuickRow): DraftItem {
-    return {
-        ...group,
-        uid: newUid(),
-        entryMode: 'quick',
-        size: row.size,
-        dims: { ...emptyDimensions(), ...row.dims },
-        qty: row.qty,
-        accessories: JSON.parse(JSON.stringify(group.accessories)),
-        pricing: { ...group.pricing },
-    };
-}
+const FIELD_LABELS: Partial<Record<FieldKey, string>> = {
+    product: 'product', material: 'material', propertyClass: 'property class', sizeType: 'size type', finish: 'finish', size: 'size',
+    diameter: 'Bar Ø', l: 'L', w: 'W', h: 'H', length: 'L', threadLen: 'TL', qty: 'Qty', nut: 'nut', fw: 'flat washer', costRate: 'cost rate',
+};
 
-function initialGroup(product: BuilderProduct): DraftItem {
-    return emptyItem(product, 'quick');
+interface ReviewRow extends ExtractedItem {
+    confirmed: boolean;
+    open: boolean;
 }
 
 export function QuickAdd({
     open,
     onOpenChange,
-    initialProduct,
     onAdd,
+    onSwitchMode,
+    analyzer = quickAddAnalyzer,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    initialProduct?: BuilderProduct;
     onAdd: (items: DraftItem[]) => void;
+    /** Offer the other entry modes while Analyze is unavailable. */
+    onSwitchMode?: (mode: 'manual' | 'batch') => void;
+    analyzer?: QuickAddAnalyzer | null;
 }) {
-    const startProduct: BuilderProduct = initialProduct && QUICK_ADD_PRODUCTS.includes(initialProduct) ? initialProduct : 'sagrod';
-    const [group, setGroup] = useState<DraftItem>(() => initialGroup(startProduct));
-    const [rows, setRows] = useState<QuickRow[]>(() => [blankRow(), blankRow(), blankRow()]);
-    const [attempted, setAttempted] = useState(false);
-    const focusKey = useRef<string | null>(null);
+    const [tab, setTab] = useState<'text' | 'file'>('text');
+    const [text, setText] = useState('');
+    const [file, setFile] = useState<File | null>(null);
+    const [busy, setBusy] = useState(false);
+    const [failed, setFailed] = useState<string | null>(null);
+    const [rows, setRows] = useState<ReviewRow[] | null>(null);
 
     useEffect(() => {
         if (open) {
-            setGroup(initialGroup(startProduct));
-            setRows([blankRow(), blankRow(), blankRow()]);
-            setAttempted(false);
+            setTab('text');
+            setText('');
+            setFile(null);
+            setBusy(false);
+            setFailed(null);
+            setRows(null);
         }
-    }, [open, startProduct]);
+    }, [open]);
 
-    useEffect(() => {
-        if (focusKey.current) {
-            document.getElementById(`qa-${focusKey.current}-size`)?.focus();
-            focusKey.current = null;
+    const computed = useMemo(() => (rows ?? []).map((r) => computeItem(r.item)), [rows]);
+    const confirmedValid = (rows ?? []).filter((r, i) => r.confirmed && computed[i]!.valid);
+    const hasInput = tab === 'text' ? text.trim() !== '' : file !== null;
+
+    const analyze = async () => {
+        if (!analyzer || !hasInput) return;
+        setBusy(true);
+        setFailed(null);
+        try {
+            const out = await analyzer(tab === 'text' ? { kind: 'text', text } : { kind: 'file', file: file! });
+            setRows(out.map((x) => ({ ...x, item: { ...x.item, entryMode: 'quick' }, confirmed: x.uncertain.length === 0, open: x.uncertain.length > 0 })));
+        } catch (e) {
+            setFailed(e instanceof Error ? e.message : 'The analysis did not complete');
+        } finally {
+            setBusy(false);
         }
-    });
-
-    const spec = specFor(group.product);
-    // The group is validated as a whole item with placeholder row values, so a
-    // group-level problem (property class, finish…) is reported once on the group.
-    const groupComputed = useMemo(() => computeItem({ ...group, size: 'M12', qty: '1' }), [group]);
-    const groupErr: ErrFn = (f) => (['propertyClass', 'finish', 'sizeType', 'nut', 'fw', 'custom', 'costRate', 'addCost', 'markup'].includes(f) ? groupComputed.errors[f] : undefined) as string | undefined;
-
-    const computedRows = useMemo(
-        () => rows.map((r) => ({ row: r, blank: rowIsBlank(r), computed: rowIsBlank(r) ? null : computeItem(rowToItem(group, r)) })),
-        [rows, group],
-    );
-    const filled = computedRows.filter((r) => !r.blank);
-    const invalid = filled.filter((r) => !r.computed!.valid);
-
-    const setRow = (key: string, patch: Partial<QuickRow>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch, dims: { ...r.dims, ...(patch.dims ?? {}) } } : r)));
-    const addRow = () => {
-        const r = blankRow();
-        focusKey.current = r.key;
-        setRows((rs) => [...rs, r]);
     };
 
-    const submit = () => {
-        if (filled.length === 0) {
-            notify.error('Enter at least one row');
-            return;
-        }
-        if (invalid.length > 0) {
-            setAttempted(true);
-            notify.error(`Fix ${invalid.length} row${invalid.length === 1 ? '' : 's'} before adding`);
-            return;
-        }
-        onAdd(filled.map((r) => ({ ...r.computed!.item })));
-    };
+    const setRow = (i: number, patch: Partial<ReviewRow>) => setRows((rs) => (rs ? rs.map((r, j) => (j === i ? { ...r, ...patch } : r)) : rs));
 
-    const cellErr = (c: ComputedItem | null, r: QuickRow, f: FieldKey): string | undefined => {
-        if (!c) return undefined;
-        const touched = f === 'size' ? r.size.trim() !== '' : f === 'qty' ? r.qty.trim() !== '' : String(r.dims[f as keyof ItemDimensions] ?? '').trim() !== '';
-        return attempted || touched ? c.errors[f] : undefined;
-    };
-
-    const rowSummary = (c: ComputedItem | null) => {
-        if (!c) return null;
-        const other = Object.entries(c.errors).filter(([k]) => !['size', 'qty', 'diameter', ...spec.dims.map((d) => d.key)].includes(k));
-        return { other: other.map(([, v]) => v) };
-    };
-
+    const reviewing = rows !== null;
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent
-                side="right"
-                title="Quick Add"
-                description="Choose the group once, then type the rows."
-                hideTitle
-                className="w-full max-w-none gap-0 p-0 sm:w-[min(64rem,96vw)]"
-                data-testid="quick-add"
-                onOpenAutoFocus={(e) => e.preventDefault()}
-            >
-                <SheetHeading title="Quick Add" description="Choose the group once, then type the rows. Every row becomes the same item a Manual Add would." />
-                <form
-                    className="flex min-h-0 flex-1 flex-col"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        submit();
-                    }}
-                    noValidate
-                >
-                    <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 sm:px-6">
-                        <div className="flex flex-col gap-6">
-                            <section className="flex flex-col gap-3" data-testid="qa-group">
-                                <SectionTitle aside={<span className="text-xs text-muted-foreground">Applies to every row</span>}>Group</SectionTitle>
-                                <IdentityFields prefix="qa" item={group} computed={groupComputed} onChange={(g) => setGroup({ ...g, entryMode: 'quick' })} err={groupErr} products={QUICK_ADD_PRODUCTS} />
-                                <div className="grid grid-cols-3 gap-3 sm:max-w-md">
-                                    <Field id="qa-costRate" label="Cost rate" hint={groupComputed.suggested.costRate !== null ? 'Default per row' : 'No default — enter it'} error={groupErr('costRate')}>
-                                        <TextInput
-                                            id="qa-costRate"
-                                            inputMode="decimal"
-                                            value={group.pricing.costRate ?? ''}
-                                            placeholder={groupComputed.suggested.costRate !== null ? 'auto' : ''}
-                                            onChange={(e) => setGroup({ ...group, pricing: { ...group.pricing, costRate: e.target.value === '' ? null : e.target.value } })}
-                                        />
-                                    </Field>
-                                    <Field id="qa-addCost" label="Add. cost" hint="Default per row">
-                                        <TextInput
-                                            id="qa-addCost"
-                                            inputMode="decimal"
-                                            value={group.pricing.addCost ?? ''}
-                                            placeholder="auto"
-                                            onChange={(e) => setGroup({ ...group, pricing: { ...group.pricing, addCost: e.target.value === '' ? null : e.target.value } })}
-                                        />
-                                    </Field>
-                                    <Field id="qa-markup" label="Markup %">
-                                        <TextInput
-                                            id="qa-markup"
-                                            inputMode="decimal"
-                                            value={group.pricing.markup ?? ''}
-                                            placeholder="0"
-                                            onChange={(e) => setGroup({ ...group, pricing: { ...group.pricing, markup: e.target.value === '' ? null : e.target.value } })}
-                                        />
-                                    </Field>
-                                </div>
-                                <div>
-                                    <p className="mb-2 text-xs font-medium text-muted-foreground">Accessories (qty per item)</p>
-                                    <AccessoriesFields prefix="qa" value={group.accessories} onChange={(accessories) => setGroup({ ...group, accessories })} err={groupErr} compact />
-                                </div>
-                            </section>
-
-                            <section className="flex flex-col gap-2" data-testid="qa-rows">
-                                <SectionTitle aside={<span className="text-xs text-muted-foreground">Blank rows are ignored</span>}>Rows</SectionTitle>
-                                <div className="hidden gap-2 px-1 text-xs font-medium tracking-wide text-muted-foreground uppercase md:grid" style={{ gridTemplateColumns: `1.5rem minmax(6rem,1fr) repeat(${spec.dims.length}, minmax(4.5rem,1fr)) 4.5rem 9rem 2.25rem` }}>
-                                    <span>#</span>
-                                    <span>Size</span>
-                                    {spec.dims.map((d) => (
-                                        <span key={d.key}>{d.label}</span>
-                                    ))}
-                                    <span>Qty</span>
-                                    <span className="text-right">Unit · Total</span>
-                                    <span />
-                                </div>
-                                <ol className="flex flex-col gap-2">
-                                    {computedRows.map(({ row, computed: c }, idx) => {
-                                        const summary = rowSummary(c);
-                                        return (
-                                            <li key={row.key} className="rounded-[var(--radius-md)] border border-border p-2 md:border-0 md:p-0" data-testid="qa-row">
-                                                <div>
-                                                    <div className="qa-row-grid gap-2" style={{ ['--qa-cols' as string]: `1.5rem minmax(6rem,1fr) repeat(${spec.dims.length}, minmax(4.5rem,1fr)) 4.5rem 9rem 2.25rem` }}>
-                                                        <span className="col-span-2 pt-0 text-xs font-semibold text-muted-foreground tabular-nums md:col-span-1 md:pt-2.5">
-                                                            <span className="md:hidden">Row </span>
-                                                            {idx + 1}
-                                                        </span>
-                                                        <div className="col-span-2 md:col-span-1">
-                                                            <Combobox
-                                                                id={`qa-${row.key}-size`}
-                                                                aria-label={`Row ${idx + 1} size`}
-                                                                aria-invalid={cellErr(c, row, 'size') || cellErr(c, row, 'diameter') ? true : undefined}
-                                                                value={row.size}
-                                                                onChange={(v) => setRow(row.key, { size: v })}
-                                                                options={SIZE_OPTIONS}
-                                                                placeholder="Size"
-                                                            />
-                                                            <CellError msg={cellErr(c, row, 'size') ?? cellErr(c, row, 'diameter')} />
-                                                        </div>
-                                                        {spec.dims.map((d) => (
-                                                            <div key={d.key}>
-                                                                <TextInput
-                                                                    aria-label={`Row ${idx + 1} ${d.label}`}
-                                                                    aria-invalid={cellErr(c, row, d.key as FieldKey) ? true : undefined}
-                                                                    inputMode={d.kind === 'tl' ? 'text' : 'decimal'}
-                                                                    placeholder={d.label + (d.required ? '' : ' (opt.)')}
-                                                                    value={row.dims[d.key] ?? ''}
-                                                                    onChange={(e) => setRow(row.key, { dims: { [d.key]: e.target.value } })}
-                                                                />
-                                                                <CellError msg={cellErr(c, row, d.key as FieldKey)} />
-                                                            </div>
-                                                        ))}
-                                                        <div>
-                                                            <TextInput
-                                                                aria-label={`Row ${idx + 1} Qty`}
-                                                                aria-invalid={cellErr(c, row, 'qty') ? true : undefined}
-                                                                inputMode="numeric"
-                                                                placeholder="Qty"
-                                                                value={row.qty}
-                                                                onChange={(e) => setRow(row.key, { qty: e.target.value })}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === 'Enter' && idx === rows.length - 1) {
-                                                                        e.preventDefault();
-                                                                        addRow();
-                                                                    }
-                                                                }}
-                                                            />
-                                                            <CellError msg={cellErr(c, row, 'qty')} />
-                                                        </div>
-                                                        <div className="col-span-2 flex items-center justify-between gap-2 text-sm tabular-nums md:col-span-1 md:block md:pt-2 md:text-right" data-testid="qa-row-preview">
-                                                            {c?.pricing && c.pricing.finalUnitPrice > 0 ? (
-                                                                <>
-                                                                    <span className="text-muted-foreground">{formatPrice(c.pricing.finalUnitPrice)}</span>
-                                                                    <span className="font-semibold md:ml-2">{c.pricing.totalAmount > 0 ? formatPrice(c.pricing.totalAmount) : '—'}</span>
-                                                                </>
-                                                            ) : (
-                                                                <span className="text-subtle-foreground">—</span>
-                                                            )}
-                                                        </div>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            aria-label={`Remove row ${idx + 1}`}
-                                                            className="hidden md:inline-flex"
-                                                            onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.key !== row.key) : [blankRow()]))}
-                                                        >
-                                                            <Trash2 aria-hidden="true" />
-                                                        </Button>
-                                                    </div>
-                                                    {summary && summary.other.length > 0 && attempted ? (
-                                                        <p className="mt-1 text-xs text-danger" role="alert">
-                                                            {summary.other.join(' · ')}
-                                                        </p>
-                                                    ) : null}
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ol>
-                                <div>
-                                    <Button type="button" variant="secondary" size="sm" onClick={addRow} data-testid="qa-add-row">
-                                        <Plus aria-hidden="true" /> Row
-                                    </Button>
-                                </div>
-                            </section>
+        <TaskDialog
+            open={open}
+            onOpenChange={onOpenChange}
+            title="Quick Add"
+            description={reviewing ? 'Review the extracted items, fix anything uncertain, then add the confirmed ones.' : 'AI extract items from customer text, an image or a PDF.'}
+            width={1040}
+            testId="quick-add"
+            footer={
+                reviewing ? (
+                    <>
+                        <Button type="button" variant="ghost" onClick={() => setRows(null)} data-testid="qa-back-to-input">
+                            Back to input
+                        </Button>
+                        <Button type="button" variant="primary" disabled={confirmedValid.length === 0} onClick={() => onAdd(confirmedValid.map((r) => r.item))} data-testid="qa-add-confirmed">
+                            Add confirmed items ({confirmedValid.length})
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="primary"
+                            disabled={!analyzer || !hasInput || busy}
+                            loading={busy}
+                            onClick={analyze}
+                            title={analyzer ? undefined : 'AI analysis is not connected yet'}
+                            data-testid="qa-analyze"
+                        >
+                            Analyze
+                        </Button>
+                    </>
+                )
+            }
+        >
+            <TaskBody>
+                {!reviewing ? (
+                    <div className="flex flex-col gap-4" data-testid="qa-intake">
+                        {!analyzer ? (
+                            <InlineAlert tone="info" title="AI analysis is not connected yet" className="" >
+                                <span data-testid="qa-unavailable">
+                                    Analyze arrives with the Quick Add AI backend (Wave 3 · Session I). Nothing pasted or chosen here is analysed or sent anywhere yet.
+                                </span>
+                                {onSwitchMode ? (
+                                    <span className="mt-2 flex flex-wrap gap-2">
+                                        <Button type="button" variant="secondary" size="sm" onClick={() => onSwitchMode('manual')} data-testid="qa-switch-manual">
+                                            <PencilLine aria-hidden="true" /> Manual Add
+                                        </Button>
+                                        <Button type="button" variant="secondary" size="sm" onClick={() => onSwitchMode('batch')} data-testid="qa-switch-batch">
+                                            <Layers aria-hidden="true" /> Batch Add
+                                        </Button>
+                                    </span>
+                                ) : null}
+                            </InlineAlert>
+                        ) : null}
+                        <div role="tablist" aria-label="Quick Add input" className="flex gap-2 border-b border-border">
+                            {[
+                                { id: 'text' as const, label: 'Paste Text', icon: ClipboardPaste },
+                                { id: 'file' as const, label: 'Upload Image / PDF', icon: FileUp },
+                            ].map((t) => (
+                                <button
+                                    key={t.id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={tab === t.id}
+                                    onClick={() => setTab(t.id)}
+                                    className={cn(
+                                        '-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm',
+                                        tab === t.id ? 'border-accent font-semibold text-accent' : 'border-transparent font-medium text-muted-foreground hover:text-foreground',
+                                    )}
+                                    data-testid={`qa-tab-${t.id}`}
+                                >
+                                    <t.icon className="size-4" aria-hidden="true" />
+                                    {t.label}
+                                </button>
+                            ))}
                         </div>
+                        {tab === 'text' ? (
+                            <div className="flex flex-col gap-1.5">
+                                <label htmlFor="qa-text" className="text-xs font-medium text-muted-foreground">
+                                    Customer / WhatsApp text
+                                </label>
+                                <textarea
+                                    id="qa-text"
+                                    rows={9}
+                                    value={text}
+                                    onChange={(e) => setText(e.target.value)}
+                                    placeholder={'e.g.\nM12 sag rod 1245 tl100 zp 30pcs\nM16 l bolt 900x70 tl150 pl 20pcs'}
+                                    className={cn(controlClass, 'h-auto min-h-48 py-2 font-mono text-sm')}
+                                    data-testid="qa-text"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <label
+                                    htmlFor="qa-file"
+                                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border-strong bg-surface-muted/40 px-4 py-10 text-center text-sm text-muted-foreground hover:bg-surface-muted"
+                                >
+                                    <FileUp className="size-6" aria-hidden="true" />
+                                    <span className="font-medium text-foreground">Choose an image, photo, screenshot or PDF</span>
+                                    <span className="text-xs">Kept in this browser only — not uploaded</span>
+                                </label>
+                                <input
+                                    id="qa-file"
+                                    type="file"
+                                    accept="image/*,application/pdf"
+                                    className="sr-only"
+                                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                                    data-testid="qa-file"
+                                />
+                                {file ? (
+                                    <p className="flex items-center justify-between gap-2 rounded-[var(--radius-md)] border border-border px-3 py-2 text-sm" data-testid="qa-file-name">
+                                        <span className="truncate">{file.name}</span>
+                                        <span className="shrink-0 text-xs text-muted-foreground">{Math.max(1, Math.round(file.size / 1024))} KB</span>
+                                    </p>
+                                ) : null}
+                            </div>
+                        )}
+                        {failed ? (
+                            <InlineAlert tone="error" title="Analysis failed">
+                                {failed}
+                            </InlineAlert>
+                        ) : null}
                     </div>
-                    <div className="flex items-center justify-between gap-2 border-t border-border bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
-                        <p className={cn('text-sm', invalid.length ? 'text-danger' : 'text-muted-foreground')} data-testid="qa-status">
-                            {filled.length === 0
-                                ? 'No rows yet'
-                                : `${filled.length} row${filled.length === 1 ? '' : 's'}${invalid.length ? ` · ${invalid.length} to fix` : ' ready'}`}
-                        </p>
-                        <div className="flex gap-2">
-                            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                                Cancel
-                            </Button>
-                            <Button type="submit" variant="primary" data-testid="qa-submit" disabled={filled.length === 0}>
-                                Add {filled.length || ''} item{filled.length === 1 ? '' : 's'}
-                            </Button>
-                        </div>
+                ) : (
+                    <div className="flex flex-col gap-3" data-testid="qa-review">
+                        <SectionTitle aside={<span className="text-xs text-muted-foreground">{rows!.length} extracted</span>}>Extracted items</SectionTitle>
+                        {rows!.length === 0 ? <p className="text-sm text-muted-foreground">Nothing was extracted — check the input, or use Manual Add.</p> : null}
+                        <ol className="flex flex-col gap-2">
+                            {rows!.map((r, i) => {
+                                const c = computed[i]!;
+                                const err = makeErr(r.item, c, true);
+                                const prefix = `qr${i}`;
+                                return (
+                                    <li key={r.item.uid} className={cn('rounded-[var(--radius-md)] border p-3', c.valid ? 'border-border' : 'border-danger/40 bg-danger-soft/30')} data-testid="qa-review-item">
+                                        <div className="flex items-start gap-3">
+                                            <button
+                                                type="button"
+                                                role="checkbox"
+                                                aria-checked={r.confirmed}
+                                                aria-label={`Confirm item ${i + 1}`}
+                                                onClick={() => setRow(i, { confirmed: !r.confirmed })}
+                                                className="mt-0.5 text-muted-foreground hover:text-foreground"
+                                                data-testid="qa-confirm"
+                                            >
+                                                {r.confirmed ? <CheckSquare className="size-5 text-accent" aria-hidden="true" /> : <Square className="size-5" aria-hidden="true" />}
+                                            </button>
+                                            <div className="min-w-0 flex-1 text-sm">
+                                                <p className="font-medium">{c.title}</p>
+                                                <p className="text-muted-foreground tabular-nums">
+                                                    {c.dimensionLine ? formatDimensions(c.dimensionLine) : '—'} · Qty {r.item.qty || '—'}
+                                                    {c.pricing && c.pricing.finalUnitPrice > 0 ? ` · ${formatPrice(c.pricing.finalUnitPrice)}` : ''}
+                                                </p>
+                                                {r.source ? <p className="mt-0.5 truncate font-mono text-xs text-subtle-foreground">“{r.source}”</p> : null}
+                                                {r.uncertain.length ? (
+                                                    <p className="mt-1 text-xs text-warning" data-testid="qa-uncertain">
+                                                        Check: {r.uncertain.map((f) => FIELD_LABELS[f] ?? f).join(', ')}
+                                                    </p>
+                                                ) : null}
+                                                {!c.valid ? <p className="mt-1 text-xs text-danger">Fix {Object.keys(c.errors).length} field(s) before adding</p> : null}
+                                            </div>
+                                            <div className="flex shrink-0 gap-1">
+                                                <Button type="button" variant="ghost" size="sm" onClick={() => setRow(i, { open: !r.open })} data-testid="qa-fix">
+                                                    {r.open ? 'Done' : 'Review / fix'}
+                                                </Button>
+                                                <Button type="button" variant="ghost" size="icon" aria-label={`Remove extracted item ${i + 1}`} onClick={() => setRows((rs) => rs!.filter((_, j) => j !== i))}>
+                                                    <Trash2 aria-hidden="true" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        {r.open ? (
+                                            <div className="mt-3 flex flex-col gap-4 border-t border-border pt-3">
+                                                <IdentityFields prefix={prefix} item={r.item} computed={c} onChange={(item) => setRow(i, { item })} err={err} />
+                                                <SizeAndDimensionFields prefix={prefix} item={r.item} computed={c} onChange={(item) => setRow(i, { item })} err={err} />
+                                                <AccessoriesFields prefix={prefix} value={r.item.accessories} onChange={(accessories) => setRow(i, { item: { ...r.item, accessories } })} err={err} />
+                                                <PricingFields prefix={prefix} item={r.item} computed={c} onChange={(item) => setRow(i, { item })} err={err} />
+                                                <PricePreview computed={c} />
+                                            </div>
+                                        ) : null}
+                                    </li>
+                                );
+                            })}
+                        </ol>
                     </div>
-                </form>
-            </SheetContent>
-        </Sheet>
+                )}
+            </TaskBody>
+        </TaskDialog>
     );
-}
-
-function CellError({ msg }: { msg?: string }) {
-    return msg ? (
-        <p role="alert" className="mt-0.5 text-xs leading-tight text-danger">
-            {msg}
-        </p>
-    ) : null;
 }

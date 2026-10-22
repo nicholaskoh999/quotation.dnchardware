@@ -1,12 +1,13 @@
-import { ClipboardCopy, FilePlus2, Lock, MessageCircle, Printer, Save, ShieldCheck, Trash2, Zap } from 'lucide-react';
+import { ClipboardCopy, Layers, Lock, MessageCircle, PencilLine, Printer, Save, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatDayFirst, todayIso } from '@/builder/dates';
 import { emptyItem, type DraftItem } from '@/builder/model';
-import { BUILDER_PRODUCTS, QUICK_ADD_PRODUCTS, type BuilderProduct } from '@/builder/products';
+import { BATCH_ADD_PRODUCTS, BUILDER_PRODUCTS, type BuilderProduct } from '@/builder/products';
 import { useBuilder, type DraftStatus } from '@/builder/use-builder';
 import { CustomerSection } from '@/components/builder/customer-section';
 import { ItemEditor } from '@/components/builder/item-editor';
 import { ItemsTable } from '@/components/builder/items-table';
+import { BatchAdd } from '@/components/builder/batch-add';
 import { QuickAdd } from '@/components/builder/quick-add';
 import { formatPrice } from '@/components/legacy/format';
 import { useShell } from '@/components/shell/use-shell';
@@ -19,14 +20,18 @@ import { cn } from '@/lib/utils';
 
 /* Route quotations.create — the Quotation Builder (Wave 2 · Session E).
 
-   Header / customer → Items (Quick Add · Manual Add, edit, duplicate, move,
-   remove + Undo) → Summary → Draft status / actions. Calculations come from
+   Header / customer → Items → Summary → Draft status / actions. Three entry
+   modes, one item model (Owner Smoke #2):
+     Quick Add   AI extract from customer text / image / PDF → review → add
+                 (the analyzer is Session I; Analyze is shown unavailable)
+     Manual Add  one item keyed by hand
+     Batch Add   common fields once, several similar rows Calculations come from
    the domain engine (builder/compute.ts). Work is autosaved on this device as
    a LOCAL DRAFT (never a quotation); formal Save + Q-number is the write path
    (Session G) and Print / WhatsApp / Copy need a saved quotation (Session H),
-   so they are shown locked, never faked. `?mode=quick|manual` and
-   `?product=<key>` (the + sheet, Quick Actions, Frequent Products) open the
-   matching entry mode. */
+   so they are shown locked, never faked. `?mode=quick|manual|batch` and
+   `?product=<key>` (the + sheet, Quick Actions, Frequent Products → Manual
+   Add on that product) open the matching entry mode. */
 
 type EditorState = { open: false } | { open: true; isNew: boolean; index: number; item: DraftItem };
 
@@ -62,7 +67,8 @@ export default function QuotationsCreate() {
     const { quotation, reading, actions, draftStatus, recovered, continueDraft, discardRecovered, discardCurrent, meaningful } = useBuilder({ username, todayIso: today });
     const [editor, setEditor] = useState<EditorState>({ open: false });
     const [quickOpen, setQuickOpen] = useState(false);
-    const [quickProduct, setQuickProduct] = useState<BuilderProduct | undefined>();
+    const [batchOpen, setBatchOpen] = useState(false);
+    const [batchProduct, setBatchProduct] = useState<BuilderProduct | undefined>();
     const [checked, setChecked] = useState(false);
     const itemsRef = useRef<HTMLElement>(null);
 
@@ -75,9 +81,10 @@ export default function QuotationsCreate() {
         const mode = query.get('mode');
         const product = query.get('product') as BuilderProduct | null;
         const known = product && (BUILDER_PRODUCTS as readonly string[]).includes(product) ? product : undefined;
-        if (mode === 'quick' || (!mode && known && QUICK_ADD_PRODUCTS.includes(known))) {
-            setQuickProduct(known);
-            setQuickOpen(true);
+        if (mode === 'quick') setQuickOpen(true);
+        else if (mode === 'batch') {
+            setBatchProduct(known && BATCH_ADD_PRODUCTS.includes(known) ? known : undefined);
+            setBatchOpen(true);
         } else if (mode === 'manual' || known) {
             setEditor({ open: true, isNew: true, index: quotation.items.length, item: emptyItem(known ?? 'sagrod', 'manual') });
         }
@@ -85,9 +92,10 @@ export default function QuotationsCreate() {
     }, []);
 
     const openManual = () => setEditor({ open: true, isNew: true, index: quotation.items.length, item: emptyItem('sagrod', 'manual') });
-    const openQuick = () => {
-        setQuickProduct(undefined);
-        setQuickOpen(true);
+    const openQuick = () => setQuickOpen(true);
+    const openBatch = () => {
+        setBatchProduct(undefined);
+        setBatchOpen(true);
     };
 
     const saveFromEditor = (item: DraftItem) => {
@@ -221,19 +229,12 @@ export default function QuotationsCreate() {
                             <h2 id="items-heading" className="text-base font-semibold">
                                 Items <span className="font-normal text-muted-foreground">({s.itemCount})</span>
                             </h2>
-                            <div className="flex gap-2">
-                                <Button variant="secondary" size="sm" onClick={openQuick} data-testid="open-quick-add">
-                                    <Zap aria-hidden="true" /> Quick Add
-                                </Button>
-                                <Button variant="secondary" size="sm" onClick={openManual} data-testid="open-manual-add">
-                                    <FilePlus2 aria-hidden="true" /> Manual Add
-                                </Button>
-                            </div>
                         </div>
+                        <EntryModes onQuick={openQuick} onManual={openManual} onBatch={openBatch} />
                         {reading.items.length === 0 ? (
                             <div className="rounded-[var(--radius-lg)] border border-dashed border-border-strong bg-surface p-6 text-center text-sm text-muted-foreground" data-testid="builder-empty">
-                                No items yet — use <span className="font-medium text-foreground">Quick Add</span> for known products, or{' '}
-                                <span className="font-medium text-foreground">Manual Add</span> for anything else.
+                                No items yet — use <span className="font-medium text-foreground">Manual Add</span> for one item or{' '}
+                                <span className="font-medium text-foreground">Batch Add</span> for several similar ones.
                                 {checked ? <p className="mt-1 text-danger">Add at least one item.</p> : null}
                             </div>
                         ) : (
@@ -334,7 +335,11 @@ export default function QuotationsCreate() {
             <QuickAdd
                 open={quickOpen}
                 onOpenChange={setQuickOpen}
-                initialProduct={quickProduct}
+                onSwitchMode={(m) => {
+                    setQuickOpen(false);
+                    if (m === 'manual') openManual();
+                    else openBatch();
+                }}
                 onAdd={(items) => {
                     const first = quotation.items.length + 1;
                     actions.addItems(items);
@@ -342,6 +347,45 @@ export default function QuotationsCreate() {
                     notify.success(items.length === 1 ? `Item ${first} added` : `${items.length} items added (items ${first}–${first + items.length - 1})`);
                 }}
             />
+            <BatchAdd
+                open={batchOpen}
+                onOpenChange={setBatchOpen}
+                initialProduct={batchProduct}
+                onAdd={(items) => {
+                    const first = quotation.items.length + 1;
+                    actions.addItems(items);
+                    setBatchOpen(false);
+                    notify.success(items.length === 1 ? `Item ${first} added` : `${items.length} items added (items ${first}–${first + items.length - 1})`);
+                }}
+            />
         </AppLayout>
+    );
+}
+
+/* The three entry modes, each named for what it does (never Quick Add ≡ Batch Add). */
+function EntryModes({ onQuick, onManual, onBatch }: { onQuick: () => void; onManual: () => void; onBatch: () => void }) {
+    const modes = [
+        { id: 'open-quick-add', label: 'Quick Add', description: 'AI extract from text, image or PDF', icon: Sparkles, onClick: onQuick },
+        { id: 'open-manual-add', label: 'Manual Add', description: 'Enter one item manually', icon: PencilLine, onClick: onManual },
+        { id: 'open-batch-add', label: 'Batch Add', description: 'Enter multiple similar items', icon: Layers, onClick: onBatch },
+    ];
+    return (
+        <div className="grid grid-cols-3 gap-2" data-testid="entry-modes">
+            {modes.map((m) => (
+                <button
+                    key={m.id}
+                    type="button"
+                    onClick={m.onClick}
+                    data-testid={m.id}
+                    className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-md)] border border-border bg-surface px-2 py-2 text-center shadow-xs hover:border-border-strong hover:bg-surface-muted sm:flex-row sm:justify-start sm:gap-3 sm:px-3 sm:text-left"
+                >
+                    <m.icon className="size-5 shrink-0 text-accent" aria-hidden="true" />
+                    <span className="min-w-0">
+                        <span className="block text-sm font-medium text-foreground">{m.label}</span>
+                        <span className="hidden text-xs text-muted-foreground sm:block">{m.description}</span>
+                    </span>
+                </button>
+            ))}
+        </div>
     );
 }

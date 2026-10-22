@@ -25,9 +25,9 @@ async function pickCustomer(page: Page, q = 'acme') {
     await expect(page.getByTestId('customer-card')).toContainText('ACME ENGINEERING SDN BHD');
 }
 
-async function quickAddSagRods(page: Page) {
-    await page.getByTestId('open-quick-add').click();
-    const sheet = page.getByTestId('quick-add');
+async function batchAddSagRods(page: Page) {
+    await page.getByTestId('open-batch-add').click();
+    const sheet = page.getByTestId('batch-add');
     await expect(sheet).toBeVisible();
     await sheet.getByLabel('Row 1 size').fill('M12');
     await sheet.getByLabel('Row 1 L').fill('1245');
@@ -37,8 +37,8 @@ async function quickAddSagRods(page: Page) {
     await sheet.getByLabel('Row 2 L').fill('310');
     await sheet.getByLabel('Row 2 TL').fill('100');
     await sheet.getByLabel('Row 2 Qty').fill('2');
-    await expect(sheet.getByTestId('qa-status')).toHaveText('2 rows ready');
-    await sheet.getByTestId('qa-submit').click();
+    await expect(sheet.getByTestId('ba-status')).toHaveText('2 rows ready');
+    await sheet.getByTestId('ba-submit').click();
     await expect(sheet).toBeHidden();
 }
 
@@ -73,10 +73,10 @@ test.describe('desktop', () => {
         await expect(page.getByRole('listbox')).toContainText('will be used as typed');
     });
 
-    test('Quick Add rows become items: canonical TL, weight, price, totals', async ({ page }) => {
+    test('Batch Add rows become items: canonical TL, weight, price, totals', async ({ page }) => {
         await openBuilder(page);
         await pickCustomer(page);
-        await quickAddSagRods(page);
+        await batchAddSagRods(page);
         const rows = page.getByTestId('builder-item');
         await expect(rows).toHaveCount(2);
         await expect(rows.nth(0).getByTestId('builder-item-title')).toHaveText('MS FULLSIZE SAG ROD · PL');
@@ -126,25 +126,111 @@ test.describe('desktop', () => {
         await expect(row.getByTestId('builder-item-weight')).toHaveText('Weight 69.546 kg');
     });
 
-    test('manual price override is explicit and marked, and can go back to calculated', async ({ page }) => {
+    test('Override unit price keeps the calculated unit; Use calculated price restores it', async ({ page }) => {
         await openBuilder(page);
-        await quickAddSagRods(page);
+        await batchAddSagRods(page);
         await page.getByTestId('builder-item').first().getByTestId('builder-item-title').click();
         const ed = page.getByTestId('item-editor');
-        await ed.getByTestId('ed-set-manual').click();
-        await expect(page.getByText('Manual price enabled')).toBeVisible();
-        await expect(ed.getByTestId('ed-price-mode')).toHaveText('Manual override');
-        await ed.locator('#ed-manualUnitPrice').fill('5.20');
+        await expect(ed.getByTestId('ed-calculated-unit')).toHaveText('RM 4.47');
+        await expect(ed.getByTestId('ed-override-none')).toHaveText('—');
+        await expect(ed.getByTestId('ed-final-unit')).toHaveText('RM 4.47');
+        await ed.getByTestId('ed-override-unit').click();
+        await expect(page.getByText('Unit price overridden')).toBeVisible();
+        await expect(ed.getByTestId('ed-price-mode')).toHaveText('Override');
+        await ed.getByTestId('ed-override-input').fill('5.20');
+        await expect(ed.getByTestId('ed-calculated-unit')).toHaveText('RM 4.47');
+        await expect(ed.getByTestId('ed-final-unit')).toHaveText('RM 5.20');
+        // the calculated unit keeps recalculating under the override (Bar Ø 12 → 13)
+        await ed.locator('#ed-diameter').fill('13');
+        await ed.locator('#ed-diameter').blur();
+        await expect(ed.getByTestId('ed-calculated-unit')).not.toHaveText('RM 4.47');
+        await expect(ed.getByTestId('ed-final-unit')).toHaveText('RM 5.20');
+        await ed.locator('#ed-diameter').fill('');
+        await ed.locator('#ed-diameter').blur();
+        await expect(ed.locator('#ed-diameter')).toHaveValue('12');
         await ed.getByTestId('ed-submit').click();
         const row = page.getByTestId('builder-item').first();
-        await expect(row.getByTestId('builder-item-markup')).toHaveText('Manual');
+        await expect(row.getByTestId('builder-item-markup')).toHaveText('Override');
         await expect(row.getByTestId('builder-item-unit')).toHaveText('Unit RM 5.20');
         await expect(row.getByTestId('builder-item-total')).toHaveText('Total RM 156.00');
         await row.getByTestId('builder-item-title').click();
-        await ed.getByRole('button', { name: 'Use calculated price' }).click();
-        await expect(ed.getByTestId('ed-price-mode')).toHaveText('Calculated');
+        await ed.getByTestId('ed-use-calculated').click();
+        await expect(ed.getByTestId('ed-final-unit')).toHaveText('RM 4.47');
         await ed.getByTestId('ed-submit').click();
         await expect(row.getByTestId('builder-item-unit')).toHaveText('Unit RM 4.47');
+    });
+
+    test('Bar Ø: suggested and always editable; custom 10.7 / 25 drive weight; developed length auto-fills 1063, custom 1070', async ({ page }) => {
+        await openBuilder(page);
+        await page.getByTestId('open-manual-add').click();
+        const ed = page.getByTestId('item-editor');
+        await expect(ed.locator('#ed-qty')).toHaveValue('1');
+        await ed.getByRole('radio', { name: 'Undersize' }).click();
+        await ed.locator('#ed-size').fill('M12');
+        await ed.locator('#ed-length').fill('1000');
+        await expect(ed.locator('#ed-diameter')).toHaveValue('10.6');
+        await expect(ed.getByTestId('ed-diameter-state')).toHaveText('Suggested from M12 · Undersize');
+        await expect(ed.getByTestId('ed-preview-weight')).toContainText('0.693 kg/pc');
+        await ed.locator('#ed-diameter').fill('10.7');
+        await ed.locator('#ed-diameter').blur();
+        await expect(ed.locator('#ed-diameter')).toHaveValue('10.7');
+        await expect(ed.getByTestId('ed-diameter-state')).toContainText('Custom');
+        await expect(ed.getByTestId('ed-preview-weight')).toContainText('0.706 kg/pc');
+        // L Bolt M24 on a Ø25 bar: developed length 1063 shown in the field
+        await ed.locator('#ed-product').selectOption('lbolt');
+        await ed.getByRole('radio', { name: 'Fullsize' }).click();
+        await ed.locator('#ed-size').fill('M24');
+        await ed.locator('#ed-l').fill('1000');
+        await ed.locator('#ed-w').fill('100');
+        await expect(ed.locator('#ed-diameter')).toHaveValue('24');
+        await ed.locator('#ed-diameter').fill('25');
+        await ed.locator('#ed-diameter').blur();
+        await expect(ed.locator('#ed-developedLength')).toHaveValue('1063');
+        await expect(ed.getByTestId('ed-preview-weight')).toContainText('4.096 kg/pc');
+        await ed.locator('#ed-developedLength').fill('1070');
+        await ed.locator('#ed-developedLength').blur();
+        await expect(ed.getByTestId('ed-developedLength-state')).toContainText('Calculated: 1063 mm');
+        await expect(ed.getByTestId('ed-preview-weight')).toContainText('4.123 kg/pc');
+        await ed.getByTestId('ed-developedLength-use-calculated').click();
+        await expect(ed.locator('#ed-developedLength')).toHaveValue('1063');
+    });
+
+    test('Quick Add is AI intake (text / image / PDF), never the Batch Add row editor', async ({ page }) => {
+        await openBuilder(page);
+        await expect(page.getByTestId('open-quick-add')).toContainText('AI extract from text, image or PDF');
+        await expect(page.getByTestId('open-batch-add')).toContainText('Enter multiple similar items');
+        await page.getByTestId('open-quick-add').click();
+        const qa = page.getByTestId('quick-add');
+        await expect(qa.getByRole('tab', { name: 'Paste Text' })).toBeVisible();
+        await expect(qa.getByRole('tab', { name: 'Upload Image / PDF' })).toBeVisible();
+        await expect(qa.getByTestId('qa-text')).toBeVisible();
+        await expect(qa.getByLabel(/Row 1/)).toHaveCount(0);
+        await qa.getByTestId('qa-text').fill('M12 sag rod 1245 tl100 zp 30pcs');
+        await expect(qa.getByTestId('qa-analyze')).toBeDisabled();
+        await expect(qa.getByTestId('qa-unavailable')).toContainText('Session I');
+        await qa.getByTestId('qa-tab-file').click();
+        await qa.getByTestId('qa-file').setInputFiles({ name: 'po.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4') });
+        await expect(qa.getByTestId('qa-file-name')).toContainText('po.pdf');
+        await expect(qa.getByTestId('qa-analyze')).toBeDisabled();
+        // nothing was added, nothing parsed
+        await qa.getByTestId('qa-switch-batch').click();
+        await expect(page.getByTestId('batch-add')).toBeVisible();
+        await expect(page.getByTestId('builder-item')).toHaveCount(0);
+    });
+
+    test('desktop: Quick / Manual / Batch / Edit open as centred dialogs, not side drawers', async ({ page }) => {
+        await openBuilder(page);
+        const vw = page.viewportSize()!.width;
+        for (const id of ['open-quick-add', 'open-manual-add', 'open-batch-add']) {
+            await page.getByTestId(id).click();
+            const dlg = page.getByRole('dialog');
+            const b = (await dlg.boundingBox())!;
+            expect(Math.abs(b.x + b.width / 2 - vw / 2), `${id} centred`).toBeLessThanOrEqual(2);
+            expect(b.width).toBeLessThan(vw - 100);
+            expect(b.height).toBeLessThanOrEqual(page.viewportSize()!.height * 0.86);
+            await page.keyboard.press('Escape');
+            await expect(dlg).toBeHidden();
+        }
     });
 
     test('validation stays next to the field; nothing incomplete is added', async ({ page }) => {
@@ -155,7 +241,8 @@ test.describe('desktop', () => {
         await expect(page.getByText(/Fix \d+ fields? before adding/)).toBeVisible();
         await expect(ed.getByTestId('error-ed-size')).toHaveText('Enter a size');
         await expect(ed.getByTestId('error-ed-length')).toHaveText('Enter L');
-        await expect(ed.getByTestId('error-ed-qty')).toHaveText('Enter Qty');
+        await expect(ed.locator('#ed-qty')).toHaveValue('1'); // new items start at Qty 1
+        await expect(ed.getByTestId('error-ed-qty')).toHaveCount(0);
         await ed.locator('#ed-size').fill('72');
         await expect(ed.getByTestId('error-ed-size')).toContainText('looks like a length');
         await ed.locator('#ed-qty').fill('-5');
@@ -170,7 +257,7 @@ test.describe('desktop', () => {
 
     test('duplicate, move and remove with Undo keep numbering understandable', async ({ page }) => {
         await openBuilder(page);
-        await quickAddSagRods(page);
+        await batchAddSagRods(page);
         const rows = page.getByTestId('builder-item');
         await rows.nth(0).getByTestId('builder-item-menu').click();
         await page.getByRole('menuitem', { name: 'Duplicate' }).click();
@@ -192,7 +279,7 @@ test.describe('desktop', () => {
     test('local draft: autosaved, recovered explicitly after reload, discard needs confirmation', async ({ page }) => {
         await openBuilder(page);
         await pickCustomer(page);
-        await quickAddSagRods(page);
+        await batchAddSagRods(page);
         await expect(page.getByTestId('draft-status')).toHaveAttribute('data-state', 'saved');
         await expect(page.getByTestId('draft-status')).toContainText('Kept on this device');
         page.once('dialog', (d) => d.accept()); // browser refresh warning may appear
@@ -245,10 +332,15 @@ test.describe('desktop', () => {
         await expect(page.getByTestId('error-validUntil')).toHaveText('Use DD-MM-YYYY');
     });
 
-    test('entry points: ?product opens Quick Add on that product, ?mode=manual opens Manual Add', async ({ page }) => {
+    test('entry points: ?product opens Manual Add on that product; ?mode=quick / manual / batch open their mode', async ({ page }) => {
         await openBuilder(page, '/quotations/new?product=lbolt');
+        await expect(page.getByTestId('item-editor')).toBeVisible();
+        await expect(page.getByTestId('item-editor').locator('#ed-product')).toHaveValue('lbolt');
+        await page.goto('/quotations/new?mode=quick');
         await expect(page.getByTestId('quick-add')).toBeVisible();
-        await expect(page.getByTestId('quick-add').locator('#qa-product')).toHaveValue('lbolt');
+        await expect(page.getByTestId('quick-add').getByTestId('qa-text')).toBeVisible();
+        await page.goto('/quotations/new?mode=batch');
+        await expect(page.getByTestId('batch-add')).toBeVisible();
         await page.goto('/quotations/new?mode=manual');
         await expect(page.getByTestId('item-editor')).toBeVisible();
     });
@@ -261,12 +353,22 @@ test.describe('tablet (768px)', () => {
     test('same workflow in a narrower width, aligned item grid, no overflow', async ({ page }) => {
         await openBuilder(page);
         await pickCustomer(page);
-        await quickAddSagRods(page);
+        await batchAddSagRods(page);
         await expect(page.getByTestId('builder-items').getByRole('columnheader', { name: 'Total' })).toBeVisible();
         const totals = await page.getByTestId('builder-item-total').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().right)));
         expect(new Set(totals).size).toBe(1);
         await expectNoHorizontalScroll(page);
+        // Batch Add rows stay one aligned row each at tablet width
+        await page.getByTestId('open-batch-add').click();
+        const ba = page.getByTestId('batch-add');
+        const sizeY = (await ba.getByLabel('Row 1 size').boundingBox())!.y;
+        const qtyY = (await ba.getByLabel('Row 1 Qty').boundingBox())!.y;
+        expect(Math.abs(sizeY - qtyY)).toBeLessThanOrEqual(2);
+        await page.keyboard.press('Escape');
         await page.getByTestId('open-manual-add').click();
+        const dlg = (await page.getByTestId('item-editor').boundingBox())!;
+        expect(Math.abs(dlg.x + dlg.width / 2 - 384)).toBeLessThanOrEqual(2);
+        expect(dlg.width).toBeLessThan(768);
         await expectNoHorizontalScroll(page);
     });
 });
@@ -280,7 +382,7 @@ test.describe('phone', () => {
             await openBuilder(page);
             await pickCustomer(page);
             await expectNoHorizontalScroll(page);
-            await quickAddSagRods(page);
+            await batchAddSagRods(page);
             await expect(page.getByTestId('builder-items').getByRole('columnheader', { name: 'Total' })).toBeHidden();
             await expect(page.getByTestId('builder-item')).toHaveCount(2);
             await expectNoHorizontalScroll(page);
@@ -291,7 +393,15 @@ test.describe('phone', () => {
             await page.getByTestId('open-manual-add').click();
             const ed = (await page.getByTestId('item-editor').boundingBox())!;
             expect(Math.round(ed.width)).toBe(width);
+            expect(Math.round(ed.height)).toBe(852);
+            await expect(page.getByTestId('item-editor').getByRole('button', { name: 'Back' })).toBeVisible();
+            const submit = (await page.getByTestId('ed-submit').boundingBox())!;
+            expect(submit.y + submit.height).toBeLessThanOrEqual(852);
             await expectNoHorizontalScroll(page);
+            await page.getByTestId('item-editor').getByRole('button', { name: 'Back' }).click();
+            await page.getByTestId('open-quick-add').click();
+            expect(Math.round((await page.getByTestId('quick-add').boundingBox())!.width)).toBe(width);
+            await expect(page.getByTestId('qa-analyze')).toBeVisible();
         });
     }
 

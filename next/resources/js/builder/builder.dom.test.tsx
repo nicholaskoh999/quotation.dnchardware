@@ -80,7 +80,7 @@ describe('dimensions and diameter', () => {
         expect(bare72.errors.size).toMatch(/looks like a length/);
         const typed = computeItem(item({ size: '72', diameterOverride: '70' }, { length: '1000' }));
         expect(typed.diameter).toBe(70);
-        expect(typed.diameterSource).toBe('override');
+        expect(typed.diameterSource).toBe('custom');
         expect(typed.errors.size).toBeUndefined();
         expect(typed.warnings.size).toMatch(/needs review/);
     });
@@ -100,6 +100,61 @@ describe('dimensions and diameter', () => {
         expect(typed.errors.developedLength).toBeUndefined();
         expect(typed.geometry?.source).toBe('manual');
         expect(computeItem(item({ product: 'lbolt45', size: 'M16', qty: '5' }, { l: '600', w: '100' })).errors.developedLength).toMatch(/no formula/);
+    });
+});
+
+describe('Bar Ø — nominal size is not the bar (Owner Smoke #2 §8/§9)', () => {
+    it('M12 UNDERSIZE suggests Ø10.6; a custom 10.7 stays and drives weight and price (D)', () => {
+        const auto = computeItem(item({ size: 'M12', sizeType: 'UNDERSIZE', qty: '1' }, { length: '1000' }));
+        expect(auto.suggestedDiameter).toBe(10.6);
+        expect(auto.diameter).toBe(10.6);
+        expect(auto.diameterSource).toBe('built_in');
+        const custom = computeItem(item({ size: 'M12', sizeType: 'UNDERSIZE', diameterOverride: '10.7', qty: '1' }, { length: '1000' }));
+        expect(custom.diameter).toBe(10.7);
+        expect(custom.diameterSource).toBe('custom');
+        expect(custom.suggestedDiameter).toBe(10.6);
+        expect(custom.unitWeight).toBeCloseTo(rodWeight(10.7, 1000), 12);
+        expect(custom.errors.diameter).toBeUndefined();
+        // a custom Ø is not overwritten when unrelated fields change
+        const still = computeItem(item({ size: 'M12', sizeType: 'UNDERSIZE', finish: 'HDG', material: 'MS', diameterOverride: '10.7', qty: '1' }, { length: '1000' }));
+        expect(still.diameter).toBe(10.7);
+    });
+
+    it('M24 suggests its table value; Ø25 typed is what weight and price use (E)', () => {
+        const auto = computeItem(item({ size: 'M24', qty: '1' }, { length: '1000' }));
+        expect(auto.suggestedDiameter).toBe(24);
+        const c = computeItem(item({ size: 'M24', diameterOverride: '25', qty: '1' }, { length: '1000' }));
+        expect(c.diameter).toBe(25);
+        expect(c.unitWeight).toBeCloseTo(rodWeight(25, 1000), 12);
+        const expected = priceItem({ product: 'sagrod', weight: rodWeight(25, 1000), costRate: 3.5, addCost: 0, markup: 0, qty: 1 });
+        expect(c.calculated?.finalUnitPrice).toBe(expected.finalUnitPrice);
+    });
+
+    it('rejects a malformed Bar Ø but accepts decimals', () => {
+        expect(computeItem(item({ size: 'M12', diameterOverride: '10.7.1' }, { length: '1000' })).errors.diameter).toMatch(/decimals allowed/);
+        expect(computeItem(item({ size: 'M12', diameterOverride: '12.35' }, { length: '1000' })).errors.diameter).toBeUndefined();
+    });
+});
+
+describe('Developed length — calculated value fills the field, custom wins (Owner Smoke #2 §10/§11)', () => {
+    it('L Bolt L1000 W100 on a Ø25 bar calculates 1063 (F)', () => {
+        const c = computeItem(item({ product: 'lbolt', size: 'M24', diameterOverride: '25', qty: '1' }, { l: '1000', w: '100', threadLen: '100' }));
+        expect(c.calculatedDevelopedLength).toBe(1063);
+        expect(c.developedLengthSource).toBe('auto');
+        expect(c.geometry?.weighedLength).toBe(1063);
+        expect(c.unitWeight).toBeCloseTo(rodWeight(25, 1063), 12);
+    });
+
+    it('a custom 1070 drives weight and price while 1063 stays as the calculated reference (G)', () => {
+        const c = computeItem(item({ product: 'lbolt', size: 'M24', diameterOverride: '25', qty: '1', pricing: { costRate: '8.50', addCost: null, markup: null, noRound: false, override: null } }, { l: '1000', w: '100', developedLength: '1070' }));
+        expect(c.developedLengthSource).toBe('custom');
+        expect(c.calculatedDevelopedLength).toBe(1063);
+        expect(c.geometry?.weighedLength).toBe(1070);
+        expect(c.unitWeight).toBeCloseTo(rodWeight(25, 1070), 12);
+        const auto = computeItem(item({ product: 'lbolt', size: 'M24', diameterOverride: '25', qty: '1', pricing: { costRate: '8.50', addCost: null, markup: null, noRound: false, override: null } }, { l: '1000', w: '100' }));
+        expect(c.calculated!.finalUnitPrice).toBeGreaterThan(auto.calculated!.finalUnitPrice);
+        // blank again = back to AUTO
+        expect(auto.developedLengthSource).toBe('auto');
     });
 });
 
@@ -143,21 +198,46 @@ describe('pricing preview (engine wiring, no formula changes)', () => {
     });
 
     it('keeps a typed rate over the suggestion when the identity changes', () => {
-        const typed = item({ size: 'M12', finish: 'PL', qty: '1', pricing: { costRate: '4.10', addCost: null, markup: '5', mode: 'calculated', manualUnitPrice: '' } }, { length: '1000' });
+        const typed = item({ size: 'M12', finish: 'PL', qty: '1', pricing: { costRate: '4.10', addCost: null, markup: '5', noRound: false, override: null } }, { length: '1000' });
         expect(computeItem(typed).effective.costRate).toBe('4.10');
         expect(computeItem({ ...typed, finish: 'HDG' }).effective.costRate).toBe('4.10');
         expect(computeItem({ ...typed, finish: 'HDG' }).effective.addCost).toBe('1.60');
         expect(computeItem(typed).pricing?.rawUnitPrice).toBeCloseTo((rodWeight(12, 1000) * 4.1 + 0) * 1.05, 10);
     });
 
-    it('marks a manual override explicitly and keeps the calculated reference', () => {
-        const c = computeItem(item({ size: 'M12', qty: '10', pricing: { costRate: null, addCost: null, markup: null, mode: 'manual', manualUnitPrice: '9.90' } }, { length: '1000' }));
-        expect(c.pricing?.priceMode).toBe('manual');
-        expect(c.pricing?.priceSource).toBe('manual');
-        expect(c.pricing?.finalUnitPrice).toBe(9.9);
-        expect(c.pricing?.totalAmount).toBe(99);
-        expect(c.pricing?.roundedUnitPrice).toBeGreaterThan(0);
-        expect(computeItem(item({ size: 'M12', qty: '1', pricing: { costRate: null, addCost: null, markup: null, mode: 'manual', manualUnitPrice: '' } }, { length: '1000' })).errors.manualUnitPrice).toBeDefined();
+    it('Override unit price: the calculated unit stays, the final unit uses the override (I / J)', () => {
+        const base = item({ size: 'M12', qty: '10' }, { length: '1000' });
+        const calcOnly = computeItem(base);
+        const ov = computeItem({ ...base, pricing: { ...base.pricing, override: '9.90' } });
+        expect(ov.overrideUnitPrice).toBe(9.9);
+        expect(ov.pricing?.priceSource).toBe('manual');
+        expect(ov.pricing?.finalUnitPrice).toBe(9.9);
+        expect(ov.pricing?.totalAmount).toBe(99);
+        // the calculated price never disappears and is exactly the non-override price
+        expect(ov.calculated?.finalUnitPrice).toBe(calcOnly.pricing?.finalUnitPrice);
+        expect(ov.calculated?.finalUnitPrice).toBeGreaterThan(0);
+        // it keeps recalculating while the override is in force (Bar Ø 12 → 13)
+        const thicker = computeItem({ ...base, diameterOverride: '13', pricing: { ...base.pricing, override: '9.90' } });
+        expect(thicker.calculated!.finalUnitPrice).toBeGreaterThan(ov.calculated!.finalUnitPrice);
+        expect(thicker.pricing?.finalUnitPrice).toBe(9.9);
+        // "Use calculated price" = override cleared → final returns to calculated
+        const back = computeItem({ ...base, pricing: { ...base.pricing, override: null } });
+        expect(back.pricing?.finalUnitPrice).toBe(calcOnly.pricing?.finalUnitPrice);
+        expect(back.overrideUnitPrice).toBeNull();
+        // an empty override blocks
+        expect(computeItem({ ...base, pricing: { ...base.pricing, override: '' } }).errors.override).toBeDefined();
+        // with an override, a missing cost rate warns (no calculated unit) instead of blocking
+        const noRate = computeItem(item({ product: 'lbolt', size: 'M20', qty: '1', pricing: { costRate: null, addCost: null, markup: null, noRound: false, override: '20' } }, { l: '900', w: '70' }));
+        expect(noRate.errors.costRate).toBeUndefined();
+        expect(noRate.warnings.costRate).toMatch(/to see the calculated unit price/);
+        expect(noRate.valid).toBe(true);
+    });
+
+    it('No Round applies to the calculated price only', () => {
+        const base = item({ size: 'M12', qty: '1' }, { length: '1000' });
+        const nr = computeItem({ ...base, pricing: { ...base.pricing, noRound: true } });
+        expect(nr.calculated?.priceMode).toBe('no_round');
+        expect(nr.calculated?.finalUnitPrice).toBe(Math.round(nr.calculated!.rawUnitPrice * 100) / 100);
     });
 
     it('requires a cost rate where no default exists (no invented price)', () => {
@@ -172,6 +252,7 @@ describe('validation', () => {
         expect(computeItem(item({ qty: '-3' })).errors.qty).toBe('Qty cannot be negative');
         expect(computeItem(item({ qty: '2.5' })).errors.qty).toBe('Qty must be a whole number');
         expect(computeItem(item({ qty: '' })).errors.qty).toBe('Enter Qty');
+        expect(emptyItem('lbolt').qty).toBe('1');
         expect(computeItem(item({ qty: '0' })).errors.qty).toBe('Qty must be at least 1');
     });
 
@@ -235,13 +316,25 @@ describe('local draft storage', () => {
         expect(saveDraft('nicholas', q, 'new', new Date('2026-10-22T03:00:00Z'))).toBe('2026-10-22T03:00:00.000Z');
         expect(loadDraft('nicholas')?.quotation.remarks).toBe('hello');
         expect(loadDraft('alson')).toBeNull();
-        expect(draftKey('nicholas')).toBe('dnc-quo:builder-draft:v1:nicholas:new');
+        expect(draftKey('nicholas')).toBe('dnc-quo:builder-draft:v2:nicholas:new');
         window.localStorage.setItem(draftKey('alson'), '{not json');
         expect(loadDraft('alson')).toBeNull();
         window.localStorage.setItem(draftKey('alson'), JSON.stringify({ v: 1, savedAt: 'x', username: 'nicholas', quotation: q }));
         expect(loadDraft('alson')).toBeNull();
         clearDraft('nicholas');
         expect(loadDraft('nicholas')).toBeNull();
+    });
+
+    it('carries a v1 draft forward (manual → override, no_round → noRound, quick rows → batch) instead of dropping it', () => {
+        const v1item = { ...item({ size: 'M12' }, { length: '1000' }), entryMode: 'quick', pricing: { costRate: '3.50', addCost: null, markup: '5', mode: 'manual', manualUnitPrice: '4.80' } };
+        const q = { ...emptyQuotation('2026-10-22'), items: [v1item] };
+        window.localStorage.setItem('dnc-quo:builder-draft:v1:nicholas:new', JSON.stringify({ v: 1, savedAt: '2026-10-22T03:00:00.000Z', username: 'nicholas', quotation: q }));
+        const d = loadDraft('nicholas')!;
+        expect(d.v).toBe(2);
+        expect(d.quotation.items[0]!.entryMode).toBe('batch');
+        expect(d.quotation.items[0]!.pricing).toEqual({ costRate: '3.50', addCost: null, markup: '5', noRound: false, override: '4.80' });
+        clearDraft('nicholas');
+        expect(window.localStorage.getItem('dnc-quo:builder-draft:v1:nicholas:new')).toBeNull();
     });
 
     it('treats only real entries as meaningful (not the default date)', () => {

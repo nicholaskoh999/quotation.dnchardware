@@ -4,7 +4,7 @@
 |---|---|
 | Branch | `session/e-quotation-builder` |
 | Base | W1 accepted `42824ab670538716777ac996ad37b57497ac44ec` (W1 CLOSED / OWNER VISUAL ACCEPTED) |
-| Deployed | **NO** — per handoff §32: E · F · G · H → W2 Integration → fast sanity → Preview Deploy #2 → Owner Smoke #2 |
+| Deployed | Preview only — owner-authorised standalone Session E preview for Owner Smoke #2 (exception to §32's E · F · G · H → integration order) |
 | Production | untouched; no schema change; no write path |
 
 ## Architecture
@@ -97,3 +97,38 @@ the manual / no-round modes all come from `@/domain`.
 | Issued By issuer profile | Session G / H |
 | Open engine gates unchanged: OG-1 (M12 UNDERSIZE 10.6), OG-B1 (J Hook / Eye Bolt rounding money2), OG-B2, DG-1, OG-2 | owner |
 | Formal UOM field | Wave 2 data model / Builder follow-up (no UOM shown — `Qty 30`) |
+
+## Owner Smoke #2 · Loop #1 — entry-mode semantics + pricing inputs (BLOCKER fixes)
+
+Locked definitions (owner), now implemented:
+
+| mode | what it is | Session E state |
+|---|---|---|
+| **Quick Add** | AI-assisted extraction from customer input: pasted / WhatsApp text, image / photo / screenshot, PDF → Analyze → review extracted items → fix uncertain fields → price → add confirmed items | intake (Paste Text · Upload Image / PDF), review architecture (`QuickAddAnalyzer`, `ExtractedItem` with `uncertain` fields, confirm / fix with the shared field sections). **The analyzer is Session I** — `quickAddAnalyzer = null`, Analyze is shown unavailable, nothing is analysed, parsed or sent; no fake results |
+| **Manual Add** | one item keyed by hand: Product → Material → Treatment → Size Type → Finish → Size → Bar Ø → dimensions → Qty → Accessories → Pricing | unchanged flow, now a centred dialog |
+| **Batch Add** | common fields once, several similar rows | the former grouped row form, renamed everywhere (was wrongly called Quick Add); `entryMode 'batch'` |
+
+All three emit the same `DraftItem`. Entry: `?mode=quick|manual|batch`;
+`?product=<key>` (frequent products) opens Manual Add on that product.
+
+- **Presentation:** Quick / Manual / Batch / Edit open as a centred large
+  dialog on desktop and tablet (≈ 880 px Manual, 1040 px Quick / Batch, ≤ 85vh,
+  sticky header + footer, scrolling body); full-screen task with Back on phones.
+  No right-side drawer.
+- **Bar Ø:** always visible and editable. Blank = AUTO (the diameter master's
+  suggestion, refreshed when Size / Material / Size Type change); typed =
+  CUSTOM (decimals such as 10.7 allowed), drives weight / geometry / price,
+  never overwritten; "Use suggested Ø…" shown when the suggestion differs.
+- **Developed length (formula products):** the calculated value is in the
+  field (AUTO, recalculated); a typed value is CUSTOM and drives weight / price,
+  with "Calculated: 1063 mm · Use calculated". J Hook / Eye Bolt keep the
+  editable suggestion with Apply (§19 / §20 — no hard formula); L Bolt 45° stays
+  manual.
+- **Qty defaults to 1** for every new item / Batch row (a default, not the
+  customer's word); duplicate copies Qty; product changes keep it.
+- **Pricing ladder:** Calculated unit (always computed and shown, also under
+  an override) · Override unit (explicit "Override unit price") · Final unit.
+  "Use calculated price" clears the override. No Round (Advanced) applies to
+  the calculated price. Historical / customer price suggestions are Session F.
+- **Local drafts** saved before this loop (v1) are carried forward (manual →
+  override, quick rows → batch), never dropped.

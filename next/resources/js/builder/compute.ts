@@ -36,7 +36,7 @@ export type FieldKey =
     | 'product' | 'productName' | 'material' | 'propertyClass' | 'finish' | 'sizeType' | 'size' | 'diameter'
     | 'length' | 'l' | 'w' | 'h' | 'id' | 'ih' | 'oh' | 's' | 'threadLen' | 'developedLength'
     | 't' | 'triL' | 'triH' | 'triCL' | 'triCH' | 'triT' | 'holeDiameter' | 'holes' | 'dimensionText' | 'unitWeight'
-    | 'qty' | 'nut' | 'fw' | 'custom' | 'costRate' | 'addCost' | 'markup' | 'manualUnitPrice' | 'price';
+    | 'qty' | 'nut' | 'fw' | 'custom' | 'costRate' | 'addCost' | 'markup' | 'override' | 'price';
 
 export interface SuggestedPricing {
     /** null ⇒ no built-in default for this identity (a rate must be typed). */
@@ -56,13 +56,21 @@ export interface ComputedItem {
     /** Legacy stored code where one exists ('4140', 'S45C_HARDEN_G8_8'), else a structured label. */
     materialCode: string;
     size: SizeInterpretation | null;
+    /** The Bar Ø actually used (custom, else the suggestion). */
     diameter: number | null;
-    diameterSource: 'override' | 'built_in' | 'custom' | 'none';
+    /** custom = typed by the person · built_in / custom_rule = suggested by the diameter master · none. */
+    diameterSource: 'custom' | 'built_in' | 'custom_rule' | 'none';
+    /** What the diameter master suggests for Size · Material · Size Type (shown even when a custom Ø is used). */
+    suggestedDiameter: number | null;
     /** Sag Rod TL canonicalised (100 → 100/100); other products as typed. */
     threadLen: string;
     /** The engine's dimension line (legacy `x` spelling; the UI shows it canonically). */
     dimensionLine: string;
     geometry: GeometryResult | null;
+    /** The formula's developed length (formula products), whatever the field holds — the "Calculated" reference. */
+    calculatedDevelopedLength: number | null;
+    /** AUTO (formula / none) or CUSTOM (typed) developed length. */
+    developedLengthSource: 'auto' | 'custom';
     /** kg per piece. */
     unitWeight: number;
     /** kg for the line (unit weight × qty), null when there is no weight. */
@@ -71,7 +79,12 @@ export interface ComputedItem {
     suggested: SuggestedPricing;
     /** The figures actually priced (typed value, else the suggestion). */
     effective: { costRate: string; addCost: string; markup: string };
+    /** CALCULATED — always computed from Bar Ø, developed length, weight, rates and rounding, override or not. */
+    calculated: PricingResult | null;
+    /** FINAL — the line actually used: the override when one is set, else the calculated line. */
     pricing: PricingResult | null;
+    /** The override unit price in force (null = none). */
+    overrideUnitPrice: number | null;
     errors: Partial<Record<FieldKey, string>>;
     warnings: Partial<Record<FieldKey, string>>;
     valid: boolean;
@@ -156,38 +169,42 @@ export function computeItem(item: DraftItem): ComputedItem {
     if (materialHasFinish(item.material) && !(FINISH_OPTIONS as readonly string[]).includes(item.finish)) errors.finish = 'Choose a finish';
     if (spec.hasSizeType && !item.sizeType) errors.sizeType = 'Choose Fullsize or Undersize';
 
-    // ── size → diameter ───────────────────────────────────────────────────
+    // ── size → Bar Ø (suggested, unless the person typed a custom one) ─────
     let size: SizeInterpretation | null = null;
-    let diameter: number | null = null;
-    let diameterSource: ComputedItem['diameterSource'] = 'none';
-    const override = item.diameterOverride.trim();
-    if (override) {
-        if (!NUMBER_RE.test(override) || !(Number(override) > 0)) errors.diameter = 'Enter the bar diameter in mm';
-        else {
-            diameter = Number(override);
-            diameterSource = 'override';
-        }
-    }
+    let suggestedDiameter: number | null = null;
+    let suggestedSource: 'built_in' | 'custom_rule' | 'none' = 'none';
     if (spec.hasSize || (item.product === 'others' && item.size.trim())) {
         size = interpretSize(item.size);
         if (!size.normalised) {
             if (spec.hasSize) errors.size = 'Enter a size';
-        } else if (diameterSource !== 'override') {
+        } else if (!size.needsReview) {
             const eff = effectiveDiameter(item.product, sm, sizeType, size.normalised);
-            if (eff.diameter !== null && !size.needsReview) {
-                diameter = eff.diameter;
-                diameterSource = eff.source;
-            } else if (size.needsReview) {
-                errors.size =
-                    size.reviewReason === 'bare_number_out_of_range'
-                        ? `“${size.normalised}” looks like a length, not a size — check it, or enter the bar diameter`
-                        : `${size.display} is not a size the tables know — enter the bar diameter`;
-            } else {
-                errors.diameter = `No built-in ${sizeType ? sizeType.toLowerCase() + ' ' : ''}diameter for ${size.display} — enter the bar diameter`;
-            }
-        } else if (size.needsReview) {
-            warnings.size = `${size.display || size.normalised} needs review — priced from the typed diameter`;
+            suggestedDiameter = eff.diameter;
+            suggestedSource = eff.source === 'custom' ? 'custom_rule' : eff.source;
         }
+    }
+    let diameter: number | null = suggestedDiameter;
+    let diameterSource: ComputedItem['diameterSource'] = suggestedSource;
+    const custom = item.diameterOverride.trim();
+    if (custom) {
+        if (!NUMBER_RE.test(custom) || !(Number(custom) > 0)) {
+            errors.diameter = 'Bar Ø must be a number above 0 (decimals allowed)';
+            diameter = null;
+            diameterSource = 'none';
+        } else {
+            diameter = Number(custom);
+            diameterSource = 'custom';
+        }
+    }
+    if (size && size.normalised && size.needsReview) {
+        if (diameterSource === 'custom') warnings.size = `${size.display || size.normalised} needs review — priced from the typed Bar Ø`;
+        else
+            errors.size =
+                size.reviewReason === 'bare_number_out_of_range'
+                    ? `“${size.normalised}” looks like a length, not a size — check it, or enter the Bar Ø`
+                    : `${size.display} is not a size the tables know — enter the Bar Ø`;
+    } else if (size && size.normalised && suggestedDiameter === null && diameterSource !== 'custom') {
+        errors.diameter = `No built-in ${sizeType ? sizeType.toLowerCase() + ' ' : ''}Bar Ø for ${size.display} — enter it`;
     }
     const normalisedSize = size?.normalised ?? '';
 
@@ -218,9 +235,7 @@ export function computeItem(item: DraftItem): ComputedItem {
     if (item.product === 'others' && d.unitWeight.trim() && !(NUMBER_RE.test(d.unitWeight.trim()) && Number(d.unitWeight) > 0)) {
         errors.unitWeight = 'Unit weight must be a number above 0';
     }
-    let geometry: GeometryResult | null = null;
-    try {
-        geometry = computeGeometry({
+    const geoInput = {
             product: item.product,
             diameter: diameter ?? 0,
             length: d.length,
@@ -236,12 +251,19 @@ export function computeItem(item: DraftItem): ComputedItem {
             triL: d.triL,
             triH: d.triH,
             triT: d.triT,
-            developedLength: usesDeveloped && devTyped ? devTyped : undefined,
             unitWeight: item.product === 'others' ? d.unitWeight : undefined,
-        });
+    };
+    let geometry: GeometryResult | null = null;
+    let autoGeometry: GeometryResult | null = null;
+    try {
+        // AUTO: what the formula gives (the "Calculated" reference, also when a custom length is typed)
+        autoGeometry = computeGeometry(geoInput);
+        geometry = usesDeveloped && devTyped && !errors.developedLength ? computeGeometry({ ...geoInput, developedLength: devTyped }) : autoGeometry;
     } catch {
         geometry = null;
     }
+    const calculatedDevelopedLength = spec.developedLength === 'formula' && autoGeometry?.source === 'formula' ? autoGeometry.developedLength : null;
+    const developedLengthSource: ComputedItem['developedLengthSource'] = usesDeveloped && devTyped ? 'custom' : 'auto';
     if (usesDeveloped && !devTyped && geometry && geometry.source === 'none') {
         if (spec.developedLength === 'manual') errors.developedLength = 'Enter the developed length (no formula for this product)';
         else if (spec.developedLength === 'suggested') {
@@ -287,41 +309,50 @@ export function computeItem(item: DraftItem): ComputedItem {
         const v = effective[key].trim();
         if (v && !RATE_RE.test(v)) errors[key] = 'Enter a number';
     }
-    if (p.mode === 'manual') {
-        const m = p.manualUnitPrice.trim();
-        if (!m) errors.manualUnitPrice = 'Enter the manual final unit price';
-        else if (!RATE_RE.test(m) || !(evalExpr(m) > 0)) errors.manualUnitPrice = 'The manual price must be above 0';
-    } else if (!effective.costRate.trim()) {
-        errors.costRate = suggested.source === 'none' ? 'No default rate for this item — enter the cost rate' : 'Enter the cost rate';
+    const overrideText = p.override === null ? null : p.override.trim();
+    let overrideUnitPrice: number | null = null;
+    if (overrideText !== null) {
+        if (!overrideText) errors.override = 'Enter the override unit price, or use the calculated price';
+        else if (!RATE_RE.test(overrideText) || !(evalExpr(overrideText) > 0)) errors.override = 'The override unit price must be above 0';
+        else overrideUnitPrice = evalExpr(overrideText);
+    }
+    if (!effective.costRate.trim()) {
+        const msg = suggested.source === 'none' ? 'No default rate for this item — enter the cost rate' : 'Enter the cost rate';
+        // Without a rate there is no Calculated Unit. With an override the line can still be priced,
+        // but the calculation reference is missing — say so without blocking.
+        if (overrideUnitPrice === null) errors.costRate = msg;
+        else warnings.costRate = `${msg} to see the calculated unit price`;
     }
     if (p.markup !== null && p.markup.trim() && parseNum(p.markup) < 0) warnings.markup = 'Negative markup';
 
+    const baseInput = {
+        product: item.product,
+        weight: unitWeight,
+        costRate: effective.costRate,
+        addCost: effective.addCost,
+        markup: effective.markup,
+        accessories: toAccessoryInput(item.accessories),
+        qty: qty ?? 0,
+        priceList:
+            item.product === 'sagrod'
+                ? { material: materialCode, sizeType: item.sizeType, finish, size: normalisedSize, threadLen, length: d.length }
+                : undefined,
+    };
+    let calculated: PricingResult | null = null;
     let pricing: PricingResult | null = null;
     try {
-        pricing = priceItem({
-            product: item.product,
-            weight: unitWeight,
-            costRate: effective.costRate,
-            addCost: effective.addCost,
-            markup: effective.markup,
-            mode: p.mode,
-            manualUnitPrice: p.manualUnitPrice,
-            accessories: toAccessoryInput(item.accessories),
-            qty: qty ?? 0,
-            priceList:
-                item.product === 'sagrod'
-                    ? { material: materialCode, sizeType: item.sizeType, finish, size: normalisedSize, threadLen, length: d.length }
-                    : undefined,
-        });
+        calculated = priceItem({ ...baseInput, mode: p.noRound ? 'no_round' : 'calculated' });
+        pricing = overrideUnitPrice !== null ? priceItem({ ...baseInput, mode: 'manual', manualUnitPrice: overrideText }) : calculated;
     } catch {
+        calculated = null;
         pricing = null;
     }
-    if (p.mode !== 'manual' && pricing && pricing.finalUnitPrice <= 0 && Object.keys(errors).length === 0) {
+    if (overrideUnitPrice === null && calculated && calculated.finalUnitPrice <= 0 && Object.keys(errors).length === 0) {
         errors.price =
             unitWeight <= 0
                 ? item.product === 'others'
-                    ? 'No weight to price from — enter a unit weight, or set a manual price'
-                    : 'No weight to price from — check the size and dimensions'
+                    ? 'No weight to price from — enter a unit weight, or override the unit price'
+                    : 'No weight to price from — check the size, Bar Ø and dimensions'
                 : 'The calculated price is RM 0.00 — check the rates';
     }
 
@@ -368,6 +399,11 @@ export function computeItem(item: DraftItem): ComputedItem {
         size,
         diameter,
         diameterSource,
+        suggestedDiameter,
+        calculatedDevelopedLength,
+        developedLengthSource,
+        calculated,
+        overrideUnitPrice,
         threadLen,
         dimensionLine,
         geometry,

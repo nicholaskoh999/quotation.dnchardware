@@ -108,7 +108,9 @@ export function ItemsTable({
                             </span>
                             <span role="cell" className="bd-markup text-xs leading-5 whitespace-nowrap text-muted-foreground md:text-right" data-testid="builder-item-markup">
                                 {p?.priceMode === 'manual' ? (
-                                    <span className="font-medium text-warning">Manual</span>
+                                    <span className="font-medium text-warning" title={c.calculated && c.calculated.finalUnitPrice > 0 ? `Calculated ${formatPrice(c.calculated.finalUnitPrice)}` : undefined}>
+                                        Override
+                                    </span>
                                 ) : markup > 0 ? (
                                     <span>
                                         <span aria-hidden="true">⭐ </span>+{markup}%

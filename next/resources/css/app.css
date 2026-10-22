@@ -120,16 +120,16 @@
     .qd-total { grid-area: total; }
 }
 
-/* Quick Add rows (Session E): stacked on phones; one aligned row per item
-   from md up. The column template comes from the product (--qa-cols). */
+/* Batch Add rows (Session E): stacked on phones; one aligned row per item
+   from md up. The column template comes from the product (--ba-cols). */
 @layer components {
-    .qa-row-grid {
+    .ba-row-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     @media (min-width: 48rem) {
-        .qa-row-grid {
-            grid-template-columns: var(--qa-cols);
+        .ba-row-grid {
+            grid-template-columns: var(--ba-cols);
             align-items: start;
         }
     }
