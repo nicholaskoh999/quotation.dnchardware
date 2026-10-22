@@ -3093,14 +3093,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 .uc-res strong{font-size:19px; font-weight:800; color:var(--text); overflow-wrap:anywhere}
 .uc-msg{margin-top:8px; font-size:12px; font-weight:700; color:#c2410c}
 .uc-msg[hidden]{display:none}
-.uc-apply{margin-top:14px}
-
-.uc-apply label{display:block; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px}
-
-.uc-apply[hidden]{display:none}
-
-.uc-btns{display:flex; flex-wrap:wrap; gap:6px}
-
+.uc-apply{margin-top:14px}
+.uc-apply label{display:block; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px}
+.uc-apply[hidden]{display:none}
+.uc-btns{display:flex; flex-wrap:wrap; gap:6px}
 .uc-foot{display:flex; justify-content:flex-end; margin-top:16px}
 /* Unit converter — inline panel under the Dimension Entry heading */
 .group-label>.uc-open{order:3; margin-left:auto; padding:6px 12px; font-size:12px; font-weight:800; letter-spacing:0; min-height:32px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; box-shadow:var(--shadow-sm)}
@@ -8191,74 +8187,40 @@ function getUBoltCardDebugHtml(item){
   const text=`Saved Unit ${fmt(parseFloat(item.finalUnitPrice)||0)} | Saved formData: ${dimensions} | Recalculated Unit ${fmt(data.recalculatedUnit)}`;
   return `<div class="ubolt-card-debug">${escHtml(text)}</div>`;
 }
-/* U-Bolt Pipe Size presets — INPUT ASSISTANCE ONLY. [DN, inch, ID, IH, TL]. Selecting one fills ID / IH /
-
-   Thread Length (all stay editable); the pipe size itself is never stored, priced or printed. */
-
-const UBOLT_PIPE_PRESETS=[
-
-  [20,'3/4',30,47,22],[25,'1',36,53,25],[32,'1-1/4',46,64,28],[40,'1-1/2',52,73,30],[50,'2',64,85,32],
-
-  [65,'2-1/2',80,105,35],[80,'3',92,118,35],[90,'3-1/2',104,131,40],[100,'4',118,150,55],[125,'5',144,176,55],
-
-  [150,'6',170,210,65],[200,'8',222,262,65],[250,'10',274,320,75],[300,'12',326,380,90],[350,'14',362,420,90],
-
-  [400,'16',414,470,90],[450,'18',466,530,110],[500,'20',518,585,110],[550,'22',568,640,120],[600,'24',620,690,120],
-
-  [650,'26',670,715,120],[700,'28',722,790,120],[750,'30',774,815,120],[800,'32',826,870,120],[850,'34',878,920,120],
-
-  [900,'36',930,975,120],[950,'38',982,1025,120],[1000,'40',1034,1080,120]
-
-];
-
-const UBOLT_PRESET_FIELDS=[['id',2],['ih',3],['threadLen',4]];
-
-let uboltPresetVals={};   // field -> value last written by a preset; dropped when the person edits that field
-
-(function(){
-
-  const sel=document.getElementById('ubolt-pipeSize'); if(!sel) return;
-
-  UBOLT_PIPE_PRESETS.forEach(r=>{ const o=document.createElement('option'); o.value=String(r[0]); o.textContent=r[1]+'" / DN'+r[0]; sel.appendChild(o); });
-
-  UBOLT_PRESET_FIELDS.forEach(([f])=>{ const i=document.getElementById('ubolt-'+f); if(i) i.addEventListener('input',()=>{ delete uboltPresetVals[f]; renderUBoltPresetTags(); }); });
-
-})();
-
-function renderUBoltPresetTags(){
-
-  let any=false;
-
-  UBOLT_PRESET_FIELDS.forEach(([f])=>{
-
-    const i=el('ubolt-'+f), t=el('ubolt-'+f+'-preset'); if(!i||!t) return;
-
-    const on=uboltPresetVals[f]!==undefined && String(i.value)===uboltPresetVals[f];
-
-    t.hidden=!on; if(on) any=true;
-
-  });
-
-  const sel=el('ubolt-pipeSize'); if(sel&&sel.value&&!any) sel.value='';   // every preset value was edited or cleared
-
-}
-
-function applyUBoltPipePreset(){
-
-  const sel=el('ubolt-pipeSize'); if(!sel) return;
-
-  uboltPresetVals={};
-
-  const row=UBOLT_PIPE_PRESETS.find(r=>String(r[0])===sel.value);
-
-  if(row){ UBOLT_PRESET_FIELDS.forEach(([f,k])=>{ const i=el('ubolt-'+f); if(i){ i.value=String(row[k]); uboltPresetVals[f]=String(row[k]); } }); }
-
-  calcUBolt('ubolt');   // same path as typing ID / IH: refreshes total length, preview and the TL helper
-
-  renderUBoltPresetTags();
-
-}
-
+/* U-Bolt Pipe Size presets — INPUT ASSISTANCE ONLY. [DN, inch, ID, IH, TL]. Selecting one fills ID / IH /
+   Thread Length (all stay editable); the pipe size itself is never stored, priced or printed. */
+const UBOLT_PIPE_PRESETS=[
+  [20,'3/4',30,47,22],[25,'1',36,53,25],[32,'1-1/4',46,64,28],[40,'1-1/2',52,73,30],[50,'2',64,85,32],
+  [65,'2-1/2',80,105,35],[80,'3',92,118,35],[90,'3-1/2',104,131,40],[100,'4',118,150,55],[125,'5',144,176,55],
+  [150,'6',170,210,65],[200,'8',222,262,65],[250,'10',274,320,75],[300,'12',326,380,90],[350,'14',362,420,90],
+  [400,'16',414,470,90],[450,'18',466,530,110],[500,'20',518,585,110],[550,'22',568,640,120],[600,'24',620,690,120],
+  [650,'26',670,715,120],[700,'28',722,790,120],[750,'30',774,815,120],[800,'32',826,870,120],[850,'34',878,920,120],
+  [900,'36',930,975,120],[950,'38',982,1025,120],[1000,'40',1034,1080,120]
+];
+const UBOLT_PRESET_FIELDS=[['id',2],['ih',3],['threadLen',4]];
+let uboltPresetVals={};   // field -> value last written by a preset; dropped when the person edits that field
+(function(){
+  const sel=document.getElementById('ubolt-pipeSize'); if(!sel) return;
+  UBOLT_PIPE_PRESETS.forEach(r=>{ const o=document.createElement('option'); o.value=String(r[0]); o.textContent=r[1]+'" / DN'+r[0]; sel.appendChild(o); });
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{ const i=document.getElementById('ubolt-'+f); if(i) i.addEventListener('input',()=>{ delete uboltPresetVals[f]; renderUBoltPresetTags(); }); });
+})();
+function renderUBoltPresetTags(){
+  let any=false;
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{
+    const i=el('ubolt-'+f), t=el('ubolt-'+f+'-preset'); if(!i||!t) return;
+    const on=uboltPresetVals[f]!==undefined && String(i.value)===uboltPresetVals[f];
+    t.hidden=!on; if(on) any=true;
+  });
+  const sel=el('ubolt-pipeSize'); if(sel&&sel.value&&!any) sel.value='';   // every preset value was edited or cleared
+}
+function applyUBoltPipePreset(){
+  const sel=el('ubolt-pipeSize'); if(!sel) return;
+  uboltPresetVals={};
+  const row=UBOLT_PIPE_PRESETS.find(r=>String(r[0])===sel.value);
+  if(row){ UBOLT_PRESET_FIELDS.forEach(([f,k])=>{ const i=el('ubolt-'+f); if(i){ i.value=String(row[k]); uboltPresetVals[f]=String(row[k]); } }); }
+  calcUBolt('ubolt');   // same path as typing ID / IH: refreshes total length, preview and the TL helper
+  renderUBoltPresetTags();
+}
 /* Advisory only: max recommended thread length = IH - ID/2 - 10 (mm). Display helper —
    never clamps, blocks or changes the Thread Length value or any calculation. */
 function updateUBoltTLHelper(){
@@ -15920,36 +15882,21 @@ async function wqaAnalyze(){
     if(token===wqa._aiReq) wqaSetAiBusy(false);
   }
 }
-/* ── L-Bolt dimension references → canonical TO END ────────────────────────
-
-   Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
-
-   centre line or TO its end; the system's canonical L and W are TO END. TOP adds D,
-
-   CENTER adds D/2, END adds nothing. Nominal diameter only — no bend radius. Pure:
-
-   returns the source untouched alongside the normalized value so the review can show both. */
-
-function normalizeBentDimension(value,reference,diameter){
-
-  const src=Number(value), ref=String(reference||'').toUpperCase(), d=Number(diameter);
-
-  const out={source_value:src,source_reference:ref||null,normalized_value:src,normalized_reference:'END',converted:false,resolved:true};
-
-  if(!(src>0)) { out.resolved=false; return out; }
-
-  if(ref==='END'||ref==='') return out;                       // already TO END, or the document names no reference
-
-  if((ref==='TOP'||ref==='CENTER') && d>0){
-
-    out.normalized_value=Math.round((src+(ref==='TOP'?d:d/2))*100)/100; out.converted=true; return out;
-
-  }
-
-  out.resolved=false; return out;                              // UNCLEAR, or no diameter to convert with: never guess
-
-}
-
+/* ── L-Bolt dimension references → canonical TO END ────────────────────────
+   Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
+   centre line or TO its end; the system's canonical L and W are TO END. TOP adds D,
+   CENTER adds D/2, END adds nothing. Nominal diameter only — no bend radius. Pure:
+   returns the source untouched alongside the normalized value so the review can show both. */
+function normalizeBentDimension(value,reference,diameter){
+  const src=Number(value), ref=String(reference||'').toUpperCase(), d=Number(diameter);
+  const out={source_value:src,source_reference:ref||null,normalized_value:src,normalized_reference:'END',converted:false,resolved:true};
+  if(!(src>0)) { out.resolved=false; return out; }
+  if(ref==='END'||ref==='') return out;                       // already TO END, or the document names no reference
+  if((ref==='TOP'||ref==='CENTER') && d>0){
+    out.normalized_value=Math.round((src+(ref==='TOP'?d:d/2))*100)/100; out.converted=true; return out;
+  }
+  out.resolved=false; return out;                              // UNCLEAR, or no diameter to convert with: never guess
+}
 /* ══ THE ONE SHARED NORMALISER ══════════════════════════════════════════════
    Every input source — the deterministic text parser, the AI text fallback and
    the AI photo / PDF extraction — produces the SAME compact extraction:
@@ -16319,34 +16266,20 @@ function wqaNormalizeExtraction(d, opts){
          down to "100" and hand the row a length nobody wrote. */
       row.unclearRaw=String(it.unclear);
     }
-    /* L Bolt only: bring L and W to the canonical TO END, and keep what the drawing said.
-
-       Unresolved (reference unclear / no diameter) is never converted and never assumed TO END:
-
-       the value is held back as evidence and the row asks for it. */
-
-    if(rowProd==='lbolt'){
-
-      const dm=/^M\s*(\d+(?:\.\d+)?)/i.exec(String(row.size||'')), dia=dm?Number(dm[1]):0;
-
-      const norm=[['length','L',it.Lref],['w','W',it.Wref]].map(([k,lab,ref])=>{
-
-        if(row[k]===''||ref==null||ref==='') return null;
-
-        const n=normalizeBentDimension(row[k],ref,dia);
-
-        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); }
-
-        else { row[k]=''; row.aiUncertain.push((lab+' '+n.source_value+': '+(String(ref).toUpperCase()==='UNCLEAR'?'reference unclear':'needs diameter')).slice(0,40)); }
-
-        return Object.assign({k:lab},n);
-
-      }).filter(Boolean);
-
-      if(norm.length) row.dimNorm=norm;
-
-    }
-
+    /* L Bolt only: bring L and W to the canonical TO END, and keep what the drawing said.
+       Unresolved (reference unclear / no diameter) is never converted and never assumed TO END:
+       the value is held back as evidence and the row asks for it. */
+    if(rowProd==='lbolt'){
+      const dm=/^M\s*(\d+(?:\.\d+)?)/i.exec(String(row.size||'')), dia=dm?Number(dm[1]):0;
+      const norm=[['length','L',it.Lref],['w','W',it.Wref]].map(([k,lab,ref])=>{
+        if(row[k]===''||ref==null||ref==='') return null;
+        const n=normalizeBentDimension(row[k],ref,dia);
+        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); }
+        else { row[k]=''; row.aiUncertain.push((lab+' '+n.source_value+': '+(String(ref).toUpperCase()==='UNCLEAR'?'reference unclear':'needs diameter')).slice(0,40)); }
+        return Object.assign({k:lab},n);
+      }).filter(Boolean);
+      if(norm.length) row.dimNorm=norm;
+    }
     /* Product-aware, per ROW: only a product that HAS a thread can be missing
        one, and which product this is was decided a few lines above. */
     if(rEnds>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
