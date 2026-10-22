@@ -50,6 +50,7 @@
   --wa:#25d366; --wa-hover:#1db954;
   --red:#dc2626; --red-light:#fef2f2; --red-mid:#fecaca;
   --amber:#b45309; --amber-light:#fffbeb; --amber-mid:#fde68a;
+  --amber-ink:#b8892d;   /* staff-only pricing text on Quotation List cards */
   /* Softer but deeper: a hairline to seat the edge, then a wider low-opacity
      spread so a white card lifts off the tinted page without a hard drop. */
   --shadow-sm:0 1px 2px rgba(20,25,40,.06), 0 2px 8px rgba(20,25,40,.07);
@@ -1452,6 +1453,14 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-qtyweight{margin-top:4px}
 .qi-unitline strong{color:var(--text)}
 .qi-breakdown{margin-top:1px;font-size:12px;color:var(--text-muted);font-weight:600}
+/* Internal pricing composition on the Quotation List card — staff only, never printed */
+.qi-pricing{margin-top:4px;font-size:9px;line-height:1.45;color:var(--amber-ink);font-weight:500;letter-spacing:.01em;overflow-wrap:anywhere}
+.qi-pricing .qi-pr{white-space:nowrap}
+.qi-pricing .qi-pr-auto{font-weight:600}
+.qi-override{margin-top:3px;font-size:11.5px;font-weight:700;color:#b45309;line-height:1.2}
+.qi-override.neg{color:#b91c1c}
+.qi-unitcol{min-width:0}
+.qi-meta .qi-sep-pill::before{content:'·';margin-right:6px;color:var(--text-muted)}
 .qi-item-bottom{margin-top:8px;align-items:baseline}
 .qi-meta{gap:6px}
 .qi-meta .qi-weight-pill::before{content:'·';margin-right:6px;color:var(--text-muted)}
@@ -5435,6 +5444,9 @@ const I18N={
     /* The saved-quotation item card, the pricing-history record card and
        Quick Open. All three build their own markup on every render. */
     qiUnitWeight:'Unit Weight', qiTotal:'Total', qiAccessories:'Accessories',
+    /* Quotation List card: internal pricing composition (staff only). */
+    qiCostRate:'Cost', qiAddCost:'Add', qiMarkup:'Markup', qiAuto:'Calc', qiAcc:'Acc',
+    qiManualOverride:'Manual Override', qiOverride:'Override',
     qoSearching:'Searching…', qoFormerly:'Formerly {r}',
     phOtherCustomer:'Other customer reference', phSameDims:'Same dimensions',
     phDimsNotComparable:'Dimensions not comparable', phDiffersBy:'Differs by {d}',
@@ -5942,6 +5954,8 @@ const I18N={
     wqaCustomerLabel:'客户写的是「{s}」· 判定为：{d}',
     lblDateDash:'日期 —',
     qiUnitWeight:'单件重量', qiTotal:'合计', qiAccessories:'配件',
+    qiCostRate:'成本', qiAddCost:'加工', qiMarkup:'利润', qiAuto:'计算价', qiAcc:'配件',
+    qiManualOverride:'手动覆盖', qiOverride:'差额',
     qoSearching:'搜索中…', qoFormerly:'原单号 {r}',
     phOtherCustomer:'其他客户参考', phSameDims:'尺寸相同',
     phDimsNotComparable:'尺寸无法比较', phDiffersBy:'相差 {d}',
@@ -9275,6 +9289,60 @@ function setQuoteSortOrder(v){
   quoteListSortOrder=(v==='oldest')?'oldest':'newest';
   renderQuote();
 }
+/* ── Quotation List card: what the price is made of (STAFF INTERNAL) ───────
+   Display only. Reads what the item already stored — nothing is recalculated
+   and no price changes. Never used by Print / WhatsApp / Copy.
+
+   Manual Price overrides the FINAL unit price only. The add path still runs
+   the calculation and stores its Auto Round result beside the typed figure
+   (roundedUnitPrice, bolt only — see getPriceModeSaveData), so the card can
+   show both, and how far the override moved the price from the Auto one.
+   The Auto figure is shown for a manual item only when it was really
+   calculated from a cost rate: a manual J Bolt with no rate has no Auto
+   price, and inventing one from its Additional Cost alone would mislead. */
+const DC_TOTAL_LENGTH_TYPES=['ubolt','squbolt','lbolt','lbolt45','jbolt'];
+function dcRateText(v){
+  const n=Number(v)||0, s=n.toFixed(4).replace(/0{1,2}$/,'');
+  return s;
+}
+function dcItemPricingSummary(item){
+  const fd=item&&item.formData||{};
+  const mode=['auto','no_round','manual'].includes(item.priceMode||fd.priceMode)?(item.priceMode||fd.priceMode):'auto';
+  const final=dcItemFinalUnit(item), accUnit=dcItemAccUnit(item);
+  const has=v=>v!==undefined&&v!==null&&String(v).trim()!=='';
+  const parts=[];
+  const rateRaw=has(fd.costRate)?fd.costRate:null;
+  const rate=rateRaw!==null?evalExpr(String(rateRaw)):0;
+  if(rateRaw!==null) parts.push(escHtml(dcT('qiCostRate'))+' '+escHtml(dcRateText(rate)));
+  if(has(fd.addCost)) parts.push(escHtml(dcT('qiAddCost'))+' '+escHtml(dcRateText(evalExpr(String(fd.addCost)))));
+  if(accUnit>0) parts.push(escHtml(dcT('qiAcc'))+' '+escHtml(accUnit.toFixed(2)));
+  const markup=parseFloat(has(fd.markup)?fd.markup:item.markup)||0;
+  parts.push(escHtml(dcT('qiMarkup'))+' '+escHtml(cleanNum(markup))+'%');
+  /* The calculated price before any override. Non-manual: it IS the unit price. */
+  let auto=null;
+  if(mode!=='manual') auto=final;
+  else{
+    const rounded=Number(item.roundedUnitPrice);
+    const calculated = item.itemType==='was'
+      ? ['anchorCostRate','basePlateCostRate','trianglePlateCostRate'].some(k=>has(fd[k])&&evalExpr(String(fd[k]))>0)
+      : rate>0 && (parseFloat(item.weight)||0)>0;
+    if(calculated && isFinite(rounded) && rounded>0) auto=roundMoney2(rounded+accUnit);
+  }
+  if(auto!==null) parts.push('<span class="qi-pr-auto">'+escHtml(dcT('qiAuto'))+' '+escHtml(auto.toFixed(2))+'</span>');
+  let override=null;
+  if(mode==='manual' && auto!==null){
+    const diff=roundMoney2(final-auto);
+    const pct=auto>0?diff/auto*100:0;
+    const sign=diff>0?'+':diff<0?'−':'';
+    override={diff,text:`${sign}RM ${Math.abs(diff).toFixed(2)} (${sign}${Math.abs(pct).toFixed(1)}%)`};
+  }
+  let totalLength='';
+  if(DC_TOTAL_LENGTH_TYPES.includes(item.itemType)){
+    const tl=parseFloat(fd.totalLength)||parseFloat(fd.dimensions&&fd.dimensions.totalLength)||parseFloat(fd.length)||0;
+    if(tl>0) totalLength=String(Math.ceil(tl));
+  }
+  return {mode,final,auto,override,parts,totalLength};
+}
 function renderQuote(newIdx){
   const count=quoteItems.length;
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
@@ -9318,19 +9386,17 @@ function renderQuote(newIdx){
     const div=document.createElement('div');
     div.className='qi-item'+(i===newIdx?' row-new':'')+(i===editingItemIndex?' editing':'');
     const chip=/^\s*(n\/?a|none|-|—)?\s*$/i.test(item.finish||'')?'':makeChip(item.finish);   /* display only: no "- N/A" in the title */
-    const markupValue=parseFloat(item.markup)||0;
-    const markupTag=markupValue>0?`<span class="qi-markup">⭐ +${markupValue}%</span>`:'';
-    const itemPriceMode=item.priceMode||item.formData?.priceMode||'auto';
-    const priceModeTag=itemPriceMode==='manual'
-      ? '<span class="price-mode-badge">'+escHtml(dcT('pmManualPrice'))+'</span>'
-      : itemPriceMode==='no_round' ? '<span class="price-mode-badge">'+escHtml(dcT('pmNoRound'))+'</span>' : '';
+    const ps=dcItemPricingSummary(item);
+    const priceModeTag='<span class="price-mode-badge">'+escHtml(ps.mode==='manual'?dcT('qiManualOverride'):getPriceModeLabel(ps.mode))+'</span>';
+    const overrideHtml=ps.override?`<div class="qi-override${ps.override.diff<0?' neg':''}">${escHtml(dcT('qiOverride'))} ${escHtml(ps.override.text)}</div>`:'';
+    const pricingHtml=ps.parts.length?`<div class="qi-pricing">${ps.parts.map(x=>`<span class="qi-pr">${x}</span>`).join(' · ')}</div>`:'';
+    const totalLenPill=ps.totalLength?`<span class="qi-meta-pill">${escHtml(dcT('lblTotalLength'))} <strong>${escHtml(ps.totalLength)}mm</strong></span>`:'';
     const cwLine=item.itemType==='was'?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
     const cdLine=dcCustomDimsLine(item);
     const displaySize=item.itemType==='was'?wasDisplayData(item).size:item.size;
     const unitSuffix=item.itemType==='was'?'/set':'';
     const uboltDebugHtml=getUBoltCardDebugHtml(item);
     const weightPill=parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiWeight'))} <strong>${wItemTotal(item).toFixed(3)}kg</strong></span>`:'';
-    const breakdownHtml=dcItemAccUnit(item)>0?`<div class="qi-breakdown">${escHtml(dcT('qiBoltPill'))} ${fmt(dcItemBoltUnit(item))}/pc · ${escHtml(dcT('qiAccessories'))} ${fmt(dcItemAccUnit(item))}/pc</div>`:'';
     div.innerHTML=`
       <div class="qi-item-top">
         <div class="qi-item-left">
@@ -9338,18 +9404,19 @@ function renderQuote(newIdx){
           <div class="qi-body">
             <div class="qi-titlerow"><div class="qi-desc">${escHtml(displayItemDesc(item))}</div>${chip?`<span class="qi-finsep">-</span>${chip}`:''}</div>
             <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
-            ${cwLine?`<div class="qi-cw">${escHtml(cwLine)}</div>`:''}
-            ${breakdownHtml}
             <div class="qi-meta qi-qtyweight">
-              <span class="qi-meta-pill">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
+              ${totalLenPill}
+              <span class="qi-meta-pill${totalLenPill?' qi-sep-pill':''}">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
               ${weightPill}
             </div>
+            ${cwLine?`<div class="qi-cw">${escHtml(cwLine)}</div>`:''}
+            ${pricingHtml}
           </div>
         </div>
         ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
-        <div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${markupTag} ${priceModeTag}</div>
+        <div class="qi-unitcol"><div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${priceModeTag}</div>${overrideHtml}</div>
         <div class="qi-price-group">
           <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
           <span class="qi-total">${fmt(item.totalAmount)}</span>
