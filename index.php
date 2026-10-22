@@ -50,7 +50,7 @@
   --wa:#25d366; --wa-hover:#1db954;
   --red:#dc2626; --red-light:#fef2f2; --red-mid:#fecaca;
   --amber:#b45309; --amber-light:#fffbeb; --amber-mid:#fde68a;
-  --amber-ink:#b8892d; --amber-ink-strong:#9a6e1f;   /* staff-only pricing text on Quotation List cards */
+  --amber-ink:#b8892d;   /* staff-only pricing text on Quotation List cards */
   /* Softer but deeper: a hairline to seat the edge, then a wider low-opacity
      spread so a white card lifts off the tinted page without a hard drop. */
   --shadow-sm:0 1px 2px rgba(20,25,40,.06), 0 2px 8px rgba(20,25,40,.07);
@@ -1456,7 +1456,7 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 /* Internal pricing composition on the Quotation List card — staff only, never printed */
 .qi-pricing{margin-top:4px;font-size:9px;line-height:1.45;color:var(--amber-ink);font-weight:500;letter-spacing:.01em;overflow-wrap:anywhere}
 .qi-pricing .qi-pr{white-space:nowrap}
-.qi-pricing .qi-pr-auto{font-size:10px;font-weight:600;color:var(--amber-ink-strong)}
+.qi-pricing .qi-pr-auto{font-weight:600}
 .qi-override{margin-top:3px;font-size:11.5px;font-weight:700;color:#b45309;line-height:1.2}
 .qi-override.neg{color:#b91c1c}
 .qi-unitcol{min-width:0}
@@ -5443,7 +5443,7 @@ const I18N={
        Quick Open. All three build their own markup on every render. */
     qiUnitWeight:'Unit Weight', qiTotal:'Total', qiAccessories:'Accessories',
     /* Quotation List card: internal pricing composition (staff only). */
-    qiCostRate:'Cost Rate', qiAddCost:'Add Cost', qiMarkup:'Markup', qiAuto:'Auto',
+    qiCostRate:'Cost', qiAddCost:'Add', qiMarkup:'Markup', qiAuto:'Calc', qiAcc:'Acc',
     qiManualOverride:'Manual Override', qiOverride:'Override',
     qoSearching:'Searching…', qoFormerly:'Formerly {r}',
     phOtherCustomer:'Other customer reference', phSameDims:'Same dimensions',
@@ -5952,7 +5952,7 @@ const I18N={
     wqaCustomerLabel:'客户写的是「{s}」· 判定为：{d}',
     lblDateDash:'日期 —',
     qiUnitWeight:'单件重量', qiTotal:'合计', qiAccessories:'配件',
-    qiCostRate:'成本价', qiAddCost:'加工费', qiMarkup:'利润', qiAuto:'自动价',
+    qiCostRate:'成本', qiAddCost:'加工', qiMarkup:'利润', qiAuto:'计算价', qiAcc:'配件',
     qiManualOverride:'手动覆盖', qiOverride:'差额',
     qoSearching:'搜索中…', qoFormerly:'原单号 {r}',
     phOtherCustomer:'其他客户参考', phSameDims:'尺寸相同',
@@ -9313,7 +9313,7 @@ function dcItemPricingSummary(item){
   const rate=rateRaw!==null?evalExpr(String(rateRaw)):0;
   if(rateRaw!==null) parts.push(escHtml(dcT('qiCostRate'))+' '+escHtml(dcRateText(rate)));
   if(has(fd.addCost)) parts.push(escHtml(dcT('qiAddCost'))+' '+escHtml(dcRateText(evalExpr(String(fd.addCost)))));
-  if(accUnit>0) parts.push(escHtml(dcT('qiAccessories'))+' '+escHtml(fmt(accUnit)));
+  if(accUnit>0) parts.push(escHtml(dcT('qiAcc'))+' '+escHtml(accUnit.toFixed(2)));
   const markup=parseFloat(has(fd.markup)?fd.markup:item.markup)||0;
   parts.push(escHtml(dcT('qiMarkup'))+' '+escHtml(cleanNum(markup))+'%');
   /* The calculated price before any override. Non-manual: it IS the unit price. */
@@ -9326,7 +9326,7 @@ function dcItemPricingSummary(item){
       : rate>0 && (parseFloat(item.weight)||0)>0;
     if(calculated && isFinite(rounded) && rounded>0) auto=roundMoney2(rounded+accUnit);
   }
-  if(auto!==null) parts.push('<span class="qi-pr-auto">'+escHtml(dcT('qiAuto'))+' '+escHtml(fmt(auto))+'</span>');
+  if(auto!==null) parts.push('<span class="qi-pr-auto">'+escHtml(dcT('qiAuto'))+' '+escHtml(auto.toFixed(2))+'</span>');
   let override=null;
   if(mode==='manual' && auto!==null){
     const diff=roundMoney2(final-auto);

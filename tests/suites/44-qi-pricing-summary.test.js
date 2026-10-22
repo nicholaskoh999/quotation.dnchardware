@@ -56,17 +56,17 @@ module.exports = async (browser, A) => {
   A.includes(c.meta, 'Total Length 810mm', 'U-Bolt card shows the stored Total Length');
   A.includes(c.meta, 'Qty 1', 'and Qty');
   A.includes(c.meta, 'Weight 0.336kg', 'and Weight');
-  A.eq(c.pricing, 'Cost Rate 3.50 · Add Cost 3.00 · Markup 5% · Auto RM 4.40', 'U-Bolt pricing composition line');
+  A.eq(c.pricing, 'Cost 3.50 · Add 3.00 · Markup 5% · Calc 4.40', 'U-Bolt pricing composition line');
   A.includes(c.unit, 'Unit RM 4.40', 'Auto: unit is the calculated price');
   A.includes(c.unit, 'Auto Round', 'Auto: mode label says Auto Round');
   A.eq(c.override, '', 'Auto: no Manual Override line');
-  A.excludes(c.pricing, 'Accessories', 'no accessories → no Accessories RM 0.00');
+  A.excludes(c.pricing, 'Acc ', 'no accessories → no Accessories RM 0.00');
   A.eq(c.cw, '', 'no accessories → no accessories line');
 
   // 2 · U-Bolt Manual Price RM4.50 over Auto RM4.40
   await addItem(page, 'ubolt', { ...UB, priceMode: 'manual', manualUnitPrice: '4.50' });
   c = await card(page, 1);
-  A.includes(c.pricing, 'Auto RM 4.40', 'Manual: the Auto price stays visible');
+  A.includes(c.pricing, 'Calc 4.40', 'Manual: the Auto price stays visible');
   A.includes(c.pricing, 'Markup 5%', 'Manual: markup shown as the pricing markup');
   A.includes(c.unit, 'Unit RM 4.50', 'Manual: unit is the typed override');
   A.includes(c.unit, 'Manual Override', 'Manual: labelled Manual Override');
@@ -84,7 +84,7 @@ module.exports = async (browser, A) => {
   A.includes(c.meta, 'Total Length 444mm', 'L-Bolt shows stored Total Length');
   A.includes(c.meta, 'Qty 4', 'Qty 4');
   A.includes(c.meta, 'Weight 6.307kg', 'line weight = unit weight x qty');
-  A.eq(c.pricing, `Cost Rate 2.80 · Add Cost 0.00 · Markup 5% · Auto RM ${lb.u.toFixed(2)}`, 'L-Bolt pricing line');
+  A.eq(c.pricing, `Cost 2.80 · Add 0.00 · Markup 5% · Calc ${lb.u.toFixed(2)}`, 'L-Bolt pricing line');
   A.includes(c.unit, 'Auto Round', 'L-Bolt auto label');
   A.near(lb.t, lb.u * 4, 1e-9, 'Qty > 1: total = unit x qty');
   A.includes(c.total, 'RM ' + (lb.u * 4).toFixed(2), 'card total follows qty');
@@ -93,7 +93,7 @@ module.exports = async (browser, A) => {
   await addItem(page, 'lbolt', { ...LB, priceMode: 'manual', manualUnitPrice: '14.50' });
   c = await card(page, 3);
   const diff = 14.50 - lb.u;
-  A.includes(c.pricing, 'Auto RM ' + lb.u.toFixed(2), 'L-Bolt manual keeps Auto visible');
+  A.includes(c.pricing, 'Calc ' + lb.u.toFixed(2), 'L-Bolt manual keeps Auto visible');
   A.eq(c.override, `Override +RM ${diff.toFixed(2)} (+${(diff / lb.u * 100).toFixed(1)}%)`, 'L-Bolt override line');
   A.includes(c.total, 'RM 58.00', 'manual 14.50 x 4 = 58.00');
 
@@ -102,19 +102,19 @@ module.exports = async (browser, A) => {
   c = await card(page, 4);
   A.includes(c.cw, '2nut', 'accessories line lists the nuts');
   A.includes(c.cw, '2fw', 'and the washers');
-  A.eq(c.pricing, 'Cost Rate 3.50 · Add Cost 3.00 · Accessories RM 0.80 · Markup 5% · Auto RM 5.20', 'accessory pricing in the composition');
+  A.eq(c.pricing, 'Cost 3.50 · Add 3.00 · Acc 0.80 · Markup 5% · Calc 5.20', 'accessory pricing in the composition');
   A.includes(c.unit, 'Unit RM 5.20', 'unit includes accessories');
 
   // manual with accessories: override compared against the accessory-inclusive Auto
   await addItem(page, 'ubolt', { ...UB, priceMode: 'manual', manualUnitPrice: '5.50' }, { nut: 2, nutPrice: 0.30, fw: 2, fwPrice: 0.10 });
   c = await card(page, 5);
-  A.includes(c.pricing, 'Auto RM 5.20', 'manual+accessories: Auto includes accessories');
+  A.includes(c.pricing, 'Calc 5.20', 'manual+accessories: Auto includes accessories');
   A.eq(c.override, 'Override +RM 0.30 (+5.8%)', 'manual+accessories override');
 
   // manual with no cost rate: no invented Auto price
   await addItem(page, 'lbolt', { ...LB, costRate: '', addCost: '', priceMode: 'manual', manualUnitPrice: '9.00' });
   c = await card(page, 6);
-  A.excludes(c.pricing, 'Auto', 'manual without a rate: no Auto figure invented');
+  A.excludes(c.pricing, 'Calc', 'manual without a rate: no Auto figure invented');
   A.eq(c.override, '', 'and no override line');
   A.includes(c.unit, 'Manual Override', 'still labelled Manual Override');
 
@@ -130,7 +130,7 @@ module.exports = async (browser, A) => {
     return { print, wa: buildWAItemsText(), quote: buildQuoteText() };
   });
   A.ok(out.print.includes('4.50'), 'print sheet was built (has the manual unit price)');
-  ['Cost Rate', 'Add Cost', 'Additional Cost', 'Markup', 'Auto RM', 'Override', 'Manual Override'].forEach(w => {
+  ['Cost Rate', 'Cost 3', 'Add Cost', 'Additional Cost', 'Markup', 'Calc', 'Override', 'Manual Override'].forEach(w => {
     A.excludes(out.print, w, `print never shows "${w}"`);
     A.excludes(out.wa, w, `WhatsApp never shows "${w}"`);
     A.excludes(out.quote, w, `quotation text never shows "${w}"`);
@@ -150,10 +150,10 @@ module.exports = async (browser, A) => {
   A.ok(!c.hasEdit, 'locked: Edit button hidden');
   A.includes(c.meta, 'Total Length 810mm', 'locked: Total Length still visible');
   A.includes(c.meta, 'Weight 0.336kg', 'locked: Weight still visible');
-  A.includes(c.pricing, 'Cost Rate 3.50 · Add Cost 3.00 · Markup 5% · Auto RM 4.40', 'locked: pricing composition still visible');
+  A.includes(c.pricing, 'Cost 3.50 · Add 3.00 · Markup 5% · Calc 4.40', 'locked: pricing composition still visible');
   A.eq(c.override, 'Override +RM 0.10 (+2.3%)', 'locked: override still visible');
   c = await card(re, 4);
-  A.includes(c.pricing, 'Accessories RM 0.80', 'locked: accessory pricing still visible');
+  A.includes(c.pricing, 'Acc 0.80', 'locked: accessory pricing still visible');
 
   // legacy item saved before price-mode data existed: no crash, no invented Auto
   const legacy = await re.evaluate(() => {
@@ -162,7 +162,7 @@ module.exports = async (browser, A) => {
     renderQuote(); return quoteItems.length;
   });
   c = await card(re, legacy - 1);
-  A.excludes(c.pricing, 'Auto', 'legacy manual item: Auto unknown, not shown');
+  A.excludes(c.pricing, 'Calc', 'legacy manual item: Auto unknown, not shown');
   A.excludes(c.meta, 'Total Length', 'legacy item without stored length: no Total Length');
   A.includes(c.unit, 'Unit RM 6.00', 'legacy item still shows its unit');
 
