@@ -966,6 +966,8 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
   .print-remarks{margin-top:4mm;border:.5pt solid #CDD1DA;padding:2mm 3mm;font-size:8.5pt;line-height:1.45;
     white-space:pre-line;break-inside:avoid;page-break-inside:avoid}
   .print-remarks[hidden]{display:none!important}
+  .pq-tail{display:flow-root;break-inside:avoid;page-break-inside:avoid}
+  .pq-tail.pq-tail-next{break-before:page;page-break-before:always}
   .pq-signoff{margin-top:6mm}
   .pq-signoff td{width:33.33%;padding-right:6mm!important}
   .pq-signoff td.last{padding-right:0!important}
@@ -4347,6 +4349,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   </table>
   <div class="pq-after">
     <div class="print-remarks" id="printRemarks" hidden></div>
+  </div>
+  <!-- The sign-off and the note are one block, anchored to the bottom of the
+       final page by dcAnchorPrintTail() (top padding = the free space left). -->
+  <div class="pq-tail" id="printTail">
     <table class="pq-signoff" role="presentation"><tr>
       <td><div class="pq-who"><p class="pq-label">Prepared by</p><div id="printSignPrepared"></div></div></td>
       <td><div class="pq-who"><p class="pq-label">Issued by</p><div id="printSignIssuer"></div></div></td>
@@ -10960,11 +10966,85 @@ window.addEventListener('beforeprint',()=>{
   const remarksEl=el('printRemarks');
   remarksEl.hidden=!remarks;
   remarksEl.textContent=remarks?dcT('lblRemarksColon')+' '+remarks:'';
+  dcAnchorPrintTail();
 });
 window.addEventListener('afterprint',()=>{
   el('printSummary').style.display='none';
   el('printItemsBody').innerHTML='';
+  const tail=el('printTail'); if(tail){ tail.style.paddingTop=''; tail.classList.remove('pq-tail-next'); }
 });
+
+/* ── The sign-off sits at the bottom of the final page ──────────────────────
+   A formal document ends with its sign-off just above the footer, not halfway
+   up a short page. Browser print cannot place a block at the bottom of the
+   LAST page by CSS alone, so — as the purchase order's PDF does — the free
+   space is measured and given to the sign-off as top padding:
+
+     1. the sheet is laid out once, off screen, with the exact print rules
+        (copied from this page's own @media print block, so there is one set
+        of rules, not two) at the A4 content size: 182 x 265 mm;
+     2. the pages are walked as print paginates them — rows never split, the
+        table header repeats on every page, the total and remarks follow;
+     3. whatever is left on the final page above the sign-off becomes its top
+        padding, less a safety margin so it can never spill onto a new page.
+
+   If the final page has no room for it, the sign-off starts the next page and
+   sits at the bottom of that one instead of being squeezed over content. It
+   is only ever after the last item, so on a multi-page quotation it appears
+   on the final page alone. Nothing is positioned absolutely: it is padding in
+   normal flow, so it cannot cover a row. */
+const PQ_PAGE_MM=297-14-18, PQ_WIDTH_MM=210-14-14, PQ_SAFETY_MM=6;
+function dcPrintRulesCss(){
+  let css='';
+  for(const sheet of document.styleSheets){
+    let rules; try{ rules=sheet.cssRules; }catch(e){ continue; }
+    for(const r of rules){
+      if(!(r instanceof CSSMediaRule) || !/\bprint\b/.test(r.conditionText||r.media.mediaText) || !/#printSummary/.test(r.cssText)) continue;
+      for(const inner of r.cssRules){
+        if(!(inner instanceof CSSStyleRule)) continue;                 // @page and friends: not layout
+        if(/^\s*(html|body)\b/.test(inner.selectorText)) continue;   // the page itself is not measured
+        css+=inner.cssText+'\n';
+      }
+    }
+  }
+  return css;
+}
+function dcAnchorPrintTail(){
+  const sheet=el('printSummary'), tail=el('printTail'), table=sheet&&sheet.querySelector('.print-items-table');
+  if(!sheet||!tail||!table) return;
+  tail.style.paddingTop=''; tail.classList.remove('pq-tail-next');
+  const measure=document.createElement('style');
+  measure.textContent=dcPrintRulesCss()
+    +'#printSummary{position:absolute!important;left:-10000px!important;top:0!important;width:'+PQ_WIDTH_MM+'mm!important;visibility:hidden!important}';
+  document.head.appendChild(measure);
+  try{
+    /* A CSS millimetre is a fixed 96/25.4 px, in print as on screen. (Chrome also
+       fires beforeprint once more with print media already applied, where any
+       helper element outside the sheet would be hidden — so nothing is measured
+       outside it.) */
+    const pxPerMm=96/25.4;
+    const cap=PQ_PAGE_MM*pxPerMm, safety=PQ_SAFETY_MM*pxPerMm;
+    const top=sheet.getBoundingClientRect().top;
+    const box=n=>n.getBoundingClientRect();
+    const thead=table.tHead?box(table.tHead).height:0;
+    /* Page 1 holds everything above the first row, then the header. */
+    let y=box(table).top-top+thead, pages=1;
+    const place=h=>{ if(y+h>cap){ pages++; y=thead+h; } else y+=h; };
+    [...table.tBodies[0].rows].forEach(r=>place(box(r).height));
+    if(table.tFoot) place(box(table.tFoot).height);                // the total, still inside the table
+    /* Remarks (and anything else) after the table, then the sign-off. */
+    const tableBottom=box(table).bottom, tailBox=box(tail);
+    const between=tailBox.top-tableBottom;                         // remarks + gaps, as laid out
+    if(between>0){ if(y+between>cap){ pages++; y=between; } else y+=between; }
+    const tailH=tailBox.height;
+    if(y+tailH<=cap-safety){
+      tail.style.paddingTop=Math.max(0,Math.floor(cap-safety-y-tailH))+'px';
+    } else {
+      tail.classList.add('pq-tail-next');                           // no room: the next page, at its bottom
+      tail.style.paddingTop=Math.max(0,Math.floor(cap-safety-tailH))+'px';
+    }
+  } finally { measure.remove(); }
+}
 
 function formatPrintDate(value){
   if(!value) return '-';
