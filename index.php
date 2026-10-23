@@ -2795,6 +2795,8 @@ html.ph-open,html.ph-open body{overflow:hidden}
 .ph-badge-exact{background:rgba(52,168,110,.16); color:#1f7a4d; border-color:rgba(52,168,110,.35)}
 .ph-badge-close{background:rgba(37,99,235,.10); color:var(--accent-2); border-color:var(--accent-mid)}
 .ph-badge-own{border-color:var(--accent); border-width:1.5px}
+/* Chinese has no case; uppercasing only turned "10mm" into "10MM". */
+:root[data-lang="zh"] .ph-rec-tag,:root[data-lang="zh"] .ph-badge{text-transform:none;letter-spacing:.02em}
 .ph-rec-own-tag{background:var(--accent-light); color:var(--accent-2); border-color:var(--accent-mid)}
 /* Confirmation, over the drawer's own content. */
 .ph-confirm{position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center;
@@ -4285,7 +4287,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 
 <!-- Mobile sticky bar -->
 <div class="mobile-bar">
-  <div class="mb-total"><label>Total</label><span id="mbTotal">RM 0.00</span></div>
+  <div class="mb-total"><label data-i18n="qiTotalPill">Total</label><span id="mbTotal">RM 0.00</span></div>
   <div class="mb-actions">
     <button class="btn btn-primary btn-sm mb-add" id="mbAddBtn" type="button" onclick="addCurrentItem()"><span class="mb-add-full" data-i18n="addToQuotation">＋ Add to Quotation</span><span class="mb-add-short" data-i18n="mbAddShort">＋ Add</span></button>
     <button class="btn btn-outline btn-sm" onclick="scrollToQuote()"><span id="mbCount">0</span> <span data-i18n="itemsUnit">items</span></button>
@@ -5436,7 +5438,7 @@ const I18N={
     lblDiameterMm:'Diameter (mm)',
     prevQuotedPrices:'Pricing History', checkPrevPrices:'Show Pricing History',
     phViewHistory:'View History', phMatchCount:'{n} matching records', phClosest:'Closest:',
-    phLoading:'Loading…', phClose:'Close',
+    phClose:'Close', phNotRecorded:'Not recorded', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
     phBadgeThisCustomer:'This customer', phBadgeExact:'Exact match', phBadgeClose:'Close match', phBadgeRef:'Reference only',
     phSumMatching:'{n} matching', phSumFinal:'Final', phSumBolt:'Bolt', phSumManual:'Manual',
     phUseThis:'Use this pricing', phUseSetup:'Use pricing setup',
@@ -6007,17 +6009,17 @@ const I18N={
     savedDiameterRules:'已保存直径规则', saveRule:'保存规则',
     lblDiameterMm:'直径 (mm)',
     prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
-    phViewHistory:'查看历史', phMatchCount:'{n} 条符合记录', phClosest:'最接近：',
-    phLoading:'加载中…', phClose:'关闭',
-    phBadgeThisCustomer:'此客户', phBadgeExact:'完全相同', phBadgeClose:'相近', phBadgeRef:'仅供参考',
-    phSumMatching:'{n} 条符合', phSumFinal:'最终', phSumBolt:'螺栓', phSumManual:'手动',
-    phUseThis:'使用此定价', phUseSetup:'使用定价设置',
-    phCfTitleThis:'使用此历史定价？', phCfTitleSetup:'使用此定价设置？',
-    phCfHistFinal:'历史最终价', phCfHistManual:'历史手动价', phCfApply:'应用',
-    phCfNoteRecalc:'复制成本率、附加成本、加成和定价方式，然后按本项目自己的尺寸重新计算。尺寸、数量和配件不变。',
-    phCfNoteManual:'此记录是同尺寸手动定价。应用后本项目的手动价格设为 {v}（历史手动价，加上本项目自己的配件）。',
-    phCfNoteManualSkip:'此记录是不同尺寸的手动定价，不会复制其手动价格。以自动取整套用成本率、附加成本和加成，并按本项目自己的尺寸计算。',
-    phApplied:'已套用 {r} 的定价',
+    phViewHistory:'查看历史', phMatchCount:'{n} 条匹配记录', phClosest:'最接近：',
+    phClose:'关闭', phNotRecorded:'未记录', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
+    phBadgeThisCustomer:'本客户', phBadgeExact:'完全匹配', phBadgeClose:'相近规格', phBadgeRef:'仅供参考',
+    phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动',
+    phUseThis:'套用此定价', phUseSetup:'套用定价参数',
+    phCfTitleThis:'要套用这笔历史定价吗？', phCfTitleSetup:'要套用这笔定价参数吗？',
+    phCfHistFinal:'历史最终单价', phCfHistManual:'历史手动单价', phCfApply:'套用',
+    phCfNoteRecalc:'将复制每公斤成本、额外加工费、利润和价格模式，再按本项目自己的尺寸重新计算。尺寸、数量和配件都不会更改。',
+    phCfNoteManual:'此记录是相同尺寸的手动定价。套用后，本项目的手动价格将设为 {v}（历史手动单价，加上本项目自己的配件）。',
+    phCfNoteManualSkip:'此记录是不同尺寸的手动定价，因此不会复制其手动价格。将以自动进位套用每公斤成本、额外加工费和利润，并按本项目自己的尺寸计算。',
+    phApplied:'已套用 {r} 的定价参数',
     lblManualWeight:'手动重量', lblDiaXLength:'直径 × 长度',
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
     cpLineNote:'已含配件：{acc}',
@@ -6102,7 +6104,7 @@ const I18N={
     waTemplateSub:'WhatsApp 文字模板',
     mRestoreTitleZh:'恢复未保存草稿？',
     mRestoreSubZh:'您有一份未保存的报价草稿。要恢复还是删除？',
-    mCostRateExplain:'每公斤成本 = 材料每公斤的成本。', mRefOnly:'仅供参考，不会改变价格',
+    mCostRateExplain:'每公斤成本 = 材料每公斤的成本。', mRefOnly:'仅供参考，不会自动更改当前价格',
     mSavedToMysql:'已保存到 MySQL', mStatus:'状态', mClear:'清除',
     mSrcCustom:'自定义', mSrcSystem:'系统', mSrcAll:'全部',
     mShowingRules:'显示规则', mDsHelp:'自定义直径规则优先于内置默认值。尺寸留空则匹配该产品类型的所有尺寸。',
@@ -6219,7 +6221,7 @@ const I18N={
     wqaEntryOnly:'仅为输入值。「自动进位」与「不进位」的项目会各自依本身尺寸重新计算最终单价。',
     wqaManualWarn:'Manual Price 会让每个项目使用相同的最终价格。长度不同通常价格也不同 — 只有在客户确实报一个统一价格时才使用。',
     wqaChooseProduct:'文件没有说明这是什么产品，系统不会自行猜测。请选择产品以便计价。',
-    lblAddCustom:'新增自定义', lblAddCostShort:'额外费用', lblProductName:'产品名称',
+    lblAddCustom:'新增自定义', lblAddCostShort:'额外加工费', lblProductName:'产品名称',
     lblDimensionText:'尺寸说明', lblWeightMode:'重量模式',
     lblClearAllAcc:'清除所有配件', lblLoadMore:'载入更多', lblShowDebug:'显示调试信息',
     lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
@@ -6233,23 +6235,23 @@ const I18N={
     ubDebugTitle:'U-Bolt 价格明细', ubDebugInternal:'仅供内部查看',
     ubTotalLength:'总长度', ubBeforeRounding:'进位前',
     ubAfterRounding:'进位后',
-    phLoading:'正在载入历史价格…', phTitle:'历史价格',
+    phLoading:'正在载入历史价格…', phTitle:'定价历史',
     phRecordCount:'{n} 条记录', phRecordCountPlural:'{n} 条记录',
-    phThisCustomer:'{n} 条本客户', phOther:'{n} 条其他客户',
+    phThisCustomer:'本客户 {n} 条', phOther:'其他客户 {n} 条',
     impImported:'已导入：{n} 行',
     wqaSkippedLines:'{n} 行未读作产品（标题／备注），已忽略。',
     wqaCustomerLabel:'客户写的是「{s}」· 判定为：{d}',
     lblDateDash:'日期 —',
     qiUnitWeight:'单件重量', qiTotal:'合计', qiAccessories:'配件',
     qiCostRate:'成本', qiAddCost:'加工', qiMarkup:'利润', qiAuto:'计算价', qiAcc:'配件',
-    qiManualOverride:'手动覆盖', qiOverride:'差额',
+    qiManualOverride:'手动覆盖价', qiOverride:'差额',
     qoSearching:'搜索中…', qoFormerly:'原单号 {r}',
     phOtherCustomer:'其他客户参考', phSameDims:'尺寸相同',
-    phDimsNotComparable:'尺寸无法比较', phDiffersBy:'相差 {d}',
+    phDimsNotComparable:'尺寸不可直接比较', phDiffersBy:'相差 {d}',
     phLegacyRecord:'旧记录', phAccNotSeparable:'配件无法拆分',
     phDiffFinish:'表面处理不同 — 当时为 {f} · 仅供参考',
     phQtyLabel:'数量 {n}', phAccSeparately:'该报价行配件：',
-    phShowingOf:'显示 {b} 条符合记录中的 {a} 条',
+    phShowingOf:'已显示 {a} / {b} 条匹配记录',
     waTemplateTitle:'WhatsApp 消息模板',
     pgCostRateEg:'每公斤成本 RM3.50/kg', pgThreadProcessing:'车牙加工',
     pgDrilling:'钻孔', pgWelding:'焊接', pgSpecialProcess:'特殊加工',
@@ -10945,13 +10947,18 @@ function phMoney(v){ return (v===null||v===undefined||v==='') ? '—' : 'RM '+(N
 function phPct(v){ return (v===null||v===undefined||v==='') ? '—' : (Number(v)||0)+'%'; }
 /* A value the record never carried is said to be missing, never filled in. */
 function phWeight(v){ return (v===null||v===undefined||v===''||!(Number(v)>0))
-  ? 'Not recorded' : (Number(v).toFixed(4)+' kg/pc'); }
+  ? dcT('phNotRecorded') : (Number(v).toFixed(4)+' kg/pc'); }
 function phDimText(mm){ return (Math.round(Number(mm)*100)/100)+'mm'; }
 /* How the price was arrived at. A record that never recorded it says so. */
 const PH_MODE_LABELS={auto:'Auto Round',no_round:'No Round',manual:'Manual'};
+/* Read from the record's mode, not the server's English label, so it follows
+   the screen's language; the English it produces is the label's own wording. */
 function phPriceMode(rec){
-  return rec.priceModeLabel || PH_MODE_LABELS[String(rec.priceMode||'')] || 'Legacy / Unknown';
+  const key={auto:'pmAutoRound',no_round:'pmNoRound',manual:'phModeManual'}[String(rec.priceMode||'')];
+  if(key) return dcT(key);
+  return rec.priceModeLabel && !PH_MODE_LABELS_EN.has(rec.priceModeLabel) ? rec.priceModeLabel : dcT('phModeUnknown');
 }
+const PH_MODE_LABELS_EN=new Set(Object.values(PH_MODE_LABELS).concat('Legacy / Unknown'));
 function phRecordHtml(rec,onUse,extra){
   const own=!!rec.own;
   /* The bolt's own price is what a bolt costs. Where the saved row cannot
