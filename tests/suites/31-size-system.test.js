@@ -61,11 +61,13 @@ module.exports = async (browser, A) => {
         `"${spelling}" undersize is the 23mm bar`);
     }
 
-    /* A bare 1 is still M1 and still not a size we stock — the mark is what
-       makes it an inch, and guessing there would put 25.4mm behind a size
-       nobody wrote. */
-    A.eq(await page.evaluate(() => normalizeSizeValue('1')), 'M1', 'a bare 1 is M1, not one inch');
-    A.eq(await dia(page, 'FULLSIZE', '1'), null, 'and M1 has no diameter');
+    /* Owner rule (2026-10-23): the smallest metric size quoted is M6, so a bare
+       1 to 5 is a whole number of INCHES — 1 is 1", never M1. An M typed
+       explicitly is still metric, and 6 and above stay metric as before. */
+    A.eq(await page.evaluate(() => normalizeSizeValue('1')), '1"', 'a bare 1 is one inch, not M1');
+    A.eq(await dia(page, 'FULLSIZE', '1'), 25.4, 'and is the 25.4mm bar');
+    A.eq(await page.evaluate(() => normalizeSizeValue('M1')), 'M1', 'an explicit M1 stays metric');
+    A.eq(await page.evaluate(() => normalizeSizeValue('12')), 'M12', 'and 12 is still M12');
 
     /* An inch size we do not stock is not quietly replaced by one we do. */
     for (const s of ['2"', '9/16', '11/16', '1-3/4"']) {
