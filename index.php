@@ -7218,8 +7218,14 @@ function normalizeSizeValue(raw){
   const v=String(raw||'').trim().toUpperCase();
   if(!v) return '';
   /* A bare number in a SIZE box is a metric nominal size. Applied only here —
-     Length, TL, ID, S and W are plain millimetres and never gain an M. */
-  let m=v.match(/^M?\s*(\d+(?:\.\d+)?)\s*(?:MM)?$/);
+     Length, TL, ID, S and W are plain millimetres and never gain an M.
+     Except a small WHOLE number written without an M: the smallest metric size
+     this shop quotes is M6 (DIA_UNDERSIZE), so a bare 1 to 5 is never M1–M5 —
+     it is 1" to 5", the whole-inch sizes written the way staff write them. An
+     M typed explicitly is always metric; 6 and above stay metric as before. */
+  let m=v.match(/^([1-5])$/);
+  if(m) return m[1]+'"';
+  m=v.match(/^M?\s*(\d+(?:\.\d+)?)\s*(?:MM)?$/);
   if(m) return 'M'+String(Number(m[1])).replace(/\.0$/,'');
   /* An inch size may be written with its mark or without it, and 1/2 and 1/2"
      are the same rod. ONE canonical spelling — the one the diameter tables,
@@ -7361,6 +7367,23 @@ function sizeDisplay(size){
   const s=String(size||'').trim();
   return /^\d+(?:-\d+)?\/\d+$/.test(s) ? s+'"' : s;
 }
+/* The size box shows what the customer will read: 1-1/8", 3/8", 1" — the inch
+   mark on, never twice. What it SAYS is still the canonical size: every reader
+   of the box goes through normalizeSizeValue, which takes the mark off a
+   fraction again, so diameters, Diameter Settings, default prices and previous
+   prices are looked up exactly as before. Anything that is not an inch size
+   (M12, free text) is left as it is. */
+function dcSizeBoxText(value){
+  const n=normalizeSizeValue(value);
+  return (/^\d+(?:-\d+)?\/\d+$/.test(n) || /^\d+"$/.test(n)) ? sizeDisplay(n) : value;
+}
+/* A saved size LABEL ("3/8 x ID 274 x IH 320 x TL 75mm", "Ø28.6-1-1/8 x L 1000")
+   written before inch sizes carried their mark: the size token at its start
+   gets the mark at render time, so an old quotation reads like a new one. Only
+   that token, only a fraction, never a second mark; the stored item is untouched. */
+function dcSizeLabelDisplay(label){
+  return String(label==null?'':label).replace(/^(\s*(?:Ø[\d.]+-)?)(\d+-\d+\/\d+|\d+\/\d+)(?=\s+x\s|\s*$|\n)/,'$1$2"');
+}
 function formatSizeLabel(size,diameter,sizeType){
   const shown=sizeDisplay(size);
   const d=parseFloat(diameter);
@@ -7478,7 +7501,7 @@ function dcEffectiveDiameter(type,material,sizeType,size){
 function autoFillDiameter(type){
   const material=fv(type,'material'), sizeType=fv(type,'sizeType');
   const sizeEl=el(type+'-size'); if(!sizeEl)return;
-  const size=normalizeSizeValue(sizeEl.value); sizeEl.value=size;
+  const size=normalizeSizeValue(sizeEl.value); sizeEl.value=dcSizeBoxText(size);
   const diaEl=el(type+'-diameter');
   const asks=fieldExists(type,'sizeType') && dcProductHasSizeType(type);
   const dia=(asks && !String(sizeType||'').trim())
@@ -8912,7 +8935,7 @@ function addJBolt(){
 function fieldExists(type,field){ return !!el(type+'-'+field); }
 function setFieldValue(type,field,value){
   const input=el(type+'-'+field);
-  if(input) input.value=value ?? '';
+  if(input) input.value=field==='size' && type!=='others' && value ? dcSizeBoxText(value) : (value ?? '');
 }
 function setFinishValue(type,finish){
   const value=finish || '';
@@ -8921,6 +8944,7 @@ function setFinishValue(type,finish){
   setFinishPills(type,value);
   updateFinishAvailability(type);
 }
+function dcCanonicalFormSize(v){ return String(v==null?'':v).replace(/^(\s*\d+(?:-\d+)?\/\d+)\s*"\s*$/,'$1'); }
 function captureItemFormData(type){
   const fields=['material','sizeType','size','diameter','length','threadLen','l','id','ih','oh','w','h','s','productName','dimensionText','weightMode','unitWeight','costRate','addCost','markup','qty','priceMode','manualUnitPrice',
     'plateType','t','hd','nh',
@@ -8928,7 +8952,7 @@ function captureItemFormData(type){
   const data={itemType:type,productType:ITEM_TYPES[type]||type,finish:getFinish(type),accessories:getAccessories(type)};
   fields.forEach(field=>{
     const input=el(type+'-'+field);
-    if(input) data[field]=input.value;
+    if(input) data[field]=field==='size' ? dcCanonicalFormSize(input.value) : input.value;
   });
   const totalLengthEl=el(type+'-length');
   if(totalLengthEl) data.totalLength=totalLengthEl.value;
@@ -9907,7 +9931,7 @@ function renderQuote(newIdx){
     const totalLenPill=ps.totalLength?`<span class="qi-meta-pill">${escHtml(dcT('lblTotalLength'))} <strong>${escHtml(ps.totalLength)}mm</strong></span>`:'';
     const cwLine=item.itemType==='was'?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
     const cdLine=dcCustomDimsLine(item);
-    const displaySize=item.itemType==='was'?wasDisplayData(item).size:item.size;
+    const displaySize=item.itemType==='was'?wasDisplayData(item).size:dcSizeLabelDisplay(item.size);
     const unitSuffix=item.itemType==='was'?'/set':'';
     const uboltDebugHtml=getUBoltCardDebugHtml(item);
     const weightPill=parseFloat(item.weight)>0?`<span class="qi-meta-pill qi-weight-pill">${escHtml(dcT('qiWeight'))} <strong>${wItemTotal(item).toFixed(3)}kg</strong></span>`:'';
@@ -10734,7 +10758,7 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true, includeUnitWeight=
     // WAS: use abLine as size key; component lines appended after price line
     const wasItem=item.itemType==='was';
     const wasDisplay=wasItem?wasDisplayData(item):null;
-    const size=wasItem?wasDisplay.abLine:(item.size||'').trim();
+    const size=wasItem?wasDisplay.abLine:dcSizeLabelDisplay((item.size||'').trim());
     /* ONE price reaches the customer, and the accessories are inside it. The
        message quotes M12 x L 1000 x TL 100/100mm at RM7.76 and then says
        "cw 2nut" — a description of what is included, with no second RM figure
@@ -11081,7 +11105,7 @@ function getPrintItemDescription(item){
   return finish&&!description.endsWith(`(${finish})`)?`${description} (${finish})`:description;
 }
 function getPrintItemDimension(item){
-  const size=item.itemType==='was'?wasDisplayData(item).size:String(item.size||'');
+  const size=item.itemType==='was'?wasDisplayData(item).size:dcSizeLabelDisplay(String(item.size||''));
   /* The accessories are named here, on every item, because this is now the ONLY
      place the print sheet mentions them: they are inside the Unit Price beside
      it, so "cw 2nut" is a description of what the customer is getting for that
