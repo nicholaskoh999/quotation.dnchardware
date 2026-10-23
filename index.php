@@ -2733,6 +2733,12 @@ input,select,textarea{
 .ph-rec-warn{background:rgba(214,158,46,.18);color:#8a5a00}
 .ph-rec-use{margin-left:auto}
 .ph-more{margin-top:8px;width:100%}
+/* Inside a product form: a full-width row of the form grid, between the
+   accessories and Pricing Entry, at most about two lines tall. */
+.item-form > .ph-mini{grid-column:1/-1; margin-top:0; min-width:0}
+.item-form > .ph-mini .ph-mini-head{flex-wrap:nowrap}
+.item-form > .ph-mini .ph-title{min-width:0}
+.item-form > .ph-mini .ph-mini-head .btn{flex:0 0 auto; white-space:nowrap}
 /* In the form: one compact line once a lookup has been made. */
 .ph-summary{margin-top:6px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:11.5px;color:var(--text-2);min-width:0}
 .ph-summary[hidden]{display:none}
@@ -4158,6 +4164,9 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <button class="dp-edit" onclick="openDPModal()" data-i18n="mManageRules">Manage rules</button>
         </div>
 
+        <!-- #phMini is moved by dcPlacePhMini() to sit just above the active
+             product's Pricing Entry; this marker is where it falls back to. -->
+        <div id="phMiniHome" hidden></div>
         <div class="ph-mini" id="phMini">
           <div class="ph-mini-head">
             <span class="ph-title"><span data-i18n="prevQuotedPrices">Pricing History</span> <span class="ph-tag" data-i18n="mRefOnly">reference only, does not change your price</span></span>
@@ -7727,11 +7736,25 @@ function onMaterialSizeChange(type,skipDiameterRefill,trigger){
 }
 
 /* ── product type switch ── */
+/* Pricing History is a reference for the price about to be entered, so it
+   sits between the specification (dimensions, accessories) and Pricing Entry.
+   There is ONE history block for every product; it is moved — never copied —
+   into the active form, just above that form's pricing heading. A form without
+   one gets it back at its original place under the price summary. */
+function dcPlacePhMini(type){
+  const mini=el('phMini'); if(!mini) return;
+  const form=el('form-'+type);
+  const lbl=form && form.querySelector(':scope > .group-label[data-i18n="pricingEntry"], :scope > .group-label[data-i18n="pricing"]');
+  if(lbl){ if(mini.nextElementSibling!==lbl) form.insertBefore(mini,lbl); return; }
+  const home=el('phMiniHome');
+  if(home && home.nextElementSibling!==mini) home.after(mini);
+}
 function switchType(type){
   if(!draftRestoreInProgress&&type!==currentType) productEntryTouchedFields.clear();
   currentType=type;
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
   document.querySelectorAll('.item-form').forEach(f=>f.classList.toggle('active',f.dataset.type===type));
+  dcPlacePhMini(type);
   syncUBoltDebugVisibility();
   resetPriceHistoryPanel();
   onMaterialSizeChange(type);
@@ -18851,6 +18874,7 @@ async function wqaAddAll(){
   ensureLBolt45Form();
   ensureOthersForm();
   document.querySelectorAll('.acc-panel').forEach(dcAccEnhancePanel);
+  dcPlacePhMini(currentType);
   ensurePriceModeControls();
   el('qi-date').value=todayStr();
   await Promise.all([
