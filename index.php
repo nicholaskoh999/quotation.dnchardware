@@ -1940,6 +1940,52 @@ input,select,textarea{
 .acc-add-btn{padding-left:clamp(8px,2.4vw,12px); padding-right:clamp(8px,2.4vw,12px); font-size:clamp(12px,3.3vw,12.5px)}
 @media (max-width:340px){ .acc-add-btns{flex-wrap:wrap} }
 
+/* ═══ Card alignment + atomic title / spec rows ═════════════════════════════
+   Width-driven only: the metric cards size against their own wrapper and the
+   item card's text against its own body (CSS container queries / cqi units),
+   so the same rules hold on a desk, a pad or a phone and at any browser zoom.
+   Order before anything wraps: tighter gaps and padding, then slightly smaller
+   type, then — only if it still cannot fit — a wrap at a whole-segment
+   boundary. Nothing here changes a figure or a word. */
+
+/* Metric cards: 4 across, or an even 2 x 2, never a staircase. Each card is a
+   column with the label on top and the value pushed to the bottom, so every
+   value in a row sits on the same line; values never wrap. */
+.cp-wrap{container-type:inline-size; container-name:cpwrap; min-width:0}
+.cp-wrap .calc-preview{grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(6px,2cqi,10px); align-items:stretch}
+.cp-wrap .calc-preview .cp-acc,.cp-wrap .calc-preview .cp-final{grid-column:auto}
+@container cpwrap (min-width:520px){
+  .cp-wrap .calc-preview{grid-template-columns:1fr 1fr 1fr 1.2fr}
+}
+@container cpwrap (max-width:230px){
+  .cp-wrap .calc-preview{grid-template-columns:minmax(0,1fr)}
+}
+.cp-wrap .calc-preview .cp-item{display:flex; flex-direction:column; min-width:0;
+  padding:clamp(8px,2.4cqi,12px) clamp(8px,2.6cqi,14px)}
+.cp-wrap .calc-preview .cp-item>label{line-height:1.2}
+.cp-wrap .calc-preview .cp-item>span:not(.cp-line-note){margin-top:auto; padding-top:4px;
+  white-space:nowrap; overflow-wrap:normal; line-height:1.15; font-size:clamp(13px,4.4cqi,16px)}
+.cp-wrap .calc-preview .cp-final>span:not(.cp-line-note){font-size:clamp(16px,5.6cqi,24px)}
+@container cpwrap (min-width:520px){
+  .cp-wrap .calc-preview .cp-item>span:not(.cp-line-note){font-size:clamp(13px,2.6cqi,16px)}
+  .cp-wrap .calc-preview .cp-final>span:not(.cp-line-note){font-size:clamp(17px,3.6cqi,24px)}
+}
+
+/* Item card title: "MS FULLSIZE SAG ROD · PL" is one row. The type eases down
+   with the card before anything wraps; if it still cannot fit it wraps between
+   words, and the " · PL" is glued to the last word by no-break spaces, so the
+   separator and the finish never sit alone on a line. */
+.qi-body{container-type:inline-size; container-name:qibody}
+.qi-titlerow{display:block; line-height:1.3}
+.qi-titlerow .qi-desc{display:inline; font-size:clamp(12.5px,4.8cqi,15px); overflow-wrap:normal; word-break:normal}
+.qi-fin{white-space:nowrap}
+.qi-fin .qi-finsep{font-weight:800; color:var(--text-muted)}
+.qi-fin .finish-chip{vertical-align:1px}
+/* Spec line and the two meta rows ease down the same way before wrapping. */
+.qi-dim{font-size:clamp(11px,4.4cqi,13px)}
+.qi-dim .dc-segs{--dc-sep-w:2.6ch}
+.qi-meta.qi-qtyweight .qi-meta-pill{font-size:clamp(11.5px,4cqi,12.5px)}
+
 /* ── WhatsApp Quick Add ──────────────────────────────────────────────────── */
 .wqa-open-btn{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
   margin-bottom:12px;padding:11px 14px;text-align:left;min-height:var(--control-h-lg)}
@@ -4028,12 +4074,12 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="was-cost-note"><strong data-i18n="wasCostNoteTitle">Processing costs</strong><span data-i18n="wasCostNote">Welding, hole drilling and other processing go in Additional Cost.</span></div>
         </div>
 
-        <div class="calc-preview" id="calcPreview">
+        <div class="cp-wrap"><div class="calc-preview" id="calcPreview">
           <div class="cp-item"><label data-i18n="lblUnitWeight">Unit Weight</label><span id="cpWeight">—</span></div>
           <div class="cp-item"><label data-i18n="lblBasePrice">Base Price</label><span id="cpBase">—</span></div>
           <div class="cp-item cp-acc"><label><span data-i18n="accessories">Accessories</span></label><span id="cpAcc">—</span></div>
           <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Final Unit Price</label><span id="cpFinal">—</span><span id="cpLine" class="cp-line-note" hidden></span></div>
-        </div>
+        </div></div>
         <div class="price-mode-preview" id="priceModePreview">
           <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
           <div><span data-i18n="lblPriceMode">Price Mode</span><strong id="pmPreviewMode" data-i18n="pmAutoRound">Auto Round</strong></div>
@@ -9672,7 +9718,7 @@ function renderQuote(newIdx){
         <div class="qi-item-left">
           <div class="qi-num">${i+1}</div>
           <div class="qi-body">
-            <div class="qi-titlerow"><div class="qi-desc">${escHtml(displayItemDesc(item))}</div>${chip?`<span class="qi-finsep">-</span>${chip}`:''}</div>
+            <div class="qi-titlerow"><span class="qi-desc">${escHtml(displayItemDesc(item))}</span>${chip?`<span class="qi-fin">\u00a0<span class="qi-finsep">·</span>\u00a0${chip}</span>`:''}</div>
             <div class="qi-dim">${dcDimSegmentsHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
             <div class="qi-meta qi-qtyweight">
               ${totalLenPill}
