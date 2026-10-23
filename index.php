@@ -2733,6 +2733,44 @@ input,select,textarea{
 .ph-rec-warn{background:rgba(214,158,46,.18);color:#8a5a00}
 .ph-rec-use{margin-left:auto}
 .ph-more{margin-top:8px;width:100%}
+/* In the form: one compact line once a lookup has been made. */
+.ph-summary{margin-top:6px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:11.5px;color:var(--text-2);min-width:0}
+.ph-summary[hidden]{display:none}
+.ph-sum-n{font-weight:800;white-space:nowrap}
+.ph-sum-top{font-weight:600;color:var(--text-muted);min-width:0;overflow-wrap:anywhere}
+/* ── Pricing History drawer / sheet ─────────────────────────────────────────
+   Width decides the shape: a right-hand panel while there is room beside the
+   form, a bottom sheet on a phone. The drawer body is the only scroller, the
+   page behind does not move, and the count stays pinned at its top. */
+.ph-backdrop{position:fixed;inset:0;z-index:505;background:rgba(10,12,20,.42);opacity:0;transition:opacity .18s ease}
+.ph-backdrop.open{opacity:1}
+.ph-drawer{position:fixed;z-index:510;top:0;right:0;bottom:0;width:min(500px,92vw);
+  display:flex;flex-direction:column;background:var(--surface);color:var(--text);
+  box-shadow:-10px 0 32px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .2s ease;outline:none}
+.ph-drawer.open{transform:none}
+.ph-drawer[hidden],.ph-backdrop[hidden]{display:none}
+.ph-drawer-head{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:1px solid var(--border)}
+.ph-drawer-titles{min-width:0}
+.ph-drawer-title{font-size:15px;font-weight:900;color:var(--text);line-height:1.3}
+.ph-drawer-title .ph-tag{display:block;font-size:10.5px;font-weight:500;color:var(--text-muted)}
+.ph-drawer-sub{margin-top:3px;font-size:11.5px;font-weight:700;color:var(--text-2);overflow-wrap:anywhere}
+.ph-drawer-x{flex:0 0 auto;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);color:var(--text-2);font-size:17px;cursor:pointer}
+.ph-drawer-x:hover{border-color:var(--accent-mid);color:var(--accent-2)}
+.ph-drawer-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding:0 16px calc(16px + env(safe-area-inset-bottom,0px))}
+#phDrawer .ph-list,#phDrawer .ph-scroll{max-height:none;overflow:visible;padding-right:0}
+#phDrawer .ph-count{margin:0 -16px 10px;padding:10px 16px 8px}
+#phDrawer .ph-empty-msg{padding:16px 0}
+html.ph-open,html.ph-open body{overflow:hidden}
+@media (max-width:640px){
+  .ph-drawer{top:auto;left:0;right:0;width:100%;max-height:88vh;max-height:88dvh;
+    border-radius:16px 16px 0 0;transform:translateY(100%);box-shadow:0 -10px 32px rgba(0,0,0,.2)}
+  .ph-drawer.open{transform:none}
+  .ph-drawer-head{padding-top:14px}
+}
+@media (prefers-reduced-motion:reduce){ .ph-drawer,.ph-backdrop{transition:none} }
 /* ── The panel belongs to the row above it ─────────────────────────────────
    Indented under the row's own number and ruled down its left edge, so in a
    list of twenty it is never read as belonging to the item below. */
@@ -4123,7 +4161,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
         <div class="ph-mini" id="phMini">
           <div class="ph-mini-head">
             <span class="ph-title"><span data-i18n="prevQuotedPrices">Pricing History</span> <span class="ph-tag" data-i18n="mRefOnly">reference only, does not change your price</span></span>
-            <button class="btn btn-outline btn-sm" onclick="checkPreviousPrice()"><span data-i18n="checkPrevPrices">Show Pricing History</span></button>
+            <button class="btn btn-outline btn-sm" id="phViewBtn" type="button" onclick="phViewHistory()" aria-haspopup="dialog" aria-controls="phDrawer"><span data-i18n="phViewHistory">View History</span></button>
           </div>
           <!-- The records themselves. A Last / Low / High / Avg summary used to
                sit here, computed over every length of the specification at
@@ -4132,9 +4170,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
                a number that describes no item anybody ever sold. What
                explains a price is the rows — the length, the thread, the
                rate, the markup — so the rows are what is shown. -->
-          <div id="phResults" style="display:none">
-            <div id="phList" class="ph-list"></div>
-          </div>
+          <!-- The rows open in the history drawer (#phDrawer) rather than here:
+               they are reference, and inline they pushed the rest of the form
+               far down the page. Here: the count and the closest match only. -->
+          <div class="ph-summary" id="phSummary" hidden></div>
           <div class="ph-empty-msg" id="phEmptyMsg" style="display:none" data-i18n="phNoHistoryYet">No pricing history for this exact specification yet.</div>
         </div>
 
@@ -5002,6 +5041,25 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   </div>
 </div>
 
+<!-- Pricing History drawer: a side panel on wide screens, a bottom sheet on
+     narrow ones — one element, the width decides. #phResults / #phList are the
+     same nodes the history code has always written into. -->
+<div class="ph-backdrop" id="phBackdrop" hidden onclick="phDrawerClose()"></div>
+<aside class="ph-drawer" id="phDrawer" role="dialog" aria-modal="true" aria-labelledby="phDrawerTitle" tabindex="-1" hidden>
+  <div class="ph-drawer-head">
+    <div class="ph-drawer-titles">
+      <div class="ph-drawer-title" id="phDrawerTitle"><span data-i18n="prevQuotedPrices">Pricing History</span> <span class="ph-tag" data-i18n="mRefOnly">reference only, does not change your price</span></div>
+      <div class="ph-drawer-sub" id="phDrawerSub"></div>
+    </div>
+    <button type="button" class="ph-drawer-x" id="phDrawerClose" onclick="phDrawerClose()" data-i18n-title="phClose" title="Close" aria-label="Close">✕</button>
+  </div>
+  <div class="ph-drawer-body" id="phDrawerBody">
+    <div id="phResults" style="display:none">
+      <div id="phList" class="ph-list"></div>
+    </div>
+  </div>
+</aside>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -5324,6 +5382,8 @@ const I18N={
     savedDiameterRules:'Saved Diameter Rules', saveRule:'Save Rule',
     lblDiameterMm:'Diameter (mm)',
     prevQuotedPrices:'Pricing History', checkPrevPrices:'Show Pricing History',
+    phViewHistory:'View History', phMatchCount:'{n} matching records', phClosest:'Closest:',
+    phLoading:'Loading…', phClose:'Close',
     lblManualWeight:'Manual Weight', lblDiaXLength:'Diameter × Length',
     lblUnitWeight:'Unit Weight', lblBasePrice:'Base Price',
     /* The preview's line note, kept as one sentence so the two figures cannot
@@ -5885,6 +5945,8 @@ const I18N={
     savedDiameterRules:'已保存直径规则', saveRule:'保存规则',
     lblDiameterMm:'直径 (mm)',
     prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
+    phViewHistory:'查看历史', phMatchCount:'{n} 条符合记录', phClosest:'最接近：',
+    phLoading:'加载中…', phClose:'关闭',
     lblManualWeight:'手动重量', lblDiaXLength:'直径 × 长度',
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
     cpLineNote:'已含配件：{acc}',
@@ -10934,11 +10996,19 @@ async function checkPreviousPrice(){
     const empty=el('phEmptyMsg'); empty.style.display='block'; empty.textContent=dcT('tEnterSizeFirst');
     return;
   }
-  phFormState=await phFetch(spec,selectedCompanyId,0,20);
-  if(phFormState) phFormState._spec=spec;
+  /* The drawer opens at once and says it is loading, so a slow link never
+     reads as a dead button. */
+  phDrawerSetSub(spec);
+  el('phResults').style.display='block';
+  el('phList').innerHTML='<div class="ph-empty-msg">'+escHtml(dcT('phLoading'))+'</div>';
+  phDrawerOpen();
+  const company=selectedCompanyId;
+  phFormState=await phFetch(spec,company,0,20);
+  if(phFormState){ phFormState._spec=spec; phFormState._company=company; }
   el('phEmptyMsg').style.display='none';
   el('phResults').style.display='block';
   el('phList').innerHTML=phListHtml(phFormState,null,'phFormMore()');
+  phRenderSummary();
 }
 async function phFormMore(){
   if(!phFormState||!phFormState._spec) return;
@@ -10946,10 +11016,85 @@ async function phFormMore(){
   if(!next) return;
   phFormState.records=phFormState.records.concat(next.records||[]);
   el('phList').innerHTML=phListHtml(phFormState,null,'phFormMore()');
+  /* The pressed Load More was just replaced; keep focus inside the drawer
+     (without moving its scroll) so Escape and Tab still belong to it. */
+  const d=el('phDrawer');
+  if(d && !d.hidden && !d.contains(document.activeElement)){ try{ d.focus({preventScroll:true}); }catch(e){} }
+  phRenderSummary();
 }
+
+/* ── Pricing History drawer ───────────────────────────────────────────────
+   Presentation only: the lookup, its ranking, its paging and the record
+   markup are the ones above, untouched. View History reopens a lookup already
+   made for this exact specification and customer instead of asking again. */
+function phViewHistory(){
+  const spec=phFormSpec();
+  if(phFormState && phFormState._spec && phFormState._company===selectedCompanyId
+     && JSON.stringify(phFormState._spec)===JSON.stringify(spec)){
+    phDrawerSetSub(spec);
+    phDrawerOpen();
+    return;
+  }
+  return checkPreviousPrice();
+}
+function phDrawerSetSub(spec){
+  const sub=el('phDrawerSub'); if(!sub) return;
+  sub.textContent=[materialLabel(spec.material),spec.sizeType,spec.productType,sizeDisplay(spec.cleanSize),spec.finish]
+    .filter(Boolean).join(' · ');
+}
+/* One line in the form, from what the lookup already returned: how many
+   records match and the closest one — the first in the existing ranking. */
+function phRenderSummary(){
+  const box=el('phSummary'); if(!box) return;
+  const st=phFormState;
+  if(!st){ box.textContent=dcT('phLoadFailed'); box.hidden=false; return; }
+  const total=st.total||(st.records||[]).length;
+  if(!total){ box.textContent=dcT('phNoneExact'); box.hidden=false; return; }
+  const r=(st.records||[])[0];
+  const bolt=r&&(r.boltUnitPrice===null||r.boltUnitPrice===undefined)?null:Number(r&&r.boltUnitPrice);
+  const split=st.ownTotal!==undefined?' · '+dcT('phThisCustomer').replace('{n}',st.ownTotal):'';
+  box.innerHTML='<span class="ph-sum-n">'+escHtml(dcT('phMatchCount').replace('{n}',total)+split)+'</span>'
+    +(r?' <span class="ph-sum-top">'+escHtml(dcT('phClosest'))+' '+escHtml(r.refNo||'—')+' · '
+        +escHtml(phMoney(bolt===null?r.unitPrice:bolt))+' · '+escHtml(fmtDateShort(r.date))+'</span>':'');
+  box.hidden=false;
+}
+let phDrawerReturn=null, phDrawerScrollY=0;
+const PH_INERT=['.app-header','.app-shell','.mobile-bar','#sideBackdrop'];
+function phDrawerOpen(){
+  const d=el('phDrawer'), b=el('phBackdrop');
+  if(!d||!b) return;
+  if(d.hidden){
+    phDrawerReturn=document.activeElement;
+    phDrawerScrollY=window.scrollY;
+    d.hidden=false; b.hidden=false;
+    document.documentElement.classList.add('ph-open');
+    /* The form behind cannot be tabbed into, tapped or read out while the
+       drawer is up; its values and scroll position are left exactly as they are. */
+    PH_INERT.forEach(sel=>document.querySelectorAll(sel).forEach(n=>{ n.inert=true; }));
+    el('phDrawerBody').scrollTop=0;
+    requestAnimationFrame(()=>{ d.classList.add('open'); b.classList.add('open'); });
+  }
+  try{ d.focus({preventScroll:true}); }catch(e){ d.focus(); }
+}
+function phDrawerClose(){
+  const d=el('phDrawer'), b=el('phBackdrop');
+  if(!d||d.hidden) return;
+  d.classList.remove('open'); b.classList.remove('open');
+  d.hidden=true; b.hidden=true;
+  PH_INERT.forEach(sel=>document.querySelectorAll(sel).forEach(n=>{ n.inert=false; }));
+  document.documentElement.classList.remove('ph-open');
+  if(Math.abs(window.scrollY-phDrawerScrollY)>1) window.scrollTo({top:phDrawerScrollY,behavior:'instant'});
+  const back=phDrawerReturn&&document.contains(phDrawerReturn)?phDrawerReturn:el('phViewBtn');
+  phDrawerReturn=null;
+  if(back){ try{ back.focus({preventScroll:true}); }catch(e){} }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ const d=el('phDrawer'); if(d&&!d.hidden){ e.preventDefault(); phDrawerClose(); } }
+});
 
 function resetPriceHistoryPanel(){
   phFormState=null;
+  const sum=el('phSummary'); if(sum){ sum.hidden=true; sum.innerHTML=''; }
   const empty=el('phEmptyMsg');
   if(empty){ empty.textContent=PH_EMPTY_DEFAULT; empty.style.display='none'; }
   const results=el('phResults'); if(results) results.style.display='none';
