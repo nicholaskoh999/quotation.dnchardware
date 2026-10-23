@@ -3401,7 +3401,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="sagrod-diameter" step="0.1" value="10.6" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="sagrod-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="onThreadLenChange('sagrod')"></div>
-          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" enterkeyhint="enter" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="dcRepeatEntryKey(event,'sagrod')"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
+          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" enterkeyhint="enter" form="dcRepeatForm-sagrod" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="dcRepeatEntryKey(event,'sagrod')" onblur="dcRepeatEntryBlur(event,'sagrod')"><form id="dcRepeatForm-sagrod" hidden onsubmit="event.preventDefault();dcRepeatEntrySubmit('sagrod')"></form><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <button type="button" class="acc-toggle-btn full" id="sagrod-accToggle" onclick="toggleAccPanel('sagrod')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -8203,14 +8203,49 @@ function addSagRod(){
      · No Round — a mode, not a figure. Manual Price is a figure for ONE
        length and is still reset to Auto, exactly as before. */
 const DC_REPEAT_ENTRY={sagrod:'length'};
+/* The soft keyboard's action key. A Chromium-based Android browser (the Huawei
+   MatePad's included) gives a field that has another field after it a NEXT key
+   (">|"), and NEXT sends no key event at all: the browser just moves focus to
+   the next input. So Enter handling alone never sees it. Two layers:
+
+     1. The repeat field belongs to its own empty <form> (the form="" attribute,
+        so no markup moves). Chromium only looks for a "next" field inside the
+        same form, so there is none, and the keyboard offers Enter / Go instead.
+        Enter then arrives as a keydown — or, if a browser submits the form
+        without one, as that form's submit — and both go to addCurrentItem().
+     2. Should a keyboard still show NEXT, a focus jump out of the field that no
+        tap, click or Tab key caused IS that key: focus goes straight back
+        (input to input, so the keyboard never closes) and the same add runs.
+
+   Every route ends in the one add path, and one press still makes one item:
+   a handled Enter cancels the form submit, and a successful add empties the
+   field, so a focus jump from the same press finds nothing to add. Other fields keep their
+   normal Next / Tab navigation; only this field is touched. */
+const dcRepeatState={lastKey:'',lastKeyAt:0,lastPointerAt:0,lastPointerOn:null};
+['pointerdown','mousedown','touchstart'].forEach(t=>document.addEventListener(t,e=>{ dcRepeatState.lastPointerAt=Date.now(); dcRepeatState.lastPointerOn=e.target; },{capture:true,passive:true}));
+function dcRepeatEntryAdd(type){
+  if(currentType!==type) return;
+  addCurrentItem();
+  dcRepeatEntryRefocus(type);   // also after a failed add: the person is still on this field
+}
 function dcRepeatEntryKey(ev,type){
+  dcRepeatState.lastKey=ev.key; dcRepeatState.lastKeyAt=Date.now();
   if(ev.key!=='Enter') return;
   ev.preventDefault();
   /* One press, one item: a held key auto-repeats, and an IME may still be
      composing. Neither is a new press. The field is emptied by a successful
      add, so even a stray second Enter meets "Enter length", never a copy. */
-  if(ev.repeat||ev.isComposing||currentType!==type) return;
-  addCurrentItem();
+  if(ev.repeat||ev.isComposing) return;
+  dcRepeatEntryAdd(type);
+}
+function dcRepeatEntrySubmit(type){ dcRepeatEntryAdd(type); }
+function dcRepeatEntryBlur(ev,type){
+  const f=ev.target, to=ev.relatedTarget, now=Date.now();
+  if(!to || !to.matches || !to.matches('input:not([type=checkbox]):not([type=radio]),textarea,select')) return;  // focus left for nothing typable: not a Next key
+  if(now-dcRepeatState.lastPointerAt<700 && dcRepeatState.lastPointerOn!==f) return; // a tap or click elsewhere chose that field
+  if(dcRepeatState.lastKey==='Tab' && now-dcRepeatState.lastKeyAt<700) return;      // desktop / hardware Tab keeps working
+  if(currentType!==type || !String(f.value||'').trim() || (loadedSavedQuote && quoteLocked)) return;
+  setTimeout(()=>{ try{ f.focus({preventScroll:true}); }catch(e){ f.focus(); } dcRepeatEntryAdd(type); },0);
 }
 function dcRepeatEntryCarry(type,acc,modeBefore){
   if(!DC_REPEAT_ENTRY[type]) return;
