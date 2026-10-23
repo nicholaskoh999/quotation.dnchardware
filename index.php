@@ -973,6 +973,11 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
   .pq-signoff td.last{padding-right:0!important}
   .pq-who{border-top:.75pt solid #161A23;padding-top:1.2mm;margin-top:9mm;overflow-wrap:anywhere}
   .print-footer-note{margin-top:4mm;font-size:7pt;color:#4D5463;text-align:left}
+  /* Compact sign-off: only when the normal one would leave the final page and
+     stand alone on a new one. Spacing only — same type, same lines. */
+  .pq-tail-compact .pq-signoff{margin-top:0}
+  .pq-tail-compact .pq-who{margin-top:3mm}
+  .pq-tail-compact .print-footer-note{margin-top:2mm}
 }
 
 /* ═══════════════ STAGE 6A — UI POLISH v2.17.3 ═══════════════ */
@@ -10971,7 +10976,7 @@ window.addEventListener('beforeprint',()=>{
 window.addEventListener('afterprint',()=>{
   el('printSummary').style.display='none';
   el('printItemsBody').innerHTML='';
-  const tail=el('printTail'); if(tail){ tail.style.paddingTop=''; tail.classList.remove('pq-tail-next'); }
+  const tail=el('printTail'); if(tail){ tail.style.paddingTop=''; tail.classList.remove('pq-tail-next','pq-tail-compact'); }
 });
 
 /* ── The sign-off sits at the bottom of the final page ──────────────────────
@@ -10993,7 +10998,7 @@ window.addEventListener('afterprint',()=>{
    is only ever after the last item, so on a multi-page quotation it appears
    on the final page alone. Nothing is positioned absolutely: it is padding in
    normal flow, so it cannot cover a row. */
-const PQ_PAGE_MM=297-14-18, PQ_WIDTH_MM=210-14-14, PQ_SAFETY_MM=6;
+const PQ_PAGE_MM=297-14-18, PQ_WIDTH_MM=210-14-14, PQ_SAFETY_MM=6, PQ_SAFETY_COMPACT_MM=3;
 function dcPrintRulesCss(){
   let css='';
   for(const sheet of document.styleSheets){
@@ -11012,7 +11017,7 @@ function dcPrintRulesCss(){
 function dcAnchorPrintTail(){
   const sheet=el('printSummary'), tail=el('printTail'), table=sheet&&sheet.querySelector('.print-items-table');
   if(!sheet||!tail||!table) return;
-  tail.style.paddingTop=''; tail.classList.remove('pq-tail-next');
+  tail.style.paddingTop=''; tail.classList.remove('pq-tail-next','pq-tail-compact');
   const measure=document.createElement('style');
   measure.textContent=dcPrintRulesCss()
     +'#printSummary{position:absolute!important;left:-10000px!important;top:0!important;width:'+PQ_WIDTH_MM+'mm!important;visibility:hidden!important}';
@@ -11039,10 +11044,22 @@ function dcAnchorPrintTail(){
     const tailH=tailBox.height;
     if(y+tailH<=cap-safety){
       tail.style.paddingTop=Math.max(0,Math.floor(cap-safety-y-tailH))+'px';
-    } else {
-      tail.classList.add('pq-tail-next');                           // no room: the next page, at its bottom
-      tail.style.paddingTop=Math.max(0,Math.floor(cap-safety-tailH))+'px';
+      return;
     }
+    /* It does not fit at normal spacing. A page holding nothing but the
+       sign-off is worse than a slightly tighter one, so try the compact
+       spacing (less air above the signature lines, a 3 mm safety gap) on
+       this same page first; it is measured, not assumed. */
+    tail.classList.add('pq-tail-compact');
+    const compactH=box(tail).height, safetyC=PQ_SAFETY_COMPACT_MM*pxPerMm;
+    if(y+compactH<=cap-safetyC){
+      tail.style.paddingTop=Math.max(0,Math.floor(cap-safetyC-y-compactH))+'px';
+      return;
+    }
+    /* Genuinely no room: the normal block starts the next page, at its bottom. */
+    tail.classList.remove('pq-tail-compact');
+    tail.classList.add('pq-tail-next');
+    tail.style.paddingTop=Math.max(0,Math.floor(cap-safety-tailH))+'px';
   } finally { measure.remove(); }
 }
 
