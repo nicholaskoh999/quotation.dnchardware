@@ -1352,15 +1352,9 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
   #addBtn{min-height:60px;font-size:16.5px}
   #cancelItemEditBtn{min-height:60px}
 }
-/* Touch tablets/phones: keep Add to Quotation reachable without hunting for it,
-   without depending on the on-screen keyboard's Enter/Done/Next behavior */
-@media (hover:none) and (pointer:coarse) and (max-width:900px){
-  .entry-actions{
-    position:sticky; bottom:68px; z-index:120;
-    background:var(--surface); padding:14px 0 6px;
-    box-shadow:0 -6px 14px rgba(0,0,0,.06);
-  }
-}
+/* Touch tablets/phones: Add to Quotation / Update Item lives in the one sticky
+   footer bar (.mobile-bar, beside TOTAL / items / Save) rather than in a second
+   sticky strip of its own above it. */
 
 /* Stage 7B-17: Quotation List sort control (display order only) */
 .qi-sort-row{display:flex; align-items:center; gap:8px; margin:12px 0 2px}
@@ -1861,6 +1855,47 @@ input,select,textarea{
   background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-mid);
   font-size:11px;font-weight:800;white-space:nowrap}
 .acc-toggle-btn.has-acc{border-color:var(--amber-mid)}
+
+/* ── Accessories as add / remove rows ─────────────────────────────────────
+   The enable checkbox is still the one source of truth — getAccessories(),
+   loadAccIntoForm(), resetAccPanel(), the draft and every saved item read it —
+   it just is no longer the control. "+ Nut" ticks it, the bin unticks it, and
+   a row whose box is not ticked is not drawn. dcAccEnhancePanel() adds the
+   buttons; everything below is presentation of that one checkbox. */
+.acc-panel.acc-rows{display:grid; gap:8px; padding:12px}
+@media (max-width:480px){ .acc-panel.acc-rows{padding:10px} }
+.acc-toggle-btn.acc-rows-on{display:none}
+.acc-rows .acc-divider{display:none}
+.acc-rows .acc-item:has(.acc-enable input:not(:checked)){display:none}
+.acc-rows .acc-enable{pointer-events:none; cursor:default}
+.acc-rows .acc-enable input[type=checkbox]{position:absolute; width:1px; height:1px; opacity:0; margin:0}
+.acc-rows .acc-item-head{margin-bottom:8px}
+.acc-addbar{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px}
+.acc-addbar-title{font-size:13px; font-weight:900; color:var(--text-2)}
+.acc-empty{font-size:12px; font-weight:600; color:var(--text-muted); margin-right:auto}
+.acc-rows:has(.acc-enable input:checked) .acc-empty{display:none}
+.acc-rows:has(.acc-enable input:checked) .acc-addbar-title{margin-right:auto}
+.acc-add-btns{display:flex; flex-wrap:wrap; gap:6px}
+.acc-add-btn{min-height:36px; padding:6px 12px; border:1.5px dashed var(--accent-mid); border-radius:var(--pill-r);
+  background:var(--surface); color:var(--accent-2); font-size:12.5px; font-weight:800; cursor:pointer; white-space:nowrap}
+.acc-add-btn:hover{background:var(--accent-light); border-style:solid}
+.acc-add-btn:disabled{opacity:.5; cursor:not-allowed}
+.acc-rows:has([data-acc=nut] .acc-enable input:checked) .acc-add-btn[data-acc=nut],
+.acc-rows:has([data-acc=fw] .acc-enable input:checked) .acc-add-btn[data-acc=fw],
+.acc-rows:has([data-acc=custom] .acc-enable input:checked) .acc-add-btn[data-acc=custom]{display:none}
+.acc-remove-btn{flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:36px; padding:0; border:1.5px solid var(--border); border-radius:var(--r-xs);
+  background:var(--surface); color:var(--text-muted); cursor:pointer}
+.acc-remove-btn:hover{border-color:var(--red,#c0392b); color:var(--red,#c0392b)}
+.acc-remove-btn:disabled{opacity:.5; cursor:not-allowed}
+.acc-remove-btn svg{width:17px; height:17px}
+@media (hover:none) and (pointer:coarse){
+  .acc-add-btn{min-height:44px; padding:8px 14px}
+  .acc-remove-btn{width:44px; height:44px}
+}
+@media (max-width:640px){
+  .acc-rows .acc-item-head{flex-direction:row; align-items:center}
+}
 
 /* ── WhatsApp Quick Add ──────────────────────────────────────────────────── */
 .wqa-open-btn{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
@@ -2968,10 +3003,6 @@ body{min-height:100vh; min-height:100dvh}
   }
   .main{padding-bottom:calc(var(--bar-h) + var(--sab) + 56px)}
   .toast{bottom:calc(var(--bar-h) + var(--sab) + 16px)}
-  /* the entry Add button rides just above the total bar, wherever the bar ends up */
-  @media (hover:none) and (pointer:coarse){
-    .entry-actions{bottom:calc(var(--bar-h) + var(--sab))}
-  }
   /* a focused field scrolled into view must clear the sticky bars */
   .field input,.field select,.field textarea,.qo-card input,
   .modal input,.modal select,.modal textarea{scroll-margin-top:calc(var(--banner-h) + var(--header-h) + 16px); scroll-margin-bottom:calc(var(--bar-h) + var(--sab) + 96px)}
@@ -2983,6 +3014,32 @@ html.kb-open .mobile-bar{transform:translateY(110%); pointer-events:none}
 html.kb-open .entry-actions{position:static; box-shadow:none; padding-top:14px}
 html.kb-open .main{padding-bottom:calc(var(--kb,0px) + 24px)}
 html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
+/* ONE sticky footer row: TOTAL · Add to Quotation / Update Item · items · Save.
+   The bar is what the add button is on these widths, so the in-form copy steps
+   aside — except while the keyboard is up, when the bar itself steps aside and
+   the in-form button (in normal flow, never sticky) is the way to add. */
+.mobile-bar{flex-wrap:nowrap}
+.mobile-bar .mb-total{flex:0 0 auto; min-width:0}
+.mobile-bar .mb-total span{white-space:nowrap}
+.mobile-bar .mb-actions{display:flex; gap:8px; flex:1 1 auto; justify-content:flex-end; min-width:0}
+.mobile-bar .mb-actions .btn{white-space:nowrap; flex:0 0 auto}
+.mobile-bar .mb-add{padding:10px 16px; font-size:13.5px}
+.mobile-bar #mobileSaveBtn{padding:10px 18px; font-size:13.5px}
+.mb-add-short{display:none}
+@media (max-width:900px){
+  #addBtn{display:none}
+  html.kb-open #addBtn{display:inline-flex}
+}
+@media (max-width:640px){
+  .mb-add-full{display:none}
+  .mb-add-short{display:inline}
+}
+@media (max-width:420px){
+  .mobile-bar{gap:6px; padding-left:max(10px,env(safe-area-inset-left,0px)); padding-right:max(10px,env(safe-area-inset-right,0px))}
+  .mobile-bar .mb-actions{gap:6px}
+  .mobile-bar .mb-total span{font-size:15px}
+  .mobile-bar .mb-actions .btn{padding:9px 10px; font-size:13px}
+}
 /* Modals/sheets follow the visible area, not the layout viewport */
 @media (max-width:640px){
   html.kb-open .modal-overlay,html.kb-open .wqa-modal{max-height:var(--vvh,100dvh)}
@@ -3012,7 +3069,6 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   .mobile-bar{left:50%; right:auto; width:min(720px,calc(100% - 32px)); transform:translateX(-50%);
     bottom:calc(8px + var(--sab)); border:1px solid var(--border); border-radius:var(--r)}
   html.kb-open .mobile-bar{transform:translate(-50%,calc(100% + 40px))}
-  @media (hover:none) and (pointer:coarse){ .entry-actions{bottom:calc(var(--bar-h) + var(--sab) + 8px)} }
 }
 @media (min-width:641px) and (max-width:900px) and (orientation:portrait){
   .main{padding-bottom:calc(var(--bar-h) + var(--sab) + 72px)}
@@ -4061,9 +4117,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 <!-- Mobile sticky bar -->
 <div class="mobile-bar">
   <div class="mb-total"><label>Total</label><span id="mbTotal">RM 0.00</span></div>
-  <div style="display:flex;gap:8px">
+  <div class="mb-actions">
+    <button class="btn btn-primary btn-sm mb-add" id="mbAddBtn" type="button" onclick="addCurrentItem()"><span class="mb-add-full" data-i18n="addToQuotation">＋ Add to Quotation</span><span class="mb-add-short" data-i18n="mbAddShort">＋ Add</span></button>
     <button class="btn btn-outline btn-sm" onclick="scrollToQuote()"><span id="mbCount">0</span> <span data-i18n="itemsUnit">items</span></button>
-    <button class="btn btn-save" id="mobileSaveBtn" style="padding:10px 18px;font-size:13.5px" onclick="openSaveModal()" data-i18n="save">Save</button>
+    <button class="btn btn-save" id="mobileSaveBtn" onclick="openSaveModal()" data-i18n="save">Save</button>
   </div>
 </div>
 
@@ -4966,6 +5023,10 @@ const I18N={
     /* accessories */
     accessories:'Accessories', accToggleSub:'Nut / FW / Custom · Optional',
     accAddNut:'Add Nut', accAddFW:'Add FW',
+    accNone:'No accessories', accNut:'Nut', accFW:'Flat washer', accCustom:'Custom',
+    accPlusNut:'+ Nut', accPlusFW:'+ Flat washer', accPlusCustom:'+ Custom',
+    accQtyPerItem:'Qty per item', accRemove:'Remove',
+    mbAddShort:'＋ Add', mbUpdateShort:'Update',
     /* actions */
     cancelEdit:'Cancel Edit', addToQuotation:'＋ Add to Quotation', updateItem:'Update Item',
     editingItem:'Editing item #{n}', done:'Done',
@@ -5541,6 +5602,10 @@ const I18N={
     /* accessories */
     accessories:'配件', accToggleSub:'Nut / FW / 自定义 · 可选',
     accAddNut:'加 Nut', accAddFW:'加 FW',
+    accNone:'无配件', accNut:'Nut', accFW:'平垫 FW', accCustom:'自定义',
+    accPlusNut:'+ Nut', accPlusFW:'+ 平垫 FW', accPlusCustom:'+ 自定义',
+    accQtyPerItem:'每件数量', accRemove:'移除',
+    mbAddShort:'＋ 加入', mbUpdateShort:'更新',
     /* actions */
     cancelEdit:'取消编辑', addToQuotation:'＋ 加入报价', updateItem:'更新产品',
     editingItem:'正在编辑第 {n} 项', done:'完成',
@@ -6525,9 +6590,9 @@ function updateQuoteLockUI(){
     reviewLabel.textContent=dcT(locked?'lblLocked':'lblEditing');
   }
   ['qi-customer','qi-phone','qi-date','qi-prepby','qi-remarks'].forEach(id=>{ const e=el(id); if(e) e.disabled=locked; });
-  document.querySelectorAll('.item-form input,.item-form select,.type-picker button').forEach(e=>{ e.disabled=locked; });
+  document.querySelectorAll('.item-form input,.item-form select,.item-form .acc-act,.type-picker button').forEach(e=>{ e.disabled=locked; });
   document.querySelectorAll('.acc-toggle-btn').forEach(e=>{ e.disabled=locked; e.style.pointerEvents=locked?'none':''; });
-  ['addBtn','saveQuoteBtn','mobileSaveBtn','saveModalSubmitBtn','clearAllBtn','cancelItemEditBtn'].forEach(id=>{ const e=el(id); if(e) e.disabled=locked; });
+  ['addBtn','mbAddBtn','saveQuoteBtn','mobileSaveBtn','saveModalSubmitBtn','clearAllBtn','cancelItemEditBtn'].forEach(id=>{ const e=el(id); if(e) e.disabled=locked; });
   document.querySelectorAll('.qi-del').forEach(b=>{ b.disabled=locked; b.style.display=locked?'none':''; });
   document.querySelectorAll('.qi-edit-btn').forEach(b=>{ b.disabled=locked; b.style.display=locked?'none':''; });
   /* History exists for a quotation that has been saved. A draft has nothing
@@ -7915,7 +7980,67 @@ function toggleAccPanel(type){
   setAccPanelOpen(type,!(panel&&panel.classList.contains('open')));
   scheduleDraftAutosave();
 }
+/* Turns one checkbox-style accessory panel into add / remove rows. Idempotent,
+   and keyed off the checkbox ids, so it fits every form — including the
+   runtime-cloned L Bolt 45DEG and Others forms — without touching what is
+   stored: the checkbox stays the state, these buttons only tick and untick it
+   through its own change handler. */
+const DC_ACC_KINDS=[['nut','accNut','accPlusNut'],['fw','accFW','accPlusFW'],['custom','accCustom','accPlusCustom']];
+function dcAccEnhancePanel(panel){
+  if(!panel||panel.classList.contains('acc-rows')||!panel.querySelector('.acc-enable input[type=checkbox]')) return;
+  const type=panel.id.replace(/-accPanel$/,'');
+  const kinds=DC_ACC_KINDS.filter(([k])=>el(type+'-'+k+'Enabled'));
+  const bar=document.createElement('div');
+  bar.className='acc-addbar';
+  bar.innerHTML='<span class="acc-addbar-title" data-i18n="accessories">'+escHtml(dcT('accessories'))+'</span>'
+    +'<span class="acc-empty" data-i18n="accNone">'+escHtml(dcT('accNone'))+'</span>'
+    +'<span class="acc-add-btns">'+kinds.map(([k,,plus])=>
+      '<button type="button" class="acc-act acc-add-btn" data-acc="'+k+'" data-i18n="'+plus+'">'+escHtml(dcT(plus))+'</button>').join('')+'</span>';
+  panel.insertBefore(bar,panel.firstChild);
+  panel.querySelectorAll('.acc-item').forEach(item=>{
+    const cb=item.querySelector('.acc-enable input[type=checkbox]');
+    const m=cb&&cb.id.match(/-(nut|fw|custom)Enabled$/);
+    if(!m) return;
+    const kind=DC_ACC_KINDS.find(([k])=>k===m[1]);
+    item.dataset.acc=m[1];
+    const title=item.querySelector('.acc-title-txt');
+    if(title){ title.setAttribute('data-i18n',kind[1]); title.textContent=dcT(kind[1]); }
+    item.querySelectorAll('.acc-field-label[data-i18n="lblQty"]').forEach(l=>{ l.setAttribute('data-i18n','accQtyPerItem'); l.textContent=dcT('accQtyPerItem'); });
+    const head=item.querySelector('.acc-item-head');
+    if(head){
+      const rm=document.createElement('button');
+      rm.type='button'; rm.className='acc-act acc-remove-btn'; rm.dataset.acc=m[1];
+      rm.setAttribute('data-i18n-title','accRemove'); rm.title=dcT('accRemove'); rm.setAttribute('aria-label',dcT('accRemove'));
+      rm.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+      head.appendChild(rm);
+    }
+  });
+  panel.classList.add('acc-rows');
+  const toggle=el(type+'-accToggle');
+  if(toggle) toggle.classList.add('acc-rows-on');
+}
+/* + Nut / + Flat washer / + Custom and the bin: tick or untick the row's own
+   checkbox and fire its change, so the existing onAccChange() path does the
+   rest — enable/disable, preview, pricing, autosave — exactly as before. */
+document.addEventListener('click',e=>{
+  const btn=e.target.closest&&e.target.closest('.acc-add-btn,.acc-remove-btn');
+  if(!btn||btn.disabled) return;
+  const panel=btn.closest('.acc-panel');
+  if(!panel) return;
+  const type=panel.id.replace(/-accPanel$/,'');
+  const cb=el(type+'-'+btn.dataset.acc+'Enabled');
+  if(!cb||cb.disabled) return;
+  const adding=btn.classList.contains('acc-add-btn');
+  if(cb.checked===adding) return;
+  cb.checked=adding;
+  cb.dispatchEvent(new Event('change',{bubbles:true}));
+  if(adding){
+    const first=cb.closest('.acc-item')?.querySelector('.acc-item-fields input');
+    if(first){ try{ first.focus({preventScroll:true}); }catch(_){ first.focus(); } }
+  }
+});
 function onAccChange(type){
+  dcAccEnhancePanel(el(type+'-accPanel'));
   const nutEn=el(type+'-nutEnabled')&&el(type+'-nutEnabled').checked;
   const fwEn=el(type+'-fwEnabled')&&el(type+'-fwEnabled').checked;
   const customEn=el(type+'-customEnabled')&&el(type+'-customEnabled').checked;
@@ -8587,6 +8712,13 @@ function setItemEditMode(index){
      switch exactly like any other opted-in element. */
   if(addBtn){ const k=editing?'updateItem':'addToQuotation';
               addBtn.setAttribute('data-i18n',k); addBtn.textContent=dcT(k); }
+  /* The footer bar's copy of the same button — same handler, same label. */
+  const mbAdd=el('mbAddBtn');
+  if(mbAdd){
+    [['.mb-add-full',editing?'updateItem':'addToQuotation'],['.mb-add-short',editing?'mbUpdateShort':'mbAddShort']].forEach(([sel,k])=>{
+      const s=mbAdd.querySelector(sel); if(s){ s.setAttribute('data-i18n',k); s.textContent=dcT(k); }
+    });
+  }
   const cancelBtn=el('cancelItemEditBtn');
   if(cancelBtn) cancelBtn.style.display=editing?'inline-flex':'none';
   /* The one place the extra-dimensions editor is built, and the one place it is
@@ -18389,6 +18521,7 @@ async function wqaAddAll(){
 (async function init(){
   ensureLBolt45Form();
   ensureOthersForm();
+  document.querySelectorAll('.acc-panel').forEach(dcAccEnhancePanel);
   ensurePriceModeControls();
   el('qi-date').value=todayStr();
   await Promise.all([
