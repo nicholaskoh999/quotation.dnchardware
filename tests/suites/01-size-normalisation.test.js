@@ -88,7 +88,9 @@ module.exports = async (browser, A) => {
   await typeRowSize(page, 0, '1/2', { blur: true });
   rows = await rowState(page);
   A.eq(rows[0].size, '1/2', 'typing 1/2 gives the inch size 1/2, never M1 or M1/2');
-  A.eq(rows[0].shownSizeInput, '1/2', 'and the box holds it as typed');
+  /* The row stays the canonical 1/2; the box shows it with its inch mark,
+     the way every other screen and the customer's copy show it. */
+  A.eq(rows[0].shownSizeInput, '1/2"', 'and the box shows it as the inch size 1/2"');
   A.near(rows[0].weight, rodWeight(12.7, 1000), 1e-6, 'weighed on 12.7mm — the half inch, fullsize');
 
   await typeRowSize(page, 0, '3/4', { blur: true });

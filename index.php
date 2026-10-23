@@ -13848,7 +13848,7 @@ function wqaPatchRows(){
     if(cSize){
       const tref=String(r.threadRef||'').trim();
       cSize.classList.toggle('has-tref',!!tref);
-      cSize.innerHTML=escHtml(r.size||'—')
+      cSize.innerHTML=escHtml(sizeDisplay(r.size)||'—')
         +(tref?`<span class="wqa-tref" title="${escHtml(dcT('wqaThreadRefNote'))}">${escHtml(tref)}</span>`:'');
     }
     /* What the empty Thread Reference box suggests follows the size, so it is
@@ -14132,6 +14132,7 @@ function wqaEditCellError(r,f){
 function wqaEditCellValue(r,f){
   if(f.kind==='dia')    return r.diaMm||'';
   if(f.kind==='thread') return wqaThreadValue(r)||'';
+  if(f.kind==='size')   return r[f.k]==null?'':sizeDisplay(r[f.k]);   // shown with its inch mark; read back through normalizeSizeValue
   return r[f.k]==null?'':r[f.k];
 }
 /* Every row, every cell, in visual order — which is also the Tab order. */
@@ -14313,7 +14314,7 @@ function wqaCompactCells(r,cols){
   const tref=String(r.threadRef||'').trim();
   const ri=wqa.rows.indexOf(r);
   const sizeCell=`<span class="wqa-c wqa-c-size wqa-c-tap${tref?' has-tref':''}" data-cell="size"
-    onclick="event.stopPropagation();wqaEditStart(${ri},'size')">${escHtml(r.size||'—')}${
+    onclick="event.stopPropagation();wqaEditStart(${ri},'size')">${escHtml(sizeDisplay(r.size)||'—')}${
     tref?`<span class="wqa-tref" title="${escHtml(dcT('wqaThreadRefNote'))}">${escHtml(tref)}</span>`:''}</span>`;
   const i=wqa.rows.indexOf(r);
   if(wqaEditing()){
@@ -18905,7 +18906,7 @@ function wqaEditSize(i,inp,commit){
   r.size=norm;
   r.issues=r.issues.filter(x=>x!=='size');
   r.aiUncertain=[];                 // the size was the doubt; it has been answered
-  if(commit || WQA_SIZE_SETTLED_RE.test(raw)) wqaSizeWriteBack(inp,norm);
+  if(commit || WQA_SIZE_SETTLED_RE.test(raw)) wqaSizeWriteBack(inp,sizeDisplay(norm));
   clearTimeout(wqa._t);
   /* Committed: render, so every derived cell on the row is rebuilt from the
      size that is now settled. Still typing: patch, so the caret survives —

@@ -172,10 +172,10 @@ module.exports = async (browser, A) => {
                clipped: cell.scrollWidth > cell.clientWidth + 1,
                summary: wqaRowDimSummary(wqa.rows[0]) };
     });
-    /* The review list carries the canonical size — the inch mark is added by
-       sizeDisplay where a customer reads it. What matters here is that the
-       whole of it is on screen. */
-    A.eq(shown.size, '1-1/4', 'the size is shown whole');
+    /* The review list shows the size with its inch mark, as the rest of QUO
+       does (the row itself still holds the canonical 1-1/4). What matters here
+       is that the whole of it is on screen. */
+    A.eq(shown.size, '1-1/4"', 'the size is shown whole, with its inch mark');
     A.eq(shown.clipped, 'false', 'and is not cut off by its column');
     A.includes(shown.summary, 'TL 100/100', 'and a paired thread length reads as it was written');
     await page.close();
