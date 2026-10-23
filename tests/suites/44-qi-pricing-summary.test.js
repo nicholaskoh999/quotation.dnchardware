@@ -168,7 +168,7 @@ module.exports = async (browser, A) => {
 
   // 中文 labels render
   const zh = await page.evaluate(() => { dcSetLang('zh'); const t = document.querySelector('#quoteItemList .qi-pricing').textContent; dcSetLang('en'); return t; });
-  A.includes(zh, '利润', 'zh: markup label translated');
+  A.includes(zh, 'Markup', 'zh: Markup stays English (approved wording)'); A.excludes(zh, '利润', 'zh: no old 利润 label');
 
   A.eq((page._dcErrors || []).concat(re._dcErrors || []).join(' | '), '', 'no page errors');
   await page.close(); await re.close();

@@ -161,7 +161,7 @@ module.exports = async (browser, A) => {
 
     await setLang(page, 'zh');
     const zh = await readEntry();
-    A.includes(zh.all, '快速添加', '中文: the homepage entry is 快速添加');
+    A.includes(zh.all, 'AI 智能识别', '中文: the homepage entry is AI 智能识别');
     A.excludes(zh.all, 'Quick Add', '中文: with no English name beside it');
     A.eq(zh.sub, '粘贴客户文字或上传图片 / PDF', '中文: and the same subtitle, translated');
 
@@ -193,7 +193,7 @@ module.exports = async (browser, A) => {
       /* the modal's own title matches the button that opened it */
       const title = await page.evaluate(() =>
         (document.querySelector('#wqaModal .modal-title') || {}).textContent || '');
-      A.includes(title, lang === 'zh' ? '快速添加' : 'Quick Add',
+      A.includes(title, lang === 'zh' ? 'AI 智能识别' : 'Quick Add',
         `${lang}: the modal is titled Quick Add`);
       A.excludes(title, 'WhatsApp', `${lang}: with no WhatsApp in the name`);
       await page.evaluate(() => { try { wqaHardClose(); } catch (e) {} });

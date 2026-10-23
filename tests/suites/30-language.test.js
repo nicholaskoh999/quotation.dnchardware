@@ -186,7 +186,7 @@ module.exports = async (browser, A) => {
       await page.waitForTimeout(300);
       await setLang(page, 'zh');
       const zh = await visibleText(page, '#form-' + type);
-      A.excludes(zh, 'Cut Length', `中文: ${why} — the dimension labels are translated`);
+      A.includes(zh, 'Length', `中文: ${why} — the dimension labels stay English (approved wording)`);
       A.excludes(zh, 'Additional Cost', `中文: ${why} — and the pricing labels`);
       await setLang(page, 'en');
       const en = await visibleText(page, '#form-' + type);

@@ -207,11 +207,11 @@ module.exports = async (browser, A) => {
     await page.evaluate(() => dcSetLang('zh'));
     await page.waitForTimeout(350);
     const zh = await meta(page);
-    A.includes(zh.right, '价格参数', '中文: 价格参数');
-    A.includes(zh.right, '成本率', '中文: 成本率');
-    A.includes(zh.right, '附加成本', '中文: 附加成本');
-    A.includes(zh.right, '加成', '中文: 加成');
-    A.includes(zh.left, '尺寸类型', '中文: 尺寸类型');
+    A.includes(zh.right, '定价参数', '中文: 定价参数');
+    A.includes(zh.right, '每公斤成本', '中文: 每公斤成本');
+    A.includes(zh.right, '额外加工费', '中文: 额外加工费');
+    A.includes(zh.right, 'Markup', '中文: Markup stays English');
+    A.includes(zh.left, 'Size 规格', '中文: Size 规格');
     A.excludes(zh.right, 'Cost Rate', '中文: with no English label left beside it');
     A.excludes(zh.right, 'Pricing', '中文: nor the English heading');
 

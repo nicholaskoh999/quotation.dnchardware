@@ -977,8 +977,10 @@ const I18N={
     cpConfirmDeleteQuote:'Delete this quotation?', cpSignedOut:'Signed out',
     cpSavedQuotes:'Saved quotes: {n} · Latest: {d}', cpNoSavedQuotes:'No saved quotations',
     cpLastUpdated:'Last Updated', cpLatestProduct:'Latest Product',
+    qoRenumbered:'Quotation {r} was renumbered.', qoChooseOne:'{n} quotations match “{r}”. Choose one:',
   },
   zh:{
+    qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
     navCalculator:'计算器', navCalculatorTitle:'报价计算器',
     navCompanies:'公司', navSignOut:'退出', navWorkspace:'DNC 工作台',
@@ -1441,8 +1443,8 @@ function renderCpSearchHits(hits,term){
         <span class="cp-hit-amt">RM ${amt}</span></button>`;
   }).join('');
   const head=hits.length===1
-    ? `Quotation ${esc(term)} was renumbered. / 此报价编号已更改：`
-    : `${hits.length} quotations match “${esc(term)}”. Choose one: / 多个结果，请选择：`;
+    ? esc(dcT('qoRenumbered').replace('{r}',term))
+    : esc(dcT('qoChooseOne').replace('{n}',hits.length).replace('{r}',term));
   const b=document.getElementById('cpSearchResult');
   b.innerHTML=`<div class="cp-hit-msg">${head}</div><div class="cp-hit-list">${rows}</div>`;
   b.hidden=false;

@@ -3923,12 +3923,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
               <label class="hole-pill hole-pill-card" id="plate-type-ms-label">
                 <input type="radio" name="plate-plateType" value="ms_plate" checked onchange="onPlateTypeChange()">
                 <span class="hole-pill-main">MS Plate</span>
-                <span class="hole-pill-zh">普通钢板</span>
               </label>
               <label class="hole-pill hole-pill-card" id="plate-type-tri-label">
                 <input type="radio" name="plate-plateType" value="triangle_plate" onchange="onPlateTypeChange()">
                 <span class="hole-pill-main">Triangle Plate</span>
-                <span class="hole-pill-zh">三角加强板</span>
               </label>
             </div>
           </div>
@@ -3952,10 +3950,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="field full" id="plate-f-hole">
             <label data-i18n="lblHoleOption">Hole Option</label>
             <div class="hole-pills">
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="none" checked onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeNone">No Hole</span><span class="hole-pill-zh">无洞</span></label>
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="center" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCenter">Center Hole</span><span class="hole-pill-zh">中间开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="corners" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCorners">4 Corner Holes</span><span class="hole-pill-zh">四角开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="plate-hole" value="custom" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCustom">Custom Holes</span><span class="hole-pill-zh">自定义洞口</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="none" checked onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeNone">No Hole</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="center" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCenter">Center Hole</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="corners" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCorners">4 Corner Holes</span></label>
+              <label class="hole-pill"><input type="radio" name="plate-hole" value="custom" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCustom">Custom Holes</span></label>
             </div>
           </div>
           <div class="field" id="plate-f-hd" style="display:none"><label data-i18n="lblHoleDia">Hole Dia.</label><input type="number" id="plate-hd" placeholder="mm, e.g. 30" step="0.1" min="0.1" oninput="calcPlate()"></div>
@@ -4071,10 +4069,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="field full">
             <label data-i18n="lblHoleOption">Hole Option</label>
             <div class="hole-pills">
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="none" checked onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeNone">No Hole</span><span class="hole-pill-zh">无洞</span></label>
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="center" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCenter">Center Hole</span><span class="hole-pill-zh">中间开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="corners" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCorners">4 Corner Holes</span><span class="hole-pill-zh">四角开洞</span></label>
-              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="custom" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCustom">Custom Holes</span><span class="hole-pill-zh">自定义洞口</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="none" checked onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeNone">No Hole</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="center" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCenter">Center Hole</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="corners" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCorners">4 Corner Holes</span></label>
+              <label class="hole-pill"><input type="radio" name="was-bp-hole" value="custom" onchange="onWASHoleChange()"><span class="hole-pill-main" data-i18n="holeCustom">Custom Holes</span></label>
             </div>
           </div>
           <div class="field" id="was-bp-hd-wrap" style="display:none"><label data-i18n="lblHoleDiaMm">Hole Dia.</label>
@@ -4241,7 +4239,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
         <div id="cdimHost" hidden></div>
 
         <div class="entry-actions">
-          <div class="qi-edit-mode-note" id="itemEditNote">Editing item #1 / 正在编辑第 1 项</div>
+          <div class="qi-edit-mode-note" id="itemEditNote"></div>
           <button class="btn btn-ghost btn-xl btn-block btn-bi" id="cancelItemEditBtn" type="button" style="display:none" onclick="cancelItemEdit()" data-i18n="cancelEdit">Cancel Edit</button>
           <button class="btn btn-primary btn-xl btn-block btn-bi" id="addBtn" onclick="addCurrentItem()" data-i18n="addToQuotation">＋ Add to Quotation</button>
         </div>
@@ -4267,7 +4265,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
         </div>
 
         <div class="review-list-panel" id="reviewListPanel">
-          <div class="review-lock-label" id="reviewLockLabel">Locked / 已锁定</div>
+          <div class="review-lock-label" id="reviewLockLabel" data-i18n="lblLocked">Locked</div>
           <div id="quoteEmpty" class="empty-state">
             <p data-i18n="noItemsYet">No items yet</p>
           </div>
@@ -5199,6 +5197,7 @@ const DC_LANG_KEY='dc_lang', DC_LANGS=['en','zh'];
    translation, that exact wording is reused rather than reinvented. */
 const I18N={
   en:{
+    badgeSystemDefault:'System Default', badgeCustom:'Custom', qoRenumbered:'Quotation {r} was renumbered.', qoChooseOne:'{n} quotations match “{r}”. Choose one:',
     language:'Language', langAria:'Language', langSwitched:'Language set to English',
     /* header + sidebar */
     navCalculator:'Calculator', navCompanies:'Companies', navSignOut:'Sign Out',
@@ -5266,10 +5265,10 @@ const I18N={
     ttNotApplicable:'Not applicable', ttPlain:'Plain', ttZincPlated:'Zinc Plated',
     ttHotDipGalvanized:'Hot Dip Galvanized',
     /* accessories */
-    accessories:'Accessories', accToggleSub:'Nut / FW / Custom · Optional',
-    accAddNut:'Add Nut', accAddFW:'Add FW',
-    accNone:'No accessories', accNut:'Nut', accFW:'Flat washer', accCustom:'Custom',
-    accPlusNut:'+ Nut', accPlusFW:'+ Flat washer', accPlusCustom:'+ Custom',
+    accessories:'Accessories', accToggleSub:'Nut / Flat Washer / Custom · Optional',
+    accAddNut:'+ Nut', accAddFW:'+ Flat Washer',
+    accNone:'No accessories', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom',
+    accPlusNut:'+ Nut', accPlusFW:'+ Flat Washer', accPlusCustom:'+ Custom',
     accQtyPerItem:'Qty per item', accRemove:'Remove',
     mbAddShort:'＋ Add', mbUpdateShort:'Update',
     /* actions */
@@ -5341,7 +5340,7 @@ const I18N={
     wqaProvStated:'stated price',
     wqaApplyPrevPrice:'Apply Previous Price', wqaSelectRows:'Select items',
     wqaThreadRefNote:'reference only — not used in any calculation',
-    wqaNoteLabel:'Additional info for analysis', wqaNoteOpt:'Optional / 可选',
+    wqaNoteLabel:'Additional info for analysis', wqaNoteOpt:'Optional',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
     wqaNoteUsed:'Your additional info was applied to {n} item(s) — it overrides the document.',
@@ -5690,9 +5689,7 @@ const I18N={
     lblBasePlateRate:'Base Plate Cost Rate', lblTriPlateRate:'Triangle Plate Cost Rate',
     lblDiameterMmShort:'Diameter mm',
     noteHoleCost:'Hole drilling / laser / punching cost: include in Additional Cost.',
-    wasGuide:'This prices an Anchor Bolt + Base Plate + Triangle Plate welded into one set. '
-            +'Welding, hole drilling and other processing go in Additional Cost. '
-            +'Nut / FW are chosen under Accessories.',
+    wasGuide:'This prices an Anchor Bolt + Base Plate + Triangle Plate welded into one set. Welding, hole drilling and other processing go in Additional Cost. Nut / Flat Washer are chosen under Accessories.',
     warnRateNotSet:'Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.',
     phNoHistoryYet:'No pricing history for this exact specification yet.',
     /* ── Pricing Guide ─────────────────────────────────────────────────────
@@ -5708,7 +5705,7 @@ const I18N={
     pgManualPrice:'Staff enters the final customer selling price directly.',
     pgThreadAffects:'Thread Length may automatically affect Additional Cost.',
     pgRateManual:'Cost Rate is usually entered manually.',
-    pgAddCostUses:'Additional Cost is used for: Nut, FW, extra processing.',
+    pgAddCostUses:'Additional Cost is used for extra processing, such as threading or drilling. Nut / Flat Washer are added under Accessories.',
     pgHoleCost:'Hole drilling / punching / laser cutting cost goes into Additional Cost.',
     pgBaseEg2:'Base = RM10.00 + RM2.00 = RM12.00',
     /* ── Empty states, which are the screens a new install spends most of
@@ -5733,7 +5730,7 @@ const I18N={
     wqaChooseProduct:'The document does not say which product this is, so it is not guessed. Choose the product to price these items.',
     /* Short labels on generated controls. Two words each, which is why a scan
        looking for sentences walked past every one of them. */
-    lblAddCustom:'Add Custom', lblAddCostShort:'Add Cost', lblProductName:'Product Name',
+    lblAddCustom:'+ Custom', lblAddCostShort:'Add Cost', lblProductName:'Product Name',
     lblDimensionText:'Dimension Text', lblWeightMode:'Weight Mode',
     lblClearAllAcc:'Clear All Accessories', lblLoadMore:'Load more', lblShowDebug:'Show Debug',
     lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
@@ -5792,6 +5789,7 @@ const I18N={
     wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
   },
   zh:{
+    badgeSystemDefault:'系统默认', badgeCustom:'自定义', qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
     /* header + sidebar */
     navCalculator:'计算器', navCompanies:'公司', navSignOut:'退出',
@@ -5817,9 +5815,9 @@ const I18N={
     histItemChanged:'项目已更改', histItemAdded:'新增项目',
     histItemRemoved:'移除项目', histItemsReordered:'项目顺序已调整',
     histItemQty:'数量', histItemPrice:'单价', histItemAmount:'金额',
-    histItemDesc:'描述', histItemSize:'规格', histItemSizeText:'规格文字',
+    histItemDesc:'描述', histItemSize:'尺寸', histItemSizeText:'尺寸文字',
     histItemDimensions:'尺寸', histItemMaterial:'材质',
-    histItemFinish:'表面处理', histItemProduct:'产品', histItemSizeType:'规格类型',
+    histItemFinish:'表面处理', histItemProduct:'产品', histItemSizeType:'Size 规格',
     histItemWeight:'重量', histItemMarkup:'加价',
     histOtherDetails:'另有 {n} 项细节更改',
     /* stepper + quick open */
@@ -5839,30 +5837,30 @@ const I18N={
     lblRemarks:'备注', phRemarks:'价格如有变动，恕不另行通知',
     /* step 2 — product entry */
     step2Caption:'第 2 步 · 添加产品', step2Sub:'添加产品', itemEntry:'产品输入',
-    ucConvert:'⇄ 单位换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入牙长',
+    ucConvert:'⇄ 单位换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入 TL',
     productEntry:'产品资料', dimensionEntry:'尺寸资料',
     pricingEntry:'价格资料', pricing:'价格',
     /* field labels */
-    lblMaterial:'材料', lblFinish:'表面处理', lblSizeType:'尺寸类型', lblSize:'尺寸',
-    lblDiameter:'直径', lblLength:'长度', lblLengthMm:'长度 mm',
-    lblLengthMmParen:'长度 mm', lblTotalLength:'总长度',
-    lblThreadLength:'牙长', lblQty:'数量', lblQTY:'数量', lblQtyPerSet:'每套数量',
-    lblThickness:'厚度', lblThicknessMm:'厚度 mm', lblWidth:'宽度',
-    lblWidthMm:'宽度 mm', lblHeight:'高度', lblHeightMm:'高度 mm',
-    lblHoles:'洞口数量', lblHoleOption:'开洞选择', lblHoleDia:'洞口直径',
-    lblHoleDiaMm:'洞口直径 mm', lblProductType:'产品',
-    lblCostRate:'每公斤成本', lblAdditionalCost:'额外加工费', lblMarkup:'利润',
+    lblMaterial:'材料', lblFinish:'表面处理', lblSizeType:'Size 规格', lblSize:'尺寸',
+    lblDiameter:'Diameter', lblLength:'Length', lblLengthMm:'Length (mm)',
+    lblLengthMmParen:'Length (mm)', lblTotalLength:'Total Length',
+    lblThreadLength:'Thread Length', lblQty:'数量', lblQTY:'数量', lblQtyPerSet:'每套数量',
+    lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
+    lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
+    lblHoles:'洞口数量', lblHoleOption:'开洞选择', lblHoleDia:'Hole Dia.',
+    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'产品',
+    lblCostRate:'每公斤成本', lblAdditionalCost:'额外加工费', lblMarkup:'Markup',
     lblUnitPrice:'单价', lblManualUnitPrice:'手动单价 (RM)', lblPriceMode:'价格模式',
     phEnterLength:'输入长度', phEnterThreadLength:'输入牙长',
     pressEnterToAdd:'按 Enter 加入报价',
     /* finish tooltips */
-    ttNotApplicable:'不适用', ttPlain:'素面', ttZincPlated:'电镀锌',
+    ttNotApplicable:'不适用', ttPlain:'PL', ttZincPlated:'电镀锌',
     ttHotDipGalvanized:'热浸镀锌',
     /* accessories */
-    accessories:'配件', accToggleSub:'Nut / FW / 自定义 · 可选',
-    accAddNut:'加 Nut', accAddFW:'加 FW',
-    accNone:'无配件', accNut:'Nut', accFW:'平垫 FW', accCustom:'自定义',
-    accPlusNut:'+ Nut', accPlusFW:'+ 平垫 FW', accPlusCustom:'+ 自定义',
+    accessories:'配件', accToggleSub:'Nut / Flat Washer / 自定义 · 选填',
+    accAddNut:'+ Nut', accAddFW:'+ Flat Washer',
+    accNone:'无配件', accNut:'Nut', accFW:'Flat Washer', accCustom:'自定义',
+    accPlusNut:'+ Nut', accPlusFW:'+ Flat Washer', accPlusCustom:'+ 自定义',
     accQtyPerItem:'每件数量', accRemove:'移除',
     mbAddShort:'＋ 加入', mbUpdateShort:'更新',
     /* actions */
@@ -5870,34 +5868,34 @@ const I18N={
     editingItem:'正在编辑第 {n} 项', done:'完成',
     statusNewDraft:'新草稿', statusUnsaved:'未保存更改',
     statusSavedLocked:'已保存 / 已锁定', statusEditing:'正在编辑', statusSavedUpdated:'已更新保存',
-    glossPlate:'铁板', glossWAS:'焊接锚栓组合', glossOthers:'其他 / 特殊螺栓',
+    glossPlate:'', glossWAS:'', glossOthers:'',
     /* ── WhatsApp Quick Add ── */
     cancel:'取消', nItems:'{n} 项', needAttention:'{n} 项需检查',
-    needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'长度',
-    fieldCostRate:'成本单价', fieldAdditionalCost:'附加费用',
-    fieldSizeType:'尺寸类型', fieldThread:'牙长', fieldPrice:'价格',
+    needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'Length',
+    fieldCostRate:'每公斤成本', fieldAdditionalCost:'额外加工费',
+    fieldSizeType:'Size 规格', fieldThread:'Thread Length', fieldPrice:'价格',
     fieldValidSize:'有效尺寸', wqaUnknownSize:'此尺寸不在直径设定中 — 不计算重量',
     wqaUndersizeWord:'小牙',
     wqaNoDia:'直径设定中没有对应直径 — 不计算重量，也不出价',
     fieldMaterial:'材料', fieldFinish:'表面处理',
     optRequired:'— 必填 —', optNone:'— 无 —', wqaMixed:'多种',
     materialRequired:'信息中未说明材料，系统不会猜测。请选择材料以计算价格。',
-    badgeNoThread:'无牙长', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
+    badgeNoThread:'无 TL', badgeParseWarning:'解析提示', badgeCheck:'请检查 {f}',
     badgeAsymmetric:'左右不对称', badgeLastPrice:'沿用',
-    wqaHistRecipe:'沿用 {r} 的计价方式 —— 单价 {rate} · 附加 {add} · {mk}% · {mode}。本项目按自身重量重新计算。',
-    wqaHistManual:'沿用 {r} —— 该单据当时以人手定价 RM {v}',
+    wqaHistRecipe:'沿用 {r} 的定价参数 —— 每公斤成本 {rate} · 额外加工费 {add} · Markup {mk}% · {mode}。本项目按自身重量重新计算。',
+    wqaHistManual:'沿用 {r} —— 该单据当时以手动价格 RM {v} 报价',
     wqaHistFinalOnly:'沿用 {r} —— 只有历史最终单价 RM {v}，没有记录计价明细',
     wqaHistUnseparable:'该记录无法与配件分开 —— 请手动沿用',
-    wqaHistMoved:'此项目已更改 —— 该记录已不符合，请重新打开历史价格。',
+    wqaHistMoved:'此项目已更改 —— 该记录已不符合，请重新打开客户历史报价。',
     wqaHistOtherFinish:'该记录表面处理不同 —— 仅供参考，不可直接沿用计价方式',
     badgeHistRecipe:'计价方式', badgeHistPrice:'单价',
-    wqaTitle:'快速添加', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
-    wqaDiscardTitle:'要放弃快速添加的内容吗？',
+    wqaTitle:'AI 智能识别', wqaAriaMethod:'输入方式', wqaAriaView:'显示方式',
+    wqaDiscardTitle:'要放弃 AI 智能识别的内容吗？',
     wqaDiscardSub:'本次粘贴的文字、已解析产品、价格设置与配件都会丢失。',
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
-    wqaTabPaste:'粘贴 WhatsApp 文字', wqaTabUpload:'上传照片 / PDF',
+    wqaTabPaste:'粘贴 WhatsApp 消息', wqaTabUpload:'上传照片 / PDF',
     wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径', wqaRefTop:'量至顶', wqaRefCenter:'量至中心', wqaRefEnd:'量至末端', wqaRefUnclear:'基准不明',
-    wqaNotPriced:'快速添加暂不支持计价', wqaNoCalcDia:'缺少计算直径',
+    wqaNotPriced:'AI 智能识别暂不支持计价', wqaNoCalcDia:'缺少计算用 Diameter',
     wqaAddRefused:'计算器拒绝了此项目', fieldQty:'数量',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
     wqaThreadRef:'螺纹参考',
@@ -5906,7 +5904,7 @@ const I18N={
     wqaThreadRefHintAny:'选填参考',
     phUseOnThis:'用于此项目', phMoreWays:'更多应用方式',
     phApplyCompatible:'应用到相符项目 ({n})…', phSelectItems:'选择项目…',
-    phSelectItemsTitle:'应用历史价格', phApplyPrevious:'应用历史价格',
+    phSelectItemsTitle:'应用历史报价', phApplyPrevious:'应用历史报价',
     phReusable:'可重用', phReference:'参考',
     wqaCompatible:'相符', wqaNSelected:'已选 {n} 项',
     wqaSelectAll:'全选项目', wqaSelectItem:'选择第 {n} 项',
@@ -5914,20 +5912,20 @@ const I18N={
     wqaGeomNote:'仅限尺寸与 TL，且仅在文件两者都未注明时使用。行的其他内容请在「编辑」中修改。',
     wqaBulkWillAffect:'{f} → {v} · {n} 个项目',
     wqaBulkWillAffectNone:'未选择任何项目',
-    wqaToastPrevPriceOff:'{n} 个项目的历史价格引用已清除 — 项目已不再符合该记录',
+    wqaToastPrevPriceOff:'{n} 个项目的历史报价引用已清除 — 项目已不再符合该记录',
     lblView:'视图',
     wqaIncompatProduct:'产品不同', wqaIncompatMaterial:'材质不同',
-    wqaIncompatSizeType:'尺寸类型不同', wqaIncompatSize:'尺寸不同',
+    wqaIncompatSizeType:'Size 规格不同', wqaIncompatSize:'尺寸不同',
     wqaIncompatFinish:'表面处理不同', wqaIncompatUnknown:'项目资料尚未齐全',
     wqaBulkApplied:'{r} 已应用到 {n} 项 — 每项按本身重量重新计算',
     wqaBulkSkipped:'跳过 {n} 项', wqaBulkNone:'没有可应用的项目 — 未选择相符项目',
     wqaBulkEdit:'批量编辑', wqaBulkEditSum:'同一数值，应用到多个项目',
-    wqaPrevPriceFrom:'历史价格', wqaClearSel:'清除选择',
+    wqaPrevPriceFrom:'历史报价', wqaClearSel:'清除选择',
     wqaProvOpen:'显示价格来源的报价单',
     wqaProvStated:'固定价格',
-    wqaApplyPrevPrice:'应用历史价格', wqaSelectRows:'选择项目',
+    wqaApplyPrevPrice:'应用历史报价', wqaSelectRows:'选择项目',
     wqaThreadRefNote:'仅供参考 — 不参与任何计算',
-    wqaNoteLabel:'补充分析资料', wqaNoteOpt:'选填 / Optional',
+    wqaNoteLabel:'补充分析资料', wqaNoteOpt:'选填',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
     wqaNoteUsed:'补充资料已套用到 {n} 个项目 — 以补充资料为准。',
@@ -5975,8 +5973,8 @@ const I18N={
     wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
     notSet:'未设置', none:'无',
     pmAutoRound:'自动进位', pmNoRound:'不进位', pmManualPrice:'手动价格',
-    sizeTypeRequired:'{p} 需要选择尺寸类型 — 信息里没有写明，所以不作猜测。',
-    wqaMsgUnsupported:'识别为 {p} — 快速添加暂不支持。请手动添加。',
+    sizeTypeRequired:'{p} 需要选择 Size 规格 — 信息里没有写明，所以不作猜测。',
+    wqaMsgUnsupported:'识别为 {p} — AI 智能识别暂不支持。请手动添加。',
     wqaTextAnalyzing:'正在识别这段内容…',
     wqaCannotRead:'无法可靠识别这段内容。请编辑粘贴文字，或手动输入产品。',
     errNoText:'没有提供文字。',
@@ -6005,7 +6003,7 @@ const I18N={
     wqaMsgNoLines:'找不到产品行。每一行都需要尺寸，例如 "m12 x 1000 x 100 - 2pcs"。',
     wqaMsgPasteFirst:'请先粘贴客户文字。',
     wqaDropNoFile:'拖进来的不是文件。请拖入 JPG、PNG、WEBP 或 PDF。',
-    wqaToastEnterSizeThread:'请先填写尺寸或牙长', wqaToastNoItems:'没有可应用的项目',
+    wqaToastEnterSizeThread:'请先填写尺寸或 TL', wqaToastNoItems:'没有可应用的项目',
     wqaToastPriceApplied:'价格设置已应用到全部项目',
     wqaToastPriceAppliedSel:'价格设置已应用到 {n} 个已选择项目',
     wqaToastAccApplied:'配件已应用到全部项目',
@@ -6016,13 +6014,13 @@ const I18N={
     wqaToastManualApplied:'手动价格 RM{p} 已应用到全部项目',
     wqaToastManualAppliedSel:'手动价格 RM{p} 已应用到 {n} 个已选择项目',
     wqaProductKept:'已更改 {n} 个项目的产品。您的修改已保留 —— 未重新解析原文。',
-    phCheckFailed:'无法查询过往价格 —— 这不等于没有记录。请检查连线或重新登入后再试。',
+    phCheckFailed:'无法查询历史报价 —— 这不等于没有记录。请检查连线或重新登入后再试。',
     wqaStCompany:'公司默认',
     wqaStConfigured:'取自直径设置',
     wqaToastAccNothing:'此面板未设置配件 —— 未套用任何内容。若要清除各行配件，请使用「清除全部配件」。',
-    wqaToastLastPriceOff:'{n} 行的上次价格已关闭',
+    wqaToastLastPriceOff:'{n} 行的历史报价已关闭',
     wqaToastAccCleared:'已清除全部项目的配件',
-    wqaToastSetManual:'请先把价格模式设为 Manual Price',
+    wqaToastSetManual:'请先把价格模式设为手动价格',
     wqaToastEnterManual:'请先填写手动单价',
     /* 服务器错误代码 → 界面语言 */
     errNoFile:'每次只能上传一个文件。', errTooLarge:'文件超过服务器允许的大小。',
@@ -6053,23 +6051,23 @@ const I18N={
     saveTemplate:'保存模板', resetDefault:'重置为默认',
     addDiameterRule:'添加直径规则', editDiameterRule:'编辑直径规则',
     savedDiameterRules:'已保存直径规则', saveRule:'保存规则',
-    lblDiameterMm:'直径 (mm)',
-    prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
+    lblDiameterMm:'Diameter (mm)',
+    prevQuotedPrices:'客户历史报价', checkPrevPrices:'查看客户历史报价',
     phViewHistory:'查看历史', phMatchCount:'{n} 条匹配记录', phClosest:'最接近：',
     phClose:'关闭', phNotRecorded:'未记录', docQuotation:'报价单', docRevisedQuotation:'修订报价单', docRevision:'修订版本',
     refHintRevised:'修订版本 {n} · 发给客户的编号为 {r}', phDimNotOnRecord:'无记录', phDimNotInItem:'本项目未填',
     phNoCurrentDims:'输入本项目尺寸后即可比较', phComparedWith:'对比 {d}',
     phDiffLegend:'差值 = 历史 − 本项目', phDiffTitle:'各尺寸差值：历史减本项目', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
     phBadgeThisCustomer:'本客户', phBadgeExact:'完全匹配', phBadgeClose:'相近规格', phBadgeRef:'仅供参考',
-    phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动',
+    phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动价格',
     phUseThis:'套用此定价', phUseSetup:'套用定价参数',
     phCfTitleThis:'要套用这笔历史定价吗？', phCfTitleSetup:'要套用这笔定价参数吗？',
     phCfHistFinal:'历史最终单价', phCfHistManual:'历史手动单价', phCfApply:'套用',
-    phCfNoteRecalc:'将复制每公斤成本、额外加工费、利润和价格模式，再按本项目自己的尺寸重新计算。尺寸、数量和配件都不会更改。',
+    phCfNoteRecalc:'将复制每公斤成本、额外加工费、Markup 和价格模式，再按本项目自己的尺寸重新计算。尺寸、数量和配件都不会更改。',
     phCfNoteManual:'此记录是相同尺寸的手动定价。套用后，本项目的手动价格将设为 {v}（历史手动单价，加上本项目自己的配件）。',
-    phCfNoteManualSkip:'此记录是不同尺寸的手动定价，因此不会复制其手动价格。将以自动进位套用每公斤成本、额外加工费和利润，并按本项目自己的尺寸计算。',
+    phCfNoteManualSkip:'此记录是不同尺寸的手动定价，因此不会复制其手动价格。将以自动进位套用每公斤成本、额外加工费和 Markup，并按本项目自己的尺寸计算。',
     phApplied:'已套用 {r} 的定价参数',
-    lblManualWeight:'手动重量', lblDiaXLength:'直径 × 长度',
+    lblManualWeight:'手动重量', lblDiaXLength:'Diameter × Length',
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
     cpLineNote:'已含配件：{acc}',
     qiBoltPill:'螺栓', qiUnitPill:'单价', phBoltUnitPrice:'螺栓单价',
@@ -6078,25 +6076,25 @@ const I18N={
     wqaNeedsAttention:'需要检查',
     wqaCompleteFirst:'请先完成需要检查的项目。',
     wqaApplyTo:'应用范围：', nActive:'{n} 项启用',
-    sumPricing:'价格参数', sumSizeType:'尺寸类型：',
-    hdrDiaMm:'直径 (MM)', lblDiameterMm:'直径 (mm)',
-    fieldDiameter:'直径', diaDefault:'默认', diaManual:'手动',
+    sumPricing:'定价参数', sumSizeType:'Size 规格：',
+    hdrDiaMm:'Diameter (mm)', lblDiameterMm:'Diameter (mm)',
+    fieldDiameter:'Diameter', diaDefault:'默认', diaManual:'手动',
     btnDone:'完成',
     editLockDetails:'请先完成或取消编辑，再打开项目详情。',
     editLockExpanded:'请先完成编辑后再打开展开模式。',
     editLockAdd:'请先完成编辑后再加入报价单。',
-    editLockHistory:'请先完成编辑后再应用历史价格。',
+    editLockHistory:'请先完成编辑后再应用历史报价。',
     editLockBulk:'请先完成编辑后再使用批量编辑。',
     editLockCommon:'请先完成编辑后再修改通用参数。',
     editLockReparse:'请先完成编辑后再重新读取原文。',
     editLockDelete:'请先完成编辑后再删除项目。',
-    editHistRefresh:'完成编辑后将重新匹配历史价格。',
+    editHistRefresh:'完成编辑后将重新匹配历史报价。',
     editDiscardAsk:'还有未完成的编辑，确定放弃吗？',
     errBadNumber:'此栏位无法使用该数值。',
     errBadQty:'数量必须是大于零的整数。',
     errBadSize:'直径表中没有此尺寸。',
     diaDefaultShort:'默认', diaManualShort:'手动',
-    sumCostRate:'成本率', sumAddCost:'附加成本', sumMarkup:'加成',
+    sumCostRate:'每公斤成本', sumAddCost:'额外加工费', sumMarkup:'Markup',
     wqaOneFileUsing:'每次分析一个文件 — 使用 {f}。',
     cfmResetAllRules:'确定删除所有自定义直径规则吗？',
     cfmDeleteDiaRule:'确定删除此直径规则吗？',
@@ -6111,7 +6109,7 @@ const I18N={
     mOverrideSystemDefault:'覆盖系统默认', mEditRule:'编辑规则',
     tNotNegative:'{f} 不能为负数', tNotANumber:'{f} 不是有效数字',
     tMustBePositive:'{f} 必须大于 0',
-    tWaCopied:'已复制 WhatsApp 文本。',
+    tWaCopied:'已复制 WhatsApp 消息。',
     tWaCopyFailed:'复制失败，请手动复制。',
     tWaCopyFailedPreview:'复制失败，请从 WhatsApp 消息预览手动复制。',
     tTemplateReset:'已重置为默认模板', tTemplateResetLocal:'已在本机重置为默认',
@@ -6120,7 +6118,7 @@ const I18N={
     lblDescription:'说明', pgSagRodEg:'材料：MS · 每公斤成本：RM/kg',
     mShowingNofM:'显示 {n} / {m} 条规则',
     lblHideDebug:'隐藏调试信息', wasCostBreakdown:'成本拆分',
-    typeOthers:'其他',
+    typeOthers:'Others',
     phEgMm200:'毫米，例如 200', phEgMm10:'毫米，例如 10', phEg150:'例如 150',
     phEgDimensionText:'例如 M16 x L 120 x ID 35',
     phLineWas:'（报价行为 {v}）',
@@ -6140,17 +6138,17 @@ const I18N={
     mAddDefaultRule:'添加默认价格规则', mMatchCriteria:'匹配条件',
     mDefaultPricing:'默认价格', mRuleStatus:'规则状态',
     mActive:'启用', mDisabled:'停用', mSavedRules:'已保存规则',
-    mSizeSearch:'尺寸搜索', mAddCost:'额外费用', mSource:'来源',
-    mNoSizeType:'无尺寸类型', mCustomOnly:'仅自定义', mSystemDefaults:'系统默认',
+    mSizeSearch:'尺寸搜索', mAddCost:'额外加工费', mSource:'来源',
+    mNoSizeType:'无 Size 规格', mCustomOnly:'仅自定义', mSystemDefaults:'系统默认',
     mDiameterRules:'直径规则', mResetAllRules:'重置所有规则',
     mMessageTemplate:'信息模板', mPlaceholders:'占位符：',
-    wqaOpenTitle:'快速添加',
+    wqaOpenTitle:'AI 智能识别',
     wqaOpenSub:'粘贴客户文字或上传图片 / PDF',
     /* ── 第 5 次：设置弹窗、说明、占位符、提示 ── */
     optNone:'— 无 —', mThType:'类型',
     step3Sub:'检查与保存', step4Sub:'打印 / WhatsApp', itemsUnit:'项', save:'保存',
     pricingGuideSub:'价格说明', costRateSub:'每公斤成本',
-    waTemplateSub:'WhatsApp 文字模板',
+    waTemplateSub:'WhatsApp 消息模板',
     mRestoreTitleZh:'恢复未保存草稿？',
     mRestoreSubZh:'您有一份未保存的报价草稿。要恢复还是删除？',
     mCostRateExplain:'每公斤成本 = 材料每公斤的成本。', mRefOnly:'仅供参考，不会自动更改当前价格',
@@ -6158,49 +6156,49 @@ const I18N={
     mSrcCustom:'自定义', mSrcSystem:'系统', mSrcAll:'全部',
     mShowingRules:'显示规则', mDsHelp:'自定义直径规则优先于内置默认值。尺寸留空则匹配该产品类型的所有尺寸。',
     mWeight2kg:'重量 2 kg', mMatCostEg:'材料成本 = 2 × 3.50 = RM7.00',
-    phCwWording:'输入 c/w 说明', phEnterRate:'输入费率', phAutoCalculated:'自动计算',
+    phCwWording:'输入 c/w 说明', phEnterRate:'输入每公斤成本', phAutoCalculated:'自动计算',
     phManualTotalLen:'输入手动总长度', phEgEyeBolt:'例如 EYE BOLT',
-    phOptional:'可选', phEgWelding:'例如 welding', phOptionalQty0:'数量为 0 时可选',
+    phOptional:'选填', phEgWelding:'例如 welding', phOptionalQty0:'数量为 0 时选填',
     phSearchSize:'搜索尺寸，例如 M12',
     tQtyWhole:'数量必须是整数，不能有小数或负号',
     tQtyMin1:'数量至少为 1', tQtyTooLarge:'数量过大，请检查',
     tQtyWholeMin:'数量必须是至少为 1 的整数',
-    tUnitNeg:'单价为负数，请检查 Cost Rate / Markup',
+    tUnitNeg:'单价为负数，请检查每公斤成本 / Markup',
     tLineNeg:'总额为负数，请检查输入',
     tIdIhNeg:'ID / IH 不能为负数', tItemUpdated:'产品已更新',
-    tOldNoRate:'旧项目没有保存 Cost Rate，请确认价格。',
+    tOldNoRate:'旧项目没有保存每公斤成本，请确认价格。',
     tLegacyAccSplit:'有 {n} 个手动定价项目建立于配件另计时期，其配件现已计入最终单价，客户总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
     ubPipeSize:'管径', ubPipeSel:'选择管径', ubPreset:'预设',
-    ubTlMax:'建议最大牙长：{m}mm', ubTlOk:'\u2713 牙长 {tl}mm / 最大 {m}mm', ubTlOver:'\u26A0 牙长 {tl}mm 超过最大 {m}mm',
+    ubTlMax:'建议最大 TL：{m}mm', ubTlOk:'✓ TL {tl}mm / 最大 {m}mm', ubTlOver:'⚠ TL {tl}mm 超过最大 {m}mm',
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
     /* Dimension letters (L、W、H、ID、S、OH)、产品名称与 RM 保持原有写法 —
        它们是行业用语，不是需要翻译的句子。 */
-    tEnterSize:'请输入尺寸', tEnterDiameter:'请输入直径', tEnterLength:'请输入长度',
+    tEnterSize:'请输入尺寸', tEnterDiameter:'请输入 Diameter', tEnterLength:'请输入 Length',
     tEnterL:'请输入 L', tEnterLW:'请输入 L 和 W 尺寸', tEnterOHW:'请输入 OH 和 W',
     tEnterHIDS:'请输入 H、ID 和 S', tEnterProductName:'请输入产品名称',
     tEnterDimText:'请输入尺寸说明', tEnterUnitWeight:'请输入单件重量',
-    tEnterCostRate:'请输入成本单价', tEnterManualPrice:'请输入手动单价',
-    tEnterSizeValue:'请输入尺寸数值', tEnterValidDia:'请输入有效的直径',
+    tEnterCostRate:'请输入每公斤成本', tEnterManualPrice:'请输入手动单价',
+    tEnterSizeValue:'请输入尺寸数值', tEnterValidDia:'请输入有效的 Diameter',
     tEnterSizeFirst:'请先输入尺寸。',
-    tRateBlankDot:'成本单价为空，请先输入价格再加入。',
-    tRateBlank:'成本单价为空 — 请先输入价格再加入',
-    tAddCostBlank:'额外费用为空 — 请先输入价格再加入',
-    tEnterRateFirst:'⚠️ 请先输入成本单价再加入',
-    tEnterAnchorRate:'⚠️ 请输入锚栓成本单价',
-    tEnterPlateRate:'⚠️ 请输入底板成本单价',
-    tEnterTriRate:'⚠️ 请输入三角板成本单价',
-    tRateManualOnly:'此产品类型的成本单价必须手动输入。',
-    tLen0IdIh:'总长度为 0 — 请检查直径、ID、IH',
-    tLen0OhW:'总长度为 0 — 请检查 OH、W、直径',
-    tLen0LW:'总长度为 0 — 请检查 L、W、直径',
-    tLen0HIdS:'总长度为 0 — 请检查 H、ID、S、直径',
+    tRateBlankDot:'每公斤成本为空，请先输入价格再加入。',
+    tRateBlank:'每公斤成本为空 — 请先输入价格再加入',
+    tAddCostBlank:'额外加工费为空 — 请先输入价格再加入',
+    tEnterRateFirst:'⚠️ 请先输入每公斤成本再加入',
+    tEnterAnchorRate:'⚠️ 请输入 Anchor Bolt 每公斤成本',
+    tEnterPlateRate:'⚠️ 请输入 Base Plate 每公斤成本',
+    tEnterTriRate:'⚠️ 请输入 Triangle Plate 每公斤成本',
+    tRateManualOnly:'此产品类型的每公斤成本必须手动输入。',
+    tLen0IdIh:'Total Length 为 0 — 请检查 Diameter、ID、IH',
+    tLen0OhW:'Total Length 为 0 — 请检查 OH、W、Diameter',
+    tLen0LW:'Total Length 为 0 — 请检查 L、W、Diameter',
+    tLen0HIdS:'Total Length 为 0 — 请检查 H、ID、S、Diameter',
     tSetWeight0:'⚠️ 整套重量为 0 — 请检查尺寸',
-    tEnterLWT:'⚠️ 请输入长度、宽度和厚度',
+    tEnterLWT:'⚠️ 请输入 Length、Width 和 Thickness',
     tEnterHoles:'⚠️ 请输入孔径和孔数',
-    tEnterTri:'⚠️ 请输入三角板长度、高度和厚度',
-    tEnterAnchorDims:'⚠️ 请输入锚栓尺寸',
-    tEnterPlateDims:'⚠️ 请输入底板尺寸',
+    tEnterTri:'⚠️ 请输入 Triangle Plate 的 Length、Height 和 Thickness',
+    tEnterAnchorDims:'⚠️ 请输入 Anchor Bolt 尺寸',
+    tEnterPlateDims:'⚠️ 请输入 Base Plate 尺寸',
     tClickEditFirst:'请先点击「编辑已保存报价单」',
     tFinishItemEdit:'请先完成或取消项目编辑',
     tAddItemsFirst:'请先加入项目', tAddOneItem:'请至少加入 1 个项目',
@@ -6224,23 +6222,21 @@ const I18N={
     tAddedItem:'已加入 #{n} — {d}  {p}',
     tAdding:'加入中…', lblCurrent:'当前：', dpAddRule:'新增默认价格规则',
     btnEdit:'编辑', btnDelete:'删除', btnRemove:'移除',
-    tipItemHistory:'此项目的历史价格',
+    tipItemHistory:'此项目的客户历史报价',
     ariaHome:'Der-Cheng 报价系统 — 首页', altPreview:'预览',
     ariaSelectItem:'选择第 {n} 项', ariaRemoveItem:'移除第 {n} 项',
     /* The wording these two forms already carried, kept as it was written. */
     lblProductSetup:'产品类型', lblProductDetails:'产品资料',
-    lblPlateType:'板型', lblCutLength:'切边长度', lblCutHeight:'切边高度',
-    lblCutLengthOpt:'切边长度（可选）', lblCutHeightOpt:'切边高度（可选）',
-    lblCutLengthMmOpt:'切边长度 mm（可选）', lblCutHeightMmOpt:'切边高度 mm（可选）',
-    lblSetQty:'套数', lblAnchorRate:'锚栓每公斤成本',
-    lblBasePlateRate:'底板每公斤成本', lblTriPlateRate:'三角板每公斤成本',
-    lblDiameterMmShort:'直径 mm',
+    lblPlateType:'板型', lblCutLength:'Cut Length', lblCutHeight:'Cut Height',
+    lblCutLengthOpt:'Cut Length (选填)', lblCutHeightOpt:'Cut Height (选填)',
+    lblCutLengthMmOpt:'Cut Length (mm, 选填)', lblCutHeightMmOpt:'Cut Height (mm, 选填)',
+    lblSetQty:'套数', lblAnchorRate:'Anchor Bolt 每公斤成本',
+    lblBasePlateRate:'Base Plate 每公斤成本', lblTriPlateRate:'Triangle Plate 每公斤成本',
+    lblDiameterMmShort:'Diameter (mm)',
     noteHoleCost:'开洞加工费请放在额外加工费。',
-    wasGuide:'这是 Anchor Bolt + Base Plate + Triangle Plate 焊接成一套的报价。'
-            +'焊接费、开洞费、加工费请放在额外加工费。'
-            +'Nut / FW 请在配件里面选择。',
+    wasGuide:'这是 Anchor Bolt + Base Plate + Triangle Plate 焊接成一套的报价。焊接费、开洞费、加工费请放在额外加工费。Nut / Flat Washer 请在配件中选择。',
     warnRateNotSet:'此材料未设定每公斤成本，请手动输入，不可当作 RM0 计算。',
-    phNoHistoryYet:'此规格暂无历史报价记录。',
+    phNoHistoryYet:'此规格暂无历史报价。',
     /* 计价说明。RM 金额与产品名称保持原样。 */
     pgCostRateIs:'每公斤成本 = 每公斤材料成本。',
     pgUsedForExtra:'用于额外加工，例如：',
@@ -6249,9 +6245,9 @@ const I18N={
     pgCalculated:'计算结果 RM3.47', pgFinalByRule:'→ 依进位规则得出最终价格',
     pgNoRound:'保留计算所得的价格 — 不做任何进位。',
     pgManualPrice:'由员工直接输入最终客户售价。',
-    pgThreadAffects:'牙长可能会自动影响额外加工费。',
+    pgThreadAffects:'Thread Length 可能会自动影响额外加工费。',
     pgRateManual:'每公斤成本通常需要手动输入。',
-    pgAddCostUses:'额外加工费用于：Nut、FW、其他加工。',
+    pgAddCostUses:'额外加工费用于其他加工，例如车牙、钻孔。Nut / Flat Washer 请在配件中添加。',
     pgHoleCost:'开洞、冲孔、激光切割的费用请放在额外加工费。',
     pgBaseEg2:'基本价格 = RM10.00 + RM2.00 = RM12.00',
     dpEmptyNone:'尚未保存任何规则。在上方新增规则，项目相符时即可自动填入价格字段。',
@@ -6261,20 +6257,20 @@ const I18N={
     useStatusFilter:'可切换「状态」筛选查看系统默认值。',
     qoLookupFailed:'查询失败，请重试。',
     qoNotFound:'找不到报价单 {r}。',
-    phLoadFailed:'无法载入历史价格 — 这与「没有记录」并不相同。',
-    phNoneExact:'此规格没有历史报价记录。',
+    phLoadFailed:'无法载入客户历史报价 — 这与「没有记录」并不相同。',
+    phNoneExact:'此规格没有历史报价。',
     impWarnings:'警告：{n} 条重复规则', impErrors:'错误：{n} 行无效',
     impNone:'没有警告或错误。',
     wqaCopyNoteBlank:'只会复制到每个项目一次，之后各项目仍可独立修改。留空的字段不会被套用 — 不会清除项目原有的内容。',
     wqaCopyNote:'只会复制到每个项目一次，之后各项目仍可独立修改。',
     wqaEntryOnly:'仅为输入值。「自动进位」与「不进位」的项目会各自依本身尺寸重新计算最终单价。',
-    wqaManualWarn:'Manual Price 会让每个项目使用相同的最终价格。长度不同通常价格也不同 — 只有在客户确实报一个统一价格时才使用。',
+    wqaManualWarn:'手动价格会让每个项目使用相同的最终价格。长度不同通常价格也不同 — 只有在客户确实报一个统一价格时才使用。',
     wqaChooseProduct:'文件没有说明这是什么产品，系统不会自行猜测。请选择产品以便计价。',
-    lblAddCustom:'新增自定义', lblAddCostShort:'额外加工费', lblProductName:'产品名称',
+    lblAddCustom:'+ 自定义', lblAddCostShort:'额外加工费', lblProductName:'产品名称',
     lblDimensionText:'尺寸说明', lblWeightMode:'重量模式',
     lblClearAllAcc:'清除所有配件', lblLoadMore:'载入更多', lblShowDebug:'显示调试信息',
     lblBasePlate:'Base Plate', lblTrianglePlate:'Triangle Plate',
-    lblWeight:'重量', lblActions:'操作', btnHistory:'历史价格', hdrNo:'#',
+    lblWeight:'重量', lblActions:'操作', btnHistory:'历史报价', hdrNo:'#',
     btnDetails:'详情',
     lblCustomText:'文字', lblAccessories:'配件', lblCustom:'自定义',
     lblTotalWeight:'总重量', lblAccessoriesColon:'配件：',
@@ -6282,9 +6278,9 @@ const I18N={
     holeNone:'不开孔', holeCenter:'中心孔', holeCorners:'四角孔',
     holeCustom:'自定义孔',
     ubDebugTitle:'U-Bolt 价格明细', ubDebugInternal:'仅供内部查看',
-    ubTotalLength:'总长度', ubBeforeRounding:'进位前',
+    ubTotalLength:'Total Length', ubBeforeRounding:'进位前',
     ubAfterRounding:'进位后',
-    phLoading:'正在载入历史价格…', phTitle:'定价历史',
+    phLoading:'正在载入客户历史报价…', phTitle:'客户历史报价',
     phRecordCount:'{n} 条记录', phRecordCountPlural:'{n} 条记录',
     phThisCustomer:'本客户 {n} 条', phOther:'其他客户 {n} 条',
     impImported:'已导入：{n} 行',
@@ -6292,8 +6288,8 @@ const I18N={
     wqaCustomerLabel:'客户写的是「{s}」· 判定为：{d}',
     lblDateDash:'日期 —',
     qiUnitWeight:'单件重量', qiTotal:'合计', qiAccessories:'配件',
-    qiCostRate:'成本', qiAddCost:'加工', qiMarkup:'利润', qiAuto:'计算价', qiAcc:'配件',
-    qiManualOverride:'手动覆盖价', qiOverride:'差额',
+    qiCostRate:'成本', qiAddCost:'加工费', qiMarkup:'Markup', qiAuto:'计算价', qiAcc:'配件',
+    qiManualOverride:'手动价格', qiOverride:'差额',
     qoSearching:'搜索中…', qoFormerly:'原单号 {r}',
     phOtherCustomer:'其他客户参考', phSameDims:'尺寸相同',
     phDimsNotComparable:'尺寸不可直接比较', phDiffersBy:'相差 {d}',
@@ -6308,11 +6304,11 @@ const I18N={
     pgMaterialCostEg:'材料成本 RM7.00', pgAddCostEg:'额外加工费 RM2.00',
     pgCalculatedEg:'计算结果 RM3.47', pgFinalEg:'最终 RM3.47',
     pgCustomerPriceEg:'客户售价 RM4.00', pgSystemUsesEg:'系统采用：RM4.00',
-    pgPlateEg:'铁板 RM10.00', pgDrillingEg:'钻孔 RM2.00',
+    pgPlateEg:'Plate RM10.00', pgDrillingEg:'钻孔 RM2.00',
     qiTotalPill:'合计', qiGroupWeight:'总重量', qiWeight:'重量',
     lblUnitPriceShort:'单价',
-    pmManualGuide:'Manual Price 是最终客户单价，配件不会再另外加一次。',
-    pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → Manual Price 填 RM2.00',
+    pmManualGuide:'手动价格是最终客户单价，配件不会再另外加一次。',
+    pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → 手动价格填 RM2.00',
     wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
   },
 };
@@ -7731,7 +7727,7 @@ function renderDSList(){
       <td style="font-size:11px;color:var(--text-muted)">${escHtml(r.sizeType||'-')}</td>
       <td><strong>${escHtml(r.size)}</strong></td>
       <td><strong>${parseFloat(r.diameter)||0}mm</strong></td>
-      <td><span class="dp-badge ${isSystem?'dp-badge-system':'dp-badge-custom'}">${isSystem?'System Default / 系统默认':'Custom / 自定义'}</span></td>
+      <td><span class="dp-badge ${isSystem?'dp-badge-system':'dp-badge-custom'}">${escHtml(dcT(isSystem?'badgeSystemDefault':'badgeCustom'))}</span></td>
       <td style="white-space:nowrap">
         <button class="dp-act" onclick="editDSRule('${r.id}')" title="${escHtml(dcT('btnEdit'))}">✎</button>
         ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDSRule('${r.id}')" title="${escHtml(dcT('btnDelete'))}">✕</button>`}
@@ -10189,8 +10185,8 @@ async function quickOpen(){
         +'<span class="qo-hit-amt">RM '+amt+'</span></button>';
     }).join('');
     const head=hits.length===1
-      ? 'Quotation '+qoEsc(raw)+' was renumbered. / 此报价编号已更改：'
-      : hits.length+' quotations match “'+qoEsc(raw)+'”. Choose one: / 多个结果，请选择：';
+      ? qoEsc(dcT('qoRenumbered').replace('{r}',raw))
+      : qoEsc(dcT('qoChooseOne').replace('{n}',hits.length).replace('{r}',raw));
     qoShow('<div class="qo-msg info">'+head+'</div><div class="qo-list">'+rows+'</div>');
   }catch(e){
     qoShow('<div class="qo-msg err">'+escHtml(dcT('qoLookupFailed'))+'</div>');
@@ -12196,7 +12192,7 @@ function renderDPList(){
       <td>${parseFloat(r.costRate).toFixed(2)}</td>
       <td>${parseFloat(r.addCost).toFixed(2)}</td>
       <td>${pct(r.markup)}</td>
-      <td><span class="dp-badge ${isSystem?'dp-badge-system':'dp-badge-custom'}">${isSystem?'System Default / 系统默认':'Custom / 自定义'}</span></td>
+      <td><span class="dp-badge ${isSystem?'dp-badge-system':'dp-badge-custom'}">${escHtml(dcT(isSystem?'badgeSystemDefault':'badgeCustom'))}</span></td>
       <td><span class="dp-badge ${r.active=='1'?'dp-badge-on':'dp-badge-off'}">${r.active=='1'?'Active':'Off'}</span></td>
       <td style="white-space:nowrap">
         <button class="dp-act" onclick="editDPRule('${r.id}')" title="${escHtml(dcT('btnEdit'))}">✎</button>

@@ -49,6 +49,8 @@ const PHRASES = [
      so a reader of either can find it. Accepted by the owner 2026-10-19. The
      entry is the whole bilingual label: "Language" on its own still leaks. */
   'Language / 语言',
+  /* Approved UI wording 2026-10-23: the dimension labels stay English in 中文. */
+  'Thread Length', 'Cut Length', 'Cut Height', 'Total Length',
 ];
 
 /* Single tokens. Compared case-insensitively against a token stripped of
@@ -72,6 +74,10 @@ const WORDS = new Set([
   'enter', 'esc', 'tab', 'shift', 'ctrl',
   /* third-party product names, which are not translated in Chinese either */
   'mysql', 'excel', 'csv', 'json',
+  /* Approved UI wording 2026-10-23: field names the owner keeps in English in
+     中文 — the dimension labels, Size (as in Size 规格), Markup, and Others
+     (the picker button Others / Special Bolt). */
+  'size', 'diameter', 'length', 'width', 'thickness', 'height', 'markup', 'others',
 ]);
 
 /* Whole tokens that are codes rather than words: sizes, grades, references,
