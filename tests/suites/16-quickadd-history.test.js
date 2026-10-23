@@ -335,16 +335,13 @@ module.exports = async (browser, A) => {
   A.eq(formAsked[0].material, 'MS', 'matched on the same material');
   A.eq(formAsked[0].product, 'SAG ROD', 'and the same product');
 
-  /* One difference, and it is the entry form's, not a second algorithm: the
-     form sends no dimensionPreview (phFormSpec leaves it empty), so nothing
-     tells the server or the screen which rod is nearest and its list stays in
-     the order the server returned. A Quick Add row knows its own geometry and
-     ranks by it. Asserted rather than hidden, so the day the form learns its
-     dimensions this test says what changes. */
+  /* The entry form now sends its own dimensions — written the way addSagRod
+     writes them — so the server ranks the nearest rod first on this screen
+     too, exactly as it does for a Quick Add row of the same geometry. */
   const formDims = await form.evaluate(() => phFormSpec().dimensionPreview);
-  A.eq(formDims, '', 'the entry form still sends no dimensions of its own');
-  A.eq(formPanel.refs[0] === 'M20-1000', 'false',
-    'so its list is not ranked by closeness, and the Quick Add row is the screen that ranks');
+  A.eq(formDims, 'L 1000 x TL 100/100mm', 'the entry form sends its own dimensions');
+  A.eq(formPanel.refs[0] === 'M20-1000', 'true',
+    'so its list is ranked by closeness, nearest rod first');
   A.ok(form._dcErrors.length === 0, 'no page errors on the form: ' + form._dcErrors.join(' | '));
   await form.close();
 

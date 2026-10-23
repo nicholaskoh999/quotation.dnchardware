@@ -2777,6 +2777,38 @@ html.ph-open,html.ph-open body{overflow:hidden}
   .ph-drawer-head{padding-top:14px}
 }
 @media (prefers-reduced-motion:reduce){ .ph-drawer,.ph-backdrop{transition:none} }
+/* Compact reference: three short rows under the Pricing History heading. */
+.ph-summary{display:block}
+.ph-summary.ph-stale{opacity:.55}
+.ph-sum-row{min-width:0; line-height:1.35}
+.ph-sum-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 8px; font-weight:700; color:var(--text)}
+.ph-sum-head .dc-segs{flex:1 1 auto}
+.ph-sum-count{font-weight:600; color:var(--text-muted)}
+.ph-sum-spec{margin-top:2px; font-family:'SFMono-Regular',Consolas,monospace; font-size:clamp(11px,3.2vw,12px); font-weight:600; color:var(--accent-2); overflow-wrap:anywhere}
+.ph-sum-nums{margin-top:2px; color:var(--text-2)}
+.ph-sum-nums strong{font-weight:800; color:var(--text)}
+.ph-sum-nums .ph-sum-final{color:var(--green)}
+.ph-sum-manual{font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:#b45309}
+/* One badge, saying both who and how close. */
+.ph-badge{display:inline-block; white-space:nowrap; font-size:9.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  padding:1px 7px; border-radius:99px; border:1px solid var(--border); color:var(--text-muted); background:var(--surface)}
+.ph-badge-exact{background:rgba(52,168,110,.16); color:#1f7a4d; border-color:rgba(52,168,110,.35)}
+.ph-badge-close{background:rgba(37,99,235,.10); color:var(--accent-2); border-color:var(--accent-mid)}
+.ph-badge-own{border-color:var(--accent); border-width:1.5px}
+.ph-rec-own-tag{background:var(--accent-light); color:var(--accent-2); border-color:var(--accent-mid)}
+/* Confirmation, over the drawer's own content. */
+.ph-confirm{position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center;
+  padding:16px; background:rgba(10,12,20,.35)}
+.ph-confirm[hidden]{display:none}
+.ph-cf-card{width:min(380px,100%); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
+  box-shadow:0 12px 36px rgba(0,0,0,.22); padding:16px}
+.ph-cf-title{font-size:15px; font-weight:900; color:var(--text)}
+.ph-cf-ref{margin-top:6px; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; font-size:12px; font-weight:700; color:var(--text-2)}
+.ph-cf-rows{display:grid; grid-template-columns:auto 1fr; gap:5px 14px; margin:12px 0 0; font-size:13px}
+.ph-cf-rows dt{color:var(--text-muted); font-weight:700}
+.ph-cf-rows dd{margin:0; font-weight:800; text-align:right; color:var(--text)}
+.ph-cf-note{margin-top:10px; font-size:11.5px; line-height:1.45; color:var(--text-muted)}
+.ph-cf-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:14px}
 /* ── The panel belongs to the row above it ─────────────────────────────────
    Indented under the row's own number and ruled down its left edge, so in a
    list of twenty it is never read as belonging to the item below. */
@@ -5062,6 +5094,18 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
     </div>
     <button type="button" class="ph-drawer-x" id="phDrawerClose" onclick="phDrawerClose()" data-i18n-title="phClose" title="Close" aria-label="Close">✕</button>
   </div>
+  <div class="ph-confirm" id="phConfirm" role="alertdialog" aria-modal="true" aria-labelledby="phCfTitle" hidden>
+    <div class="ph-cf-card">
+      <div class="ph-cf-title" id="phCfTitle"></div>
+      <div class="ph-cf-ref" id="phCfRef"></div>
+      <dl class="ph-cf-rows" id="phCfRows"></dl>
+      <div class="ph-cf-note" id="phCfNote"></div>
+      <div class="ph-cf-actions">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="phCfClose()" data-i18n="cancel">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="phCfApplyBtn" onclick="phCfApply()" data-i18n="phCfApply">Apply</button>
+      </div>
+    </div>
+  </div>
   <div class="ph-drawer-body" id="phDrawerBody">
     <div id="phResults" style="display:none">
       <div id="phList" class="ph-list"></div>
@@ -5393,6 +5437,15 @@ const I18N={
     prevQuotedPrices:'Pricing History', checkPrevPrices:'Show Pricing History',
     phViewHistory:'View History', phMatchCount:'{n} matching records', phClosest:'Closest:',
     phLoading:'Loading…', phClose:'Close',
+    phBadgeThisCustomer:'This customer', phBadgeExact:'Exact match', phBadgeClose:'Close match', phBadgeRef:'Reference only',
+    phSumMatching:'{n} matching', phSumFinal:'Final', phSumBolt:'Bolt', phSumManual:'Manual',
+    phUseThis:'Use this pricing', phUseSetup:'Use pricing setup',
+    phCfTitleThis:'Use this historical pricing?', phCfTitleSetup:'Use this pricing setup?',
+    phCfHistFinal:'Historical final', phCfHistManual:'Historical Manual Price', phCfApply:'Apply',
+    phCfNoteRecalc:'Cost Rate, Add Cost, Markup and Price Mode are copied, then this item is recalculated from its own size and dimensions. Size, dimensions, qty and accessories are not changed.',
+    phCfNoteManual:'This record was priced by hand for the same size and dimensions. Applying sets Manual Price to {v} for this item (the historical manual price, plus this item\'s own accessories if any).',
+    phCfNoteManualSkip:'This record was priced by hand for different dimensions, so its manual price is NOT copied. Cost Rate, Add Cost and Markup are applied with Auto Round and this item is calculated from its own size.',
+    phApplied:'Applied pricing from {r}',
     lblManualWeight:'Manual Weight', lblDiaXLength:'Diameter × Length',
     lblUnitWeight:'Unit Weight', lblBasePrice:'Base Price',
     /* The preview's line note, kept as one sentence so the two figures cannot
@@ -5956,6 +6009,15 @@ const I18N={
     prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
     phViewHistory:'查看历史', phMatchCount:'{n} 条符合记录', phClosest:'最接近：',
     phLoading:'加载中…', phClose:'关闭',
+    phBadgeThisCustomer:'此客户', phBadgeExact:'完全相同', phBadgeClose:'相近', phBadgeRef:'仅供参考',
+    phSumMatching:'{n} 条符合', phSumFinal:'最终', phSumBolt:'螺栓', phSumManual:'手动',
+    phUseThis:'使用此定价', phUseSetup:'使用定价设置',
+    phCfTitleThis:'使用此历史定价？', phCfTitleSetup:'使用此定价设置？',
+    phCfHistFinal:'历史最终价', phCfHistManual:'历史手动价', phCfApply:'应用',
+    phCfNoteRecalc:'复制成本率、附加成本、加成和定价方式，然后按本项目自己的尺寸重新计算。尺寸、数量和配件不变。',
+    phCfNoteManual:'此记录是同尺寸手动定价。应用后本项目的手动价格设为 {v}（历史手动价，加上本项目自己的配件）。',
+    phCfNoteManualSkip:'此记录是不同尺寸的手动定价，不会复制其手动价格。以自动取整套用成本率、附加成本和加成，并按本项目自己的尺寸计算。',
+    phApplied:'已套用 {r} 的定价',
     lblManualWeight:'手动重量', lblDiaXLength:'直径 × 长度',
     lblUnitWeight:'单件重量', lblBasePrice:'基础价格',
     cpLineNote:'已含配件：{acc}',
@@ -9897,6 +9959,7 @@ function toggleQIEdit(){
   el('qiToggleBtn').textContent = open ? dcT('done') : dcT('editDetails');
 }
 function syncQI(){
+  if(typeof phAutoSchedule==='function') phAutoSchedule();   // the customer decides which records are "this customer"
   const customer=fv0('qi-customer'), phone=fv0('qi-phone'), refno=fv0('qi-refno'), date=fv0('qi-date');
   /* Only the wrapper text is localised. customer, refno and date are stored
      quotation data and are written through exactly as entered. */
@@ -10900,7 +10963,11 @@ function phRecordHtml(rec,onUse,extra){
   const spec=[materialLabel(rec.material),rec.sizeType,rec.productType,rec.finish?'('+rec.finish+')':'']
              .filter(Boolean).join(' ');
   const tags=[];
-  if(!own) tags.push('<span class="ph-rec-tag ph-rec-other">'+escHtml(dcT('phOtherCustomer'))+'</span>');
+  /* Customer labels mean something only when a customer is chosen; with none,
+     every record is simply a reference for this specification. */
+  const hasCustomer=selectedCompanyId!==null&&selectedCompanyId!==undefined&&selectedCompanyId!=='';
+  if(hasCustomer && own) tags.push('<span class="ph-rec-tag ph-rec-own-tag">'+escHtml(dcT('phBadgeThisCustomer'))+'</span>');
+  if(hasCustomer && !own) tags.push('<span class="ph-rec-tag ph-rec-other">'+escHtml(dcT('phOtherCustomer'))+'</span>');
   /* Same, near, or unknown — and by how much, because "why was that one
      dearer" is usually answered by a number of millimetres. */
   const dist=(rec.dimDistance===null||rec.dimDistance===undefined)?null:Number(rec.dimDistance);
@@ -11008,7 +11075,25 @@ function phFormSpec(){
           sizeType:t==='stud'?'':fv(t,'sizeType'),
           finish:dcFinishFor(material,getFinish(t)),
           cleanSize:normalizeSizeValue(fv(t,'size')),
-          dimensionPreview:''};
+          dimensionPreview:dcFormDimPreview(t)};
+}
+/* The dimension string the current form WOULD save — written exactly as each
+   product's add function writes it (the part after the size), so the server's
+   dimension comparison ranks the nearest rod first and "same dimensions" means
+   the same length and thread. Empty until the product's own dimensions are in;
+   Plate, Welding Anchor Set and Others are matched on identity alone, as before. */
+const PH_DIM_TYPES=['sagrod','anchorbolt','stud','ubolt','squbolt','lbolt','lbolt45','jbolt'];
+function dcFormDimPreview(t){
+  const v=f=>String(fv(t,f)||'').trim(), tl=v('threadLen');
+  const TL=tl?' x TL '+withMm(tl):'';
+  if(t==='sagrod')     return v('length')?'L '+cleanNum(v('length'))+TL:'';
+  if(t==='anchorbolt') return v('l')?'L '+cleanNum(v('l'))+TL:'';
+  if(t==='stud')       return v('l')?'L '+cleanNum(v('l'))+'mm':'';
+  if(t==='ubolt')      return (v('id')||v('ih'))?[v('id')?'ID '+cleanNum(v('id')):'',v('ih')?'IH '+cleanNum(v('ih')):''].filter(Boolean).join(' x ')+TL:'';
+  if(t==='squbolt')    return (v('oh')&&v('w'))?'OH '+cleanNum(v('oh'))+' x W '+cleanNum(v('w'))+TL:'';
+  if(t==='lbolt'||t==='lbolt45') return (v('l')&&v('w'))?'L '+cleanNum(v('l'))+' x W '+cleanNum(v('w'))+TL+(t==='lbolt45'?' 45deg':''):'';
+  if(t==='jbolt')      return (v('h')&&v('id')&&v('s'))?'H '+cleanNum(v('h'))+' x ID '+cleanNum(v('id'))+' x S '+cleanNum(v('s'))+TL:'';
+  return '';
 }
 async function checkPreviousPrice(){
   resetPriceHistoryPanel();
@@ -11025,12 +11110,16 @@ async function checkPreviousPrice(){
   el('phResults').style.display='block';
   el('phList').innerHTML='<div class="ph-empty-msg">'+escHtml(dcT('phLoading'))+'</div>';
   phDrawerOpen();
-  const company=selectedCompanyId;
-  phFormState=await phFetch(spec,company,0,20);
-  if(phFormState){ phFormState._spec=spec; phFormState._company=company; }
+  const company=selectedCompanyId, key=phAutoKey(spec);
+  phAutoInflight=key; const seq=++phAutoSeq;
+  const st=await phFetch(spec,company,0,20);
+  if(phAutoInflight===key) phAutoInflight=null;
+  if(seq!==phAutoSeq) return;                 // a newer lookup has the floor
+  phFormState=st;
+  if(phFormState){ phFormState._spec=spec; phFormState._company=company; phFormState._key=key; }
   el('phEmptyMsg').style.display='none';
   el('phResults').style.display='block';
-  el('phList').innerHTML=phListHtml(phFormState,null,'phFormMore()');
+  el('phList').innerHTML=phFormListHtml();
   phRenderSummary();
 }
 async function phFormMore(){
@@ -11038,7 +11127,7 @@ async function phFormMore(){
   const next=await phFetch(phFormState._spec,selectedCompanyId,phFormState.records.length,20);
   if(!next) return;
   phFormState.records=phFormState.records.concat(next.records||[]);
-  el('phList').innerHTML=phListHtml(phFormState,null,'phFormMore()');
+  el('phList').innerHTML=phFormListHtml();
   /* The pressed Load More was just replaced; keep focus inside the drawer
      (without moving its scroll) so Escape and Tab still belong to it. */
   const d=el('phDrawer');
@@ -11052,13 +11141,151 @@ async function phFormMore(){
    made for this exact specification and customer instead of asking again. */
 function phViewHistory(){
   const spec=phFormSpec();
-  if(phFormState && phFormState._spec && phFormState._company===selectedCompanyId
-     && JSON.stringify(phFormState._spec)===JSON.stringify(spec)){
+  if(phFormState && phFormState._key===phAutoKey(spec)){
     phDrawerSetSub(spec);
+    el('phResults').style.display='block';
+    el('phList').innerHTML=phFormListHtml();
     phDrawerOpen();
     return;
   }
   return checkPreviousPrice();
+}
+/* The entry form's list: the shared renderer, one ranked list (no reuse
+   sections — the ranking is the order), with this form's action on a record. */
+function phFormListHtml(){
+  return phListHtml(phFormState,null,'phFormMore()',(rec,n)=>phUseButtonHtml(rec,n));
+}
+
+/* ── Auto summary ──────────────────────────────────────────────────────────
+   Once the specification is complete enough to look up, the compact summary
+   is fetched on its own — debounced, and only when what is being asked has
+   actually changed (identity, dimensions or customer), so typing never turns
+   into a stream of requests. A half-typed form asks nothing. */
+let phAutoTimer=0, phAutoSeq=0, phAutoInflight=null;
+function phAutoKey(spec){ return JSON.stringify(spec)+'|'+(selectedCompanyId==null?'':selectedCompanyId); }
+function phSpecReady(t,spec){
+  if(!spec||!spec.cleanSize||!spec.material) return false;
+  if(t!=='stud' && dcProductHasSizeType(t) && !spec.sizeType) return false;
+  if(dcMaterialHasFinish(spec.material) && !spec.finish) return false;
+  if(PH_DIM_TYPES.includes(t) && !spec.dimensionPreview) return false;
+  return true;
+}
+function phAutoSchedule(){ clearTimeout(phAutoTimer); phAutoTimer=setTimeout(phAutoRun,700); }
+async function phAutoRun(){
+  const t=currentType, spec=phFormSpec();
+  if(!phSpecReady(t,spec)) return;           // incomplete: leave what is shown alone
+  /* Quick Add, Save and the other dialogs drive the entry form behind them;
+     nothing is looked up for the form while one of them is open. */
+  if(document.querySelector('.modal-overlay.open')) return;
+  const key=phAutoKey(spec);
+  if((phFormState&&phFormState._key===key) || phAutoInflight===key) return;
+  const seq=++phAutoSeq; phAutoInflight=key;
+  const box=el('phSummary'); if(box) box.classList.add('ph-stale');
+  const st=await phFetch(spec,selectedCompanyId,0,20);
+  if(phAutoInflight===key) phAutoInflight=null;
+  if(seq!==phAutoSeq || currentType!==t || phAutoKey(phFormSpec())!==key){ return; }
+  if(box) box.classList.remove('ph-stale');
+  if(!st) return;                            // a failed background lookup says nothing; View History will
+  st._spec=spec; st._company=selectedCompanyId; st._key=key;
+  phFormState=st;
+  phRenderSummary();
+}
+/* Dimension and identity fields of the active form; pricing fields never ask. */
+const PH_NOT_SPEC=/-(costRate|addCost|markup|qty|priceMode|manualUnitPrice|nutQty|nutFinish|nutPrice|fwQty|fwFinish|fwPrice|customText|customPrice|nutEnabled|fwEnabled|customEnabled)$/;
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
+  const t=e.target; if(!t||!t.closest) return;
+  if(t.closest('.item-form.active') && !PH_NOT_SPEC.test(t.id||t.name||'')) phAutoSchedule();
+}));
+
+/* ── Match badges ── */
+function phMatchInfo(rec){
+  const dist=(rec.dimDistance===null||rec.dimDistance===undefined)?null:Number(rec.dimDistance);
+  const match=rec.finishMatch===false?'ref':(rec.exactDims?'exact':(dist!==null?'close':'ref'));
+  const hasCustomer=selectedCompanyId!==null&&selectedCompanyId!==undefined&&selectedCompanyId!=='';
+  return {match, own:hasCustomer&&!!rec.own, dist};
+}
+function phBadgeHtml(rec){
+  const m=phMatchInfo(rec);
+  const words=(m.own?[dcT('phBadgeThisCustomer')]:[]).concat(dcT(m.match==='exact'?'phBadgeExact':m.match==='close'?'phBadgeClose':'phBadgeRef'));
+  return '<span class="ph-badge ph-badge-'+m.match+(m.own?' ph-badge-own':'')+'">'+escHtml(words.join(' · '))+'</span>';
+}
+
+/* ── Use historical pricing ────────────────────────────────────────────────
+   The same safety rules as Quick Add's reuse (phRecordReusable): never a
+   record in another coating, never one whose accessories cannot be told apart
+   from its bolt. What is reused is the pricing SETUP — Cost Rate, Add Cost,
+   Markup, Price Mode — and the current item is then priced by the existing
+   engine from its own size. A historical Manual Price is reused only for the
+   same dimensions, and says so; for different dimensions it is never copied.
+   Size, dimensions, qty, product, material, finish and accessories are never
+   touched, and nothing is added to the quotation. */
+function phUsePlan(rec){
+  const t=currentType;
+  if(!rec||!phRecordReusable(rec)||!el(t+'-costRate')||!el(t+'-priceMode')) return null;
+  const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
+  const rate=num(rec.costRate), add=num(rec.addCost), mk=num(rec.markup);
+  const hasSetup=[rate,add,mk].every(x=>x!==null&&isFinite(x));
+  const mode=String(rec.priceMode||'');
+  const exact=phMatchInfo(rec).match==='exact';
+  const bolt=Number(rec.boltUnitPrice);
+  if(hasSetup && (mode==='auto'||mode==='no_round')) return {kind:'recipe',exact,rate,add,mk,mode,bolt};
+  if(exact && mode==='manual'){
+    const manual=roundMoney2(bolt+roundMoney2(accAddon(getAccessories(t))));
+    return {kind:'manual',exact,rate,add,mk,hasSetup,mode:'manual',bolt,manual};
+  }
+  if(hasSetup) return {kind:'setup',exact,rate,add,mk,mode:'auto',bolt,histManual:mode==='manual'};
+  return null;
+}
+function phUseButtonHtml(rec,n){
+  const p=phUsePlan(rec); if(!p) return '';
+  return '<button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="phUseOpen('+n+')">'
+    +escHtml(dcT(p.exact?'phUseThis':'phUseSetup'))+'</button>';
+}
+let phUseIndex=null;
+function phUseOpen(n){
+  const rec=phFormState&&phFormState.records&&phFormState.records[n];
+  const p=phUsePlan(rec); if(!p) return;
+  phUseIndex=n;
+  const row=(k,v)=>'<dt>'+escHtml(k)+'</dt><dd>'+escHtml(v)+'</dd>';
+  const modeLbl=m=>dcT(m==='no_round'?'pmNoRound':m==='manual'?'pmManualPrice':'pmAutoRound');
+  let rows='';
+  if(p.kind!=='manual'||p.hasSetup){
+    rows+=row(dcT('lblCostRate'),dcRateText(p.rate))+row(dcT('lblAddCostShort'),dcRateText(p.add))+row(dcT('lblMarkup'),cleanNum(p.mk)+'%');
+  }
+  rows+=row(dcT('lblPriceMode'),modeLbl(p.mode));
+  rows+=row(dcT(p.kind==='manual'||p.histManual?'phCfHistManual':'phCfHistFinal'),phMoney(p.bolt));
+  el('phCfTitle').textContent=dcT(p.exact?'phCfTitleThis':'phCfTitleSetup');
+  el('phCfRef').innerHTML=phBadgeHtml(rec)+' <span>'+escHtml((rec.refNo||'—')+' · '+fmtDateShort(rec.date))+'</span>';
+  el('phCfRows').innerHTML=rows;
+  el('phCfNote').textContent=p.kind==='manual'?dcT('phCfNoteManual').replace('{v}',phMoney(p.manual))
+                            :p.histManual?dcT('phCfNoteManualSkip'):dcT('phCfNoteRecalc');
+  const cf=el('phConfirm'); cf.hidden=false;
+  try{ el('phCfApplyBtn').focus({preventScroll:true}); }catch(e){}
+}
+function phCfClose(){
+  const cf=el('phConfirm'); if(!cf||cf.hidden) return;
+  cf.hidden=true; phUseIndex=null;
+  const d=el('phDrawer'); if(d&&!d.hidden){ try{ d.focus({preventScroll:true}); }catch(e){} }
+}
+function phCfApply(){
+  const rec=phFormState&&phFormState.records&&phFormState.records[phUseIndex];
+  const p=phUsePlan(rec), t=currentType;
+  el('phConfirm').hidden=true; phUseIndex=null;
+  if(!p) return;
+  if(p.kind!=='manual'||p.hasSetup){
+    setFieldValue(t,'costRate',p.rate.toFixed(2)); markUserPriced(t,'costRate');
+    setFieldValue(t,'addCost',p.add.toFixed(2));   markUserPriced(t,'addCost');
+    setFieldValue(t,'markup',String(p.mk));        markUserPriced(t,'markup');
+  }
+  el(t+'-priceMode').value=p.mode; markUserPriced(t,'priceMode');
+  const man=el(t+'-manualUnitPrice');
+  if(p.kind==='manual'){ if(man){ man.value=p.manual.toFixed(2); markUserPriced(t,'manualUnitPrice'); } }
+  else if(man){ man.value=''; productEntryTouchedFields.delete(t+'-manualUnitPrice'); }
+  onPriceModeChange(t);
+  recalcCurrent();
+  scheduleDraftAutosave();
+  phDrawerClose();
+  showToast(dcT('phApplied').replace('{r}',rec.refNo||'—'));
 }
 function phDrawerSetSub(spec){
   const sub=el('phDrawerSub'); if(!sub) return;
@@ -11074,11 +11301,27 @@ function phRenderSummary(){
   const total=st.total||(st.records||[]).length;
   if(!total){ box.textContent=dcT('phNoneExact'); box.hidden=false; return; }
   const r=(st.records||[])[0];
-  const bolt=r&&(r.boltUnitPrice===null||r.boltUnitPrice===undefined)?null:Number(r&&r.boltUnitPrice);
-  const split=st.ownTotal!==undefined?' · '+dcT('phThisCustomer').replace('{n}',st.ownTotal):'';
-  box.innerHTML='<span class="ph-sum-n">'+escHtml(dcT('phMatchCount').replace('{n}',total)+split)+'</span>'
-    +(r?' <span class="ph-sum-top">'+escHtml(dcT('phClosest'))+' '+escHtml(r.refNo||'—')+' · '
-        +escHtml(phMoney(bolt===null?r.unitPrice:bolt))+' · '+escHtml(fmtDateShort(r.date))+'</span>':'');
+  if(!r){ box.textContent=dcT('phMatchCount').replace('{n}',total); box.hidden=false; return; }
+  /* The first record in the server's ranking IS the closest reference. Three
+     rows: which record and how it matches · its size · how it was priced. Each
+     row is whole segments, so a narrow screen wraps between them, never inside. */
+  const bolt=(r.boltUnitPrice===null||r.boltUnitPrice===undefined)?null:Number(r.boltUnitPrice);
+  const acc=Number(r.accessoryCost)||0;
+  const dims=String(r.dimensionPreview||'').trim();
+  const hasCustomer=selectedCompanyId!==null&&selectedCompanyId!==undefined&&selectedCompanyId!=='';
+  const segs=a=>'<span class="dc-segs">'+a.filter(Boolean).map((x,k)=>'<span class="dc-seg">'+(k?'<span class="dc-sep"> · </span>':'')+x+'</span>').join('')+'</span>';
+  const num=v=>(v===null||v===undefined||v==='')?'—':escHtml(dcRateText(Number(v)));
+  const count=dcT('phSumMatching').replace('{n}',total)+(hasCustomer&&st.ownTotal!==undefined?' · '+dcT('phThisCustomer').replace('{n}',st.ownTotal):'');
+  box.innerHTML=
+     '<div class="ph-sum-row ph-sum-head">'+phBadgeHtml(r)+segs([escHtml(r.refNo||'—'),escHtml(fmtDateShort(r.date)),'<span class="ph-sum-count">'+escHtml(count)+'</span>'])+'</div>'
+    +'<div class="ph-sum-row ph-sum-spec">'+escHtml(sizeDisplay(r.cleanSize)+(dims?' × '+dims:''))+'</div>'
+    +'<div class="ph-sum-row ph-sum-nums">'+segs([
+        escHtml(dcT('qiCostRate'))+' <strong>'+num(r.costRate)+'</strong>',
+        escHtml(dcT('qiAddCost'))+' <strong>'+num(r.addCost)+'</strong>',
+        escHtml(dcT('qiMarkup'))+' <strong>'+(r.markup===null||r.markup===undefined?'—':escHtml(cleanNum(r.markup))+'%')+'</strong>',
+        escHtml(dcT(acc>0&&bolt!==null?'phSumBolt':'phSumFinal'))+' <strong class="ph-sum-final">'+escHtml(phMoney(bolt===null?r.unitPrice:bolt))+'</strong>'
+          +(String(r.priceMode||'')==='manual'?' <span class="ph-sum-manual">'+escHtml(dcT('phSumManual'))+'</span>':'')
+      ])+'</div>';
   box.hidden=false;
 }
 let phDrawerReturn=null, phDrawerScrollY=0;
@@ -11102,6 +11345,7 @@ function phDrawerOpen(){
 function phDrawerClose(){
   const d=el('phDrawer'), b=el('phBackdrop');
   if(!d||d.hidden) return;
+  const cf=el('phConfirm'); if(cf) cf.hidden=true;
   d.classList.remove('open'); b.classList.remove('open');
   d.hidden=true; b.hidden=true;
   PH_INERT.forEach(sel=>document.querySelectorAll(sel).forEach(n=>{ n.inert=false; }));
@@ -11112,12 +11356,16 @@ function phDrawerClose(){
   if(back){ try{ back.focus({preventScroll:true}); }catch(e){} }
 }
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ const d=el('phDrawer'); if(d&&!d.hidden){ e.preventDefault(); phDrawerClose(); } }
+  if(e.key==='Escape'){
+    const cf=el('phConfirm'); if(cf&&!cf.hidden){ e.preventDefault(); phCfClose(); return; }
+    const d=el('phDrawer'); if(d&&!d.hidden){ e.preventDefault(); phDrawerClose(); }
+  }
 });
 
 function resetPriceHistoryPanel(){
   phFormState=null;
-  const sum=el('phSummary'); if(sum){ sum.hidden=true; sum.innerHTML=''; }
+  const sum=el('phSummary'); if(sum){ sum.hidden=true; sum.innerHTML=''; sum.classList.remove('ph-stale'); }
+  if(typeof phAutoSchedule==='function') phAutoSchedule();
   const empty=el('phEmptyMsg');
   if(empty){ empty.textContent=PH_EMPTY_DEFAULT; empty.style.display='none'; }
   const results=el('phResults'); if(results) results.style.display='none';
@@ -18900,6 +19148,7 @@ async function wqaAddAll(){
     checkUnsavedDraftOnLoad();
   }
   setTimeout(applyDefaultPrice,100);
+  phAutoSchedule();
 })();
 
 /* ── Keyboard safety (visualViewport) ──────────────────────────────────────────
