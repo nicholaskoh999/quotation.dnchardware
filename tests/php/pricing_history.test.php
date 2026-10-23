@@ -540,6 +540,26 @@ if ($live980 !== null && $live1080 !== null) {
 }
 
 
+// ── the earliest Sag Rod label: "M12 × Length 1000 × Thread 75/75" ──────────
+$SAG_WANT = ['productType' => 'SAG ROD', 'material' => 'MS', 'sizeType' => 'UNDERSIZE', 'finish' => 'PL',
+             'cleanSize' => 'M12', 'dimensionPreview' => 'L 1000 x TL 100/100mm', 'companyId' => 7];
+$early = function ($size) {
+    return ['desc' => 'MS UNDERSIZE SAG ROD', 'finish' => 'PL', 'size' => $size, 'qty' => 10,
+            'finalUnitPrice' => 3.10, 'totalAmount' => 31.0, 'markup' => 5];
+};
+$e1 = dc_history_record($early('M12 × Length 1000 × Thread 75/75'), $SAG_WANT, meta(1, 'Q-2019-0001', '2019-01-01', 'Alpha', 7));
+ok($e1 !== null, 'EARLY: a "×  Length  Thread" Sag Rod line is read as M12 — it used to be dropped');
+if ($e1 !== null) {
+    eq($e1['cleanSize'], 'M12', 'EARLY: its size is the size, not the whole label');
+    eq($e1['dimensionPreview'], 'L 1000 x TL 75/75', 'EARLY: written as today\'s label');
+    eq($e1['dimDistance'], 50.0, 'EARLY: and compared — TL 75/75 is 25 + 25 from TL 100/100');
+}
+$e2 = dc_history_record($early('M12 × Length 1300 × Thread 100/100'), $SAG_WANT, meta(2, 'Q-2019-0002', '2019-01-02', 'Alpha', 7));
+eq($e2 === null ? null : $e2['dimDistance'], 300.0, 'EARLY: L1300 is 300mm longer');
+$e3 = dc_history_record($early('M12 X 1000'), $SAG_WANT, meta(3, 'Q-2019-0003', '2019-01-03', 'Alpha', 7));
+eq($e3, null, 'EARLY: a label without the × format is left exactly as before (not guessed at)');
+
+
 // ── report ──────────────────────────────────────────────────────────────────
 echo "  " . (count($failures) ? 'FAIL' : 'ok  ')
    . "  pricing history — identity, accessories, ranking  ($asserts assertions"

@@ -2748,7 +2748,7 @@ input,select,textarea{
    Width decides the shape: a right-hand panel while there is room beside the
    form, a bottom sheet on a phone. The drawer body is the only scroller, the
    page behind does not move, and the count stays pinned at its top. */
-.ph-backdrop{position:fixed;inset:0;z-index:505;background:rgba(10,12,20,.42);opacity:0;transition:opacity .18s ease}
+.ph-backdrop{position:fixed;inset:0;z-index:505;background:rgba(10,12,20,.34);opacity:0;transition:opacity .18s ease}
 .ph-backdrop.open{opacity:1}
 .ph-drawer{position:fixed;z-index:510;top:0;right:0;bottom:0;width:min(500px,92vw);
   display:flex;flex-direction:column;background:var(--surface);color:var(--text);
@@ -2802,15 +2802,20 @@ html.ph-open,html.ph-open body{overflow:hidden}
 .ph-confirm{position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center;
   padding:16px; background:rgba(10,12,20,.35)}
 .ph-confirm[hidden]{display:none}
-.ph-cf-card{width:min(380px,100%); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
-  box-shadow:0 12px 36px rgba(0,0,0,.22); padding:16px}
+.ph-cf-card{width:min(348px,100%); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm);
+  box-shadow:0 12px 36px rgba(0,0,0,.22); padding:13px 14px}
 .ph-cf-title{font-size:15px; font-weight:900; color:var(--text)}
 .ph-cf-ref{margin-top:6px; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; font-size:12px; font-weight:700; color:var(--text-2)}
-.ph-cf-rows{display:grid; grid-template-columns:auto 1fr; gap:5px 14px; margin:12px 0 0; font-size:13px}
+.ph-cf-rows{display:grid; grid-template-columns:auto 1fr; gap:3px 14px; margin:9px 0 0; font-size:12.5px}
 .ph-cf-rows dt{color:var(--text-muted); font-weight:700}
 .ph-cf-rows dd{margin:0; font-weight:800; text-align:right; color:var(--text)}
-.ph-cf-note{margin-top:10px; font-size:11.5px; line-height:1.45; color:var(--text-muted)}
-.ph-cf-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:14px}
+.ph-cf-note{margin-top:8px; font-size:11px; line-height:1.45; color:var(--text-muted)}
+.ph-cf-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:11px}
+/* Per-dimension differences: history − this item. */
+.ph-rec-diff{font-size:11.5px; font-weight:700; color:var(--text-2); white-space:normal; overflow-wrap:anywhere}
+.ph-rec-close{background:rgba(37,99,235,.10); color:var(--accent-2); border-color:var(--accent-mid)}
+.ph-sum-diff{font-weight:700; color:var(--text-2); min-width:0; overflow-wrap:anywhere}
+.ph-drawer-legend{margin-top:2px; font-size:10.5px; font-weight:600; color:var(--text-muted)}
 /* ── The panel belongs to the row above it ─────────────────────────────────
    Indented under the row's own number and ruled down its left edge, so in a
    list of twenty it is never read as belonging to the item below. */
@@ -5093,6 +5098,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
     <div class="ph-drawer-titles">
       <div class="ph-drawer-title" id="phDrawerTitle"><span data-i18n="prevQuotedPrices">Pricing History</span> <span class="ph-tag" data-i18n="mRefOnly">reference only, does not change your price</span></div>
       <div class="ph-drawer-sub" id="phDrawerSub"></div>
+      <div class="ph-drawer-legend" data-i18n="phDiffLegend">Differences = history − this item</div>
     </div>
     <button type="button" class="ph-drawer-x" id="phDrawerClose" onclick="phDrawerClose()" data-i18n-title="phClose" title="Close" aria-label="Close">✕</button>
   </div>
@@ -5438,7 +5444,9 @@ const I18N={
     lblDiameterMm:'Diameter (mm)',
     prevQuotedPrices:'Pricing History', checkPrevPrices:'Show Pricing History',
     phViewHistory:'View History', phMatchCount:'{n} matching records', phClosest:'Closest:',
-    phClose:'Close', phNotRecorded:'Not recorded', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
+    phClose:'Close', phNotRecorded:'Not recorded', phDimNotOnRecord:'not on record', phDimNotInItem:'not entered on this item',
+    phNoCurrentDims:'Enter this item\'s dimensions to compare', phComparedWith:'compared with {d}',
+    phDiffLegend:'Differences = history − this item', phDiffTitle:'History minus this item, per dimension', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
     phBadgeThisCustomer:'This customer', phBadgeExact:'Exact match', phBadgeClose:'Close match', phBadgeRef:'Reference only',
     phSumMatching:'{n} matching', phSumFinal:'Final', phSumBolt:'Bolt', phSumManual:'Manual',
     phUseThis:'Use this pricing', phUseSetup:'Use pricing setup',
@@ -6010,7 +6018,9 @@ const I18N={
     lblDiameterMm:'直径 (mm)',
     prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
     phViewHistory:'查看历史', phMatchCount:'{n} 条匹配记录', phClosest:'最接近：',
-    phClose:'关闭', phNotRecorded:'未记录', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
+    phClose:'关闭', phNotRecorded:'未记录', phDimNotOnRecord:'无记录', phDimNotInItem:'本项目未填',
+    phNoCurrentDims:'输入本项目尺寸后即可比较', phComparedWith:'对比 {d}',
+    phDiffLegend:'差值 = 历史 − 本项目', phDiffTitle:'各尺寸差值：历史减本项目', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
     phBadgeThisCustomer:'本客户', phBadgeExact:'完全匹配', phBadgeClose:'相近规格', phBadgeRef:'仅供参考',
     phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动',
     phUseThis:'套用此定价', phUseSetup:'套用定价参数',
@@ -10916,6 +10926,47 @@ function phDimValues(str){
   }
   return out;
 }
+/* ── What is different, dimension by dimension ─────────────────────────────
+   The ranking keeps its one distance (the sum, see dc_dim_distance); this is
+   what a person reads: each dimension the product actually has, as
+   HISTORY − THIS ITEM, so "L -124mm · TL +100mm" means the record was 124mm
+   shorter and its thread 100mm longer. A thread written as a pair reads as a
+   pair ("TL -25/-25mm"). A dimension on one side only is said to be missing,
+   never filled in. Same parser as the ranking, so the two cannot disagree. */
+function phDimDiff(curStr,recStr){
+  const a=phDimValues(curStr), b=phDimValues(recStr);
+  if(!Object.keys(b).length) return {state:'nc'};
+  if(!Object.keys(a).length) return {state:'nocur'};
+  const has=(o,k)=>o[k]!==undefined;
+  const r2=v=>Math.round(v*100)/100;
+  const keys=[...new Set(Object.keys(a).concat(Object.keys(b)))].filter(k=>!(/2$/.test(k)&&(has(a,k.slice(0,-1))||has(b,k.slice(0,-1)))));
+  const parts=[];
+  keys.forEach(k=>{
+    if(!has(a,k)){ parts.push({k,miss:'item'}); return; }
+    if(!has(b,k)){ parts.push({k,miss:'rec'}); return; }
+    const d1=r2(b[k]-a[k]);
+    const pair=has(a,k+'2')||has(b,k+'2');
+    const d2=!pair?null:(has(a,k+'2')&&has(b,k+'2')?r2(b[k+'2']-a[k+'2']):undefined);
+    if(d1===0&&(d2===null||d2===0)) return;
+    parts.push({k,d1,d2});
+  });
+  return parts.length?{state:'diff',parts}:{state:'exact'};
+}
+function phDimDiffText(parts){
+  const n=v=>(v>0?'+':'')+cleanNum(v);
+  return parts.map(p=>p.miss
+    ? p.k+' '+dcT(p.miss==='rec'?'phDimNotOnRecord':'phDimNotInItem')
+    : p.k+' '+n(p.d1)+(p.d2===null?'':'/'+(p.d2===undefined?'—':n(p.d2)))+'mm').join(' · ');
+}
+/* The comparison a record is shown with: exact, a list of differences, not
+   comparable, or "this item has no dimensions yet" — never the record's fault
+   when it is the current form that is empty. */
+function phRecCompare(rec,base){
+  if(base===null||base===undefined) return null;          // no base known: keep the older tags
+  if(rec.exactDims) return {state:'exact'};
+  return phDimDiff(base,rec.dimensionPreview);
+}
+let phCmpBase=null;
 function phDimDistance(wantStr,recStr){
   const a=phDimValues(wantStr), b=phDimValues(recStr);
   const ka=Object.keys(a), kb=Object.keys(b);
@@ -10978,11 +11029,16 @@ function phRecordHtml(rec,onUse,extra){
   /* Same, near, or unknown — and by how much, because "why was that one
      dearer" is usually answered by a number of millimetres. */
   const dist=(rec.dimDistance===null||rec.dimDistance===undefined)?null:Number(rec.dimDistance);
-  tags.push(rec.exactDims
+  const cmp=phRecCompare(rec,phCmpBase);
+  if(!cmp) tags.push(rec.exactDims
     ? '<span class="ph-rec-tag ph-rec-exact">'+escHtml(dcT('phSameDims'))+'</span>'
     : (dist===null
        ? '<span class="ph-rec-tag">'+escHtml(dcT('phDimsNotComparable'))+'</span>'
        : `<span class="ph-rec-tag">${escHtml(dcT('phDiffersBy').replace('{d}',phDimText(dist)))}</span>`));
+  else if(cmp.state==='exact') tags.push('<span class="ph-rec-tag ph-rec-exact">'+escHtml(dcT('phBadgeExact'))+'</span>');
+  else if(cmp.state==='diff') tags.push('<span class="ph-rec-tag ph-rec-close">'+escHtml(dcT('phBadgeClose'))+'</span>'
+    +'<span class="ph-rec-diff" title="'+escHtml(dcT('phDiffTitle'))+'">'+escHtml(phDimDiffText(cmp.parts))+'</span>');
+  else tags.push('<span class="ph-rec-tag">'+escHtml(dcT(cmp.state==='nocur'?'phNoCurrentDims':'phDimsNotComparable'))+'</span>');
   if(rec.legacy) tags.push('<span class="ph-rec-tag">'+escHtml(dcT('phLegacyRecord'))+'</span>');
   if(rec.accessoryAmbiguous) tags.push('<span class="ph-rec-tag ph-rec-warn">'+escHtml(dcT('phAccNotSeparable'))+'</span>');
   /* The same rod in another coating. Shown, because it is the same rod and a
@@ -11026,6 +11082,10 @@ async function phFetch(spec,companyId,offset,limit){
   }catch(e){ return null; }
 }
 function phListHtml(state,onUse,onMore,extraFor){
+  phCmpBase=state ? (state._cmpDims!==undefined ? state._cmpDims : (state._spec ? (state._spec.dimensionPreview||'') : null)) : null;
+  try{ return phListHtmlBody(state,onUse,onMore,extraFor); } finally { phCmpBase=null; }
+}
+function phListHtmlBody(state,onUse,onMore,extraFor){
   if(!state) return '<div class="ph-empty-msg">'+escHtml(dcT('phLoadFailed'))+'</div>';
   if(!state.records || !state.records.length)
     return '<div class="ph-empty-msg">'+escHtml(dcT('phNoneExact'))+'</div>';
@@ -11061,7 +11121,8 @@ function phListHtml(state,onUse,onMore,extraFor){
      or how much of it has been loaded. The count sits IN the sticky bar for
      the same reason: "Showing 20 of 688" is the thing a person is checking
      when they reach for Load More. */
-  const split = state.ownTotal!==undefined
+  /* Who-is-who counts only once there is a customer to be "this" one. */
+  const split = state.ownTotal!==undefined && selectedCompanyId!==null && selectedCompanyId!==undefined && selectedCompanyId!==''
     ? ' · '+dcT('phThisCustomer').replace('{n}',state.ownTotal)
       +' · '+dcT('phOther').replace('{n}',state.otherTotal)
     : '';
@@ -11148,7 +11209,9 @@ async function phFormMore(){
    made for this exact specification and customer instead of asking again. */
 function phViewHistory(){
   const spec=phFormSpec();
-  if(phFormState && phFormState._key===phAutoKey(spec)){
+  const sameRod=phFormState && phFormState._spec && !spec.dimensionPreview && phFormState._company===selectedCompanyId
+    && JSON.stringify({...phFormState._spec,dimensionPreview:''})===JSON.stringify(spec);
+  if(phFormState && (phFormState._key===phAutoKey(spec) || sameRod)){
     phDrawerSetSub(spec);
     el('phResults').style.display='block';
     el('phList').innerHTML=phFormListHtml();
@@ -11296,8 +11359,9 @@ function phCfApply(){
 }
 function phDrawerSetSub(spec){
   const sub=el('phDrawerSub'); if(!sub) return;
+  const cmp=(phFormState&&phFormState._spec&&phFormState._spec.dimensionPreview)||spec.dimensionPreview||'';
   sub.textContent=[materialLabel(spec.material),spec.sizeType,spec.productType,sizeDisplay(spec.cleanSize),spec.finish]
-    .filter(Boolean).join(' · ');
+    .filter(Boolean).join(' · ')+(cmp?' · '+dcT('phComparedWith').replace('{d}',cmp):'');
 }
 /* One line in the form, from what the lookup already returned: how many
    records match and the closest one — the first in the existing ranking. */
@@ -11319,8 +11383,10 @@ function phRenderSummary(){
   const segs=a=>'<span class="dc-segs">'+a.filter(Boolean).map((x,k)=>'<span class="dc-seg">'+(k?'<span class="dc-sep"> · </span>':'')+x+'</span>').join('')+'</span>';
   const num=v=>(v===null||v===undefined||v==='')?'—':escHtml(dcRateText(Number(v)));
   const count=dcT('phSumMatching').replace('{n}',total)+(hasCustomer&&st.ownTotal!==undefined?' · '+dcT('phThisCustomer').replace('{n}',st.ownTotal):'');
+  const cmp=phRecCompare(r,(st._spec&&st._spec.dimensionPreview)||'');
+  const diff=cmp&&cmp.state==='diff'?'<span class="ph-sum-diff" title="'+escHtml(dcT('phDiffTitle'))+'">'+escHtml(phDimDiffText(cmp.parts))+'</span>':'';
   box.innerHTML=
-     '<div class="ph-sum-row ph-sum-head">'+phBadgeHtml(r)+segs([escHtml(r.refNo||'—'),escHtml(fmtDateShort(r.date)),'<span class="ph-sum-count">'+escHtml(count)+'</span>'])+'</div>'
+     '<div class="ph-sum-row ph-sum-head">'+phBadgeHtml(r)+diff+segs([escHtml(r.refNo||'—'),escHtml(fmtDateShort(r.date)),'<span class="ph-sum-count">'+escHtml(count)+'</span>'])+'</div>'
     +'<div class="ph-sum-row ph-sum-spec">'+escHtml(sizeDisplay(r.cleanSize)+(dims?' × '+dims:''))+'</div>'
     +'<div class="ph-sum-row ph-sum-nums">'+segs([
         escHtml(dcT('qiCostRate'))+' <strong>'+num(r.costRate)+'</strong>',
@@ -18967,7 +19033,7 @@ function wqaRankHistory(data,spec){
               (wantKey!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===wantKey)};
   });
   phSortRecords(records);
-  return {...data, records};
+  return {...data, records, _cmpDims:wantDims};
 }
 async function wqaHistMore(i){
   const r=wqa.rows[i]; if(!r||!r.hist) return;

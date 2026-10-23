@@ -118,6 +118,16 @@ function dc_legacy_item($item) {
        FIRST size type word ends the material. */
     if (!preg_match('/^(.+?)\s+(FULLSIZE|UNDERSIZE)\s+(.+)$/', $desc, $dm)) return null;
 
+    /* The earliest Sag Rod lines were written "M12 × Length 1000 × Thread 75/75":
+       a multiplication sign between the parts and the dimension named in words.
+       Read as the label the quotation writes today — "M12 x L 1000 x TL 75/75" —
+       so the size is the size and the dimensions are comparable. Only a label
+       that actually uses "×" is touched; nothing is inferred for any other. */
+    if (strpos($size, '×') !== false) {
+        $size = preg_replace('/\s*×\s*/u', ' x ', $size);
+        $size = preg_replace('/\bLength\s+/i', 'L ', $size);
+        $size = preg_replace('/\bThread\s+/i', 'TL ', $size);
+    }
     $xPos = strpos($size, ' x ');
     $left = $xPos === false ? $size : substr($size, 0, $xPos);
     $dims = $xPos === false ? '' : substr($size, $xPos + 3);

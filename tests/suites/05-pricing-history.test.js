@@ -136,8 +136,10 @@ module.exports = async (browser, A) => {
   A.includes(panel.text, '5%', 'and a different markup');
 
   // ── dimensions rank; they never hide ─────────────────────────────────────
-  A.includes(panel.text, 'Same dimensions', 'the identical rod is marked');
-  A.includes(panel.text, 'Differs by', 'and the ones that differ say by how much, rather than only that they do');
+  A.includes(panel.text, 'Exact match', 'the identical rod is marked');
+  /* Per dimension, history minus this row: the L500 / TL100 record is 500mm
+     shorter with a 50mm shorter thread — WHAT differs, not just by how much. */
+  A.includes(panel.text, 'L -500mm · TL -50mm', 'and the ones that differ say which dimension and by how much');
   A.includes(panel.text, 'L 1500 x W 150 x TL 200mm', 'including the longest one');
 
   // ── what makes two similar records cost different money ──────────────────
