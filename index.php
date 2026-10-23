@@ -1897,6 +1897,49 @@ input,select,textarea{
   .acc-rows .acc-item-head{flex-direction:row; align-items:center}
 }
 
+/* ═══ Responsive row integrity ═══════════════════════════════════════════════
+   Values that belong together stay on one row while the width allows it, and
+   when it does not they wrap only BETWEEN whole segments. Every segment carries
+   its separator in front of it; the row is pulled left by one separator width
+   and that strip is clipped, so the separator of whichever segment starts a
+   line is never seen. Result: "Total Length 282mm · Qty 1" / "Weight 0.445kg",
+   never a line that opens with "·" or "x". Width-driven only — no zoom code. */
+.dc-segs{--dc-sep-w:1.1em; display:flex; flex-wrap:wrap; align-items:baseline; row-gap:1px;
+  margin-left:calc(-1 * var(--dc-sep-w)); clip-path:inset(-2px -2px -2px var(--dc-sep-w)); min-width:0}
+.dc-seg{white-space:normal; min-width:0}
+.qi-pricing .qi-pr.dc-seg{white-space:normal}
+.dc-seg:first-child{padding-left:var(--dc-sep-w)}
+.dc-sep{display:inline-block; width:var(--dc-sep-w); text-align:center; white-space:normal; color:var(--text-muted)}
+.qi-dim .dc-segs{--dc-sep-w:3ch}
+.qi-dim .dc-sep{color:inherit}
+.qi-pricing .dc-segs{--dc-sep-w:1.4em}
+.qi-pricing .dc-sep{color:inherit}
+/* Total Length · Qty · Weight: the pills already draw their own "·", so they
+   take the same clipped-separator treatment without any markup change. */
+.qi-meta.qi-qtyweight{--dc-sep-w:14px; column-gap:0; row-gap:1px; flex-wrap:wrap;
+  margin-left:-14px; clip-path:inset(-2px -2px -2px 14px)}
+.qi-meta.qi-qtyweight .qi-meta-pill{min-width:0}
+.qi-meta.qi-qtyweight .qi-meta-pill::before{content:'·'; display:inline-block; width:14px; margin:0; text-align:center; color:var(--text-muted)}
+/* Unit · Price Mode | Total: "Unit RM 4.50" is one segment and the badge another,
+   so the label never parts from its figure; the Total group never wraps. */
+.qi-unitval{white-space:nowrap}
+.qi-unitline{column-gap:clamp(4px,1vw,6px); row-gap:3px}
+.qi-unitline .price-mode-badge{white-space:nowrap}
+/* Unit + mode on the left, Total on the right while both fit; when they do not,
+   the Total group drops below as a whole instead of the two overlapping. */
+.qi-item-bottom{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between;
+  column-gap:clamp(6px,1.6vw,10px); row-gap:4px; padding-left:clamp(36px,8vw,55px)}
+.qi-item-bottom .qi-unitcol{flex:1 1 0; min-width:min-content}
+.qi-item-bottom .qi-price-group{margin-left:auto}
+.qi-item-bottom .qi-price-group{padding-right:clamp(2px,1vw,7px)}
+@media (max-width:640px){ .qi-item-bottom{padding-left:clamp(30px,9vw,52px)} }
+@media (max-width:360px){ .qi-unitline strong{font-size:17px} .qi-total{font-size:18px} }
+/* + Nut · + Flat washer · + Custom: one row of buttons; they tighten before they
+   wrap, and only the narrowest phones let the group fold. */
+.acc-add-btns{flex-wrap:nowrap; gap:clamp(4px,1.2vw,6px); min-width:0}
+.acc-add-btn{padding-left:clamp(8px,2.4vw,12px); padding-right:clamp(8px,2.4vw,12px); font-size:clamp(12px,3.3vw,12.5px)}
+@media (max-width:340px){ .acc-add-btns{flex-wrap:wrap} }
+
 /* ── WhatsApp Quick Add ──────────────────────────────────────────────────── */
 .wqa-open-btn{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
   margin-bottom:12px;padding:11px 14px;text-align:left;min-height:var(--control-h-lg)}
@@ -3358,7 +3401,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="sagrod-diameter" step="0.1" value="10.6" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="sagrod-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="onThreadLenChange('sagrod')"></div>
-          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();addSagRod();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
+          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" enterkeyhint="enter" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="dcRepeatEntryKey(event,'sagrod')"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <button type="button" class="acc-toggle-btn full" id="sagrod-accToggle" onclick="toggleAccPanel('sagrod')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -8136,11 +8179,57 @@ function addSagRod(){
   const sizeLabel=formatSizeLabel(size,diameter,fv('sagrod','sizeType'))+' x L '+cleanNum(length)+(threadLen?' x TL '+withMm(threadLen):'');
   const acc=getAccessories('sagrod');
   const final=resolvePriceMode('sagrod',raw,rounded,accAddon(acc));
+  const modeBefore=(el('sagrod-priceMode')||{}).value;
   if(!pushItem('sagrod',sizeLabel,fv('sagrod','material'),qty,final,final*qty,markup,size,fv('sagrod','sizeType'),acc,weight)) return;
+  if(!wasEditing) dcRepeatEntryCarry('sagrod',acc,modeBefore);
   el('sagrod-length').value=''; calcSagRod();
   flashPreview();
   if(!wasEditing) showToast(dcT('tSagRodAdded'));
-  setTimeout(()=>{try{el('sagrod-length').focus()}catch(e){}},50);
+  dcRepeatEntryRefocus('sagrod');
+}
+
+/* ── Rapid repeat entry ──────────────────────────────────────────────────────
+   A run of Sag Rods differs only in Length: same size, TL, finish, rate,
+   markup, accessories. So for a repeat-entry product, Enter in the changing
+   field IS the Add button (addCurrentItem(), the one add path), and after a
+   NEW item is added only that field is cleared and it keeps the focus, so the
+   on-screen keyboard can stay up for the next value.
+
+   What a successful add normally resets on purpose still resets for an UPDATE
+   and for every other product. For a repeat-entry product's new item two of
+   those resets are undone, because the next row is the same item again:
+     · accessories — the rows are on screen above Length, not hidden in a
+       collapsed panel, so carrying them is visible, not silent;
+     · No Round — a mode, not a figure. Manual Price is a figure for ONE
+       length and is still reset to Auto, exactly as before. */
+const DC_REPEAT_ENTRY={sagrod:'length'};
+function dcRepeatEntryKey(ev,type){
+  if(ev.key!=='Enter') return;
+  ev.preventDefault();
+  /* One press, one item: a held key auto-repeats, and an IME may still be
+     composing. Neither is a new press. The field is emptied by a successful
+     add, so even a stray second Enter meets "Enter length", never a copy. */
+  if(ev.repeat||ev.isComposing||currentType!==type) return;
+  addCurrentItem();
+}
+function dcRepeatEntryCarry(type,acc,modeBefore){
+  if(!DC_REPEAT_ENTRY[type]) return;
+  loadAccIntoForm(type,acc);
+  const modeEl=el(type+'-priceMode');
+  if(modeEl && modeBefore==='no_round' && modeEl.value!=='no_round'){
+    modeEl.value='no_round';
+    if(typeof onPriceModeChange==='function') onPriceModeChange(type);
+  }
+}
+/* Focus stays where the person is typing. Nothing here blurs, so a keyboard
+   that is up stays up; the deferred call covers a list re-render or toast
+   that moved focus on some browsers. */
+function dcRepeatEntryRefocus(type){
+  const f=el(type+'-'+DC_REPEAT_ENTRY[type]);
+  if(!f) return;
+  const go=()=>{ try{ if(document.activeElement!==f) f.focus({preventScroll:true}); }catch(e){ try{f.focus()}catch(_){} } };
+  go();
+  setTimeout(go,50);
 }
 
 /* Stud always uses the UNDERSIZE diameter and has no Size Type selector, which
@@ -9437,6 +9526,16 @@ function dcRateText(v){
   const n=Number(v)||0, s=n.toFixed(4).replace(/0{1,2}$/,'');
   return s;
 }
+/* A dimension line "M16 x L 206 x W 100 x TL 100mm" as unbreakable segments,
+   each carrying its " x " in front, so a wrap falls between segments and never
+   leaves an "x" leading the next line. Same text, same escaping. A multi-line
+   value (Welding Anchor Set) is left exactly as it was. */
+function dcDimSegmentsHtml(size){
+  const str=String(size==null?'':size);
+  if(!str.includes(' x ')||/\n/.test(str)) return escHtml(str);
+  return '<span class="dc-segs">'+str.split(' x ').map((p,k)=>
+    '<span class="dc-seg">'+(k?'<span class="dc-sep"> x </span>':'')+escHtml(p)+'</span>').join('')+'</span>';
+}
 function dcItemPricingSummary(item){
   const fd=item&&item.formData||{};
   const mode=['auto','no_round','manual'].includes(item.priceMode||fd.priceMode)?(item.priceMode||fd.priceMode):'auto';
@@ -9521,7 +9620,11 @@ function renderQuote(newIdx){
     const ps=dcItemPricingSummary(item);
     const priceModeTag='<span class="price-mode-badge">'+escHtml(ps.mode==='manual'?dcT('qiManualOverride'):getPriceModeLabel(ps.mode))+'</span>';
     const overrideHtml=ps.override?`<div class="qi-override${ps.override.diff<0?' neg':''}">${escHtml(dcT('qiOverride'))} ${escHtml(ps.override.text)}</div>`:'';
-    const pricingHtml=ps.parts.length?`<div class="qi-pricing">${ps.parts.map(x=>`<span class="qi-pr">${x}</span>`).join(' · ')}</div>`:'';
+    /* Each part is one unbreakable segment and carries the separator in front
+       of it, so a wrap can only fall BETWEEN parts and the separator of a
+       line-start part is clipped off (.dc-segs) — never a stranded leading ·.
+       The text reads exactly as before: "Cost 6.50 · Add 0.30 · …". */
+    const pricingHtml=ps.parts.length?`<div class="qi-pricing"><span class="dc-segs">${ps.parts.map((x,k)=>`<span class="qi-pr dc-seg">${k?'<span class="dc-sep"> · </span>':''}${x}</span>`).join('')}</span></div>`:'';
     const totalLenPill=ps.totalLength?`<span class="qi-meta-pill">${escHtml(dcT('lblTotalLength'))} <strong>${escHtml(ps.totalLength)}mm</strong></span>`:'';
     const cwLine=item.itemType==='was'?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
     const cdLine=dcCustomDimsLine(item);
@@ -9535,7 +9638,7 @@ function renderQuote(newIdx){
           <div class="qi-num">${i+1}</div>
           <div class="qi-body">
             <div class="qi-titlerow"><div class="qi-desc">${escHtml(displayItemDesc(item))}</div>${chip?`<span class="qi-finsep">-</span>${chip}`:''}</div>
-            <div class="qi-dim">${escHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
+            <div class="qi-dim">${dcDimSegmentsHtml(displaySize)}${cdLine?`<span class="qi-cdim">${escHtml(cdLine)}</span>`:''}${uboltDebugHtml}</div>
             <div class="qi-meta qi-qtyweight">
               ${totalLenPill}
               <span class="qi-meta-pill${totalLenPill?' qi-sep-pill':''}">${escHtml(dcT('lblQty'))} <strong>${parseInt(item.qty,10)||0}</strong></span>
@@ -9548,7 +9651,7 @@ function renderQuote(newIdx){
         ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
-        <div class="qi-unitcol"><div class="qi-unitline">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong> ${priceModeTag}</div>${overrideHtml}</div>
+        <div class="qi-unitcol"><div class="qi-unitline"><span class="qi-unitval">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong></span> ${priceModeTag}</div>${overrideHtml}</div>
         <div class="qi-price-group">
           <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
           <span class="qi-total">${fmt(item.totalAmount)}</span>
