@@ -888,91 +888,89 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 }
 
 @media print{
-  /* ── An A4 quotation, not a table dump ───────────────────────────────
-     Rendered to a real A4 PDF rather than reasoned about, the previous sheet was
-     correct and unpresentable: 8.8pt rows, a Description column pinned to 43mm
-     so every description wrapped while Size kept 67mm beside it, a Grand Total
-     that read as one more grey row, and money columns whose digits did not line
-     up. It printed like a debug dump of the items array.
-
-     Everything below is TYPE, SPACE and ALIGNMENT. Not one figure moves: the
-     rows are still built by the same beforeprint handler, from the same
-     dcItemFinalUnit, with the accessory wording still a plain description and
-     still no priced accessory row. This block cannot reach the screen either —
-     #printSummary is display:none there, and every sibling is hidden here.     */
-  @page{size:A4;margin:14mm 13mm 15mm}
-  html,body{width:auto!important;min-height:0!important;background:#fff!important;color:#111!important}
+  /* ── The quotation, as a formal DNC document ─────────────────────────────
+     Same document family as the DNC Internal Purchase Order: A4 portrait, the
+     issuer top-left and the document identity top-right, one indigo rule, a
+     customer / details block, a ruled item table whose header repeats on every
+     page, a right-aligned total over a double rule, a three-part sign-off and
+     a page footer. The purchase order is the visual reference, not the code:
+     this sheet is still built by the same beforeprint handler from the same
+     customer-facing figures (dcItemFinalUnit, the inclusive price) and the same
+     customer wording — nothing internal is reachable from here.             */
+  @page{size:A4 portrait;margin:14mm 14mm 18mm 14mm}
+  html,body{width:auto!important;min-height:0!important;background:#fff!important;color:#161A23!important}
   body>*:not(#printSummary){display:none!important}
   #printSummary{
     display:block!important;width:100%!important;margin:0!important;padding:0!important;
     border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;
-    color:#111!important;font-family:Arial,Helvetica,sans-serif!important;font-size:10pt!important;
-    line-height:1.4!important;
+    color:#161A23!important;font-family:Arial,Helvetica,sans-serif!important;font-size:8.5pt!important;
+    line-height:1.35!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
-  /* ── Letterhead ── */
-  .print-issuer{padding-bottom:5mm;margin-bottom:5mm;border-bottom:1.6pt solid #111;text-align:center}
-  .print-issuer[hidden]{display:none!important}
-  .print-issuer-name{font-size:17pt;font-weight:800;letter-spacing:.02em;margin-bottom:1.5mm}
-  .print-issuer-line{font-size:8.8pt;line-height:1.4;color:#333}
-  /* ── The word a reader looks for first ── */
-  .print-title{font-size:21pt;font-weight:800;letter-spacing:.14em;text-align:center;
-    margin:0 0 6mm;padding-bottom:2.5mm;border-bottom:.8pt solid #999}
-  /* ── Who, when, which number ─────────────────────────────────────────
-     Two columns, label above value rather than beside it: a 30mm label track
-     left the value squeezed into what remained, and a long customer name is the
-     commonest thing on this sheet.                                            */
-  .print-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm 10mm;margin:0 0 6mm}
-  .print-meta-item{display:block;border:0;border-bottom:.6pt solid #ccc;padding:0 0 1.6mm}
-  .print-meta-label{display:block;font-size:7.6pt;font-weight:700;letter-spacing:.09em;
-    text-transform:uppercase;color:#666;margin-bottom:.8mm}
-  .print-meta-value{display:block;font-size:11pt;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
-  /* ── The items ──────────────────────────────────────────────────
-     186mm of content width, spent where the words are:
-
-       No 9mm · Qty 15mm · Unit 27mm · Total 29mm  =  80mm fixed
-       Description and Size / Dimension share the remaining 106mm, 52/54       */
-  .print-items-table{width:100%;border-collapse:collapse;table-layout:fixed;
-    font-variant-numeric:tabular-nums}
-  .print-items-table th,.print-items-table td{border:.6pt solid #b0b0b0;padding:2.4mm 2.2mm;
-    vertical-align:top}
-  .print-items-table thead th{background:#e9e9e9!important;color:#111!important;font-size:9pt;
-    text-align:left;font-weight:800;letter-spacing:.04em;padding-top:2.2mm;padding-bottom:2.2mm;
-    border-color:#8a8a8a}
-  .print-items-table td{font-size:9.6pt;line-height:1.4}
-  .print-items-table .print-col-no{width:9mm;text-align:center;color:#444}
-  .print-items-table .print-col-desc{width:52mm;font-weight:600}
-  .print-items-table .print-col-qty{width:15mm;text-align:right}
+  #printSummary table{border-collapse:collapse;width:100%}
+  #printSummary td,#printSummary th{vertical-align:top;padding:0}
+  #printSummary p{margin:0}
+  .pq-muted{color:#4D5463}
+  .pq-wrap{overflow-wrap:anywhere}
+  /* ── Header: issuer left, document identity right ── */
+  .pq-head td{padding-bottom:3mm}
+  .pq-head .pq-issuer{width:56%}
+  .pq-company{font-size:13pt;font-weight:700;line-height:1.2;margin:0 0 1mm!important}
+  .pq-line{font-size:7.5pt;color:#4D5463}
+  .print-title{font-size:12pt;font-weight:700;letter-spacing:.6pt;margin:0 0 2mm;text-align:right;white-space:nowrap}
+  .pq-marker{display:inline-block;width:5pt;height:5pt;background:#FF8A3D!important;margin-right:4pt;vertical-align:middle}
+  .pq-ident{width:auto!important;margin-left:auto}
+  .pq-ident td{padding:.4mm 0 .4mm 4mm!important;font-size:8pt}
+  .pq-ident td.k{color:#4D5463;text-align:right;white-space:nowrap}
+  .pq-ident td.v{text-align:right;font-weight:700;white-space:nowrap}
+  .pq-ident .pq-no{font-size:10.5pt;font-family:Consolas,'Courier New',monospace}
+  .pq-rule{border-top:1.5pt solid #4338CA;height:0;margin:0 0 3.5mm}
+  /* ── Customer and details ── */
+  .pq-parties>tbody>tr>td{width:50%}
+  .pq-parties>tbody>tr>td.left{padding-right:5mm}
+  .pq-label{font-size:6.5pt;font-weight:700;letter-spacing:.6pt;text-transform:uppercase;color:#4D5463;margin:0 0 1mm!important}
+  .pq-party{font-size:10pt;font-weight:700;margin:0 0 .8mm!important;overflow-wrap:anywhere}
+  .pq-details td{padding:.6mm 0!important;border-bottom:.5pt solid #E2E4EA;font-size:8pt}
+  .pq-details td.k{width:36%;color:#4D5463;padding-right:2mm!important}
+  .pq-details tr[hidden]{display:none}
+  .pq-parties{margin-bottom:3mm}
+  /* ── The items ─────────────────────────────────────────────────
+     182mm of content width: No 8 · Qty 14 · Unit 24 · Total 26 = 72mm fixed;
+     Description and Size / Dimension share the rest. Ruled, not boxed.     */
+  .print-items-table{table-layout:fixed;font-variant-numeric:tabular-nums;margin-top:1mm}
+  .print-items-table thead{display:table-header-group}
+  .print-items-table tfoot{display:table-row-group}
+  .print-items-table tbody tr{break-inside:avoid;page-break-inside:avoid}
+  .print-items-table thead tr{break-after:avoid;page-break-after:avoid}
+  .print-items-table th{font-size:6.8pt;font-weight:700;letter-spacing:.4pt;text-transform:uppercase;text-align:left;
+    color:#4D5463;border-top:1pt solid #161A23;border-bottom:1pt solid #161A23;padding:1.4mm 1.5mm!important}
+  .print-items-table td{font-size:9pt;line-height:1.4;padding:1.6mm 1.5mm!important;border-bottom:.5pt solid #CDD1DA}
+  .print-items-table .print-col-no{width:8mm;color:#4D5463}
+  .print-items-table .print-col-desc{width:58mm}
+  .print-items-table .print-col-qty{width:14mm;text-align:right}
   .print-items-table th.print-col-qty{text-align:right}
-  .print-items-table .print-col-money{width:27mm;text-align:right;white-space:nowrap}
+  .print-items-table .print-col-money{width:24mm;text-align:right;white-space:nowrap}
   .print-items-table th.print-col-money{text-align:right}
   .print-items-table td.print-col-money:last-child,
-  .print-items-table th.print-col-money:last-child{width:29mm}
+  .print-items-table th.print-col-money:last-child{width:26mm}
   /* The accessory wording sits under the dimension it belongs to, quieter than
-     it, and carrying no money — which is the accepted rule, stated in type. */
-  .print-item-size{white-space:pre-line;overflow-wrap:anywhere;font-size:9.4pt}
-  /* ── Multi-page ───────────────────────────────────────────────
-     thead repeats itself on every page, which browsers do for a real <thead>
-     and this table has always had. What was missing is the rest: a row must not
-     be torn in half, and the Grand Total must not be stranded on a page of its
-     own away from the rows it totals.                                         */
-  .print-items-table thead{display:table-header-group}
-  .print-items-table tfoot{display:table-footer-group}
-  .print-items-table tbody tr{break-inside:avoid;page-break-inside:avoid}
-  .print-items-table tbody tr:nth-child(even) td{background:#fafafa!important}
-  /* ── The figure the customer looks for ──────────────────────────────
-     It sat in the money column already, which was right, and looked like one
-     more row, which was not. A rule above it, a heavier weight and a larger
-     size make it the end of the document rather than its last line.           */
-  .print-items-table tfoot td{font-size:11.5pt;font-weight:800;background:#ededed!important;
-    border-top:2pt solid #111;padding-top:3mm;padding-bottom:3mm}
-  .print-grand-label{text-align:right;letter-spacing:.06em}
-  .print-items-table tfoot .print-col-money{font-size:13pt;white-space:nowrap}
-  /* ── Anything the customer still has to read ── */
-  .print-remarks{margin-top:6mm;padding:3.5mm 4mm;border:.6pt solid #bbb;border-left:2.4pt solid #555;
-    font-size:9.4pt;line-height:1.5;white-space:pre-line;break-inside:avoid;page-break-inside:avoid}
+     it, and carrying no money — the accepted rule, stated in type. */
+  .print-item-size{white-space:pre-line;overflow-wrap:anywhere}
+  /* ── Total: right-aligned, over a double rule, kept with the last rows ── */
+  .print-items-table tfoot tr{break-inside:avoid;page-break-inside:avoid}
+  .print-items-table tfoot td{border-bottom:0;padding-top:2mm!important}
+  .print-items-table tfoot .print-grand-label{text-align:right;font-weight:700;font-size:10pt;padding-right:3mm!important}
+  .print-items-table tfoot .print-col-money{font-size:11pt;font-weight:700;
+    border-top:1.5pt solid #161A23;border-bottom:2.5pt double #161A23}
+  /* ── Notes, sign-off, footer: one unit that never splits ── */
+  .pq-after{break-inside:avoid;page-break-inside:avoid}
+  .print-remarks{margin-top:4mm;border:.5pt solid #CDD1DA;padding:2mm 3mm;font-size:8.5pt;line-height:1.45;
+    white-space:pre-line;break-inside:avoid;page-break-inside:avoid}
   .print-remarks[hidden]{display:none!important}
-  .print-footer-note{margin-top:9mm;padding-top:3.5mm;border-top:.6pt solid #bbb;
-    text-align:center;font-size:8.4pt;color:#555;break-inside:avoid;page-break-inside:avoid}
+  .pq-signoff{margin-top:6mm}
+  .pq-signoff td{width:33.33%;padding-right:6mm!important}
+  .pq-signoff td.last{padding-right:0!important}
+  .pq-who{border-top:.75pt solid #161A23;padding-top:1.2mm;margin-top:9mm;overflow-wrap:anywhere}
+  .print-footer-note{margin-top:4mm;font-size:7pt;color:#4D5463;text-align:left}
 }
 
 /* ═══════════════ STAGE 6A — UI POLISH v2.17.3 ═══════════════ */
@@ -2815,6 +2813,8 @@ html.ph-open,html.ph-open body{overflow:hidden}
 .ph-rec-diff{font-size:11.5px; font-weight:700; color:var(--text-2); white-space:normal; overflow-wrap:anywhere}
 .ph-rec-close{background:rgba(37,99,235,.10); color:var(--accent-2); border-color:var(--accent-mid)}
 .ph-sum-diff{font-weight:700; color:var(--text-2); min-width:0; overflow-wrap:anywhere}
+.qi-ref-hint{display:block;margin-top:4px;font-size:11.5px;font-weight:700;color:var(--accent-2)}
+.qi-ref-hint[hidden]{display:none}
 .ph-drawer-legend{margin-top:2px; font-size:10.5px; font-weight:600; color:var(--text-muted)}
 /* ── The panel belongs to the row above it ─────────────────────────────────
    Indented under the row's own number and ruled down its left edge, so in a
@@ -3462,7 +3462,7 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
           <div class="ac-dropdown" id="acDropdown"></div>
         </div>
         <div class="field"><label data-i18n="lblContactPhone">Contact / Phone</label><input type="text" id="qi-phone" data-i18n-ph="phContactNumber" placeholder="Contact number" oninput="syncQI()"></div>
-        <div class="field"><label data-i18n="lblQuotationNo">Quotation No.</label><input type="text" id="qi-refno" readonly data-i18n-ph="phAutoGenerated" placeholder="Auto-generated"></div>
+        <div class="field"><label data-i18n="lblQuotationNo">Quotation No.</label><input type="text" id="qi-refno" readonly data-i18n-ph="phAutoGenerated" placeholder="Auto-generated"><span class="qi-ref-hint" id="qiRefHint" hidden></span></div>
         <div class="field"><label data-i18n="lblDate">Date</label><input type="date" id="qi-date" oninput="syncQI()"></div>
         <div class="field"><label data-i18n="lblPreparedBy">Prepared By</label><input type="text" id="qi-prepby" data-i18n-ph="phPreparedBy" placeholder="Prepared by" oninput="syncQI()"></div>
         <div class="field full"><label data-i18n="lblIssuedBy">Issued By</label>
@@ -4300,34 +4300,60 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
   </div>
 </div>
 
-<!-- Print summary (only visible on print) -->
+<!-- Print summary (only visible on print). The formal quotation sheet: same
+     family as the DNC Internal Purchase Order. Filled by the beforeprint handler. -->
 <div class="card print-card" id="printSummary" style="display:none">
-  <div class="print-issuer" id="printIssuer" hidden>
-    <div class="print-issuer-name" id="printIssuerName"></div>
-    <div class="print-issuer-line">83 LOT 10341, JALAN BENDAHARA 38,</div>
-    <div class="print-issuer-line">OFF JALAN SUNGAI JATI,</div>
-    <div class="print-issuer-line">41200 KLANG, SELANGOR</div>
-    <div class="print-issuer-line">Email: sales@derchengfastener.com</div>
-    <div class="print-issuer-line">Tel: 016-328 7627 / 012-304 2890</div>
-  </div>
-  <h1 class="print-title">QUOTATION</h1>
-  <div class="print-meta-grid">
-    <div class="print-meta-item"><span class="print-meta-label">Quotation No.</span><span class="print-meta-value" id="printRefNo"></span></div>
-    <div class="print-meta-item"><span class="print-meta-label">Date</span><span class="print-meta-value" id="printDate"></span></div>
-    <div class="print-meta-item"><span class="print-meta-label">Customer</span><span class="print-meta-value" id="printCustomer"></span></div>
-    <div class="print-meta-item"><span class="print-meta-label">Prepared By</span><span class="print-meta-value" id="printPreparedBy"></span></div>
-  </div>
+  <table class="pq-head" role="presentation"><tr>
+    <td class="pq-issuer">
+      <div id="printIssuer" hidden>
+        <p class="pq-company" id="printIssuerName"></p>
+        <p class="pq-line">83 LOT 10341, JALAN BENDAHARA 38, OFF JALAN SUNGAI JATI,</p>
+        <p class="pq-line">41200 KLANG, SELANGOR</p>
+        <p class="pq-line">Tel: 016-328 7627 / 012-304 2890  ·  Email: sales@derchengfastener.com</p>
+      </div>
+    </td>
+    <td>
+      <h1 class="print-title"><span class="pq-marker"></span><span id="printTitle">QUOTATION</span></h1>
+      <table class="pq-ident" role="presentation">
+        <tr><td class="k">Quotation No.</td><td class="v pq-no" id="printRefNo"></td></tr>
+        <tr id="printRevRow" hidden><td class="k">Revision</td><td class="v" id="printRev"></td></tr>
+        <tr><td class="k">Date</td><td class="v" id="printDate"></td></tr>
+      </table>
+    </td>
+  </tr></table>
+  <div class="pq-rule"></div>
+  <table class="pq-parties" role="presentation"><tr>
+    <td class="left">
+      <p class="pq-label">Customer</p>
+      <p class="pq-party" id="printCustomer"></p>
+      <div class="pq-muted pq-wrap" id="printPhone"></div>
+    </td>
+    <td>
+      <table class="pq-details" role="presentation">
+        <tr><td class="k">Prepared by</td><td class="pq-wrap" id="printPreparedBy"></td></tr>
+        <tr id="printValidRow" hidden><td class="k">Valid until</td><td id="printValid"></td></tr>
+        <tr><td class="k">Currency</td><td>MYR (RM)</td></tr>
+      </table>
+    </td>
+  </tr></table>
   <table class="print-items-table">
     <thead>
       <tr><th class="print-col-no">No.</th><th class="print-col-desc">Description</th><th>Size / Dimension</th><th class="print-col-qty">Qty</th><th class="print-col-money">Unit Price</th><th class="print-col-money">Total</th></tr>
     </thead>
     <tbody id="printItemsBody"></tbody>
     <tfoot>
-      <tr><td colspan="5" class="print-grand-label">Grand Total</td><td class="print-col-money" id="printGrandTotal"></td></tr>
+      <tr><td colspan="5" class="print-grand-label">Total (RM)</td><td class="print-col-money" id="printGrandTotal"></td></tr>
     </tfoot>
   </table>
-  <div class="print-remarks" id="printRemarks" hidden></div>
-  <div class="print-footer-note">This is a computer-generated quotation. No signature is required.</div>
+  <div class="pq-after">
+    <div class="print-remarks" id="printRemarks" hidden></div>
+    <table class="pq-signoff" role="presentation"><tr>
+      <td><div class="pq-who"><p class="pq-label">Prepared by</p><div id="printSignPrepared"></div></div></td>
+      <td><div class="pq-who"><p class="pq-label">Issued by</p><div id="printSignIssuer"></div></div></td>
+      <td class="last"><div class="pq-who"><p class="pq-label">Date of issue</p><div id="printSignDate"></div></div></td>
+    </tr></table>
+    <div class="print-footer-note">This is a computer-generated quotation. No signature is required.</div>
+  </div>
 </div>
 
 <datalist id="sizeOptions">
@@ -5444,7 +5470,8 @@ const I18N={
     lblDiameterMm:'Diameter (mm)',
     prevQuotedPrices:'Pricing History', checkPrevPrices:'Show Pricing History',
     phViewHistory:'View History', phMatchCount:'{n} matching records', phClosest:'Closest:',
-    phClose:'Close', phNotRecorded:'Not recorded', phDimNotOnRecord:'not on record', phDimNotInItem:'not entered on this item',
+    phClose:'Close', phNotRecorded:'Not recorded', docQuotation:'QUOTATION', docRevisedQuotation:'REVISED QUOTATION', docRevision:'Revision',
+    refHintRevised:'Revision {n} · sent to the customer as {r}', phDimNotOnRecord:'not on record', phDimNotInItem:'not entered on this item',
     phNoCurrentDims:'Enter this item\'s dimensions to compare', phComparedWith:'compared with {d}',
     phDiffLegend:'Differences = history − this item', phDiffTitle:'History minus this item, per dimension', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
     phBadgeThisCustomer:'This customer', phBadgeExact:'Exact match', phBadgeClose:'Close match', phBadgeRef:'Reference only',
@@ -6018,7 +6045,8 @@ const I18N={
     lblDiameterMm:'直径 (mm)',
     prevQuotedPrices:'定价历史', checkPrevPrices:'查看定价历史',
     phViewHistory:'查看历史', phMatchCount:'{n} 条匹配记录', phClosest:'最接近：',
-    phClose:'关闭', phNotRecorded:'未记录', phDimNotOnRecord:'无记录', phDimNotInItem:'本项目未填',
+    phClose:'关闭', phNotRecorded:'未记录', docQuotation:'报价单', docRevisedQuotation:'修订报价单', docRevision:'修订版本',
+    refHintRevised:'修订版本 {n} · 发给客户的编号为 {r}', phDimNotOnRecord:'无记录', phDimNotInItem:'本项目未填',
     phNoCurrentDims:'输入本项目尺寸后即可比较', phComparedWith:'对比 {d}',
     phDiffLegend:'差值 = 历史 − 本项目', phDiffTitle:'各尺寸差值：历史减本项目', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
     phBadgeThisCustomer:'本客户', phBadgeExact:'完全匹配', phBadgeClose:'相近规格', phBadgeRef:'仅供参考',
@@ -9940,6 +9968,7 @@ function startNewQuotation(){
   loadedSavedQuote=false; quoteLocked=false; savedQuoteDirty=false; quoteStatusMode='draft'; savedQuoteSnapshot='';
   editingItemIndex=null; setItemEditMode(null);
   quoteItems=[]; editingQuoteId=null; loadedValidUntil=''; quoteItemsSnapshotAtSave=null; savedThisSession=false; sentThisSession=false; selectedCompanyId=null; renderQuote();
+  dcQuoteRevision=0; dcQuoteRevisionFor=null; dcRenderRefHint();
   ['qi-customer','qi-phone','qi-issued-by','qi-prepby','qi-remarks'].forEach(id=>{const e=el(id); if(e)e.value='';});
   el('qi-date').value=todayStr();
   el('qi-refno').value=nextRefNo();
@@ -9983,6 +10012,64 @@ function syncQI(){
   scheduleDraftAutosave();
 }
 function fv0(id){const e=el(id);return e?e.value:''}
+/* ── Customer-facing reference ─────────────────────────────────────────────
+   The quotation's identity is its number, always: Q-2026-1349 is what is saved,
+   searched, opened and recorded in history. What a CUSTOMER reads also has to
+   say which version it is, because most quotations go out as a WhatsApp
+   message and the next message for the same quotation must be told apart from
+   the last. So every customer-facing output (print, PDF, Copy, WhatsApp) uses
+
+       quotationDisplayRef(number, revision)
+         revision 0  → Q-2026-1349          (never "-R0")
+         revision 2  → Q-2026-1349-R2
+
+   and nothing else builds the suffix. The revision is the server's: the
+   quotation_revisions history, read back through get_quotation_history. Its
+   first row is the create (the original, revision 0), so the customer-facing
+   revision is the latest revision_no minus one — or every recorded row, for a
+   quotation saved before history existed, whose first row is an update. */
+function quotationDisplayRef(number,revision){
+  const n=String(number==null?'':number).trim();
+  const r=parseInt(revision,10)||0;
+  return n && r>0 ? n+'-R'+r : n;
+}
+let dcQuoteRevision=0, dcQuoteRevisionFor=null;
+function dcCustomerRevision(revisions){
+  const rows=(revisions||[]).filter(r=>r&&Number(r.revision_no)>0);
+  if(!rows.length) return 0;
+  const nos=rows.map(r=>Number(r.revision_no));
+  const max=Math.max(...nos), min=Math.min(...nos);
+  const first=rows.find(r=>Number(r.revision_no)===min);
+  return Math.max(0, max - (first && first.event_type==='create' ? 1 : 0));
+}
+async function dcRefreshQuoteRevision(){
+  const id=editingQuoteId;
+  if(!id){ dcQuoteRevision=0; dcQuoteRevisionFor=null; dcRenderRefHint(); return; }
+  try{
+    const res=await fetch('api.php?action=get_quotation_history&id='+encodeURIComponent(id)).then(r=>r.json());
+    if(id!==editingQuoteId) return;                       // another quotation was opened meanwhile
+    if(res && res.ok && Array.isArray(res.revisions)){ dcQuoteRevision=dcCustomerRevision(res.revisions); dcQuoteRevisionFor=id; }
+  }catch(e){ /* unknown revision: the canonical number is still correct, never a wrong suffix */ }
+  dcRenderRefHint();
+}
+function dcCurrentRevision(){ return editingQuoteId && dcQuoteRevisionFor===editingQuoteId ? dcQuoteRevision : 0; }
+function dcDisplayRef(refno){ return quotationDisplayRef(refno, dcCurrentRevision()); }
+function dcRenderRefHint(){
+  const h=el('qiRefHint'); if(!h) return;
+  const rev=dcCurrentRevision(), ref=fv0('qi-refno');
+  h.hidden=!(rev>0 && ref);
+  h.textContent=rev>0&&ref ? dcT('refHintRevised').replace('{n}',rev).replace('{r}',quotationDisplayRef(ref,rev)) : '';
+}
+dcOnRelabel(dcRenderRefHint);
+/* A template line that is just the number becomes the title + the reference
+   for a revised quotation; anywhere else the placeholder simply carries the
+   suffix. Revision 0 output is exactly what it was. */
+function dcFillRefPlaceholders(tpl,refno){
+  const rev=dcCurrentRevision(), ref=quotationDisplayRef(refno,rev);
+  let out=String(tpl);
+  if(rev>0) out=out.replace(/^([ \t]*)\{(quotationNo|no)\}[ \t]*$/gm,(m,ind)=>ind+dcT('docRevisedQuotation')+'\n'+ind+ref);
+  return out.replace(/{quotationNo}/g,ref).replace(/{no}/g,ref);
+}
 function getQI(){
   return {customer:fv0('qi-customer'),phone:fv0('qi-phone'),refno:fv0('qi-refno'),date:fv0('qi-date'),
     prepby:fv0('qi-prepby'),remarks:fv0('qi-remarks')};
@@ -10039,7 +10126,10 @@ async function quickOpen(){
   btn.textContent='…'; btn.disabled=true;
   qoShow('<div class="qo-msg info">'+escHtml(dcT('qoSearching'))+'</div>');
   try{
-    const res=await api('find_quotation&ref='+encodeURIComponent(raw));
+    /* A reference copied from a customer's message carries the revision
+       ("Q-2026-1349-R2"); the quotation is the same one, so look up its number. */
+    const lookup=String(raw).replace(/^(.*\d)-R\d+$/i,'$1');
+    const res=await api('find_quotation&ref='+encodeURIComponent(lookup));
     if(!res||!res.ok){ qoShow('<div class="qo-msg err">'+escHtml(dcT('qoLookupFailed'))+'</div>'); return; }
     const hits=res.data||[];
     if(hits.length===0){
@@ -10709,10 +10799,8 @@ function buildQuoteText(includeUnitWeight=false){
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
   const itemLines=buildWAItemsText('-', false, includeUnitWeight);   // copy: one line per original item, never merged
   const tpl=getWATemplate();
-  return tpl
+  return dcFillRefPlaceholders(tpl, qi.refno||'-')
     .replace(/{customer}/g, qi.customer||'-')
-    .replace(/{quotationNo}/g, qi.refno||'-')
-    .replace(/{no}/g, qi.refno||'-')
     .replace(/{date}/g, qi.date||'-')
     .replace(/{total}/g, grand.toFixed(2))
     .replace(/{items}/g, itemLines||'-')
@@ -10767,10 +10855,8 @@ function refreshWAPreview(){
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
   const itemLines=buildWAItemsText('(No items yet)');
   const tpl=sanitizeWATemplate(el('waTemplateInput').value);
-  el('waTemplatePreview').textContent=tpl
+  el('waTemplatePreview').textContent=dcFillRefPlaceholders(tpl, qi.refno||'Q-2026-0001')
     .replace(/{customer}/g, qi.customer||'Customer Name')
-    .replace(/{quotationNo}/g, qi.refno||'Q-2026-0001')
-    .replace(/{no}/g, qi.refno||'Q-2026-0001')
     .replace(/{date}/g, qi.date||'2026-07-01')
     .replace(/{total}/g, grand>0?grand.toFixed(2):'0.00')
     .replace(/{items}/g, itemLines)
@@ -10820,10 +10906,35 @@ window.addEventListener('beforeprint',()=>{
   issuerBlock.hidden=!issuer;
   el('printIssuerName').textContent=issuer;
   el('printSummary').style.display='block';
-  el('printRefNo').textContent=qi.refno||'-';
+  /* The sheet is the formal English document (as it always was); a revised
+     quotation says so in its title and carries its version in the number. */
+  const rev=dcCurrentRevision(), shownRef=quotationDisplayRef(qi.refno,rev);
+  el('printTitle').textContent=rev>0?'REVISED QUOTATION':'QUOTATION';
+  el('printRefNo').textContent=shownRef||'-';
+  el('printRevRow').hidden=!(rev>0);
+  el('printRev').textContent=rev>0?String(rev):'';
   el('printCustomer').textContent=qi.customer||'-';
   el('printDate').textContent=formatPrintDate(qi.date);
-  el('printPreparedBy').textContent=qi.prepby||'-';
+  el('printPreparedBy').textContent=qi.prepby||'—';
+  const phone=(qi.phone||'').trim();
+  el('printPhone').textContent=phone?'Tel: '+phone:'';
+  const valid=String(loadedValidUntil||'').trim();
+  el('printValidRow').hidden=!valid;
+  el('printValid').textContent=valid?formatPrintDate(valid):'';
+  /* Sign-off: who prepared it, which company issues it (QUO's "Issued By" is
+     the issuing company, not a person), and the quotation date. */
+  el('printSignPrepared').textContent=qi.prepby||'—';
+  el('printSignIssuer').textContent=issuer||'—';
+  el('printSignDate').textContent=formatPrintDate(qi.date);
+  /* Footer in the page margin, as on the purchase order: document identity
+     left, "Page x of y" right. A string in a CSS rule, so it is escaped the
+     same way the PO escapes it. */
+  const cssStr=t=>'"'+String(t).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/</g,'\\3C ').replace(/[\r\n]+/g,' ')+'"';
+  let pageStyle=el('printPageStyle');
+  if(!pageStyle){ pageStyle=document.createElement('style'); pageStyle.id='printPageStyle'; document.head.appendChild(pageStyle); }
+  pageStyle.textContent='@media print{@page{'
+    +'@bottom-left{content:'+cssStr((issuer?issuer+' · ':'')+(rev>0?'Revised quotation ':'Quotation ')+(shownRef||''))+';font-family:Arial,sans-serif;font-size:7pt;color:#545A66}'
+    +'@bottom-right{content:"Page " counter(page) " of " counter(pages);font-family:Arial,sans-serif;font-size:7pt;color:#545A66}}}';
   el('printItemsBody').innerHTML=quoteItems.map((item,index)=>{
     const qty=parseInt(item.qty,10)||0;
     /* ── ONE priced row per item ────────────────────────────────────────────
@@ -10836,7 +10947,7 @@ window.addEventListener('beforeprint',()=>{
     const total=Number.isFinite(Number(item.totalAmount))?Number(item.totalAmount):roundMoney2(qty*unit);
     return `<tr>
       <td class="print-col-no">${index+1}</td>
-      <td>${escHtml(getPrintItemDescription(item))}</td>
+      <td class="print-col-desc">${escHtml(getPrintItemDescription(item))}</td>
       <td class="print-item-size">${escHtml(getPrintItemDimension(item))}</td>
       <td class="print-col-qty">${qty}</td>
       <td class="print-col-money">${formatPrintMoney(unit)}${item.itemType==='was'?'/set':''}</td>
@@ -11550,6 +11661,7 @@ async function doSaveQuotation(){
   quoteStatusMode=updatingExisting?'updated':'locked';
   captureSavedQuotationSnapshot();
   renderQuote();
+  await dcRefreshQuoteRevision();          // this save may have been a new revision
   await refreshNextRefNo();
   if(refWasReassigned){
     showToast(dcT('tSavedAsTaken').replace('{a}',el('qi-refno').value).replace('{b}',ref));
@@ -11610,6 +11722,7 @@ function checkHandoff(){
     customDimensions:dcNormalizeCustomDims(i&&i.customDimensions)}));
   editingItemIndex=null;
   editingQuoteId=payload.id||null;
+  dcQuoteRevision=0; dcQuoteRevisionFor=null; dcRefreshQuoteRevision();
   loadedSavedQuote=!!editingQuoteId;
   quoteLocked=!!editingQuoteId;
   quoteStatusMode=editingQuoteId?'locked':'draft';

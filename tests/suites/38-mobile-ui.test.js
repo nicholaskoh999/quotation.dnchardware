@@ -333,10 +333,10 @@ module.exports = async (browser, A) => {
         bodyPt:  pt(cs('#printItemsBody td').fontSize),
         headPt:  pt(cs('.print-items-table thead th').fontSize),
         titlePt: pt(cs('.print-title').fontSize),
-        metaValuePt: pt(cs('.print-meta-value').fontSize),
+        metaValuePt: pt(cs('.pq-ident .pq-no').fontSize),
         grandPt: pt(getComputedStyle(document.querySelector('.print-items-table tfoot .print-col-money')).fontSize),
         grandWeight: getComputedStyle(foot).fontWeight,
-        grandBorderTop: getComputedStyle(foot).borderTopWidth,
+        grandBorderTop: getComputedStyle(document.querySelector('.print-items-table tfoot .print-col-money')).borderTopWidth,
         tabular: cs('.print-items-table').fontVariantNumeric,
         descMm: w('.print-items-table .print-col-desc'),
         theadDisplay: cs('.print-items-table thead').display,
@@ -351,10 +351,12 @@ module.exports = async (browser, A) => {
       'the printed table still carries exactly the six accepted columns, in order');
 
     /* ── typography a person can read on paper ── */
-    A.ok(P.bodyPt >= 9.2, `item rows are set at ${P.bodyPt}pt — readable, where they were 8.8`);
-    A.ok(P.headPt >= 8.8, `the table header is ${P.headPt}pt`);
-    A.ok(P.titlePt >= 18, `QUOTATION is ${P.titlePt}pt and unmissable`);
-    A.ok(P.metaValuePt >= 10, `the quotation number, date, customer and preparer are ${P.metaValuePt}pt`);
+    /* The formal DNC document family (same as the Internal Purchase Order): 9pt
+       rows, a small uppercase ruled header, a 12pt title beside the issuer. */
+    A.ok(P.bodyPt >= 8.9, `item rows are set at ${P.bodyPt}pt`);
+    A.ok(P.headPt >= 6.5, `the table header is ${P.headPt}pt uppercase, as on the purchase order`);
+    A.ok(P.titlePt >= 11.5, `QUOTATION is ${P.titlePt}pt, the document title of the DNC family`);
+    A.ok(P.metaValuePt >= 10, `the quotation number is ${P.metaValuePt}pt`);
 
     /* ── the Description column, which is what was cramped ── */
     A.ok(P.descMm >= 50, `Description has ${P.descMm}mm, up from the 43mm that wrapped every line`);
@@ -365,7 +367,7 @@ module.exports = async (browser, A) => {
     A.eq(P.qty.every(a => a === 'right'), true, 'and Qty is aligned to its column too');
 
     /* ── a Grand Total a reader finds at once ── */
-    A.ok(P.grandPt > P.bodyPt + 2, `the Grand Total is ${P.grandPt}pt against ${P.bodyPt}pt rows — it is the end of the document, not the last row`);
+    A.ok(P.grandPt > P.bodyPt + 1.5, `the Total is ${P.grandPt}pt against ${P.bodyPt}pt rows, over a double rule — the end of the document, not the last row`);
     A.ok(Number(P.grandWeight) >= 700, `set bold (${P.grandWeight})`);
     A.ok(parseFloat(P.grandBorderTop) > 1, `over a heavier rule (${P.grandBorderTop})`);
     A.eq(P.grand, 'RM 284.80', 'and it still reads RM 284.80 — the layout moved, the money did not');
