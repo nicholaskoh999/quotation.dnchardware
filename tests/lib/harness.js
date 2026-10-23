@@ -172,10 +172,11 @@ async function rowState(page) {
       shownSizeInput: (card && card.querySelector('[data-ef="size"]'))
                         ? card.querySelector('[data-ef="size"]').value
                         : ((card && card.querySelector('.wqa-c-size'))
-                            ? card.querySelector('.wqa-c-size').childNodes[0].textContent.trim()
+                            ? (card.querySelector('.wqa-c-size .wqa-tok-v') || card.querySelector('.wqa-c-size').childNodes[0]).textContent.trim()
                             : null),
       shownUnitWeight: q('.wqa-uw-full'),
-      shownTotalWeight: q('.wqa-tw'),
+      /* The item panel prints the total; a closed row carries it on its weight. */
+      shownTotalWeight: q('.wqa-tw') || ((card && card.querySelector('.wqa-uw[data-tw]')) ? card.querySelector('.wqa-uw[data-tw]').dataset.tw : null),
       shownPrice: (card && card.querySelector('.wqa-fin') || {}).textContent || '',
       hist: r.hist === undefined ? 'pending' : (r.hist ? r.hist : null),
       histOpen: !!r.histOpen,

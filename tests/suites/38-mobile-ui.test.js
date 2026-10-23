@@ -19,6 +19,14 @@
        asserted as a PAIR at every width: beside each other while they fit,
        stacked and left-aligned once they do not, and never apart.
 
+       AI review redesign, 2026-10-23: the scope now lives in the Bulk Adjust
+       sheet, as an "Apply to" heading (`.wqa-bs-sec`) over its two buttons
+       (`.wqa-bs-scope`), stacked at every width. The pair is asserted there.
+
+   1b · The review itself on a phone (redesign, 2026-10-23): a full-screen
+       sheet, no sideways scroll, no table header, a footer that stays put,
+       compact rows that open on a tap, and controls a thumb can hit.
+
    2 · Companies controls a thumb can actually hit.
 
        Measured, not assumed: at 430px the language pair was 30.6 x 40 and
@@ -63,26 +71,70 @@ const DESK  = [1440, 1024, 820, 700, 641];
    the bar is `align-items:center` and the two have different heights, so
    comparing tops reports a false split on a row that is perfectly fine. */
 const scopePair = page => page.evaluate(() => {
-  const l = document.querySelector('.wqa-scope-lbl').getBoundingClientRect();
-  const s = document.querySelector('.wqa-scope').getBoundingClientRect();
+  const panel = document.getElementById('wqaBulkSheetPanel');
+  const l = panel.querySelector('.wqa-bs-sec').getBoundingClientRect();
+  const s = panel.querySelector('.wqa-bs-scope').getBoundingClientRect();
+  const p = panel.getBoundingClientRect();
+  const btns = [...panel.querySelectorAll('.wqa-bs-scope .wqa-bs-sc')].map(n => n.getBoundingClientRect());
   const cy = b => b.top + b.height / 2;
   const d = document.documentElement;
+  const body = panel.querySelector('.wqa-bs-body');
   return {
-    sameRow: Math.abs(cy(l) - cy(s)) < 8,
-    adjacent: (s.left - l.right) >= 0 && (s.left - l.right) < 40,
+    label: panel.querySelector('.wqa-bs-sec').textContent.trim(),
     stacked: Math.abs(l.left - s.left) < 2 && s.top >= l.bottom - 1,
     gapY: +(s.top - l.bottom).toFixed(1),
+    /* All items and Selected items read as one choice: side by side, inside the sheet. */
+    btnsOneLine: btns.length === 2 && Math.abs(cy(btns[0]) - cy(btns[1])) < 2,
+    btnsInside: btns.every(b => b.left >= p.left - 0.5 && b.right <= p.right + 0.5),
     pageOverflow: d.scrollWidth - d.clientWidth,
+    sheetOverflow: body.scrollWidth - body.clientWidth,
   };
 });
 
 const openBulk = async (page, width) => {
   const p = await openApp(page, { viewport: { width, height: 950 } });
   await quickAddPaste(p, LIST, { expanded: false, settle: 900 });
-  await p.evaluate(() => { const t = document.querySelector('.wqa-bulk-btn'); if (t) t.click(); });
+  await p.evaluate(() => { const t = document.querySelector('#wqaRvActs .wqa-rv-bulkbtn'); if (t) t.click(); });
   await p.waitForTimeout(420);
   return p;
 };
+
+/* A list long enough to scroll on a phone, with one series in it. */
+const LONG = ['MS SAG ROD ZP UNDERSIZE', 'M12 x 853 x 70/70 - 12pcs', 'M12 x 943 x 70/70 - 8pcs',
+  ...Array.from({ length: 10 }, (_, i) => `M${16 + (i % 3) * 4} x ${900 + i * 50} x 90/90 - ${i + 2}pcs`)].join('\n');
+
+/* The review's controls at a phone width, measured where they are on screen. */
+const reviewAtPhone = page => page.evaluate(() => {
+  const vis = n => n.getClientRects().length && getComputedStyle(n).visibility !== 'hidden';
+  const box = n => { const b = n.getBoundingClientRect(); return { h: +b.height.toFixed(1), w: +b.width.toFixed(1) }; };
+  const md = document.querySelector('#wqaModal .wqa-modal');
+  const m = md.getBoundingClientRect();
+  const sc = document.querySelector('#wqaModal .wqa-scroll');
+  const d = document.documentElement;
+  const pills = [...document.querySelectorAll('#wqaCommon .wqa-rv-pills .wqa-sp')].map(n => Math.round(n.getBoundingClientRect().top));
+  return {
+    review: md.classList.contains('is-review'),
+    full: [m.left, m.top, m.width, m.height].map(v => Math.round(v)).join(','),
+    vp: [0, 0, innerWidth, innerHeight].join(','),
+    over: { page: d.scrollWidth - d.clientWidth, modal: md.scrollWidth - md.clientWidth, list: sc.scrollWidth - sc.clientWidth },
+    head: ['#wqaListHead', '.wqa-list-head', '#wqaModal thead', '#wqaModal table'].filter(s => document.querySelector(s)),
+    hidden: ['.wqa-it-px', '.wqa-it-acts', '.wqa-fig-w']
+      .map(s => [...document.querySelectorAll('#wqaRows .wqa-it:not(.is-open) ' + s)].filter(vis).length),
+    pillsOneLine: pills.length > 1 && pills.every(t => t === pills[0]),
+    pillsScroll: getComputedStyle(document.querySelector('#wqaCommon .wqa-rv-pills')).overflowX,
+    rows: [...document.querySelectorAll('#wqaRows .wqa-it-main')].filter(vis).map(box),
+    foot: [...document.querySelectorAll('.wqa-sticky-actions .btn')].filter(vis).map(box),
+    /* everything else on the review a thumb presses */
+    other: [...document.querySelectorAll('#wqaRvActs .btn, #wqaSource .wqa-panel-head, #wqaRvNeed .btn')]
+      .filter(vis).map(n => Object.assign({ cls: String(n.className).split(' ').slice(-1)[0] }, box(n))),
+    scrolls: sc.scrollHeight > sc.clientHeight,
+  };
+});
+const footAt = page => page.evaluate(() => {
+  const f = document.querySelector('#wqaModal .wqa-sticky-actions').getBoundingClientRect();
+  return { top: Math.round(f.top), bottom: Math.round(f.bottom), vh: innerHeight };
+});
+const under44 = list => list.filter(b => b.h < 44);
 
 /* Every visible control on the Companies screens, with a modal open so the ×
    and the form fields are really on screen rather than measured while hidden —
@@ -122,12 +174,16 @@ module.exports = async (browser, A) => {
   for (const w of PHONE) {
     const page = await openBulk(browser, w);
     const r = await scopePair(page);
+    A.eq(r.label, 'Apply to', `${w}px: the scope is labelled Apply to`);
     A.eq(r.pageOverflow <= 2, true, `${w}px: the page does not scroll sideways (${r.pageOverflow}px)`);
-    A.eq(r.sameRow, false, `${w}px: the bar has wrapped, which is what makes this width the interesting one`);
+    A.eq(r.sheetOverflow <= 0, true, `${w}px: nor does Bulk Adjust (${r.sheetOverflow}px)`);
+    /* Retired 2026-10-23 (AI review redesign): "the bar has wrapped" — the
+       label is a heading over its buttons at every width; there is no bar. */
     A.eq(r.stacked, true,
-      `${w}px: APPLY TO sits directly above the buttons it names, left edges aligned — not stranded at the far right of the line above`);
+      `${w}px: Apply to sits directly above the buttons it names, left edges aligned — not stranded at the far right of the line above`);
     A.ok(r.gapY >= 0 && r.gapY < 24,
       `${w}px: and close enough to read as one control (${r.gapY}px between them)`);
+    A.eq(r.btnsOneLine && r.btnsInside, true, `${w}px: All items and Selected items sit side by side, inside the sheet`);
     await page.close();
   }
 
@@ -136,8 +192,11 @@ module.exports = async (browser, A) => {
     const page = await openBulk(browser, w);
     const r = await scopePair(page);
     A.eq(r.pageOverflow <= 2, true, `${w}px: the page does not scroll sideways (${r.pageOverflow}px)`);
-    A.eq(r.sameRow, true, `${w}px: the bar still fits on one line, as UI POLISH 1 and 2 left it`);
-    A.eq(r.adjacent, true, `${w}px: with APPLY TO beside its control, not pushed away from it`);
+    /* Retired 2026-10-23 (AI review redesign): "the bar still fits on one
+       line" and "APPLY TO beside its control" — the bar is gone; in the sheet
+       the label heads its buttons at every width, asserted as the pair. */
+    A.eq(r.stacked && r.gapY >= 0 && r.gapY < 24, true, `${w}px: Apply to is directly above its control (${r.gapY}px)`);
+    A.eq(r.btnsOneLine && r.btnsInside, true, `${w}px: with both scope buttons on one line inside the sheet`);
     await page.close();
   }
 
@@ -148,9 +207,114 @@ module.exports = async (browser, A) => {
     const wide = await openBulk(browser, 641);
     const narrow = await openBulk(browser, 640);
     const a = await scopePair(wide), b = await scopePair(narrow);
-    A.eq(a.sameRow && a.adjacent, true, '641px: one pixel above the boundary, the pair is side by side');
-    A.eq(b.stacked, true, '640px: one pixel below it, the pair is stacked and still a pair');
+    A.eq(a.stacked && a.btnsOneLine, true, '641px: one pixel above the old boundary, the pair is intact');
+    A.eq(b.stacked && b.btnsOneLine, true, '640px: one pixel below it, the pair is stacked and still a pair');
     await wide.close(); await narrow.close();
+  }
+
+  // ══ 1b · the review itself, on a phone ═══════════════════════════════════
+  /* 44 is the standard §3 holds Companies to; the review is held to the same. */
+  for (const w of PHONE) {
+    const page = await openApp(browser, { viewport: { width: w, height: 844 } });
+    await quickAddPaste(page, LONG, { expanded: false, settle: 1000 });
+    const r = await reviewAtPhone(page);
+    A.eq(String(r.review), 'true', `${w}px: the dialog is in its review layout`);
+    A.eq(r.full, r.vp, `${w}px: and fills the screen, edge to edge (${r.full})`);
+    A.eq(r.over.page <= 0 && r.over.modal <= 0 && r.over.list <= 0, true,
+      `${w}px: nothing scrolls sideways — page ${r.over.page}, dialog ${r.over.modal}, list ${r.over.list}`);
+    A.eq(r.head.join(','), '', `${w}px: there is no table header`);
+    A.eq(r.hidden.join(','), '0,0,0', `${w}px: a closed row shows no pricing line, row actions or weight — it is compact`);
+    A.eq(r.pillsOneLine && r.pillsScroll === 'auto', true,
+      `${w}px: the shared values stay on one line and scroll sideways (${r.pillsScroll})`);
+
+    /* the footer stays on screen wherever the list is scrolled */
+    A.eq(String(r.scrolls), 'true', `${w}px: the list is long enough to scroll`);
+    const f0 = await footAt(page);
+    await page.evaluate(() => { const s = document.querySelector('#wqaModal .wqa-scroll'); s.scrollTop = s.scrollHeight; });
+    await page.waitForTimeout(200);
+    const f1 = await footAt(page);
+    A.ok(f0.bottom <= f0.vh && f0.top > 0, `${w}px: Add is on screen at the top of the list (${f0.top}–${f0.bottom} of ${f0.vh})`);
+    A.eq(`${f1.top}-${f1.bottom}`, `${f0.top}-${f0.bottom}`, `${w}px: and in the same place at the bottom of it`);
+
+    /* touch targets */
+    A.eq(r.foot.length >= 2 && under44(r.foot).length === 0, true,
+      `${w}px: the footer buttons are at least 44 tall — ${JSON.stringify(r.foot)}`);
+    A.eq(under44(r.rows).length, 0,
+      `${w}px: every row — the only way into an item on a phone — is at least 44 tall — under: ${JSON.stringify(under44(r.rows).slice(0, 3))} (${under44(r.rows).length} of ${r.rows.length})`);
+    A.eq(under44(r.other).length, 0,
+      `${w}px: and so is every other review control — under: ${JSON.stringify(under44(r.other))}`);
+
+    /* a tap on a row — on one of its values, even — opens that row, and only that */
+    await page.evaluate(() => { document.querySelector('#wqaModal .wqa-scroll').scrollTop = 0; });
+    const at = await page.$eval('[data-wqa-row="2"] .wqa-it-main [data-tok="length"]', n => {
+      n.scrollIntoView({ block: 'center' }); const b = n.getBoundingClientRect();
+      return [b.left + b.width / 2, b.top + b.height / 2]; });
+    await page.mouse.click(at[0], at[1]);
+    await page.waitForTimeout(500);
+    const t = await page.evaluate(() => {
+      const p = document.querySelector('[data-wqa-row="2"] .wqa-rv-detail');
+      const vis = n => !!n && n.getClientRects().length > 0;
+      const sc = document.querySelector('#wqaModal .wqa-scroll');
+      return {
+        open: wqa.rows.map((r, i) => r.open ? i : -1).filter(i => i >= 0).join(','),
+        ix: document.querySelectorAll('#wqaRows .wqa-ix').length,
+        carries: vis(p && p.querySelector('.wqa-dt-foot .wqa-row-hist')) && vis(p && p.querySelector('.wqa-dt-del'))
+              && vis(p && p.querySelector('[data-px="costRate"]')),
+        fields: p ? [...p.querySelectorAll('input,select')].filter(vis).map(n => +n.getBoundingClientRect().height.toFixed(1)) : [],
+        over: sc.scrollWidth - sc.clientWidth,
+      };
+    });
+    A.eq(t.open, '2', `${w}px: a tap on a row's value opens that row`);
+    A.eq(t.ix, 0, `${w}px: as a panel, not as a box squeezed into the line`);
+    A.eq(t.carries, true, `${w}px: and the panel carries what the closed row hid — history, remove, pricing`);
+    A.eq(t.fields.length > 0 && t.fields.every(h => h >= 44), true,
+      `${w}px: every field in it is at least 44 tall — ${t.fields.join(',')}`);
+    A.eq(t.over <= 0, true, `${w}px: and the open panel does not scroll sideways (${t.over}px)`);
+    const back = await page.$eval('[data-wqa-row="2"] .wqa-it-main', n => {
+      const b = n.getBoundingClientRect(); return [b.left + b.width / 2, b.top + Math.min(b.height / 2, 14)]; });
+    await page.mouse.click(back[0], back[1]);
+    await page.waitForTimeout(400);
+    A.eq(await page.evaluate(() => wqa.rows.filter(r => r.open).length), 0, `${w}px: and a second tap closes it`);
+
+    /* Bulk Adjust is the whole screen too */
+    await page.evaluate(() => wqaBulkSheetOpen());
+    await page.waitForTimeout(400);
+    const bs = await page.evaluate(() => {
+      const p = el('wqaBulkSheetPanel'); const b = p.getBoundingClientRect();
+      const h = s => [...p.querySelectorAll(s)].filter(n => n.getClientRects().length)
+        .map(n => ({ cls: String(n.className).split(' ')[0] || n.tagName.toLowerCase(), h: +n.getBoundingClientRect().height.toFixed(1) }));
+      return { full: [b.left, b.width].map(Math.round).join(','), vw: innerWidth,
+               fields: h('select[data-bs], input[data-bs], .wqa-bs-foot .btn'),
+               other: h('.wqa-bs-sc, .wqa-bs-pick, .wqa-bs-close') };
+    });
+    A.eq(bs.full, `0,${bs.vw}`, `${w}px: Bulk Adjust takes the full width`);
+    A.eq(under44(bs.fields).length, 0, `${w}px: its fields, Cancel and Apply are at least 44 tall — under: ${JSON.stringify(under44(bs.fields))}`);
+    A.eq(under44(bs.other).length, 0, `${w}px: and so are its scope and close controls — under: ${JSON.stringify(under44(bs.other))}`);
+    await page.evaluate(() => { wqaBulkSheetClose(); wqaSelEnter(); });
+    await page.waitForTimeout(300);
+    const selBar = await page.evaluate(() => [...document.querySelectorAll('#wqaSelBar .btn')].filter(n => n.getClientRects().length)
+      .map(n => ({ t: n.textContent.trim(), h: +n.getBoundingClientRect().height.toFixed(1) })));
+    A.eq(under44(selBar).length, 0, `${w}px: and the selection bar's buttons — under: ${JSON.stringify(under44(selBar))}`);
+    A.ok(page._dcErrors.length === 0, `${w}px: no page errors: ` + page._dcErrors.join(' | '));
+    await page.close();
+  }
+
+  /* A tablet is not a narrow desktop: touch cards, every value a 40px+ target. */
+  {
+    const page = await openApp(browser, { viewport: { width: 768, height: 1024 } });
+    await quickAddPaste(page, LONG, { expanded: false, settle: 1000 });
+    const r = await page.evaluate(() => {
+      const d = document.documentElement, sc = document.querySelector('#wqaModal .wqa-scroll');
+      const toks = [...document.querySelectorAll('#wqaRows .wqa-tok')].filter(n => n.getClientRects().length)
+        .map(n => +n.getBoundingClientRect().height.toFixed(1));
+      return { over: Math.max(d.scrollWidth - d.clientWidth, sc.scrollWidth - sc.clientWidth), toks,
+               head: !!document.querySelector('#wqaListHead, #wqaModal thead') };
+    });
+    A.eq(r.over <= 0, true, `768px: the review does not scroll sideways (${r.over}px)`);
+    A.eq(String(r.head), 'false', '768px: and has no table header');
+    A.eq(r.toks.length > 0 && r.toks.every(h => h >= 40), true,
+      `768px: every value is a 40px+ target — smallest ${Math.min(...r.toks)}`);
+    await page.close();
   }
 
   // ══ 3 · Companies, thumb-sized at phone widths ═══════════════════════════
@@ -193,7 +357,9 @@ module.exports = async (browser, A) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await quickAddPaste(page, LIST, { expanded: false, settle: 700 });
     const durations = await page.evaluate(() => {
-      const sel = ['.wqa-bulk-btn', '.wqa-view-btn', '.wqa-row-act'];
+      /* .wqa-bulk-btn, .wqa-view-btn and .wqa-row-act retired with the AI
+         review redesign (2026-10-23); these are the controls in their place. */
+      const sel = ['.wqa-rv-bulkbtn', '.wqa-tok', '.wqa-rv-act', '.wqa-sp', '.wqa-it'];
       return sel.map(s => { const n = document.querySelector(s);
         return n ? getComputedStyle(n).transitionDuration : null; }).filter(Boolean);
     });

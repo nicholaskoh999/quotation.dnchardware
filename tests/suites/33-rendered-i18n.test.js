@@ -260,34 +260,43 @@ module.exports = async (browser, A) => {
     await page.waitForTimeout(320);
     await clean(page, 'Quick Add, before anything is pasted', A);
 
-    await quickAddPaste(page, 'M16 x 800 TL 80/80 qty 5\nM20 x 900 TL 90/90 qty 8');
-    await clean(page, 'Quick Add review, expanded', A);
+    await quickAddPaste(page, 'M16 x 800 TL 80/80 qty 5\nM20 x 900 TL 90/90 qty 8', { expanded: false });
+    await clean(page, 'Quick Add review, as it opens', A);
 
-    await page.evaluate(() => wqaSetView('compact'));
-    await page.waitForTimeout(300);
-    await clean(page, 'Quick Add review, compact', A);
+    /* Every panel open at once — the legacy wqaSetView('expanded') call. Not
+       on the screen any more, but still the widest single state there is. */
     await page.evaluate(() => wqaSetView('expanded'));
+    await page.waitForTimeout(300);
+    await clean(page, 'Quick Add review, every item panel open', A);
+    /* Retired 2026-10-23 (AI review redesign): the "compact" state — the
+       Compact/Expanded toggle is gone; "as it opens" above is that state. */
+    await page.evaluate(() => wqaSetView('compact'));
     await page.waitForTimeout(300);
 
     /* the history panel, which fetches and then draws its own card */
     await page.evaluate(() => { const b = document.querySelector('.wqa-row-hist'); if (b) b.click(); });
     await page.waitForTimeout(600);
-    await clean(page, 'Quick Add, Previous Price panel open', A);
+    await clean(page, 'Quick Add, Pricing History panel open (no records)', A);
+    await page.evaluate(() => { const b = document.querySelector('.wqa-row-hist'); if (b) b.click(); });
+    await page.waitForTimeout(300);
 
-    /* the accessory panel on a row */
-    await page.evaluate(() => { const b = document.querySelector('.wqa-acc-bar'); if (b) b.click(); });
+    /* the accessory panel on a row, inside that row's own panel */
+    await page.evaluate(() => { wqaToggleRow(0); });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => { const b = document.querySelector('[data-wqa-row="0"] .wqa-acc-bar'); if (b) b.click(); });
     await page.waitForTimeout(320);
     await clean(page, 'Quick Add, row accessories open', A);
 
-    /* Bulk Edit, and both apply scopes */
-    await page.evaluate(() => wqaOpenBulkFor());
+    /* Bulk Adjust, and both apply scopes */
+    await page.evaluate(() => { wqaToggleRow(0); wqaBulkSheetOpen(); });
     await page.waitForTimeout(320);
-    await clean(page, 'Quick Add, Bulk Edit', A);
+    await clean(page, 'Quick Add, Bulk Adjust', A);
     for (const scope of ['selected', 'all']) {
-      await page.evaluate(s => { try { wqaSetApplyScope(s); } catch (e) {} }, scope);
+      await page.evaluate(s => wqaBsScope(s), scope);
       await page.waitForTimeout(240);
       await clean(page, `Quick Add, apply scope ${scope}`, A);
     }
+    await page.evaluate(() => wqaBulkSheetClose());
     await page.close();
   }
 
@@ -496,101 +505,338 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
-  /* ── 13 · the surfaces this round added ────────────────────────────────
-     Details, row selection, the Bulk Edit count, "apply to Selected Items"
-     and the refusal when nothing is selected. Each is markup generated after
-     dcApplyLang has already run, which is exactly the shape that produced
-     every false-green this suite exists to catch: a data-i18n attribute on
-     an element built too late for the one pass that reads them. So each is
-     opened in 中文 and scanned as it stands.                               */
+
+  /* ── 13 · the AI 智能识别 review, state by state ────────────────────────
+     Redesigned 2026-10-23. Every surface below is markup generated after
+     dcApplyLang has already run — the shape that produced every false-green
+     this suite exists to catch — so each is driven into being in 中文 and
+     scanned as it stands: the review as it opens, the customer's message,
+     an item's panel, a value being edited, the pricing strip, the history
+     records, Selection mode, Bulk Adjust in each of its states, the "needs a
+     size" prompt, a long series, and the same at phone width.
+
+     Retired 2026-10-23 (AI review redesign), each with no equivalent left:
+       · the row action reading 详情 / 关闭 — the Details button is gone; the
+         row itself opens its panel, and its ▾ control is checked as 更多 / 收起;
+       · #wqaListHead's 全选项目 box and the #wqaBulkSelN badge — ticks exist
+         only in Selection mode, whose bar is checked instead;
+       · Bulk Edit's three section titles and its accordion — Bulk Adjust is
+         one sheet with one title;
+       · Fast Edit's Done / Cancel and the 视图 label — the grid-wide edit and
+         the view toggle are gone; a value is edited where it stands. */
+  const REVIEW = 'MS SAG ROD ZP UNDERSIZE\nM12 x 853 x 70/70 - 4pcs\nM12 x 943 x 70/70 - 6pcs\nM16 x 500 x 70/70 - 2pcs';
+  const REC = {
+    quotationId: 1, refNo: 'Q-2026-0430', date: '2026-01-25', customer: 'Alpha Steel Sdn Bhd',
+    companyId: 7, own: true, productType: 'SAG ROD', material: 'MS', sizeType: 'UNDERSIZE',
+    finish: 'ZP', cleanSize: 'M12', dimensionPreview: 'L 853 x TL 70/70mm',
+    exactDims: true, qty: 4, unitPrice: 9.9, boltUnitPrice: 9.9, accessoryCost: 0,
+    accessorySummary: '', accessoryAmbiguous: false, priceMode: 'auto',
+    priceModeLabel: 'Auto Round', costRate: 2.8, addCost: 0.6, markup: 4, weight: 0.6927, legacy: false,
+  };
+  const HISTORY_API = { get_pricing_history: () => ({ ok: true, data: {
+    records: [REC], total: 1, ownTotal: 1, otherTotal: 0, offset: 0, limit: 20 } }) };
+  /* The record's own stored dimension text, as the fixture above writes it —
+     data the record carries, not a word of the interface. */
+  const REC_DATA = { words: ['70/70mm'] };
+
+  /* English mode: no Chinese anywhere in the review. The customer's message
+     and the line an item was read from are the customer's, and skipped. */
+  const noChinese = async (page, where) => {
+    const hits = await page.evaluate(() => {
+      const out = [];
+      document.querySelectorAll('#wqaModal *').forEach(e => {
+        if (e.closest('.wqa-source-text,.wqa-row-raw-full,#wqaInput,script,style')) return;
+        /* an <option> has no box of its own; it is on screen when its select is */
+        const host = e.tagName === 'OPTION' ? e.closest('select') : e;
+        if (!host || !host.getClientRects().length || getComputedStyle(host).visibility === 'hidden') return;
+        let own = '';
+        for (let n = e.firstChild; n; n = n.nextSibling) if (n.nodeType === 3) own += n.nodeValue;
+        ['placeholder', 'title', 'aria-label'].forEach(a => { const v = e.getAttribute(a); if (v) own += ' ' + v; });
+        if (/[一-鿿]/.test(own)) out.push(`${e.tagName.toLowerCase()}.${String(e.className).split(' ')[0]}: ${own.trim().slice(0, 80)}`);
+      });
+      return out;
+    });
+    A.eq(hits.length, 0, `English · ${where}: no Chinese in the review — ${hits.slice(0, 6).join(' | ')}`);
+  };
+  const txt = (page, s) => page.evaluate(q => {
+    const n = document.querySelector(q); return n ? n.textContent.replace(/\s+/g, ' ').trim() : null; }, s);
+  const all = (page, s) => page.evaluate(q =>
+    [...document.querySelectorAll(q)].map(n => n.textContent.replace(/\s+/g, ' ').trim()), s);
+  /* What the review heading, footer and rows say, read off the screen. */
+  const words = page => page.evaluate(() => {
+    const t = s => { const n = document.querySelector(s); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; };
+    return {
+      title: t('#wqaModal .modal-title [data-i18n="wqaTitle"]'),
+      count: t('#wqaRowsCount'), add: t('#wqaAddBtn'),
+      sel: t('#wqaRvActs .wqa-rv-selbtn'), bulk: t('#wqaRvActs .wqa-rv-bulkbtn'),
+      source: t('#wqaSource .wqa-panel-title'),
+      hist: [...document.querySelectorAll('#wqaRows .wqa-it-acts .wqa-row-hist')].map(n => n.textContent.trim()),
+      px: t('[data-wqa-row="2"] .wqa-px-sum'), serPx: t('.wqa-ser-px'),
+      pills: [...document.querySelectorAll('#wqaCommon .wqa-sp-k')].map(n => n.textContent.replace('*', '').trim()),
+      more: (document.querySelector('[data-wqa-row="2"] .wqa-rv-more') || {}).getAttribute
+              ? document.querySelector('[data-wqa-row="2"] .wqa-rv-more').getAttribute('aria-label') : '',
+    };
+  });
+
+  {
+    const page = await openApp(browser, { api: HISTORY_API });
+    await page.evaluate(() => { selectedCompanyId = 7; });
+    await setLang(page, 'zh');
+    await quickAddPaste(page, REVIEW, { expanded: false, settle: 900 });
+
+    /* ── the review as it opens ── */
+    await clean(page, 'review, as it opens', A);
+    const zh = await words(page);
+    A.eq(zh.title, 'AI 智能识别', '中文: the review is titled AI 智能识别');
+    A.eq(zh.count, '已识别 3 个项目', '中文: the count reads 已识别 N 个项目');
+    A.eq(zh.add, '加入 3 个项目到报价', '中文: Add reads 加入 N 个项目到报价');
+    A.eq(zh.sel, '选择', '中文: the Selection-mode button is 选择');
+    A.eq(zh.bulk, '批量调整', '中文: Bulk Adjust is 批量调整');
+    A.eq(zh.source, '原始内容', '中文: the customer\'s message is 原始内容');
+    A.ok(zh.hist.length === 3 && zh.hist.every(h => h.startsWith('客户历史报价')),
+      `中文: every item's history action is 客户历史报价 — ${zh.hist.join(' | ')}`);
+    A.eq(zh.px, '成本 4.20 · 加工费 0.60 · Markup 0%', '中文: an item\'s pricing line reads 成本 · 加工费 · Markup');
+    A.eq(zh.serPx, '成本 4.20 · 加工费 0.60 · Markup 0%', '中文: and so does the series heading\'s');
+    A.eq(zh.pills.join(' · '), '产品 · 材料 · 表面处理 · Size 规格', '中文: the shared values are 产品 · 材料 · 表面处理 · Size 规格');
+    A.eq(zh.more, '更多', '中文: an item\'s ▾ control is 更多');
+    A.eq(await txt(page, '[data-wqa-row="2"] [data-tok="qty"] .wqa-tok-k'), '数量', '中文: a quantity is 数量');
+
+    /* ── the customer's message, opened ── */
+    await page.evaluate(() => document.querySelector('#wqaSource .wqa-panel-head').click());
+    await page.waitForTimeout(400);
+    await clean(page, 'review, 原始内容 open', A);
+    A.eq(await txt(page, '#wqaSource .wqa-panel-title'), '原始内容', '中文: and is still 原始内容 open');
+    await page.evaluate(() => document.querySelector('#wqaSource .wqa-panel-head').click());
+    await page.waitForTimeout(300);
+
+    /* ── an item's own panel, opened by pressing the item ── */
+    await page.evaluate(() => document.querySelector('[data-wqa-row="2"] .wqa-it-main').click());
+    await page.waitForTimeout(450);
+    A.eq(await page.evaluate(() => document.querySelectorAll('.wqa-rv-detail').length), 1,
+      'pressing an item opens its panel');
+    await clean(page, 'review, an item panel open', A);
+    const lbl = await page.evaluate(() => {
+      const of = f => { const n = document.querySelector(`[data-wqa-row="2"] .wqa-rv-detail [data-ef="${f}"]`);
+                        return n ? n.closest('label').querySelector('span').textContent.trim() : null; };
+      return { size: of('size'), st: of('sizeType'), more: document.querySelector('[data-wqa-row="2"] .wqa-rv-more').getAttribute('aria-label') };
+    });
+    A.eq(lbl.size, '螺纹 Size', '中文: the thread size is labelled 螺纹 Size');
+    A.eq(lbl.st, 'Size 规格', '中文: and the size type Size 规格');
+    A.eq(lbl.more, '收起', '中文: and the ▾ control says 收起 while it is open');
+
+    /* ── its accessories ── */
+    await page.evaluate(() => document.querySelector('[data-wqa-row="2"] .wqa-acc-bar').click());
+    await page.waitForTimeout(350);
+    await clean(page, 'review, item accessories open', A);
+    await page.evaluate(() => wqaToggleRow(2));
+    await page.waitForTimeout(300);
+
+    /* ── a value being edited where it stands ── */
+    await page.evaluate(() => document.querySelector('[data-wqa-row="2"] [data-tok="length"]').click());
+    await page.waitForTimeout(350);
+    A.eq(await page.evaluate(() => document.querySelectorAll('#wqaRows .wqa-ix').length), 1,
+      'pressing a value opens one box in its place');
+    await clean(page, 'review, a value being edited', A);
+    await page.evaluate(() => wqaEditDone());
+    await page.waitForTimeout(350);
+
+    /* ── the pricing strip ── */
+    await page.evaluate(() => wqaPxToggle(2));
+    await page.waitForTimeout(350);
+    A.eq(await page.evaluate(() => document.querySelectorAll('#wqaRows .wqa-px').length), 1, 'the pricing strip opens');
+    await clean(page, 'review, pricing strip open', A);
+    await page.evaluate(() => wqaPxToggle(2));
+    await page.waitForTimeout(300);
+
+    /* ── the history records ── */
+    await page.evaluate(() => wqaHistToggle(2));
+    await page.waitForTimeout(1000);
+    A.eq(await page.evaluate(() => document.querySelectorAll('.wqa-hist-panel .ph-rec').length), 1,
+      'the history panel draws its record');
+    await clean(page, 'review, 客户历史报价 records open', A, REC_DATA);
+    A.eq(await txt(page, '.wqa-hist-panel .wqa-hist-lbl'), '客户历史报价', '中文: headed 客户历史报价');
+    await page.evaluate(() => wqaHistToggle(2));
+    await page.waitForTimeout(300);
+
+    /* ── Selection mode: empty, then two picked ── */
+    await page.evaluate(() => wqaSelEnter());
+    await page.waitForTimeout(350);
+    await clean(page, 'review, Selection mode, nothing picked', A);
+    A.eq(await txt(page, '#wqaSelBar .wqa-selbar-n'), '已选择 0 个项目', '中文: the bar counts 已选择 N 个项目');
+    A.eq(await page.evaluate(() => document.querySelector('[data-wqa-row="0"] .wqa-pick').getAttribute('aria-label')),
+      '选择第 1 项', '中文: each tick box names its item');
+    await page.evaluate(() => { wqaRvToggleSel(0); wqaRvToggleSel(2); });
+    await page.waitForTimeout(350);
+    await clean(page, 'review, two items picked', A);
+    A.eq(await txt(page, '#wqaSelBar .wqa-selbar-n'), '已选择 2 个项目', '中文: and follows the ticks');
+
+    /* ── Bulk Adjust, from the selection ── */
+    await page.evaluate(() => wqaBulkSheetOpen('selected'));
+    await page.waitForTimeout(350);
+    await clean(page, 'Bulk Adjust, scope 已选择项目', A);
+    const bs = await page.evaluate(() => {
+      const p = document.getElementById('wqaBulkSheetPanel');
+      return {
+        title: p.querySelector('.wqa-bs-title').textContent.trim(),
+        scope: [...p.querySelectorAll('.wqa-bs-sc')].map(n => n.textContent.trim()),
+        on: (p.querySelector('.wqa-bs-sc.is-on') || {}).textContent || '',
+        keep: [...p.querySelectorAll('select[data-bs]')].map(s => s.options[s.selectedIndex].textContent.trim()),
+        ph: [...p.querySelectorAll('input[data-bs]')].map(n => n.placeholder),
+        apply: p.querySelector('#wqaBsApply').textContent.trim(),
+        size: p.querySelector('[data-bs="size"]').closest('label').querySelector('.wqa-bs-k').textContent.trim(),
+      };
+    });
+    A.eq(bs.title, '批量调整', '中文: the sheet is 批量调整');
+    A.eq(bs.scope.join(' / '), '全部项目（3） / 已选择项目（2）', '中文: its scope is 全部项目 / 已选择项目');
+    A.eq(bs.on.trim(), '已选择项目（2）', 'and it opened on the selection');
+    A.ok(bs.keep.length >= 5 && bs.keep.every(k => k === '不修改'), `中文: every field starts at 不修改 — ${bs.keep.join(',')}`);
+    A.ok(bs.ph.length >= 4 && bs.ph.every(k => k === '不修改'), '中文: and every box says 不修改 until typed in');
+    A.eq(bs.apply, '应用调整', '中文: and Apply is 应用调整');
+    A.eq(bs.size, '螺纹 Size', '中文: its size field is 螺纹 Size');
+
+    /* every kind of change it can describe, described */
+    await page.evaluate(() => {
+      wqaBsSet('finish', 'HDG'); wqaBsSet('markup', '5'); wqaBsSet('priceMode', 'manual');
+      wqaBsSet('acc', 'set'); wqaBsEditAcc('nut', 'enabled', true);
+    });
+    await page.waitForTimeout(400);
+    await clean(page, 'Bulk Adjust with fields set, Manual Price and accessories', A);
+    const lines = await all(page, '#wqaBsSummary li');
+    A.ok(lines.length >= 4 && lines.every(l => /[一-鿿]/.test(l)), `中文: what Apply will do is said in Chinese — ${lines.join(' | ')}`);
+    await page.evaluate(() => wqaBsSet('acc', 'clear'));
+    await page.waitForTimeout(300);
+    await clean(page, 'Bulk Adjust clearing accessories', A);
+
+    /* the refusal, which only exists in one state and is easy to miss */
+    await page.evaluate(() => { wqaBulkSheetClose(); wqaSelExit(); wqaBulkSheetOpen('all'); wqaBsScope('selected'); });
+    await page.waitForTimeout(400);
+    const refuse = await page.evaluate(() => ({
+      text: (document.querySelector('#wqaBsSummary .wqa-bs-n.is-why') || {}).textContent || '',
+      off: !!el('wqaBsApply').disabled }));
+    A.eq(refuse.text.trim(), '尚未选择项目。', '已选择项目 with nothing picked refuses, in Chinese, word for word');
+    A.eq(String(refuse.off), 'true', 'with Apply disabled');
+    await clean(page, 'Bulk Adjust refusing an empty selection', A);
+    await page.evaluate(() => wqaBsScope('all'));
+    await page.waitForTimeout(250);
+    A.eq((await txt(page, '#wqaBsSummary .wqa-bs-n')), '请至少选择一个要修改的字段。',
+      'and with nothing changed, it says so');
+    await page.evaluate(() => wqaBulkSheetClose());
+    await page.waitForTimeout(250);
+
+    /* ── English: the same states, English only, in the approved words ── */
+    await setLang(page, 'en');
+    const en = await words(page);
+    A.eq(en.title, 'Quick Add', 'English: the review is titled Quick Add');
+    A.eq(en.count, 'Detected 3 items', 'English: Detected N items');
+    A.eq(en.add, 'Add 3 Items to Quotation', 'English: Add N Items to Quotation');
+    A.eq(en.sel + ' / ' + en.bulk, 'Select / Bulk Adjust', 'English: Select / Bulk Adjust');
+    A.eq(en.source, 'Original Content', 'English: Original Content');
+    A.ok(en.hist.every(h => h.startsWith('Pricing History')), `English: Pricing History — ${en.hist.join(' | ')}`);
+    A.eq(en.px, 'Cost 4.20 · Add. Cost 0.60 · Markup 0%', 'English: Cost · Add. Cost · Markup');
+    A.eq(en.pills.join(' · '), 'Product · Material · Finish · Size Type', 'English: the shared values');
+    await noChinese(page, 'review, as it opens');
+    await page.evaluate(() => { wqaToggleRow(2); });
+    await page.waitForTimeout(350);
+    A.eq(await page.evaluate(() => document.querySelector('[data-wqa-row="2"] .wqa-rv-detail [data-ef="size"]').closest('label').querySelector('span').textContent.trim()),
+      'Size', 'English: the thread size is Size');
+    await page.evaluate(() => document.querySelector('[data-wqa-row="2"] .wqa-acc-bar').click());
+    await page.waitForTimeout(300);
+    await noChinese(page, 'an item panel with accessories open');
+    await page.evaluate(() => { wqaToggleRow(2); wqaPxToggle(2); });
+    await page.waitForTimeout(300);
+    await noChinese(page, 'pricing strip open');
+    await page.evaluate(() => { wqaPxToggle(2); wqaHistToggle(2); });
+    await page.waitForTimeout(900);
+    await noChinese(page, 'Pricing History records open');
+    await page.evaluate(() => { wqaHistToggle(2); wqaSelEnter(); wqaRvToggleSel(1); });
+    await page.waitForTimeout(350);
+    await noChinese(page, 'Selection mode');
+    await page.evaluate(() => { wqaBulkSheetOpen('selected'); wqaBsSet('priceMode', 'manual'); wqaBsSet('acc', 'set'); });
+    await page.waitForTimeout(350);
+    const enBs = await page.evaluate(() => {
+      const p = document.getElementById('wqaBulkSheetPanel');
+      return { keep: [...p.querySelectorAll('select[data-bs]')].map(s => s.options[0].textContent.trim()),
+               scope: [...p.querySelectorAll('.wqa-bs-sc')].map(n => n.textContent.trim()).join(' / '),
+               apply: p.querySelector('#wqaBsApply').textContent.trim(),
+               title: p.querySelector('.wqa-bs-title').textContent.trim() };
+    });
+    A.ok(enBs.keep.every(k => k === 'No change'), `English: every field offers No change — ${enBs.keep.join(',')}`);
+    A.eq(enBs.scope, 'All items (3) / Selected items (1)', 'English: All items / Selected items');
+    A.eq(enBs.title + ' · ' + enBs.apply, 'Bulk Adjust · Apply Adjustment', 'English: Bulk Adjust · Apply Adjustment');
+    await noChinese(page, 'Bulk Adjust with Manual Price and accessories');
+    await page.evaluate(() => { wqaBulkSheetClose(); wqaSelExit(); });
+
+    /* ── and back, four times, because a re-render is where a label goes missing ── */
+    for (const lang of ['zh', 'en', 'zh', 'en', 'zh']) { await setLang(page, lang); }
+    await page.waitForTimeout(300);
+    const again = await words(page);
+    A.eq(again.count + ' · ' + again.add, '已识别 3 个项目 · 加入 3 个项目到报价',
+      'the count and Add survive EN→中文 four times');
+    A.eq(again.more + ' · ' + again.bulk, '更多 · 批量调整', 'and so do the item and heading controls');
+    await clean(page, 'review, after five language switches', A);
+    A.ok(!page._dcErrors.length, 'no script error: ' + page._dcErrors.join(' | '));
+    await page.close();
+  }
+
+  /* ── 14 · a shorthand list that never states the size, and a long series ─
+     Two more states: the prompt that asks for the missing thread size, and
+     thirty consecutive rows drawn as one series under one heading. */
   {
     const page = await openApp(browser);
     await setLang(page, 'zh');
-    await page.evaluate(() => wqaOpen());
-    await page.waitForTimeout(320);
-    await quickAddPaste(page, 'MS SAG ROD ZP UNDERSIZE\nM12 x 853 x 70/70 - 4pcs\nM16 x 500 x 70/70 - 2pcs');
-    await page.evaluate(() => wqaSetView('compact'));
+    await quickAddPaste(page, 'MS SAG ROD ZP UNDERSIZE\n1068 - 38pcs\n1430 - 148pcs\n1295 - 34pcs', { expanded: false, settle: 1000 });
+    const need = await txt(page, '#wqaRvNeed');
+    A.ok(!!need && need.includes('3 个项目缺少螺纹 Size 或 TL'), `中文: the prompt reads N 个项目缺少螺纹 Size 或 TL — ${need}`);
+    await clean(page, 'review, items missing their thread size', A);
+    await page.evaluate(() => document.querySelector('#wqaRvNeed .btn').click());
     await page.waitForTimeout(400);
+    await clean(page, 'Bulk Adjust opened from the missing-size prompt', A);
+    await page.evaluate(() => wqaBulkSheetClose());
 
-    /* The row action, closed and open. It said "Edit" in both languages
-       before it had a key of its own. */
-    const shut = await page.evaluate(() =>
-      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim());
-    A.eq(shut, '详情', 'the row action is 详情, not Details');
-    await clean(page, 'compact rows with selection ticks', A);
-
-    await page.evaluate(() => wqaToggleRow(0));
-    await page.waitForTimeout(500);
-    A.eq(await page.evaluate(() =>
-      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim()),
-      '关闭', 'and 关闭 while it is open');
-    await clean(page, 'Details open', A);
-    await page.evaluate(() => wqaToggleRow(0));
+    const lines = ['MS SAG ROD ZP UNDERSIZE'];
+    for (let i = 0; i < 30; i++) lines.push(`M12 x ${800 + i * 10} x 70/70 - ${i + 1}pcs`);
+    lines.push('M16 x 1240 x 90/90 - 18pcs');
+    await quickAddPaste(page, lines.join('\n'), { expanded: false, settle: 1400 });
+    const ser = await page.evaluate(() => ({
+      series: document.querySelectorAll('#wqaRows .wqa-ser').length,
+      inSeries: document.querySelectorAll('#wqaRows .wqa-ser .wqa-it').length,
+      n: (document.querySelector('.wqa-ser-n') || {}).textContent || '' }));
+    A.eq(ser.inSeries, 30, 'thirty agreeing rows are drawn as one series');
+    A.eq(ser.n.trim(), '30 个项目', '中文: whose heading counts 30 个项目');
+    await clean(page, 'review, a series of thirty rows', A);
+    await page.evaluate(() => wqaToggleRow(5));
     await page.waitForTimeout(400);
+    await clean(page, 'review, a series row\'s panel open', A);
+    await setLang(page, 'en');
+    await noChinese(page, 'a series of thirty rows');
+    await page.close();
+  }
 
-    /* Selection: the count badge and the bar are both built on demand. */
-    await page.evaluate(() => { wqaToggleRowSel(0); wqaToggleRowSel(1); });
-    await page.waitForTimeout(500);
-    const sel = await page.evaluate(() => ({
-      badge: (el('wqaBulkSelN') || {}).textContent || '',
-      bar: (el('wqaSelBar') || {}).textContent || '',
-      headTitle: (document.querySelector('#wqaListHead .wqa-pick-all') || {}).title || '',
-    }));
-    A.ok(/[一-鿿]/.test(sel.badge), `the selected count is in Chinese — ${sel.badge.trim()}`);
-    A.ok(/[一-鿿]/.test(sel.bar), 'and so is the selection bar');
-    A.eq(sel.headTitle, '全选项目', 'and the select-all box says 全选项目');
-    await clean(page, 'two rows selected', A);
-
-    /* The refusal, which only exists in one state and is easy to miss. */
-    await page.evaluate(() => {
-      wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('fix');
-      wqaSetApplyScope('selected'); wqaClearSel();
-    });
-    await page.waitForTimeout(700);
-    const refuse = await page.evaluate(() => {
-      const n = document.querySelector('#wqaCommonFix .wqa-none-sel');
-      return { shown: !!n && !n.hidden, text: n ? n.textContent.trim() : '' };
-    });
-    A.eq(String(refuse.shown), 'true', 'Selected with nothing selected shows the refusal');
-    A.eq(refuse.text, '请至少选择一个项目。', 'in Chinese, word for word');
-    await clean(page, 'Bulk Edit refusing an empty selection', A);
-
-    /* Bulk Edit's three sections, each opened, each scanned. */
-    await page.evaluate(() => wqaSetApplyScope('all'));
-    await page.waitForTimeout(400);
-    for (const sec of ['fix', 'price', 'acc']) {
-      await page.evaluate(k => wqaTogglePanel(k), sec);
-      await page.waitForTimeout(450);
-      await clean(page, `Bulk Edit section ${sec}`, A);
-    }
-    const titles = await page.evaluate(() =>
-      [...document.querySelectorAll('#wqaBulkBody .wqa-panel-title')].map(n => n.textContent.trim()));
-    A.eq(titles.join(' · '), '通用项目字段 · 价格设置 · 配件',
-      'and the three section titles are Chinese');
-
-    /* Fast Edit, which replaces every value cell with a box. */
-    await page.evaluate(() => wqaEditStart());
-    await page.waitForTimeout(700);
-    await clean(page, 'Fast Edit open', A);
-    const editBtns = await page.evaluate(() => ({
-      done: (el('wqaEditDoneBtn') || {}).textContent || '',
-      cancel: (el('wqaEditCancelBtn') || {}).textContent || '',
-      view: (document.querySelector('.wqa-view-lbl') || {}).textContent || '',
-    }));
-    A.ok(/[一-鿿]/.test(editBtns.done), 'Done is Chinese in Fast Edit');
-    A.ok(/[一-鿿]/.test(editBtns.cancel), 'and Cancel');
-    A.eq(editBtns.view.trim(), '视图', 'and the VIEW label reads 视图');
-    await page.evaluate(() => wqaEditCancel());
-    await page.waitForTimeout(600);
-
-    /* And back, twice, because a re-render is where a label goes missing. */
-    for (const lang of ['en', 'zh', 'en', 'zh']) { await setLang(page, lang); }
-    await page.waitForTimeout(400);
-    A.eq(await page.evaluate(() =>
-      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim()),
-      '详情', 'the row action survives EN→中文→EN→中文');
-    await clean(page, 'after four language switches', A);
-    A.ok(!page._dcErrors.length, 'no script error: ' + page._dcErrors.join(' | '));
+  /* ── 15 · the same review on a phone ─────────────────────────────────── */
+  {
+    const page = await openApp(browser, { viewport: { width: 390, height: 844 } });
+    await setLang(page, 'zh');
+    await quickAddPaste(page, REVIEW, { expanded: false, settle: 900 });
+    await clean(page, 'phone · review, as it opens', A);
+    /* a tap on the row, which is what a phone has */
+    const at = await page.$eval('[data-wqa-row="2"] .wqa-it-main', n => {
+      n.scrollIntoView({ block: 'center' }); const b = n.getBoundingClientRect();
+      return [b.left + b.width / 2, b.top + b.height / 2]; });
+    await page.mouse.click(at[0], at[1]);
+    await page.waitForTimeout(450);
+    await clean(page, 'phone · an item tapped open', A);
+    await page.evaluate(() => { wqaToggleRow(2); wqaSelEnter(); wqaRvToggleSel(0); });
+    await page.waitForTimeout(350);
+    await clean(page, 'phone · Selection mode', A);
+    await page.evaluate(() => wqaBulkSheetOpen('selected'));
+    await page.waitForTimeout(350);
+    await clean(page, 'phone · Bulk Adjust', A);
+    await setLang(page, 'en');
+    await noChinese(page, 'phone · Bulk Adjust');
+    await page.evaluate(() => { wqaBulkSheetClose(); wqaSelExit(); });
+    await page.waitForTimeout(300);
+    await noChinese(page, 'phone · review');
+    A.ok(!page._dcErrors.length, 'no script error at phone width: ' + page._dcErrors.join(' | '));
     await page.close();
   }
 

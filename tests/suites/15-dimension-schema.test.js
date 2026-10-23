@@ -94,6 +94,72 @@ module.exports = async (browser, A) => {
     A.excludes(line, 'Thread', `row ${i + 1} does not use the generic word`);
   });
 
+  /* ── and the same five rows as the review DRAWS them ─────────────────────
+     The summary above is a string; what a person reads is the row line, one
+     pressable value per dimension (`.wqa-tok[data-tok]`). Read off the screen,
+     each product shows its own dimensions, in the drawing's order, under the
+     drawing's letters — and the line reads exactly like the summary. */
+  const drawn = await page.evaluate(() => {
+    wqa.rows.forEach(r => { r.acc = wqaEmptyAcc(); r.edited = {}; r.priceOverride = {}; });
+    wqaRenderRows(true);
+    return wqa.rows.map((r, i) => {
+      const card = document.querySelector(`[data-wqa-row="${i}"]`);
+      const toks = [...card.querySelectorAll('.wqa-it-main .wqa-it-toks [data-tok]')].map(n => ({
+        f: n.dataset.tok,
+        k: ((n.querySelector('.wqa-tok-k') || {}).textContent || '').trim(),
+        v: ((n.querySelector('.wqa-tok-v') || {}).textContent || '').trim() }));
+      const qty = card.querySelector('.wqa-it-main .wqa-fig-qty [data-tok="qty"]');
+      return { toks, prod: (card.querySelector('.wqa-it-prod') || {}).textContent || '',
+               qty: qty ? qty.querySelector('.wqa-tok-v').textContent.trim() : null };
+    });
+  });
+  const want = [['Stud', 'M · L'], ['Sag Rod', 'M · L · TL'], ['Anchor Bolt', 'M · L · TL'],
+                ['L Bolt', 'M · L · W · TL'], ['J Bolt', 'M · H · ID · S · TL']];
+  want.forEach(([prod, lbl], i) => {
+    const d = drawn[i];
+    A.eq(d.prod, prod, `row ${i + 1} is titled ${prod} on screen`);
+    A.eq(d.toks.map(t => t.f === 'size' ? 'M' : t.k).join(' · '), lbl,
+      `the ${prod} row draws ${lbl}, labelled as the drawing labels it`);
+    A.eq(d.toks[0].f + '=' + d.toks[0].v, 'size=M30', `the ${prod} row leads with its size, M30`);
+    A.eq(d.toks.slice(1).map(t => `${t.k} ${t.v}`).join(' · '), shown[i],
+      `and the ${prod} line on screen reads exactly as its summary: ${JSON.stringify(shown[i])}`);
+    A.eq(d.qty, '4', `with its quantity in its own place, not among the dimensions`);
+  });
+
+  /* The row's own panel asks for the same dimensions and no others — and
+     names a thread length the way the row does. Length may be spelled out
+     (Length), a thread length may be TL or Thread Length, but never the bare
+     generic word "Thread" the first finding was about. */
+  const DIM = { stud: ['length'], sagrod: ['length', 'threadLen'], anchorbolt: ['length', 'threadLen'],
+                lbolt: ['length', 'w', 'threadLen'], jbolt: ['h', 'id', 's', 'threadLen'] };
+  const SHORT = { length: ['L', 'Length'], threadLen: ['TL', 'Thread Length'] };
+  for (const lang of ['en', 'zh']) {
+    await page.evaluate(l => dcSetLang(l), lang);
+    await page.waitForTimeout(250);
+    for (let i = 0; i < 5; i++) {
+      const p = await page.evaluate(k => {
+        wqaToggleRow(k);
+        const card = document.querySelector(`[data-wqa-row="${k}"]`);
+        const out = [...card.querySelectorAll('.wqa-rv-detail input[data-ef]')]
+          .map(n => ({ f: n.dataset.ef, lbl: n.closest('label').querySelector('span').textContent.trim(),
+                       own: wqaDimLabel(wqaRowProduct(wqa.rows[k]), n.dataset.ef) }));
+        const prod = wqaRowProduct(wqa.rows[k]);
+        wqaToggleRow(k);
+        return { prod, out };
+      }, i);
+      const dims = p.out.filter(x => !['size', 'dia', 'qty'].includes(x.f));
+      A.eq(dims.map(x => x.f).join(','), DIM[p.prod].join(','),
+        `${lang} · the ${p.prod} panel asks for exactly its own dimensions`);
+      dims.forEach(x => {
+        const ok = SHORT[x.f] || [x.own];
+        A.ok(ok.includes(x.lbl),
+          `${lang} · the ${p.prod} panel labels ${x.f} ${JSON.stringify(x.lbl)} — one of ${JSON.stringify(ok)}`);
+      });
+    }
+  }
+  await page.evaluate(() => dcSetLang('en'));
+  await page.waitForTimeout(200);
+
   /* The label a narrow screen puts in front of each value is the same one. */
   const shortLabels = await page.evaluate(() => ({
     sagLen: wqaDimShort('sagrod', 'length'), sagTl: wqaDimShort('sagrod', 'threadLen'),
@@ -104,17 +170,27 @@ module.exports = async (browser, A) => {
   A.eq(shortLabels.lbW, 'W', 'a short leg says W');
   A.eq(shortLabels.jbId, 'ID', 'and a hook diameter says ID');
 
-  /* The shared "apply to every row" panel names the same field the same way. */
+  /* The shared "apply to every row" surface — Bulk Adjust now — names the same
+     field the same way, in its fields and in the sentence saying what Apply
+     will do. */
+  /* Retired 2026-10-23 (AI review redesign): wqaItemSummary(...) ===
+     'Size M30 · TL 200/200' — it only fed the removed #wqaCommonItem panel;
+     the Bulk Adjust summary below is what the screen says now. */
   const panel = await page.evaluate(() => {
-    wqa.commonItem = { size: 'M30', thread: '200/200' };
-    wqa.panels.item = true;
-    wqaRenderCommonItem(true);
-    const box = document.getElementById('wqaCommonItem');
-    return { text: (box.textContent || '').replace(/\s+/g, ' '),
-             summary: wqaItemSummary(wqa.commonItem) };
+    wqaBulkSheetOpen('all');
+    wqaBsSet('size', 'M30'); wqaBsSet('thread', '200/200');
+    const box = document.getElementById('wqaBulkSheetPanel');
+    const fld = k => { const n = box.querySelector(`[data-bs="${k}"]`); return n ? n.closest('label').querySelector('.wqa-bs-k').textContent.trim() : null; };
+    const out = { text: (box.textContent || '').replace(/\s+/g, ' '),
+                  lines: [...box.querySelectorAll('.wqa-bs-lines li')].map(n => n.textContent.trim()),
+                  sizeLbl: fld('size'), tlLbl: fld('thread') };
+    wqaBulkSheetClose();
+    return out;
   });
-  A.eq(panel.summary, 'Size M30 · TL 200/200', 'the shared panel summarises in the same words');
-  A.excludes(panel.text, 'Thread', 'and its field is not called Thread either');
+  A.eq(panel.tlLbl, 'TL', 'Bulk Adjust calls the thread length TL');
+  A.eq(panel.lines.join(' · '), 'Set Size to M30 · Set TL to 200/200',
+    'and says what Apply will do in the same words');
+  A.ok(!/\bThread\b/.test(panel.text), 'and nothing in it is called Thread either');
 
   /* ── 2 · HAB-TA-01: five parts, five overall dimensions ─────────────────*/
   await page.evaluate(async d => { wqaHardClose(); wqaOpen(); await wqaAiApply(d); }, HAB);

@@ -379,7 +379,10 @@ module.exports = async (browser, A) => {
     await typeCell(page, 0, 'size', 'M23');
     const unknown = await rowDia(page);
     A.eq(unknown.size, 'M23', 'M23 is kept as typed — it is not silently mapped to anything');
-    A.eq(unknown.shown, '', 'and shows NO diameter, rather than the M27 bar it replaced');
+    /* The row now names the bar beside the weight rather than in an open grid
+       box, and an absent bar reads as a dash there — still no number. */
+    A.ok(unknown.shown === '' || unknown.shown === '—', `and shows NO diameter, rather than the M27 bar it replaced (${unknown.shown})`);
+    A.eq(unknown.state, '', 'and the row holds no bar either');
     A.eq(unknown.state, '', 'the row holds none either');
     A.eq(unknown.weight, null, 'there is no weight');
     A.includes(unknown.missing.join(','), 'Valid Size',

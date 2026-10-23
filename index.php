@@ -3328,10 +3328,10 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 .uc-res strong{font-size:19px; font-weight:800; color:var(--text); overflow-wrap:anywhere}
 .uc-msg{margin-top:8px; font-size:12px; font-weight:700; color:#c2410c}
 .uc-msg[hidden]{display:none}
-.uc-apply{margin-top:14px}
-.uc-apply label{display:block; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px}
-.uc-apply[hidden]{display:none}
-.uc-btns{display:flex; flex-wrap:wrap; gap:6px}
+.uc-apply{margin-top:14px}
+.uc-apply label{display:block; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px}
+.uc-apply[hidden]{display:none}
+.uc-btns{display:flex; flex-wrap:wrap; gap:6px}
 .uc-foot{display:flex; justify-content:flex-end; margin-top:16px}
 /* Unit converter — inline panel under the Dimension Entry heading */
 .group-label>.uc-open{order:3; margin-left:auto; padding:6px 12px; font-size:12px; font-weight:800; letter-spacing:0; min-height:32px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; box-shadow:var(--shadow-sm)}
@@ -3347,6 +3347,348 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 .uc-panel .uc-row{margin-top:10px}
 .uc-panel .uc-apply{margin-top:12px}
 @media (max-width:420px){ .uc-panel .uc-row{flex-direction:column; align-items:stretch} .uc-panel .uc-row .btn{width:100%} }
+/* ══ AI 智能识别 — review (2026-10-23) ═══════════════════════════════════════
+   Three layouts over one set of rows, chosen by the device rather than by
+   squeezing one of them:
+
+     DESKTOP   one dense line per item, values in their own places, pricing on
+               the right; series rows under one heading.
+     TABLET    600–1023px, and any touch screen from 600px up (an iPad or a
+               MatePad in landscape is a tablet, not a narrow desktop): wide
+               single-column cards, every value a 40px+ target.
+     MOBILE    below 600px: a full-screen sheet of compact items, each one a
+               tap away from its own panel.                                 */
+#wqaModal .wqa-modal.is-review{width:min(1180px,calc(100vw - 48px));max-width:none}
+#wqaModal [hidden]{display:none!important}
+/* The heading: what was read, and the two things that can be done to all of it. */
+.wqa-rv-head{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.wqa-rv-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wqa-rv-count{font-size:16px;font-weight:850;color:var(--text);letter-spacing:-.01em}
+.wqa-rv-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.wqa-rv-shared.wqa-common{padding:0;border:0;background:transparent;margin:0}
+.wqa-rv-pills{display:flex;flex-wrap:wrap;gap:6px}
+.wqa-sp{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border);border-radius:var(--pill-r);
+  padding:1px 2px 1px 11px;background:var(--surface);cursor:pointer;
+  transition:border-color var(--mo-fast) var(--mo-ease),background var(--mo-fast) var(--mo-ease)}
+.wqa-sp:hover,.wqa-sp:focus-within{border-color:var(--accent-mid);background:var(--accent-light)}
+.wqa-sp-k{font-size:10.5px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.wqa-sp select{border:0;background:transparent;font:inherit;font-size:13px;font-weight:800;color:var(--text);
+  padding:5px 6px;min-height:30px;max-width:190px;cursor:pointer;box-shadow:none}
+.wqa-sp select:focus{outline:none}
+.wqa-sp select:disabled{cursor:default;color:var(--text-muted)}
+.wqa-sp.is-need{border-color:var(--amber-mid);background:var(--amber-light)}
+.wqa-rv-shared .wqa-flag{margin-top:6px}
+.wqa-rv-need{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px 8px 12px;border-radius:var(--r-sm);
+  background:var(--amber-light);border:1px solid var(--amber-mid);font-size:13px;font-weight:700;color:var(--amber)}
+.wqa-rv-need .btn{margin-left:auto}
+.wqa-rv-head .wqa-source-common{margin:0}
+.wqa-rv-head #wqaBackBtn{align-self:flex-start}
+/* ── The list ─────────────────────────────────────────────────────────── */
+#wqaModal .wqa-rows{display:flex;flex-direction:column;gap:8px;border:0;background:transparent;overflow:visible}
+.wqa-rv-empty{padding:24px;text-align:center;color:var(--text-muted);font-weight:650}
+.wqa-it{border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);min-width:0;
+  transition:box-shadow var(--mo-fast) var(--mo-ease),border-color var(--mo-fast) var(--mo-ease)}
+.wqa-it-main{display:grid;grid-template-columns:34px minmax(0,1.5fr) auto minmax(0,1fr) auto;
+  grid-template-areas:"no spec fig px acts";align-items:center;gap:6px 16px;padding:8px 10px;cursor:pointer;min-width:0}
+.wqa-it-main:hover{background:var(--zebra)}
+.wqa-it-no{grid-area:no;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--text-muted)}
+.wqa-it-spec{grid-area:spec;min-width:0}
+.wqa-it-title{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-bottom:1px}
+.wqa-it-prod{font-weight:850;color:var(--text);font-size:12.5px}
+.wqa-it-title .wqa-row-spec{font-weight:650}
+.wqa-it-toks{display:flex;flex-wrap:wrap;align-items:center;gap:0 1px;font-size:15px;min-width:0}
+.wqa-it-fig{grid-area:fig;display:grid;grid-template-columns:minmax(78px,auto) minmax(92px,auto) minmax(96px,auto);
+  align-items:center;gap:12px;justify-items:end}
+.wqa-it-px{grid-area:px;border:0;background:transparent;font:inherit;font-size:12px;font-weight:650;color:var(--text-muted);
+  text-align:right;cursor:pointer;padding:4px 6px;border-radius:6px;min-width:0;line-height:1.35}
+.wqa-it-px:hover{background:var(--accent-light);color:var(--text)}
+.wqa-it.is-px .wqa-it-px{background:var(--accent-light);color:var(--accent-2)}
+.wqa-it-acts{grid-area:acts;display:inline-flex;align-items:center;gap:4px}
+/* A value is a button that looks like the value. */
+.wqa-tok{display:inline-flex;align-items:baseline;gap:1px;border:0;border-bottom:1.5px dashed transparent;background:transparent;
+  font:inherit;font-weight:780;color:var(--text);padding:2px 4px;border-radius:6px 6px 2px 2px;cursor:text;line-height:1.35;
+  transition:background var(--mo-fast) var(--mo-ease),border-color var(--mo-fast) var(--mo-ease)}
+.wqa-tok:hover{background:var(--accent-light);border-bottom-color:var(--accent-mid)}
+.wqa-tok:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.wqa-tok-k{font-size:.74em;font-weight:750;color:var(--text-muted);margin-right:2px}
+.wqa-tok.is-miss{background:var(--amber-light);border-bottom-color:var(--amber-mid)}
+.wqa-tok.is-miss .wqa-tok-v{color:var(--amber)}
+.wqa-tok-x{color:var(--text-muted);font-weight:600;margin:0 1px;font-size:.85em}
+.wqa-tok.is-ix{padding:0;background:transparent;border:0}
+.wqa-ix{width:8ch;min-width:58px;font:inherit;font-weight:780;padding:2px 6px;border:1.5px solid var(--accent);border-radius:6px;
+  background:var(--surface);color:var(--text);box-shadow:0 0 0 3px var(--accent-light)}
+.wqa-tok-size .wqa-ix{width:7ch}
+.wqa-tok-threadLen .wqa-ix{width:9ch}
+.wqa-ix.is-bad{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.15)}
+.wqa-fig{display:inline-flex;align-items:baseline;gap:3px;white-space:nowrap}
+.wqa-fig-qty .wqa-tok{font-size:14px}
+.wqa-fig-price{border:0;background:transparent;font:inherit;font-size:15.5px;font-weight:850;color:var(--text);cursor:pointer;
+  padding:2px 6px;border-radius:6px}
+.wqa-fig-price:hover{background:var(--accent-light)}
+.wqa-fig-price small{font-size:11px;font-weight:650;color:var(--text-muted)}
+.wqa-fig-w{font-size:12px;font-weight:650;color:var(--text-muted)}
+.wqa-rv-act{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:4px 9px;font:inherit;
+  font-size:12px;font-weight:750;color:var(--text);cursor:pointer;min-height:32px;white-space:nowrap;
+  transition:background var(--mo-fast) var(--mo-ease),border-color var(--mo-fast) var(--mo-ease)}
+.wqa-rv-act:hover{background:var(--accent-light);border-color:var(--accent-mid)}
+.wqa-rv-act.is-on{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent-2)}
+.wqa-rv-act.wqa-row-del{color:var(--text-muted);padding:4px 8px}
+.wqa-rv-act.wqa-row-del:hover{color:var(--red);border-color:var(--red);background:transparent}
+.wqa-rv-act .wqa-row-actn{display:inline-block;min-width:17px;margin-left:5px;padding:0 5px;border-radius:9px;
+  background:var(--accent);color:#fff;font-size:10.5px;line-height:16px;text-align:center}
+.wqa-rv-more{padding:4px 8px}
+.wqa-it-sub{display:flex;flex-wrap:wrap;align-items:center;gap:5px 6px;padding:0 10px 8px 54px}
+.wqa-it-sub .wqa-sum-badges{display:contents}
+.wqa-rv-chip{display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:11.5px;font-weight:700;color:var(--text);
+  border:1px solid var(--border);border-radius:var(--pill-r);padding:2px 9px;background:var(--surface2)}
+button.wqa-rv-chip{cursor:pointer}
+button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-light)}
+/* Needs attention: the item, not the whole list, is amber. */
+.wqa-it.wqa-row-block{border-color:var(--amber-mid)}
+.wqa-it.wqa-row-block>.wqa-it-main{background:var(--amber-light)}
+.wqa-it.is-picked{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.wqa-it.is-picked>.wqa-it-main{background:var(--accent-light)}
+.wqa-it.is-open{border-color:var(--accent-mid);box-shadow:0 2px 10px rgba(15,23,42,.06)}
+.wqa-it .wqa-pick{width:18px;height:18px;margin:0;accent-color:var(--accent);cursor:pointer}
+/* ── Series: one heading, then short lines ───────────────────────────── */
+.wqa-ser{border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);overflow:hidden}
+.wqa-ser-head{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;padding:8px 12px;background:var(--surface2);
+  border-bottom:1px solid var(--border)}
+.wqa-ser-title{font-weight:850;font-size:13px;color:var(--text)}
+.wqa-ser-spec{display:inline-flex;align-items:baseline;gap:4px;flex-wrap:wrap;font-size:14px;color:var(--text)}
+.wqa-ser-spec b{font-weight:820}
+.wqa-ser-spec b.is-miss{color:var(--amber)}
+.wqa-ser-spec .wqa-row-spec{font-size:12px;font-weight:650;color:var(--text-muted);margin-left:6px}
+.wqa-ser-n{margin-left:auto;font-size:11.5px;font-weight:750;color:var(--text-muted)}
+.wqa-ser-rows .wqa-it{border:0;border-radius:0;box-shadow:none}
+.wqa-ser-rows .wqa-it+.wqa-it{border-top:1px solid var(--border)}
+.wqa-ser-rows .wqa-it.is-picked{box-shadow:inset 3px 0 0 var(--accent)}
+.wqa-ser-rows .wqa-it.is-open{box-shadow:inset 3px 0 0 var(--accent-mid)}
+.wqa-it-s .wqa-it-main{padding-top:5px;padding-bottom:5px}
+.wqa-it-s .wqa-it-toks{font-size:14.5px}
+/* ── Pricing strip and the item's own panel ──────────────────────────── */
+.wqa-px{padding:8px 12px 10px 54px;border-top:1px dashed var(--border);background:var(--surface2)}
+.wqa-px-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 10px}
+.wqa-px-foot{display:flex;justify-content:flex-end;margin-top:8px}
+.wqa-px-f,.wqa-dt-f{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:11px;font-weight:750;color:var(--text-muted)}
+.wqa-px-f input,.wqa-px-f select,.wqa-dt-f input,.wqa-dt-f select{font:inherit;font-size:14px;font-weight:650;color:var(--text);
+  min-height:36px;padding:5px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);min-width:0}
+.wqa-px-f input:focus,.wqa-px-f select:focus,.wqa-dt-f input:focus,.wqa-dt-f select:focus{outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-light)}
+.wqa-dt-f input.is-bad{border-color:var(--red)}
+.wqa-dt-f.is-manual input{border-color:var(--accent-mid);background:var(--accent-light)}
+.wqa-dt-f .wqa-hint-sm{font-weight:600}
+.wqa-rv-detail{padding:4px 12px 12px;border-top:1px solid var(--border);background:var(--surface2);cursor:default}
+.wqa-dt-sec{font-size:10.5px;font-weight:850;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin:10px 0 6px}
+.wqa-dt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 10px}
+.wqa-dt-tref{grid-column:span 2}
+.wqa-dt-weights{display:flex;flex-wrap:wrap;gap:6px 20px;margin:10px 0 4px;font-size:12.5px}
+.wqa-dt-weights b{font-weight:800;color:var(--text)}
+.wqa-rv-detail .wqa-row-acc{margin-top:8px}
+.wqa-rv-detail .wqa-row-raw-full{margin-top:8px;font-size:12px;color:var(--text-muted);white-space:pre-wrap}
+.wqa-dt-foot{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:12px}
+.wqa-dt-foot .wqa-row-hist{margin-right:auto}
+.wqa-dt-del{color:var(--red)}
+.wqa-it .wqa-hist{margin:0 10px 10px 54px}
+/* ── Selection mode ───────────────────────────────────────────────────── */
+#wqaModal .wqa-selbar{position:sticky;top:0;z-index:4;padding:8px 10px 8px 12px;border-radius:var(--r-sm);
+  background:var(--accent-light);border:1px solid var(--accent-mid);box-shadow:0 2px 8px rgba(15,23,42,.06)}
+.wqa-selbar .wqa-selbar-n{margin-right:0}
+.wqa-selbar-gap{flex:1 1 auto}
+.wqa-sel-del{color:var(--red)}
+/* ── Bulk Adjust sheet ─────────────────────────────────────────────────── */
+.wqa-sheet{position:absolute;inset:0;z-index:40;display:flex;justify-content:flex-end;border-radius:inherit;overflow:hidden}
+.wqa-sheet-scrim{position:absolute;inset:0;background:rgba(15,23,42,.34)}
+.wqa-sheet-panel{position:relative;width:min(460px,100%);height:100%;display:flex;flex-direction:column;
+  background:var(--surface);box-shadow:-10px 0 28px rgba(15,23,42,.2);animation:wqaSheetIn var(--mo-fast) var(--mo-ease)}
+@keyframes wqaSheetIn{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
+.wqa-bs-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.wqa-bs-title{font-size:16px;font-weight:850}
+.wqa-bs-head .modal-close{position:static}
+.wqa-bs-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px 16px 16px}
+.wqa-bs-sec{font-size:10.5px;font-weight:850;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin:12px 0 7px}
+.wqa-bs-scope{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.wqa-bs-sc{border:1.5px solid var(--border);background:var(--surface);border-radius:var(--pill-r);padding:7px 13px;font:inherit;
+  font-size:13px;font-weight:750;color:var(--text);cursor:pointer;min-height:36px}
+.wqa-bs-sc.is-on{border-color:var(--accent);background:var(--accent-light);color:var(--accent-2)}
+.wqa-bs-sc:disabled{opacity:.5;cursor:not-allowed}
+.wqa-bs-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.wqa-bs-f{display:grid;grid-template-columns:128px minmax(0,1fr);align-items:center;gap:10px}
+.wqa-bs-k{font-size:12.5px;font-weight:750;color:var(--text-muted)}
+.wqa-bs-f select,.wqa-bs-f input{font:inherit;font-size:14px;font-weight:650;min-height:38px;padding:6px 9px;
+  border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);min-width:0;width:100%}
+.wqa-bs-f input::placeholder{color:var(--text-muted);font-weight:600}
+.wqa-bs-f select.is-set,.wqa-bs-f input:not(:placeholder-shown){border-color:var(--accent);background:var(--accent-light);font-weight:800}
+.wqa-bs-acc{margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface2)}
+.wqa-bs-summary{margin-top:14px;padding:10px 12px;border-radius:var(--r-sm);background:var(--surface2);border:1px solid var(--border)}
+.wqa-bs-lines{margin:0 0 6px 18px;padding:0;font-size:13px;font-weight:700;color:var(--text)}
+.wqa-bs-n{font-size:13px;font-weight:850;color:var(--accent-2)}
+.wqa-bs-n.is-why{color:var(--text-muted);font-weight:700}
+.wqa-bs-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+/* ══ TABLET ══════════════════════════════════════════════════════════════ */
+@media (min-width:600px) and (max-width:1023px), (min-width:600px) and (pointer:coarse){
+  #wqaModal .wqa-modal.is-review{width:min(1040px,calc(100vw - 24px))}
+  .wqa-rv-count{font-size:18px}
+  .wqa-rv-acts .btn{min-height:42px;padding:8px 16px;font-size:14px}
+  .wqa-sp{padding:2px 4px 2px 12px}
+  .wqa-sp select{min-height:40px;font-size:15px}
+  .wqa-rows{gap:10px}
+  .wqa-it-main{grid-template-columns:40px minmax(0,1fr) auto;
+    grid-template-areas:"no spec acts" "no fig fig" "no px px";gap:8px 12px;padding:12px 12px 10px}
+  .wqa-it-no{align-self:start;padding-top:6px;font-size:13px}
+  .wqa-it-acts{align-self:start}
+  .wqa-it-toks{font-size:18px;gap:3px 2px}
+  .wqa-tok{min-height:42px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;align-items:center}
+  .wqa-tok:hover{border-color:var(--accent-mid)}
+  .wqa-tok-x{margin:0 2px}
+  .wqa-it-fig{display:flex;justify-content:flex-start;align-items:center;gap:10px 18px;flex-wrap:wrap}
+  .wqa-fig-qty .wqa-tok{font-size:17px}
+  .wqa-fig-price{font-size:20px;min-height:44px;padding:4px 10px}
+  .wqa-fig-w{font-size:13px}
+  .wqa-it-px{text-align:left;font-size:13.5px;min-height:40px;padding:6px 8px;justify-self:start}
+  .wqa-rv-act{min-height:42px;padding:7px 13px;font-size:13.5px}
+  .wqa-it-sub{padding:0 12px 10px 64px}
+  .wqa-px,.wqa-it .wqa-hist{padding-left:64px}
+  .wqa-it .wqa-hist{margin-left:12px}
+  .wqa-px-f input,.wqa-px-f select,.wqa-dt-f input,.wqa-dt-f select{min-height:44px;font-size:16px}
+  .wqa-dt-grid,.wqa-px-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+  /* A series row is one line: L · Qty · price, each a target a finger can hit. */
+  .wqa-it-s .wqa-it-main{grid-template-columns:40px minmax(0,1fr) auto auto;
+    grid-template-areas:"no spec fig acts" "no px px px";padding:8px 12px}
+  .wqa-it-s .wqa-it-no{padding-top:0;align-self:center}
+  .wqa-it-s .wqa-it-acts{align-self:center}
+  .wqa-it-s .wqa-it-fig{flex-wrap:nowrap}
+  .wqa-it-s .wqa-fig-w{display:none}
+  .wqa-it-s .wqa-it-px{min-height:32px;padding:2px 8px;font-size:12.5px}
+  .wqa-it-s .wqa-rv-act.wqa-row-hist{max-width:150px;overflow:hidden;text-overflow:ellipsis}
+  .wqa-ser-head{padding:10px 14px}
+  .wqa-ser-spec{font-size:16px}
+  .wqa-bs-f{grid-template-columns:150px minmax(0,1fr)}
+  .wqa-bs-f select,.wqa-bs-f input{min-height:44px;font-size:16px}
+  .wqa-sheet-panel{width:min(540px,100%)}
+  .wqa-sticky-actions .btn{min-height:46px}
+}
+/* ══ MOBILE ══════════════════════════════════════════════════════════════ */
+@media (max-width:599px){
+  #wqaModal .wqa-modal.is-review{width:100%}
+  .wqa-rv-top{gap:6px}
+  .wqa-rv-count{font-size:16px;flex:1 0 100%}
+  .wqa-rv-acts{margin-left:0;flex:1 0 100%}
+  .wqa-rv-acts .btn{flex:1 1 0;min-height:42px;font-size:14px}
+  .wqa-sp select{min-height:38px;font-size:16px;max-width:150px}
+  .wqa-it-main{grid-template-columns:30px minmax(0,1fr);grid-template-areas:"no spec" "no fig";gap:4px 10px;padding:10px}
+  .wqa-it-no{align-self:start;padding-top:2px}
+  .wqa-it-px,.wqa-it-acts,.wqa-fig-w{display:none}
+  /* The item is the target: a tap opens its panel, where every value has
+     room for a finger and the keyboard. */
+  .wqa-it-main .wqa-tok,.wqa-it-main .wqa-fig-price{pointer-events:none}
+  .wqa-tok{padding:0 1px;border:0;background:transparent}
+  .wqa-tok.is-miss{background:var(--amber-light)}
+  .wqa-it-toks{font-size:16px}
+  .wqa-it-fig{display:flex;justify-content:flex-start;align-items:baseline;gap:10px}
+  .wqa-fig-qty .wqa-tok{font-size:14px}
+  .wqa-fig-price{font-size:15px;padding:0}
+  .wqa-it-sub{padding:0 10px 8px 40px}
+  .wqa-it-s .wqa-it-main{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"no spec fig";padding:9px 10px}
+  .wqa-it-s .wqa-it-no{align-self:center;padding-top:0}
+  .wqa-ser-head{padding:8px 10px}
+  .wqa-ser-n{margin-left:0}
+  .wqa-rv-detail{padding:4px 10px 12px}
+  .wqa-dt-grid,.wqa-px-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .wqa-dt-tref{grid-column:1 / -1}
+  .wqa-px-f input,.wqa-px-f select,.wqa-dt-f input,.wqa-dt-f select{min-height:44px;font-size:16px}
+  .wqa-dt-foot .btn,.wqa-dt-foot .wqa-rv-act{min-height:42px}
+  .wqa-it .wqa-hist{margin:0 8px 8px 8px}
+  #wqaModal .wqa-selbar{top:0}
+  .wqa-selbar .btn{min-height:40px}
+  .wqa-sheet-panel{width:100%;box-shadow:none}
+  .wqa-bs-f{grid-template-columns:1fr;gap:4px}
+  .wqa-bs-f select,.wqa-bs-f input{min-height:44px;font-size:16px}
+  .wqa-bs-foot .btn{flex:1 1 0;min-height:46px}
+}
+@media (prefers-reduced-motion:reduce){ .wqa-sheet-panel{animation:none} }
+/* A phone's targets are 44px, the floor the Companies page already keeps. */
+@media (max-width:599px){
+  #wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it-main{min-height:44px}
+  #wqaModal .wqa-rv-acts .btn{min-height:44px}
+  #wqaModal .wqa-rv-head .wqa-source-common .wqa-panel-head{min-height:44px}
+  #wqaModal .wqa-bs-sc{min-height:44px}
+  #wqaModal .wqa-bs-close{width:44px;height:44px}
+  #wqaModal .wqa-selbar .btn{min-height:44px}
+}
+/* The customer's message, closed: one line. */
+.wqa-rv-head .wqa-source-common .wqa-panel-head{padding:6px 11px;min-height:0;border-radius:var(--r-sm)}
+.wqa-rv-head .wqa-source-common .wqa-panel-text{flex-direction:row;align-items:baseline;gap:10px}
+.wqa-rv-head .wqa-source-common .wqa-panel-title{font-size:12.5px}
+/* History is a secondary action: present on every row, loud on none. */
+.wqa-rv-act.wqa-row-hist{border-color:transparent;background:transparent;color:var(--accent-2)}
+.wqa-rv-act.wqa-row-hist:hover{background:var(--accent-light);border-color:var(--accent-mid)}
+.wqa-rv-act.wqa-row-hist.is-on{background:var(--accent-light);border-color:var(--accent-mid)}
+.wqa-it-main{grid-template-columns:34px minmax(0,1.4fr) auto auto auto}
+.wqa-it-px{white-space:nowrap}
+.wqa-it-px.is-own{color:var(--accent-2);background:var(--accent-light)}
+.wqa-it-s .wqa-it-main{grid-template-columns:34px minmax(96px,190px) auto minmax(0,1fr) auto}
+.wqa-it-s .wqa-it-px{justify-self:end}
+.wqa-ser-px{flex:1 0 100%;font-size:12px;font-weight:650;color:var(--text-muted)}
+.wqa-fig-w{flex-direction:column;align-items:flex-end;gap:0}
+.wqa-rv-dia{border:0;background:transparent;font:inherit;font-size:11px;font-weight:650;color:var(--text-muted);padding:0 2px;border-radius:4px;cursor:text}
+.wqa-rv-dia:hover{background:var(--accent-light);color:var(--text)}
+.wqa-rv-dia.is-manual{color:var(--accent-2);font-weight:800}
+.wqa-ser-dia{font-size:12px;font-weight:700;color:var(--text-muted);margin-left:4px}
+/* Narrow desktop (1024–1279, mouse): the values keep their one line, and the
+   pricing summary — the most compressible thing on the row — wraps instead. */
+@media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
+  .wqa-it-main{gap:6px 10px}
+  .wqa-it-fig{grid-template-columns:minmax(64px,auto) minmax(86px,auto) minmax(86px,auto);gap:8px}
+  .wqa-it-px{white-space:normal;max-width:150px;text-align:right}
+  .wqa-it-toks{flex-wrap:nowrap;font-size:14px}
+  .wqa-it-title{flex-wrap:nowrap;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wqa-rv-act.wqa-row-hist{padding:4px 6px}
+}
+@media (min-width:600px) and (max-width:1023px), (min-width:600px) and (pointer:coarse){
+  /* Every control a finger lands on is 40px or more, the small ones too. */
+  .wqa-rv-act.wqa-row-del,.wqa-rv-act.wqa-rv-more{min-width:42px;min-height:42px;padding:7px 12px}
+  .wqa-rv-dia{min-height:40px;padding:6px 8px;font-size:12px}
+  .wqa-fig-w{flex-direction:row;align-items:center;gap:6px}
+  /* A standalone item: the spec gets the full width; the actions sit on the
+     figures line, at its right. */
+  .wqa-it:not(.wqa-it-s) .wqa-it-main{grid-template-areas:"no spec spec" "no fig acts" "no px px"}
+  .wqa-it:not(.wqa-it-s) .wqa-it-acts{align-self:center}
+  .wqa-it-sub .wqa-pill-go{min-height:32px}
+  /* A series is a column of prices: the quantity takes a fixed width, so every
+     price starts at the same place. */
+  .wqa-it-s .wqa-it-fig{display:grid;grid-template-columns:118px auto;justify-items:start;align-items:center;gap:10px}
+}
+#wqaModal .wqa-modal.is-review.has-sheet{min-height:min(760px,calc(100vh - 78px))}
+.wqa-bs-summary{margin:0;border-radius:0;border-width:1px 0 0;padding:10px 16px}
+.wqa-rows.is-sel .wqa-it-acts,.wqa-rows.is-sel .wqa-it-px,.wqa-rows.is-sel .wqa-fig-price{pointer-events:none}
+.wqa-rows.is-sel .wqa-it-acts{visibility:hidden}
+.wqa-rows.is-sel .wqa-tok{pointer-events:none}
+.wqa-rows.is-sel .wqa-it-main{cursor:pointer}
+@media (min-width:600px) and (max-width:1023px), (min-width:600px) and (pointer:coarse){
+  .wqa-it-main{grid-template-columns:40px minmax(0,1fr) auto}
+  .wqa-it-px{white-space:normal}
+  .wqa-it-s .wqa-it-main{grid-template-columns:40px minmax(110px,auto) minmax(0,1fr) auto;grid-template-areas:"no spec fig acts" "no px px px"}
+  .wqa-it-s .wqa-it-fig{justify-content:flex-start;padding-left:10px}
+  .wqa-it-s .wqa-it-px.is-shared{display:none}
+  .wqa-it-s .wqa-it-px{justify-self:start}
+  .wqa-ser-px{font-size:13px}
+}
+@media (max-width:599px){
+  #wqaModal .wqa-modal.is-review{height:100vh;height:100dvh;max-height:none;border-radius:0}
+  #wqaModal .wqa-modal.is-review .wqa-sticky-actions{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+  .wqa-it-main{grid-template-columns:30px minmax(0,1fr)}
+  .wqa-it-s .wqa-it-main{grid-template-columns:30px minmax(0,1fr) auto}
+  .wqa-rv-count{flex:1 1 auto}
+  .wqa-rv-acts{margin-left:auto;flex:0 0 auto}
+  .wqa-rv-acts .btn{flex:0 0 auto;min-height:38px;padding:6px 12px}
+  /* The shared values stay on one line and scroll sideways inside it. */
+  .wqa-rv-pills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .wqa-rv-pills::-webkit-scrollbar{display:none}
+  .wqa-sp{flex:0 0 auto}
+  .wqa-sp select{max-width:none}
+  .wqa-ser-px{font-size:11.5px}
+}
 </style>
 </head>
 <body>
@@ -4714,55 +5056,35 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
     </div>
 
     <!-- STEP 2/3 — review + confirm -->
+    <!-- ── Review-first ────────────────────────────────────────────────────
+         The screen is for one job: confirm what was read, correct what is
+         wrong by pressing the value itself, adjust in bulk only when asked to,
+         and add. So it opens on the items. The customer's message is one
+         collapsed line, Bulk Adjust is one button that opens its own sheet,
+         and tick boxes exist only in Selection mode. -->
     <div id="wqaStep2" hidden>
       <div class="wqa-scroll">
       <!-- An analysis that stopped early says so before anything else on the
            screen, because a short list looks exactly like a complete one. -->
       <div class="wqa-partial" id="wqaPartial" hidden></div>
-      <!-- The customer's own words, above everything derived from them. -->
-      <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
-      <div class="wqa-common" id="wqaCommon"></div>
-      <!-- Correcting what was read, before anything is copied into it. -->
-      <!-- ── Bulk edit ────────────────────────────────────────────────────
-           Four bulk-edit forms, standing open, used to fill the screen before
-           a single parsed item appeared. They are one group now, shut by
-           default, with ONE scope for all four: the ordinary flow is read the
-           items, check the prices, correct something only if it needs it. -->
-      <div class="wqa-bulk-head" id="wqaBulkHead"></div>
-      <div class="wqa-bulk-body" id="wqaBulkBody" hidden>
-        <div class="wqa-common wqa-fix-common" id="wqaCommonFix"></div>
-        <div class="wqa-common wqa-item-common" id="wqaCommonItem"></div>
-        <div class="wqa-common wqa-price-common" id="wqaCommonPrice"></div>
-        <div class="wqa-common wqa-acc-common" id="wqaCommonAcc"></div>
-      </div>
-      <div class="wqa-selbar" id="wqaSelBar" hidden></div>
-      <div class="wqa-rows-head">
-        <span id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
-        <!-- Shown only when an AI call actually produced the rows below. -->
-        <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiAssisted" hidden>✨ AI assisted</span>
-        <!-- Edit is an OPERATION; Compact and Expanded are VIEWS. Kept apart
-             by a gap and by their shapes, because one segmented control of
-             three said they were one kind of thing and they are not. -->
-        <span class="wqa-edit-actions" id="wqaEditActions">
-          <button type="button" class="wqa-row-act wqa-edit-btn" id="wqaEditBtn"
-                  onclick="wqaEditStart()" data-i18n="btnEdit">Edit</button>
-          <button type="button" class="wqa-row-act wqa-edit-done" id="wqaEditDoneBtn"
-                  onclick="wqaEditDone()" hidden>✓ <span data-i18n="btnDone">Done</span></button>
-          <button type="button" class="wqa-row-act wqa-edit-cancel" id="wqaEditCancelBtn"
-                  onclick="wqaEditRequestCancel()" hidden data-i18n="cancel">Cancel</button>
-        </span>
-        <span class="wqa-edit-note" id="wqaEditNote" hidden></span>
-        <span class="wqa-view-lbl" data-i18n="lblView">View</span>
-        <span class="wqa-view-toggle" role="group" data-i18n-aria="wqaAriaView" aria-label="View">
-          <button type="button" class="wqa-view-btn is-on" id="wqaViewCompact" onclick="wqaSetView('compact')" data-i18n="wqaCompact">Compact</button>
-          <button type="button" class="wqa-view-btn" id="wqaViewExpanded" onclick="wqaSetView('expanded')" data-i18n="wqaExpanded">Expanded</button>
-        </span>
+      <div class="wqa-rv-head">
+        <div class="wqa-rv-top">
+          <span class="wqa-rv-count" id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
+          <!-- Shown only when an AI call actually produced the rows below. -->
+          <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiAssisted" hidden>✨ AI assisted</span>
+          <span class="wqa-rv-acts" id="wqaRvActs"></span>
+        </div>
+        <!-- What every item shares, as values that are themselves the editor. -->
+        <div class="wqa-common wqa-rv-shared" id="wqaCommon"></div>
+        <div class="wqa-rv-need" id="wqaRvNeed" hidden></div>
+        <!-- The customer's own words: one line, closed, until asked for. -->
+        <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
         <!-- Only for an upload, where there is no message panel to go back
              through. A pasted message is edited from the panel itself. -->
         <button type="button" class="btn btn-ghost btn-sm" id="wqaBackBtn" onclick="wqaBackToPaste()"
                 data-i18n="wqaEditPasted" hidden>← Edit pasted text</button>
       </div>
-      <div class="wqa-list-head" id="wqaListHead" hidden></div>
+      <div class="wqa-selbar" id="wqaSelBar" hidden></div>
       <div class="wqa-rows" id="wqaRows"></div>
       </div><!-- /.wqa-scroll -->
       <div class="wqa-actions wqa-sticky-actions">
@@ -4772,6 +5094,14 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
         <button class="btn btn-ghost" onclick="wqaRequestClose()" data-i18n="cancel">Cancel</button>
         <button class="btn btn-primary" id="wqaAddBtn" onclick="wqaAddAll()" data-i18n="wqaAddItems">Add Items to Quotation</button>
       </div>
+    </div>
+    <!-- ── Bulk Adjust ──────────────────────────────────────────────────────
+         Its own sheet, over the review: a scope, then every field at No change,
+         then a sentence saying exactly what Apply will do. Nothing is written
+         until Apply, and a field left at No change is never read. -->
+    <div class="wqa-sheet" id="wqaBulkSheet" hidden>
+      <div class="wqa-sheet-scrim" onclick="wqaBulkSheetClose()"></div>
+      <div class="wqa-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="wqaBsTitle" id="wqaBulkSheetPanel"></div>
     </div>
   </div>
 </div>
@@ -5334,7 +5664,7 @@ const I18N={
     wqaIncompatFinish:'different finish', wqaIncompatUnknown:'item not complete yet',
     wqaBulkApplied:'{r} applied to {n} items — each repriced from its own weight',
     wqaBulkSkipped:'{n} skipped', wqaBulkNone:'Nothing to apply — no compatible item was selected',
-    wqaBulkEdit:'Bulk Edit', wqaBulkEditSum:'One shared value, many items',
+    wqaBulkEdit:'Bulk Adjust', wqaBulkEditSum:'One shared value, many items',
     wqaPrevPriceFrom:'Previous Price', wqaClearSel:'Clear Selection',
     wqaProvOpen:'Show the quotation this price came from',
     wqaProvStated:'stated price',
@@ -5382,7 +5712,7 @@ const I18N={
     wqaPrivacy:'Uploaded files are used only for AI extraction and are not saved with the quotation.',
     wqaParseItems:'Parse Items', wqaAnalyze:'Analyze',
     wqaCompact:'Compact', wqaExpanded:'Expanded', wqaEditPasted:'← Edit pasted text',
-    wqaBackToUpload:'← Back to upload', wqaSourceTitle:'WhatsApp Message',
+    wqaBackToUpload:'← Back to upload', wqaSourceTitle:'Original Content',
     wqaChooseInput:'← Choose Input', wqaChooseHint:'How did the customer send the request?',
     wqaSourceLines:'{n} lines', wqaSourceEdit:'Edit message',
     wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiAssisted:'✨ AI assisted',
@@ -5408,7 +5738,7 @@ const I18N={
     /* Product, Material, Finish, Size Type: the shared identity fields. One
        value, many rows — which is what Bulk Edit is for, so this is the panel
        that carries the generic name. */
-    wqaCommonFixTitle:'Common Item Fields', wqaFixKeep:'— Keep existing —',
+    wqaCommonFixTitle:'Common Item Fields', wqaFixKeep:'No change',
     wqaFixNone:'Keep existing',
     wqaFixNothingYet:'Nothing chosen yet — Apply would change nothing',
     wqaFixWillSet:'Will set: {f}', wqaFixWillFill:'Will fill where blank: {f}',
@@ -5787,6 +6117,8 @@ const I18N={
     pmManualGuide:'Manual Price is the final customer unit price — accessories are not added on top again.',
     pmManualGuideEg:'Example: Bolt RM1.80 + accessories RM0.20 → enter Manual Price RM2.00',
     wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
+    /* AI 智能识别 review (2026-10-23) */
+    wqaRvDetected:'Detected {n} items', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items',
   },
   zh:{
     badgeSystemDefault:'系统默认', badgeCustom:'自定义', qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
@@ -5815,7 +6147,7 @@ const I18N={
     histItemChanged:'项目已更改', histItemAdded:'新增项目',
     histItemRemoved:'移除项目', histItemsReordered:'项目顺序已调整',
     histItemQty:'数量', histItemPrice:'单价', histItemAmount:'金额',
-    histItemDesc:'描述', histItemSize:'尺寸', histItemSizeText:'尺寸文字',
+    histItemDesc:'描述', histItemSize:'螺纹 Size', histItemSizeText:'尺寸文字',
     histItemDimensions:'尺寸', histItemMaterial:'材质',
     histItemFinish:'表面处理', histItemProduct:'产品', histItemSizeType:'Size 规格',
     histItemWeight:'重量', histItemMarkup:'加价',
@@ -5841,7 +6173,7 @@ const I18N={
     productEntry:'产品资料', dimensionEntry:'尺寸资料',
     pricingEntry:'价格资料', pricing:'价格',
     /* field labels */
-    lblMaterial:'材料', lblFinish:'表面处理', lblSizeType:'Size 规格', lblSize:'尺寸',
+    lblMaterial:'材料', lblFinish:'表面处理', lblSizeType:'Size 规格', lblSize:'螺纹 Size',
     lblDiameter:'Diameter', lblLength:'Length', lblLengthMm:'Length (mm)',
     lblLengthMmParen:'Length (mm)', lblTotalLength:'Total Length',
     lblThreadLength:'Thread Length', lblQty:'数量', lblQTY:'数量', lblQtyPerSet:'每套数量',
@@ -5871,10 +6203,10 @@ const I18N={
     glossPlate:'', glossWAS:'', glossOthers:'',
     /* ── WhatsApp Quick Add ── */
     cancel:'取消', nItems:'{n} 项', needAttention:'{n} 项需检查',
-    needs:'需要{f}', fieldProduct:'产品', fieldSize:'尺寸', fieldLength:'Length',
+    needs:'需要{f}', fieldProduct:'产品', fieldSize:'螺纹 Size', fieldLength:'Length',
     fieldCostRate:'每公斤成本', fieldAdditionalCost:'额外加工费',
     fieldSizeType:'Size 规格', fieldThread:'Thread Length', fieldPrice:'价格',
-    fieldValidSize:'有效尺寸', wqaUnknownSize:'此尺寸不在直径设定中 — 不计算重量',
+    fieldValidSize:'有效螺纹 Size', wqaUnknownSize:'此螺纹 Size 不在直径设定中 — 不计算重量',
     wqaUndersizeWord:'小牙',
     wqaNoDia:'直径设定中没有对应直径 — 不计算重量，也不出价',
     fieldMaterial:'材料', fieldFinish:'表面处理',
@@ -5906,20 +6238,20 @@ const I18N={
     phApplyCompatible:'应用到相符项目 ({n})…', phSelectItems:'选择项目…',
     phSelectItemsTitle:'应用历史报价', phApplyPrevious:'应用历史报价',
     phReusable:'可重用', phReference:'参考',
-    wqaCompatible:'相符', wqaNSelected:'已选 {n} 项',
+    wqaCompatible:'相符', wqaNSelected:'已选择 {n} 个项目',
     wqaSelectAll:'全选项目', wqaSelectItem:'选择第 {n} 项',
     wqaNoneSelected:'请至少选择一个项目。',
-    wqaGeomNote:'仅限尺寸与 TL，且仅在文件两者都未注明时使用。行的其他内容请在「编辑」中修改。',
+    wqaGeomNote:'仅限螺纹 Size 与 TL，且仅在文件两者都未注明时使用。',
     wqaBulkWillAffect:'{f} → {v} · {n} 个项目',
     wqaBulkWillAffectNone:'未选择任何项目',
     wqaToastPrevPriceOff:'{n} 个项目的历史报价引用已清除 — 项目已不再符合该记录',
     lblView:'视图',
     wqaIncompatProduct:'产品不同', wqaIncompatMaterial:'材质不同',
-    wqaIncompatSizeType:'Size 规格不同', wqaIncompatSize:'尺寸不同',
+    wqaIncompatSizeType:'Size 规格不同', wqaIncompatSize:'螺纹 Size 不同',
     wqaIncompatFinish:'表面处理不同', wqaIncompatUnknown:'项目资料尚未齐全',
     wqaBulkApplied:'{r} 已应用到 {n} 项 — 每项按本身重量重新计算',
     wqaBulkSkipped:'跳过 {n} 项', wqaBulkNone:'没有可应用的项目 — 未选择相符项目',
-    wqaBulkEdit:'批量编辑', wqaBulkEditSum:'同一数值，应用到多个项目',
+    wqaBulkEdit:'批量调整', wqaBulkEditSum:'同一数值，应用到多个项目',
     wqaPrevPriceFrom:'历史报价', wqaClearSel:'清除选择',
     wqaProvOpen:'显示价格来源的报价单',
     wqaProvStated:'固定价格',
@@ -5967,10 +6299,10 @@ const I18N={
     wqaPrivacy:'上传的文件只用于 AI 提取，不会随报价保存。',
     wqaParseItems:'解析产品', wqaAnalyze:'分析',
     wqaCompact:'精简', wqaExpanded:'展开', wqaEditPasted:'← 编辑粘贴文字',
-    wqaBackToUpload:'← 返回上传', wqaSourceTitle:'客户原文',
+    wqaBackToUpload:'← 返回上传', wqaSourceTitle:'原始内容',
     wqaChooseInput:'← 选择输入方式', wqaChooseHint:'客户是以什么方式发来的？',
     wqaSourceLines:'{n} 行', wqaSourceEdit:'编辑原文',
-    wqaAddItems:'添加到报价单', wqaAddNItems:'添加 {n} 项到报价单', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
+    wqaAddItems:'加入报价', wqaAddNItems:'加入 {n} 个项目到报价', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
     notSet:'未设置', none:'无',
     pmAutoRound:'自动进位', pmNoRound:'不进位', pmManualPrice:'手动价格',
     sizeTypeRequired:'{p} 需要选择 Size 规格 — 信息里没有写明，所以不作猜测。',
@@ -5979,15 +6311,15 @@ const I18N={
     wqaCannotRead:'无法可靠识别这段内容。请编辑粘贴文字，或手动输入产品。',
     errNoText:'没有提供文字。',
     errTextTooLong:'这段内容太长，无法分析。请精简后再试。',
-    wqaCommonItemTitle:'填写缺失的尺寸 / TL', wqaApplyToAll:'应用到全部',
+    wqaCommonItemTitle:'填写缺失的螺纹 Size / TL', wqaApplyToAll:'应用到全部',
     wqaApplyToSelected:'应用到选定', wqaScopeAll:'全部项目',
-    wqaScopeSelected:'选定项目', wqaNIncomplete:'{n} 项待补',
+    wqaScopeSelected:'已选择项目', wqaNIncomplete:'{n} 项待补',
     wqaApplyAll:'应用到全部项目', wqaApplySelected:'应用到 {n} 个选定项目',
     wqaApplyPriceAll:'价格应用到全部项目', wqaApplyPriceSelected:'价格应用到 {n} 个选定项目',
     wqaApplyManualAll:'手动单价应用到全部',
     wqaApplyManualSelected:'手动单价应用到 {n} 个选定项目',
     wqaToastNoneSelected:'请先勾选至少一个项目',
-    wqaCommonFixTitle:'通用项目字段', wqaFixKeep:'— 保持不变 —',
+    wqaCommonFixTitle:'通用项目字段', wqaFixKeep:'不修改',
     wqaFixNone:'保持不变',
     wqaFixNothingYet:'尚未选择——按下应用不会有任何改动',
     wqaFixWillSet:'将设为：{f}', wqaFixWillFill:'仅填补空白：{f}',
@@ -6003,7 +6335,7 @@ const I18N={
     wqaMsgNoLines:'找不到产品行。每一行都需要尺寸，例如 "m12 x 1000 x 100 - 2pcs"。',
     wqaMsgPasteFirst:'请先粘贴客户文字。',
     wqaDropNoFile:'拖进来的不是文件。请拖入 JPG、PNG、WEBP 或 PDF。',
-    wqaToastEnterSizeThread:'请先填写尺寸或 TL', wqaToastNoItems:'没有可应用的项目',
+    wqaToastEnterSizeThread:'请先填写螺纹 Size 或 TL', wqaToastNoItems:'没有可应用的项目',
     wqaToastPriceApplied:'价格设置已应用到全部项目',
     wqaToastPriceAppliedSel:'价格设置已应用到 {n} 个已选择项目',
     wqaToastAccApplied:'配件已应用到全部项目',
@@ -6092,7 +6424,7 @@ const I18N={
     editDiscardAsk:'还有未完成的编辑，确定放弃吗？',
     errBadNumber:'此栏位无法使用该数值。',
     errBadQty:'数量必须是大于零的整数。',
-    errBadSize:'直径表中没有此尺寸。',
+    errBadSize:'直径表中没有此螺纹 Size。',
     diaDefaultShort:'默认', diaManualShort:'手动',
     sumCostRate:'每公斤成本', sumAddCost:'额外加工费', sumMarkup:'Markup',
     wqaOneFileUsing:'每次分析一个文件 — 使用 {f}。',
@@ -6138,7 +6470,7 @@ const I18N={
     mAddDefaultRule:'添加默认价格规则', mMatchCriteria:'匹配条件',
     mDefaultPricing:'默认价格', mRuleStatus:'规则状态',
     mActive:'启用', mDisabled:'停用', mSavedRules:'已保存规则',
-    mSizeSearch:'尺寸搜索', mAddCost:'额外加工费', mSource:'来源',
+    mSizeSearch:'螺纹 Size 搜索', mAddCost:'额外加工费', mSource:'来源',
     mNoSizeType:'无 Size 规格', mCustomOnly:'仅自定义', mSystemDefaults:'系统默认',
     mDiameterRules:'直径规则', mResetAllRules:'重置所有规则',
     mMessageTemplate:'信息模板', mPlaceholders:'占位符：',
@@ -6154,12 +6486,12 @@ const I18N={
     mCostRateExplain:'每公斤成本 = 材料每公斤的成本。', mRefOnly:'仅供参考，不会自动更改当前价格',
     mSavedToMysql:'已保存到 MySQL', mStatus:'状态', mClear:'清除',
     mSrcCustom:'自定义', mSrcSystem:'系统', mSrcAll:'全部',
-    mShowingRules:'显示规则', mDsHelp:'自定义直径规则优先于内置默认值。尺寸留空则匹配该产品类型的所有尺寸。',
+    mShowingRules:'显示规则', mDsHelp:'自定义直径规则优先于内置默认值。螺纹 Size 留空则匹配该产品类型的所有尺寸。',
     mWeight2kg:'重量 2 kg', mMatCostEg:'材料成本 = 2 × 3.50 = RM7.00',
     phCwWording:'输入 c/w 说明', phEnterRate:'输入每公斤成本', phAutoCalculated:'自动计算',
     phManualTotalLen:'输入手动总长度', phEgEyeBolt:'例如 EYE BOLT',
     phOptional:'选填', phEgWelding:'例如 welding', phOptionalQty0:'数量为 0 时选填',
-    phSearchSize:'搜索尺寸，例如 M12',
+    phSearchSize:'搜索螺纹 Size，例如 M12',
     tQtyWhole:'数量必须是整数，不能有小数或负号',
     tQtyMin1:'数量至少为 1', tQtyTooLarge:'数量过大，请检查',
     tQtyWholeMin:'数量必须是至少为 1 的整数',
@@ -6174,13 +6506,13 @@ const I18N={
     tSagRodAdded:'Sag Rod 已加入报价', tStudAdded:'Stud 已加入报价', tAnchorAdded:'Anchor Bolt 已加入报价',
     /* Dimension letters (L、W、H、ID、S、OH)、产品名称与 RM 保持原有写法 —
        它们是行业用语，不是需要翻译的句子。 */
-    tEnterSize:'请输入尺寸', tEnterDiameter:'请输入 Diameter', tEnterLength:'请输入 Length',
+    tEnterSize:'请输入螺纹 Size', tEnterDiameter:'请输入 Diameter', tEnterLength:'请输入 Length',
     tEnterL:'请输入 L', tEnterLW:'请输入 L 和 W 尺寸', tEnterOHW:'请输入 OH 和 W',
     tEnterHIDS:'请输入 H、ID 和 S', tEnterProductName:'请输入产品名称',
     tEnterDimText:'请输入尺寸说明', tEnterUnitWeight:'请输入单件重量',
     tEnterCostRate:'请输入每公斤成本', tEnterManualPrice:'请输入手动单价',
-    tEnterSizeValue:'请输入尺寸数值', tEnterValidDia:'请输入有效的 Diameter',
-    tEnterSizeFirst:'请先输入尺寸。',
+    tEnterSizeValue:'请输入螺纹 Size 数值', tEnterValidDia:'请输入有效的 Diameter',
+    tEnterSizeFirst:'请先输入螺纹 Size。',
     tRateBlankDot:'每公斤成本为空，请先输入价格再加入。',
     tRateBlank:'每公斤成本为空 — 请先输入价格再加入',
     tAddCostBlank:'额外加工费为空 — 请先输入价格再加入',
@@ -6310,6 +6642,8 @@ const I18N={
     pmManualGuide:'手动价格是最终客户单价，配件不会再另外加一次。',
     pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → 手动价格填 RM2.00',
     wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
+    /* AI 智能识别 review (2026-10-23) */
+    wqaRvDetected:'已识别 {n} 个项目', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目',
   },
 };
 /* Current language. Anything other than a known code reads as 'en', so a
@@ -8701,40 +9035,40 @@ function getUBoltCardDebugHtml(item){
   const text=`Saved Unit ${fmt(parseFloat(item.finalUnitPrice)||0)} | Saved formData: ${dimensions} | Recalculated Unit ${fmt(data.recalculatedUnit)}`;
   return `<div class="ubolt-card-debug">${escHtml(text)}</div>`;
 }
-/* U-Bolt Pipe Size presets — INPUT ASSISTANCE ONLY. [DN, inch, ID, IH, TL]. Selecting one fills ID / IH /
-   Thread Length (all stay editable); the pipe size itself is never stored, priced or printed. */
-const UBOLT_PIPE_PRESETS=[
-  [20,'3/4',30,47,22],[25,'1',36,53,25],[32,'1-1/4',46,64,28],[40,'1-1/2',52,73,30],[50,'2',64,85,32],
-  [65,'2-1/2',80,105,35],[80,'3',92,118,35],[90,'3-1/2',104,131,40],[100,'4',118,150,55],[125,'5',144,176,55],
-  [150,'6',170,210,65],[200,'8',222,262,65],[250,'10',274,320,75],[300,'12',326,380,90],[350,'14',362,420,90],
-  [400,'16',414,470,90],[450,'18',466,530,110],[500,'20',518,585,110],[550,'22',568,640,120],[600,'24',620,690,120],
-  [650,'26',670,715,120],[700,'28',722,790,120],[750,'30',774,815,120],[800,'32',826,870,120],[850,'34',878,920,120],
-  [900,'36',930,975,120],[950,'38',982,1025,120],[1000,'40',1034,1080,120]
-];
-const UBOLT_PRESET_FIELDS=[['id',2],['ih',3],['threadLen',4]];
-let uboltPresetVals={};   // field -> value last written by a preset; dropped when the person edits that field
-(function(){
-  const sel=document.getElementById('ubolt-pipeSize'); if(!sel) return;
-  UBOLT_PIPE_PRESETS.forEach(r=>{ const o=document.createElement('option'); o.value=String(r[0]); o.textContent=r[1]+'" / DN'+r[0]; sel.appendChild(o); });
-  UBOLT_PRESET_FIELDS.forEach(([f])=>{ const i=document.getElementById('ubolt-'+f); if(i) i.addEventListener('input',()=>{ delete uboltPresetVals[f]; renderUBoltPresetTags(); }); });
-})();
-function renderUBoltPresetTags(){
-  let any=false;
-  UBOLT_PRESET_FIELDS.forEach(([f])=>{
-    const i=el('ubolt-'+f), t=el('ubolt-'+f+'-preset'); if(!i||!t) return;
-    const on=uboltPresetVals[f]!==undefined && String(i.value)===uboltPresetVals[f];
-    t.hidden=!on; if(on) any=true;
-  });
-  const sel=el('ubolt-pipeSize'); if(sel&&sel.value&&!any) sel.value='';   // every preset value was edited or cleared
-}
-function applyUBoltPipePreset(){
-  const sel=el('ubolt-pipeSize'); if(!sel) return;
-  uboltPresetVals={};
-  const row=UBOLT_PIPE_PRESETS.find(r=>String(r[0])===sel.value);
-  if(row){ UBOLT_PRESET_FIELDS.forEach(([f,k])=>{ const i=el('ubolt-'+f); if(i){ i.value=String(row[k]); uboltPresetVals[f]=String(row[k]); } }); }
-  calcUBolt('ubolt');   // same path as typing ID / IH: refreshes total length, preview and the TL helper
-  renderUBoltPresetTags();
-}
+/* U-Bolt Pipe Size presets — INPUT ASSISTANCE ONLY. [DN, inch, ID, IH, TL]. Selecting one fills ID / IH /
+   Thread Length (all stay editable); the pipe size itself is never stored, priced or printed. */
+const UBOLT_PIPE_PRESETS=[
+  [20,'3/4',30,47,22],[25,'1',36,53,25],[32,'1-1/4',46,64,28],[40,'1-1/2',52,73,30],[50,'2',64,85,32],
+  [65,'2-1/2',80,105,35],[80,'3',92,118,35],[90,'3-1/2',104,131,40],[100,'4',118,150,55],[125,'5',144,176,55],
+  [150,'6',170,210,65],[200,'8',222,262,65],[250,'10',274,320,75],[300,'12',326,380,90],[350,'14',362,420,90],
+  [400,'16',414,470,90],[450,'18',466,530,110],[500,'20',518,585,110],[550,'22',568,640,120],[600,'24',620,690,120],
+  [650,'26',670,715,120],[700,'28',722,790,120],[750,'30',774,815,120],[800,'32',826,870,120],[850,'34',878,920,120],
+  [900,'36',930,975,120],[950,'38',982,1025,120],[1000,'40',1034,1080,120]
+];
+const UBOLT_PRESET_FIELDS=[['id',2],['ih',3],['threadLen',4]];
+let uboltPresetVals={};   // field -> value last written by a preset; dropped when the person edits that field
+(function(){
+  const sel=document.getElementById('ubolt-pipeSize'); if(!sel) return;
+  UBOLT_PIPE_PRESETS.forEach(r=>{ const o=document.createElement('option'); o.value=String(r[0]); o.textContent=r[1]+'" / DN'+r[0]; sel.appendChild(o); });
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{ const i=document.getElementById('ubolt-'+f); if(i) i.addEventListener('input',()=>{ delete uboltPresetVals[f]; renderUBoltPresetTags(); }); });
+})();
+function renderUBoltPresetTags(){
+  let any=false;
+  UBOLT_PRESET_FIELDS.forEach(([f])=>{
+    const i=el('ubolt-'+f), t=el('ubolt-'+f+'-preset'); if(!i||!t) return;
+    const on=uboltPresetVals[f]!==undefined && String(i.value)===uboltPresetVals[f];
+    t.hidden=!on; if(on) any=true;
+  });
+  const sel=el('ubolt-pipeSize'); if(sel&&sel.value&&!any) sel.value='';   // every preset value was edited or cleared
+}
+function applyUBoltPipePreset(){
+  const sel=el('ubolt-pipeSize'); if(!sel) return;
+  uboltPresetVals={};
+  const row=UBOLT_PIPE_PRESETS.find(r=>String(r[0])===sel.value);
+  if(row){ UBOLT_PRESET_FIELDS.forEach(([f,k])=>{ const i=el('ubolt-'+f); if(i){ i.value=String(row[k]); uboltPresetVals[f]=String(row[k]); } }); }
+  calcUBolt('ubolt');   // same path as typing ID / IH: refreshes total length, preview and the TL helper
+  renderUBoltPresetTags();
+}
 /* Advisory only: max recommended thread length = IH - ID/2 - 10 (mm). Display helper —
    never clamps, blocks or changes the Thread Length value or any calculation. */
 function updateUBoltTLHelper(){
@@ -9139,6 +9473,7 @@ dcOnRelabel(()=>{
     try{ wqaRenderCommonAcc(true); }catch(e){}
     try{ wqaRenderBulk(); }catch(e){}
     try{ wqaRenderRows(true); }catch(e){}
+    try{ if(wqa.bs) wqaRenderBulkSheet(); }catch(e){}
   }
   /* Outside the guard on purpose: the count and the button are what the
      attribute scan just overwrote, and an empty review has to say "0 项" in
@@ -13223,6 +13558,7 @@ function wqaPriceModeLabel(m){
 function wqaRenderCommonPrice(force){
   /* `force` is for structural changes (Price Mode), where the panel must show
      the manual row immediately. Everything else yields to an active caret. */
+  if(!el('wqaCommonPrice')) return;
   if(!force && wqaTypingIn(el('wqaCommonPrice'))){ wqaPatchPricePanel(); wqaDeferRender('price'); return; }
   const c=wqa.commonPrice||(wqa.commonPrice=wqaEmptyPrice());
   const manual=c.priceMode==='manual';
@@ -13360,6 +13696,7 @@ function wqaAccActiveCount(a){
   return ['nut','fw','custom'].filter(g=>a[g]&&a[g].enabled).length;
 }
 function wqaRenderCommonAcc(force){
+  if(!el('wqaCommonAcc')) return;
   if(!force && wqaTypingIn(el('wqaCommonAcc'))){ wqaPatchAccPanel(); wqaDeferRender('acc'); return; }
   const a=wqa.commonAcc||(wqa.commonAcc=wqaEmptyAcc());
   const n=wqaAccActiveCount(a);
@@ -13792,89 +14129,6 @@ function wqaPatchRowAccBar(card,r){
   const badge=card.querySelector('.wqa-acc-bar .wqa-panel-badge');
   if(badge){ const n=wqaAccActiveCount(r.acc); badge.textContent=n?n+' active':''; badge.hidden=!n; }
 }
-function wqaPatchRows(){
-  const box=el('wqaRows'); if(!box) return;
-  wqa.rows.forEach((r,i)=>{
-    if(r.removed) return;
-    const card=box.querySelector('[data-wqa-row="'+i+'"]'); if(!card) return;
-    const miss=wqaRowMissing(r);
-    card.classList.toggle('wqa-row-block',miss.length>0);
-    card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight((r.calc||{}).weight); });
-    const fin2=card.querySelector('.wqa-fin');
-    if(fin2) fin2.textContent=wqaFmtPrice(wqaShownPrice(r));
-    const badges=card.querySelector('.wqa-sum-badges');
-    if(badges) badges.innerHTML=wqaBadgeHtml(r);
-    /* ── While an edit is open, these cells are INPUTS ─────────────────────
-       A patch rewrites the value cells from state, which is right for a
-       read-only row and destructive for an editable one: replacing the
-       diameter cell replaces the box a person is typing in, and the caret with
-       it. The derived read-only figures below — weight, price, the badges —
-       are patched either way, because those are the numbers an edit is being
-       made to move. */
-    if(wqaEditing()){
-      /* One box does have to follow: changing the size drops a manual
-         diameter, and the box a person typed 10.7 into must then show the new
-         size's own bar rather than the number that no longer applies. Only
-         when it is NOT the box being typed in, and only when the override has
-         gone — everything else a person is holding is left alone. */
-      const dIn=card.querySelector('[data-ef="dia"]');
-      if(dIn && !r.diaManual && document.activeElement!==dIn){
-        const want=String(r.diaMm==null?'':r.diaMm);
-        if(dIn.value!==want) dIn.value=want;
-      }
-      if(dIn){
-        dIn.classList.toggle('is-manual-dia', !!r.diaManual);
-        dIn.title = r.diaManual ? dcT('diaManual') : dcT('diaDefault');
-      }
-    }
-    if(!wqaEditing()){
-      const cQty=card.querySelector('.wqa-c-qty');
-      if(cQty) cQty.textContent=r.qty||'—';
-      const cDia=card.querySelector('.wqa-c-dia');
-      if(cDia) cDia.outerHTML=wqaDiaCellHtml(r);
-      /* The dimension cells are whatever this list's columns turned out to be,
-         so they are refreshed from that same list rather than by name. */
-      const dims=card.querySelectorAll('.wqa-sum .wqa-c-dim');
-      wqaListCols().forEach((c,k)=>{ if(dims[k]) dims[k].textContent=wqaRowDimCell(r,c.k)||'—'; });
-    }
-    /* The size cell carries the thread reference under it, so it is rebuilt
-       rather than have its text replaced — textContent alone would delete the
-       note every time a row was patched. */
-    const cSize=wqaEditing()?null:card.querySelector('.wqa-c-size');
-    if(cSize){
-      const tref=String(r.threadRef||'').trim();
-      cSize.classList.toggle('has-tref',!!tref);
-      cSize.innerHTML=escHtml(sizeDisplay(r.size)||'—')
-        +(tref?`<span class="wqa-tref" title="${escHtml(dcT('wqaThreadRefNote'))}">${escHtml(tref)}</span>`:'');
-    }
-    /* What the empty Thread Reference box suggests follows the size, so it is
-       refreshed while the size is still being typed rather than waiting for the
-       row to be rebuilt on blur. A placeholder is a read-only node; the value
-       the person is typing is not touched. */
-    const tin=card.querySelector('.wqa-tref-in');
-    if(tin) tin.placeholder=dcThreadRefHint(r.size);
-    /* The line under the summary states the row's material, finish and size
-       type. It was built once and never refreshed, so changing a row's
-       material to SS304 repainted the price from the stainless calculation
-       while that line still read "MS · ZP" — the row disagreeing with itself. */
-    const spec=card.querySelector('.wqa-row-spec');
-    if(spec){ const t=wqaRowSpecText(r); spec.textContent=t; spec.hidden=!t; }
-    /* The pricing summary reads the same r.calc the inputs above just edited,
-       so patching it here is what makes "type 2.80 in the expanded form" and
-       "press Use on a record" change the line without a re-render. */
-    const meta=card.querySelector('.wqa-meta');
-    if(meta) meta.innerHTML=wqaRowMetaInner(r,i);
-    /* A row that has just been answered loses its strip; one that has just lost
-       a value gains it. Neither may leave an empty band behind. */
-    const sub=card.querySelector('.wqa-row-sub');
-    if(sub) sub.hidden=!((badges&&badges.innerHTML)||(spec&&spec.textContent));
-    const tw=card.querySelector('.wqa-tw');
-    if(tw) tw.textContent=wqaFmtTotalWeight((r.calc||{}).weight,r.qty);
-    wqaPatchRowAccBar(card,r);
-  });
-  wqaApplyFlash();
-  wqaUpdateAddButton();
-}
 /* Both read the weight the calculator produced — no second formula anywhere. */
 function wqaFmtWeight(w){
   const n=Number(w)||0;
@@ -13889,7 +14143,12 @@ function wqaFmtTotalWeight(w,qty){
 /* ── Compact review ────────────────────────────────────────────────────────
    The summary line carries everything needed to check a row at a glance, so the
    full controls only exist in the DOM when a row is actually being edited. */
-function wqaRowIsOpen(r){ return wqa.view==='expanded' || !!r.open; }
+/* One item's own panel, opened by pressing the item. There is no
+   Compact / Expanded view to choose any more: the review line carries every
+   value a person checks, and the panel is for the rest. */
+/* wqaSetView('expanded') is no longer on the screen; called directly, it still
+   opens every item's panel, as it always did. */
+function wqaRowIsOpen(r){ return wqa.view==='expanded' || !!(r && r.open); }
 /* ── Details ───────────────────────────────────────────────────────────────
    One row's form. It is not a second Fast Edit and it must not stand beside
    a Bulk Edit: two large editors over the same rows, stacked, is how a
@@ -14169,20 +14428,25 @@ function wqaEditDirty(){
    Compact is forced: the whole point is a spreadsheet of every row at once,
    and an expanded row is a form for one. Bulk Edit closes for the same reason
    it is later disabled — two write surfaces over one row is one too many. */
+/* ── Into a value, from anywhere ──────────────────────────────────────────
+   The grid-wide Fast Edit session is gone from the screen: a value is edited
+   where it stands (wqaIxOpen). Everything that used to open the grid — a
+   "Needs H" tag, a call from elsewhere — lands on that one field instead, so
+   there is still one way in. wqa.edit is never opened, so every lock that
+   reads wqaEditing() stays released. */
 function wqaEditStart(rowIdx,field){
-  if(!wqa.rows.filter(r=>!r.removed).length) return;
-  if(!wqa.edit){
-    /* Where we came FROM, so leaving puts it back. Pressing Edit while reading
-       an expanded row and then pressing Done should return to the expanded
-       row, not strand you in a list you did not choose. */
-    wqa.edit={ snap:wqaEditSnapshot(), fromView:wqa.view };
-    wqa.bulkOpen=false;
-    wqaCloseAllDetails();
-    if(wqa.view!=='compact'){ wqa.view='compact'; }
+  const live=wqa.rows.filter(r=>!r.removed);
+  if(!live.length) return;
+  const i = (rowIdx!=null && wqa.rows[rowIdx] && !wqa.rows[rowIdx].removed) ? rowIdx : wqa.rows.indexOf(live[0]);
+  const r=wqa.rows[i];
+  if(field==='px'){ if(wqa.px!==i || wqaRvMobile()) wqaPxToggle(i); return; }
+  if(['product','material','finish','sizeType'].indexOf(field)>=0){
+    wqa.rows.forEach(o=>{ if(o!==r) o.open=false; });
+    r.open=true; wqa.ix=null; wqa.px=null; wqaRenderRows(true);
+    wqaRvFocus(i,'[data-ef="'+field+'"]');
+    return;
   }
-  wqaRenderBulk();
-  wqaRenderRows(true);
-  wqaEditFocus(rowIdx,field);
+  wqaIxOpen(i, field || wqaIxOrder(r)[0]);
 }
 function wqaEditFocus(rowIdx,field){
   setTimeout(()=>{
@@ -14199,6 +14463,16 @@ function wqaEditFocus(rowIdx,field){
 /* A missing field is a reason to stay and fix it, never a reason to be unable
    to leave; an invalid one is the opposite. */
 function wqaEditDone(){
+  /* The inline box is the edit now: Done is Enter on it. */
+  if(wqa.ix){
+    const inp=el('wqaRows')&&el('wqaRows').querySelector('.wqa-ix');
+    if(inp) wqaIxCommit(wqa.ix.i,wqa.ix.f,inp,0); else wqa.ix=null;
+    return !wqa.ix;
+  }
+  /* A box in an item's panel is left the way a person leaves it: its change
+     commits it, and the next visit starts from what it now holds. */
+  const a=document.activeElement;
+  if(a && a.getAttribute && a.getAttribute('data-ef') && el('wqaRows') && el('wqaRows').contains(a)){ a.blur(); wqa._dt=null; }
   if(!wqa.edit) return true;
   const bad=wqaEditErrors();
   if(bad.length){
@@ -14217,6 +14491,8 @@ function wqaEditDone(){
   return true;
 }
 function wqaEditCancel(){
+  /* …and Cancel is Escape. */
+  if(wqa.ix){ const snap=wqa.ix.snap, i=wqa.ix.i; wqa.ix=null; wqaIxRestore(i,snap); wqaRecomputeAll('force'); return; }
   if(!wqa.edit) return;
   let snap=[];
   try{ snap=JSON.parse(wqa.edit.snap); }catch(e){ snap=[]; }
@@ -14481,8 +14757,10 @@ function wqaRowBadges(r){
   /* Each tag names a field, so each tag is a way into that field: pressing
      "Needs H" opens the edit with H focused. Correcting a parse is the most
      common thing anybody does on this screen, and it should be one press. */
-  const FIELD_CELL={Qty:'qty', Size:'size', Diameter:'dia', Length:'length',
-                    W:'w', H:'h', ID:'id', S:'s', Thread:'threadLen'};
+  const FIELD_CELL={Qty:'qty', Size:'size', 'Valid Size':'size', Diameter:'dia', Length:'length',
+                    W:'w', H:'h', ID:'id', S:'s', Thread:'threadLen',
+                    Product:'product', Material:'material', 'Size Type':'sizeType',
+                    'Cost Rate':'px', 'Additional Cost':'px', Price:'px'};
   missing.forEach(m=>out.push({t:dcT('needs').replace('{f}',
     dcT('field'+m.replace(/\s/g,''),m)),k:'req', cell:FIELD_CELL[m]||''}));
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
@@ -14564,7 +14842,7 @@ function wqaUpdateAddButton(){
   /* A known-incomplete extraction is not a successful one. The rows stay, the
      screen says why, and Add waits for an explicit acknowledgement. */
   const needAck = !!(wqa.truncated && !wqa.truncAck);
-  el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',live.length);
+  el('wqaRowsCount').textContent=dcT('wqaRvDetected').replace('{n}',live.length);
   /* A row that needs attention holds up itself, not the list. Twenty items
      could not be added because one of them was short of a material, with the
      button greyed and nothing saying which row it meant. */
@@ -16920,21 +17198,21 @@ async function wqaAnalyze(){
     if(token===wqa._aiReq) wqaSetAiBusy(false);
   }
 }
-/* ── L-Bolt dimension references → canonical TO END ────────────────────────
-   Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
-   centre line or TO its end; the system's canonical L and W are TO END. TOP adds D,
-   CENTER adds D/2, END adds nothing. Nominal diameter only — no bend radius. Pure:
-   returns the source untouched alongside the normalized value so the review can show both. */
-function normalizeBentDimension(value,reference,diameter){
-  const src=Number(value), ref=String(reference||'').toUpperCase(), d=Number(diameter);
-  const out={source_value:src,source_reference:ref||null,normalized_value:src,normalized_reference:'END',converted:false,resolved:true};
-  if(!(src>0)) { out.resolved=false; return out; }
-  if(ref==='END'||ref==='') return out;                       // already TO END, or the document names no reference
-  if((ref==='TOP'||ref==='CENTER') && d>0){
-    out.normalized_value=Math.round((src+(ref==='TOP'?d:d/2))*100)/100; out.converted=true; return out;
-  }
-  out.resolved=false; return out;                              // UNCLEAR, or no diameter to convert with: never guess
-}
+/* ── L-Bolt dimension references → canonical TO END ────────────────────────
+   Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
+   centre line or TO its end; the system's canonical L and W are TO END. TOP adds D,
+   CENTER adds D/2, END adds nothing. Nominal diameter only — no bend radius. Pure:
+   returns the source untouched alongside the normalized value so the review can show both. */
+function normalizeBentDimension(value,reference,diameter){
+  const src=Number(value), ref=String(reference||'').toUpperCase(), d=Number(diameter);
+  const out={source_value:src,source_reference:ref||null,normalized_value:src,normalized_reference:'END',converted:false,resolved:true};
+  if(!(src>0)) { out.resolved=false; return out; }
+  if(ref==='END'||ref==='') return out;                       // already TO END, or the document names no reference
+  if((ref==='TOP'||ref==='CENTER') && d>0){
+    out.normalized_value=Math.round((src+(ref==='TOP'?d:d/2))*100)/100; out.converted=true; return out;
+  }
+  out.resolved=false; return out;                              // UNCLEAR, or no diameter to convert with: never guess
+}
 /* ══ THE ONE SHARED NORMALISER ══════════════════════════════════════════════
    Every input source — the deterministic text parser, the AI text fallback and
    the AI photo / PDF extraction — produces the SAME compact extraction:
@@ -17304,20 +17582,20 @@ function wqaNormalizeExtraction(d, opts){
          down to "100" and hand the row a length nobody wrote. */
       row.unclearRaw=String(it.unclear);
     }
-    /* L Bolt only: bring L and W to the canonical TO END, and keep what the drawing said.
-       Unresolved (reference unclear / no diameter) is never converted and never assumed TO END:
-       the value is held back as evidence and the row asks for it. */
-    if(rowProd==='lbolt'){
-      const dm=/^M\s*(\d+(?:\.\d+)?)/i.exec(String(row.size||'')), dia=dm?Number(dm[1]):0;
-      const norm=[['length','L',it.Lref],['w','W',it.Wref]].map(([k,lab,ref])=>{
-        if(row[k]===''||ref==null||ref==='') return null;
-        const n=normalizeBentDimension(row[k],ref,dia);
-        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); }
-        else { row[k]=''; row.aiUncertain.push((lab+' '+n.source_value+': '+(String(ref).toUpperCase()==='UNCLEAR'?'reference unclear':'needs diameter')).slice(0,40)); }
-        return Object.assign({k:lab},n);
-      }).filter(Boolean);
-      if(norm.length) row.dimNorm=norm;
-    }
+    /* L Bolt only: bring L and W to the canonical TO END, and keep what the drawing said.
+       Unresolved (reference unclear / no diameter) is never converted and never assumed TO END:
+       the value is held back as evidence and the row asks for it. */
+    if(rowProd==='lbolt'){
+      const dm=/^M\s*(\d+(?:\.\d+)?)/i.exec(String(row.size||'')), dia=dm?Number(dm[1]):0;
+      const norm=[['length','L',it.Lref],['w','W',it.Wref]].map(([k,lab,ref])=>{
+        if(row[k]===''||ref==null||ref==='') return null;
+        const n=normalizeBentDimension(row[k],ref,dia);
+        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); }
+        else { row[k]=''; row.aiUncertain.push((lab+' '+n.source_value+': '+(String(ref).toUpperCase()==='UNCLEAR'?'reference unclear':'needs diameter')).slice(0,40)); }
+        return Object.assign({k:lab},n);
+      }).filter(Boolean);
+      if(norm.length) row.dimNorm=norm;
+    }
     /* Product-aware, per ROW: only a product that HAS a thread can be missing
        one, and which product this is was decided a few lines above. */
     if(rEnds>0 && !row.threadLen && row.length) defaulted.threadMissing=true;
@@ -17623,6 +17901,12 @@ function wqaResetState(){
   wqa.commonAcc=wqaEmptyAcc(); wqa.commonPrice=wqaEmptyPrice();
   wqa.panels={source:false,fix:false,item:false,price:false,acc:false}; wqa.view='compact';
   wqa.applyScope='all';
+  wqa.ix=null; wqa.px=null; wqa.selMode=false;
+  if(typeof wqaBulkSheetClose==='function') wqaBulkSheetClose();
+  wqaRvReviewClass(false);
+  if(el('wqaSelBar')){ el('wqaSelBar').hidden=true; el('wqaSelBar').innerHTML=''; }
+  if(el('wqaRvActs')) el('wqaRvActs').innerHTML='';
+  if(el('wqaRvNeed')){ el('wqaRvNeed').hidden=true; el('wqaRvNeed').innerHTML=''; }
   wqa.skipped=[]; wqa.busy=false;
 
   /* AI upload session state — the selected/dropped file, its name, its preview,
@@ -17692,6 +17976,8 @@ document.addEventListener('keydown',e=>{
   if(!m||!m.classList.contains('open')) return;
   e.preventDefault(); e.stopPropagation();
   if(el('wqaConfirm')&&!el('wqaConfirm').hidden){ wqaCancelClose(); return; }  // ESC = keep editing
+  if(el('wqaBulkSheet')&&!el('wqaBulkSheet').hidden){ wqaBulkSheetClose(); return; }
+  if(wqa.selMode){ wqaSelExit(); return; }
   wqaRequestClose();
 });
 /* One entry into the review step, shared by the text parser and the AI
@@ -17717,6 +18003,8 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   wqa.rows=rows.map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
                          priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   wqa.skipped=skipped||[];
+  wqa.ix=null; wqa.px=null; wqa.selMode=false; wqaBulkSheetClose();
+  wqaRvReviewClass(true);
   el('wqaStep1').hidden=true; el('wqaStep2').hidden=false;
   wqa.panels.source=wqaSourceOpenDefault();
   wqaRenderSource(true);
@@ -17756,9 +18044,7 @@ function wqaSourceText(){
 }
 /* A phone opens it closed: a long message would otherwise be the whole screen
    before a single row. Everything wider opens it expanded. */
-function wqaSourceOpenDefault(){
-  try{ return !window.matchMedia('(max-width:640px)').matches; }catch(e){ return true; }
-}
+function wqaSourceOpenDefault(){ return false; }
 function wqaRenderSource(force){
   const box=el('wqaSource'), back=el('wqaBackBtn');
   if(!box) return;
@@ -17818,7 +18104,12 @@ function wqaRenderAiBadge(){
   const b=el('wqaAiBadge');
   if(b) b.hidden = !wqa.aiAssisted;
 }
-function wqaBackToPaste(){ el('wqaStep2').hidden=true; el('wqaStep1').hidden=false; }
+function wqaBackToPaste(){ wqaBulkSheetClose(); wqaRvReviewClass(false); el('wqaStep2').hidden=true; el('wqaStep1').hidden=false; }
+/* The dialog takes the review's width only while it is showing the review;
+   the paste step keeps the size it has always had. */
+function wqaRvReviewClass(on){
+  const m=document.querySelector('#wqaModal .wqa-modal'); if(m) m.classList.toggle('is-review',!!on);
+}
 function wqaMsg(id,text,warn){
   const b=el(id); if(!b) return;
   b.textContent=text; b.hidden=!text;
@@ -17941,29 +18232,30 @@ function wqaRenderCommon(){
     ? `<div class="wqa-flag wqa-flag-def">${escHtml(dcT('wqaCustomerLabel').replace('{s}',wqa.aiMeta.src).replace('{d}',wqa.aiMeta.det))}</div>` : '')
     + (wqa.aiWarnings&&wqa.aiWarnings.length
     ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(wqaWarnText(w))}</div>`).join('') : '');
+  const matOpts=wqaMaterialOptions(shownMat);
   el('wqaCommon').innerHTML=`
-    <div class="wqa-common-grid">
-      <div class="field"><label>${escHtml(dcT('fieldProduct'))}${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</label>
+    <div class="wqa-rv-pills">
+      <label class="wqa-sp${(prodMixed||wqa.product)?'':' is-need'}"><span class="wqa-sp-k">${escHtml(dcT('fieldProduct'))}${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</span>
         <select id="wqaProduct" class="${(prodMixed||wqa.product)?'':'wqa-needed'}" onchange="wqaChangeProduct(this.value)">
           ${prodMixed?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           ${(prodMixed||wqa.product)?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`}
           ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${!prodMixed&&p.type===wqa.product?' selected':''}>${p.label}</option>`).join('')}
-        </select></div>
-      <div class="field"><label>${escHtml(dcT('lblMaterial'))}${matNeeded?' <span class="wqa-req">*</span>':''}</label>
-        <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)">${wqaMaterialOptions(shownMat)}</select></div>
-      <div class="field"><label>${escHtml(dcT('lblFinish'))}</label>
+        </select></label>
+      <label class="wqa-sp${matNeeded?' is-need':''}"><span class="wqa-sp-k">${escHtml(dcT('lblMaterial'))}${matNeeded?' <span class="wqa-req">*</span>':''}</span>
+        <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)"${matOpts?'':' disabled'}>${matOpts||`<option value="">${escHtml(dcT('wqaMixed'))}</option>`}</select></label>
+      <label class="wqa-sp"><span class="wqa-sp-k">${escHtml(dcT('lblFinish'))}</span>
         <select id="wqaFinish" onchange="wqaSetCommon('finish',this.value)"${allSS?' disabled':''}>
           ${shownFin===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownFin===''?' selected':''}>N/A</option>
           ${allSS?'':['PL','ZP','HDG'].map(v=>`<option value="${v}"${shownFin===v?' selected':''}>${v}</option>`).join('')}
-        </select></div>
-      <div class="field"><label>${escHtml(dcT('lblSizeType'))}${(prod.needSizeType&&!allNoSt)?' <span class="wqa-req">*</span>':''}</label>
+        </select></label>
+      <label class="wqa-sp${stNeeded?' is-need':''}"><span class="wqa-sp-k">${escHtml(dcT('lblSizeType'))}${(prod.needSizeType&&!allNoSt)?' <span class="wqa-req">*</span>':''}</span>
         <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)"${allNoSt?' disabled':''}>
           ${shownSt===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownSt===''?' selected':''}>${escHtml(allNoSt?'N/A':dcT(prod.needSizeType?'optRequired':'optNone'))}</option>
           ${allNoSt?'':`<option value="FULLSIZE"${shownSt==='FULLSIZE'?' selected':''}>Fullsize</option>
           <option value="UNDERSIZE"${shownSt==='UNDERSIZE'?' selected':''}>Undersize</option>`}
-        </select></div>
+        </select></label>
     </div>
     ${matNote}
     ${(prodMixed||wqa.product)?'':'<div class="wqa-flag wqa-flag-req">'+escHtml(dcT('wqaChooseProduct'))+'</div>'}
@@ -18557,186 +18849,899 @@ async function wqaRecomputeAll(mode){
   wqaLoadHistory();                 // fire and forget; re-renders when it lands
 }
 
-function wqaRenderRows(force){
-  /* Structural, user-initiated changes (expanding an item's accessories,
-     removing a row, switching a row's price mode) always render. Only
-     incidental redraws — a debounced recompute, price history landing — step
-     aside for an active caret. */
-  if(!force && wqaTypingIn(el('wqaRows'))){ wqaPatchRows(); wqaDeferRender('rows'); return; }
-  const live=wqa.rows.filter(r=>!r.removed);
-  el('wqaRowsCount').textContent=dcT('nItems').replace('{n}',live.length);
-  const prod=wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
-  const cols=wqaListCols();
-  el('wqaRows').innerHTML=wqa.rows.map((r,i)=>{
-    if(r.removed) return '';
-    const open=wqaRowIsOpen(r);
-    const miss=wqaRowMissing(r);
-    const calc=r.calc||{};
-    /* ── Pricing history ──────────────────────────────────────────────────
-       A collapsed bar with the count on it, opening onto the records
-       themselves: whose quotation, what dimensions, what cost rate, what
-       markup, what the bolt cost. Collapsed by default, because twenty rows
-       each showing five records is not a review screen — and open in one
-       click, because "why was that one dearer" is the question this answers.
-       Nothing is copied into the row until somebody presses Use this price. */
-    /* Built only for the row that asked. A row nobody has asked about has no
-       history object at all and makes no request — see wqaHistToggle. */
-    const hist=r.hist;
-    let histHtml='';
-    if(!r.histOpen){
-      histHtml='';
-    } else if(hist===undefined){
-      histHtml='<div class="wqa-hist">'+escHtml(dcT('phLoading'))+'</div>';
-    } else if(hist && hist.failed){
-      histHtml='<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
-    } else if(!hist || !hist.records || !hist.records.length){
-      histHtml='<div class="wqa-hist wqa-hist-none">'+escHtml(dcT('phNoneExact'))+'</div>';
-    } else {
-      const own=hist.ownTotal||0, other=hist.otherTotal||0;
-      histHtml=`<div class="wqa-hist wqa-hist-panel">
-        <button type="button" class="wqa-hist-bar" onclick="wqaHistToggle(${i})">
-          <span class="wqa-hist-arrow">${r.histOpen?'▾':'▸'}</span>
-          <span class="wqa-hist-lbl">${escHtml(dcT('phTitle'))}</span>
-          <span class="wqa-hist-count">${escHtml(dcT((hist.total||hist.records.length)===1?'phRecordCount':'phRecordCountPlural').replace('{n}',hist.total||hist.records.length))}${own?' · '+escHtml(dcT('phThisCustomer').replace('{n}',own)):''}${other?' · '+escHtml(dcT('phOther').replace('{n}',other)):''}</span>
-        </button>
-        ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,
-                     (rec,n)=>wqaHistRecExtra(i,n,rec))}
-      </div>`;
+/* ══ REVIEW — AI 智能识别 ══════════════════════════════════════════════════
+   The presentation of the review step, and only that. Every value it shows is
+   read off wqa.rows exactly as the calculator left it, and every value it
+   changes is written through the mutators the review has always used —
+   wqaEdit, wqaEditSize, wqaEditDia, wqaEditThread, wqaEditRowSpec,
+   wqaEditRowProduct, wqaEditPrice, wqaEditRowMode, wqaEditAcc — so the parse,
+   the price, the weight and the history are exactly what they were.
+
+   Three ideas carry it:
+
+     · REVIEW FIRST. A row says what it is in one line, and the values on that
+       line are the editor: press L1070 and it is a box holding 1070. Enter or
+       leaving the box commits through the same validation Fast Edit used;
+       Escape puts the value back. Nothing is written while a box is open.
+     · SHARED CONTEXT ONCE. Consecutive rows that agree on everything but
+       their geometry, quantity and price are drawn as one series under one
+       heading — "M10 · TL 70/70" once, then L / Qty / price per line — so a
+       thirty-item Sag Rod list is thirty short lines, not thirty cards. The
+       rows themselves are untouched: the series is a drawing of them.
+     · ONE WAY TO CHANGE MANY. Bulk Adjust is a sheet with every field at No
+       change; tick boxes only exist in Selection mode.                      */
+function wqaRvMobile(){ try{ return window.matchMedia('(max-width:599px)').matches; }catch(e){ return false; } }
+/* What kind of value a field is — the categories wqaEditCellError checks. */
+function wqaIxKind(f){
+  return f==='size'?'size':f==='dia'?'dia':f==='threadLen'?'thread':f==='qty'?'qty':'dim';
+}
+/* A row's fields in the order the row line shows them (and Tab visits them):
+   size, the product's own dimensions with TL in its place, then the quantity.
+   The diameter is a property of the bar, edited in the row's own panel. */
+function wqaIxOrder(r){
+  return wqaEditFields(r).map(f=>f.k).filter(k=>k!=='dia');
+}
+/* ── Editing a value where it stands ─────────────────────────────────────
+   Live, exactly as Fast Edit was: every keystroke goes through the same
+   mutator (wqaEditSize for the size, wqaEditCell for the rest), so the row,
+   its weight and its price follow the caret, and a size reads M22 while the
+   22 is still being typed. What the box held when it opened is kept, so
+   Escape — or leaving it holding something nobody could mean — puts it back. */
+const WQA_IX_SNAP=['size','diaMm','diaManual','threadLen','threadLen2','length','w','h','id','s','qty'];
+function wqaIxSnap(r){ const o={}; WQA_IX_SNAP.forEach(k=>{ o[k]=r[k]; }); return o; }
+function wqaIxRestore(i,snap){
+  const r=wqa.rows[i]; if(!r||!snap) return;
+  Object.assign(r,snap);
+  clearTimeout(wqa._t); wqa._t=null;
+}
+/* One keystroke, one write — through the mutator that field always used. */
+function wqaIxInput(i,f,inp){
+  if(wqaIxKind(f)==='size'){ wqaEditSize(i,inp,false); return; }
+  wqaEditCell(i,f,inp.value);
+}
+/* Is what the box holds acceptable? Arithmetic is settled first, so
+   "500+30" is 530 here exactly as it was in the expanded form. */
+function wqaIxSettle(i,f,inp){
+  const r=wqa.rows[i]; if(!r) return '';
+  const kind=wqaIxKind(f);
+  if(kind==='dim'){
+    const c=wqaCalc(inp.value);
+    if(c!=null){ inp.value=c; wqaEdit(i,f,c); }
+  }
+  if(kind==='size') r.size=normalizeSizeValue(inp.value);
+  clearTimeout(wqa._t); wqa._t=null;
+  return wqaEditCellError(r,{k:f,kind});
+}
+/* Used by anything that sets one value in one call (no box involved). */
+function wqaIxApply(i,f,raw){
+  const r=wqa.rows[i]; if(!r||r.removed) return '';
+  const fake={value:String(raw==null?'':raw).trim(),setSelectionRange(){},selectionStart:null};
+  const snap=wqaIxSnap(r);
+  wqaIxInput(i,f,fake);
+  const err=wqaIxSettle(i,f,fake);
+  if(err) wqaIxRestore(i,snap);
+  clearTimeout(wqa._t); wqa._t=null;
+  return err;
+}
+
+/* The fields whose value decides which series a row is drawn in. */
+const WQA_RV_KEY_FIELDS=['size','threadLen'];
+function wqaIxOpen(i,f){
+  const r=wqa.rows[i]; if(!r||r.removed||!f) return;
+  if(wqa.selMode){ wqaRvToggleSel(i); return; }
+  /* A phone opens the item first: its values are edited in the item's own
+     panel, where each one has room for a finger and a keyboard. */
+  if(wqaRvMobile() || r.open || f==='dia' || (WQA_RV_KEY_FIELDS.indexOf(f)>=0 && wqaRvInSeries(i))){
+    if(!r.open){ wqa.rows.forEach(o=>{ if(o!==r) o.open=false; }); r.open=true; wqa.ix=null; wqa.px=null; wqaRenderRows(true); }
+    wqaRvFocus(i,'[data-ef="'+f+'"]');
+    return;
+  }
+  /* Each box is its own: the redraw below removes whatever box had focus,
+     and the blur that removal fires belongs to that box, not to this one. */
+  wqa.ix={i,f,snap:wqaIxSnap(r),id:String(Date.now())+Math.random().toString(36).slice(2,7)};
+  wqa.px=null;
+  wqa._ixBusy=true;
+  try{ wqaRenderRows(true); } finally { wqa._ixBusy=false; }
+  wqaRvFocus(i,'.wqa-ix');
+}
+/* Synchronous, so a tablet's keyboard opens on the same tap. */
+function wqaRvFocus(i,sel){
+  try{
+    const card=el('wqaRows').querySelector('[data-wqa-row="'+i+'"]');
+    const n=card&&card.querySelector(sel);
+    if(n){ n.focus(); if(n.select) n.select(); if(n.scrollIntoView) n.scrollIntoView({block:'nearest'}); }
+  }catch(e){}
+}
+function wqaIxKey(ev,i,f){
+  if(ev.key==='Enter'){ ev.preventDefault(); ev.stopPropagation(); wqaIxCommit(i,f,ev.target,0); return; }
+  if(ev.key==='Tab'){ ev.preventDefault(); wqaIxCommit(i,f,ev.target,ev.shiftKey?-1:1); return; }
+  if(ev.key==='Escape'){
+    ev.preventDefault(); ev.stopPropagation();
+    const snap=wqa.ix&&wqa.ix.snap;
+    wqa.ix=null;
+    wqaIxRestore(i,snap);
+    wqaRecomputeAll('force');
+    wqaRvFocus(i,'[data-tok="'+f+'"]');
+  }
+}
+/* Leaving the box commits it. The list is NOT redrawn here: whatever was
+   pressed to leave it has to survive, or a tap on the next value would land
+   on a node that no longer exists. The box becomes its value again in place
+   and the derived figures are patched. */
+function wqaIxBlur(ev,i,f){
+  const inp=ev.target;
+  if(!wqa.ix||wqa.ix.i!==i||wqa.ix.f!==f||wqa._ixBusy) return;
+  if(!inp || !inp.isConnected || inp.getAttribute('data-ixid')!==wqa.ix.id) return;
+  const snap=wqa.ix.snap;
+  const err=wqaIxSettle(i,f,inp);
+  wqa.ix=null;
+  if(err){
+    /* Left holding something nobody could mean: the value it opened with
+       comes back, and the toast says why. */
+    showToast(err);
+    wqaIxRestore(i,snap);
+  }
+  wqaRecomputeAll('patch');
+  wqaRvSwapToken(i,f,inp);
+  if(WQA_RV_KEY_FIELDS.indexOf(f)>=0) setTimeout(()=>{ if(!wqa.ix && !wqaTypingIn(el('wqaRows'))) wqaRenderRows(true); },320);
+}
+function wqaRvSwapToken(i,f,inp){
+  const r=wqa.rows[i]; const box=inp&&inp.closest('.wqa-tok'); if(!r||!box) return;
+  const t=document.createElement('span');
+  t.innerHTML=wqaRvTok(r,i,f);
+  if(t.firstElementChild) box.replaceWith(t.firstElementChild);
+}
+function wqaIxCommit(i,f,inp,step){
+  const r=wqa.rows[i]; if(!r||!inp) return;
+  wqa._ixBusy=true;
+  try{
+    const err=wqaIxSettle(i,f,inp);
+    if(err){
+      /* Enter on a bad value stays put and says why — the same refusal Fast
+         Edit's Done gave. Escape still puts the old value back. */
+      showToast(err);
+      inp.classList.add('is-bad'); inp.setAttribute('aria-invalid','true'); inp.title=err; inp.focus();
+      wqaRecomputeAll('patch');
+      return;
     }
-    /* The body — every control that existed before — is built only when this row
-       is open, so a 19-item paste is a 19-line list instead of 19 tall cards. */
-    /* This row's product decides which dimensions it is asked for. */
-    const rprod=wqaProductByType(wqaRowProduct(r))||prod;
-    const body = !open ? '' : `<div class="wqa-row-body">
-      <!-- ── No DIMENSIONS block here ──────────────────────────────────
-           Size, the diameter, every dimension the product has and the quantity
-           are all edited inline, on the compact row, across every row at once.
-           Repeating them here made the same value editable in two places and
-           the modal twice as long as it needed to be.
+    /* Tab visits the values the row actually SHOWS — a series row does not
+       draw the size or TL its heading states — in the order it shows them. */
+    const shown=k=>{ const c=el('wqaRows').querySelector('[data-wqa-row="'+k+'"]');
+      return c ? [...c.querySelectorAll('.wqa-it-main [data-tok], .wqa-it-main .wqa-ix')]
+                   .map(n=>n.getAttribute('data-tok')||n.getAttribute('data-ef')) : wqaIxOrder(wqa.rows[k]); };
+    const order=shown(i);
+    wqa.ix=null;
+    wqaRecomputeAll('force');
+    if(step){
+      let k=order.indexOf(f)+step;
+      if(k>=order.length || k<0){
+        /* Off the end of the row: on to the next live row, as a grid would. */
+        const live=wqa.rows.map((x,n)=>n).filter(n=>!wqa.rows[n].removed);
+        const at=live.indexOf(i)+(step>0?1:-1);
+        if(at<0||at>=live.length){ wqaRvFocus(i,'[data-tok="'+f+'"]'); return; }
+        const row=live[at], o2=shown(row);
+        wqaIxOpen(row,o2[step>0?0:o2.length-1]); return;
+      }
+      wqaIxOpen(i,order[k]); return;
+    }
+    wqaRvFocus(i,'[data-tok="'+f+'"]');
+  } finally { wqa._ixBusy=false; }
+}
 
-           This applies to the five products Quick Add reads. A future product
-           whose geometry does not fit an inline row needs an inline design
-           BEFORE its fallback is taken away — see the note by WQA_PRODUCTS. -->
-      <div class="wqa-sec-lbl">${escHtml(dcT('secReference'))}</div>
-      <div class="wqa-row-grid">
-        <!-- Reference-only, and it stays: beside the size, never inside it,
-             read by nothing that computes. It has no place on a row of
-             numbers that all feed the weight, so it lives here. -->
-        <div class="field wqa-f-tref"><label>${escHtml(dcT('wqaThreadRef'))}</label>
-          <input type="text" class="wqa-tref-in" value="${escHtml(r.threadRef||'')}"
-                 placeholder="${escHtml(dcThreadRefHint(r.size))}"
-                 oninput="wqaEdit(${i},'threadRef',this.value)"
-                 onchange="wqaEditThreadRef(${i},this)">
-          <small class="wqa-hint-sm">${escHtml(dcT('wqaThreadRefNote'))}</small></div>
-      </div>
-      <div class="wqa-sec-lbl">${escHtml(dcT('secSpecification'))}</div>
-      <div class="wqa-row-grid">
-        <div class="field"><label>${escHtml(dcT('fieldProduct'))}</label>
-          <select onchange="wqaEditRowProduct(${i},this.value)">
-            <option value=""${wqaRowProduct(r)?'':' selected'}>${escHtml(dcT('optRequired'))}</option>
-            ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===wqaRowProduct(r)?' selected':''}>${p.label}</option>`).join('')}
-          </select></div>
-        ${r.bodyDia?`<div class="field"><label >${escHtml(dcT('wqaBodyDia'))}</label>
-          <input type="text" inputmode="decimal" value="${escHtml(r.bodyDia)}"
-                 oninput="wqaEdit(${i},'bodyDia',this.value)"
-                 onblur="wqaCalcField(this,${i},'bodyDia')"
-                 onkeydown="if(event.key==='Enter'){event.preventDefault();wqaCalcField(this,${i},'bodyDia');}"></div>`:''}
-        ${r.radius?`<div class="field"><label>${escHtml(dcT('wqaRadius'))}</label>
-          <input type="text" value="${escHtml(r.radius)}" disabled>
-          <small class="wqa-hint-sm">${escHtml(dcT('wqaEvidenceOnly'))}</small></div>`:''}
-        <div class="field"><label>${escHtml(dcT('fieldMaterial'))}</label>
-          <select onchange="wqaEditRowSpec(${i},'material',this.value)">${wqaMaterialOptions(wqaRowSpec(r,'material'),wqaRowProduct(r))}</select></div>
-        <div class="field"><label>${escHtml(dcT('lblFinish'))}</label>
-          <select onchange="wqaEditRowSpec(${i},'finish',this.value)"${wqaNoFinish(wqaRowSpec(r,'material'))?' disabled':''}>
-            ${(wqaNoFinish(wqaRowSpec(r,'material'))?['']:['','PL','ZP','HDG'])
-               .map(v=>`<option value="${v}"${wqaRowSpec(r,'finish')===v?' selected':''}>${v||'N/A'}</option>`).join('')}
-          </select></div>
-        ${(rprod.needSizeType && dcProductHasSizeType(wqaRowProduct(r)))?`<div class="field"><label>${escHtml(dcT('fieldSizeType'))}</label>
-          <select onchange="wqaEditRowSpec(${i},'sizeType',this.value)">
-            ${[['','—'],['FULLSIZE','Fullsize'],['UNDERSIZE','Undersize']].map(o=>`<option value="${o[0]}"${wqaRowSpec(r,'sizeType')===o[0]?' selected':''}>${escHtml(o[1])}</option>`).join('')}
-          </select></div>`:''}
-      </div>
-      <div class="wqa-sec-lbl wqa-sec-pricing">${escHtml(dcT('secPricing'))}</div>
-      <div class="wqa-row-grid wqa-price-grid">
-        <div class="field"><label>${escHtml(dcT('lblCostRate'))}</label><input type="text" value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></div>
-        <div class="field"><label>${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></div>
-        <div class="field"><label>${escHtml(dcT('lblMarkup'))} (%)</label><input type="number" value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></div>
-        <div class="field"><label>${escHtml(dcT('lblPriceMode'))}</label>
-          <select onchange="wqaEditRowMode(${i},this.value)">${
-            WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')
-          }</select></div>
-        ${(r.priceMode||'auto')==='manual'?`<div class="field"><label>${escHtml(dcT('lblManualUnitPrice'))}</label>
-          <input type="number" min="0" step="0.01" value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></div>`:''}
-      </div>
-      <div class="wqa-sec-lbl">${escHtml(dcT('secCalculation'))}</div>
-      <div class="wqa-weight-line">
-        <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('fieldDiameter'))}</span>
-          <span class="wqa-w-val wqa-actual-dia">${escHtml(wqaDiaText(r))}${
-            r.diaManual&&String(r.diaMm||'').trim()!==''?' · '+escHtml(dcT('diaManual')):''}</span></span>
-        <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('lblUnitWeight'))}</span>
-          <span class="wqa-w-val wqa-uw-full">${wqaFmtWeight(calc.weight)}</span></span>
-        <span class="wqa-w-item"><span class="wqa-w-lbl">${escHtml(dcT('lblTotalWeight'))}</span>
-          <span class="wqa-w-val wqa-tw">${wqaFmtTotalWeight(calc.weight,r.qty)}</span></span>
-      </div>
-      <div class="wqa-row-acc">
-        <button type="button" class="wqa-acc-bar" onclick="wqaToggleAccOpen(${i})">
-          <span class="wqa-acc-arrow">${r.accOpen?'▾':'▸'}</span>
-          <span class="wqa-acc-bar-lbl">${escHtml(dcT('lblAccessoriesColon'))}</span>
-          <span class="wqa-acc-bar-sum${wqaAccHas(r.acc)?' has':''}">${escHtml(wqaAccShortSummary(r.acc))}</span>
-          ${accAddon(r.acc)>0?`<span class="wqa-acc-bar-money">+ ${escHtml(fmt(accAddon(r.acc)))}/pc</span>`:''}
-          <span class="wqa-panel-badge"${wqaAccActiveCount(r.acc)?'':' hidden'}>${wqaAccActiveCount(r.acc)?escHtml(dcT('nActive').replace('{n}',wqaAccActiveCount(r.acc))):''}</span>
-        </button>
-        ${r.accOpen?wqaAccEditor(r.acc||wqaEmptyAcc(),(g,f,v)=>`wqaEditAcc(${i},'${g}','${f}',${v})`):''}
-      </div>
-      <div class="wqa-row-raw-full">${escHtml(r.raw)}</div>
+/* ── How a value reads on the row ──────────────────────────────────────── */
+function wqaRvTokVal(r,f){
+  if(f==='size')      return sizeDisplay(r.size)||'';
+  if(f==='threadLen') return wqaThreadValue(r)||'';
+  if(f==='qty')       return String(r.qty==null?'':r.qty);
+  return String(r[f]==null?'':r[f]);
+}
+function wqaRvTokLbl(r,f){
+  if(f==='size') return '';
+  if(f==='qty')  return dcT('lblQty');
+  return wqaDimLabel(wqaRowProduct(r),f);
+}
+/* One value on the row: a button that is the way into its own box. */
+function wqaRvTok(r,i,f){
+  const v=wqaRvTokVal(r,f), lbl=wqaRvTokLbl(r,f);
+  const cls='wqa-tok wqa-tok-'+f;
+  const vcls=(f==='size'?' wqa-c-size':'')+(f==='qty'?' wqa-c-qty':'');
+  if(wqa.ix && wqa.ix.i===i && wqa.ix.f===f){
+    const kind=wqaIxKind(f);
+    const cur=wqaEditCellValue(r,{k:f,kind});
+    const mode=(kind==='dim'||kind==='qty')?'decimal':'text';
+    return `<span class="${cls} is-ix">${lbl?`<span class="wqa-tok-k">${escHtml(lbl)}</span>`:''}<input class="wqa-ix" type="text"
+        inputmode="${f==='size'?'text':mode}" autocomplete="off" spellcheck="false" data-ef="${f}" data-ixid="${escHtml(wqa.ix.id||'')}"
+        value="${escHtml(String(cur==null?'':cur))}" aria-label="${escHtml(lbl||dcT('lblSize'))}"
+        onclick="event.stopPropagation()" oninput="wqaIxInput(${i},'${f}',this)"
+        onkeydown="wqaIxKey(event,${i},'${f}')" onblur="wqaIxBlur(event,${i},'${f}')"></span>`;
+  }
+  const miss=!String(v).trim();
+  const name=f==='size'?dcT('lblSize'):lbl;
+  return `<button type="button" class="${cls}${miss?' is-miss':''}" data-tok="${f}"
+      title="${escHtml(dcT('wqaRvTapEdit').replace('{f}',name))}"
+      onclick="event.stopPropagation();wqaIxOpen(${i},'${f}')">${lbl?`<span class="wqa-tok-k">${escHtml(lbl)}</span>`:''}<span class="wqa-tok-v${vcls}">${escHtml(miss?(f==='size'?dcT('lblSize')+' ?':'?'):v)}</span></button>`;
+}
+/* The spec line, in the drawing's order: M10 × L1070 × TL70/70. A series
+   row leaves out what its heading already says. */
+function wqaRvSpecToks(r,i,skip){
+  const order=wqaIxOrder(r).filter(f=>f!=='qty' && !(skip&&skip.indexOf(f)>=0));
+  return order.map(f=>wqaRvTok(r,i,f)).join('<span class="wqa-tok-x">×</span>');
+}
+function wqaRvNum(v){
+  const s=String(v==null?'':v).trim();
+  if(!s) return '—';
+  const n=Number(s);
+  return isFinite(n)?n.toFixed(2):s;
+}
+/* 成本 4.20 · 加工费 0.60 · Markup 0% — or, for a stated price, what it is. */
+function wqaRvPxText(r){
+  const c=r.calc||{}, mode=r.priceMode||'auto';
+  if(mode==='manual')
+    return dcT('pmManualPrice')+' '+(String(r.manualPrice||'').trim()?'RM'+wqaRvNum(r.manualPrice):'—');
+  return [dcT('rvCost')+' '+wqaRvNum(c.costRate), dcT('rvAdd')+' '+wqaRvNum(c.addCost),
+          dcT('sumMarkup')+' '+wqaMetaPct(c.markup)].join(' · ')
+       + (mode==='no_round'?' · '+dcT('pmNoRound'):'');
+}
+function wqaRvHistBtn(r,i){
+  return `<button type="button" class="wqa-rv-act wqa-row-hist${r.histOpen?' is-on':''}"
+      aria-expanded="${r.histOpen?'true':'false'}" title="${escHtml(dcT('tipItemHistory'))}"
+      onclick="event.stopPropagation();wqaHistToggle(${i})">${escHtml(dcT('phTitle'))}${wqaHistCountLabel(r)}</button>`;
+}
+function wqaRvDelBtn(i){
+  return `<button type="button" class="wqa-rv-act wqa-row-del" title="${escHtml(dcT('btnRemove'))}"
+      aria-label="${escHtml(dcT('ariaRemoveItem').replace('{n}',i+1))}"
+      onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>`;
+}
+function wqaRvMoreBtn(r,i){
+  const open=wqaRowIsOpen(r);
+  return `<button type="button" class="wqa-rv-act wqa-rv-more${open?' is-on':''}" aria-expanded="${open?'true':'false'}"
+      title="${escHtml(dcT(open?'wqaRvLess':'wqaRvMore'))}" aria-label="${escHtml(dcT(open?'wqaRvLess':'wqaRvMore'))}"
+      onclick="event.stopPropagation();wqaToggleRow(${i})"><span aria-hidden="true">${open?'▴':'▾'}</span></button>`;
+}
+/* Things worth saying under the row, on one thin line, only when there are
+   any: where the price came from, the accessories it carries, a typed bar,
+   and the row's own warnings. */
+function wqaRvSubHtml(r,i){
+  const bits=[];
+  const prov=wqaProvBtnHtml(r,i);
+  if(prov) bits.push(prov);
+  if(wqaAccHas(r.acc))
+    bits.push(`<button type="button" class="wqa-rv-chip wqa-rv-acc" onclick="event.stopPropagation();wqaRvOpenAcc(${i})">${
+      escHtml(dcT('lblAccessoriesColon'))} ${escHtml(wqaAccShortSummary(r.acc))}${accAddon(r.acc)>0?' · +'+escHtml(fmt(accAddon(r.acc)))+'/pc':''}</button>`);
+  if(r.diaManual && String(r.diaMm||'').trim()!=='')
+    bits.push(`<span class="wqa-rv-chip">${escHtml(dcT('fieldDiameter'))} ${escHtml(String(r.diaMm))} · ${escHtml(dcT('diaManual'))}</span>`);
+  const badges=wqaBadgeHtml(r);
+  return `<div class="wqa-it-sub"${(bits.length||badges)?'':' hidden'}>${bits.join('')}<span class="wqa-sum-badges">${badges}</span></div>`;
+}
+function wqaRvOpenAcc(i){
+  const r=wqa.rows[i]; if(!r) return;
+  wqa.rows.forEach(o=>{ if(o!==r) o.open=false; });
+  r.open=true; r.accOpen=true; wqa.ix=null; wqa.px=null;
+  wqaRenderRows(true);
+}
+/* The bar the weight is made of, beside the weight. Pressing it opens the
+   item's panel on its Diameter box; "Manual" when a person typed it. */
+function wqaRvDiaHtml(r,i){
+  const manual=!!r.diaManual && String(r.diaMm||'').trim()!=='';
+  return `<button type="button" class="wqa-rv-dia${manual?' is-manual':''}" data-cell="dia"
+      title="${escHtml(dcT(manual?'diaManual':'diaDefault'))}"
+      onclick="event.stopPropagation();wqaIxOpen(${i},'dia')"><span class="wqa-tok-k">${escHtml(dcT('fieldDiameter'))}</span> <span class="wqa-c-dia">${escHtml(wqaDiaText(r))}</span>${
+      manual?`<span class="wqa-dia-tag"> · ${escHtml(dcT('diaManualShort'))}</span>`:''}</button>`;
+}
+/* ── Pricing, opened from the pricing line ────────────────────────────────
+   The same four values and the same handlers the expanded form always had,
+   in a strip under the row. Typing patches the price beside it live. */
+function wqaPxToggle(i){
+  if(wqa.selMode){ wqaRvToggleSel(i); return; }
+  const r=wqa.rows[i]; if(!r) return;
+  if(wqaRvMobile() || r.open){
+    if(!r.open){ wqa.rows.forEach(o=>{ if(o!==r) o.open=false; }); r.open=true; wqaRenderRows(true); }
+    wqaRvFocus(i,'[data-px="costRate"]');
+    return;
+  }
+  wqa.ix=null;
+  wqa.px = wqa.px===i ? null : i;
+  wqaRenderRows(true);
+  if(wqa.px===i) wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'costRate')+'"]');
+}
+function wqaRvPxEditor(r,i){
+  const calc=r.calc||{}, mode=r.priceMode||'auto';
+  return `<div class="wqa-px-grid">
+      <label class="wqa-px-f"><span>${escHtml(dcT('fieldCostRate'))}</span><input type="text" inputmode="decimal" data-px="costRate"
+        value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></label>
+      <label class="wqa-px-f"><span>${escHtml(dcT('fieldAdditionalCost'))}</span><input type="text" inputmode="decimal" data-px="addCost"
+        value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></label>
+      <label class="wqa-px-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="text" inputmode="decimal" data-px="markup"
+        value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></label>
+      <label class="wqa-px-f"><span>${escHtml(dcT('lblPriceMode'))}</span><select data-px="priceMode" onchange="wqaEditRowMode(${i},this.value)">${
+        WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${mode===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')}</select></label>
+      ${mode==='manual'?`<label class="wqa-px-f"><span>${escHtml(dcT('lblManualUnitPrice'))}</span><input type="text" inputmode="decimal" data-px="manualPrice"
+        value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></label>`:''}
     </div>`;
-
-    return `<div class="wqa-row${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}" data-wqa-row="${i}">
-      <!-- The row itself is a button that opens its expanded form. While the
-           edit grid is open that is the other write surface, so it leaves the
-           tab order: tabbing off the last cell of a row must land on the first
-           cell of the next one, not on the row it just left. -->
-      <div class="wqa-sum" role="button" tabindex="${wqaEditing()?-1:0}" aria-expanded="${open?'true':'false'}"
-           onclick="wqaToggleRow(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wqaToggleRow(${i});}">
-        <span class="wqa-sum-no"><input type="checkbox" class="wqa-pick"${r.sel?' checked':''}
-                 onclick="event.stopPropagation()" ${wqaEditing()?'disabled':''}
-                 onchange="wqaToggleRowSel(${i})"
-                 aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}"><span class="wqa-sum-n">${i+1}</span></span>
-        ${wqaCompactCells(r,cols)}
-        <!-- Slack lives here, so the actions sit at the right edge whatever a
-             product's dimensions come to. -->
-        <span class="wqa-sum-gap"></span>
-        <!-- ONE cell for all three actions. They used to be three grid tracks
-             of their own, which made the layout depend on how many actions
-             there are: adding History pushed the delete off the end of a J Bolt
-             row entirely. A single track cannot do that. -->
-        <!-- Controls that look like controls. Edit was a span with no border
-             and no hit area of its own; History gave no sign of being open;
-             neither could be reached from a keyboard without going through the
-             row underneath. All three are buttons now, at a size a finger can
-             actually land on, with hover, pressed, focus and open states. -->
-        <span class="wqa-sum-actions">
-          ${wqa.view==='expanded' ? '' : `<button type="button" class="wqa-row-act wqa-row-details${open?' is-on':''}"
-                  aria-expanded="${open?'true':'false'}"
-                  onclick="event.stopPropagation();wqaToggleRow(${i})">${escHtml(dcT(open?'close':'btnDetails'))}</button>`}
-          <button type="button" class="wqa-row-act wqa-row-hist${r.histOpen?' is-on':''}"
-                  title="${escHtml(dcT('tipItemHistory'))}" aria-expanded="${r.histOpen?'true':'false'}"
-                  onclick="event.stopPropagation();wqaHistToggle(${i})">${escHtml(dcT('btnHistory'))}${
-                    wqaHistCountLabel(r)}<span class="wqa-row-caret">${r.histOpen?'▲':''}</span></button>
-          <button type="button" class="wqa-row-act wqa-row-del" title="${escHtml(dcT('btnRemove'))}" aria-label="${escHtml(dcT('ariaRemoveItem').replace('{n}',i+1))}"
-                  onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>
-        </span>
-      </div>
-      ${wqaRowStatusLine(r)}
-      ${wqaRowMetaHtml(r,i)}
-      ${body}
-      ${histHtml}
+}
+function wqaRvPxStrip(r,i){
+  return `<div class="wqa-px" onclick="event.stopPropagation()">
+      ${wqaRvPxEditor(r,i)}
+      <div class="wqa-px-foot"><button type="button" class="btn btn-outline btn-sm" onclick="wqaPxToggle(${i})">${escHtml(dcT('btnDone'))}</button></div>
     </div>`;
-  }).join('');
-  wqaRenderListHead();
+}
+/* ── The item's own panel ─────────────────────────────────────────────────
+   Everything the row has, editable, for the fields the row line does not
+   carry: product, material, finish, Size 规格, the bar, the thread note,
+   pricing, accessories. A phone edits every value here. */
+function wqaRvDetailIn(r,i,f,lbl){
+  const kind=wqaIxKind(f);
+  const v=wqaEditCellValue(r,{k:f,kind});
+  const dia=f==='dia';
+  return `<label class="wqa-dt-f${dia&&r.diaManual?' is-manual':''}"><span>${escHtml(lbl)}</span><input type="text" data-ef="${f}"${dia&&r.diaManual?' class="is-manual-dia"':''}
+      inputmode="${kind==='size'||kind==='thread'?'text':'decimal'}" autocomplete="off" spellcheck="false"
+      value="${escHtml(String(v==null?'':v))}"${dia?` placeholder="${escHtml(String(r.diaMm||''))}" title="${escHtml(dcT(r.diaManual?'diaManual':'diaDefault'))}"`:''}
+      onfocus="wqaDtFocus(${i},'${f}')" oninput="wqaIxInput(${i},'${f}',this)" onkeydown="wqaDtKey(event,${i},'${f}',this)"
+      onchange="wqaRvDetailSet(${i},'${f}',this)"></label>`;
+}
+function wqaDtFocus(i,f){
+  const r=wqa.rows[i]; if(!r) return;
+  /* Taken on every entry, so Escape returns what THIS visit opened on. */
+  wqa._dt={i,f,snap:wqaIxSnap(r)};
+}
+function wqaDtKey(ev,i,f,inp){
+  if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); return; }
+  if(ev.key!=='Escape') return;
+  ev.preventDefault(); ev.stopPropagation();
+  const d=wqa._dt; if(!d||d.i!==i||d.f!==f) return;
+  wqaIxRestore(i,d.snap);
+  const r=wqa.rows[i];
+  inp.value=String(wqaEditCellValue(r,{k:f,kind:wqaIxKind(f)})==null?'':wqaEditCellValue(r,{k:f,kind:wqaIxKind(f)}));
+  inp.classList.remove('is-bad');
+  wqaRecomputeAll('patch');
+}
+/* The value is already on the row — every keystroke put it there. Leaving
+   the box settles it (arithmetic, the canonical size) and says whether it is
+   one a person could mean; a bad one stays visible and marked, exactly as the
+   grid left it, and the row asks for it. */
+function wqaRvDetailSet(i,f,inp){
+  const d=wqa._dt; wqa._dt=null;
+  const err=wqaIxSettle(i,f,inp);
+  if(err){
+    /* Left holding a value nobody could mean (a 0mm bar, letters for a
+       length): the value the box was entered with comes back, as it does on
+       the row line, and the toast says why. It is never left on the row. */
+    showToast(err);
+    if(d && d.i===i && d.f===f) wqaIxRestore(i,d.snap);
+    const r0=wqa.rows[i];
+    if(r0) inp.value=String(wqaEditCellValue(r0,{k:f,kind:wqaIxKind(f)})==null?'':wqaEditCellValue(r0,{k:f,kind:wqaIxKind(f)}));
+    inp.classList.remove('is-bad'); inp.title='';
+    wqaRecomputeAll('patch');
+    return;
+  }
+  inp.classList.remove('is-bad'); inp.title='';
+  wqaRecomputeAll('patch');
+  const r=wqa.rows[i];
+  if(r && f!=='dia') inp.value=String(wqaEditCellValue(r,{k:f,kind:wqaIxKind(f)})||'');
+  if(WQA_RV_KEY_FIELDS.indexOf(f)>=0) setTimeout(()=>{ if(!wqaTypingIn(el('wqaRows'))) wqaRenderRows(true); },320);
+}
+/* A select commits as it changes, and may change what the panel offers — a
+   stainless row has no finish — so it redraws. */
+function wqaRvSpec(i,k,v){
+  if(k==='product'){ wqaEditRowProduct(i,v); return; }
+  wqaEditRowSpec(i,k,v);
+  clearTimeout(wqa._t); wqa._t=null;
+  wqaRecomputeAll('force');
+}
+function wqaRvDetail(r,i){
+  const t=wqaRowProduct(r);
+  const rprod=wqaProductByType(t)||wqaProductByType(wqa.product)||WQA_NO_PRODUCT;
+  const calc=r.calc||{};
+  const mat=wqaRowSpec(r,'material');
+  const dims=(rprod.dims||[]).filter(d=>d!=='size').map(d=>
+    wqaRvDetailIn(r,i,d,d==='threadLen'?dcT('lblThreadLength'):(d==='length'?dcT('fieldLength'):wqaDimLabel(t,d))));
+  return `<div class="wqa-rv-detail" onclick="event.stopPropagation()">
+    <div class="wqa-dt-sec">${escHtml(dcT('secSpecification'))}</div>
+    <div class="wqa-dt-grid">
+      <label class="wqa-dt-f"><span>${escHtml(dcT('fieldProduct'))}</span>
+        <select data-ef="product" onchange="wqaRvSpec(${i},'product',this.value)">
+          <option value=""${t?'':' selected'}>${escHtml(dcT('optRequired'))}</option>
+          ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${p.type===t?' selected':''}>${p.label}</option>`).join('')}
+        </select></label>
+      <label class="wqa-dt-f"><span>${escHtml(dcT('fieldMaterial'))}</span>
+        <select data-ef="material" onchange="wqaRvSpec(${i},'material',this.value)">${wqaMaterialOptions(mat,t)}</select></label>
+      <label class="wqa-dt-f"><span>${escHtml(dcT('lblFinish'))}</span>
+        <select data-ef="finish" onchange="wqaRvSpec(${i},'finish',this.value)"${wqaNoFinish(mat)?' disabled':''}>
+          ${(wqaNoFinish(mat)?['']:['','PL','ZP','HDG']).map(v=>`<option value="${v}"${wqaRowSpec(r,'finish')===v?' selected':''}>${v||'N/A'}</option>`).join('')}
+        </select></label>
+      ${(rprod.needSizeType && dcProductHasSizeType(t))?`<label class="wqa-dt-f"><span>${escHtml(dcT('fieldSizeType'))}</span>
+        <select data-ef="sizeType" onchange="wqaRvSpec(${i},'sizeType',this.value)">
+          ${[['','—'],['FULLSIZE','Fullsize'],['UNDERSIZE','Undersize']].map(o=>`<option value="${o[0]}"${wqaRowSpec(r,'sizeType')===o[0]?' selected':''}>${escHtml(o[1])}</option>`).join('')}
+        </select></label>`:''}
+      ${wqaRvDetailIn(r,i,'size',dcT('lblSize'))}
+      ${wqaRvDetailIn(r,i,'dia',dcT('fieldDiameter'))}
+      ${dims.join('')}
+      ${wqaRvDetailIn(r,i,'qty',dcT('lblQty'))}
+      <label class="wqa-dt-f wqa-dt-tref"><span>${escHtml(dcT('wqaThreadRef'))}</span>
+        <input type="text" class="wqa-tref-in" value="${escHtml(r.threadRef||'')}" placeholder="${escHtml(dcThreadRefHint(r.size))}"
+               oninput="wqaEdit(${i},'threadRef',this.value)" onchange="wqaEditThreadRef(${i},this)">
+        <small class="wqa-hint-sm">${escHtml(dcT('wqaThreadRefNote'))}</small></label>
+      ${r.bodyDia?`<label class="wqa-dt-f"><span>${escHtml(dcT('wqaBodyDia'))}</span>
+        <input type="text" inputmode="decimal" value="${escHtml(r.bodyDia)}" oninput="wqaEdit(${i},'bodyDia',this.value)"></label>`:''}
+      ${r.radius?`<label class="wqa-dt-f"><span>${escHtml(dcT('wqaRadius'))}</span>
+        <input type="text" value="${escHtml(r.radius)}" disabled><small class="wqa-hint-sm">${escHtml(dcT('wqaEvidenceOnly'))}</small></label>`:''}
+    </div>
+    <div class="wqa-dt-sec">${escHtml(dcT('sumPricing'))}</div>
+    ${wqaRvPxEditor(r,i)}
+    <div class="wqa-dt-weights">
+      <span><span class="wqa-w-lbl">${escHtml(dcT('lblUnitWeight'))}</span> <b class="wqa-uw-full">${wqaFmtWeight(calc.weight)}</b></span>
+      <span><span class="wqa-w-lbl">${escHtml(dcT('lblTotalWeight'))}</span> <b class="wqa-tw">${wqaFmtTotalWeight(calc.weight,r.qty)}</b></span>
+      <span><span class="wqa-w-lbl">${escHtml(dcT('fieldDiameter'))}</span> <b class="wqa-actual-dia">${escHtml(wqaDiaText(r))}</b></span>
+    </div>
+    <div class="wqa-row-acc">
+      <button type="button" class="wqa-acc-bar" onclick="wqaToggleAccOpen(${i})">
+        <span class="wqa-acc-arrow">${r.accOpen?'▾':'▸'}</span>
+        <span class="wqa-acc-bar-lbl">${escHtml(dcT('lblAccessoriesColon'))}</span>
+        <span class="wqa-acc-bar-sum${wqaAccHas(r.acc)?' has':''}">${escHtml(wqaAccShortSummary(r.acc))}</span>
+        ${accAddon(r.acc)>0?`<span class="wqa-acc-bar-money">+ ${escHtml(fmt(accAddon(r.acc)))}/pc</span>`:''}
+        <span class="wqa-panel-badge"${wqaAccActiveCount(r.acc)?'':' hidden'}>${wqaAccActiveCount(r.acc)?escHtml(dcT('nActive').replace('{n}',wqaAccActiveCount(r.acc))):''}</span>
+      </button>
+      ${r.accOpen?wqaAccEditor(r.acc||wqaEmptyAcc(),(g,f,v)=>`wqaEditAcc(${i},'${g}','${f}',${v})`):''}
+    </div>
+    ${String(r.raw||'').trim()?`<div class="wqa-row-raw-full"><span class="wqa-w-lbl">${escHtml(dcT('wqaRvFromLine'))}</span> ${escHtml(r.raw)}</div>`:''}
+    <div class="wqa-dt-foot">
+      ${wqaRvHistBtn(r,i)}
+      <button type="button" class="btn btn-ghost btn-sm wqa-dt-del" onclick="wqaRemoveRow(${i})">${escHtml(dcT('btnRemove'))}</button>
+      <button type="button" class="btn btn-outline btn-sm" onclick="wqaToggleRow(${i})">${escHtml(dcT('btnDone'))}</button>
+    </div>
+  </div>`;
+}
+/* The history panel for a row: the records themselves, exactly as before. */
+function wqaRvHistHtml(r,i){
+  const hist=r.hist;
+  if(!r.histOpen) return '';
+  if(hist===undefined) return '<div class="wqa-hist">'+escHtml(dcT('phLoading'))+'</div>';
+  if(hist && hist.failed) return '<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
+  if(!hist || !hist.records || !hist.records.length) return '<div class="wqa-hist wqa-hist-none">'+escHtml(dcT('phNoneExact'))+'</div>';
+  const own=hist.ownTotal||0, other=hist.otherTotal||0;
+  return `<div class="wqa-hist wqa-hist-panel" onclick="event.stopPropagation()">
+    <button type="button" class="wqa-hist-bar" onclick="wqaHistToggle(${i})">
+      <span class="wqa-hist-arrow">▾</span>
+      <span class="wqa-hist-lbl">${escHtml(dcT('phTitle'))}</span>
+      <span class="wqa-hist-count">${escHtml(dcT((hist.total||hist.records.length)===1?'phRecordCount':'phRecordCountPlural').replace('{n}',hist.total||hist.records.length))}${own?' · '+escHtml(dcT('phThisCustomer').replace('{n}',own)):''}${other?' · '+escHtml(dcT('phOther').replace('{n}',other)):''}</span>
+    </button>
+    ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,(rec,n)=>wqaHistRecExtra(i,n,rec))}
+  </div>`;
+}
+function wqaRvSpecText(r){
+  const show=wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('sizeType')||wqaIsMixed('product')
+           ||r.bodyDia||(r.dimNorm&&r.dimNorm.length);
+  if(!show) return '';
+  const bits=[];
+  const m=wqaRowSpec(r,'material');
+  bits.push(m?materialLabel(m):dcT('needs').replace('{f}',dcT('fieldMaterial')));
+  const f=wqaRowSpec(r,'finish');
+  if(f) bits.push(f); else if(wqaNoFinish(m)) bits.push('N/A');
+  if(dcProductHasSizeType(wqaRowProduct(r))){ const st=wqaSizeTypeWord(r); if(st) bits.push(st); }
+  if(r.bodyDia) bits.push(dcT('wqaBodyDia')+' '+r.bodyDia+'mm');
+  if(r.dimNorm&&r.dimNorm.length) bits.push(wqaDimNormText(r));
+  return bits.join(' · ');
+}
+/* ── One item ─────────────────────────────────────────────────────────────
+   `series` is the heading this row is drawn under, or null for an item that
+   stands alone. A series row leaves out what its heading says. */
+function wqaRvItemHtml(r,i,series){
+  const miss=wqaRowMissing(r);
+  const open=wqaRowIsOpen(r);
+  const calc=r.calc||{};
+  const prod=wqaProductByType(wqaRowProduct(r));
+  const title=prod?prod.label:dcT('needs').replace('{f}',dcT('fieldProduct'));
+  const spec=series?'':wqaRvSpecText(r);
+  /* In a series the heading states the pricing most of its rows share; a row
+     says its own only when it differs — which is exactly the row to look at. */
+  const showPx=!series || wqa.px===i || wqaRvPxText(r)!==series.px;
+  const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick"${r.sel?' checked':''}
+      onclick="event.stopPropagation()" onchange="wqaRvToggleSel(${i})"
+      aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
+  const toks=wqaRvSpecToks(r,i,series?WQA_RV_KEY_FIELDS:null);
+  return `<div class="wqa-it${series?' wqa-it-s':''}${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}${wqa.px===i?' is-px':''}" data-wqa-row="${i}">
+    <div class="wqa-it-main" onclick="wqaRvRowClick(${i})">
+      <span class="wqa-it-no">${pick}<span class="wqa-it-n">${i+1}</span></span>
+      <div class="wqa-it-spec">
+        ${series?'':`<div class="wqa-it-title"><span class="wqa-it-prod">${escHtml(title)}</span>${spec?`<span class="wqa-row-spec">${escHtml(spec)}</span>`:''}</div>`}
+        <div class="wqa-it-toks">${toks||'<span class="wqa-tok-none">—</span>'}</div>
+      </div>
+      <div class="wqa-it-fig">
+        <span class="wqa-fig wqa-fig-qty">${wqaRvTok(r,i,'qty')}</span>
+        <button type="button" class="wqa-fig wqa-fig-price" onclick="event.stopPropagation();wqaPxToggle(${i})"
+          title="${escHtml(dcT('sumPricing'))}"><span class="wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
+        <span class="wqa-fig wqa-fig-w"><span class="wqa-uw wqa-uw-full" data-tw="${escHtml(wqaFmtTotalWeight(calc.weight,r.qty))}"
+          title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span>${
+          (!series || (r.diaManual && String(r.diaMm||'').trim()!=='')) ? wqaRvDiaHtml(r,i) : ''}</span>
+      </div>
+      ${showPx?`<button type="button" class="wqa-it-px${series?' is-own':''}" onclick="event.stopPropagation();wqaPxToggle(${i})"
+        aria-expanded="${wqa.px===i?'true':'false'}"><span class="wqa-px-sum">${escHtml(wqaRvPxText(r))}</span></button>`
+        :'<span class="wqa-it-px is-shared" aria-hidden="true"></span>'}
+      <span class="wqa-it-acts">${wqaRvHistBtn(r,i)}${wqaRvDelBtn(i)}${wqaRvMoreBtn(r,i)}</span>
+    </div>
+    ${wqaRvSubHtml(r,i)}
+    ${(!open && wqa.px===i)?wqaRvPxStrip(r,i):''}
+    ${open?wqaRvDetail(r,i):''}
+    ${wqaRvHistHtml(r,i)}
+  </div>`;
+}
+/* A press on the row itself, not on a value: open its panel — or, while
+   selecting, tick it. */
+function wqaRvRowClick(i){
+  if(wqa.selMode){ wqaRvToggleSel(i); return; }
+  wqa.ix=null; wqa.px=null;
+  wqaToggleRow(i);
+}
+/* ── Series ───────────────────────────────────────────────────────────────
+   Rows next to each other that agree on everything except their geometry,
+   quantity and price. Product, material, finish, Size 规格, the thread size
+   and TL are the same by construction, so they are said once above them. */
+function wqaRvGroupKey(r){
+  return JSON.stringify([wqaRowProduct(r),wqaRowSpec(r,'material'),wqaRowSpec(r,'finish'),
+    wqaRowSpec(r,'sizeType'),String(r.size||''),wqaThreadValue(r),wqaAccShortSummary(r.acc),
+    !!r.unsupported,!!r.productConflict]);
+}
+/* Is this row drawn under a series heading? Then its size and TL live in the
+   heading, and are edited in the row's own panel. */
+function wqaRvInSeries(i){
+  return wqaRvGroups().some(g=>g.idx.length>1 && g.idx.indexOf(i)>=0);
+}
+function wqaRvGroups(){
+  const out=[];
+  wqa.rows.forEach((r,i)=>{
+    if(r.removed) return;
+    const k=wqaRvGroupKey(r), g=out[out.length-1];
+    if(g && g.key===k) g.idx.push(i); else out.push({key:k, idx:[i]});
+  });
+  return out;
+}
+function wqaRvSeriesHead(g){
+  const r=wqa.rows[g.idx[0]];
+  const prod=wqaProductByType(wqaRowProduct(r));
+  const bits=[];
+  /* The material, finish and Size 规格 are already said once for the whole
+     list at the top — repeated here only when the list disagrees. */
+  const spec=wqaRvSpecText(r); if(spec) bits.push(spec);
+  const size=sizeDisplay(r.size);
+  const tl=wqaThreadValue(r);
+  const head=[size?`<b>${escHtml(size)}</b>`:`<b class="is-miss">${escHtml(dcT('lblSize'))} ?</b>`];
+  if(wqaThreadEnds(wqaRowProduct(r))>0) head.push(tl?`<b>TL ${escHtml(tl)}</b>`:`<b class="is-miss">TL ?</b>`);
+  /* Same size, same Size 规格: the same bar. Said once; a row with a bar
+     typed by hand says its own. */
+  const bar=g.idx.map(k=>wqa.rows[k]).find(x=>!x.diaManual);
+  if(bar && String(bar.diaMm||'').trim()!=='') head.push(`<span class="wqa-ser-dia">${escHtml(dcT('fieldDiameter'))} ${escHtml(wqaDiaText(bar))}</span>`);
+  if(wqaAccHas(r.acc)) head.push(escHtml(dcT('lblAccessoriesColon'))+' '+escHtml(wqaAccShortSummary(r.acc)));
+  const all=g.idx.every(k=>wqa.rows[k].sel);
+  const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick wqa-pick-ser"${all?' checked':''}
+      onchange="wqaRvSelSeries('${g.idx.join(',')}',this.checked)" aria-label="${escHtml(dcT('wqaRvSelSeries'))}">`:'';
+  return `<div class="wqa-ser-head">${pick}
+      <span class="wqa-ser-title">${escHtml(prod?prod.label:dcT('needs').replace('{f}',dcT('fieldProduct')))}</span>
+      <span class="wqa-ser-spec">${head.join('<span class="wqa-tok-x">·</span>')}${bits.length?`<span class="wqa-row-spec">${escHtml(bits.join(' · '))}</span>`:''}</span>
+      <span class="wqa-ser-n">${escHtml(dcT('wqaRvSeriesN').replace('{n}',g.idx.length))}</span>
+      ${g.px?`<span class="wqa-ser-px">${escHtml(g.px)}</span>`:''}
+    </div>`;
+}
+function wqaRenderRows(force){
+  /* Structural, user-initiated changes always render. Only incidental
+     redraws — a debounced recompute, price history landing — step aside for
+     an active caret. */
+  if(!force && wqaTypingIn(el('wqaRows'))){ wqaPatchRows(); wqaDeferRender('rows'); return; }
+  const box=el('wqaRows'); if(!box) return;
+  /* Where focus was, so a redraw a person caused puts it back. */
+  const a=document.activeElement, card=a&&a.closest&&a.closest('[data-wqa-row]');
+  const back = (card && box.contains(card)) ? {row:card.getAttribute('data-wqa-row'),
+     ef:a.getAttribute('data-ef'), px:a.getAttribute('data-px'), tok:a.getAttribute('data-tok')} : null;
+  const groups=wqaRvGroups();
+  box.classList.toggle('is-sel',!!wqa.selMode);
+  box.innerHTML=groups.map(g=>{
+    if(g.idx.length<2) return wqaRvItemHtml(wqa.rows[g.idx[0]],g.idx[0],null);
+    /* The pricing most of this series shares. */
+    const tally={};
+    g.idx.forEach(k=>{ const t=wqaRvPxText(wqa.rows[k]); tally[t]=(tally[t]||0)+1; });
+    g.px=Object.keys(tally).sort((x,y)=>tally[y]-tally[x])[0]||'';
+    return `<div class="wqa-ser">${wqaRvSeriesHead(g)}<div class="wqa-ser-rows">${
+      g.idx.map(i=>wqaRvItemHtml(wqa.rows[i],i,g)).join('')}</div></div>`;
+  }).join('') || `<div class="wqa-rv-empty">${escHtml(dcT('wqaRvEmpty'))}</div>`;
+  if(back && !wqa.ix){
+    const c2=box.querySelector('[data-wqa-row="'+back.row+'"]');
+    const sel = back.ef ? '[data-ef="'+back.ef+'"]' : back.px ? '[data-px="'+back.px+'"]' : back.tok ? '[data-tok="'+back.tok+'"]' : '';
+    const n=c2&&sel?c2.querySelector(sel):null;
+    if(n){ try{ n.focus({preventScroll:true}); }catch(e){} }
+  }
+  wqaRvRenderHead();
   wqaApplyFlash();
   wqaUpdateAddButton();
-  wqaSyncEditLocks();
+}
+/* Read-only nodes only, so a focused input is never touched. */
+function wqaPatchRows(){
+  const box=el('wqaRows'); if(!box) return;
+  wqa.rows.forEach((r,i)=>{
+    if(r.removed) return;
+    const card=box.querySelector('[data-wqa-row="'+i+'"]'); if(!card) return;
+    const calc=r.calc||{};
+    card.classList.toggle('wqa-row-block',wqaRowMissing(r).length>0);
+    card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight(calc.weight); });
+    const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaFmtPrice(wqaShownPrice(r));
+    const tw=card.querySelector('.wqa-tw'); if(tw) tw.textContent=wqaFmtTotalWeight(calc.weight,r.qty);
+    const ad=card.querySelector('.wqa-actual-dia'); if(ad) ad.textContent=wqaDiaText(r);
+    card.querySelectorAll('.wqa-uw[data-tw]').forEach(n=>{ const t=wqaFmtTotalWeight(calc.weight,r.qty); n.dataset.tw=t; n.title=dcT('lblTotalWeight')+' '+t; });
+    const rd=card.querySelector('.wqa-rv-dia');
+    if(rd){ const t=document.createElement('span'); t.innerHTML=wqaRvDiaHtml(r,i); if(t.firstElementChild) rd.replaceWith(t.firstElementChild); }
+    const px=card.querySelector('.wqa-px-sum'); if(px) px.textContent=wqaRvPxText(r);
+    card.querySelectorAll('button[data-tok]').forEach(b=>{
+      const f=b.getAttribute('data-tok'); const v=wqaRvTokVal(r,f);
+      const vn=b.querySelector('.wqa-tok-v');
+      if(vn) vn.textContent = String(v).trim() ? v : (f==='size'?dcT('lblSize')+' ?':'?');
+      b.classList.toggle('is-miss',!String(v).trim());
+    });
+    /* The bar follows the size unless a person typed one, and never while it
+       is the box being typed in. */
+    const dIn=card.querySelector('[data-ef="dia"]');
+    if(dIn && !r.diaManual && document.activeElement!==dIn){
+      const want=String(r.diaMm==null?'':r.diaMm);
+      if(dIn.value!==want) dIn.value=want;
+    }
+    if(dIn){
+      dIn.classList.toggle('is-manual-dia',!!r.diaManual);
+      const lab=dIn.closest('.wqa-dt-f'); if(lab) lab.classList.toggle('is-manual',!!r.diaManual);
+      dIn.title=dcT(r.diaManual?'diaManual':'diaDefault');
+    }
+    const tin=card.querySelector('.wqa-tref-in'); if(tin) tin.placeholder=dcThreadRefHint(r.size);
+    const sub=card.querySelector('.wqa-it-sub');
+    if(sub){
+      const t=document.createElement('div'); t.innerHTML=wqaRvSubHtml(r,i);
+      const fresh=t.firstElementChild; if(fresh) sub.replaceWith(fresh);
+    }
+    wqaPatchRowAccBar(card,r);
+  });
+  wqaApplyFlash();
+  wqaUpdateAddButton();
+}
+
+/* ── The heading: count, actions, and selection ───────────────────────── */
+function wqaRvRenderHead(){
+  const acts=el('wqaRvActs');
+  const live=wqa.rows.filter(r=>!r.removed);
+  if(acts){
+    acts.innerHTML = wqa.selMode ? '' :
+      `<button type="button" class="btn btn-ghost btn-sm wqa-rv-selbtn" onclick="wqaSelEnter()"${live.length?'':' disabled'}>${escHtml(dcT('wqaRvSelect'))}</button>
+       <button type="button" class="btn btn-outline btn-sm wqa-rv-bulkbtn" onclick="wqaBulkSheetOpen()"${live.length?'':' disabled'}>${escHtml(dcT('wqaBulkEdit'))}</button>`;
+  }
+  const need=el('wqaRvNeed');
+  if(need){
+    let n=0; try{ n=wqaItemNeedCount(); }catch(e){}
+    need.hidden=!n || wqa.selMode;
+    need.innerHTML = n ? `<span>${escHtml(dcT('wqaRvNeedFix').replace('{n}',n))}</span>
+      <button type="button" class="btn btn-outline btn-sm" onclick="wqaBulkSheetOpen('all','size')">${escHtml(dcT('wqaBulkEdit'))}</button>` : '';
+  }
+  wqaRvRenderSelBar();
+}
+function wqaRvRenderSelBar(){
+  const bar=el('wqaSelBar'); if(!bar) return;
+  bar.hidden=!wqa.selMode;
+  if(!wqa.selMode){ bar.innerHTML=''; return; }
+  const n=wqaSelCount(), live=wqa.rows.filter(r=>!r.removed);
+  const all=live.length>0 && live.every(r=>r.sel);
+  bar.innerHTML=`<span class="wqa-selbar-n">${escHtml(dcT('wqaNSelected').replace('{n}',n))}</span>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="wqaRvSelAll()">${escHtml(dcT(all?'wqaRvSelNone':'wqaRvSelAll'))}</button>
+    <span class="wqa-selbar-gap"></span>
+    <button type="button" class="btn btn-outline btn-sm" ${n?'':'disabled'} onclick="wqaBulkSheetOpen('selected')">${escHtml(dcT('wqaBulkEdit'))}</button>
+    <button type="button" class="btn btn-outline btn-sm wqa-sel-del" ${n?'':'disabled'} onclick="wqaSelRemove()">${escHtml(dcT('wqaRvRemoveSel'))}</button>
+    <button type="button" class="btn btn-primary btn-sm" onclick="wqaSelExit()">${escHtml(dcT('btnDone'))}</button>`;
+}
+function wqaSelEnter(){ wqa.selMode=true; wqa.ix=null; wqa.px=null; wqaRenderRows(true); }
+/* Leaving Selection mode leaves nothing behind: no ticks, no bar. */
+function wqaSelExit(){ wqa.selMode=false; wqa.rows.forEach(r=>{ r.sel=false; }); wqaRenderRows(true); }
+function wqaRvToggleSel(i){
+  const r=wqa.rows[i]; if(!r||r.removed) return;
+  r.sel=!r.sel;
+  wqaRenderRows(true);
+}
+function wqaRvSelAll(){
+  const live=wqa.rows.filter(r=>!r.removed);
+  const want=!(live.length>0 && live.every(r=>r.sel));
+  live.forEach(r=>{ r.sel=want; });
+  wqaRenderRows(true);
+}
+function wqaRvSelSeries(list,on){
+  String(list||'').split(',').map(Number).forEach(k=>{ const r=wqa.rows[k]; if(r&&!r.removed) r.sel=!!on; });
+  wqaRenderRows(true);
+}
+function wqaSelRemove(){
+  const picked=wqa.rows.filter(r=>!r.removed&&r.sel);
+  if(!picked.length) return;
+  if(!confirm(dcT('wqaRvRemoveSelAsk').replace('{n}',picked.length))) return;
+  picked.forEach(r=>{ wqaMarkEdited(r,'removed'); r.removed=true; r.sel=false; });
+  wqa.selMode=false;
+  wqa.rows.forEach(r=>{ r.sel=false; });
+  wqaRenderRows(true);
+  showToast(dcT('wqaRvRemovedN').replace('{n}',picked.length));
+}
+
+/* ══ BULK ADJUST ═══════════════════════════════════════════════════════════
+   A scope — every item, or the ones ticked in Selection mode — and then each
+   field at No change. Apply hands what was changed, and only that, to the
+   bulk writers the review has always had (wqaApplyFixToAll, …ItemToAll,
+   …PriceToAll, …ManualPriceToAll, …AccToAll, wqaClearAllAcc), with the
+   scope those writers already obey. A field still at No change is never
+   handed over, so it cannot be written.                                    */
+function wqaBsEmpty(){
+  return {product:WQA_KEEP, material:WQA_KEEP, finish:WQA_KEEP, sizeType:WQA_KEEP,
+          size:'', thread:'', acc:WQA_KEEP,
+          costRate:'', addCost:'', markup:'', priceMode:WQA_KEEP, manualUnitPrice:''};
+}
+function wqaBulkSheetOpen(scope,focus){
+  const live=wqa.rows.filter(r=>!r.removed);
+  if(!live.length) return;
+  const sc = scope==='selected' || (scope!=='all' && wqa.selMode && wqaSelCount()>0) ? 'selected' : 'all';
+  wqa.bs={scope:sc, f:wqaBsEmpty(), acc:wqaEmptyAcc()};
+  wqa.ix=null; wqa.px=null;
+  el('wqaBulkSheet').hidden=false;
+  const md=document.querySelector('#wqaModal .wqa-modal'); if(md) md.classList.add('has-sheet');
+  wqaRenderBulkSheet();
+  setTimeout(()=>{ try{
+    const p=el('wqaBulkSheetPanel');
+    const n=focus?p.querySelector('[data-bs="'+focus+'"]'):p.querySelector('.wqa-bs-close');
+    if(n) n.focus();
+  }catch(e){} },30);
+}
+function wqaBulkSheetClose(){
+  wqa.bs=null;
+  const s=el('wqaBulkSheet'); if(s) s.hidden=true;
+  const p=el('wqaBulkSheetPanel'); if(p) p.innerHTML='';
+  const md=document.querySelector('#wqaModal .wqa-modal'); if(md) md.classList.remove('has-sheet');
+}
+function wqaBsTargets(){
+  const live=wqa.rows.filter(r=>!r.removed);
+  return wqa.bs && wqa.bs.scope==='selected' ? live.filter(r=>r.sel) : live;
+}
+/* Choosing which items: the sheet steps aside for Selection mode, and the
+   selection bar's Bulk Adjust brings it back with that scope. */
+function wqaBsPick(){ wqaBulkSheetClose(); wqaSelEnter(); }
+function wqaBsSet(k,v){
+  if(!wqa.bs) return;
+  wqa.bs.f[k]=v;
+  /* A select changes what the sheet offers — a product decides the
+     materials, Manual decides whether there is a price to type — so it
+     redraws. Typing only moves the summary. */
+  if(k==='product' && wqa.bs.f.material!==WQA_KEEP) wqa.bs.f.material=WQA_KEEP;
+  if(['product','material','finish','sizeType','acc','priceMode','scope'].indexOf(k)>=0) wqaRenderBulkSheet();
+  else wqaBsPatchSummary();
+}
+function wqaBsScope(s){ if(!wqa.bs) return; wqa.bs.scope = s==='selected'?'selected':'all'; wqaRenderBulkSheet(); }
+function wqaBsEditAcc(g,f,v){
+  if(!wqa.bs) return;
+  wqaSetAccField(wqa.bs.acc,g,f,v);
+  if(f==='enabled') wqaSyncAccDisabled(el('wqaBulkSheetPanel'),wqa.bs.acc);
+  wqaBsPatchSummary();
+}
+/* What Apply would do, line by line. */
+function wqaBsLines(){
+  const b=wqa.bs; if(!b) return [];
+  const f=b.f, out=[];
+  const say=(lbl,v)=>out.push(dcT('wqaBsWillSet').replace('{f}',lbl).replace('{v}',v));
+  if(f.product!==WQA_KEEP)  say(dcT('fieldProduct'),wqaFixLabel('product',f.product));
+  if(f.material!==WQA_KEEP) say(dcT('fieldMaterial'),wqaFixLabel('material',f.material));
+  if(f.finish!==WQA_KEEP)   say(dcT('lblFinish'),wqaFixLabel('finish',f.finish));
+  if(f.sizeType!==WQA_KEEP) say(dcT('fieldSizeType'),wqaFixLabel('sizeType',f.sizeType));
+  if(String(f.size).trim())   say(dcT('lblSize'),sizeDisplay(wqaNormSize(f.size))||String(f.size).trim());
+  if(String(f.thread).trim() && wqaMaxEnds()>0) say('TL',String(f.thread).trim());
+  if(f.acc==='set')   say(dcT('lblAccessories'),wqaAccHas(b.acc)?wqaAccShortSummary(b.acc):dcT('none'));
+  if(f.acc==='clear') out.push(dcT('wqaBsWillClearAcc'));
+  if(String(f.costRate).trim()) say(dcT('fieldCostRate'),String(f.costRate).trim());
+  if(String(f.addCost).trim())  say(dcT('fieldAdditionalCost'),String(f.addCost).trim());
+  if(String(f.markup).trim())   say(dcT('lblMarkup'),String(f.markup).trim()+'%');
+  if(f.priceMode!==WQA_KEEP)    say(dcT('lblPriceMode'),wqaPriceModeLabel(f.priceMode));
+  if(f.priceMode==='manual' && String(f.manualUnitPrice).trim()) say(dcT('lblManualUnitPrice'),'RM'+String(f.manualUnitPrice).trim());
+  return out;
+}
+/* Why Apply is not available, or '' when it is. */
+function wqaBsBlocked(){
+  if(!wqa.bs) return 'x';
+  if(!wqaBsTargets().length) return dcT(wqa.bs.scope==='selected'?'wqaBsNoneSel':'wqaToastNoItems');
+  if(!wqaBsLines().length) return dcT('wqaBsNothing');
+  if(wqa.bs.f.acc==='set' && !wqaAccHas(wqa.bs.acc)) return dcT('wqaToastAccNothing');
+  return '';
+}
+function wqaBsSummaryHtml(){
+  const lines=wqaBsLines(), why=wqaBsBlocked(), n=wqaBsTargets().length;
+  return (lines.length?`<ul class="wqa-bs-lines">${lines.map(l=>`<li>${escHtml(l)}</li>`).join('')}</ul>`:'')
+    + `<div class="wqa-bs-n${why?' is-why':''}">${escHtml(why||dcT('wqaBsWillApplyN').replace('{n}',n))}</div>`;
+}
+function wqaBsPatchSummary(){
+  const s=el('wqaBsSummary'); if(s) s.innerHTML=wqaBsSummaryHtml();
+  const b=el('wqaBsApply'); if(b) b.disabled=!!wqaBsBlocked();
+}
+function wqaRenderBulkSheet(){
+  const p=el('wqaBulkSheetPanel'); const b=wqa.bs; if(!p||!b) return;
+  const f=b.f;
+  const keep=escHtml(dcT('wqaBsKeep'));
+  const nAll=wqa.rows.filter(r=>!r.removed).length, nSel=wqaSelCount();
+  const sel=(k,opts)=>`<select data-bs="${k}" class="${f[k]!==WQA_KEEP?'is-set':''}" onchange="wqaBsSet('${k}',this.value)">
+      <option value="${WQA_KEEP}"${f[k]===WQA_KEEP?' selected':''}>${keep}</option>
+      ${opts.map(o=>`<option value="${escHtml(o[0])}"${f[k]===o[0]?' selected':''}>${escHtml(o[1])}</option>`).join('')}</select>`;
+  const txt=(k,ph,mode)=>`<input type="text" data-bs="${k}" inputmode="${mode||'decimal'}" autocomplete="off" spellcheck="false"
+      value="${escHtml(f[k])}" placeholder="${escHtml(ph||dcT('wqaBsKeep'))}" oninput="wqaBsSet('${k}',this.value)">`;
+  const matSrc=el(wqaFixMatType({product:f.product})+'-material');
+  const mats=matSrc?[...matSrc.options].filter(o=>o.value).map(o=>[o.value,o.text]):[];
+  const row=(lbl,ctl)=>`<label class="wqa-bs-f"><span class="wqa-bs-k">${escHtml(lbl)}</span>${ctl}</label>`;
+  p.innerHTML=`<div class="wqa-bs-head">
+      <span class="wqa-bs-title" id="wqaBsTitle">${escHtml(dcT('wqaBulkEdit'))}</span>
+      <button type="button" class="modal-close wqa-bs-close" aria-label="${escHtml(dcT('close'))}" onclick="wqaBulkSheetClose()">✕</button>
+    </div>
+    <div class="wqa-bs-body">
+      <div class="wqa-bs-sec">${escHtml(dcT('wqaBsScope'))}</div>
+      <div class="wqa-bs-scope" role="group">
+        <button type="button" class="wqa-bs-sc${b.scope==='all'?' is-on':''}" aria-pressed="${b.scope==='all'}" onclick="wqaBsScope('all')">${escHtml(dcT('wqaBsScopeAll').replace('{n}',nAll))}</button>
+        <button type="button" class="wqa-bs-sc${b.scope==='selected'?' is-on':''}" aria-pressed="${b.scope==='selected'}" onclick="wqaBsScope('selected')"${nSel?'':' disabled'}>${escHtml(dcT('wqaBsScopeSel').replace('{n}',nSel))}</button>
+        <button type="button" class="btn btn-ghost btn-sm wqa-bs-pick" onclick="wqaBsPick()">${escHtml(dcT('wqaBsPick'))}</button>
+      </div>
+      <div class="wqa-bs-sec">${escHtml(dcT('wqaBsFields'))}</div>
+      <div class="wqa-bs-grid">
+        ${row(dcT('fieldProduct'),sel('product',WQA_PRODUCTS.map(x=>[x.type,x.label])))}
+        ${row(dcT('fieldMaterial'),sel('material',mats))}
+        ${row(dcT('lblFinish'),sel('finish',[['','N/A'],['PL','PL'],['ZP','ZP'],['HDG','HDG']]))}
+        ${row(dcT('fieldSizeType'),sel('sizeType',[['FULLSIZE','Fullsize'],['UNDERSIZE','Undersize']]))}
+        ${row(dcT('lblSize'),txt('size','','text'))}
+        ${wqaMaxEnds()>0?row('TL',txt('thread','','text')):''}
+        ${row(dcT('fieldCostRate'),txt('costRate'))}
+        ${row(dcT('fieldAdditionalCost'),txt('addCost'))}
+        ${row(dcT('lblMarkup')+' (%)',txt('markup'))}
+        ${row(dcT('lblPriceMode'),sel('priceMode',WQA_PRICE_MODES.map(m=>[m.v,dcT(m.k)])))}
+        ${f.priceMode==='manual'?row(dcT('lblManualUnitPrice'),txt('manualUnitPrice')):''}
+        ${row(dcT('lblAccessories'),sel('acc',[['set',dcT('wqaBsAccSet')],['clear',dcT('wqaBsAccClear')]]))}
+      </div>
+      ${f.acc==='set'?`<div class="wqa-bs-acc">${wqaAccEditor(b.acc,(g,k,v)=>`wqaBsEditAcc('${g}','${k}',${v})`)}</div>`:''}
+    </div>
+    <div class="wqa-bs-summary" id="wqaBsSummary" aria-live="polite">${wqaBsSummaryHtml()}</div>
+    <div class="wqa-bs-foot">
+      <button type="button" class="btn btn-ghost" onclick="wqaBulkSheetClose()">${escHtml(dcT('cancel'))}</button>
+      <button type="button" class="btn btn-primary" id="wqaBsApply" onclick="wqaBulkApply()"${wqaBsBlocked()?' disabled':''}>${escHtml(dcT('wqaBsApply'))}</button>
+    </div>`;
+}
+function wqaBulkApply(){
+  const b=wqa.bs; if(!b) return;
+  const why=wqaBsBlocked(); if(why){ showToast(why); return; }
+  const f=b.f, n=wqaBsTargets().length;
+  const saved={scope:wqa.applyScope, fix:wqa.commonFix, item:wqa.commonItem, price:wqa.commonPrice,
+               pmSet:wqa.commonPriceModeSet, acc:wqa.commonAcc};
+  wqa.applyScope = b.scope==='selected' ? 'selected' : 'all';
+  dcToastCapture=[];
+  try{
+    /* Product, material, finish, Size 规格 — in the order the existing writer
+       applies them, so each depends on the one before it. */
+    if(WQA_FIX_FIELDS.some(k=>f[k]!==WQA_KEEP)){
+      wqa.commonFix={product:f.product, material:f.material, finish:f.finish, sizeType:f.sizeType, blanksOnly:false};
+      wqaApplyFixToAll();
+    }
+    const thread = wqaMaxEnds()>0 ? String(f.thread||'').trim() : '';
+    if(String(f.size||'').trim() || thread){
+      wqa.commonItem={size:String(f.size||'').trim(), thread};
+      wqaApplyItemToAll();
+    }
+    const pm = f.priceMode!==WQA_KEEP;
+    if(String(f.costRate).trim()||String(f.addCost).trim()||String(f.markup).trim()||pm){
+      wqa.commonPrice={costRate:String(f.costRate).trim(), addCost:String(f.addCost).trim(),
+                       markup:String(f.markup).trim(), priceMode:pm?f.priceMode:'auto',
+                       manualUnitPrice:String(f.manualUnitPrice).trim()};
+      wqa.commonPriceModeSet=pm;
+      wqaApplyPriceToAll();
+      if(pm && f.priceMode==='manual' && String(f.manualUnitPrice).trim()) wqaApplyManualPriceToAll();
+    }
+    if(f.acc==='set'){ wqa.commonAcc=wqaCloneAcc(b.acc); wqaApplyAccToAll(); }
+    if(f.acc==='clear') wqaClearAllAcc();
+  } finally {
+    const said=dcToastCapture||[]; dcToastCapture=null;
+    wqa.applyScope=saved.scope; wqa.commonFix=wqaEmptyFix(); wqa.commonItem=wqaEmptyItem();
+    wqa.commonPrice=wqaEmptyPrice(); wqa.commonPriceModeSet=false; wqa.commonAcc=wqaEmptyAcc();
+    wqaBulkSheetClose();
+    if(b.scope==='selected'){ wqa.selMode=false; wqa.rows.forEach(r=>{ r.sel=false; }); }
+    wqaRecomputeAll('force');
+    /* The writers' own sentences say what was refused (a stainless row has no
+       finish, a reused price stopped applying); the first line says how many. */
+    const extra=said.filter(s=>/·/.test(s)).map(s=>s.split(' · ').slice(1).join(' · ')).filter(Boolean);
+    showToast(dcT('wqaBsDone').replace('{n}',n)+(extra.length?' · '+extra.join(' · '):''));
+  }
 }
 /* How many records this row has, once it knows — a count on a closed control
    is the reason to open it. Silent until the row has actually asked. */

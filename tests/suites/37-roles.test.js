@@ -14,7 +14,14 @@
    So this suite asserts the boundaries rather than the appearances: what each
    mechanism is allowed to touch, that none of them can be open beside
    another, and that a selection is a set a person owns rather than a side
-   effect of a mode.  */
+   effect of a mode.
+
+   AI review redesign, 2026-10-23. The three jobs are unchanged; their
+   surfaces are new. FAST EDIT is a value pressed where it stands
+   (`.wqa-tok` → one `input.wqa-ix`); BULK EDIT is the Bulk Adjust sheet
+   (#wqaBulkSheet, every field at No change); DETAILS is the item's own panel
+   (`.wqa-rv-detail`), opened by pressing the item. Tick boxes exist only in
+   Selection mode (wqaSelEnter / wqaSelExit).  */
 'use strict';
 const { openApp, quickAddPaste, rowState } = require('../lib/harness');
 
@@ -47,137 +54,186 @@ const look = page => page.evaluate(() => {
   const q = s => document.querySelector(s);
   return {
     editing: !!wqa.edit,
-    bulkOpen: !!wqa.bulkOpen,
+    ix: document.querySelectorAll('#wqaRows .wqa-ix').length,
+    sheetOpen: !!q('#wqaBulkSheet') && !q('#wqaBulkSheet').hidden,
     detailsOpen: wqa.rows.filter(r => wqaRowIsOpen(r)).length,
+    panels: document.querySelectorAll('#wqaRows .wqa-rv-detail').length,
     sel: wqaSelCount(),
-    scope: wqa.applyScope,
+    selMode: !!wqa.selMode,
     view: wqa.view,
-    picks: document.querySelectorAll('#wqaRows .wqa-pick').length,
-    headPick: !!q('#wqaListHead .wqa-pick-all'),
+    picks: document.querySelectorAll('#wqaRows .wqa-it .wqa-pick').length,
     selBarHidden: !!(q('#wqaSelBar') || {}).hidden,
-    sections: [...document.querySelectorAll('#wqaBulkBody .wqa-panel-title')]
-                .map(n => n.textContent.trim()),
-    openSections: [...document.querySelectorAll('#wqaBulkBody .wqa-panel-body')].length,
-    countBadge: ((q('#wqaBulkSelN') || {}).hidden ? '' : (q('#wqaBulkSelN') || {}).textContent || '').trim(),
+    selBarN: ((q('#wqaSelBar .wqa-selbar-n') || {}).textContent || '').trim(),
   };
 });
+
+/* Bulk Adjust, as it stands: its fields, what Apply would do, and whether it may. */
+const sheet = page => page.evaluate(() => {
+  const p = document.getElementById('wqaBulkSheetPanel');
+  if (!p || !p.innerHTML.trim()) return null;
+  return {
+    fields: [...p.querySelectorAll('.wqa-bs-grid > .wqa-bs-f .wqa-bs-k')].map(n => n.textContent.trim()),
+    untouched: [...p.querySelectorAll('select[data-bs]')].every(s => s.value === WQA_KEEP)
+            && [...p.querySelectorAll('input[data-bs]')].every(n => n.value === ''),
+    scopeOn: ((p.querySelector('.wqa-bs-sc.is-on') || {}).textContent || '').trim(),
+    selDisabled: !!(p.querySelectorAll('.wqa-bs-sc')[1] || {}).disabled,
+    lines: [...p.querySelectorAll('#wqaBsSummary li')].map(n => n.textContent.trim()),
+    why: ((p.querySelector('#wqaBsSummary .wqa-bs-n') || {}).textContent || '').trim(),
+    applyOff: !!(p.querySelector('#wqaBsApply') || {}).disabled,
+  };
+});
+
+const toast = page => page.evaluate(() => {
+  const t = document.querySelector('.toast, #toast, .dc-toast');
+  return t ? t.textContent.replace(/\s+/g, ' ').trim() : '';
+});
+
+/* A press on an item, where a person presses it — not on one of its values. */
+const pressItem = (page, i) => page.evaluate(k =>
+  document.querySelector(`[data-wqa-row="${k}"] .wqa-it-main`).click(), i);
 
 module.exports = async (browser, A) => {
   const S = A.suite('roles — Fast Edit, Bulk Edit and Details do not overlap');
 
-  // ══ §39 · the row action is Details, and the toolbar action is Edit ══════
+  // ══ §39 · the heading's actions, and the row's ═══════════════════════════
   {
     const page = await openApp(browser);
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1200 });
 
     const words = await page.evaluate(() => ({
-      row: document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim(),
-      toolbar: document.querySelector('#wqaEditBtn').textContent.trim(),
-      /* Edit must not read as a third view tab: it lives in its own group,
-         outside the Compact/Expanded control. */
-      editInToggle: !!document.querySelector('.wqa-view-toggle #wqaEditBtn'),
-      viewBtns: [...document.querySelectorAll('.wqa-rows-head .wqa-view-toggle .wqa-view-btn')]
-                  .map(n => n.textContent.trim()),
+      head: [...document.querySelectorAll('#wqaRvActs button')].map(n => n.textContent.trim()),
+      row: [...document.querySelectorAll('[data-wqa-row="2"] .wqa-it-acts button')]
+             .map(n => n.getAttribute('aria-label') || n.textContent.trim()),
+      more: document.querySelector('[data-wqa-row="2"] .wqa-rv-more').getAttribute('aria-expanded'),
+      /* the removed controls, by every name they had */
+      gone: ['#wqaEditBtn', '#wqaViewCompact', '#wqaViewExpanded', '.wqa-view-toggle', '.wqa-row-details',
+             '#wqaListHead', '#wqaBulkHead', '#wqaBulkBody', '#wqaCommonFix', '#wqaCommonItem',
+             '#wqaCommonPrice', '#wqaCommonAcc'].filter(s => document.querySelector(s)),
     }));
-    A.eq(words.row, 'Details', 'the row action is Details');
-    A.eq(words.toolbar, 'Edit', 'and the toolbar action is Edit — one word each');
-    A.eq(String(words.editInToggle), 'false', 'Edit is NOT inside the view control');
-    A.eq(words.viewBtns.join('|'), 'Compact|Expanded', 'which holds exactly the two views');
+    /* Retired 2026-10-23 (AI review redesign): "the row action is Details",
+       "the toolbar action is Edit", "Edit is not inside the view control" and
+       "the view control holds Compact|Expanded" — none of the four controls
+       exists. What took their place is asserted instead: one word each, and
+       the old ones are really gone rather than hidden. */
+    A.eq(words.head.join('|'), 'Select|Bulk Adjust', 'the heading offers Select and Bulk Adjust — one word each');
+    A.eq(words.row.join('|'), 'Pricing History|Remove item 3|More',
+      'and an item offers its history, remove, and More');
+    A.eq(words.gone.join(','), '', 'no Edit, view toggle, Details, list header or standing Bulk Edit is left in the page');
+    A.eq(words.more, 'false', 'More starts closed');
 
-    /* Open it: the label becomes Close, because that is what pressing it does. */
-    await page.evaluate(() => wqaToggleRow(0));
+    /* Open it: the label becomes Less, because that is what pressing it does. */
+    await page.evaluate(() => document.querySelector('[data-wqa-row="2"] .wqa-rv-more').click());
     await page.waitForTimeout(500);
-    A.eq(await page.evaluate(() =>
-      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim()),
-      'Close', 'and says Close while it is open');
+    const open = await page.evaluate(() => {
+      const b = document.querySelector('[data-wqa-row="2"] .wqa-rv-more');
+      return { lbl: b.getAttribute('aria-label'), exp: b.getAttribute('aria-expanded') };
+    });
+    A.eq(open.lbl, 'Less', 'and says Less while it is open');
+    A.eq(open.exp, 'true', 'with aria-expanded saying the same');
     await page.close();
   }
 
-  // ══ §43 · Details is ONE row, and holds no geometry ══════════════════════
+  // ══ §43 · Details is ONE row ═════════════════════════════════════════════
   {
     const page = await openApp(browser);
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1200 });
-    await page.evaluate(() => wqaToggleRow(0));
+    await pressItem(page, 2);
     await page.waitForTimeout(600);
 
     const d = await page.evaluate(() => {
-      const card = document.querySelector('[data-wqa-row="0"]');
-      const body = card.querySelector('.wqa-row-body');
+      const card = document.querySelector('[data-wqa-row="2"]');
+      const body = card.querySelector('.wqa-rv-detail');
       return {
         openRows: wqa.rows.filter(r => wqaRowIsOpen(r)).length,
-        row1Open: !!document.querySelector('[data-wqa-row="1"] .wqa-row-body'),
-        sections: [...body.querySelectorAll('.wqa-sec-lbl')].map(n => n.textContent.trim()),
-        /* Geometry belongs to Fast Edit. If Details grew a Size, DIA, L or Qty
-           box back, this is the assertion that would catch it. */
-        geomBoxes: [...body.querySelectorAll('input,select')]
-          .filter(n => /size|dia|length|width|height|qty|quantity/i.test(
-            (n.id || '') + ' ' + (n.getAttribute('placeholder') || '')))
-          .map(n => n.id || n.getAttribute('placeholder')),
+        row1Open: !!document.querySelector('[data-wqa-row="1"] .wqa-rv-detail'),
+        sections: [...body.querySelectorAll('.wqa-dt-sec')].map(n => n.textContent.trim()),
+        fields: [...body.querySelectorAll('[data-ef]')].map(n => n.dataset.ef),
+        ix: document.querySelectorAll('#wqaRows .wqa-ix').length,
       };
     });
     A.eq(d.openRows, 1, 'Details opens exactly one row');
     A.eq(String(d.row1Open), 'false', 'and the row beside it stays shut');
-    A.eq(d.sections.join(' · '), 'Reference · Specification · Pricing · Calculation',
-      'holding reference, specification, pricing and calculation');
-    A.eq(d.geomBoxes.join(','), '', 'and no duplicate geometry inputs of any kind');
+    A.eq(d.sections.join(' · '), 'Specification · Pricing',
+      'holding the item\'s specification and its pricing');
+    /* Retired 2026-10-23 (AI review redesign): "no duplicate geometry inputs of
+       any kind" in Details — by design the panel now holds every value of the
+       item (a phone edits them only there), and the row line holds them as
+       pressable values. The boundary that keeps that from being two places at
+       once is asserted instead: the panel's values are the item's own, once
+       each, and an open panel and an inline box never coexist. */
+    A.eq(d.fields.join(','), 'product,material,finish,sizeType,size,dia,length,threadLen,qty',
+      'one box per value the item has, each exactly once');
+    A.eq(d.ix, 0, 'and no inline value box is open beside the panel');
 
-    /* One at a time: opening row 2's Details closes row 1's. */
-    await page.evaluate(() => wqaToggleRow(1));
+    /* Pressing one of the open item's values goes to ITS box in the panel,
+       not to a second, inline copy of it. */
+    await page.evaluate(() => document.querySelector('[data-wqa-row="2"] .wqa-it-main [data-tok="length"]').click());
+    await page.waitForTimeout(400);
+    const into = await page.evaluate(() => ({
+      ix: document.querySelectorAll('#wqaRows .wqa-ix').length,
+      focus: document.activeElement && document.activeElement.closest('.wqa-rv-detail') ? document.activeElement.getAttribute('data-ef') : '',
+    }));
+    A.eq(into.ix, 0, 'pressing a value of an open item opens no second box');
+    A.eq(into.focus, 'length', 'it focuses that value in the panel instead');
+
+    /* One at a time: opening row 4's Details closes row 3's. */
+    await pressItem(page, 3);
     await page.waitForTimeout(600);
     const two = await page.evaluate(() => wqa.rows.map(r => !!wqaRowIsOpen(r)));
     A.eq(two.filter(Boolean).length, 1, 'opening another row leaves only one open');
-    A.eq(String(two[1]), 'true', 'and it is the one that was asked for');
+    A.eq(String(two[3]), 'true', 'and it is the one that was asked for');
     await page.close();
   }
 
-  // ══ §9/§10/§11 · Bulk Edit is shared values, in three sections ═══════════
+  // ══ §9/§10/§11 · Bulk Adjust is shared values, all at No change ══════════
   {
     const page = await openApp(browser);
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1200 });
-    await page.evaluate(() => { wqa.bulkOpen = true; wqaRenderBulk(); });
+    await page.evaluate(() => document.querySelector('#wqaRvActs .wqa-rv-bulkbtn').click());
     await page.waitForTimeout(500);
 
-    const b = await look(page);
-    A.eq(b.sections.join(' · '), 'Common Item Fields · Pricing Entry · Accessories',
-      'Bulk Edit is exactly the three shared-value sections');
+    const b = await sheet(page);
+    /* Retired 2026-10-23 (AI review redesign): "exactly the three shared-value
+       sections" and the §11 accordion (one section open at a time) — Bulk
+       Adjust is one sheet of fields, with no sections to open. Its fields and
+       its No-change rule are asserted instead. */
+    A.eq(b.fields.join(' · '),
+      'Product · Material · Finish · Size Type · Size · TL · Cost Rate · Additional Cost · Markup (%) · Price Mode · Accessories',
+      'Bulk Adjust holds the shared identity, geometry, pricing and accessory fields');
+    A.eq(String(b.untouched), 'true', 'every one of them starts at No change');
+    A.eq(b.lines.length, 0, 'so Apply has nothing to say it will do');
+    A.eq(b.why, 'Choose at least one field to change.', 'and says so');
+    A.eq(String(b.applyOff), 'true', 'with Apply disabled until a field is changed');
+    A.eq(b.scopeOn, 'All items (4)', 'scope All items, by default');
 
-    /* The fields inside Common Item Fields are the shared-identity ones. This
-       is the panel that used to be called "Correct Items" — the name and the
-       contents now agree. */
-    await page.evaluate(() => wqaTogglePanel('fix'));
-    await page.waitForTimeout(500);
-    const fields = await page.evaluate(() =>
-      [...document.querySelectorAll('#wqaCommonFix .field label')].map(n => n.textContent.trim()));
-    A.eq(fields.join(' · '), 'Product · Material · Finish · Size Type',
-      'holding product, material, finish and size type — one value, many rows');
-
-    // §11 · accordion: opening one closes the rest.
-    A.eq((await look(page)).openSections, 1, 'opening a section opens exactly one');
-    await page.evaluate(() => wqaTogglePanel('price'));
-    await page.waitForTimeout(500);
-    const acc = await page.evaluate(() => ({
-      open: WQA_BULK_PANELS.filter(k => wqa.panels[k]),
-      bodies: document.querySelectorAll('#wqaBulkBody .wqa-panel-body').length,
-    }));
-    A.eq(acc.open.join(','), 'price', 'opening Pricing closes Common Item Fields');
-    A.eq(acc.bodies, 1, 'so Bulk Edit is never more than one section tall');
-    await page.evaluate(() => wqaTogglePanel('acc'));
-    await page.waitForTimeout(500);
-    A.eq((await page.evaluate(() => WQA_BULK_PANELS.filter(k => wqa.panels[k]))).join(','),
-      'acc', 'and Accessories closes Pricing');
+    /* A field changed says exactly what it will do, and only that. */
+    await page.evaluate(() => wqaBsSet('finish', 'HDG'));
+    await page.waitForTimeout(300);
+    const one = await sheet(page);
+    A.eq(one.lines.join(' | '), 'Set Finish to HDG', 'one field changed is one line of intent');
+    A.eq(one.why, 'Applies to 4 items', 'with its count');
+    A.eq(String(one.applyOff), 'false', 'and Apply available');
+    await page.evaluate(() => wqaBulkApply());
+    await page.waitForTimeout(1200);
+    const after = await rowState(page);
+    A.eq(after.map(r => r.finish).join(','), 'HDG,HDG,HDG,HDG', 'Apply writes that field to every item');
+    A.eq(after.map(r => r.size).join(','), 'M12,M12,M16,M20', 'and nothing left at No change moved');
+    A.eq(String(await page.evaluate(() => el('wqaBulkSheet').hidden)), 'true', 'and the sheet closes');
     await page.close();
   }
 
-  // ══ §10 · the geometry exception appears only in the case that needs it ══
+  // ══ §10 · the geometry exception is announced only when it is needed ═════
   {
     const page = await openApp(browser);
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1200 });
-    await page.evaluate(() => { wqa.bulkOpen = true; wqaRenderBulk(); });
-    await page.waitForTimeout(500);
-    A.eq((await look(page)).sections.length, 3,
-      'rows that already state a size and a thread get no geometry section at all');
-    A.eq(await page.evaluate(() => el('wqaCommonItem').innerHTML.trim()), '',
-      'it is absent, not merely collapsed — no second place to bulk-edit geometry');
+    /* Retired 2026-10-23 (AI review redesign): "no geometry section at all"
+       and "#wqaCommonItem is absent, not collapsed" when every row already
+       has a size and a thread — the dedicated fill-once panel was removed by
+       design, and Size / TL are now two ordinary No-change fields of Bulk
+       Adjust. What is still conditional is the prompt that sends a person
+       there, so that is what is asserted. */
+    A.eq(String(await page.evaluate(() => el('wqaRvNeed').hidden)), 'true',
+      'rows that already state a size and a thread get no "missing size" prompt');
     await page.close();
   }
   {
@@ -187,19 +243,16 @@ module.exports = async (browser, A) => {
        blanks and typing M12 down thirty rows is not a workflow. */
     const page = await openApp(browser);
     await quickAddPaste(page, SHORTHAND, { expanded: false, settle: 1400 });
-    await page.evaluate(() => { wqa.bulkOpen = true; wqaRenderBulk(); });
-    await page.waitForTimeout(600);
-    const sec = (await look(page)).sections;
-    A.includes(sec.join(' · '), 'Fill Missing Size / TL',
-      'a document that states neither size nor thread DOES get the fill-once section');
-    A.eq(sec.length, 4, 'as a fourth section, named for the job rather than claiming the generic title');
+    const need = await page.evaluate(() => ({
+      hidden: el('wqaRvNeed').hidden, text: el('wqaRvNeed').textContent.replace(/\s+/g, ' ').trim() }));
+    A.eq(String(need.hidden), 'false', 'a document that states neither size nor thread DOES get the prompt');
+    A.includes(need.text, '3 items need a Thread Size or TL', 'naming the job and how many rows it is for');
 
-    await page.evaluate(() => wqaTogglePanel('item'));
+    await page.evaluate(() => document.querySelector('#wqaRvNeed .btn').click());
     await page.waitForTimeout(500);
-    await page.evaluate(() => {
-      wqaEditCommonItem('size', 'M12'); wqaEditCommonItem('thread', '75/75');
-      wqaApplyItemToAll();
-    });
+    A.eq(await page.evaluate(() => document.activeElement && document.activeElement.getAttribute('data-bs')), 'size',
+      'its button opens Bulk Adjust on the Size field');
+    await page.evaluate(() => { wqaBsSet('size', 'M12'); wqaBsSet('thread', '75/75'); wqaBulkApply(); });
     await page.waitForTimeout(1600);
     const filled = await rowState(page);
     A.eq(filled.map(r => r.size).join(','), 'M12,M12,M12',
@@ -208,8 +261,8 @@ module.exports = async (browser, A) => {
       'thread included — the two the document never stated');
     /* Having done its job it gets out of the way by itself. */
     await page.waitForTimeout(400);
-    A.eq(await page.evaluate(() => el('wqaCommonItem').innerHTML.trim()), '',
-      'after which the section is gone again — nothing is missing any more');
+    A.eq(String(await page.evaluate(() => el('wqaRvNeed').hidden)), 'true',
+      'after which the prompt is gone again — nothing is missing any more');
     await page.close();
   }
 
@@ -219,48 +272,70 @@ module.exports = async (browser, A) => {
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1200 });
 
     const start = await look(page);
-    A.eq(start.picks, 4, 'every compact row carries a tick box from the start');
-    A.eq(String(start.headPick), 'true', 'with a select-all in the header');
+    /* Retired 2026-10-23 (AI review redesign): "every compact row carries a
+       tick box from the start" and "a select-all in the header" — ticks exist
+       only in Selection mode now, so the opposite is asserted. */
+    A.eq(start.picks, 0, 'no item carries a tick box until Selection mode is asked for');
     A.eq(start.sel, 0, 'nothing selected yet');
-    A.eq(String(start.selBarHidden), 'true', 'and no selection bar until there is one');
+    A.eq(String(start.selBarHidden), 'true', 'and no selection bar');
 
-    await page.evaluate(() => { wqaToggleRowSel(1); wqaToggleRowSel(3); });
+    await page.evaluate(() => document.querySelector('#wqaRvActs .wqa-rv-selbtn').click());
+    await page.waitForTimeout(400);
+    const mode = await look(page);
+    A.eq(mode.picks, 4, 'Select gives every item a tick box');
+    A.eq(String(mode.selBarHidden), 'false', 'and the selection bar');
+    A.eq(mode.selBarN, '0 selected', 'which starts at none');
+
+    /* In Selection mode a press on an item ticks it; it never opens an editor. */
+    await pressItem(page, 1);
+    await page.evaluate(() => document.querySelector('[data-wqa-row="3"] [data-tok="length"]').click());
     await page.waitForTimeout(500);
     const two = await look(page);
-    A.eq(two.sel, 2, 'two rows can be ticked');
-    A.eq(String(two.selBarHidden), 'false', 'which brings the selection bar');
-    A.includes(two.countBadge, '2', 'and the Bulk Edit heading says how many');
+    A.eq(two.sel, 2, 'two rows can be ticked — by the item, or by any value on it');
+    A.eq(two.ix + two.panels, 0, 'and neither press opened a box or a panel');
+    A.includes(two.selBarN, '2', 'the bar says how many');
 
     // §14 · select all, then release.
-    await page.evaluate(() => wqaToggleSelAll());
+    await page.evaluate(() => wqaRvSelAll());
     await page.waitForTimeout(500);
-    A.eq((await look(page)).sel, 4, 'the header box takes the whole list');
-    await page.evaluate(() => wqaToggleSelAll());
+    A.eq((await look(page)).sel, 4, 'select all takes the whole list');
+    await page.evaluate(() => wqaRvSelAll());
     await page.waitForTimeout(500);
     A.eq((await look(page)).sel, 0, 'and a second press gives it back');
 
     // §15 · a selection survives a re-render, in either direction.
-    await page.evaluate(() => { wqaToggleRowSel(0); wqaToggleRowSel(2); });
+    await page.evaluate(() => { wqaRvToggleSel(0); wqaRvToggleSel(2); });
     await page.waitForTimeout(400);
-    await page.evaluate(() => wqaSetView('expanded'));
-    await page.waitForTimeout(700);
-    A.eq(await page.evaluate(() => wqaSelCount()), 2, 'it survives Compact → Expanded');
-    await page.evaluate(() => wqaSetView('compact'));
-    await page.waitForTimeout(700);
-    const back = await look(page);
-    A.eq(back.sel, 2, 'and Expanded → Compact');
+    /* Retired 2026-10-23 (AI review redesign): "survives Compact → Expanded /
+       Expanded → Compact" — there is no view to switch; it is asserted across
+       a full redraw and across Bulk Adjust opening and closing instead. */
+    await page.evaluate(() => wqaRenderRows(true));
+    await page.waitForTimeout(400);
+    A.eq(await page.evaluate(() => wqaSelCount()), 2, 'it survives a redraw of the list');
+    await page.evaluate(() => { wqaBulkSheetOpen('selected'); });
+    await page.waitForTimeout(400);
+    A.eq((await sheet(page)).scopeOn, 'Selected items (2)', 'Bulk Adjust opened from it takes it as its scope');
+    await page.evaluate(() => wqaBulkSheetClose());
+    await page.waitForTimeout(400);
     A.eq(await page.evaluate(() => wqa.rows.map(r => r.sel ? '1' : '0').join('')), '1010',
-      'and it is the SAME two rows, not merely the same count');
+      'and closing the sheet leaves the SAME two rows, not merely the same count');
 
     await page.evaluate(() => dcSetLang('zh'));
     await page.waitForTimeout(800);
     A.eq(await page.evaluate(() => wqaSelCount()), 2, 'it survives EN → 中文');
-    A.includes(await page.evaluate(() => (el('wqaBulkSelN') || {}).textContent || ''), '2',
+    A.includes(await page.evaluate(() => (document.querySelector('#wqaSelBar .wqa-selbar-n') || {}).textContent || ''), '2',
       'and the count is re-labelled rather than lost');
     await page.evaluate(() => dcSetLang('en'));
     await page.waitForTimeout(800);
     A.eq(await page.evaluate(() => wqa.rows.map(r => r.sel ? '1' : '0').join('')), '1010',
       'and 中文 → EN returns the same two rows');
+
+    /* Leaving Selection mode leaves nothing behind. */
+    await page.evaluate(() => wqaSelExit());
+    await page.waitForTimeout(400);
+    const out = await look(page);
+    A.eq(out.picks + out.sel, 0, 'Done takes the ticks away and the selection with them');
+    A.eq(String(out.selBarHidden), 'true', 'and the bar');
     await page.close();
   }
 
@@ -270,34 +345,36 @@ module.exports = async (browser, A) => {
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1200 });
     const before = (await rowState(page)).map(r => r.finish).join(',');
 
-    await page.evaluate(() => {
-      wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('fix');
-      wqaSetApplyScope('selected');
-    });
+    await page.evaluate(() => { wqaBulkSheetOpen('all'); wqaBsScope('selected'); wqaBsSet('finish', 'HDG'); });
     await page.waitForTimeout(700);
-    const blocked = await page.evaluate(() => {
-      const btn = document.querySelector('#wqaCommonFix [data-wqa-apply]');
-      const msg = document.querySelector('#wqaCommonFix .wqa-none-sel');
-      return { disabled: !!btn.disabled, title: btn.title || '',
-               msgShown: !!msg && !msg.hidden, msg: msg ? msg.textContent.trim() : '' };
-    });
-    A.eq(String(blocked.disabled), 'true',
-      'Selected Items with nothing selected disables Apply');
-    A.eq(blocked.msg, 'Select at least one item.', 'and says exactly why');
-    A.eq(String(blocked.msgShown), 'true', 'where the Apply it refuses is');
+    const blocked = await sheet(page);
+    A.eq(String(blocked.selDisabled), 'true', 'with nothing selected, the Selected items scope is not offered');
+    A.eq(String(blocked.applyOff), 'true',
+      'and forced onto it anyway, Apply is disabled');
+    A.eq(blocked.why, 'No items selected yet.', 'and says exactly why');
 
     /* The failure mode this exists to prevent: silently widening to every row. */
-    await page.evaluate(() => { wqaEditFix('finish', 'HDG'); wqaApplyFixToAll(); });
+    await page.evaluate(() => wqaBulkApply());
     await page.waitForTimeout(1200);
     A.eq((await rowState(page)).map(r => r.finish).join(','), before,
       'and it does NOT quietly fall back to All Items — no row moved');
+    A.includes(await toast(page), 'No items selected yet', 'the message is the refusal');
 
-    await page.evaluate(() => wqaToggleRowSel(1));
-    await page.waitForTimeout(600);
-    A.eq(await page.evaluate(() =>
-      !!document.querySelector('#wqaCommonFix [data-wqa-apply]').disabled), false,
-      'ticking one row restores the Apply');
-    await page.evaluate(() => wqaApplyFixToAll());
+    /* Choosing items is Selection mode; its bar brings the sheet back. */
+    await page.evaluate(() => wqaBsPick());
+    await page.waitForTimeout(500);
+    A.eq((await look(page)).selMode + '/' + (await look(page)).sheetOpen, 'true/false',
+      'Choose items… steps the sheet aside for Selection mode');
+    await page.evaluate(() => wqaRvToggleSel(1));
+    await page.waitForTimeout(400);
+    await page.evaluate(() => [...document.querySelectorAll('#wqaSelBar .btn')].find(b => b.textContent.trim() === 'Bulk Adjust').click());
+    await page.waitForTimeout(500);
+    await page.evaluate(() => wqaBsSet('finish', 'HDG'));
+    await page.waitForTimeout(300);
+    const ok = await sheet(page);
+    A.eq(ok.scopeOn, 'Selected items (1)', 'the selection bar\'s Bulk Adjust opens on the selection');
+    A.eq(String(ok.applyOff), false + '', 'ticking one row restores the Apply');
+    await page.evaluate(() => wqaBulkApply());
     await page.waitForTimeout(1400);
     A.eq(await page.evaluate(() => wqa.rows.map(r => r.finish).join(',')),
       'ZP,HDG,ZP,ZP', 'and it lands on that row alone');
@@ -311,24 +388,18 @@ module.exports = async (browser, A) => {
     const before = await rowState(page);
 
     await page.evaluate(() => {
-      wqaToggleRowSel(1); wqaToggleRowSel(3);
-      wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('price');
-      wqaSetApplyScope('selected');
+      wqaSelEnter(); wqaRvToggleSel(1); wqaRvToggleSel(3);
+      wqaBulkSheetOpen('selected'); wqaBsSet('markup', '5');
     });
     await page.waitForTimeout(800);
 
     /* §27 · scope, field, value and count are all readable BEFORE Apply. */
-    const intent = await page.evaluate(() => {
-      const btn = document.querySelector('#wqaCommonPrice [data-wqa-apply]');
-      return { label: btn.textContent.trim(),
-               scopeOn: [...document.querySelectorAll('.wqa-scope .wqa-view-btn')]
-                          .filter(n => n.classList.contains('is-on'))
-                          .map(n => n.textContent.trim()).join('') };
-    });
-    A.includes(intent.label, '2', 'the Apply button states how many items it will touch');
-    A.eq(intent.scopeOn, 'Selected Items', 'and the scope is on the screen beside it');
+    const intent = await sheet(page);
+    A.eq(intent.why, 'Applies to 2 items', 'the sheet states how many items Apply will touch');
+    A.eq(intent.lines.join(' | '), 'Set Markup to 5%', 'which field, and to what');
+    A.eq(intent.scopeOn, 'Selected items (2)', 'and the scope is on the screen beside it');
 
-    await page.evaluate(() => { wqaEditCommonPrice('markup', '5'); wqaApplyPriceToAll(); });
+    await page.evaluate(() => wqaBulkApply());
     await page.waitForTimeout(1600);
 
     const after = await page.evaluate(() => wqa.rows.map(r => ({
@@ -342,15 +413,20 @@ module.exports = async (browser, A) => {
     A.ok(after[1].price !== before[1].price, 'row 2 re-priced');
     A.ok(after[3].price !== before[3].price, 'row 4 re-priced');
 
-    /* §29 · and the compact summary under each affected row says so, without
-       anybody opening Details. */
+    /* §29 · and the pricing line each affected row is read by says so, without
+       anybody opening Details. A row inside a series that shares its heading's
+       pricing shows none of its own, so the heading's is the one it is read by. */
     const shown = await page.evaluate(() => wqa.rows.map((r, i) => {
-      const meta = document.querySelector(`[data-wqa-row="${i}"] .wqa-meta`);
-      return meta ? meta.textContent.replace(/\s+/g, ' ').trim() : '';
+      const card = document.querySelector(`[data-wqa-row="${i}"]`);
+      const own = card.querySelector('.wqa-px-sum');
+      const ser = card.closest('.wqa-ser');
+      const head = ser && ser.querySelector('.wqa-ser-px');
+      return (own ? own.textContent : head ? head.textContent : '').replace(/\s+/g, ' ').trim();
     }));
-    A.includes(shown[1], '5%', 'row 2\'s pricing summary shows the new markup at once');
-    A.includes(shown[3], '5%', 'and so does row 4\'s');
+    A.includes(shown[1], 'Markup 5%', 'row 2\'s pricing line shows the new markup at once');
+    A.includes(shown[3], 'Markup 5%', 'and so does row 4\'s');
     A.excludes(shown[0], 'Markup 5%', 'while row 1\'s still shows its own');
+    A.excludes(shown[2], 'Markup 5%', 'and so does row 3\'s');
     await page.close();
   }
 
@@ -367,15 +443,14 @@ module.exports = async (browser, A) => {
     const used = await page.evaluate(() => ({
       ref: wqa.rows[0].usedHistoryRef,
       price: wqa.rows[0].calc && wqa.rows[0].calc.finalUnitPrice,
+      card: (document.querySelector('[data-wqa-row="0"] .wqa-it-sub') || {}).textContent || '',
     }));
     A.eq(used.ref, 'Q-2026-0430', 'a row can be priced from a historical record');
+    A.includes(used.card, 'Q-2026-0430', 'and the row says so under itself');
 
     /* The record was found for an UNDERSIZE M12. Move the row to FULLSIZE and
        it is no longer the thing that record describes. */
-    await page.evaluate(() => {
-      wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('fix');
-      wqaEditFix('sizeType', 'FULLSIZE'); wqaApplyFixToAll();
-    });
+    await page.evaluate(() => { wqaHistToggle(0); wqaBulkSheetOpen('all'); wqaBsSet('sizeType', 'FULLSIZE'); wqaBulkApply(); });
     await page.waitForTimeout(1600);
 
     const after = await page.evaluate(() => ({
@@ -383,7 +458,7 @@ module.exports = async (browser, A) => {
       recipe: !!wqa.rows[0].usedHistoryRecipe,
       st: wqa.rows[0].sizeType,
       price: wqa.rows[0].calc && wqa.rows[0].calc.finalUnitPrice,
-      card: (document.querySelector('[data-wqa-row="0"] .wqa-meta') || {}).textContent || '',
+      card: ['.wqa-it-main', '.wqa-it-sub'].map(s => (document.querySelector(`[data-wqa-row="0"] ${s}`) || {}).textContent || '').join(' '),
     }));
     A.eq(after.st, 'FULLSIZE', 'the bulk change lands');
     A.eq(after.ref, '', 'and the Previous Price reference is dropped — it described the old identity');
@@ -402,53 +477,66 @@ module.exports = async (browser, A) => {
     const page = await openApp(browser);
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1200 });
 
-    // Details open, then Bulk Edit: Details closes.
-    await page.evaluate(() => wqaToggleRow(0));
+    // Details open, then Bulk Adjust: the sheet takes the screen.
+    await pressItem(page, 2);
     await page.waitForTimeout(500);
     A.eq((await look(page)).detailsOpen, 1, 'Details is open');
-    await page.evaluate(() => wqaToggleBulk());
+    await page.evaluate(() => document.querySelector('#wqaRvActs .wqa-rv-bulkbtn').click());
     await page.waitForTimeout(600);
     let s = await look(page);
-    A.eq(String(s.bulkOpen), 'true', 'opening Bulk Edit');
-    A.eq(s.detailsOpen, 0, 'closes Details — two large editors never stack');
+    A.eq(String(s.sheetOpen), 'true', 'opening Bulk Adjust');
+    /* Retired 2026-10-23 (AI review redesign): "opening Bulk Edit closes
+       Details" — Bulk Adjust is a sheet over the review, not a panel beside
+       the rows, so the panel under it is left as it was. What made two editors
+       a hazard was being able to type into both; that is asserted instead. */
+    const covered = await page.evaluate(() => {
+      const n = document.querySelector('[data-wqa-row="2"] .wqa-rv-detail [data-ef="qty"]');
+      const r = n.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return !!hit && !!hit.closest('#wqaBulkSheet');
+    });
+    A.eq(String(covered), 'true', 'and the open panel under it cannot be reached — the sheet covers it');
+    A.eq(s.ix, 0, 'with no inline box open either');
 
-    // Bulk Edit open, then Details: Bulk Edit closes.
-    await page.evaluate(() => wqaToggleRow(2));
-    await page.waitForTimeout(600);
+    // Bulk Adjust closed, then a value: one box, and no panel beside it.
+    await page.evaluate(() => { wqaBulkSheetClose(); wqaToggleRow(2); });
+    await page.waitForTimeout(500);
+    /* A series row's size lives in its heading, so it is edited in the row's
+       panel — never as a box on a line that does not show it. */
+    await page.evaluate(() => wqaEditStart(0, 'size'));
+    await page.waitForTimeout(400);
     s = await look(page);
-    A.eq(s.detailsOpen, 1, 'opening Details');
-    A.eq(String(s.bulkOpen), 'false', 'closes Bulk Edit — and the other way round');
-
-    // Fast Edit outranks both.
-    await page.evaluate(() => { wqaToggleBulk(); });
-    await page.waitForTimeout(600);
-    await page.evaluate(() => wqaEditStart());
-    await page.waitForTimeout(800);
+    A.eq(`${s.ix}/${s.detailsOpen}`, '0/1', 'a series row\'s size opens its panel, not an inline box');
+    await page.evaluate(() => wqaToggleRow(0));
+    await page.waitForTimeout(400);
+    /* Row 3 stands alone, so its length is a box in place. */
+    await page.evaluate(() => wqaEditStart(2, 'length'));
+    await page.waitForTimeout(500);
     s = await look(page);
-    A.eq(String(s.editing), 'true', 'entering Fast Edit');
-    A.eq(String(s.bulkOpen), 'false', 'collapses Bulk Edit');
-    A.eq(s.detailsOpen, 0, 'and closes any Details');
-    A.eq(s.view, 'compact', 'and forces Compact, because the grid is every row at once');
+    /* Retired 2026-10-23 (AI review redesign): Fast Edit "forces Compact" and
+       the locks on #wqaBulkHead, .wqa-row-details, the header select-all and
+       the ticks while the grid is open — there is no grid, view or standing
+       Bulk Edit to lock. The rules that still hold are asserted. */
+    A.eq(String(s.editing), 'false', 'Fast Edit is a value edited where it stands — no grid-wide session opens');
+    A.eq(s.ix, 1, 'one box, on one value');
+    A.eq(s.detailsOpen, 0, 'and no Details beside it');
 
-    const locked = await page.evaluate(() => ({
-      bulkHead: [...document.querySelectorAll('#wqaBulkHead button')].every(b => b.disabled),
-      details: [...document.querySelectorAll('#wqaRows .wqa-row-details')].every(b => b.disabled),
-      picks: [...document.querySelectorAll('#wqaRows .wqa-pick')].every(b => b.disabled),
-      headPick: !!(document.querySelector('#wqaListHead .wqa-pick-all') || {}).disabled,
-    }));
-    A.eq(String(locked.bulkHead), 'true', 'Bulk Edit cannot be reopened while the grid is open');
-    A.eq(String(locked.details), 'true', 'nor Details');
-    A.eq(String(locked.picks), 'true', 'and the ticks are frozen — the selection decides where a BULK apply lands');
-    A.eq(String(locked.headPick), 'true', 'select-all included');
+    // A value open, then an item: the box is committed and the panel opens.
+    await pressItem(page, 3);
+    await page.waitForTimeout(500);
+    s = await look(page);
+    A.eq(s.ix, 0, 'pressing an item closes the open box');
+    A.eq(s.detailsOpen, 1, 'and opens that item');
 
-    await page.evaluate(() => wqaEditDone());
-    await page.waitForTimeout(900);
-    const freed = await page.evaluate(() => ({
-      details: [...document.querySelectorAll('#wqaRows .wqa-row-details')].some(b => b.disabled),
-      picks: [...document.querySelectorAll('#wqaRows .wqa-pick')].some(b => b.disabled),
-    }));
-    A.eq(String(freed.details), 'false', 'Done gives Details back');
-    A.eq(String(freed.picks), 'false', 'and the ticks with it');
+    // A value open, then Selection mode: ticks only, nothing editable.
+    await page.evaluate(() => { wqaToggleRow(3); wqaEditStart(2, 'length'); });
+    await page.waitForTimeout(400);
+    await page.evaluate(() => wqaSelEnter());
+    await page.waitForTimeout(400);
+    s = await look(page);
+    A.eq(s.ix + s.panels, 0, 'entering Selection mode closes every editor');
+    await page.evaluate(() => wqaSelExit());
+    await page.waitForTimeout(300);
     A.ok(page._dcErrors.length === 0, 'no page errors: ' + page._dcErrors.join(' | '));
     await page.close();
   }
@@ -459,105 +547,88 @@ module.exports = async (browser, A) => {
      items" whatever the scope had been. A person who reads the toast and not
      the rows was told something false about their own quotation.
 
-     Both scopes, both languages, and every apply path that reports a count —
-     because this was one shared habit, not one broken function.            */
+     Both scopes, both languages. Bulk Adjust has one apply path and one
+     sentence ("Adjusted N items"), so the count is what must be true. */
   {
     const page = await openApp(browser);
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1300 });
-
-    const toast = () => page.evaluate(() => {
-      const t = document.querySelector('.toast, #toast, .dc-toast');
-      return t ? t.textContent.replace(/\s+/g, ' ').trim() : '';
-    });
 
     for (const lang of ['en', 'zh']) {
       await page.evaluate(l => dcSetLang(l), lang);
       await page.waitForTimeout(500);
 
-      // ── All Items: the sentence may say "all items", because it is true.
-      await page.evaluate(() => {
-        wqaClearSel(); wqaSetApplyScope('all');
-        wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('price');
-        wqaEditCommonPrice('markup', '3'); wqaApplyPriceToAll();
-      });
+      // ── All items: the sentence states every item.
+      await page.evaluate(() => { wqaBulkSheetOpen('all'); wqaBsSet('markup', '3'); wqaBulkApply(); });
       await page.waitForTimeout(900);
-      const all = await toast();
-      A.ok(all.length > 0, `${lang} · All Items: a message appears`);
-      if (lang === 'en') A.includes(all, 'all items', 'EN · All Items says "all items"');
-      else A.includes(all, '全部项目', '中文 · All Items says 全部项目');
+      const all = await toast(page);
+      A.ok(all.length > 0, `${lang} · All items: a message appears`);
+      /* Retired 2026-10-23 (AI review redesign): All Items "says all items" /
+         "says 全部项目" — the Bulk Adjust sentence states the count in both
+         scopes, never the word "all". */
+      A.includes(all, lang === 'en' ? 'Adjusted 4 items' : '已调整 4 个项目', `${lang} · All items states all four`);
 
-      // ── Selected Items: it must name the count and never say "all".
+      // ── Selected items: it must name the count and never say "all".
       await page.evaluate(() => {
-        wqaSetApplyScope('selected');
-        [1, 3].forEach(i => wqaToggleRowSel(i));
-        wqaEditCommonPrice('markup', '7'); wqaApplyPriceToAll();
+        wqaSelEnter(); [1, 3].forEach(i => wqaRvToggleSel(i));
+        wqaBulkSheetOpen('selected'); wqaBsSet('markup', '7'); wqaBulkApply();
       });
       await page.waitForTimeout(900);
-      const sel = await toast();
-      A.includes(sel, '2', `${lang} · Selected: the message states the count`);
-      if (lang === 'en') {
-        A.includes(sel, 'selected', 'EN · Selected says "selected"');
-        A.excludes(sel, 'all items', 'EN · and never claims all items');
-      } else {
-        A.includes(sel, '已选择', '中文 · Selected says 已选择');
-        A.excludes(sel, '全部项目', '中文 · and never claims 全部项目');
-      }
+      const sel = await toast(page);
+      A.includes(sel, lang === 'en' ? 'Adjusted 2 items' : '已调整 2 个项目', `${lang} · Selected: the message states the count`);
+      if (lang === 'en') A.excludes(sel, 'all items', 'EN · and never claims all items');
+      else A.excludes(sel, '全部项目', '中文 · and never claims 全部项目');
 
       /* and the data really did stay inside the selection */
       const marks = await page.evaluate(() =>
         wqa.rows.map(r => String((r.priceOverride || {}).markup == null ? '' : r.priceOverride.markup)));
       A.eq(marks.join('|'), '3|7|3|7', `${lang} · the rows agree with the message`);
-
-      await page.evaluate(() => { wqaClearSel(); wqaSetApplyScope('all'); });
-      await page.waitForTimeout(400);
+      A.eq(String(await page.evaluate(() => wqa.selMode || wqaSelCount() > 0)), 'false',
+        `${lang} · and a selection that has been used is released`);
     }
     await page.evaluate(() => dcSetLang('en'));
     await page.close();
   }
 
   /* ── CR-02 · no Close that cannot close ──────────────────────────────────
-     In global Expanded every row is open BECAUSE of the view — wqaRowIsOpen
-     returns true from wqa.view alone — so a row-level Close set r.open=false
-     and the row stayed open. A control that cannot do what it says is worse
-     than no control: it teaches a person that the screen does not respond.  */
+     A control that cannot do what it says is worse than no control: it
+     teaches a person that the screen does not respond. */
   {
     const page = await openApp(browser);
     await quickAddPaste(page, FOUR, { expanded: false, settle: 1300 });
 
-    A.eq(await page.evaluate(() =>
-      document.querySelectorAll('#wqaRows .wqa-row-details').length), 4,
-      'Compact offers Details on every row');
-
-    await page.evaluate(() => wqaSetView('expanded'));
-    await page.waitForTimeout(800);
+    /* Retired 2026-10-23 (AI review redesign): the global-Expanded half —
+       "Expanded renders no row action that cannot close the row", every form
+       open by the view — there is no Expanded view on the screen any more. */
     const exp = await page.evaluate(() => ({
-      details: document.querySelectorAll('#wqaRows .wqa-row-details').length,
-      /* every row IS open, by the view */
-      open: wqa.rows.filter(r => wqaRowIsOpen(r)).length,
-      bodies: document.querySelectorAll('#wqaRows .wqa-row-body').length,
-      /* the other two row actions are unaffected */
-      hist: document.querySelectorAll('#wqaRows .wqa-row-hist').length,
-      del: document.querySelectorAll('#wqaRows .wqa-row-del').length,
+      more: document.querySelectorAll('#wqaRows .wqa-rv-more').length,
+      hist: document.querySelectorAll('#wqaRows .wqa-it-acts .wqa-row-hist').length,
+      del: document.querySelectorAll('#wqaRows .wqa-it-acts .wqa-row-del').length,
     }));
-    A.eq(exp.details, 0, 'Expanded renders NO row action that cannot close the row');
-    A.eq(exp.open, 4, 'while every row is open, by the view');
-    A.eq(exp.bodies, 4, 'and every form is on the screen');
-    A.eq(exp.hist, 4, 'History is still offered');
+    A.eq(exp.more, 4, 'every row offers More');
+    A.eq(exp.hist, 4, 'History is offered on every row');
     A.eq(exp.del, 4, 'and remove');
 
-    /* Compact keeps the working one, and it really closes. */
-    await page.evaluate(() => wqaSetView('compact'));
-    await page.waitForTimeout(700);
-    await page.evaluate(() => wqaToggleRow(0));
+    await page.evaluate(() => document.querySelector('[data-wqa-row="0"] .wqa-rv-more').click());
     await page.waitForTimeout(600);
     A.eq(await page.evaluate(() =>
-      document.querySelector('[data-wqa-row="0"] .wqa-row-details').textContent.trim()),
-      'Close', 'Compact: the open row offers Close');
+      document.querySelector('[data-wqa-row="0"] .wqa-rv-more').getAttribute('aria-label')),
+      'Less', 'the open row offers Less');
     await page.evaluate(() =>
-      document.querySelector('[data-wqa-row="0"] .wqa-row-details').click());
+      document.querySelector('[data-wqa-row="0"] .wqa-rv-more').click());
     await page.waitForTimeout(700);
     A.eq(await page.evaluate(() => wqa.rows.filter(r => wqaRowIsOpen(r)).length), 0,
       'and pressing it actually closes the row');
+    /* The panel's own Done, and the item itself, close it too. */
+    await pressItem(page, 0);
+    await page.waitForTimeout(500);
+    await page.evaluate(() => [...document.querySelectorAll('[data-wqa-row="0"] .wqa-dt-foot .btn')].find(b => b.textContent.trim() === 'Done').click());
+    await page.waitForTimeout(500);
+    A.eq(await page.evaluate(() => wqa.rows.filter(r => wqaRowIsOpen(r)).length), 0, 'Done in the panel closes it');
+    await pressItem(page, 0);
+    await page.waitForTimeout(400);
+    await pressItem(page, 0);
+    await page.waitForTimeout(400);
+    A.eq(await page.evaluate(() => wqa.rows.filter(r => wqaRowIsOpen(r)).length), 0, 'and so does pressing the item again');
     await page.close();
   }
 
@@ -572,44 +643,34 @@ module.exports = async (browser, A) => {
 
     /* give the rows something to lose */
     await page.evaluate(() => {
-      wqa.bulkOpen = true; wqaRenderBulk(); wqaTogglePanel('acc');
-      wqaEditCommonAcc('nut', 'enabled', true);
-      wqaEditCommonAcc('nut', 'qty', 2);
-      wqaApplyAccToAll();
+      wqaBulkSheetOpen('all'); wqaBsSet('acc', 'set');
+      wqaBsEditAcc('nut', 'enabled', true);
+      wqaBsEditAcc('nut', 'qty', 2);
+      wqaBulkApply();
     });
     await page.waitForTimeout(1400);
     const withAcc = await page.evaluate(() => wqa.rows.filter(r => wqaAccHas(r.acc)).length);
     A.eq(withAcc, 4, 'all four rows carry an accessory');
 
-    await page.evaluate(() => { wqaSetApplyScope('selected'); wqaClearSel(); });
+    await page.evaluate(() => { wqaBulkSheetOpen('all'); wqaBsScope('selected'); wqaBsSet('acc', 'clear'); });
     await page.waitForTimeout(800);
-    const guard = await page.evaluate(() => {
-      const clear = document.querySelector('#wqaCommonAcc [data-wqa-needsel]');
-      const apply = document.querySelector('#wqaCommonAcc [data-wqa-apply]');
-      const msg = document.querySelector('#wqaCommonAcc .wqa-none-sel');
-      return { clearOff: !!clear && !!clear.disabled, applyOff: !!apply && !!apply.disabled,
-               msgShown: !!msg && !msg.hidden, msg: msg ? msg.textContent.trim() : '',
-               title: clear ? clear.title : '' };
-    });
-    A.eq(String(guard.clearOff), 'true', 'Clear All Accessories is disabled with nothing selected');
-    A.eq(String(guard.applyOff), 'true', 'and so is Apply');
-    A.eq(guard.msg, 'Select at least one item.', 'with the same refusal wording as everywhere else');
-    A.eq(String(guard.msgShown), 'true', 'shown beside the actions it refuses');
+    const guard = await sheet(page);
+    A.eq(guard.lines.join(' | '), 'Remove accessories', 'the sheet says it would remove accessories');
+    A.eq(String(guard.applyOff), 'true', 'but with nothing selected Apply is disabled');
+    A.eq(guard.why, 'No items selected yet.', 'with the same refusal wording as everywhere else in the sheet');
 
     /* and if it is called anyway, it changes nothing and says so */
-    await page.evaluate(() => wqaClearAllAcc());
+    await page.evaluate(() => wqaBulkApply());
     await page.waitForTimeout(900);
     A.eq(await page.evaluate(() => wqa.rows.filter(r => wqaAccHas(r.acc)).length), 4,
       'calling it directly clears nothing — Selected never becomes All');
-    A.includes(await page.evaluate(() => {
-      const t = document.querySelector('.toast, #toast, .dc-toast');
-      return t ? t.textContent : '';
-    }), 'Select at least one item', 'and the message is the refusal, not a success');
+    A.includes(await toast(page), 'No items selected yet', 'and the message is the refusal, not a success');
 
     /* tick two and it works, on those two, and says which */
-    await page.evaluate(() => { wqaToggleRowSel(0); wqaToggleRowSel(2); });
-    await page.waitForTimeout(600);
-    await page.evaluate(() => wqaClearAllAcc());
+    await page.evaluate(() => {
+      wqaBulkSheetClose(); wqaSelEnter(); wqaRvToggleSel(0); wqaRvToggleSel(2);
+      wqaBulkSheetOpen('selected'); wqaBsSet('acc', 'clear'); wqaBulkApply();
+    });
     await page.waitForTimeout(1200);
     const after = await page.evaluate(() => ({
       has: wqa.rows.map(r => wqaAccHas(r.acc) ? '1' : '0').join(''),

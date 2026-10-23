@@ -89,25 +89,29 @@ module.exports = async (browser, A) => {
                       { expanded: false, settle: 1000 });
 
   // ── 1 · the action is on the row ─────────────────────────────────────────
-  const actions = await page.evaluate(() => {
-    const card = document.querySelector('[data-wqa-row="0"]');
-    const btns = [...card.querySelectorAll('.wqa-sum-actions .wqa-row-act')];
-    return { labels: btns.map(n => n.textContent.replace(/\s+/g, ' ').trim().replace(/\d+$/, '')),
-             tags: btns.map(n => n.tagName),
-             tall: btns.map(n => Math.round(n.getBoundingClientRect().height)),
+  const actionsOf = i => page.evaluate(n => {
+    const card = document.querySelector(`[data-wqa-row="${n}"]`);
+    const btns = [...card.querySelectorAll('.wqa-it-acts > *')];
+    return { labels: btns.map(b => b.textContent.replace(/\s+/g, ' ').trim()),
+             tags: btns.map(b => b.tagName),
+             tall: btns.map(b => Math.round(b.getBoundingClientRect().height)),
+             count: (card.querySelector('.wqa-it-acts .wqa-row-hist .wqa-row-actn') || {}).textContent || '',
              collapsed: !card.classList.contains('is-open'),
-             editorOpen: !!card.querySelector('.wqa-row-body') };
-  });
-  /* Details, not Edit. Two controls said "Edit" and meant different things:
-     this one opens ONE row's form, while the toolbar's opens a grid over
-     every row. The row action was never an editor of that kind. */
-  A.eq(actions.labels.join(' | '), 'Details | History | ✕',
-       'the row offers Details, History and remove — and never a second "Edit"');
+             editorOpen: !!card.querySelector('.wqa-rv-detail') };
+  }, i);
+  const actions = await actionsOf(0);
+  /* Retired 2026-10-23 (AI review redesign): the row's "Details" button — the
+     row opens by pressing it or its ▾. Still never a second "Edit". */
+  A.eq(actions.labels.join(' | '), 'Pricing History | ✕ | ▾',
+       'the row offers Pricing History, remove and ▾ — and never a second "Edit"');
   /* Controls that look and behave like controls: it was a bare span, which
      no keyboard could reach and no finger could aim at. */
   A.eq(actions.tags.join(' '), 'BUTTON BUTTON BUTTON', 'and all three are buttons');
+  /* The 32px desktop target the old row met; touch sizes are checked in
+     suite 28 at tablet width. */
   A.ok(actions.tall.every(h => h >= 32),
     `each with a real click target (${actions.tall.join('/')}px)`);
+  A.eq(actions.count, '', 'carrying no record count until the row has asked');
   A.eq(actions.collapsed, 'true', 'while the row is collapsed');
   A.eq(actions.editorOpen, 'false', 'and its editor is not open');
 
@@ -123,7 +127,7 @@ module.exports = async (browser, A) => {
     material: wqa.rows[0].material, product: wqa.rows[0].product,
   }));
 
-  await page.click('[data-wqa-row="0"] .wqa-row-hist');
+  await page.click('[data-wqa-row="0"] .wqa-it-acts .wqa-row-hist');
   await page.waitForTimeout(700);
   A.eq(asked.length, 1, 'clicking History on row 1 asks once');
   A.eq(asked[0].size, 'M20', 'for row 1\'s own size');
@@ -138,8 +142,10 @@ module.exports = async (browser, A) => {
   A.eq(panels[0].open, 'true', 'row 1 shows its history');
   A.eq(panels[1].open, 'false', 'row 2 shows nothing — it was not asked');
   A.ok(panels[0].refs.every(x => x.startsWith('M20-')), 'and every record shown is row 1\'s own');
+  A.eq((await actionsOf(0)).count + '/' + (await actionsOf(1)).count, '5/',
+    'row 1\'s History now carries its record count, row 2\'s still none');
 
-  await page.click('[data-wqa-row="1"] .wqa-row-hist');
+  await page.click('[data-wqa-row="1"] .wqa-it-acts .wqa-row-hist');
   await page.waitForTimeout(700);
   A.eq(asked.length, 2, 'row 2 asks for itself when it is asked');
   A.eq(asked[1].size, 'M24', 'with its own size');
@@ -232,12 +238,18 @@ module.exports = async (browser, A) => {
      the record's PRICING — its rate, its surcharge, its markup and the mode it
      was rounded in — and the row then prices itself from them. It used to copy
      the historical final figure into Manual Price instead; see suite 23. */
-  await page.evaluate(() => {
-    const i = wqa.rows[0].hist.records.findIndex(r => r.refNo === 'M20-1000');
-    wqaHistUse(0, i);
+  const row2Before = JSON.stringify((await rowState(page))[1]);
+  /* Pressed on the row's own panel, on that record's own Use button. */
+  const pressed = await page.evaluate(() => {
+    const recs = [...document.querySelectorAll('[data-wqa-row="0"] .wqa-hist-panel .ph-rec')];
+    const rec = recs.find(n => ((n.querySelector('.ph-rec-ref') || {}).textContent || '') === 'M20-1000');
+    const b = rec && rec.querySelector('.ph-rec-use');
+    if (!b) return false; b.click(); return true;
   });
+  A.ok(pressed, 'the M20-1000 record offers Use on row 1\'s panel');
   await page.waitForTimeout(900);
   const used = (await rowState(page))[0];
+  A.eq(JSON.stringify((await rowState(page))[1]), row2Before, 'and using it leaves row 2 exactly as it was');
   const usedCalc = await page.evaluate(() => ({
     rate: String(wqa.rows[0].calc.costRate), add: String(wqa.rows[0].calc.addCost),
     mk: String(wqa.rows[0].calc.markup), price: wqa.rows[0].calc.finalUnitPrice,
@@ -276,7 +288,7 @@ module.exports = async (browser, A) => {
   A.ok(afterSize.every(x => x.startsWith('M22-')), 'and nothing of the old size is left on screen');
 
   // ── 11 · each row's panel is its own ─────────────────────────────────────
-  await page.click('[data-wqa-row="0"] .wqa-row-hist');
+  await page.click('[data-wqa-row="0"] .wqa-it-acts .wqa-row-hist');
   await page.waitForTimeout(500);
   const oneClosed = await page.evaluate(() => [0, 1].map(i =>
     !!document.querySelector(`[data-wqa-row="${i}"] .wqa-hist-panel`)));
