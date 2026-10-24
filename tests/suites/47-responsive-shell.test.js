@@ -79,6 +79,8 @@ module.exports = async (browser, A) => {
     A.ok(clear.lastBottom <= clear.barTop + 1, `${w}: the last content ends above the bar — nothing hidden behind the navigation (${Math.round(clear.lastBottom)} ≤ ${Math.round(clear.barTop)})`);
     A.ok(clear.navH >= 56, `${w}: the navigation is at least 56px tall (${clear.navH})`);
 
+    // one New Quotation on the first screen: the Step 1 copy is hidden on phones
+    A.eq(await page.evaluate(() => getComputedStyle(document.querySelector('.rsp-dup-new')).display), 'none', `${w}: the duplicate Step 1 New Quotation is hidden`);
     // New Quotation keeps its guard and logic
     await page.evaluate(() => { window.__n = 0; const f = window.startNewQuotation; window.startNewQuotation = function () { window.__n++; return f.apply(this, arguments); }; });
     await page.click('.rsp-chip.is-primary');
@@ -121,14 +123,14 @@ module.exports = async (browser, A) => {
       open: document.getElementById('rspAcct').classList.contains('is-open'),
       name: document.getElementById('rspAcctName').textContent, user: document.getElementById('rspAcctUser').textContent,
       rows: [...document.querySelectorAll('#rspAcct .rsp-row')].map(n => ({ t: n.textContent.trim(), href: n.getAttribute('href') })),
-      lang: [...document.querySelectorAll('#rspAcct .dnc-lang-btn')].map(n => ({ t: n.textContent.trim(), h: Math.round(n.getBoundingClientRect().height) })),
+      lang: [...document.querySelectorAll('#rspAcct .dnc-lang-btn')].map(n => ({ t: n.textContent.trim(), h: Math.round(n.getBoundingClientRect().height), w: Math.round(n.getBoundingClientRect().width) })),
     }));
     A.ok(acct.open && acct.name === 'Test User' && acct.user === 'test.user', `${w}: Account opens and names the signed-in user`);
     A.eq(JSON.stringify(acct.rows.map(r => r.t)), JSON.stringify(["What's New", 'System Version0123456', 'Back to Workspace', 'Sign Out']), `${w}: What's New, System Version (short commit), Back to Workspace, Sign Out`);
     A.eq(acct.rows[2].href, 'https://portal.dnchardware.com', `${w}: Back to Workspace is the Portal`);
     A.eq(acct.rows[3].href, 'logout.php', `${w}: Sign Out is the existing logout.php`);
     A.eq(JSON.stringify(acct.lang.map(l => l.t)), JSON.stringify(['EN', '中文']), `${w}: EN | 中文`);
-    A.ok(acct.lang.every(l => l.h >= 44), `${w}: both language buttons are 44px+`);
+    A.ok(acct.lang.every(l => l.h === 38) && acct.lang[0].w === acct.lang[1].w, `${w}: both language buttons are a compact 38px and equal width (${JSON.stringify(acct.lang)})`);
     await page.click('#rspAcct [data-lang-set="zh"]'); await page.waitForTimeout(200);
     A.eq(await page.evaluate(() => document.querySelector('#rspNav .rsp-nav-item:last-child span').textContent), '账户', `${w}: switching to 中文 relabels the navigation`);
     await page.click('#rspAcct [data-lang-set="en"]');
@@ -167,6 +169,13 @@ module.exports = async (browser, A) => {
     await page.click('#rspNavTools'); await page.waitForTimeout(300);
     await page.click('#rspTools .rsp-row'); await page.waitForTimeout(300);
     A.eq(await page.evaluate(() => sessionStorage.getItem('dcShellIntent')), 'dp', 'companies 390: a tool carries its intent to the quotation screen');
+    await page.close();
+  }
+
+  // the Step 1 button stays on tablet
+  {
+    const page = await openApp(browser, { viewport: { width: 820, height: 900 } });
+    A.eq(await page.evaluate(() => getComputedStyle(document.querySelector('.rsp-dup-new')).display), 'flex', '820: the Step 1 New Quotation is unchanged on tablet');
     await page.close();
   }
 

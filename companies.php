@@ -959,7 +959,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .rsp-ident .dnc-avatar{width:40px;height:40px;font-size:15px}
   .rsp-lang-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 10px;flex-shrink:0}
   .rsp-lang-row .dnc-lang{width:170px}
-  .rsp-lang-row .dnc-lang-btn{height:44px}
+  .rsp-lang-row .dnc-lang-btn{height:38px}
   .rsp-lang-lbl{font-size:15px;font-weight:500;color:var(--dnc-ink)}
 }
 @media print{

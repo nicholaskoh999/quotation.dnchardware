@@ -3893,7 +3893,9 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .rsp-ident .dnc-avatar{width:40px;height:40px;font-size:15px}
   .rsp-lang-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 10px;flex-shrink:0}
   .rsp-lang-row .dnc-lang{width:170px}
-  .rsp-lang-row .dnc-lang-btn{height:44px}
+  .rsp-lang-row .dnc-lang-btn{height:38px}
+  /* the quick action above already offers New Quotation; the Step 1 copy would read as a duplicate */
+  .rsp-dup-new{display:none}
   .rsp-lang-lbl{font-size:15px;font-weight:500;color:var(--dnc-ink)}
 }
 @media print{
@@ -4050,7 +4052,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="step-caption" style="margin-bottom:0" data-i18n="step1Caption">Step 1 · Customer</div>
           <span class="step-caption-sub" data-i18n="step1Sub">Customer details</span>
         </div>
-        <button class="btn btn-danger btn-sm" style="font-size:12px;padding:5px 12px;white-space:nowrap" onclick="startNewQuotation()" data-i18n="newQuotation">New Quotation</button>
+        <button class="btn btn-danger btn-sm rsp-dup-new" style="font-size:12px;padding:5px 12px;white-space:nowrap" onclick="startNewQuotation()" data-i18n="newQuotation">New Quotation</button>
       </div>
       <div class="qi-compact" onclick="toggleQIEdit()">
         <div class="summary-ava" aria-hidden="true">👤</div>
