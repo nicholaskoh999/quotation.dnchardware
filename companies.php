@@ -442,9 +442,9 @@ html,body{max-width:100%;overflow-x:hidden}
 .btn-primary{background:linear-gradient(135deg,var(--accent-2),var(--accent));box-shadow:0 3px 10px rgba(37,71,208,.22)}
 .btn-primary:hover{background:linear-gradient(135deg,#17348f,var(--accent-2))}
 
-/* Company creation uses the same primary treatment as the DNC shell CTA. */
-.btn-company-primary{min-height:40px;border-radius:8px;background:#4338ca;color:#fff;font-family:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;font-weight:500;box-shadow:0 1px 2px 0 rgb(22 26 35 / .04),0 1px 1px -1px rgb(22 26 35 / .03)}
-.btn-company-primary:hover{background:#3730a3}
+/* Company creation is the page-level primary, below the module-level shell CTA. */
+.btn-company-primary{min-height:40px;border-radius:8px;background:#eef0fd;color:#4338ca;border:1px solid #c7d2fe;font-family:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;font-weight:500;box-shadow:none}
+.btn-company-primary:hover{background:#e0e7ff;border-color:#a5b4fc}
 .btn-company-primary:focus-visible{outline:2px solid #4338ca;outline-offset:2px}
 .btn-company-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 
