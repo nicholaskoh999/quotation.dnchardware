@@ -27,7 +27,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Quotation">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   /* v2.24.1 brightness pass — same ground and surfaces as index.php. */
@@ -740,9 +740,149 @@ input,select,textarea{
 }
 /* The label keeps its place beside a taller close box. */
 @media (max-width:560px){ .modal-title{align-items:flex-start} }
+/* ══ DNC shared desktop shell (2026-10-24) ═════════════════════════════════
+   The same block in index.php and companies.php, and the same values as the
+   Internal PO shell: 240px sidebar, 64px brand row, 36px rows, 8px radius,
+   3px accent bar, 11px section labels, 40px primary action, IBM Plex Sans.
+   Desktop only (≥1024px). Below that nothing here applies and each page keeps
+   its own header and off-canvas menu, unchanged. Shell tokens are scoped to
+   the shell, so the quotation content keeps its own type and colours. */
+.dnc-shell,.dnc-page-head{display:none}
+.dnc-shell,.dnc-page-head{
+  --dnc-indigo:#4338ca; --dnc-indigo-hover:#3730a3; --dnc-indigo-soft:#eef0fd;
+  --dnc-tangerine:#ff8a3d; --dnc-canvas:#f2f3f6; --dnc-surface:#ffffff; --dnc-sunken:#eceef2;
+  --dnc-border:#e2e4ea; --dnc-ink:#161a23; --dnc-ink-2:#4d5463; --dnc-ink-3:#737a89;
+  --dnc-font:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (min-width:1024px){
+  :root{--header-h:0px}
+  body{padding-left:240px}
+  .app-header,.page-header,.sidebar,.sidebar-backdrop{display:none!important}
+  .dnc-shell{
+    display:flex; flex-direction:column; position:fixed; z-index:200;
+    top:var(--banner-h,0px); bottom:0; left:0; width:240px;
+    background:var(--dnc-surface); border-right:1px solid var(--dnc-border);
+    color:var(--dnc-ink); font-family:var(--dnc-font); font-size:14px; line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+  }
+  .dnc-page-head{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; font-family:var(--dnc-font)}
+}
+.dnc-ico{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dnc-ico-sub{color:var(--dnc-ink-3)}
+.dnc-brand{display:flex;align-items:center;gap:10px;height:64px;flex-shrink:0;padding:0 20px;color:inherit;text-decoration:none}
+.dnc-brand:focus-visible{outline:2px solid var(--dnc-indigo);outline-offset:-4px;border-radius:8px}
+.dnc-mark{width:32px;height:32px;flex-shrink:0}
+.dnc-mark-bg{fill:var(--dnc-indigo)} .dnc-mark-dot{fill:var(--dnc-tangerine)}
+.dnc-brand-text{min-width:0;line-height:1}
+.dnc-brand-sys{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--dnc-ink)}
+.dnc-brand-mod{display:block;margin-top:4px;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dnc-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dnc-back-wrap{flex-shrink:0;padding:0 12px 8px;border-bottom:1px solid var(--dnc-border)}
+.dnc-back{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:8px;
+  font-size:14px;color:var(--dnc-ink-2);text-decoration:none;transition:background .15s,color .15s}
+.dnc-back:hover{background:var(--dnc-sunken);color:var(--dnc-ink)}
+.dnc-cta-wrap{flex-shrink:0;padding:12px 12px 16px}
+.dnc-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;padding:0 12px;
+  border:0;border-radius:8px;background:var(--dnc-indigo);color:#fff;font:inherit;font-size:14px;font-weight:500;cursor:pointer;
+  box-shadow:0 1px 2px 0 rgb(22 26 35 / .04),0 1px 1px -1px rgb(22 26 35 / .03);transition:background .15s}
+.dnc-cta:hover{background:var(--dnc-indigo-hover)}
+.dnc-nav{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:0 12px 8px}
+.dnc-sec{padding:0 10px 6px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--dnc-ink-3)}
+.dnc-nav .dnc-sec ~ .dnc-sec{margin-top:16px}
+.dnc-link{position:relative;display:flex;align-items:center;gap:10px;width:100%;height:36px;flex-shrink:0;padding:0 10px;
+  border:0;border-radius:8px;background:transparent;font:inherit;font-size:14px;font-weight:500;text-align:left;
+  color:var(--dnc-ink-2);text-decoration:none;cursor:pointer;transition:background .15s,color .15s}
+.dnc-link > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dnc-link:hover{background:var(--dnc-sunken);color:var(--dnc-ink)}
+.dnc-link.is-active{background:var(--dnc-indigo-soft);color:var(--dnc-indigo)}
+.dnc-link.is-active::before{content:'';position:absolute;top:8px;bottom:8px;left:-12px;width:3px;border-radius:0 999px 999px 0;background:var(--dnc-tangerine)}
+.dnc-link:focus-visible,.dnc-back:focus-visible,.dnc-cta:focus-visible,.dnc-acct:focus-visible,.dnc-mi:focus-visible,.dnc-lang-btn:focus-visible{
+  outline:2px solid var(--dnc-indigo);outline-offset:2px}
+.dnc-bottom{position:relative;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding:12px;border-top:1px solid var(--dnc-border)}
+.dnc-lang{display:flex;width:100%;padding:2px;border:1px solid var(--dnc-border);border-radius:8px;background:var(--dnc-sunken)}
+.dnc-lang-btn{flex:1;height:28px;border:0;border-radius:6px;background:transparent;font:inherit;font-size:13px;font-weight:500;color:var(--dnc-ink-2);cursor:pointer}
+.dnc-lang-btn:hover{color:var(--dnc-ink)}
+.dnc-lang-btn.is-on{background:var(--dnc-surface);color:var(--dnc-ink);box-shadow:0 1px 2px 0 rgb(22 26 35 / .08)}
+.dnc-acct{display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px;border:0;border-radius:8px;background:transparent;
+  font:inherit;text-align:left;color:inherit;cursor:pointer;transition:background .15s}
+.dnc-acct:hover,.dnc-acct[aria-expanded="true"]{background:var(--dnc-sunken)}
+.dnc-avatar{display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;border-radius:999px;
+  background:var(--dnc-indigo-soft);color:var(--dnc-indigo);font-size:13px;font-weight:600}
+.dnc-acct-text{flex:1;min-width:0}
+.dnc-acct-name{display:block;font-size:14px;font-weight:500;color:var(--dnc-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dnc-acct-user{display:block;font-size:12px;color:var(--dnc-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dnc-menu{position:absolute;left:12px;right:12px;bottom:calc(100% - 4px);z-index:5;padding:4px;
+  background:var(--dnc-surface);border:1px solid var(--dnc-border);border-radius:12px;
+  box-shadow:0 12px 32px -8px rgb(22 26 35 / .18),0 2px 6px rgb(22 26 35 / .06)}
+.dnc-menu[hidden]{display:none}
+.dnc-mi{display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 10px;border:0;border-radius:8px;background:transparent;
+  font:inherit;font-size:14px;color:var(--dnc-ink);text-align:left;text-decoration:none;cursor:pointer}
+.dnc-mi:hover{background:var(--dnc-sunken)}
+.dnc-mi.is-static{cursor:default;color:var(--dnc-ink-2)} .dnc-mi.is-static:hover{background:transparent}
+.dnc-mi-val{margin-left:auto;font-size:12px;color:var(--dnc-ink-3);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.dnc-mi-sep{height:1px;margin:4px 6px;background:var(--dnc-border)}
+.dnc-page-title{font-size:22px;font-weight:600;line-height:1.25;letter-spacing:-.01em;color:var(--dnc-ink)}
+.dnc-page-sub{margin-top:4px;font-size:14px;color:var(--dnc-ink-2)}
+@media (min-width:1024px){
+  /* The shared page header replaces the old page title; content takes the shared width. */
+  .wrap{max-width:1440px!important;padding:32px 32px 80px!important}
+  .wrap>.page-title{display:none}
+  .dnc-page-head{margin:0 0 18px}
+}
+@media print{
+  .dnc-shell,.dnc-page-head{display:none!important}
+  body{padding-left:0!important}
+}
+@media (prefers-reduced-motion:reduce){ .dnc-link,.dnc-back,.dnc-cta,.dnc-acct{transition:none} }
+
 </style>
 </head>
 <body>
+<!-- ══ DNC shared desktop shell (≥1024px). The same block, byte for byte, in
+     index.php and companies.php; only the active item differs. Below 1024px it
+     is not shown and the page keeps its own header and off-canvas menu. ══ -->
+<aside class="dnc-shell" id="dncShell" data-i18n-aria="shellNav" aria-label="DNC navigation">
+  <a class="dnc-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
+    <svg class="dnc-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" class="dnc-mark-bg"/><path d="M10 9h7.5a5.5 5.5 0 0 1 0 11H13v3h-3z m3 3v5h4.5a2.5 2.5 0 0 0 0-5z" fill="#fff"/><circle cx="24" cy="24" r="3" class="dnc-mark-dot"/></svg>
+    <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
+  </a>
+  <div class="dnc-back-wrap">
+    <a class="dnc-back" id="dncBack" href="https://portal.dnchardware.com"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span data-i18n="shellBack">Back to Workspace</span></a>
+  </div>
+  <div class="dnc-cta-wrap">
+    <button type="button" class="dnc-cta" id="dncNew" onclick="dcShellNew()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span data-i18n="shellNewQuotation">New Quotation</span></button>
+  </div>
+  <nav class="dnc-nav">
+    <p class="dnc-sec" data-i18n="shellModules">Modules</p>
+    <a class="dnc-link" data-shell="quotations" href="index.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg><span data-i18n="shellQuotations">Quotations</span></a>
+    <a class="dnc-link" data-shell="ipo" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
+    <p class="dnc-sec" data-i18n="shellQuoTools">Quotation Tools</p>
+    <a class="dnc-link is-active" aria-current="page" data-shell="companies" href="companies.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg><span data-i18n="shellCompaniesSaved">Companies &amp; Saved</span></a>
+    <button type="button" class="dnc-link" data-shell="dp" onclick="dcShellTool('dp')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span data-i18n="shellDefaultPrices">Default Prices</span></button>
+    <button type="button" class="dnc-link" data-shell="ds" onclick="dcShellTool('ds')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="19" r="2"/><circle cx="5" cy="5" r="2"/><path d="M6.48 3.66a10 10 0 0 1 13.86 13.86"/><path d="m6.41 6.41 11.18 11.18"/><path d="M3.66 6.48a10 10 0 0 0 13.86 13.86"/></svg><span data-i18n="shellDiameterSettings">Diameter Settings</span></button>
+    <button type="button" class="dnc-link" data-shell="ref" onclick="dcShellTool('ref')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span data-i18n="shellPricingGuide">Pricing Guide</span></button>
+  </nav>
+  <div class="dnc-bottom">
+    <div class="dnc-lang" role="group" data-i18n-aria="langAria" aria-label="Language">
+      <button type="button" class="dnc-lang-btn" data-lang-set="en" aria-pressed="true" onclick="dcSetLang('en')">EN</button>
+      <button type="button" class="dnc-lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
+    </div>
+    <div class="dnc-menu" id="dncMenu" role="menu" hidden>
+      <button type="button" class="dnc-mi" role="menuitem" onclick="dcShellToggleMenu(false);dcShellTool('whatsnew')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg><span data-i18n="shellWhatsNew">What's New</span></button>
+      <div class="dnc-mi is-static" role="menuitem" aria-disabled="true"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span data-i18n="shellSystemVersion">System Version</span><span class="dnc-mi-val" id="dncSysVer" data-i18n-skip>…</span></div>
+      <div class="dnc-mi-sep" role="separator"></div>
+      <a class="dnc-mi" role="menuitem" href="logout.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg><span data-i18n="shellSignOut">Sign Out</span></a>
+    </div>
+    <button type="button" class="dnc-acct" id="dncAcctBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="dncMenu"
+            data-i18n-aria="shellAccountMenu" aria-label="Account menu" onclick="dcShellToggleMenu()">
+      <span class="dnc-avatar" id="dncAvatar" aria-hidden="true" data-i18n-skip>·</span>
+      <span class="dnc-acct-text" data-i18n-skip><span class="dnc-acct-name" id="dncAcctName"></span><span class="dnc-acct-user" id="dncAcctUser"></span></span>
+      <svg class="dnc-ico dnc-ico-sub" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
+    </button>
+  </div>
+</aside>
+<script>/* The signed-in identity, for the shell's account block only. */
+window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $u ? ['name'=>$u['display_name'],'username'=>$u['username']] : null; })(), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE) ?>;</script>
 
 <div class="page-header">
   <a class="brand-link" href="index.php" data-i18n-aria="ariaHome" aria-label="Der-Cheng Quotation — home">
@@ -766,6 +906,14 @@ input,select,textarea{
 </div>
 
 <div class="wrap" style="display:block;max-width:1240px">
+
+  <!-- Shared page header (desktop shell): the module's page title, nothing else. -->
+    <div class="dnc-page-head">
+      <div class="dnc-page-head-text">
+        <h1 class="dnc-page-title" data-i18n="shellPageCompanies">Companies &amp; Saved</h1>
+        <p class="dnc-page-sub" data-i18n="pageCompaniesSub">Manage customers &amp; saved quotations</p>
+      </div>
+    </div>
 
   <!-- Page identity lives in the content area; the header carries the global brand -->
   <div class="page-title">
@@ -978,6 +1126,8 @@ const I18N={
     cpSavedQuotes:'Saved quotes: {n} · Latest: {d}', cpNoSavedQuotes:'No saved quotations',
     cpLastUpdated:'Last Updated', cpLatestProduct:'Latest Product',
     qoRenumbered:'Quotation {r} was renumbered.', qoChooseOne:'{n} quotations match “{r}”. Choose one:',
+    /* DNC shared desktop shell (2026-10-24) */
+    shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Modules', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
   zh:{
     qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
@@ -1049,6 +1199,8 @@ const I18N={
     cpConfirmDeleteQuote:'确定删除此报价单？', cpSignedOut:'已退出登录',
     cpSavedQuotes:'已保存报价：{n} · 最新：{d}', cpNoSavedQuotes:'尚无已保存报价',
     cpLastUpdated:'最后更新', cpLatestProduct:'最新产品',
+    /* DNC shared desktop shell (2026-10-24) */
+    shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'模块', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
 };
 function dcLang(){
@@ -2006,6 +2158,58 @@ function switchMobTab(tab){
     tabCust.classList.remove('active');
   }
 }
+/* ══ DNC shared desktop shell ═════════════════════════════════════════════
+   The same core on both pages. Each page supplies dcShellNew, dcShellTool and
+   dcShellLeave for what its own buttons do. */
+function dcShellEl(id){ return document.getElementById(id); }
+function dcShellInitials(n){
+  const p=String(n||'').trim().split(/\s+/).filter(Boolean);
+  if(!p.length) return '·';
+  return (p[0].charAt(0)+(p.length>1?p[p.length-1].charAt(0):'')).toUpperCase();
+}
+function dcShellRenderUser(){
+  const u=window.DC_SHELL_USER||null;
+  const name=(u&&typeof u.name==='string')?u.name:'', user=(u&&typeof u.username==='string')?u.username:'';
+  const n=dcShellEl('dncAcctName'), s=dcShellEl('dncAcctUser'), a=dcShellEl('dncAvatar');
+  if(n) n.textContent=name; if(s) s.textContent=user; if(a) a.textContent=dcShellInitials(name||user);
+}
+/* What the shell's System Version row says: the short commit /version.php
+   reports, and nothing else from it. Read once, when the menu first opens. */
+let dcShellVerLoaded=false;
+function dcShellLoadVersion(){
+  if(dcShellVerLoaded) return;
+  const out=dcShellEl('dncSysVer'); if(!out) return;
+  fetch('version.php',{cache:'no-store',credentials:'same-origin'})
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{ const c=(d&&typeof d.commit==='string')?d.commit.slice(0,7):''; out.textContent=c||'—'; dcShellVerLoaded=!!c; })
+    .catch(()=>{ out.textContent='—'; });
+}
+function dcShellToggleMenu(force){
+  const m=dcShellEl('dncMenu'), b=dcShellEl('dncAcctBtn'); if(!m||!b) return;
+  const open = force===undefined ? m.hidden : !!force;
+  m.hidden=!open; b.setAttribute('aria-expanded',open?'true':'false');
+  if(open) dcShellLoadVersion();
+}
+document.addEventListener('click',e=>{
+  const m=dcShellEl('dncMenu'); if(!m||m.hidden) return;
+  if(e.target.closest&&(e.target.closest('#dncMenu')||e.target.closest('#dncAcctBtn'))) return;
+  dcShellToggleMenu(false);
+});
+document.addEventListener('keydown',e=>{
+  const m=dcShellEl('dncMenu');
+  if(e.key==='Escape'&&m&&!m.hidden){ dcShellToggleMenu(false); const b=dcShellEl('dncAcctBtn'); if(b) b.focus(); }
+},true);
+dcShellRenderUser();
+
+function dcShellIntentGo(k){
+  try{ sessionStorage.setItem('dcShellIntent',k); }catch(e){}
+  window.location.href='index.php';
+}
+function dcShellNew(){ dcShellToggleMenu(false); dcShellIntentGo('new'); }
+function dcShellTool(k){ if(['dp','ds','ref','whatsnew'].indexOf(k)>=0) dcShellIntentGo(k); }
+/* Nothing on this page is a draft, so another module is a plain link. */
+function dcShellLeave(){ return true; }
+
 </script>
 </body>
 </html>

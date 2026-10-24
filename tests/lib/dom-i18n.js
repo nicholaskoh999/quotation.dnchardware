@@ -85,6 +85,9 @@ const WORDS = new Set([
   /* …and c/w ("complete with"), the trade's accessory notation, in the approved
      accessory-description placeholder 输入 c/w 说明. */
   'c/w',
+  /* PO, as in 内部 PO — the approved Internal PO wording, the shell's module name
+     for it (2026-10-24). */
+  'po',
 ]);
 
 /* Whole tokens that are codes rather than words: sizes, grades, references,
@@ -127,6 +130,9 @@ const SKIP_SELECTORS = [
   '.wqa-source-text', '.wqa-row-raw-full', '.wqa-row-raw',
   /* The masthead carries the brand, on the same reasoning as the page title. */
   '.hdr-brand', '.brand-link',
+  /* …and the shared shell's brand, DNC / QUOTATION, the same in both languages
+     by owner decision (2026-10-24). */
+  '.dnc-brand',
   /* A <code> run is a literal token the operator types or pastes —
      {customer}, {quotationNo} — not a word to be translated. */
   'code', 'kbd', 'samp',

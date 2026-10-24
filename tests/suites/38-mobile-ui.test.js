@@ -342,7 +342,22 @@ module.exports = async (browser, A) => {
     const page = await openCompanies(browser, { viewport: { width: w, height: 1000 } });
     await page.waitForTimeout(400);
     const r = await companyControls(page);
-    A.eq(r.named.lang.h, 40, `companies ${w}px: the language button is still 40 tall, as accepted`);
+    if (w >= 1024) {
+      /* Retired 2026-10-24 (DNC shared shell): at desktop width the header —
+         and its language button — gives way to the shared shell, whose EN | 中文
+         switch sits above the account block. Asserted in its place. */
+      const sh = await page.evaluate(() => {
+        const b = [...document.querySelectorAll('.dnc-lang [data-lang-set]')].map(n => n.getBoundingClientRect());
+        const hdr = document.querySelector('.page-header');
+        return { n: b.length, h: b.length ? Math.round(b[0].height) : 0,
+                 hdrHidden: !hdr || getComputedStyle(hdr).display === 'none' };
+      });
+      A.eq(sh.n, 2, `companies ${w}px: the shell's EN | 中文 switch is there`);
+      A.ok(sh.h >= 28, `companies ${w}px: and each half is a real target (${sh.h}px)`);
+      A.eq(sh.hdrHidden, true, `companies ${w}px: the old header (and its language button) is not shown`);
+    } else {
+      A.eq(r.named.lang.h, 40, `companies ${w}px: the language button is still 40 tall, as accepted`);
+    }
     A.eq(r.named.close.h, 24, `companies ${w}px: the modal × is still 24 tall, as accepted`);
     A.eq(r.named.close.w, 17, `companies ${w}px: and still 17 wide — the phone rule has not leaked onto the desk`);
     await page.close();

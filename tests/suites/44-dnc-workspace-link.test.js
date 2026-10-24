@@ -34,23 +34,42 @@ async function linkInfo(page, selector) {
 module.exports = async (browser, A) => {
   A.suite('DNC Workspace link — desktop quick menu, mobile menu, companies header');
 
-  // ── calculator, desk: the always-visible Quick Menu ─────────────────────
+  /* Retired 2026-10-24 (DNC shared shell): on the desk the link is no longer a
+     Quick Menu row above Sign Out. It is the shell's "← Back to Workspace",
+     directly under the brand — a way back to the parent, never a utility. The
+     same URL, same tab, no token; asserted below at its new place. The ☰
+     drawer below 1024px keeps its row, unchanged. */
+  const visiblePortalLinks = page => page.evaluate(() =>
+    [...document.querySelectorAll('a[href^="https://portal.dnchardware.com"]')].filter(a => {
+      const r = a.getBoundingClientRect(), cs = getComputedStyle(a);
+      return cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.height > 0;
+    }).map(a => a.getAttribute('href')));
+  async function deskBack(page, where) {
+    const l = await linkInfo(page, '#dncShell a.dnc-back');
+    A.eq(l.length, 1, `${where}: exactly one Back to Workspace link in the shell`);
+    A.eq(l[0] && l[0].text, 'Back to Workspace', `${where}: it reads "Back to Workspace"`);
+    A.eq(l[0] && l[0].visible && l[0].onTop && l[0].inViewport, true, `${where}: visible, on screen and clickable without opening anything`);
+    A.eq(l[0] && l[0].target, null, `${where}: same tab`);
+    const place = await page.evaluate(() => {
+      const back = document.querySelector('#dncShell .dnc-back').getBoundingClientRect();
+      const brand = document.querySelector('#dncShell .dnc-brand').getBoundingClientRect();
+      const cta = document.querySelector('#dncShell .dnc-cta').getBoundingClientRect();
+      return { underBrand: back.top >= brand.bottom - 1 && back.bottom <= cta.top + 1,
+               inUtility: !!document.querySelector('#dncShell .dnc-bottom a[href^="https://portal"], #dncShell .dnc-nav a[href^="https://portal"], #dncMenu a[href^="https://portal"]') };
+    });
+    A.eq(place.underBrand, true, `${where}: directly under the brand, above New Quotation`);
+    A.eq(place.inUtility, false, `${where}: never among the modules, tools, utilities or the account menu`);
+    A.eq(JSON.stringify(await visiblePortalLinks(page)), JSON.stringify([PORTAL]),
+      `${where}: the only visible Portal link, and it carries no path or query`);
+    await page.evaluate(() => dcSetLang('zh'));
+    const zh = await linkInfo(page, '#dncShell a.dnc-back');
+    A.eq(zh[0] && zh[0].text, '返回工作台', `${where}: 返回工作台 in Chinese`);
+    await page.evaluate(() => dcSetLang('en'));
+  }
+  // ── calculator, desk: the shell's back link ────────────────────────────
   {
     const page = await openApp(browser, { viewport: { width: 1440, height: 1000 } });
-    const l = await linkInfo(page, '#sidebar .side-nav a.side-link');
-    A.eq(l.length, 1, 'desk: exactly one DNC Workspace link in the Quick Menu');
-    A.eq(l[0] && l[0].text, 'DNC Workspace', 'desk: it reads "DNC Workspace"');
-    A.eq(l[0] && l[0].visible && l[0].onTop && l[0].inViewport, true, 'desk: visible, on screen and clickable without opening anything');
-    A.eq(l[0] && l[0].target, null, 'desk: same tab');
-    const order = await page.evaluate(() => [...document.querySelectorAll('#sidebar .side-nav .side-link')]
-      .map(e => e.textContent.trim()));
-    A.eq(order.slice(-2), ['DNC Workspace', 'Sign Out'], 'desk: it sits just above Sign Out; the existing items keep their order');
-    A.eq(await page.evaluate(() => document.querySelectorAll('a[href^="https://portal.dnchardware.com"]').length), 1,
-      'desk: the only Portal link on the page, and it carries no path or query');
-    await page.evaluate(() => dcSetLang('zh'));
-    const zh = await linkInfo(page, '#sidebar .side-nav a.side-link');
-    A.eq(zh[0] && zh[0].text, 'DNC 工作台', 'desk: translated in Chinese');
-    await page.evaluate(() => dcSetLang('en'));
+    await deskBack(page, 'desk');
     await page.close();
   }
 
@@ -68,8 +87,17 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
-  // ── companies: header nav, desk and phone ───────────────────────────────
-  for (const w of [1440, 430]) {
+  // ── companies, desk: the same shell, the same back link ────────────────
+  {
+    const page = await openCompanies(browser, { viewport: { width: 1440, height: 900 } });
+    await page.waitForTimeout(300);
+    await deskBack(page, 'companies 1440px');
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    A.ok(overflow <= 2, `companies 1440px: the page still does not scroll sideways (${overflow}px)`);
+    await page.close();
+  }
+  // ── companies, phone: the header nav, unchanged ────────────────────────
+  for (const w of [430]) {
     const page = await openCompanies(browser, { viewport: { width: w, height: 900 } });
     await page.waitForTimeout(300);
     const l = await linkInfo(page, '.header-actions a.nav-btn');

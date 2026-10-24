@@ -29,11 +29,18 @@ try {
    font link is the only outbound request the page makes, and this sandbox has
    no route to it — leaving it in costs every page load a DNS timeout and
    changes nothing that is under test. */
+/* The shared desktop shell prints the signed-in user with the one other PHP
+   echo on the page. A server renders a real user there; the test page renders
+   a fixed one, so the account block has something true to show. */
+const SHELL_TEST_USER = { name: 'Test User', username: 'test.user' };
+function withShellUser(html) {
+  return html.replace(/<\?=[\s\S]*?\?>/g, JSON.stringify(SHELL_TEST_USER));
+}
 function buildPage() {
   let html = fs.readFileSync(INDEX_PHP, 'utf8');
   html = html.replace(/^<\?php[\s\S]*?\?>\s*/, '');
   html = html.replace(/<link[^>]+fonts\.(googleapis|gstatic)\.com[^>]*>/g, '');
-  return html;
+  return withShellUser(html);
 }
 
 /* Default api.php answers: an empty, working install. A test that needs price
@@ -230,7 +237,7 @@ function buildCompaniesPage() {
   let html = fs.readFileSync(COMPANIES_PHP, 'utf8');
   html = html.replace(/^<\?php[\s\S]*?\?>\s*/, '');
   html = html.replace(/<link[^>]+fonts\.(googleapis|gstatic)\.com[^>]*>/g, '');
-  return html;
+  return withShellUser(html);
 }
 
 /* Companies answers its own small set of actions. Defaults are one company
