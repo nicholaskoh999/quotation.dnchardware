@@ -130,7 +130,7 @@ module.exports = async (browser, A) => {
     A.eq(acct.rows[2].href, 'https://portal.dnchardware.com', `${w}: Back to Workspace is the Portal`);
     A.eq(acct.rows[3].href, 'logout.php', `${w}: Sign Out is the existing logout.php`);
     A.eq(JSON.stringify(acct.lang.map(l => l.t)), JSON.stringify(['EN', '中文']), `${w}: EN | 中文`);
-    A.ok(acct.lang.every(l => l.h === 38) && acct.lang[0].w === acct.lang[1].w, `${w}: both language buttons are a compact 38px and equal width (${JSON.stringify(acct.lang)})`);
+    A.ok(acct.lang.every(l => l.h === 40) && acct.lang[0].w === acct.lang[1].w, `${w}: both language buttons are 40px and equal width (${JSON.stringify(acct.lang)})`);
     await page.click('#rspAcct [data-lang-set="zh"]'); await page.waitForTimeout(200);
     A.eq(await page.evaluate(() => document.querySelector('#rspNav .rsp-nav-item:last-child span').textContent), '账户', `${w}: switching to 中文 relabels the navigation`);
     await page.click('#rspAcct [data-lang-set="en"]');
