@@ -1019,7 +1019,7 @@ const I18N={
     sortLatest:'排序：最新优先', sortAZ:'排序：公司 A–Z', sortMost:'排序：报价最多',
     brandSub:'报价系统 · v2.24.0',
     phCompanyEg:'例如 SL Struktur Sdn Bhd', phShortEg:'例如 SLSPJ',
-    phPhoneEg:'03-XXXX XXXX', phOptional:'可选',
+    phPhoneEg:'03-XXXX XXXX', phOptional:'选填',
     btnEdit:'编辑', btnDelete:'删除',
     tDuplicated:'📄 已复制为 #{n}', tQuoteNotFound:'找不到报价单 {r}',
     ariaHome:'Der-Cheng 报价系统 — 首页',

@@ -37,10 +37,12 @@ module.exports = async (browser, A) => {
       ['M12',   'e.g. 1.75P',         'a metric size is offered a pitch'],
       ['M24',   'e.g. 1.75P',         'and so is a bigger one'],
       ['1/2',   'UNC / BSW',          'the one imperial size with an approved series'],
-      ['3/8',   'Optional reference', 'another imperial size is offered neither'],
-      ['5/8',   'Optional reference', 'nor is this one'],
-      ['3/4',   'Optional reference', 'nor this one'],
-      ['1-1/4', 'Optional reference', 'nor this one'],
+      /* Owner decision 2026-10-24: a placeholder carries a technical example
+         or nothing — never optional-status prose — so these get no hint. */
+      ['3/8',   '', 'another imperial size is offered neither'],
+      ['5/8',   '', 'nor is this one'],
+      ['3/4',   '', 'nor this one'],
+      ['1-1/4', '', 'nor this one'],
     ]) {
       await quickAddPaste(page, `MS SAG ROD PL FULLSIZE\n${size} x 300 x 70/70 - 4pcs`,
         { settle: 900 });
@@ -78,7 +80,9 @@ module.exports = async (browser, A) => {
     await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\nM12 x 300 x 70/70 - 4pcs', { settle: 900 });
     const zhMetric = await hintOf(page, 0);
     A.includes(zhMetric, '1.75P', '中文: the pitch example is a code and stays');
-    A.excludes(zhMetric, 'e.g.', '中文: and the wording around it is translated');
+    /* Owner decision 2026-10-24: e.g. is shared technical notation in both
+       languages, so the 中文 hint is the same as the English one. */
+    A.eq(zhMetric, 'e.g. 1.75P', '中文: the same shared technical example as English');
     await quickAddPaste(page, 'MS SAG ROD PL FULLSIZE\n1/2 x 300 x 70/70 - 4pcs', { settle: 900 });
     A.eq(await hintOf(page, 0), 'UNC / BSW', '中文: UNC and BSW are codes, not words to translate');
     await page.evaluate(() => dcSetLang('en'));

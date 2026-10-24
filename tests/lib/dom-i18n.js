@@ -78,6 +78,13 @@ const WORDS = new Set([
      中文 — the dimension labels, Size (as in Size 规格), Markup, and Others
      (the picker button Others / Special Bolt). */
   'size', 'diameter', 'length', 'width', 'thickness', 'height', 'markup', 'others',
+  /* Owner decision 2026-10-24 (placeholder normalization): the example marker
+     in placeholders such as "e.g. 200mm" is shared technical notation in BOTH
+     languages, like mm and RM. */
+  'e.g', 'e.g.',
+  /* …and c/w ("complete with"), the trade's accessory notation, in the approved
+     accessory-description placeholder 输入 c/w 说明. */
+  'c/w',
 ]);
 
 /* Whole tokens that are codes rather than words: sizes, grades, references,

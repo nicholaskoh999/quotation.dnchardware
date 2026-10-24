@@ -3877,9 +3877,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
               <label class="finish-pill" id="sagrod-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="sagrod-finish" value="HDG" onchange="onFinishChange('sagrod')"><span class="fp-code">HDG</span></label>
             </div></div>
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="sagrod-diameter" step="0.1" value="10.6" oninput="calcSagRod()"></div>
-          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="sagrod-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="onThreadLenChange('sagrod')"></div>
-          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" enterkeyhint="enter" form="dcRepeatForm-sagrod" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcSagRod()" onkeydown="dcRepeatEntryKey(event,'sagrod')" onblur="dcRepeatEntryBlur(event,'sagrod')"><form id="dcRepeatForm-sagrod" hidden onsubmit="event.preventDefault();dcRepeatEntrySubmit('sagrod')"></form><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
+          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="sagrod-diameter" placeholder="e.g. 12mm" step="0.1" value="10.6" oninput="calcSagRod()"></div>
+          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="sagrod-threadLen" placeholder="e.g. 100mm" oninput="onThreadLenChange('sagrod')"></div>
+          <div class="field"><label data-i18n="lblLengthMmParen">Length (mm)</label><input type="number" id="sagrod-length" min="1" enterkeyhint="enter" form="dcRepeatForm-sagrod" placeholder="e.g. 1000mm" oninput="calcSagRod()" onkeydown="dcRepeatEntryKey(event,'sagrod')" onblur="dcRepeatEntryBlur(event,'sagrod')"><form id="dcRepeatForm-sagrod" hidden onsubmit="event.preventDefault();dcRepeatEntrySubmit('sagrod')"></form><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <button type="button" class="acc-toggle-btn full" id="sagrod-accToggle" onclick="toggleAccPanel('sagrod')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -3910,9 +3910,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="sagrod-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0.00" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="sagrod-markup" placeholder="0" min="0" oninput="calcSagRod()"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="sagrod-costRate" placeholder="4.2" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0.6" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="sagrod-markup" placeholder="15" min="0" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="sagrod-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="sagrod-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -3933,8 +3933,8 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
               <label class="finish-pill" id="stud-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="stud-finish" value="HDG" onchange="onFinishChange('stud')"><span class="fp-code">HDG</span></label>
             </div></div>
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="stud-diameter" step="0.1" value="10.6" oninput="calcStud()"></div>
-          <div class="field"><label>L</label><input type="number" id="stud-l" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();addStud();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
+          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="stud-diameter" placeholder="e.g. 12mm" step="0.1" value="10.6" oninput="calcStud()"></div>
+          <div class="field"><label>L</label><input type="number" id="stud-l" min="1" placeholder="e.g. 1000mm" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();addStud();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
           <button type="button" class="acc-toggle-btn full" id="stud-accToggle" onclick="toggleAccPanel('stud')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -3965,9 +3965,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="stud-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0.00" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="stud-markup" placeholder="0" min="0" oninput="calcStud()"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="stud-costRate" placeholder="4.2" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0.6" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="stud-markup" placeholder="15" min="0" oninput="calcStud()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="stud-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="stud-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -3992,9 +3992,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
               <label class="finish-pill" id="anchorbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="anchorbolt-finish" value="HDG" onchange="onFinishChange('anchorbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="anchorbolt-diameter" step="0.1" value="10.6" oninput="calcAnchorBolt()"></div>
-          <div class="field"><label>L</label><input type="number" id="anchorbolt-l" min="1" data-i18n-ph="phEnterLength" placeholder="Enter length" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();addAnchorBolt();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
-          <div class="field"><label>TL</label><input type="text" id="anchorbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
+          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="anchorbolt-diameter" placeholder="e.g. 12mm" step="0.1" value="10.6" oninput="calcAnchorBolt()"></div>
+          <div class="field"><label>L</label><input type="number" id="anchorbolt-l" min="1" placeholder="e.g. 600mm" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();addAnchorBolt();}"><span style="font-size:11px;color:var(--text-muted);font-weight:600;display:block;margin-top:3px"><span data-i18n="pressEnterToAdd">Press Enter to add</span></span></div>
+          <div class="field"><label>TL</label><input type="text" id="anchorbolt-threadLen" placeholder="e.g. 100mm"></div>
           <button type="button" class="acc-toggle-btn full" id="anchorbolt-accToggle" onclick="toggleAccPanel('anchorbolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
           </button>
@@ -4025,9 +4025,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="anchorbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0.00" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="anchorbolt-markup" placeholder="0" min="0" oninput="calcAnchorBolt()"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="anchorbolt-costRate" placeholder="4.2" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0.6" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="anchorbolt-markup" placeholder="15" min="0" oninput="calcAnchorBolt()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="anchorbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="anchorbolt-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -4046,10 +4046,10 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div></div>
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
           <div class="field"><label data-i18n="ubPipeSize">Pipe Size</label><select id="ubolt-pipeSize" onchange="applyUBoltPipePreset()"><option value="" data-i18n="ubPipeSel">Select Pipe Size</option></select></div>
-          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="ubolt-diameter" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label>ID <span class="preset-tag" id="ubolt-id-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-id" placeholder="50" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label>IH <span class="preset-tag" id="ubolt-ih-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-ih" placeholder="60" step="0.1" oninput="calcUBolt('ubolt')"></div>
-          <div class="field"><label><span data-i18n="lblThreadLength">Thread Length</span> <span class="preset-tag" id="ubolt-threadLen-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="text" id="ubolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length" oninput="calcUBolt('ubolt',true)"><div class="tl-helper" id="ubolt-tlHelper" hidden></div></div>
+          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="ubolt-diameter" placeholder="e.g. 12mm" step="0.1" oninput="calcUBolt('ubolt')"></div>
+          <div class="field"><label>ID <span class="preset-tag" id="ubolt-id-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-id" placeholder="e.g. 50mm" step="0.1" oninput="calcUBolt('ubolt')"></div>
+          <div class="field"><label>IH <span class="preset-tag" id="ubolt-ih-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="number" id="ubolt-ih" placeholder="e.g. 60mm" step="0.1" oninput="calcUBolt('ubolt')"></div>
+          <div class="field"><label><span data-i18n="lblThreadLength">Thread Length</span> <span class="preset-tag" id="ubolt-threadLen-preset" data-i18n="ubPreset" hidden>Preset</span></label><input type="text" id="ubolt-threadLen" placeholder="e.g. 100mm" oninput="calcUBolt('ubolt',true)"><div class="tl-helper" id="ubolt-tlHelper" hidden></div></div>
           <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="ubolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcUBolt('ubolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="ubolt-accToggle" onclick="toggleAccPanel('ubolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
@@ -4081,9 +4081,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="ubolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0.00" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="ubolt-markup" placeholder="0" min="0" oninput="calcUBolt('ubolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="ubolt-costRate" placeholder="4.2" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0.6" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="ubolt-markup" placeholder="15" min="0" oninput="calcUBolt('ubolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="ubolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="ubolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -4101,10 +4101,10 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
               <label class="finish-pill" id="squbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="squbolt-finish" value="HDG" onchange="onFinishChange('squbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="squbolt-diameter" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
-          <div class="field"><label>OH</label><input type="number" id="squbolt-oh" placeholder="100" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
-          <div class="field"><label>W</label><input type="number" id="squbolt-w" placeholder="150" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
-          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="squbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
+          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="squbolt-diameter" placeholder="e.g. 12mm" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
+          <div class="field"><label>OH</label><input type="number" id="squbolt-oh" placeholder="e.g. 100mm" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
+          <div class="field"><label>W</label><input type="number" id="squbolt-w" placeholder="e.g. 150mm" step="0.1" oninput="calcSQUBolt('squbolt')"></div>
+          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="squbolt-threadLen" placeholder="e.g. 100mm"></div>
           <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="squbolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcSQUBolt('squbolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="squbolt-accToggle" onclick="toggleAccPanel('squbolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
@@ -4136,9 +4136,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="squbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0.00" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="squbolt-markup" placeholder="0" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="squbolt-costRate" placeholder="4.2" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0.6" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="squbolt-markup" placeholder="15" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="squbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="squbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -4156,10 +4156,10 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
               <label class="finish-pill" id="lbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="lbolt-finish" value="HDG" onchange="onFinishChange('lbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="lbolt-diameter" step="0.1" oninput="calcLBolt('lbolt')"></div>
-          <div class="field"><label>L</label><input type="number" id="lbolt-l" placeholder="500" step="0.1" oninput="calcLBolt('lbolt')"></div>
-          <div class="field"><label>W</label><input type="number" id="lbolt-w" placeholder="100" step="0.1" oninput="calcLBolt('lbolt')"></div>
-          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="lbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
+          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="lbolt-diameter" placeholder="e.g. 12mm" step="0.1" oninput="calcLBolt('lbolt')"></div>
+          <div class="field"><label>L</label><input type="number" id="lbolt-l" placeholder="e.g. 500mm" step="0.1" oninput="calcLBolt('lbolt')"></div>
+          <div class="field"><label>W</label><input type="number" id="lbolt-w" placeholder="e.g. 100mm" step="0.1" oninput="calcLBolt('lbolt')"></div>
+          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="lbolt-threadLen" placeholder="e.g. 100mm"></div>
           <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="lbolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcLBolt('lbolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="lbolt-accToggle" onclick="toggleAccPanel('lbolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
@@ -4191,9 +4191,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="lbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0.00" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="lbolt-markup" placeholder="0" min="0" oninput="calcLBolt('lbolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="lbolt-costRate" placeholder="4.2" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0.6" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="lbolt-markup" placeholder="15" min="0" oninput="calcLBolt('lbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="lbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="lbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -4211,11 +4211,11 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
               <label class="finish-pill" id="jbolt-pill-HDG" data-i18n-title="ttHotDipGalvanized" title="Hot Dip Galvanized"><input type="radio" name="jbolt-finish" value="HDG" onchange="onFinishChange('jbolt')"><span class="fp-code">HDG</span></label>
             </div></div>
           <div class="group-label full"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="jbolt-diameter" step="0.1" oninput="calcJBolt('jbolt')"></div>
-          <div class="field"><label>H</label><input type="number" id="jbolt-h" placeholder="910" step="0.1" oninput="calcJBolt('jbolt')"></div>
-          <div class="field"><label>ID</label><input type="number" id="jbolt-id" placeholder="80" step="0.1" oninput="calcJBolt('jbolt')"></div>
-          <div class="field"><label>S</label><input type="number" id="jbolt-s" placeholder="105" step="0.1" oninput="calcJBolt('jbolt')"></div>
-          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="jbolt-threadLen" data-i18n-ph="phEnterThreadLength" placeholder="Enter thread length"></div>
+          <div class="field"><label data-i18n="lblDiameter">Diameter</label><input type="number" id="jbolt-diameter" placeholder="e.g. 12mm" step="0.1" oninput="calcJBolt('jbolt')"></div>
+          <div class="field"><label>H</label><input type="number" id="jbolt-h" placeholder="e.g. 910mm" step="0.1" oninput="calcJBolt('jbolt')"></div>
+          <div class="field"><label>ID</label><input type="number" id="jbolt-id" placeholder="e.g. 80mm" step="0.1" oninput="calcJBolt('jbolt')"></div>
+          <div class="field"><label>S</label><input type="number" id="jbolt-s" placeholder="e.g. 105mm" step="0.1" oninput="calcJBolt('jbolt')"></div>
+          <div class="field"><label data-i18n="lblThreadLength">Thread Length</label><input type="text" id="jbolt-threadLen" placeholder="e.g. 100mm"></div>
           <div class="field"><label data-i18n="lblTotalLength">Total Length</label><input type="number" id="jbolt-length" data-i18n-ph="phAutoCalculated" placeholder="Auto calculated" oninput="calcJBolt('jbolt',true)"></div>
           <button type="button" class="acc-toggle-btn full" id="jbolt-accToggle" onclick="toggleAccPanel('jbolt')">
             <span class="acc-arrow">▶</span><span class="acc-toggle-text"><span class="acc-toggle-title" data-i18n="accessories">Accessories</span><span class="acc-toggle-sub" data-i18n="accToggleSub">Nut / FW / Custom · Optional</span></span>
@@ -4247,9 +4247,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="jbolt-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0.00" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="jbolt-markup" placeholder="0" min="0" oninput="calcJBolt('jbolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="jbolt-costRate" placeholder="4.2" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0.6" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="jbolt-markup" placeholder="15" min="0" oninput="calcJBolt('jbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="jbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="jbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -4285,9 +4285,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 
           <!-- MS Plate Dimension Entry -->
           <div class="group-label full" id="plate-dim-group-ms"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field" id="plate-f-l"><label data-i18n="lblLength">Length</label><input type="number" id="plate-l" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-w"><label data-i18n="lblWidth">Width</label><input type="number" id="plate-w" data-i18n-ph="phEgMm200" placeholder="mm, e.g. 200" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-t"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-t" data-i18n-ph="phEgMm10" placeholder="mm, e.g. 10" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-l"><label data-i18n="lblLength">Length</label><input type="number" id="plate-l" placeholder="e.g. 200mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-w"><label data-i18n="lblWidth">Width</label><input type="number" id="plate-w" placeholder="e.g. 200mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-t"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-t" placeholder="e.g. 10mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
           <!-- Hole Option — MS Plate only -->
           <div class="field full" id="plate-f-hole">
             <label data-i18n="lblHoleOption">Hole Option</label>
@@ -4298,16 +4298,16 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
               <label class="hole-pill"><input type="radio" name="plate-hole" value="custom" onchange="onHoleOptionChange()"><span class="hole-pill-main" data-i18n="holeCustom">Custom Holes</span></label>
             </div>
           </div>
-          <div class="field" id="plate-f-hd" style="display:none"><label data-i18n="lblHoleDia">Hole Dia.</label><input type="number" id="plate-hd" placeholder="mm, e.g. 30" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-nh" style="display:none"><label data-i18n="lblHoles">Holes</label><input type="number" id="plate-nh" placeholder="e.g. 1" step="1" min="1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-hd" style="display:none"><label data-i18n="lblHoleDia">Hole Dia.</label><input type="number" id="plate-hd" placeholder="e.g. 30mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-nh" style="display:none"><label data-i18n="lblHoles">Holes</label><input type="number" id="plate-nh" placeholder="1" step="1" min="1" oninput="calcPlate()"></div>
 
           <!-- Triangle Plate Dimension Entry — hidden by default -->
           <div class="group-label full" id="plate-dim-group-tri" style="display:none"><span data-i18n="dimensionEntry">Dimension Entry</span><button type="button" class="uc-open" onclick="toggleUnitConverter(this)" data-i18n="ucConvert">⇄ Unit Convert</button></div>
-          <div class="field" id="plate-f-tri-l" style="display:none"><label data-i18n="lblLength">Length</label><input type="number" id="plate-tri-l" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-h" style="display:none"><label data-i18n="lblHeight">Height</label><input type="number" id="plate-tri-h" placeholder="mm, e.g. 180" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-cl" style="display:none"><label data-i18n="lblCutLengthOpt">Cut Length (optional)</label><input type="number" id="plate-tri-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-ch" style="display:none"><label data-i18n="lblCutHeightOpt">Cut Height (optional)</label><input type="number" id="plate-tri-ch" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcPlate()"></div>
-          <div class="field" id="plate-f-tri-t" style="display:none"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-tri-t" placeholder="mm, e.g. 8" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-l" style="display:none"><label data-i18n="lblLength">Length</label><input type="number" id="plate-tri-l" placeholder="e.g. 180mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-h" style="display:none"><label data-i18n="lblHeight">Height</label><input type="number" id="plate-tri-h" placeholder="e.g. 180mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-cl" style="display:none"><label data-i18n="lblCutLengthOpt">Cut Length (optional)</label><input type="number" id="plate-tri-cl" placeholder="e.g. 50mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-ch" style="display:none"><label data-i18n="lblCutHeightOpt">Cut Height (optional)</label><input type="number" id="plate-tri-ch" placeholder="e.g. 50mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
+          <div class="field" id="plate-f-tri-t" style="display:none"><label data-i18n="lblThickness">Thickness</label><input type="number" id="plate-tri-t" placeholder="e.g. 8mm" step="0.1" min="0.1" oninput="calcPlate()"></div>
 
           <!-- Accessories -->
           <button type="button" class="acc-toggle-btn full" id="plate-accToggle" onclick="toggleAccPanel('plate')">
@@ -4342,9 +4342,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 
           <!-- Pricing Entry -->
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="plate-costRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="plate-addCost" placeholder="0.00" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="plate-markup" placeholder="0" min="0" oninput="calcPlate()"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="plate-costRate" placeholder="4.2" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="plate-addCost" placeholder="0.6" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="plate-markup" placeholder="15" min="0" oninput="calcPlate()"></div>
           <div class="field"><label data-i18n="lblQty">Qty</label><input type="number" id="plate-qty" value="1" min="1" step="1" oninput="calcPlate()"></div>
           <div class="info-note full" data-i18n="noteHoleCost">Hole drilling / laser / punching cost: include in Additional Cost.</div>
         </div>
@@ -4385,13 +4385,13 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
                    oninput="onWASAnchorSizeInput()" onchange="onWASAnchorSpecChange()">
           </div>
           <div class="field"><label data-i18n="lblDiameterMmShort">Diameter mm</label>
-            <input type="number" id="was-ab-diameter" step="0.1" placeholder="18" oninput="calcWAS()">
+            <input type="number" id="was-ab-diameter" step="0.1" placeholder="e.g. 18mm" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblLengthMm">Length</label>
-            <input type="number" id="was-ab-length" placeholder="600" step="1" min="1" oninput="calcWAS()">
+            <input type="number" id="was-ab-length" placeholder="e.g. 600mm" step="1" min="1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblThreadLength">Thread Length</label>
-            <input type="text" id="was-ab-threadLen" data-i18n-ph="phEg150" placeholder="e.g. 150">
+            <input type="text" id="was-ab-threadLen" placeholder="e.g. 150mm">
           </div>
           <div class="field"><label data-i18n="lblQtyPerSet">Qty per Set</label>
             <input type="number" id="was-ab-qty" value="1" min="1" step="1" oninput="calcWAS()">
@@ -4400,13 +4400,13 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
           <!-- ── Base Plate ── -->
           <div class="group-label full" data-i18n="lblBasePlate">Base Plate</div>
           <div class="field"><label data-i18n="lblLengthMm">Length</label>
-            <input type="number" id="was-bp-l" placeholder="250" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-bp-l" placeholder="e.g. 250mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblWidthMm">Width</label>
-            <input type="number" id="was-bp-w" placeholder="250" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-bp-w" placeholder="e.g. 250mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblThicknessMm">Thickness</label>
-            <input type="number" id="was-bp-t" placeholder="12" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-bp-t" placeholder="e.g. 12mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field full">
             <label data-i18n="lblHoleOption">Hole Option</label>
@@ -4418,7 +4418,7 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             </div>
           </div>
           <div class="field" id="was-bp-hd-wrap" style="display:none"><label data-i18n="lblHoleDiaMm">Hole Dia.</label>
-            <input type="number" id="was-bp-hd" placeholder="30" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-bp-hd" placeholder="e.g. 30mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field" id="was-bp-nh-wrap" style="display:none"><label data-i18n="lblHoles">Holes</label>
             <input type="number" id="was-bp-nh" placeholder="1" step="1" min="1" oninput="calcWAS()">
@@ -4430,19 +4430,19 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
           <!-- ── Triangle Plate ── -->
           <div class="group-label full" data-i18n="lblTrianglePlate">Triangle Plate</div>
           <div class="field"><label data-i18n="lblLengthMm">Length</label>
-            <input type="number" id="was-tp-l" placeholder="180" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-tp-l" placeholder="e.g. 180mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblHeightMm">Height</label>
-            <input type="number" id="was-tp-h" placeholder="180" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-tp-h" placeholder="e.g. 180mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblCutLengthMmOpt">Cut Length mm (optional)</label>
-            <input type="number" id="was-tp-cl" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-tp-cl" placeholder="e.g. 50mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblCutHeightMmOpt">Cut Height mm (optional)</label>
-            <input type="number" id="was-tp-ch" data-i18n-ph="phOptional" placeholder="Optional" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-tp-ch" placeholder="e.g. 50mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblThicknessMm">Thickness</label>
-            <input type="number" id="was-tp-t" placeholder="8" step="0.1" min="0.1" oninput="calcWAS()">
+            <input type="number" id="was-tp-t" placeholder="e.g. 8mm" step="0.1" min="0.1" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblQtyPerSet">Qty per Set</label>
             <input type="number" id="was-tp-qty" value="4" min="0" step="1" oninput="calcWAS()">
@@ -4473,7 +4473,7 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             <div class="acc-item">
               <div class="acc-item-head"><label class="acc-enable" for="was-customEnabled"><input type="checkbox" id="was-customEnabled" onchange="onAccChange('was')"><span class="acc-title-txt" data-i18n="lblAddCustom">Add Custom</span></label></div>
               <div class="acc-item-fields acc-custom">
-                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="was-customText" data-i18n-ph="phEgWelding" placeholder="e.g. welding" disabled oninput="onAccChange('was')"></div>
+                <div class="acc-field"><span class="acc-field-label" data-i18n="lblCustomText">Text</span><input type="text" id="was-customText" data-i18n-ph="phCwWording" placeholder="Enter c/w wording" disabled oninput="onAccChange('was')"></div>
                 <div class="acc-field"><span class="acc-field-label" data-i18n="lblUnitPrice">Unit Price</span><input type="number" id="was-customPrice" value="0" min="0" step="0.01" disabled oninput="onAccChange('was')"></div>
               </div>
             </div>
@@ -4482,19 +4482,19 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
           <!-- ── Pricing ── -->
           <div class="group-label full" data-i18n="pricing">Pricing</div>
           <div class="field"><label data-i18n="lblAnchorRate">Anchor Cost Rate</label>
-            <input type="text" class="hl" id="was-anchorCostRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcWAS()">
+            <input type="text" class="hl" id="was-anchorCostRate" placeholder="4.2" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblBasePlateRate">Base Plate Cost Rate</label>
-            <input type="text" class="hl" id="was-basePlateCostRate" data-i18n-ph="phEnterRate" placeholder="Enter rate" oninput="calcWAS()">
+            <input type="text" class="hl" id="was-basePlateCostRate" placeholder="4.2" oninput="calcWAS()">
           </div>
-          <div class="field"><label data-i18n="lblTriPlateRate">Triangle Plate Cost Rate</label>
-            <input type="text" class="hl" id="was-trianglePlateCostRate" data-i18n-ph="phOptionalQty0" placeholder="Optional when Qty is 0" oninput="calcWAS()">
+          <div class="field"><label data-i18n="lblTriPlateRate">Triangle Plate Cost Rate (optional when Qty is 0)</label>
+            <input type="text" class="hl" id="was-trianglePlateCostRate" placeholder="4.2" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label>
-            <input type="text" class="hl" id="was-addCost" placeholder="0.00" oninput="calcWAS()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('was','addCost');}">
+            <input type="text" class="hl" id="was-addCost" placeholder="0.6" oninput="calcWAS()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('was','addCost');}">
           </div>
           <div class="field"><label data-i18n="lblMarkup">Markup</label>
-            <input type="number" id="was-markup" placeholder="0" min="0" oninput="calcWAS()">
+            <input type="number" id="was-markup" placeholder="15" min="0" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblSetQty">Set Qty</label>
             <input type="number" id="was-qty" value="1" min="1" step="1" oninput="calcWAS()">
@@ -5277,9 +5277,9 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
             <option value="">N/A</option><option value="PL">PL</option><option value="ZP">ZP</option><option value="HDG">HDG</option>
           </select></div>
         <div class="dp-section-label" data-i18n="mDefaultPricing">Default Pricing</div>
-        <div class="field"><label><span data-i18n="lblCostRate">Cost Rate</span> <small style="color:var(--text-muted);font-weight:500">RM/kg</small></label><input type="number" id="dp-costRate" step="0.01" placeholder="0.00" min="0"></div>
-        <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="number" id="dp-addCost" step="0.01" placeholder="0.00" min="0"></div>
-        <div class="field"><label><span data-i18n="lblMarkup">Markup</span> <small style="color:var(--text-muted);font-weight:500">%</small></label><input type="number" id="dp-markup" step="1" placeholder="0" min="0"></div>
+        <div class="field"><label><span data-i18n="lblCostRate">Cost Rate</span> <small style="color:var(--text-muted);font-weight:500">RM/kg</small></label><input type="number" id="dp-costRate" step="0.01" placeholder="4.2" min="0"></div>
+        <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="number" id="dp-addCost" step="0.01" placeholder="0.6" min="0"></div>
+        <div class="field"><label><span data-i18n="lblMarkup">Markup</span> <small style="color:var(--text-muted);font-weight:500">%</small></label><input type="number" id="dp-markup" step="1" placeholder="15" min="0"></div>
         <div class="dp-section-label" data-i18n="mStatus">Status</div>
         <div class="field"><label data-i18n="mRuleStatus">Rule Status</label>
           <select id="dp-active"><option value="1" data-i18n="mActive">Active</option><option value="0" data-i18n="mDisabled">Disabled</option></select></div>
@@ -5412,7 +5412,7 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
         <div class="field"><label><span data-i18n="lblSize">Size</span></label>
           <input type="text" id="ds-size" list="sizeOptions" placeholder="M12"></div>
         <div class="field"><label><span data-i18n="lblDiameterMm">Diameter (mm)</span></label>
-          <input type="number" id="ds-diameter" step="0.01" placeholder="10.6" min="0"></div>
+          <input type="number" id="ds-diameter" step="0.01" placeholder="e.g. 10.6mm" min="0"></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         <button class="btn btn-primary" id="dsSaveRuleBtn" onclick="saveDSRule()"><span data-i18n="saveRule">Save Rule</span></button>
@@ -5644,7 +5644,7 @@ const I18N={
     /* Context-sensitive: see dcThreadRefHintKey. A metric size is never offered
        UNC or BSW, because neither is a choice for it. */
     wqaThreadRefHintMetric:'e.g. 1.75P', wqaThreadRefHintSeries:'UNC / BSW',
-    wqaThreadRefHintAny:'Optional reference',
+    wqaThreadRefHintAny:'',
     phUseOnThis:'Use on this item', phMoreWays:'More ways to apply this price',
     phApplyCompatible:'Apply to compatible items ({n})…', phSelectItems:'Select items…',
     phSelectItemsTitle:'Apply Previous Price', phApplyPrevious:'Apply Previous Price',
@@ -6016,7 +6016,7 @@ const I18N={
     lblCutLengthOpt:'Cut Length (optional)', lblCutHeightOpt:'Cut Height (optional)',
     lblCutLengthMmOpt:'Cut Length mm (optional)', lblCutHeightMmOpt:'Cut Height mm (optional)',
     lblSetQty:'Set Qty', lblAnchorRate:'Anchor Cost Rate',
-    lblBasePlateRate:'Base Plate Cost Rate', lblTriPlateRate:'Triangle Plate Cost Rate',
+    lblBasePlateRate:'Base Plate Cost Rate', lblTriPlateRate:'Triangle Plate Cost Rate (optional when Qty is 0)',
     lblDiameterMmShort:'Diameter mm',
     noteHoleCost:'Hole drilling / laser / punching cost: include in Additional Cost.',
     wasGuide:'This prices an Anchor Bolt + Base Plate + Triangle Plate welded into one set. Welding, hole drilling and other processing go in Additional Cost. Nut / Flat Washer are chosen under Accessories.',
@@ -6232,8 +6232,8 @@ const I18N={
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
     wqaThreadRef:'螺纹参考',
     /* UNC and BSW are thread-series codes and stay in their own spelling. */
-    wqaThreadRefHintMetric:'例如 1.75P', wqaThreadRefHintSeries:'UNC / BSW',
-    wqaThreadRefHintAny:'选填参考',
+    wqaThreadRefHintMetric:'e.g. 1.75P', wqaThreadRefHintSeries:'UNC / BSW',
+    wqaThreadRefHintAny:'',
     phUseOnThis:'用于此项目', phMoreWays:'更多应用方式',
     phApplyCompatible:'应用到相符项目 ({n})…', phSelectItems:'选择项目…',
     phSelectItemsTitle:'应用历史报价', phApplyPrevious:'应用历史报价',
@@ -6563,7 +6563,7 @@ const I18N={
     lblCutLengthOpt:'Cut Length (选填)', lblCutHeightOpt:'Cut Height (选填)',
     lblCutLengthMmOpt:'Cut Length (mm, 选填)', lblCutHeightMmOpt:'Cut Height (mm, 选填)',
     lblSetQty:'套数', lblAnchorRate:'Anchor Bolt 每公斤成本',
-    lblBasePlateRate:'Base Plate 每公斤成本', lblTriPlateRate:'Triangle Plate 每公斤成本',
+    lblBasePlateRate:'Base Plate 每公斤成本', lblTriPlateRate:'Triangle Plate 每公斤成本 (数量为 0 时选填)',
     lblDiameterMmShort:'Diameter (mm)',
     noteHoleCost:'开洞加工费请放在额外加工费。',
     wasGuide:'这是 Anchor Bolt + Base Plate + Triangle Plate 焊接成一套的报价。焊接费、开洞费、加工费请放在额外加工费。Nut / Flat Washer 请在配件中选择。',
@@ -12672,14 +12672,14 @@ function ensureOthersForm(){
            Load & Edit and draft restore both override the mode from saved data. -->
       <div class="field"><label data-i18n="lblWeightMode">${escHtml(dcT('lblWeightMode'))}</label><select id="others-weightMode" onchange="onOthersWeightModeChange(true)"><option value="manual" data-i18n="lblManualWeight">${escHtml(dcT('lblManualWeight'))}</option><option value="length" selected data-i18n="lblDiaXLength">${escHtml(dcT('lblDiaXLength'))}</option></select></div>
       <div class="field" id="others-unitWeightField" style="display:none"><label><span data-i18n="lblUnitWeight">${escHtml(dcT('lblUnitWeight'))}</span> <span class="hint">(kg)</span></label><input type="number" id="others-unitWeight" min="0" step="0.0001" placeholder="kg" oninput="calcOthers()"></div>
-      <div class="field" id="others-diameterField"><label><span data-i18n="lblDiameter">${escHtml(dcT('lblDiameter'))}</span> <span class="hint">(mm)</span></label><input type="number" id="others-diameter" min="0" step="0.01" placeholder="mm" oninput="calcOthers()"></div>
-      <div class="field" id="others-lengthField"><label><span data-i18n="lblLength">${escHtml(dcT('lblLength'))}</span> <span class="hint">(mm)</span></label><input type="number" id="others-length" min="0" step="0.1" placeholder="mm" oninput="calcOthers()"></div>
+      <div class="field" id="others-diameterField"><label><span data-i18n="lblDiameter">${escHtml(dcT('lblDiameter'))}</span> <span class="hint">(mm)</span></label><input type="number" id="others-diameter" min="0" step="0.01" placeholder="e.g. 16mm" oninput="calcOthers()"></div>
+      <div class="field" id="others-lengthField"><label><span data-i18n="lblLength">${escHtml(dcT('lblLength'))}</span> <span class="hint">(mm)</span></label><input type="number" id="others-length" min="0" step="0.1" placeholder="e.g. 120mm" oninput="calcOthers()"></div>
     </div>
     ${accessoriesHtml}
     <div class="group-label full" data-i18n="pricingEntry">${escHtml(dcT('pricingEntry'))}</div>
-    <div class="field"><label><span data-i18n="lblCostRate">${escHtml(dcT('lblCostRate'))}</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" data-i18n-ph="phEnterRate" placeholder="${escHtml(dcT('phEnterRate'))}" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
-    <div class="field"><label data-i18n="lblAdditionalCost">${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" class="hl" id="others-addCost" placeholder="0.00" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
-    <div class="field"><label><span data-i18n="lblMarkup">${escHtml(dcT('lblMarkup'))}</span> <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
+    <div class="field"><label><span data-i18n="lblCostRate">${escHtml(dcT('lblCostRate'))}</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" placeholder="4.2" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
+    <div class="field"><label data-i18n="lblAdditionalCost">${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" class="hl" id="others-addCost" placeholder="0.6" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
+    <div class="field"><label><span data-i18n="lblMarkup">${escHtml(dcT('lblMarkup'))}</span> <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="15" min="0" oninput="calcOthers()"></div>
     <div class="field"><label data-i18n="lblQty">${escHtml(dcT('lblQty'))}</label><input type="number" id="others-qty" value="1" min="1" step="1" oninput="calcOthers()"></div>`;
   source.insertAdjacentElement('afterend',form);
 }
@@ -12705,7 +12705,7 @@ function ensurePriceModeControls(){
     manualField.className='field manual-price-field';
     manualField.id=type+'-manualUnitPriceField';
     manualField.style.display='none';
-    manualField.innerHTML=`<label data-i18n="lblManualUnitPrice">${escHtml(dcT('lblManualUnitPrice'))}</label><input type="number" id="${type}-manualUnitPrice" min="0" step="0.01" placeholder="0.00" disabled oninput="recalcCurrent()"><small class="manual-price-guide">${escHtml(dcT('pmManualGuide'))}<span>${escHtml(dcT('pmManualGuideEg'))}</span></small>`;
+    manualField.innerHTML=`<label data-i18n="lblManualUnitPrice">${escHtml(dcT('lblManualUnitPrice'))}</label><input type="number" id="${type}-manualUnitPrice" min="0" step="0.01" placeholder="2.75" disabled oninput="recalcCurrent()"><small class="manual-price-guide">${escHtml(dcT('pmManualGuide'))}<span>${escHtml(dcT('pmManualGuideEg'))}</span></small>`;
     const qtyField=el(type+'-qty')?.closest('.field');
     (qtyField||pricingLabel).insertAdjacentElement('afterend',modeField);
     modeField.insertAdjacentElement('afterend',manualField);
@@ -13527,7 +13527,7 @@ function wqaAccEditor(a,h){
     </div>
     <div class="wqa-acc-line">
       <label class="wqa-acc-en"><input type="checkbox" ${a.custom.enabled?'checked':''} onchange="${h('custom','enabled','this.checked')}"> ${escHtml(dcT('lblCustom'))}</label>
-      <label class="wqa-acc-f wqa-acc-wide"><span>${escHtml(dcT('lblDescription'))}</span><input type="text" value="${escHtml(a.custom.text||'')}" ${off(a.custom.enabled)} oninput="${h('custom','text','this.value')}"></label>
+      <label class="wqa-acc-f wqa-acc-wide"><span>${escHtml(dcT('lblDescription'))}</span><input type="text" value="${escHtml(a.custom.text||'')}" placeholder="${escHtml(dcT('phCwWording'))}" ${off(a.custom.enabled)} oninput="${h('custom','text','this.value')}"></label>
       <label class="wqa-acc-f"><span>${escHtml(dcT('lblUnitPriceShort'))}</span><input type="number" min="0" step="0.01" value="${a.custom.unitPrice}" ${off(a.custom.enabled)} oninput="${h('custom','unitPrice','this.value')}"></label>
     </div>
   </div>`;
@@ -19147,15 +19147,15 @@ function wqaPxToggle(i){
 function wqaRvPxEditor(r,i){
   const calc=r.calc||{}, mode=r.priceMode||'auto';
   return `<div class="wqa-px-grid">
-      <label class="wqa-px-f"><span>${escHtml(dcT('fieldCostRate'))}</span><input type="text" inputmode="decimal" data-px="costRate"
+      <label class="wqa-px-f"><span>${escHtml(dcT('fieldCostRate'))}</span><input type="text" inputmode="decimal" data-px="costRate" placeholder="4.2"
         value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></label>
-      <label class="wqa-px-f"><span>${escHtml(dcT('fieldAdditionalCost'))}</span><input type="text" inputmode="decimal" data-px="addCost"
+      <label class="wqa-px-f"><span>${escHtml(dcT('fieldAdditionalCost'))}</span><input type="text" inputmode="decimal" data-px="addCost" placeholder="0.6"
         value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></label>
-      <label class="wqa-px-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="text" inputmode="decimal" data-px="markup"
+      <label class="wqa-px-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="text" inputmode="decimal" data-px="markup" placeholder="15"
         value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></label>
       <label class="wqa-px-f"><span>${escHtml(dcT('lblPriceMode'))}</span><select data-px="priceMode" onchange="wqaEditRowMode(${i},this.value)">${
         WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${mode===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')}</select></label>
-      ${mode==='manual'?`<label class="wqa-px-f"><span>${escHtml(dcT('lblManualUnitPrice'))}</span><input type="text" inputmode="decimal" data-px="manualPrice"
+      ${mode==='manual'?`<label class="wqa-px-f"><span>${escHtml(dcT('lblManualUnitPrice'))}</span><input type="text" inputmode="decimal" data-px="manualPrice" placeholder="2.75"
         value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></label>`:''}
     </div>`;
 }
@@ -19175,7 +19175,7 @@ function wqaRvDetailIn(r,i,f,lbl){
   const dia=f==='dia';
   return `<label class="wqa-dt-f${dia&&r.diaManual?' is-manual':''}"><span>${escHtml(lbl)}</span><input type="text" data-ef="${f}"${dia&&r.diaManual?' class="is-manual-dia"':''}
       inputmode="${kind==='size'||kind==='thread'?'text':'decimal'}" autocomplete="off" spellcheck="false"
-      value="${escHtml(String(v==null?'':v))}"${dia?` placeholder="${escHtml(String(r.diaMm||''))}" title="${escHtml(dcT(r.diaManual?'diaManual':'diaDefault'))}"`:''}
+      value="${escHtml(String(v==null?'':v))}"${dia?` placeholder="e.g. 12mm" title="${escHtml(dcT(r.diaManual?'diaManual':'diaDefault'))}"`:''}
       onfocus="wqaDtFocus(${i},'${f}')" oninput="wqaIxInput(${i},'${f}',this)" onkeydown="wqaDtKey(event,${i},'${f}',this)"
       onchange="wqaRvDetailSet(${i},'${f}',this)"></label>`;
 }
