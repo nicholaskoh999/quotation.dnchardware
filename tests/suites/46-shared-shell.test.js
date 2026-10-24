@@ -223,19 +223,20 @@ module.exports = async (browser, A) => {
     }
   }
 
-  // ── 5 · below 1024px nothing changed ────────────────────────────────────
+  // ── 5 · below 1024px the shell is the responsive one (R1 asserts it in full)  ────────────────────────────────────
   for (const w of [1023, 820, 390]) {
     const page = await openApp(browser, { viewport: { width: w, height: 900 } });
     const s = await shellState(page);
     A.eq(s.visible, false, `${w}px: no desktop shell`);
-    A.eq(s.oldHeader, true, `${w}px: the existing header is shown`);
+    A.eq(s.oldHeader, false, `${w}px: the legacy blue header is gone`);
+    A.eq(s.oldSidebar, false, `${w}px: and the legacy Quick Menu sidebar`);
     A.eq(s.pageHeadVisible, false, `${w}px: no shell page header`);
     A.eq(await page.evaluate(() => getComputedStyle(document.body).paddingLeft), '0px', `${w}px: no shell offset`);
     await page.close();
     const cp = await openCompanies(browser, { viewport: { width: w, height: 900 } });
     await cp.waitForTimeout(200);
     const c = await shellState(cp);
-    A.ok(!c.visible && c.oldHeader, `companies ${w}px: the existing header, no shell`);
+    A.ok(!c.visible && !c.oldHeader, `companies ${w}px: no legacy header, no desktop shell`);
     await cp.close();
   }
 };

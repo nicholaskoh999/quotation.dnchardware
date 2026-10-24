@@ -132,7 +132,7 @@ const SKIP_SELECTORS = [
   '.hdr-brand', '.brand-link',
   /* …and the shared shell's brand, DNC / QUOTATION, the same in both languages
      by owner decision (2026-10-24). */
-  '.dnc-brand',
+  '.dnc-brand', '.rsp-brand',
   /* A <code> run is a literal token the operator types or pastes —
      {customer}, {quotationNo} — not a word to be translated. */
   'code', 'kbd', 'samp',

@@ -126,8 +126,8 @@ module.exports = async (browser, A) => {
 
     // ── the sidebar's actions are reachable, however it is laid out ──────
     const nav = await page.evaluate(() => {
-      const wanted = ['sideNewQuotation', 'sideCompanies', 'sideDefaultPrices',
-                      'sideDiameterSettings', 'sidePricingGuide', 'sideVersionUpdates'];
+      const wanted = ['shellNewQuotation', 'shellCompaniesSaved', 'shellDefaultPrices',
+                      'shellDiameterSettings', 'shellPricingGuide', 'shellWhatsNew'];
       const seen = {};
       wanted.forEach(k => {
         const n = document.querySelector(`[data-i18n="${k}"]`);
@@ -137,7 +137,7 @@ module.exports = async (browser, A) => {
            toggle still counts, because the toggle is on screen. */
         seen[k] = (r.width > 0 && r.height > 0) ? 'visible' : 'collapsed';
       });
-      const toggle = document.querySelector('.sidebar-toggle, #sidebarToggle, [onclick*="toggleSidebar"]');
+      const toggle = document.querySelector('#rspBurger, #rspNavTools, #rspNavAccount');
       return { seen, hasToggle: !!toggle };
     });
     const missing = Object.entries(nav.seen).filter(([, v]) => v === 'absent').map(([k]) => k);

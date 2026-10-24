@@ -153,9 +153,12 @@ const companyControls = page => page.evaluate(async () => {
      in document order picks one inside a closed modal, which reports a zero box
      and would let a real 36px field pass as fixed. */
   const modal = document.getElementById('editCompanyModal');
-  const named = { lang: box('.lang-btn'), close: box('.modal-close', modal),
+  /* The language switch lives in the shell: the Account sheet on a phone, the
+     drawer on a tablet (the old header button is gone below 1024px). */
+  const langSel = innerWidth < 600 ? '.rsp-lang-row .dnc-lang-btn' : '#dncShell .dnc-lang-btn';
+  const named = { lang: box(langSel), close: box('.modal-close', modal),
                   field: box('.field input', modal) };
-  const under = [...document.querySelectorAll('.lang-btn,.modal-close,.field input,.field select,.field textarea')]
+  const under = [...document.querySelectorAll('.rsp-lang-row .dnc-lang-btn,.modal-close,.field input,.field select,.field textarea')]
     .filter(visible)
     .map(n => ({ cls: String(n.className) || n.tagName.toLowerCase(),
                  h: +n.getBoundingClientRect().height.toFixed(1),
@@ -347,7 +350,7 @@ module.exports = async (browser, A) => {
          and its language button — gives way to the shared shell, whose EN | 中文
          switch sits above the account block. Asserted in its place. */
       const sh = await page.evaluate(() => {
-        const b = [...document.querySelectorAll('.dnc-lang [data-lang-set]')].map(n => n.getBoundingClientRect());
+        const b = [...document.querySelectorAll('#dncShell .dnc-lang [data-lang-set]')].map(n => n.getBoundingClientRect());
         const hdr = document.querySelector('.page-header');
         return { n: b.length, h: b.length ? Math.round(b[0].height) : 0,
                  hdrHidden: !hdr || getComputedStyle(hdr).display === 'none' };
@@ -356,7 +359,7 @@ module.exports = async (browser, A) => {
       A.ok(sh.h >= 28, `companies ${w}px: and each half is a real target (${sh.h}px)`);
       A.eq(sh.hdrHidden, true, `companies ${w}px: the old header (and its language button) is not shown`);
     } else {
-      A.eq(r.named.lang.h, 40, `companies ${w}px: the language button is still 40 tall, as accepted`);
+      A.ok(r.named.lang.h >= 36, `companies ${w}px: the drawer's language button is a touch-size target (${r.named.lang.h}px)`);
     }
     A.eq(r.named.close.h, 24, `companies ${w}px: the modal × is still 24 tall, as accepted`);
     A.eq(r.named.close.w, 17, `companies ${w}px: and still 17 wide — the phone rule has not leaked onto the desk`);
@@ -388,7 +391,7 @@ module.exports = async (browser, A) => {
     const page = await openCompanies(browser, { viewport: { width: 430, height: 900 } });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.waitForTimeout(300);
-    const d = await page.evaluate(() => getComputedStyle(document.querySelector('.lang-btn')).transitionDuration);
+    const d = await page.evaluate(() => getComputedStyle(document.querySelector('.rsp-lang-row .dnc-lang-btn')).transitionDuration);
     A.ok(parseFloat(d) <= 0.0001, `companies: the enlarged language button still has no motion under reduced motion (${d})`);
     await page.close();
   }

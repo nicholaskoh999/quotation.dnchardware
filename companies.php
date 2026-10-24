@@ -851,13 +851,133 @@ input,select,textarea{
 }
 @media (prefers-reduced-motion:reduce){ .dnc-link,.dnc-back,.dnc-cta,.dnc-acct{transition:none} }
 
+/* ══ DNC responsive shell — R1 (2026-10-24) ═════════════════════════════════
+   The same block in index.php and companies.php. One information architecture
+   (the shared shell above), three presentations:
+     ≥1024px        the permanent 240px sidebar — untouched by anything below
+     600–1023px     the same sidebar as an off-canvas drawer, opened from the top bar
+     <600px         compact top bar + four-item bottom navigation; Tools and
+                    Account are bottom sheets; Quotation and Saved are pages.
+   Nothing here applies at ≥1024px except hiding its own parts. */
+.rsp-top,.rsp-nav,.rsp-sheet,.rsp-quick{
+  --dnc-indigo:#4338ca; --dnc-indigo-hover:#3730a3; --dnc-indigo-soft:#eef0fd;
+  --dnc-tangerine:#ff8a3d; --dnc-canvas:#f2f3f6; --dnc-surface:#ffffff; --dnc-sunken:#eceef2;
+  --dnc-border:#e2e4ea; --dnc-ink:#161a23; --dnc-ink-2:#4d5463; --dnc-ink-3:#737a89;
+  --dnc-font:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+.rsp-top,.rsp-nav,.rsp-sheet,.rsp-scrim,.rsp-quick,.rsp-close,.rsp-burger,.rsp-avatar-btn{display:none}
+.rsp-scrim{position:fixed;inset:0;z-index:410;background:rgba(10,12,20,.45);opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .18s ease,visibility 0s linear .18s}
+.rsp-scrim.is-open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .18s ease,visibility 0s}
+html.rsp-lock,html.rsp-lock body{overflow:hidden}
+@media (max-width:1023px){
+  :root{--header-h:58px}
+  .rsp-scrim{display:block}
+  .rsp-top{display:flex;align-items:center;gap:6px;position:sticky;top:var(--banner-h,0px);z-index:250;height:58px;
+    padding:0 max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px));
+    background:var(--dnc-surface);border-bottom:1px solid var(--dnc-border);font-family:var(--dnc-font);color:var(--dnc-ink)}
+  .rsp-brand{display:flex;align-items:center;gap:10px;min-width:0;min-height:44px;padding:0 4px;color:inherit;text-decoration:none;border-radius:8px}
+  .rsp-brand .dnc-mark{width:30px;height:30px}
+  .rsp-top .rsp-brand + *{margin-left:auto}
+  .rsp-burger,.rsp-avatar-btn,.rsp-x{align-items:center;justify-content:center;width:44px;height:44px;flex-shrink:0;border:0;border-radius:10px;
+    background:transparent;color:var(--dnc-ink-2);cursor:pointer;padding:0}
+  .rsp-burger:hover,.rsp-avatar-btn:hover,.rsp-x:hover{background:var(--dnc-sunken)}
+  .rsp-top .dnc-ico,.rsp-sheet .dnc-ico{width:20px;height:20px}
+  .rsp-brand:focus-visible,.rsp-burger:focus-visible,.rsp-avatar-btn:focus-visible,.rsp-x:focus-visible,.rsp-close:focus-visible,
+  .rsp-nav-item:focus-visible,.rsp-row:focus-visible,.rsp-chip:focus-visible{outline:2px solid var(--dnc-indigo);outline-offset:2px}
+  .rsp-sheet-body .dnc-ico{color:var(--dnc-ink-3)}
+}
+/* ── 600–1023: the shared sidebar, off-canvas ── */
+@media (min-width:600px) and (max-width:1023px){
+  .rsp-burger{display:inline-flex}
+  .dnc-shell{
+    display:flex;flex-direction:column;position:fixed;z-index:420;top:0;bottom:0;left:0;
+    width:320px;max-width:calc(100vw - 40px);height:100vh;height:100dvh;
+    background:var(--dnc-surface);border-right:1px solid var(--dnc-border);
+    box-shadow:0 0 40px rgb(22 26 35 / .22);
+    color:var(--dnc-ink);font-family:var(--dnc-font);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased;
+    transform:translateX(-105%);visibility:hidden;
+    transition:transform .2s ease,visibility 0s linear .2s;
+  }
+  .dnc-shell.is-open{transform:none;visibility:visible;transition:transform .2s ease,visibility 0s}
+  .dnc-shell .dnc-brand{padding-right:60px}
+  .rsp-close{display:inline-flex;align-items:center;justify-content:center;position:absolute;top:10px;right:10px;z-index:6;
+    width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--dnc-ink-2);cursor:pointer;padding:0}
+  .rsp-close:hover{background:var(--dnc-sunken)}
+  .rsp-close .dnc-ico{width:20px;height:20px}
+  .dnc-shell .dnc-lang-btn{height:36px}
+}
+/* ── <600: phone app shell ── */
+@media (max-width:599px){
+  :root{--rsp-nav-h:56px}
+  .rsp-avatar-btn{display:inline-flex}
+  .rsp-avatar-btn .dnc-avatar{width:34px;height:34px}
+  .rsp-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:270;
+    height:calc(var(--rsp-nav-h) + var(--sab,0px));padding:0 env(safe-area-inset-right,0px) var(--sab,0px) env(safe-area-inset-left,0px);
+    background:var(--dnc-surface);border-top:1px solid var(--dnc-border);box-shadow:0 -4px 16px rgb(22 26 35 / .06);
+    font-family:var(--dnc-font);transition:transform .18s ease}
+  .rsp-nav-item{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    height:var(--rsp-nav-h);padding:0 2px;border:0;background:transparent;font:inherit;font-size:11px;font-weight:500;line-height:1.2;
+    color:var(--dnc-ink-3);text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .rsp-nav-item .dnc-ico{width:22px;height:22px}
+  .rsp-nav-item > span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rsp-nav-item.is-active,.rsp-nav-item[aria-expanded="true"]{color:var(--dnc-indigo)}
+  .rsp-nav-item.is-active::before{content:'';position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 999px 999px;background:var(--dnc-tangerine)}
+  html.kb-open .rsp-nav{transform:translateY(110%);pointer-events:none}
+  /* the TOTAL / Save bar rides above the navigation, the page clears both */
+  .mobile-bar{bottom:calc(var(--rsp-nav-h) + var(--sab,0px));padding-bottom:10px}
+  .main{padding-bottom:calc(var(--bar-h,64px) + var(--rsp-nav-h) + var(--sab,0px) + 56px)}
+  .toast{bottom:calc(var(--bar-h,64px) + var(--rsp-nav-h) + var(--sab,0px) + 16px)}
+  body.rsp-page-plain{padding-bottom:calc(var(--rsp-nav-h) + var(--sab,0px) + 16px)}
+  /* quick actions: compact, in the QUO control language */
+  .rsp-quick{display:flex;gap:8px;font-family:var(--dnc-font)}
+  .rsp-chip{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 8px;
+    border:1px solid var(--dnc-border);border-radius:10px;background:var(--dnc-surface);color:var(--dnc-ink-2);
+    font:inherit;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .rsp-chip.is-primary{flex:1.35 1 0;background:var(--dnc-indigo-soft);border-color:#d5d9f7;color:var(--dnc-indigo)}
+  .rsp-chip .dnc-ico{width:16px;height:16px}
+  .rsp-chip > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rsp-chip:active{background:var(--dnc-sunken)} .rsp-chip.is-primary:active{background:#e0e7ff}
+  /* bottom sheets: Tools and Account */
+  .rsp-sheet{display:flex;flex-direction:column;position:fixed;left:0;right:0;bottom:0;z-index:430;
+    max-height:min(82vh,calc(100dvh - 40px));background:var(--dnc-surface);color:var(--dnc-ink);font-family:var(--dnc-font);font-size:14px;
+    border-radius:16px 16px 0 0;box-shadow:0 -12px 40px rgb(22 26 35 / .22);padding-bottom:var(--sab,0px);
+    transform:translateY(105%);visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s;outline:0}
+  .rsp-sheet.is-open{transform:none;visibility:visible;transition:transform .2s ease,visibility 0s}
+  .rsp-sheet-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 0 18px;min-height:52px}
+  .rsp-sheet-title{font-size:16px;font-weight:600;letter-spacing:-.01em;color:var(--dnc-ink)}
+  .rsp-x{display:inline-flex}
+  .rsp-sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px 10px 12px;display:flex;flex-direction:column;gap:2px}
+  .rsp-row{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;flex-shrink:0;padding:0 10px;border:0;border-radius:10px;background:transparent;
+    font:inherit;font-size:15px;font-weight:500;color:var(--dnc-ink);text-align:left;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .rsp-row:active{background:var(--dnc-sunken)}
+  .rsp-row.is-static{cursor:default;color:var(--dnc-ink-2)} .rsp-row.is-static:active{background:transparent}
+  .rsp-row > span{min-width:0}
+  .rsp-row .dnc-mi-val{margin-left:auto}
+  .rsp-sep{height:1px;margin:6px 10px;background:var(--dnc-border);flex-shrink:0}
+  .rsp-ident{display:flex;align-items:center;gap:12px;padding:6px 10px 10px;flex-shrink:0}
+  .rsp-ident .dnc-avatar{width:40px;height:40px;font-size:15px}
+  .rsp-lang-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 10px;flex-shrink:0}
+  .rsp-lang-row .dnc-lang{width:170px}
+  .rsp-lang-row .dnc-lang-btn{height:44px}
+  .rsp-lang-lbl{font-size:15px;font-weight:500;color:var(--dnc-ink)}
+}
+@media print{
+  .rsp-top,.rsp-nav,.rsp-sheet,.rsp-scrim,.rsp-quick{display:none!important}
+  body.rsp-page-plain{padding-bottom:0!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .dnc-shell,.rsp-sheet,.rsp-scrim,.rsp-nav{transition:none!important}
+}
+
 </style>
 </head>
-<body>
+<body class="rsp-page-plain">
 <!-- ══ DNC shared desktop shell (≥1024px). The same block, byte for byte, in
      index.php and companies.php; only the active item differs. Below 1024px it
      is not shown and the page keeps its own header and off-canvas menu. ══ -->
 <aside class="dnc-shell" id="dncShell" data-i18n-aria="shellNav" aria-label="DNC navigation">
+  <button type="button" class="rsp-close" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
   <a class="dnc-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
     <svg class="dnc-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" class="dnc-mark-bg"/><path d="M10 9h7.5a5.5 5.5 0 0 1 0 11H13v3h-3z m3 3v5h4.5a2.5 2.5 0 0 0 0-5z" fill="#fff"/><circle cx="24" cy="24" r="3" class="dnc-mark-dot"/></svg>
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
@@ -900,24 +1020,48 @@ input,select,textarea{
 <script>/* The signed-in identity, for the shell's account block only. */
 window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $u ? ['name'=>$u['display_name'],'username'=>$u['username']] : null; })(), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE) ?>;</script>
 
-<div class="page-header">
-  <a class="brand-link" href="index.php" data-i18n-aria="ariaHome" aria-label="Der-Cheng Quotation — home">
-    <img class="logo" src="/assets/icons/icon-192.png" alt="" width="32" height="32" decoding="async">
-    <div class="header-text">
-      <h1>Der-Cheng Quotation</h1>
-      <p data-i18n="brandSub">Quotation System · v2.24.0</p>
-    </div>
+<!-- ══ DNC responsive shell (<1024px) — R1. The same block in index.php and
+     companies.php. Tablet (600–1023px) opens #dncShell above as a drawer; phones
+     (<600px) get the compact top bar, the bottom navigation and the two sheets. ══ -->
+<div class="rsp-top" id="rspTop">
+  <button type="button" class="rsp-burger" id="rspBurger" aria-expanded="false" aria-controls="dncShell" data-i18n-aria="rspOpenMenu" aria-label="Open menu" onclick="rspOpen('drawer')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
+  <a class="rsp-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
+    <svg class="dnc-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" class="dnc-mark-bg"/><path d="M10 9h7.5a5.5 5.5 0 0 1 0 11H13v3h-3z m3 3v5h4.5a2.5 2.5 0 0 0 0-5z" fill="#fff"/><circle cx="24" cy="24" r="3" class="dnc-mark-dot"/></svg>
+    <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
-  <!-- Global nav: identical to index.php -->
-  <div class="header-actions">
-    <div class="lang-switch" role="group" data-i18n-aria="langAria" aria-label="Language">
-      <button type="button" class="lang-btn lang-toggle" onclick="dcToggleLang()" aria-label="Language / 语言"></button>
-    </div>
-    <a href="index.php" class="nav-btn" data-i18n-title="navCalculatorTitle" title="Quotation Calculator" data-i18n="navCalculator">Calculator</a>
-    <a href="companies.php" class="nav-btn is-active" aria-current="page" data-i18n="navCompanies">Companies</a>
-    <!-- Back to the DNC Workspace launcher: a plain link, same tab, no token. -->
-    <a href="https://portal.dnchardware.com" class="nav-btn is-secondary" data-i18n="navWorkspace">DNC Workspace</a>
-    <a href="logout.php" class="nav-btn is-secondary" data-i18n-title="navSignOutTitle" title="Sign out on this device only" data-i18n="navSignOut">Sign Out</a>
+  <button type="button" class="rsp-avatar-btn" id="rspAvatarBtn" aria-expanded="false" aria-controls="rspAcct" data-i18n-aria="shellAccountMenu" aria-label="Account menu" onclick="rspOpen('account')"><span class="dnc-avatar" id="rspAvatarTop" aria-hidden="true" data-i18n-skip>·</span></button>
+</div>
+<nav class="rsp-nav" id="rspNav" data-i18n-aria="rspMainNav" aria-label="Main navigation">
+  <a class="rsp-nav-item" href="index.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg><span data-i18n="rspNavQuotation">Quotation</span></a>
+  <button type="button" class="rsp-nav-item is-active" aria-current="page" onclick="rspTop()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span data-i18n="rspNavSaved">Saved</span></button>
+  <button type="button" class="rsp-nav-item" id="rspNavTools" aria-expanded="false" aria-controls="rspTools" onclick="rspOpen('tools')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg><span data-i18n="rspNavTools">Tools</span></button>
+  <button type="button" class="rsp-nav-item" id="rspNavAccount" aria-expanded="false" aria-controls="rspAcct" onclick="rspOpen('account')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="rspNavAccount">Account</span></button>
+</nav>
+<div class="rsp-scrim" id="rspScrim" onclick="rspClose()"></div>
+<div class="rsp-sheet" id="rspTools" role="dialog" aria-modal="true" aria-labelledby="rspToolsTitle" tabindex="-1">
+  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspToolsTitle" data-i18n="rspNavTools">Tools</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="rsp-sheet-body">
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('dp')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span data-i18n="shellDefaultPrices">Default Prices</span></button>
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('ds')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="19" r="2"/><circle cx="5" cy="5" r="2"/><path d="M6.48 3.66a10 10 0 0 1 13.86 13.86"/><path d="m6.41 6.41 11.18 11.18"/><path d="M3.66 6.48a10 10 0 0 0 13.86 13.86"/></svg><span data-i18n="shellDiameterSettings">Diameter Settings</span></button>
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('ref')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span data-i18n="shellPricingGuide">Pricing Guide</span></button>
+    <a class="rsp-row rsp-go" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
+  </div>
+</div>
+<div class="rsp-sheet" id="rspAcct" role="dialog" aria-modal="true" aria-labelledby="rspAcctTitle" tabindex="-1">
+  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspAcctTitle" data-i18n="rspNavAccount">Account</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="rsp-sheet-body">
+    <div class="rsp-ident" data-i18n-skip><span class="dnc-avatar" id="rspAcctAvatar" aria-hidden="true">·</span><span class="dnc-acct-text"><span class="dnc-acct-name" id="rspAcctName"></span><span class="dnc-acct-user" id="rspAcctUser"></span></span></div>
+    <div class="rsp-lang-row"><span class="rsp-lang-lbl" data-i18n="language">Language</span>
+      <div class="dnc-lang" role="group" data-i18n-aria="langAria" aria-label="Language">
+        <button type="button" class="dnc-lang-btn" data-lang-set="en" aria-pressed="true" onclick="dcSetLang('en')">EN</button>
+        <button type="button" class="dnc-lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
+      </div></div>
+    <div class="rsp-sep" role="separator"></div>
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('whatsnew')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg><span data-i18n="shellWhatsNew">What's New</span></button>
+    <div class="rsp-row is-static"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span data-i18n="shellSystemVersion">System Version</span><span class="dnc-mi-val" id="rspSysVer" data-i18n-skip>…</span></div>
+    <a class="rsp-row rsp-go" href="https://portal.dnchardware.com"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span data-i18n="shellBack">Back to Workspace</span></a>
+    <div class="rsp-sep" role="separator"></div>
+    <a class="rsp-row" href="logout.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg><span data-i18n="shellSignOut">Sign Out</span></a>
   </div>
 </div>
 
@@ -1143,7 +1287,7 @@ const I18N={
     cpLastUpdated:'Last Updated', cpLatestProduct:'Latest Product',
     qoRenumbered:'Quotation {r} was renumbered.', qoChooseOne:'{n} quotations match “{r}”. Choose one:',
     /* DNC shared desktop shell (2026-10-24) */
-    shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Modules', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
+    rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Modules', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
   zh:{
     qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
@@ -1216,7 +1360,7 @@ const I18N={
     cpSavedQuotes:'已保存报价：{n} · 最新：{d}', cpNoSavedQuotes:'尚无已保存报价',
     cpLastUpdated:'最后更新', cpLatestProduct:'最新产品',
     /* DNC shared desktop shell (2026-10-24) */
-    shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'模块', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
+    rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'模块', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
 };
 function dcLang(){
@@ -2188,6 +2332,8 @@ function dcShellRenderUser(){
   const name=(u&&typeof u.name==='string')?u.name:'', user=(u&&typeof u.username==='string')?u.username:'';
   const n=dcShellEl('dncAcctName'), s=dcShellEl('dncAcctUser'), a=dcShellEl('dncAvatar');
   if(n) n.textContent=name; if(s) s.textContent=user; if(a) a.textContent=dcShellInitials(name||user);
+  const ini=dcShellInitials(name||user);
+  [['rspAcctName',name],['rspAcctUser',user],['rspAcctAvatar',ini],['rspAvatarTop',ini]].forEach(p=>{ const x=dcShellEl(p[0]); if(x) x.textContent=p[1]; });
 }
 /* What the shell's System Version row says: the short commit /version.php
    reports, and nothing else from it. Read once, when the menu first opens. */
@@ -2195,10 +2341,11 @@ let dcShellVerLoaded=false;
 function dcShellLoadVersion(){
   if(dcShellVerLoaded) return;
   const out=dcShellEl('dncSysVer'); if(!out) return;
+  const out2=dcShellEl('rspSysVer');
   fetch('version.php',{cache:'no-store',credentials:'same-origin'})
     .then(r=>r.ok?r.json():null)
-    .then(d=>{ const c=(d&&typeof d.commit==='string')?d.commit.slice(0,7):''; out.textContent=c||'—'; dcShellVerLoaded=!!c; })
-    .catch(()=>{ out.textContent='—'; });
+    .then(d=>{ const c=(d&&typeof d.commit==='string')?d.commit.slice(0,7):''; out.textContent=c||'—'; if(out2) out2.textContent=c||'—'; dcShellVerLoaded=!!c; })
+    .catch(()=>{ out.textContent='—'; if(out2) out2.textContent='—'; });
 }
 function dcShellToggleMenu(force){
   const m=dcShellEl('dncMenu'), b=dcShellEl('dncAcctBtn'); if(!m||!b) return;
@@ -2206,6 +2353,61 @@ function dcShellToggleMenu(force){
   m.hidden=!open; b.setAttribute('aria-expanded',open?'true':'false');
   if(open) dcShellLoadVersion();
 }
+/* ══ DNC responsive shell — R1: the tablet drawer and the phone sheets ═════════
+   One panel open at a time. The page behind goes inert and stops scrolling;
+   Escape, the scrim and the close buttons put it all back. */
+const RSP_PANELS={drawer:'dncShell',tools:'rspTools',account:'rspAcct'};
+const RSP_TRIGGERS={drawer:['rspBurger'],tools:['rspNavTools'],account:['rspNavAccount','rspAvatarBtn']};
+const RSP_INERT=['#rspTop','#rspNav','.app-shell','.wrap','.mobile-bar'];
+let rspCur='', rspReturn=null;
+function rspMark(name,on){
+  (RSP_TRIGGERS[name]||[]).forEach(id=>{ const b=dcShellEl(id); if(b) b.setAttribute('aria-expanded',on?'true':'false'); });
+}
+function rspOpen(name){
+  const p=dcShellEl(RSP_PANELS[name]); if(!p) return;
+  if(rspCur===name){ rspClose(); return; }
+  if(rspCur) rspClose(false);
+  rspReturn=document.activeElement;
+  rspCur=name;
+  p.classList.add('is-open');
+  const sc=dcShellEl('rspScrim'); if(sc) sc.classList.add('is-open');
+  document.documentElement.classList.add('rsp-lock');
+  RSP_INERT.forEach(s=>document.querySelectorAll(s).forEach(n=>{ n.inert=true; }));
+  rspMark(name,true);
+  if(name==='account') dcShellLoadVersion();
+  if(name==='drawer') dcShellLoadVersion();
+  requestAnimationFrame(()=>{
+    const f=p.querySelector(name==='drawer'?'.rsp-close':'.rsp-x')||p;
+    try{ f.focus({preventScroll:true}); }catch(e){ f.focus(); }
+  });
+}
+function rspClose(restore){
+  if(!rspCur) return;
+  const p=dcShellEl(RSP_PANELS[rspCur]); if(p) p.classList.remove('is-open');
+  const sc=dcShellEl('rspScrim'); if(sc) sc.classList.remove('is-open');
+  document.documentElement.classList.remove('rsp-lock');
+  RSP_INERT.forEach(s=>document.querySelectorAll(s).forEach(n=>{ n.inert=false; }));
+  rspMark(rspCur,false);
+  const back=rspReturn; rspCur=''; rspReturn=null;
+  if(restore!==false&&back&&back.focus){ try{ back.focus({preventScroll:true}); }catch(e){} }
+}
+function rspTop(){ rspClose(false); window.scrollTo({top:0,behavior:'smooth'}); }
+/* Esc comes first to an open account menu inside the drawer, then to the drawer. */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||!rspCur) return;
+  const m=dcShellEl('dncMenu'); if(m&&!m.hidden) return;
+  rspClose();
+},true);
+/* Choosing something inside a panel closes it; the choice itself has already run. */
+document.addEventListener('click',e=>{
+  if(!rspCur||!e.target.closest) return;
+  if(e.target.closest('.rsp-go, #dncShell .dnc-cta, #dncShell .dnc-link, #dncShell .dnc-back, #dncShell a.dnc-mi, #dncShell button.dnc-mi')) rspClose(false);
+});
+window.addEventListener('resize',()=>{
+  if(!rspCur) return;
+  const w=window.innerWidth;
+  if(rspCur==='drawer'?(w<600||w>=1024):w>=600) rspClose(false);
+});
 document.addEventListener('click',e=>{
   const m=dcShellEl('dncMenu'); if(!m||m.hidden) return;
   if(e.target.closest&&(e.target.closest('#dncMenu')||e.target.closest('#dncAcctBtn'))) return;

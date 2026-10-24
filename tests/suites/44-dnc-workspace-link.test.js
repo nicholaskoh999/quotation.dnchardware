@@ -73,17 +73,29 @@ module.exports = async (browser, A) => {
     await page.close();
   }
 
-  // ── calculator, phone and tablet: the ☰ drawer ──────────────────────────
-  for (const w of [390, 768]) {
-    const page = await openApp(browser, { viewport: { width: w, height: 900 } });
-    const closed = await linkInfo(page, '#sidebar .side-nav a.side-link');
-    A.eq(closed.length === 1 && closed[0].inViewport, false, `${w}px: the link is in the drawer, off screen until it opens`);
-    await page.click('#burgerBtn');
+  // ── calculator, phone and tablet: Account sheet / drawer (R1, 2026-10-24) ─
+  {
+    const page = await openApp(browser, { viewport: { width: 390, height: 900 } });
+    const closed = await linkInfo(page, '#rspAcct a.rsp-row');
+    A.eq(closed.length === 1 && closed[0].inViewport, false, '390px: the link is in the Account sheet, off screen until it opens');
+    await page.click('#rspNavAccount');
     await page.waitForTimeout(600);
-    const open = await linkInfo(page, '#sidebar .side-nav a.side-link');
-    A.eq(open.length, 1, `${w}px: the open menu has the DNC Workspace link`);
-    A.eq(open[0] && open[0].visible && open[0].onTop && open[0].inViewport, true, `${w}px: visible and tappable once the menu is open`);
-    A.ok(open[0] && open[0].h >= 40, `${w}px: a full-height menu row (${open[0] && open[0].h}px)`);
+    const open = await linkInfo(page, '#rspAcct a.rsp-row');
+    A.eq(open.length, 1, '390px: the open Account sheet has the Back to Workspace link');
+    A.eq(open[0] && open[0].visible && open[0].onTop && open[0].inViewport, true, '390px: visible and tappable once the sheet is open');
+    A.eq(open[0] && open[0].text, 'Back to Workspace', '390px: reads "Back to Workspace"');
+    A.ok(open[0] && open[0].h >= 44, `390px: a full-height row (${open[0] && open[0].h}px)`);
+    await page.close();
+  }
+  {
+    const page = await openApp(browser, { viewport: { width: 768, height: 900 } });
+    const closed = await linkInfo(page, '#dncShell a.dnc-back');
+    A.eq(closed.length === 1 && closed[0].inViewport, false, '768px: the link is in the drawer, off screen until it opens');
+    await page.click('#rspBurger');
+    await page.waitForTimeout(600);
+    const open = await linkInfo(page, '#dncShell a.dnc-back');
+    A.eq(open.length, 1, '768px: the open drawer has the Back to Workspace link');
+    A.eq(open[0] && open[0].visible && open[0].onTop && open[0].inViewport, true, '768px: visible and tappable once the drawer is open');
     await page.close();
   }
 
@@ -96,16 +108,16 @@ module.exports = async (browser, A) => {
     A.ok(overflow <= 2, `companies 1440px: the page still does not scroll sideways (${overflow}px)`);
     await page.close();
   }
-  // ── companies, phone: the header nav, unchanged ────────────────────────
+  // ── companies, phone: the Account sheet ────────────────────────────────
   for (const w of [430]) {
     const page = await openCompanies(browser, { viewport: { width: w, height: 900 } });
     await page.waitForTimeout(300);
-    const l = await linkInfo(page, '.header-actions a.nav-btn');
-    A.eq(l.length, 1, `companies ${w}px: one DNC Workspace link in the header nav`);
+    await page.click('#rspNavAccount');
+    await page.waitForTimeout(600);
+    const l = await linkInfo(page, '#rspAcct a.rsp-row');
+    A.eq(l.length, 1, `companies ${w}px: one Back to Workspace link in the Account sheet`);
     A.eq(l[0] && l[0].visible && l[0].onTop && l[0].inViewport, true, `companies ${w}px: visible and clickable`);
-    A.eq(l[0] && l[0].text, 'DNC Workspace', `companies ${w}px: reads "DNC Workspace"`);
-    A.ok(l[0] && /\bnav-btn\b/.test(l[0].cls) && /\bis-secondary\b/.test(l[0].cls),
-      `companies ${w}px: styled as the existing secondary nav button`);
+    A.eq(l[0] && l[0].text, 'Back to Workspace', `companies ${w}px: reads "Back to Workspace"`);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     A.ok(overflow <= 2, `companies ${w}px: the page still does not scroll sideways (${overflow}px)`);
     await page.close();
