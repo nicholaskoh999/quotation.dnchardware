@@ -3898,12 +3898,47 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .rsp-dup-new{display:none}
   .rsp-lang-lbl{font-size:15px;font-weight:500;color:var(--dnc-ink)}
 }
+/* ── <600: ONE bottom layer (R2A) ────────────────────────────────────────────
+   data-rsp-bottom on <html> is written by refreshWorkflow(): nav (browsing),
+   work (quotation in progress) or output (saved, ready to print / send).
+   The bottom navigation and the quotation bar swap; they are never stacked. */
+.mb-out{display:none}
+@media (max-width:599px){
+  .rsp-nav,.mobile-bar{transition:transform .14s ease,opacity .14s ease,visibility 0s}
+  html:not([data-rsp-bottom="work"]):not([data-rsp-bottom="output"]) .mobile-bar,
+  html[data-rsp-bottom="work"] .rsp-nav,html[data-rsp-bottom="output"] .rsp-nav{
+    transform:translateY(12px);opacity:0;visibility:hidden;pointer-events:none;transition:transform .14s ease,opacity .14s ease,visibility 0s linear .14s}
+  .mobile-bar{
+    bottom:0;display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-rows:auto auto;
+    column-gap:8px;row-gap:0;align-items:center;justify-content:stretch;
+    padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + var(--sab,0px)) max(12px,env(safe-area-inset-left,0px))}
+  .mobile-bar .mb-actions{display:contents}
+  .mobile-bar .mb-total{grid-column:1;grid-row:1;align-self:end;min-width:0}
+  .mobile-bar .mb-total label{display:none}
+  .mobile-bar .mb-total span{font-size:18px;line-height:1.2}
+  .mobile-bar .mb-actions .mb-count{grid-column:1;grid-row:2;align-self:start;justify-self:start;min-height:0;height:auto;line-height:1.25;padding:0;border:0;background:none;
+    font-size:12px;font-weight:500;color:var(--text-muted);box-shadow:none}
+  .mobile-bar .mb-actions .btn:not(.mb-count){min-height:40px;grid-row:1 / span 2}
+  .mobile-bar .mb-add{grid-column:2}
+  .mobile-bar #mobileSaveBtn{grid-column:3}
+  .mobile-bar .mb-print{grid-column:3}
+  .mobile-bar .mb-wa{grid-column:4}
+  /* output: Print / WhatsApp lead, Add stays reachable as the secondary move */
+  html[data-rsp-bottom="output"] .mobile-bar #mobileSaveBtn{display:none}
+  html[data-rsp-bottom="output"] .mobile-bar .mb-out{display:inline-flex}
+  html[data-rsp-bottom="output"] .mobile-bar .mb-add{background:var(--surface);color:var(--accent);border-color:var(--accent-mid)}
+  /* the page and the toast clear whichever layer is showing */
+  html[data-rsp-bottom="work"] .main,html[data-rsp-bottom="output"] .main{padding-bottom:calc(var(--bar-h,64px) + var(--sab,0px) + 32px)}
+  html[data-rsp-bottom="work"] .toast,html[data-rsp-bottom="output"] .toast{bottom:calc(var(--bar-h,64px) + var(--sab,0px) + 16px)}
+  html:not([data-rsp-bottom="work"]):not([data-rsp-bottom="output"]) .main{padding-bottom:calc(var(--rsp-nav-h) + var(--sab,0px) + 32px)}
+  html:not([data-rsp-bottom="work"]):not([data-rsp-bottom="output"]) .toast{bottom:calc(var(--rsp-nav-h) + var(--sab,0px) + 16px)}
+}
 @media print{
   .rsp-top,.rsp-nav,.rsp-sheet,.rsp-scrim,.rsp-quick{display:none!important}
   body.rsp-page-plain{padding-bottom:0!important}
 }
 @media (prefers-reduced-motion:reduce){
-  .dnc-shell,.rsp-sheet,.rsp-scrim,.rsp-nav{transition:none!important}
+  .dnc-shell,.rsp-sheet,.rsp-scrim,.rsp-nav,.mobile-bar{transition:none!important}
 }
 
 </style>
@@ -4918,7 +4953,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
   <div class="mb-total"><label data-i18n="qiTotalPill">Total</label><span id="mbTotal">RM 0.00</span></div>
   <div class="mb-actions">
     <button class="btn btn-primary btn-sm mb-add" id="mbAddBtn" type="button" onclick="addCurrentItem()"><span class="mb-add-full" data-i18n="addToQuotation">＋ Add to Quotation</span><span class="mb-add-short" data-i18n="mbAddShort">＋ Add</span></button>
-    <button class="btn btn-outline btn-sm" onclick="scrollToQuote()"><span id="mbCount">0</span> <span data-i18n="itemsUnit">items</span></button>
+    <button class="btn btn-outline btn-sm mb-count" onclick="scrollToQuote()"><span id="mbCount">0</span> <span data-i18n="itemsUnit">items</span></button>
+    <button class="btn btn-ghost btn-sm mb-out mb-print" id="mbPrintBtn" type="button" onclick="doPrint()" data-i18n="print">Print</button>
+    <button class="btn btn-wa btn-sm mb-out mb-wa" id="mbWaBtn" type="button" onclick="doWhatsApp()">WhatsApp</button>
     <button class="btn btn-save" id="mobileSaveBtn" onclick="openSaveModal()" data-i18n="save">Save</button>
   </div>
 </div>
@@ -11297,6 +11334,11 @@ function refreshWorkflow(){
   setStepState(2,hasItems,active===2);
   setStepState(3,saved,active===3);
   setStepState(4,sentThisSession,active===4);
+  /* Phone bottom layer (<600px; the CSS ignores this elsewhere). ONE layer shows:
+     nav = browsing, work = a customer or items are in progress, output = every
+     item is saved and unchanged (Print / WhatsApp). Derived from the same facts
+     as the stepper above, never from scroll position. */
+  document.documentElement.setAttribute('data-rsp-bottom', hasItems&&saved ? 'output' : (hasItems||hasCustomer ? 'work' : 'nav'));
 }
 
 /* ── WhatsApp / print ── */

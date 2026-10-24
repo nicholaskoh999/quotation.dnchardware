@@ -75,8 +75,9 @@ module.exports = async (browser, A) => {
       const last = cards[cards.length - 1].getBoundingClientRect();
       return { navTop: nav.top, barBottom: bar.bottom, barTop: bar.top, lastBottom: last.bottom, vh: innerHeight, navH: nav.height };
     });
-    A.ok(clear.barBottom <= clear.navTop + 1, `${w}: the TOTAL / Save bar sits above the navigation (${clear.barBottom} ≤ ${clear.navTop})`);
-    A.ok(clear.lastBottom <= clear.barTop + 1, `${w}: the last content ends above the bar — nothing hidden behind the navigation (${Math.round(clear.lastBottom)} ≤ ${Math.round(clear.barTop)})`);
+    // R2A: the bar no longer stacks above the navigation — while browsing it is not shown at all (suite 48 holds the work / output states)
+    A.ok(await page.evaluate(() => getComputedStyle(document.querySelector('.mobile-bar')).visibility === 'hidden'), `${w}: while browsing the TOTAL / Save bar is not shown — one bottom layer`);
+    A.ok(clear.lastBottom <= clear.navTop + 1, `${w}: the last content ends above the navigation — nothing hidden behind it (${Math.round(clear.lastBottom)} ≤ ${Math.round(clear.navTop)})`);
     A.ok(clear.navH >= 56, `${w}: the navigation is at least 56px tall (${clear.navH})`);
 
     // one New Quotation on the first screen: the Step 1 copy is hidden on phones
