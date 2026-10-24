@@ -3902,7 +3902,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
    data-rsp-bottom on <html> is written by refreshWorkflow(): nav (browsing),
    work (quotation in progress) or output (saved, ready to print / send).
    The bottom navigation and the quotation bar swap; they are never stacked. */
-.mb-out{display:none}
+.mb-out,.mb-more{display:none}
 @media (max-width:599px){
   .rsp-nav,.mobile-bar{transition:transform .14s ease,opacity .14s ease,visibility 0s}
   html:not([data-rsp-bottom="work"]):not([data-rsp-bottom="output"]) .mobile-bar,
@@ -3921,12 +3921,13 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .mobile-bar .mb-actions .btn:not(.mb-count){min-height:40px;grid-row:1 / span 2}
   .mobile-bar .mb-add{grid-column:2}
   .mobile-bar #mobileSaveBtn{grid-column:3}
-  .mobile-bar .mb-print{grid-column:3}
-  .mobile-bar .mb-wa{grid-column:4}
-  /* output: Print / WhatsApp lead, Add stays reachable as the secondary move */
-  html[data-rsp-bottom="output"] .mobile-bar #mobileSaveBtn{display:none}
+  .mobile-bar .mb-print{grid-column:2}
+  .mobile-bar .mb-wa{grid-column:3}
+  .mobile-bar .mb-actions .mb-more{grid-column:4;display:inline-flex;align-items:center;justify-content:center;width:40px;min-width:40px;padding:0}
+  .mobile-bar .mb-more .dnc-ico{width:20px;height:20px}
+  /* output: Print / WhatsApp only (a saved quotation is locked, so no Add) */
+  html[data-rsp-bottom="output"] .mobile-bar #mobileSaveBtn,html[data-rsp-bottom="output"] .mobile-bar .mb-add{display:none}
   html[data-rsp-bottom="output"] .mobile-bar .mb-out{display:inline-flex}
-  html[data-rsp-bottom="output"] .mobile-bar .mb-add{background:var(--surface);color:var(--accent);border-color:var(--accent-mid)}
   /* the page and the toast clear whichever layer is showing */
   html[data-rsp-bottom="work"] .main,html[data-rsp-bottom="output"] .main{padding-bottom:calc(var(--bar-h,64px) + var(--sab,0px) + 32px)}
   html[data-rsp-bottom="work"] .toast,html[data-rsp-bottom="output"] .toast{bottom:calc(var(--bar-h,64px) + var(--sab,0px) + 16px)}
@@ -4009,6 +4010,14 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
   <button type="button" class="rsp-nav-item" id="rspNavAccount" aria-expanded="false" aria-controls="rspAcct" onclick="rspOpen('account')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="rspNavAccount">Account</span></button>
 </nav>
 <div class="rsp-scrim" id="rspScrim" onclick="rspClose()"></div>
+<div class="rsp-sheet" id="rspMore" role="dialog" aria-modal="true" aria-labelledby="rspMoreTitle" tabindex="-1">
+  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspMoreTitle" data-i18n="rspNavMore">More</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="rsp-sheet-body">
+    <a class="rsp-row" id="rspMoreSaved" href="companies.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span data-i18n="rspNavSaved">Saved</span></a>
+    <button type="button" class="rsp-row" id="rspMoreTools" onclick="rspOpen('tools')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg><span data-i18n="rspNavTools">Tools</span></button>
+    <button type="button" class="rsp-row" id="rspMoreAccount" onclick="rspOpen('account')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="rspNavAccount">Account</span></button>
+  </div>
+</div>
 <div class="rsp-sheet" id="rspTools" role="dialog" aria-modal="true" aria-labelledby="rspToolsTitle" tabindex="-1">
   <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspToolsTitle" data-i18n="rspNavTools">Tools</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
   <div class="rsp-sheet-body">
@@ -4957,6 +4966,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <button class="btn btn-ghost btn-sm mb-out mb-print" id="mbPrintBtn" type="button" onclick="doPrint()" data-i18n="print">Print</button>
     <button class="btn btn-wa btn-sm mb-out mb-wa" id="mbWaBtn" type="button" onclick="doWhatsApp()">WhatsApp</button>
     <button class="btn btn-save" id="mobileSaveBtn" onclick="openSaveModal()" data-i18n="save">Save</button>
+    <button class="btn btn-ghost btn-sm mb-more" id="mbMoreBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="rspMore" data-i18n-aria="rspMoreAria" aria-label="More actions" onclick="rspOpen('more')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button>
   </div>
 </div>
 
@@ -6433,7 +6443,7 @@ const I18N={
     /* AI 智能识别 review (2026-10-23) */
     wqaRvDetected:'Detected {n} items', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items',
     /* DNC shared desktop shell (2026-10-24) */
-    rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Modules', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
+    rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Modules', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
   zh:{
     badgeSystemDefault:'系统默认', badgeCustom:'自定义', qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
@@ -6960,7 +6970,7 @@ const I18N={
     /* AI 智能识别 review (2026-10-23) */
     wqaRvDetected:'已识别 {n} 个项目', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目',
     /* DNC shared desktop shell (2026-10-24) */
-    rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'模块', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
+    rspNavMore:'更多', rspMoreAria:'更多操作', rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'模块', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
 };
 /* Current language. Anything other than a known code reads as 'en', so a
@@ -10867,7 +10877,7 @@ function onCustomerInput(){
   const q=(el('qi-customer').value||'').trim().toLowerCase();
   if(selectedCompanyId){
     const c=companiesCache.find(x=>String(x.id)===String(selectedCompanyId));
-    if(!c || c.name.toLowerCase()!==q) selectedCompanyId=null;
+    if(!c || c.name.toLowerCase()!==q){ selectedCompanyId=null; refreshWorkflow(); }
   }
   if(!q){ closeAcDropdown(); return; }
   acMatches=companiesCache.filter(c=>((c.name+' '+(c.short_code||'')).toLowerCase().includes(q))).slice(0,8);
@@ -11335,10 +11345,12 @@ function refreshWorkflow(){
   setStepState(3,saved,active===3);
   setStepState(4,sentThisSession,active===4);
   /* Phone bottom layer (<600px; the CSS ignores this elsewhere). ONE layer shows:
-     nav = browsing, work = a customer or items are in progress, output = every
-     item is saved and unchanged (Print / WhatsApp). Derived from the same facts
-     as the stepper above, never from scroll position. */
-  document.documentElement.setAttribute('data-rsp-bottom', hasItems&&saved ? 'output' : (hasItems||hasCustomer ? 'work' : 'nav'));
+     nav = browsing, work = items exist, an item is being entered, or a customer
+     was CHOSEN from the list (selectedCompanyId; merely typed text does not
+     count), output = every item is saved and unchanged (Print / WhatsApp).
+     Derived from the same facts as the stepper above, never from scroll position. */
+  const entering=productEntryTouchedFields.size>0;
+  document.documentElement.setAttribute('data-rsp-bottom', hasItems&&saved ? 'output' : (hasItems||entering||!!selectedCompanyId ? 'work' : 'nav'));
 }
 
 /* ── WhatsApp / print ── */
@@ -12909,7 +12921,7 @@ function trackProductEntryDraftEvent(event){
   const form=target&&target.closest?target.closest('.item-form'):null;
   if(!form||form.dataset.type!==currentType) return;
   const key=target.id||(target.name?'name:'+target.name:'');
-  if(key) productEntryTouchedFields.add(key);
+  if(key){ const n=productEntryTouchedFields.size; productEntryTouchedFields.add(key); if(productEntryTouchedFields.size!==n) refreshWorkflow(); }
   scheduleDraftAutosave();
 }
 document.addEventListener('input',trackProductEntryDraftEvent);
@@ -20780,8 +20792,8 @@ function dcShellToggleMenu(force){
 /* ══ DNC responsive shell — R1: the tablet drawer and the phone sheets ═════════
    One panel open at a time. The page behind goes inert and stops scrolling;
    Escape, the scrim and the close buttons put it all back. */
-const RSP_PANELS={drawer:'dncShell',tools:'rspTools',account:'rspAcct'};
-const RSP_TRIGGERS={drawer:['rspBurger'],tools:['rspNavTools'],account:['rspNavAccount','rspAvatarBtn']};
+const RSP_PANELS={drawer:'dncShell',more:'rspMore',tools:'rspTools',account:'rspAcct'};
+const RSP_TRIGGERS={drawer:['rspBurger'],more:['mbMoreBtn'],tools:['rspNavTools','rspMoreTools'],account:['rspNavAccount','rspAvatarBtn','rspMoreAccount']};
 const RSP_INERT=['#rspTop','#rspNav','.app-shell','.wrap','.mobile-bar'];
 let rspCur='', rspReturn=null;
 function rspMark(name,on){
