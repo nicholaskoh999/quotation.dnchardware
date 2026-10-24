@@ -442,6 +442,20 @@ html,body{max-width:100%;overflow-x:hidden}
 .btn-primary{background:linear-gradient(135deg,var(--accent-2),var(--accent));box-shadow:0 3px 10px rgba(37,71,208,.22)}
 .btn-primary:hover{background:linear-gradient(135deg,#17348f,var(--accent-2))}
 
+/* Company creation uses the same primary treatment as the DNC shell CTA. */
+.btn-company-primary{min-height:40px;border-radius:8px;background:#4338ca;color:#fff;font-family:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;font-weight:500;box-shadow:0 1px 2px 0 rgb(22 26 35 / .04),0 1px 1px -1px rgb(22 26 35 / .03)}
+.btn-company-primary:hover{background:#3730a3}
+.btn-company-primary:focus-visible{outline:2px solid #4338ca;outline-offset:2px}
+.btn-company-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+
+/* Viewing is quiet beside the contextual orange Load action. */
+.btn-view{background:var(--surface);color:var(--text-2);border:0;box-shadow:inset 0 0 0 1px var(--border)}
+.btn-view:hover{background:var(--surface2);color:var(--text);box-shadow:inset 0 0 0 1px var(--accent-mid)}
+.btn-view:focus-visible{outline:2px solid #4338ca;outline-offset:2px}
+.btn-view:disabled{opacity:.5;cursor:not-allowed}
+.cc-icon-danger{opacity:1;background:var(--red-light);color:var(--red);border-color:var(--red-mid)}
+.cc-icon-danger:hover{background:var(--red-mid)}
+
 /* ── Load More button ── */
 .load-more-btn{
   width:100%;margin-top:6px;padding:11px;font-size:13px;font-weight:800;
@@ -786,6 +800,7 @@ input,select,textarea{
   border:0;border-radius:8px;background:var(--dnc-indigo);color:#fff;font:inherit;font-size:14px;font-weight:500;cursor:pointer;
   box-shadow:0 1px 2px 0 rgb(22 26 35 / .04),0 1px 1px -1px rgb(22 26 35 / .03);transition:background .15s}
 .dnc-cta:hover{background:var(--dnc-indigo-hover)}
+.dnc-cta:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 .dnc-nav{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:0 12px 8px}
 .dnc-sec{padding:0 10px 6px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--dnc-ink-3)}
 .dnc-nav .dnc-sec ~ .dnc-sec{margin-top:16px}
@@ -954,7 +969,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         <div class="cp-search-result" id="cpSearchResult" hidden></div>
       </div>
 
-      <button class="btn btn-primary" id="addCompanyToggleBtn" style="width:100%;margin-bottom:12px" onclick="toggleAddCompanyForm()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
+      <button class="btn btn-primary btn-company-primary" id="addCompanyToggleBtn" style="width:100%;margin-bottom:12px" onclick="toggleAddCompanyForm()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
 
       <div class="card" id="addCompanyForm" hidden style="margin-bottom:14px">
         <div class="section-label"><span class="sl-icon">➕</span><span data-i18n="addCompany">Add Company</span></div>
@@ -963,7 +978,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         <div class="field"><label data-i18n="lblPhone">Phone</label><input type="text" id="c-phone" data-i18n-ph="phPhoneEg" placeholder="03-XXXX XXXX"></div>
         <div class="field"><label data-i18n="lblAddress">Address</label><textarea id="c-addr" rows="2" data-i18n-ph="phOptional" placeholder="Optional"></textarea></div>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="btn btn-primary" style="flex:1" onclick="addCompany()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
+          <button class="btn btn-primary btn-company-primary" style="flex:1" onclick="addCompany()"><span data-i18n="addCompanyBtn">＋ Add Company</span></button>
           <button class="btn btn-ghost" style="flex:1" onclick="closeAddCompanyForm()" data-i18n="cancel">Cancel</button>
         </div>
       </div>
@@ -1026,7 +1041,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     </div>
     <div id="viewModalBody"></div>
     <div class="modal-btns" style="margin-top:16px">
-      <button class="btn btn-primary" onclick="loadAndGo()">📂 <span data-i18n="loadAndEdit">Load &amp; Edit</span></button>
+      <button class="btn btn-amber" onclick="loadAndGo()">📂 <span data-i18n="loadAndEdit">Load &amp; Edit</span></button>
       <button class="btn btn-ghost" onclick="closeModal('viewModal')" data-i18n="close">Close</button>
     </div>
   </div>
@@ -1345,7 +1360,7 @@ function renderRecentQuotations(){
         <div class="rq-card-bot">
           <div class="rq-total"><span class="ref-total-label">${esc(dcT('cpReferenceTotal'))}</span> <b>${fmtMoneyCP(q.total_amount)}</b></div>
           <div class="rq-actions">
-            <button class="btn btn-primary" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
+            <button class="btn btn-view" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
             <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
           </div>
         </div>
@@ -1620,7 +1635,7 @@ function renderCpItemHits(hits,term,meta){
         <span class="ih-qty">${esc(dcT('cpQty'))} ${qty}</span>
         <span class="ih-price">${esc(dcT('cpUnitPrice'))} <strong>RM ${unit}</strong></span>
       </div>
-      <button type="button" class="btn btn-primary ih-view" onclick="itemSearchClear();viewQuote(${parseInt(h.quotation_id,10)})">${esc(dcT('cpViewQuotation'))}</button>
+      <button type="button" class="btn btn-view ih-view" onclick="itemSearchClear();viewQuote(${parseInt(h.quotation_id,10)})">${esc(dcT('cpViewQuotation'))}</button>
     </div>`;
   }).join('');
   const more=meta&&meta.truncated?' '+dcT('cpShowingNewest').replace('{n}',hits.length):'';
@@ -1699,7 +1714,7 @@ function renderCompanyCards(){
           </span>
           <span class="cc-icon-actions">
             <button class="cc-icon-btn" title="${esc(dcT('btnEdit'))}" onclick="event.stopPropagation();openEditCompany(${c.id},'${esc(c.name)}','${esc(c.short_code||'')}','${esc(c.phone||'')}','${esc(c.address||'')}')">✏️</button>
-            <button class="cc-icon-btn" title="${esc(dcT('btnDelete'))}" onclick="event.stopPropagation();deleteCompany(${c.id},'${esc(c.name)}')">🗑️</button>
+            <button class="cc-icon-btn cc-icon-danger" title="${esc(dcT('btnDelete'))}" onclick="event.stopPropagation();deleteCompany(${c.id},'${esc(c.name)}')">🗑️</button>
           </span>
         </div>
       </div>`;
@@ -1797,7 +1812,7 @@ function renderCompanyQuoteCard(q){
           <b>${fmtMoneyCP(q.total_amount)}</b>
         </div>
         <div class="quote-actions">
-          <button class="btn btn-primary" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
+          <button class="btn btn-view" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
           <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
           <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">${esc(dcT('cpDuplicate'))}</button>
           <button class="btn btn-danger" onclick="deleteQuote(${q.id})">${esc(dcT('cpDelete'))}</button>
@@ -1856,7 +1871,7 @@ async function selectCompany(id){
         </div>
         ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
         <div class="quote-actions">
-          <button class="btn btn-primary" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
+          <button class="btn btn-view" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
           <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
           <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">${esc(dcT('cpDuplicate'))}</button>
           <button class="btn btn-danger" onclick="deleteQuote(${q.id})">${esc(dcT('cpDelete'))}</button>

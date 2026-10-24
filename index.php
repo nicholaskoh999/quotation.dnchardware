@@ -3735,6 +3735,7 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
   border:0;border-radius:8px;background:var(--dnc-indigo);color:#fff;font:inherit;font-size:14px;font-weight:500;cursor:pointer;
   box-shadow:0 1px 2px 0 rgb(22 26 35 / .04),0 1px 1px -1px rgb(22 26 35 / .03);transition:background .15s}
 .dnc-cta:hover{background:var(--dnc-indigo-hover)}
+.dnc-cta:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 .dnc-nav{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:0 12px 8px}
 .dnc-sec{padding:0 10px 6px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--dnc-ink-3)}
 .dnc-nav .dnc-sec ~ .dnc-sec{margin-top:16px}
