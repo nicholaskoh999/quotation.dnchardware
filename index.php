@@ -3726,15 +3726,16 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 .dnc-brand-sys{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--dnc-ink)}
 .dnc-brand-mod{display:block;margin-top:4px;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
   color:var(--dnc-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dnc-back-wrap{flex-shrink:0;padding:0 12px 8px;border-bottom:1px solid var(--dnc-border)}
+.dnc-back-wrap{flex-shrink:0;padding:0 12px 4px}
 .dnc-back{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border-radius:8px;
   font-size:14px;color:var(--dnc-ink-2);text-decoration:none;transition:background .15s,color .15s}
 .dnc-back:hover{background:var(--dnc-sunken);color:var(--dnc-ink)}
-.dnc-cta-wrap{flex-shrink:0;padding:12px 12px 16px}
-.dnc-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;padding:0 12px;
-  border:0;border-radius:8px;background:var(--dnc-indigo);color:#fff;font:inherit;font-size:14px;font-weight:500;cursor:pointer;
-  box-shadow:0 1px 2px 0 rgb(22 26 35 / .04),0 1px 1px -1px rgb(22 26 35 / .03);transition:background .15s}
-.dnc-cta:hover{background:var(--dnc-indigo-hover)}
+.dnc-cta-wrap{flex-shrink:0;padding:0 12px 8px}
+.dnc-cta{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;height:36px;padding:0 10px;
+  border:0;border-radius:8px;background:transparent;color:var(--dnc-ink-2);font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;
+  box-shadow:none;transition:background .15s,color .15s}
+.dnc-cta:hover{background:var(--dnc-indigo-soft);color:var(--dnc-indigo)}
+.dnc-cta:active{background:#e0e7ff;color:var(--dnc-indigo-hover)}
 .dnc-cta:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
 .dnc-nav{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:0 12px 8px}
 .dnc-sec{padding:0 10px 6px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--dnc-ink-3)}

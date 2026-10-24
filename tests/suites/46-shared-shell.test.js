@@ -37,8 +37,8 @@ const shellState = page => page.evaluate(() => {
     secs: secs.map(n => n.textContent.trim()),
     modules: linksUnder(0).map(info), tools: secs[1] ? linksUnder(1).map(info) : [],
     back: (() => { const a = shell.querySelector('.dnc-back'); return a ? { text: a.textContent.trim(), href: a.getAttribute('href'), h: Math.round(a.getBoundingClientRect().height) } : null; })(),
-    cta: (() => { const b = shell.querySelector('.dnc-cta'); return b ? { text: b.textContent.trim(), h: Math.round(b.getBoundingClientRect().height),
-      w: Math.round(b.getBoundingClientRect().width) } : null; })(),
+    cta: (() => { const b = shell.querySelector('.dnc-cta'); const cs = b && getComputedStyle(b); return b ? { text: b.textContent.trim(), h: Math.round(b.getBoundingClientRect().height),
+      w: Math.round(b.getBoundingClientRect().width), background: cs.backgroundColor, color: cs.color, shadow: cs.boxShadow, justify: cs.justifyContent } : null; })(),
     shellText: shell.innerText, oldHeader: vis(document.querySelector('.app-header')) || vis(document.querySelector('.page-header')),
     oldSidebar: vis(document.getElementById('sidebar')), pageTitle: (document.querySelector('.dnc-page-title') || {}).textContent || '',
     pageHeadVisible: vis(document.querySelector('.dnc-page-head')),
@@ -66,12 +66,13 @@ module.exports = async (browser, A) => {
       A.eq(JSON.stringify(s.brand), JSON.stringify(['DNC', 'QUOTATION']), `${lang}: brand DNC / QUOTATION`);
       const o = s.order;
       A.ok(o.brand < o.back && o.back < o.cta && o.cta < o.modules && o.modules < o.tools && o.tools < o.lang && o.lang < o.acct,
-        `${lang}: brand → back → primary action → MODULES → tools → language → account (${JSON.stringify(o)})`);
+        `${lang}: brand → back → create action → MODULES → tools → language → account (${JSON.stringify(o)})`);
       A.eq(s.back && s.back.text, zh ? '返回工作台' : 'Back to Workspace', `${lang}: the back link reads ${zh ? '返回工作台' : 'Back to Workspace'}`);
       A.eq(s.back && s.back.href, 'https://portal.dnchardware.com', `${lang}: and goes to the Portal, unchanged`);
       A.eq(s.back && s.back.h, 32, `${lang}: a quiet 32px link`);
-      A.eq(s.cta && s.cta.text, zh ? '新建报价' : 'New Quotation', `${lang}: the primary action`);
-      A.ok(s.cta && s.cta.h === 40 && s.cta.w >= 200, `${lang}: full width, 40px tall (${s.cta && s.cta.w}x${s.cta && s.cta.h})`);
+      A.eq(s.cta && s.cta.text, zh ? '新建报价' : 'New Quotation', `${lang}: the create action`);
+      A.ok(s.cta && s.cta.h === 36 && s.cta.w >= 200 && s.cta.background === 'rgba(0, 0, 0, 0)' && s.cta.shadow === 'none' && s.cta.justify === 'flex-start',
+        `${lang}: a full-width, left-aligned 36px lightweight action row (${JSON.stringify(s.cta)})`);
       A.eq(JSON.stringify(s.secs), JSON.stringify(zh ? ['模块', '报价工具'] : ['Modules', 'Quotation Tools']),
         `${lang}: two sections, MODULES then QUOTATION TOOLS, and no SYSTEM (QUO has none)`);
       A.eq(JSON.stringify(s.modules.map(m => m.text)), JSON.stringify(zh ? ['报价单', '内部 PO'] : ['Quotations', 'Internal Purchase Orders']), `${lang}: the modules`);
