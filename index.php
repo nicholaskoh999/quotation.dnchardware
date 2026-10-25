@@ -1174,6 +1174,8 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-unit{font-size:12.5px}
 /* Edit / Delete buttons: cleaner */
 .qi-edit-btn{font-size:12px;padding:6px 11px;border-radius:var(--r-xs);font-weight:900}
+.qi-dup-btn{font-size:12px;padding:6px 11px;border-radius:var(--r-xs);font-weight:800;line-height:1;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--text-2)}
+.qi-dup-btn:hover{background:var(--surface2)}
 .qi-del{
   font-size:13px;padding:5px 9px;border-radius:var(--r-xs);
   border:1px solid var(--border);color:var(--text-muted);background:var(--surface);
@@ -3902,7 +3904,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
    data-rsp-bottom on <html> is written by refreshWorkflow(): nav (browsing),
    work (quotation in progress) or output (saved, ready to print / send).
    The bottom navigation and the quotation bar swap; they are never stacked. */
-.mb-out,.mb-more{display:none}
+.mb-out,.mb-more,.mb-add-ph{display:none}
 @media (max-width:599px){
   .rsp-nav,.mobile-bar{transition:transform .14s ease,opacity .14s ease,visibility 0s}
   html:not([data-rsp-bottom="work"]):not([data-rsp-bottom="output"]) .mobile-bar,
@@ -3919,6 +3921,8 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .mobile-bar .mb-actions .mb-count{grid-column:1;grid-row:2;align-self:start;justify-self:start;min-height:0;height:auto;line-height:1.25;padding:0;border:0;background:none;
     font-size:12px;font-weight:500;color:var(--text-muted);box-shadow:none}
   .mobile-bar .mb-actions .btn:not(.mb-count){min-height:40px;grid-row:1 / span 2}
+  .mobile-bar .mb-add .mb-add-full,.mobile-bar .mb-add .mb-add-short{display:none}
+  .mobile-bar .mb-add .mb-add-ph{display:inline}
   .mobile-bar .mb-add{grid-column:2}
   .mobile-bar #mobileSaveBtn{grid-column:3}
   .mobile-bar .mb-print{grid-column:2}
@@ -4961,7 +4965,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 <div class="mobile-bar">
   <div class="mb-total"><label data-i18n="qiTotalPill">Total</label><span id="mbTotal">RM 0.00</span></div>
   <div class="mb-actions">
-    <button class="btn btn-primary btn-sm mb-add" id="mbAddBtn" type="button" onclick="addCurrentItem()"><span class="mb-add-full" data-i18n="addToQuotation">＋ Add to Quotation</span><span class="mb-add-short" data-i18n="mbAddShort">＋ Add</span></button>
+    <button class="btn btn-primary btn-sm mb-add" id="mbAddBtn" type="button" onclick="addCurrentItem()"><span class="mb-add-full" data-i18n="addToQuotation">＋ Add to Quotation</span><span class="mb-add-short" data-i18n="mbAddShort">＋ Add</span><span class="mb-add-ph" data-i18n="mbAddItem">＋ Add Item</span></button>
     <button class="btn btn-outline btn-sm mb-count" onclick="scrollToQuote()"><span id="mbCount">0</span> <span data-i18n="itemsUnit">items</span></button>
     <button class="btn btn-ghost btn-sm mb-out mb-print" id="mbPrintBtn" type="button" onclick="doPrint()" data-i18n="print">Print</button>
     <button class="btn btn-wa btn-sm mb-out mb-wa" id="mbWaBtn" type="button" onclick="doWhatsApp()">WhatsApp</button>
@@ -6323,7 +6327,7 @@ const I18N={
     tAddedFromWhatsApp:'{n} item(s) added from WhatsApp',
     tAddedItem:'Added #{n} — {d}  {p}',
     tAdding:'Adding…', lblCurrent:'Current: ', dpAddRule:'Add Default Price Rule',
-    btnEdit:'Edit', btnDelete:'Delete', btnRemove:'Remove',
+    btnEdit:'Edit', btnDuplicate:'Duplicate', mbAddItem:'＋ Add Item', mbUpdateItem:'Update Item', tItemDuplicated:'Item duplicated. Change what differs, then tap Update Item.', btnDelete:'Delete', btnRemove:'Remove',
     tipItemHistory:'Pricing history for this item',
     ariaHome:'Der-Cheng Quotation — home', altPreview:'preview',
     ariaSelectItem:'Select item {n}', ariaRemoveItem:'Remove item {n}',
@@ -6878,7 +6882,7 @@ const I18N={
     tAddedFromWhatsApp:'已从 WhatsApp 加入 {n} 个项目',
     tAddedItem:'已加入 #{n} — {d}  {p}',
     tAdding:'加入中…', lblCurrent:'当前：', dpAddRule:'新增默认价格规则',
-    btnEdit:'编辑', btnDelete:'删除', btnRemove:'移除',
+    btnEdit:'编辑', btnDuplicate:'复制', mbAddItem:'＋ 添加项目', mbUpdateItem:'更新项目', tItemDuplicated:'项目已复制。修改不同之处，然后点“更新项目”。', btnDelete:'删除', btnRemove:'移除',
     tipItemHistory:'此项目的客户历史报价',
     ariaHome:'Der-Cheng 报价系统 — 首页', altPreview:'预览',
     ariaSelectItem:'选择第 {n} 项', ariaRemoveItem:'移除第 {n} 项',
@@ -7245,6 +7249,9 @@ let draftRecoveryChecked=false;
 let draftRestoreInProgress=false;
 let pendingUnsavedDraft=null;
 let productEntryTouchedFields=new Set();
+/* True from the first keystroke in the item form until that entry is added / updated (renderQuote(index)).
+   The touched set above is never emptied by an Add, so it cannot say "still composing" on its own. */
+let rspEntryDirty=false;
 
 function captureWASFormDraft(){
   return {
@@ -7338,6 +7345,7 @@ function restoreProductEntryDraftInner(entry){
   else onAccChange(type);
   setAccPanelOpen(type,!!data.__accPanelOpen);
   productEntryTouchedFields=new Set(Array.isArray(data.__draftTouched)?data.__draftTouched:[]);
+  rspEntryDirty=productEntryTouchedFields.size>0;
   /* The rates that came back with the draft are the ones the rules wrote for
      the size that was saved — the touched set says the person did not type
      them. dpAutoFilled lives in memory only, so after a reload it knows
@@ -9764,7 +9772,7 @@ function setItemEditMode(index){
   /* The footer bar's copy of the same button — same handler, same label. */
   const mbAdd=el('mbAddBtn');
   if(mbAdd){
-    [['.mb-add-full',editing?'updateItem':'addToQuotation'],['.mb-add-short',editing?'mbUpdateShort':'mbAddShort']].forEach(([sel,k])=>{
+    [['.mb-add-full',editing?'updateItem':'addToQuotation'],['.mb-add-short',editing?'mbUpdateShort':'mbAddShort'],['.mb-add-ph',editing?'mbUpdateItem':'mbAddItem']].forEach(([sel,k])=>{
       const s=mbAdd.querySelector(sel); if(s){ s.setAttribute('data-i18n',k); s.textContent=dcT(k); }
     });
   }
@@ -9814,6 +9822,22 @@ function editItem(i){
   editingItemIndex=i;
   setItemEditMode(i);
   goToStep(2);
+}
+/* Duplicate: a NEW row carrying the source's specification and pricing inputs, with
+   no identity of its own yet (dcStripItemUid: the server mints it on save). The
+   source is untouched. The copy then opens through the ordinary editItem() path,
+   so changing its Finish and pressing Update Item is the normal edit flow and the
+   normal recalculation. */
+function duplicateItem(i){
+  if(loadedSavedQuote && quoteLocked){ showToast(dcT('tClickEditFirst')); return; }
+  if(editingItemIndex!==null){ showToast(dcT('tFinishItemEdit')); return; }
+  const src=quoteItems[i]; if(!src) return;
+  const copy=dcStripItemUid(JSON.parse(JSON.stringify(src)));
+  quoteItems.splice(i+1,0,copy);
+  markQuotationDirty();
+  renderQuote(i+1);
+  editItem(i+1);
+  showToast(dcT('tItemDuplicated'));
 }
 function cancelItemEdit(){
   setItemEditMode(null);
@@ -10536,6 +10560,7 @@ function dcItemPricingSummary(item){
   return {mode,final,auto,override,parts,totalLength};
 }
 function renderQuote(newIdx){
+  if(newIdx!==undefined) rspEntryDirty=false;   // an Add / Update just consumed the entry
   const count=quoteItems.length;
   const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
   el('quoteCount').textContent=count;
@@ -10609,7 +10634,7 @@ function renderQuote(newIdx){
             ${pricingHtml}
           </div>
         </div>
-        ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
+        ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-dup-btn" onclick="duplicateItem(${i})" title="${escHtml(dcT('btnDuplicate'))}">${escHtml(dcT('btnDuplicate'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
         <div class="qi-unitcol"><div class="qi-unitline"><span class="qi-unitval">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong></span> ${priceModeTag}</div>${overrideHtml}</div>
@@ -11349,8 +11374,15 @@ function refreshWorkflow(){
      was CHOSEN from the list (selectedCompanyId; merely typed text does not
      count), output = every item is saved and unchanged (Print / WhatsApp).
      Derived from the same facts as the stepper above, never from scroll position. */
-  const entering=productEntryTouchedFields.size>0;
-  document.documentElement.setAttribute('data-rsp-bottom', hasItems&&saved ? 'output' : (hasItems||entering||!!selectedCompanyId ? 'work' : 'nav'));
+  const entering=rspEntryDirty && productEntryTouchedFields.size>0;
+  const editingItem=editingItemIndex!==null;
+  /* Priority: editing an item > entering a new one > saved and unchanged > in progress > browsing.
+     data-rsp-item names which item action the bar's first button is (Update / Add);
+     it is the SAME button either way, relabelled by setItemEditMode(). */
+  const bottom=editingItem ? 'work' : (hasItems&&saved&&!entering ? 'output' : (hasItems||entering||!!selectedCompanyId ? 'work' : 'nav'));
+  const root=document.documentElement;
+  root.setAttribute('data-rsp-bottom', bottom);
+  root.setAttribute('data-rsp-item', editingItem ? 'edit' : (entering ? 'new' : 'none'));
 }
 
 /* ── WhatsApp / print ── */
@@ -12921,7 +12953,7 @@ function trackProductEntryDraftEvent(event){
   const form=target&&target.closest?target.closest('.item-form'):null;
   if(!form||form.dataset.type!==currentType) return;
   const key=target.id||(target.name?'name:'+target.name:'');
-  if(key){ const n=productEntryTouchedFields.size; productEntryTouchedFields.add(key); if(productEntryTouchedFields.size!==n) refreshWorkflow(); }
+  if(key){ const was=rspEntryDirty; productEntryTouchedFields.add(key); rspEntryDirty=true; if(!was) refreshWorkflow(); }
   scheduleDraftAutosave();
 }
 document.addEventListener('input',trackProductEntryDraftEvent);
