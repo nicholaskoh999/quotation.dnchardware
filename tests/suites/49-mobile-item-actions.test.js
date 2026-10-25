@@ -30,7 +30,7 @@ const bar = page => page.evaluate(() => {
     item: document.documentElement.getAttribute('data-rsp-item'),
     nav: vis(q('#rspNav')), bar: vis(q('.mobile-bar')),
     add: vis(q('#mbAddBtn')), addText: label ? label.textContent.trim() : '',
-    save: vis(q('#mobileSaveBtn')), print: vis(q('#mbPrintBtn')), wa: vis(q('#mbWaBtn')), more: vis(q('#mbMoreBtn')),
+    save: vis(q('#mobileSaveBtn')), saveText: [...q('#mobileSaveBtn').children].filter(c => getComputedStyle(c).display !== 'none').map(c => c.textContent.trim()).join(''), totalClipped: q('#mbTotal').scrollWidth > q('#mbTotal').clientWidth + 1, barH: q('.mobile-bar').getBoundingClientRect().height, print: vis(q('#mbPrintBtn')), wa: vis(q('#mbWaBtn')), more: vis(q('#mbMoreBtn')),
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     barOverflow: q('.mobile-bar').scrollWidth - q('.mobile-bar').clientWidth,
     onclick: q('#mbAddBtn').getAttribute('onclick'),
@@ -79,6 +79,8 @@ module.exports = async (browser, A) => {
       A.ok(s.bar && !s.nav && s.add && s.save && s.more && !s.print && !s.wa, `${t}: EDIT shows Update Item / Save / More, and Print / WhatsApp are gone`);
       A.eq(s.addText, zh ? '更新项目' : 'Update Item', `${t}: the first button reads ${zh ? '更新项目' : 'Update Item'}`);
       A.eq(s.onclick, 'addCurrentItem()', `${t}: it is the existing item handler (addCurrentItem updates while editing)`);
+      A.eq(s.saveText, zh ? '更新报价' : 'Update Quotation', `${t}: the quotation-level button reads ${zh ? '更新报价' : 'Update Quotation'}, not a bare Update`);
+      A.ok(!s.totalClipped && s.barH <= 76, `${t}: the total is not clipped and the bar stays compact (${s.barH.toFixed(0)}px)`);
       A.ok(s.overflow === 0 && s.barOverflow === 0 && s.rects.filter(Boolean).every(r => r.l >= 0 && r.r <= w + 0.5), `${t}: the edit bar fits`);
 
       // CASE 3 · HDG -> PL, tap Update Item
@@ -141,6 +143,8 @@ module.exports = async (browser, A) => {
       A.eq(s.item, 'new', `${t}: composing a new item -> item state new`);
       A.ok(s.bar && !s.nav && s.add && s.save && s.more && !s.print && !s.wa, `${t}: NEW shows Add Item / Save / More`);
       A.eq(s.addText, zh ? '＋ 添加项目' : '＋ Add Item', `${t}: the first button reads ${zh ? '添加项目' : 'Add Item'}`);
+      A.eq(s.saveText, zh ? '保存报价' : 'Save Quotation', `${t}: a new quotation's button reads ${zh ? '保存报价' : 'Save Quotation'}`);
+      A.ok(!s.totalClipped && s.overflow === 0 && s.barOverflow === 0, `${t}: new-item bar fits, nothing clipped`);
       A.eq(s.onclick, 'addCurrentItem()', `${t}: the existing item handler`);
 
       // CASE 6 · save again -> OUTPUT (rebuild a saved quotation)

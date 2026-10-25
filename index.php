@@ -3904,7 +3904,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
    data-rsp-bottom on <html> is written by refreshWorkflow(): nav (browsing),
    work (quotation in progress) or output (saved, ready to print / send).
    The bottom navigation and the quotation bar swap; they are never stacked. */
-.mb-out,.mb-more,.mb-add-ph{display:none}
+.mb-out,.mb-more,.mb-add-ph,.mb-sv-ph{display:none}
 @media (max-width:599px){
   .rsp-nav,.mobile-bar{transition:transform .14s ease,opacity .14s ease,visibility 0s}
   html:not([data-rsp-bottom="work"]):not([data-rsp-bottom="output"]) .mobile-bar,
@@ -3923,6 +3923,10 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .mobile-bar .mb-actions .btn:not(.mb-count){min-height:40px;grid-row:1 / span 2}
   .mobile-bar .mb-add .mb-add-full,.mobile-bar .mb-add .mb-add-short{display:none}
   .mobile-bar .mb-add .mb-add-ph{display:inline}
+  .mobile-bar .mb-actions #mobileSaveBtn{white-space:normal;line-height:1.15;text-align:center;padding:5px 10px;max-width:104px}
+  .mobile-bar .mb-sv-short{display:none}
+  @media (max-width:374px){ .mobile-bar .mb-total span{font-size:16px} }
+  .mobile-bar .mb-sv-ph{display:inline}
   .mobile-bar .mb-add{grid-column:2}
   .mobile-bar #mobileSaveBtn{grid-column:3}
   .mobile-bar .mb-print{grid-column:2}
@@ -4969,7 +4973,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <button class="btn btn-outline btn-sm mb-count" onclick="scrollToQuote()"><span id="mbCount">0</span> <span data-i18n="itemsUnit">items</span></button>
     <button class="btn btn-ghost btn-sm mb-out mb-print" id="mbPrintBtn" type="button" onclick="doPrint()" data-i18n="print">Print</button>
     <button class="btn btn-wa btn-sm mb-out mb-wa" id="mbWaBtn" type="button" onclick="doWhatsApp()">WhatsApp</button>
-    <button class="btn btn-save" id="mobileSaveBtn" onclick="openSaveModal()" data-i18n="save">Save</button>
+    <button class="btn btn-save" id="mobileSaveBtn" onclick="openSaveModal()"><span class="mb-sv-short">Save</span><span class="mb-sv-ph">Save Quotation</span></button>
     <button class="btn btn-ghost btn-sm mb-more" id="mbMoreBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="rspMore" data-i18n-aria="rspMoreAria" aria-label="More actions" onclick="rspOpen('more')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button>
   </div>
 </div>
@@ -7539,7 +7543,13 @@ function updateQuoteLockUI(){
   if(histBtn) histBtn.style.display=editingQuoteId?'':'none';
   const saveText=editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation');
   const saveBtn=el('saveQuoteBtn'); if(saveBtn) saveBtn.innerHTML=saveText;
-  const mobileSave=el('mobileSaveBtn'); if(mobileSave) mobileSave.textContent=dcT(editingQuoteId?'btnUpdate':'btnSave');
+  const mobileSave=el('mobileSaveBtn');
+  if(mobileSave){
+    /* two labels in one button: the short one (tablet) is unchanged; the phone bar names the quotation-level action in full */
+    const sh=mobileSave.querySelector('.mb-sv-short'), ph=mobileSave.querySelector('.mb-sv-ph');
+    if(sh) sh.textContent=dcT(editingQuoteId?'btnUpdate':'btnSave');
+    if(ph) ph.textContent=dcT(editingQuoteId?'updateQuotation':'saveQuotation');
+  }
 }
 function setQuoteLockState(locked,mode){
   quoteLocked=!!locked;
