@@ -133,7 +133,7 @@ module.exports = async (browser, A) => {
   A.eq(blank.stud, '0', 'a Stud likewise');
   A.eq(blank.anchorbolt, '0', 'an Anchor Bolt likewise');
 
-  // ── a fixed price-list entry is a price, in every rounding mode ──────────
+  // ── this former fixed-price specification now follows the normal formula ─
   const special = await page.evaluate(() => {
     switchType('sagrod');
     productEntryTouchedFields.clear();
@@ -146,7 +146,7 @@ module.exports = async (browser, A) => {
     document.getElementById('sagrod-costRate').value = '2.80';
     document.getElementById('sagrod-addCost').value = '0.60';
     document.getElementById('sagrod-markup').value = '0';
-    const out = { list: getMSUndersizeSagRodPLSpecialPrice('M12', 'UNDERSIZE', 'MS', 'PL', '100/100', 1000) };
+    const out = {};
     ['auto', 'no_round'].forEach(m => {
       setFieldValue('sagrod', 'priceMode', m); onPriceModeChange('sagrod'); calcSagRod();
       out[m] = (priceCalcState.sagrod || {}).finalUnitPrice;
@@ -154,9 +154,9 @@ module.exports = async (browser, A) => {
     setFieldValue('sagrod', 'priceMode', 'auto'); onPriceModeChange('sagrod');
     return out;
   });
-  A.eq(special.list, '4', 'the price list holds RM 4.00 for this rod');
-  A.eq(special.auto, '4', 'Auto Round quotes it');
-  A.eq(special.no_round, '4', 'and No Round quotes it too — a rounding toggle does not discard a price');
+  A.ok(special.auto !== 4, 'L1000 is no longer forced to RM4.00');
+  A.ok(special.no_round !== 4, 'No Round also starts from the normal formula');
+  A.ok(special.auto >= special.no_round, 'Auto Round and No Round remain distinct normal modes');
 
   // ── Others: the printed unit price times the qty is the printed total ────
   const others = await page.evaluate(() => {

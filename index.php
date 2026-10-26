@@ -16,7 +16,7 @@
   r.setAttribute('lang', l==='zh' ? 'zh-Hans' : 'en');
 }catch(e){}})();
 </script>
-<title>Der-Cheng Quotation v2.24.0</title>
+<title>DNC QUOTATION</title>
 <!-- App icons / Home Screen -->
 <link rel="icon" href="/assets/icons/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
@@ -3978,14 +3978,15 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
     <button type="button" class="dnc-cta" id="dncNew" onclick="dcShellNew()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span data-i18n="shellNewQuotation">New Quotation</span></button>
   </div>
   <nav class="dnc-nav">
-    <p class="dnc-sec" data-i18n="shellModules">Modules</p>
+    <p class="dnc-sec" data-i18n="shellModules">Quotation</p>
     <a class="dnc-link is-active" aria-current="page" data-shell="quotations" href="index.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg><span data-i18n="shellQuotations">Quotations</span></a>
-    <a class="dnc-link" data-shell="ipo" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
     <p class="dnc-sec" data-i18n="shellQuoTools">Quotation Tools</p>
     <a class="dnc-link" data-shell="companies" href="companies.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg><span data-i18n="shellCompaniesSaved">Companies &amp; Saved</span></a>
     <button type="button" class="dnc-link" data-shell="dp" onclick="dcShellTool('dp')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span data-i18n="shellDefaultPrices">Default Prices</span></button>
     <button type="button" class="dnc-link" data-shell="ds" onclick="dcShellTool('ds')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="19" r="2"/><circle cx="5" cy="5" r="2"/><path d="M6.48 3.66a10 10 0 0 1 13.86 13.86"/><path d="m6.41 6.41 11.18 11.18"/><path d="M3.66 6.48a10 10 0 0 0 13.86 13.86"/></svg><span data-i18n="shellDiameterSettings">Diameter Settings</span></button>
     <button type="button" class="dnc-link" data-shell="ref" onclick="dcShellTool('ref')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span data-i18n="shellPricingGuide">Pricing Guide</span></button>
+    <p class="dnc-sec" data-i18n="shellOtherModules">Other Modules</p>
+    <a class="dnc-link" data-shell="ipo" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
   </nav>
   <div class="dnc-bottom">
     <div class="dnc-lang" role="group" data-i18n-aria="langAria" aria-label="Language">
@@ -5824,8 +5825,6 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       <span class="ph-match-label" data-i18n="phMatchBy">Match by</span>
       <div class="ph-match-options" role="group" data-i18n-aria="phMatchBy">
         <button type="button" class="ph-match-option" data-ph-match="overall" onclick="phSetMatchBy('overall')" data-i18n="phMatchOverall">Overall</button>
-        <button type="button" class="ph-match-option" data-ph-match="length" onclick="phSetMatchBy('length')" data-i18n="phMatchLength">Length</button>
-        <button type="button" class="ph-match-option" data-ph-match="thread" onclick="phSetMatchBy('thread')" data-i18n="phMatchThread">Thread Length</button>
       </div>
       <label class="ph-match-target" id="phMatchTargetRow" hidden><span class="ph-match-label" data-i18n="phTarget">Target</span><input id="phMatchTarget" type="text" inputmode="decimal" autocomplete="off" onchange="phSetMatchTarget(this.value)"><span class="ph-match-unit">mm</span></label>
     </div>
@@ -5946,7 +5945,7 @@ const I18N={
     /* accessories */
     accessories:'Accessories', accToggleSub:'Nut / Flat Washer / Custom · Optional',
     accAddNut:'+ Nut', accAddFW:'+ Flat Washer',
-    accNone:'No accessories', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom',
+    accNone:'No accessories', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom', accHistory:'History', accUsePrice:'Use this price', accHistoryNone:'No compatible accessory history.', accHistoryApplied:'Accessory price applied.', accHistoryCustomNeedText:'Enter Custom text to view its exact history.',
     accPlusNut:'+ Nut', accPlusFW:'+ Flat Washer', accPlusCustom:'+ Custom',
     accQtyPerItem:'Qty per item', accRemove:'Remove',
     mbAddShort:'＋ Add', mbUpdateShort:'Update',
@@ -6165,7 +6164,7 @@ const I18N={
     phDiffLegend:'Differences = history − this item', phDiffTitle:'History minus this item, per dimension', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
     phBadgeThisCustomer:'This customer', phBadgeExact:'Current exact', phBadgeClose:'Current close', phBadgeRef:'Reference only',
     phTargetExact:'Target exact', phTargetDiff:'Target {d}',
-    phMatchBy:'Match by', phMatchOverall:'Overall', phMatchLength:'Length', phMatchThread:'Thread Length', phTarget:'Target',
+    phMatchBy:'Match by', phMatchOverall:'Overall', phMatchLength:'Length', phMatchWidth:'Width', phMatchThread:'Thread Length', phMatchH:'H', phMatchS:'S', phMatchID:'ID', phMatchIH:'IH', phMatchOH:'OH', phMatchThickness:'Thickness', phMatchB:'B', phMatchR:'R', phMatchCL:'CL', phMatchCH:'CH', phTarget:'Target',
     phSumMatching:'{n} matching', phSumFinal:'Final', phSumBolt:'Bolt', phSumManual:'Manual',
     phUseThis:'Use this pricing', phUseSetup:'Use pricing setup',
     phCfTitleThis:'Use this historical pricing?', phCfTitleSetup:'Use this pricing setup?',
@@ -6471,7 +6470,7 @@ const I18N={
     /* AI 智能识别 review (2026-10-23) */
     wqaRvDetected:'Detected {n} items', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items',
     /* DNC shared desktop shell (2026-10-24) */
-    rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Modules', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
+    rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Quotation', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellOtherModules:'Other Modules', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
   zh:{
     badgeSystemDefault:'系统默认', badgeCustom:'自定义', qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
@@ -6544,7 +6543,7 @@ const I18N={
     /* accessories */
     accessories:'配件', accToggleSub:'Nut / Flat Washer / 自定义 · 选填',
     accAddNut:'+ Nut', accAddFW:'+ Flat Washer',
-    accNone:'无配件', accNut:'Nut', accFW:'Flat Washer', accCustom:'自定义',
+    accNone:'无配件', accNut:'螺母', accFW:'平垫圈', accCustom:'自定义', accHistory:'历史', accUsePrice:'采用此价格', accHistoryNone:'没有兼容的配件历史。', accHistoryApplied:'配件价格已采用。', accHistoryCustomNeedText:'请输入自定义文字以查看完全一致的历史。',
     accPlusNut:'+ Nut', accPlusFW:'+ Flat Washer', accPlusCustom:'+ 自定义',
     accQtyPerItem:'每件数量', accRemove:'移除',
     mbAddShort:'＋ 加入', mbUpdateShort:'更新',
@@ -6745,7 +6744,7 @@ const I18N={
     phDiffLegend:'差值 = 历史 − 本项目', phDiffTitle:'各尺寸差值：历史减本项目', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
     phBadgeThisCustomer:'本客户', phBadgeExact:'本项完全匹配', phBadgeClose:'本项相近', phBadgeRef:'仅供参考',
     phTargetExact:'目标一致', phTargetDiff:'目标 {d}',
-    phMatchBy:'匹配方式', phMatchOverall:'综合', phMatchLength:'长度', phMatchThread:'牙长', phTarget:'目标',
+    phMatchBy:'匹配方式', phMatchOverall:'综合', phMatchLength:'长度', phMatchWidth:'宽度', phMatchThread:'牙长', phMatchH:'H', phMatchS:'S', phMatchID:'内径', phMatchIH:'内高', phMatchOH:'外高', phMatchThickness:'厚度', phMatchB:'B', phMatchR:'R', phMatchCL:'CL', phMatchCH:'CH', phTarget:'目标',
     phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动价格',
     phUseThis:'套用此定价', phUseSetup:'套用定价参数',
     phCfTitleThis:'要套用这笔历史定价吗？', phCfTitleSetup:'要套用这笔定价参数吗？',
@@ -7000,7 +6999,7 @@ const I18N={
     /* AI 智能识别 review (2026-10-23) */
     wqaRvDetected:'已识别 {n} 个项目', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目',
     /* DNC shared desktop shell (2026-10-24) */
-    rspNavMore:'更多', rspMoreAria:'更多操作', rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'模块', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
+    rspNavMore:'更多', rspMoreAria:'更多操作', rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'报价', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellOtherModules:'其他模块', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
 };
 /* Current language. Anything other than a known code reads as 'en', so a
@@ -8719,22 +8718,6 @@ function refreshAccPreview(){
   else if(currentType==='others') calcOthers();
 }
 
-function normalizeThreadLengthKey(raw){
-  return String(raw||'').trim().toUpperCase().replace(/\s+/g,'').replace(/MM/g,'');
-}
-function getMSUndersizeSagRodPLSpecialPrice(size,sizeType,material,finish,threadLen,length){
-  const isMatch = material==='MS'
-    && sizeType==='UNDERSIZE'
-    && finish==='PL'
-    && normalizeSizeValue(size)==='M12'
-    && normalizeThreadLengthKey(threadLen)==='100/100';
-  if(!isMatch) return null;
-  const l=Math.round(parseFloat(length)||0);
-  if(l===1000) return 4.00;
-  if(l===1200) return 4.20;
-  return null;
-}
-
 /* ── Sag Rod ── */
 function calcSagRod(){
   const diameter=fn('sagrod','diameter'), length=fn('sagrod','length');
@@ -8742,17 +8725,8 @@ function calcSagRod(){
   const markup=fn('sagrod','markup');
   const weight=diameter*diameter*length*0.0000061654;
   const base=weight*costRate+addCost;
-  const special=getMSUndersizeSagRodPLSpecialPrice(
-    fv('sagrod','size'), fv('sagrod','sizeType'), fv('sagrod','material'), getFinish('sagrod'), fv('sagrod','threadLen'), length
-  );
-  /* A price-list entry is a PRICE, not a rounding of one. It was passed in
-     the auto-rounded slot only, so switching Price Mode to "No Round" — a
-     control whose whole advertised job is to skip a rounding step — threw the
-     RM 4.00 list price away and quoted the RM 2.54 formula instead. Where the
-     list has an entry it is the answer in both rounding modes; Manual Price
-     still wins, because that is a person deciding. */
-  const raw=special!==null ? special : base*(1+markup/100);
-  const rounded=special!==null ? special : round05(raw);
+  const raw=base*(1+markup/100);
+  const rounded=round05(raw);
   const final=resolvePriceMode('sagrod',raw,rounded,accAddon(getAccessories('sagrod')));
   updatePreview(weight,base,final);
 }
@@ -9020,6 +8994,12 @@ function dcAccEnhancePanel(panel){
       rm.setAttribute('data-i18n-title','accRemove'); rm.title=dcT('accRemove'); rm.setAttribute('aria-label',dcT('accRemove'));
       rm.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
       head.appendChild(rm);
+      /* Reference-only action. It does not enable an accessory or change its
+         price; applying a historical price is a separate explicit action. */
+      const hist=document.createElement('button');
+      hist.type='button'; hist.className='acc-act acc-history-btn'; hist.dataset.acc=m[1]; hist.dataset.type=type;
+      hist.textContent=dcT('accHistory'); hist.setAttribute('aria-label',dcT('accHistory'));
+      hist.addEventListener('click',()=>accHistoryOpen(type,m[1])); head.appendChild(hist);
     }
   });
   panel.classList.add('acc-rows');
@@ -9077,6 +9057,36 @@ function onAccChange(type){
     }
   }
   if(type===currentType) refreshAccPreview();
+}
+let accHistoryState=null;
+function accHistoryModal(){
+  let modal=el('accHistoryModal'); if(modal) return modal;
+  modal=document.createElement('div'); modal.id='accHistoryModal'; modal.className='modal-overlay';
+  modal.innerHTML='<div class="modal modal-sm"><div class="modal-header"><h2 id="accHistoryTitle"></h2><button class="modal-close" type="button" onclick="closeModal(\'accHistoryModal\')">✕</button></div><div class="modal-body" id="accHistoryBody"></div></div>';
+  document.body.appendChild(modal); return modal;
+}
+function accHistoryApply(n){
+  const s=accHistoryState, rec=s&&s.records[n]; if(!s||!rec) return;
+  const price=el(s.type+'-'+s.kind+'Price'); if(!price) return;
+  price.value=Number(rec.unitPrice).toFixed(2);
+  onAccChange(s.type); recalcCurrent(); scheduleDraftAutosave();
+  closeModal('accHistoryModal'); showToast(dcT('accHistoryApplied'));
+}
+async function accHistoryOpen(type,kind){
+  const size=normalizeSizeValue(fv(type,'size')); if(!size){ showToast(dcT('tEnterSizeFirst')); return; }
+  const finish=kind==='custom'?'':(fv(type,kind+'Finish')||'');
+  const text=kind==='custom'?(fv(type,'customText')||'').trim():'';
+  /* Custom only participates when its existing explicit text is present. */
+  if(kind==='custom'&&!text){ showToast(dcT('accHistoryCustomNeedText')); return; }
+  const modal=accHistoryModal(); el('accHistoryTitle').textContent=dcT('accHistory')+' · '+(kind==='fw'?dcT('accFW'):kind==='nut'?dcT('accNut'):dcT('accCustom'));
+  const body=el('accHistoryBody'); body.textContent=dcT('phLoading'); openModal('accHistoryModal');
+  const q=new URLSearchParams({action:'get_accessory_history',type:kind,cleanSize:size,finish,text});
+  try{
+    const res=await fetch('api.php?'+q.toString()).then(r=>r.json());
+    const records=res&&res.ok&&res.data&&Array.isArray(res.data.records)?res.data.records:[];
+    accHistoryState={type,kind,records};
+    body.innerHTML=records.length?records.map((r,n)=>'<div class="ph-rec"><div class="ph-rec-head"><span class="ph-rec-ref">'+escHtml(r.refNo||'—')+'</span><span class="ph-rec-date">'+escHtml(fmtDateShort(r.date))+'</span></div><div class="ph-rec-spec">'+escHtml([r.type,r.size,r.finish].filter(Boolean).join(' · '))+'</div><div class="ph-rec-nums"><span class="ph-rec-unit"><label>'+escHtml(dcT('lblUnitPrice'))+'</label>'+escHtml(phMoney(r.unitPrice))+'</span></div><div class="ph-rec-foot"><button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="accHistoryApply('+n+')">'+escHtml(dcT('accUsePrice'))+'</button></div></div>').join(''):'<div class="ph-empty-msg">'+escHtml(dcT('accHistoryNone'))+'</div>';
+  }catch(e){ body.innerHTML='<div class="ph-empty-msg">'+escHtml(dcT('phLoadFailed'))+'</div>'; }
 }
 function resetAccPanel(type){
   ['nutEnabled','fwEnabled','customEnabled'].forEach(f=>{const e=el(type+'-'+f);if(e)e.checked=false;});
@@ -9137,9 +9147,8 @@ function addSagRod(){
   if(qty===null) return;
   const weight=diameter*diameter*length*0.0000061654;
   const base=weight*costRate+addCost;
-  const special=getMSUndersizeSagRodPLSpecialPrice(size,fv('sagrod','sizeType'),fv('sagrod','material'),getFinish('sagrod'),threadLen,length);
-  const raw=special!==null ? special : base*(1+markup/100);
-  const rounded=special!==null ? special : round05(raw);
+  const raw=base*(1+markup/100);
+  const rounded=round05(raw);
   const sizeLabel=formatSizeLabel(size,diameter,fv('sagrod','sizeType'))+' x L '+cleanNum(length)+(threadLen?' x TL '+withMm(threadLen):'');
   const acc=getAccessories('sagrod');
   const final=resolvePriceMode('sagrod',raw,rounded,accAddon(acc));
@@ -10234,9 +10243,9 @@ function getWASCalc(){
   const addCost=evalExpr(fv('was','addCost'));
   const accessories=accAddon(getAccessories('was'));
   const markup=fn('was','markup');
-  const rawUnitPrice=(basePrice+addCost+accessories)*(1+markup/100);
+  const rawUnitPrice=(basePrice+addCost)*(1+markup/100);
   const roundedUnitPrice=round05(rawUnitPrice);
-  const finalUnitPrice=resolvePriceMode('was',rawUnitPrice,roundedUnitPrice,0);
+  const finalUnitPrice=resolvePriceMode('was',rawUnitPrice,roundedUnitPrice,accessories);
   return {weights,anchorRate,basePlateRate,trianglePlateRate,anchorCost,basePlateCost,trianglePlateCost,basePrice,addCost,accessories,markup,rawUnitPrice,roundedUnitPrice,finalUnitPrice};
 }
 function calcWAS(){
@@ -11969,14 +11978,10 @@ function phTargetDiff(rec){
   if(!state||state.by==='overall'||!state.target) return null;
   const values=phDimValues(rec.dimensionPreview||''), raw=String(state.target).split('/').map(Number);
   const signed=n=>(n>0?'+':'')+cleanNum(n);
-  if(state.by==='length'){
-    if(values.L===undefined) return null;
-    const d=Math.round((values.L-raw[0])*100)/100;
-    return {exact:d===0,text:signed(d)+'mm'};
-  }
-  if(values.TL===undefined) return null;
-  const second=raw.length>1?raw[1]:raw[0], a=Math.round((values.TL-raw[0])*100)/100;
-  const b=values.TL2===undefined?null:Math.round((values.TL2-second)*100)/100;
+  const key=state.by==='length'?'L':state.by==='thread'?'TL':state.by;
+  if(values[key]===undefined) return null;
+  const second=raw.length>1?raw[1]:raw[0], a=Math.round((values[key]-raw[0])*100)/100;
+  const b=key!=='TL'||values.TL2===undefined?null:Math.round((values.TL2-second)*100)/100;
   return {exact:a===0&&(b===null||b===0),text:signed(a)+(b===null?'':'/'+signed(b))+'mm'};
 }
 function phRecordHtml(rec,onUse,extra){
@@ -12056,15 +12061,28 @@ async function phFetch(spec,companyId,offset,limit,match){
 }
 function phMatchDefaults(spec){
   const d=phDimValues((spec&&spec.dimensionPreview)||'');
-  return {length:d.L===undefined?'':cleanNum(d.L),thread:d.TL===undefined?'':(d.TL2===undefined||d.TL===d.TL2?cleanNum(d.TL):cleanNum(d.TL)+'/'+cleanNum(d.TL2))};
+  const out={}; phMatchModes(spec).forEach(m=>{ out[m.id]=m.paired
+    ? (d.TL2===undefined||d.TL===d.TL2?cleanNum(d.TL):cleanNum(d.TL)+'/'+cleanNum(d.TL2))
+    : (d[m.key]===undefined?'':cleanNum(d[m.key])); }); return out;
+}
+/* DimensionPreview is the canonical form-to-history contract.  The drawer
+   reads its actual labels, so each family exposes only dimensions it truly
+   stores — no hand-maintained per-product button lists. */
+const PH_DIM_LABELS={L:'phMatchLength',W:'phMatchWidth',TL:'phMatchThread',H:'phMatchH',S:'phMatchS',ID:'phMatchID',IH:'phMatchIH',OH:'phMatchOH',T:'phMatchThickness',B:'phMatchB',R:'phMatchR',CL:'phMatchCL',CH:'phMatchCH'};
+function phMatchModes(spec){
+  const d=phDimValues((spec&&spec.dimensionPreview)||'');
+  return Object.keys(d).filter(k=>!/2$/.test(k)).map(key=>({key,id:key==='L'?'length':key==='TL'?'thread':key,paired:key==='TL',label:dcT(PH_DIM_LABELS[key]||key)}));
 }
 function phMatchTargetValid(by,value){
   const s=String(value||'').trim();
-  return by==='length' ? /^[0-9]+(?:\.[0-9]+)?$/.test(s) : /^[0-9]+(?:\.[0-9]+)?(?:\s*\/\s*[0-9]+(?:\.[0-9]+)?)?$/.test(s);
+  return by==='thread' ? /^[0-9]+(?:\.[0-9]+)?(?:\s*\/\s*[0-9]+(?:\.[0-9]+)?)?$/.test(s) : /^[0-9]+(?:\.[0-9]+)?$/.test(s);
 }
 function phRenderMatchControls(){
   const box=el('phMatchControls'), state=phFormState;
   if(!box) return; box.hidden=!state; if(!state) return;
+  const modes=phMatchModes(state._spec), options=box.querySelector('.ph-match-options');
+  if(options) options.innerHTML='<button type="button" class="ph-match-option" data-ph-match="overall" onclick="phSetMatchBy(\'overall\')">'+escHtml(dcT('phMatchOverall'))+'</button>'
+    +modes.map(m=>'<button type="button" class="ph-match-option" data-ph-match="'+m.id+'" onclick="phSetMatchBy(\''+m.id+'\')">'+escHtml(m.label)+'</button>').join('');
   const by=state._matchBy||'overall', defaults=state._matchTargets||phMatchDefaults(state._spec);
   document.querySelectorAll('[data-ph-match]').forEach(b=>{const active=b.dataset.phMatch===by;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',active?'true':'false');});
   const row=el('phMatchTargetRow'), input=el('phMatchTarget'); if(row) row.hidden=by==='overall';
@@ -12079,7 +12097,7 @@ async function phReloadMatchPriority(){
   el('phList').innerHTML=phFormListHtml();phRenderMatchControls();phRenderSummary();
 }
 function phSetMatchBy(by){
-  if(!phFormState||!['overall','length','thread'].includes(by)) return;
+  if(!phFormState||!['overall'].concat(phMatchModes(phFormState._spec).map(m=>m.id)).includes(by)) return;
   phFormState._matchBy=by;
   if(!phFormState._matchTargets) phFormState._matchTargets=phMatchDefaults(phFormState._spec);
   if(by!=='overall') phFormState._matchTarget=phFormState._matchTargets[by]||'';

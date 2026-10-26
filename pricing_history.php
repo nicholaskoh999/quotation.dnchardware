@@ -105,7 +105,13 @@ function dc_dim_distance($wantDims, $recordDims) {
    the same item. A scalar TL target applies to each end; a pair keeps each end
    explicit, which makes asymmetric rods explainable instead of averaged. */
 function dc_history_priority($raw) {
-    return in_array($raw, ['length', 'thread'], true) ? $raw : 'overall';
+    /* `length` and `thread` are retained as the public names used by the
+       accepted Sag Rod UI.  The remaining values are the canonical labels
+       written in dimensionPreview; no product-specific inference is needed. */
+    $raw = strtoupper(trim((string)$raw));
+    if ($raw === 'LENGTH') return 'length';
+    if ($raw === 'THREAD') return 'thread';
+    return in_array($raw, ['L','W','H','S','T','B','R','ID','IH','OH','CL','CH','TL'], true) ? $raw : 'overall';
 }
 function dc_history_target_values($priority, $raw) {
     $raw = trim((string)$raw);
@@ -113,24 +119,24 @@ function dc_history_target_values($priority, $raw) {
     if (!preg_match('/^([0-9]+(?:\.[0-9]+)?)(?:\s*\/\s*([0-9]+(?:\.[0-9]+)?))?$/', $raw, $m)) return [];
     $first = (float)$m[1];
     if ($priority === 'length') return ['L' => $first];
-    if ($priority === 'thread') {
+    if ($priority === 'thread' || $priority === 'TL') {
         $second = isset($m[2]) && $m[2] !== '' ? (float)$m[2] : $first;
         return ['TL' => $first, 'TL2' => $second];
     }
-    return [];
+    return preg_match('/^(L|W|H|S|T|B|R|ID|IH|OH|CL|CH)$/', $priority) ? [$priority => $first] : [];
 }
 function dc_history_priority_distance($recordDims, $priority, $target) {
     $values = dc_dim_values($recordDims);
     $targetValues = dc_history_target_values($priority, $target);
     if (!$values || !$targetValues) return null;
     if ($priority === 'length') return isset($values['L']) ? round(abs($values['L'] - $targetValues['L']), 4) : null;
-    if ($priority === 'thread') {
+    if ($priority === 'thread' || $priority === 'TL') {
         if (!isset($values['TL'])) return null;
         $total = abs($values['TL'] - $targetValues['TL']);
         if (isset($values['TL2'])) $total += abs($values['TL2'] - $targetValues['TL2']);
         return round($total, 4);
     }
-    return null;
+    return isset($values[$priority]) ? round(abs($values[$priority] - $targetValues[$priority]), 4) : null;
 }
 
 /**
@@ -214,6 +220,31 @@ function dc_acc_summary($acc) {
     $cu = $acc['custom'] ?? null;
     if (is_array($cu) && !empty($cu['enabled'])) $bits[] = trim((string)($cu['text'] ?? 'Custom'));
     return implode(' + ', $bits);
+}
+
+/** A minimal, read-only reference for an accessory stored inside an item. */
+function dc_accessory_history_record($item, $want, $meta) {
+    if (!is_array($item) || !is_array($item['accessories'] ?? null)) return null;
+    $type = strtolower(trim((string)($want['type'] ?? '')));
+    if (!in_array($type, ['nut', 'fw', 'custom'], true)) return null;
+    $size = trim((string)($item['cleanSize'] ?? ''));
+    if ($size === '' || strcasecmp($size, (string)($want['cleanSize'] ?? '')) !== 0) return null;
+    $part = $item['accessories'][$type] ?? null;
+    if (!is_array($part) || empty($part['enabled']) || !array_key_exists('unitPrice', $part)) return null;
+    $finish = trim((string)($part['finish'] ?? ''));
+    if ($type === 'custom') {
+        /* Custom has no structured type or size beyond its explicit text. Exact
+           whitespace-normalised wording is safe; fuzzy equivalence is not. */
+        $normalise = function ($v) { return strtolower(preg_replace('/\s+/', ' ', trim((string)$v))); };
+        if ($normalise($part['text'] ?? '') === '' || $normalise($part['text'] ?? '') !== $normalise($want['text'] ?? '')) return null;
+    } elseif (strcasecmp($finish, trim((string)($want['finish'] ?? ''))) !== 0) return null;
+    return [
+        'type' => $type === 'fw' ? 'Flat Washer' : ($type === 'nut' ? 'Nut' : 'Custom'),
+        'size' => $size, 'finish' => $finish,
+        'unitPrice' => round((float)$part['unitPrice'], 4),
+        'refNo' => (string)($meta['refNo'] ?? ''), 'date' => (string)($meta['date'] ?? ''),
+        'quotationId' => (int)($meta['quotationId'] ?? 0),
+    ];
 }
 
 /**
