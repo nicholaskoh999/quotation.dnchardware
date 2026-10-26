@@ -18,9 +18,8 @@
 </script>
 <title>DNC QUOTATION</title>
 <!-- App icons / Home Screen -->
+<link rel="icon" type="image/svg+xml" href="/assets/icons/dnc-logo.svg">
 <link rel="icon" href="/assets/icons/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#5b7af5">
@@ -3731,8 +3730,7 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 .dnc-ico-sub{color:var(--dnc-ink-3)}
 .dnc-brand{display:flex;align-items:center;gap:10px;height:64px;flex-shrink:0;padding:0 20px;color:inherit;text-decoration:none}
 .dnc-brand:focus-visible{outline:2px solid var(--dnc-indigo);outline-offset:-4px;border-radius:8px}
-.dnc-mark{width:32px;height:32px;flex-shrink:0}
-.dnc-mark-bg{fill:var(--dnc-indigo)} .dnc-mark-dot{fill:var(--dnc-tangerine)}
+.dnc-mark{width:32px;height:32px;flex-shrink:0;object-fit:contain}
 .dnc-brand-text{min-width:0;line-height:1}
 .dnc-brand-sys{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--dnc-ink)}
 .dnc-brand-mod{display:block;margin-top:4px;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
@@ -3968,7 +3966,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 <aside class="dnc-shell" id="dncShell" data-i18n-aria="shellNav" aria-label="DNC navigation">
   <button type="button" class="rsp-close" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
   <a class="dnc-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
-    <svg class="dnc-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" class="dnc-mark-bg"/><path d="M10 9h7.5a5.5 5.5 0 0 1 0 11H13v3h-3z m3 3v5h4.5a2.5 2.5 0 0 0 0-5z" fill="#fff"/><circle cx="24" cy="24" r="3" class="dnc-mark-dot"/></svg>
+    <img class="dnc-mark" src="/assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
   <div class="dnc-back-wrap">
@@ -4016,7 +4014,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 <div class="rsp-top" id="rspTop">
   <button type="button" class="rsp-burger" id="rspBurger" aria-expanded="false" aria-controls="dncShell" data-i18n-aria="rspOpenMenu" aria-label="Open menu" onclick="rspOpen('drawer')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
   <a class="rsp-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
-    <svg class="dnc-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" class="dnc-mark-bg"/><path d="M10 9h7.5a5.5 5.5 0 0 1 0 11H13v3h-3z m3 3v5h4.5a2.5 2.5 0 0 0 0-5z" fill="#fff"/><circle cx="24" cy="24" r="3" class="dnc-mark-dot"/></svg>
+    <img class="dnc-mark" src="/assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
   <button type="button" class="rsp-avatar-btn" id="rspAvatarBtn" aria-expanded="false" aria-controls="rspAcct" data-i18n-aria="shellAccountMenu" aria-label="Account menu" onclick="rspOpen('account')"><span class="dnc-avatar" id="rspAvatarTop" aria-hidden="true" data-i18n-skip>·</span></button>
