@@ -136,7 +136,7 @@ module.exports = async (browser, A) => {
   A.includes(panel.text, '5%', 'and a different markup');
 
   // ── dimensions rank; they never hide ─────────────────────────────────────
-  A.includes(panel.text, 'Exact match', 'the identical rod is marked');
+  A.includes(panel.text, 'Current exact', 'the identical rod is marked as matching the current item');
   /* Per dimension, history minus this row: the L500 / TL100 record is 500mm
      shorter with a 50mm shorter thread — WHAT differs, not just by how much. */
   A.includes(panel.text, 'L -500mm · TL -50mm', 'and the ones that differ say which dimension and by how much');
@@ -329,6 +329,42 @@ module.exports = async (browser, A) => {
   A.includes(formPanel.text, 'Q2026-0001', 'the same references');
   A.includes(formPanel.text, 'Gamma Steel', 'the same other-customer labelling');
   A.excludes(formPanel.text, 'Avg', 'and no average anywhere');
+  const targetUi = await form.evaluate(() => {
+    const before = {
+      length: document.getElementById('lbolt-l').value,
+      thread: document.getElementById('lbolt-threadLen').value,
+      material: document.getElementById('lbolt-material').value,
+      costRate: document.getElementById('lbolt-costRate').value,
+      markup: document.getElementById('lbolt-markup').value,
+    };
+    phFormState._spec.dimensionPreview='L 1219 x TL 305/305mm';
+    phFormState._matchTargets=phMatchDefaults(phFormState._spec);
+    const reload=window.phReloadMatchPriority; window.phReloadMatchPriority=async()=>{};
+    phSetMatchBy('length'); const lengthAuto=el('phMatchTarget').value;
+    phSetMatchTarget('1200'); phSetMatchBy('thread'); const threadAuto=el('phMatchTarget').value;
+    phSetMatchTarget('300'); phSetMatchBy('length'); const lengthRemembered=el('phMatchTarget').value;
+    phSetMatchBy('thread'); const threadRemembered=el('phMatchTarget').value;
+    phSetMatchBy('overall'); const targetHidden=el('phMatchTargetRow').hidden;
+    window.phReloadMatchPriority=reload;
+    const card=phListHtml({_matchBy:'length',_matchTarget:'1200',_spec:phFormState._spec,
+      records:[{...phFormState.records[0],dimensionPreview:'L 1200 x TL 300/300mm',exactDims:false}],total:1});
+    const after = {
+      length: document.getElementById('lbolt-l').value,
+      thread: document.getElementById('lbolt-threadLen').value,
+      material: document.getElementById('lbolt-material').value,
+      costRate: document.getElementById('lbolt-costRate').value,
+      markup: document.getElementById('lbolt-markup').value,
+    };
+    return {lengthAuto,threadAuto,lengthRemembered,threadRemembered,targetHidden,card,before,after};
+  });
+  A.eq(targetUi.lengthAuto, '1219', 'Length auto target comes from the current item');
+  A.eq(targetUi.threadAuto, '305', 'symmetric Thread Length auto target is one scalar');
+  A.eq(targetUi.lengthRemembered, '1200', 'Length manual target stays remembered');
+  A.eq(targetUi.threadRemembered, '300', 'Thread Length manual target stays remembered');
+  A.eq(targetUi.targetHidden, 'true', 'Overall hides the Target row');
+  A.includes(targetUi.card, 'Target exact', 'a target match is labelled separately from the current item');
+  A.includes(targetUi.card, 'L -19mm', 'current-item dimension difference remains visible');
+  A.eq(JSON.stringify(targetUi.after), JSON.stringify(targetUi.before), 'match controls never mutate the quotation item');
   await form.close();
 
   /* ── Closeness, measured the same way on both sides ──────────────────────

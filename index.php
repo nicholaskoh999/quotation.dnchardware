@@ -6162,7 +6162,8 @@ const I18N={
     refHintRevised:'Revision {n} · sent to the customer as {r}', phDimNotOnRecord:'not on record', phDimNotInItem:'not entered on this item',
     phNoCurrentDims:'Enter this item\'s dimensions to compare', phComparedWith:'compared with {d}',
     phDiffLegend:'Differences = history − this item', phDiffTitle:'History minus this item, per dimension', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
-    phBadgeThisCustomer:'This customer', phBadgeExact:'Exact match', phBadgeClose:'Close match', phBadgeRef:'Reference only',
+    phBadgeThisCustomer:'This customer', phBadgeExact:'Current exact', phBadgeClose:'Current close', phBadgeRef:'Reference only',
+    phTargetExact:'Target exact', phTargetDiff:'Target {d}',
     phMatchBy:'Match by', phMatchOverall:'Overall', phMatchLength:'Length', phMatchThread:'Thread Length', phTarget:'Target',
     phSumMatching:'{n} matching', phSumFinal:'Final', phSumBolt:'Bolt', phSumManual:'Manual',
     phUseThis:'Use this pricing', phUseSetup:'Use pricing setup',
@@ -6741,7 +6742,8 @@ const I18N={
     refHintRevised:'修订版本 {n} · 发给客户的编号为 {r}', phDimNotOnRecord:'无记录', phDimNotInItem:'本项目未填',
     phNoCurrentDims:'输入本项目尺寸后即可比较', phComparedWith:'对比 {d}',
     phDiffLegend:'差值 = 历史 − 本项目', phDiffTitle:'各尺寸差值：历史减本项目', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
-    phBadgeThisCustomer:'本客户', phBadgeExact:'完全匹配', phBadgeClose:'相近规格', phBadgeRef:'仅供参考',
+    phBadgeThisCustomer:'本客户', phBadgeExact:'本项完全匹配', phBadgeClose:'本项相近', phBadgeRef:'仅供参考',
+    phTargetExact:'目标一致', phTargetDiff:'目标 {d}',
     phMatchBy:'匹配方式', phMatchOverall:'综合', phMatchLength:'长度', phMatchThread:'牙长', phTarget:'目标',
     phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动价格',
     phUseThis:'套用此定价', phUseSetup:'套用定价参数',
@@ -11961,6 +11963,21 @@ function phPriceMode(rec){
   return rec.priceModeLabel && !PH_MODE_LABELS_EN.has(rec.priceModeLabel) ? rec.priceModeLabel : dcT('phModeUnknown');
 }
 const PH_MODE_LABELS_EN=new Set(Object.values(PH_MODE_LABELS).concat('Legacy / Unknown'));
+function phTargetDiff(rec){
+  const state=phTargetState;
+  if(!state||state.by==='overall'||!state.target) return null;
+  const values=phDimValues(rec.dimensionPreview||''), raw=String(state.target).split('/').map(Number);
+  const signed=n=>(n>0?'+':'')+cleanNum(n);
+  if(state.by==='length'){
+    if(values.L===undefined) return null;
+    const d=Math.round((values.L-raw[0])*100)/100;
+    return {exact:d===0,text:signed(d)+'mm'};
+  }
+  if(values.TL===undefined) return null;
+  const second=raw.length>1?raw[1]:raw[0], a=Math.round((values.TL-raw[0])*100)/100;
+  const b=values.TL2===undefined?null:Math.round((values.TL2-second)*100)/100;
+  return {exact:a===0&&(b===null||b===0),text:signed(a)+(b===null?'':'/'+signed(b))+'mm'};
+}
 function phRecordHtml(rec,onUse,extra){
   const own=!!rec.own;
   /* The bolt's own price is what a bolt costs. Where the saved row cannot
@@ -11977,6 +11994,10 @@ function phRecordHtml(rec,onUse,extra){
   const hasCustomer=selectedCompanyId!==null&&selectedCompanyId!==undefined&&selectedCompanyId!=='';
   if(hasCustomer && own) tags.push('<span class="ph-rec-tag ph-rec-own-tag">'+escHtml(dcT('phBadgeThisCustomer'))+'</span>');
   if(hasCustomer && !own) tags.push('<span class="ph-rec-tag ph-rec-other">'+escHtml(dcT('phOtherCustomer'))+'</span>');
+  const targetDiff=phTargetDiff(rec);
+  if(targetDiff) tags.push(targetDiff.exact
+    ? '<span class="ph-rec-tag ph-rec-exact">'+escHtml(dcT('phTargetExact'))+'</span>'
+    : '<span class="ph-rec-diff">'+escHtml(dcT('phTargetDiff').replace('{d}',targetDiff.text))+'</span>');
   /* Same, near, or unknown — and by how much, because "why was that one
      dearer" is usually answered by a number of millimetres. */
   const dist=(rec.dimDistance===null||rec.dimDistance===undefined)?null:Number(rec.dimDistance);
@@ -12034,7 +12055,7 @@ async function phFetch(spec,companyId,offset,limit,match){
 }
 function phMatchDefaults(spec){
   const d=phDimValues((spec&&spec.dimensionPreview)||'');
-  return {length:d.L===undefined?'':cleanNum(d.L),thread:d.TL===undefined?'':cleanNum(d.TL)+(d.TL2===undefined?'':'/'+cleanNum(d.TL2))};
+  return {length:d.L===undefined?'':cleanNum(d.L),thread:d.TL===undefined?'':(d.TL2===undefined||d.TL===d.TL2?cleanNum(d.TL):cleanNum(d.TL)+'/'+cleanNum(d.TL2))};
 }
 function phMatchTargetValid(by,value){
   const s=String(value||'').trim();
@@ -12043,7 +12064,7 @@ function phMatchTargetValid(by,value){
 function phRenderMatchControls(){
   const box=el('phMatchControls'), state=phFormState;
   if(!box) return; box.hidden=!state; if(!state) return;
-  const by=state._matchBy||'overall', defaults=phMatchDefaults(state._spec);
+  const by=state._matchBy||'overall', defaults=state._matchTargets||phMatchDefaults(state._spec);
   document.querySelectorAll('[data-ph-match]').forEach(b=>{const active=b.dataset.phMatch===by;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',active?'true':'false');});
   const row=el('phMatchTargetRow'), input=el('phMatchTarget'); if(row) row.hidden=by==='overall';
   if(input&&by!=='overall') input.value=state._matchTarget||defaults[by]||'';
@@ -12053,24 +12074,28 @@ async function phReloadMatchPriority(){
   const old=phFormState,by=old._matchBy||'overall',target=old._matchTarget||'',seq=++phAutoSeq;
   const next=await phFetch(old._spec,old._company,0,20,{matchBy:by,matchTarget:target}); if(seq!==phAutoSeq) return;
   if(!next){phFormState=null;el('phList').innerHTML=phFormListHtml();phRenderMatchControls();return;}
-  phFormState={...next,_spec:old._spec,_company:old._company,_key:old._key,_matchBy:by,_matchTarget:target};
+  phFormState={...next,_spec:old._spec,_company:old._company,_key:old._key,_matchBy:by,_matchTarget:target,_matchTargets:old._matchTargets};
   el('phList').innerHTML=phFormListHtml();phRenderMatchControls();phRenderSummary();
 }
 function phSetMatchBy(by){
   if(!phFormState||!['overall','length','thread'].includes(by)) return;
   phFormState._matchBy=by;
-  if(by!=='overall'&&!phMatchTargetValid(by,phFormState._matchTarget)) phFormState._matchTarget=phMatchDefaults(phFormState._spec)[by]||'';
+  if(!phFormState._matchTargets) phFormState._matchTargets=phMatchDefaults(phFormState._spec);
+  if(by!=='overall') phFormState._matchTarget=phFormState._matchTargets[by]||'';
   phRenderMatchControls(); if(by==='overall'||phMatchTargetValid(by,phFormState._matchTarget)) phReloadMatchPriority();
 }
 function phSetMatchTarget(value){
   if(!phFormState) return; const by=phFormState._matchBy||'overall'; if(by==='overall') return;
-  const next=String(value||'').trim()||phMatchDefaults(phFormState._spec)[by]||'';
+  const next=String(value||'').trim()||(phFormState._matchTargets||phMatchDefaults(phFormState._spec))[by]||'';
   if(!phMatchTargetValid(by,next)){phRenderMatchControls();return;} if(next===phFormState._matchTarget) return;
-  phFormState._matchTarget=next; phReloadMatchPriority();
+  phFormState._matchTarget=next;
+  if(!phFormState._matchTargets) phFormState._matchTargets=phMatchDefaults(phFormState._spec);
+  phFormState._matchTargets[by]=next; phReloadMatchPriority();
 }
 function phListHtml(state,onUse,onMore,extraFor){
   phCmpBase=state ? (state._cmpDims!==undefined ? state._cmpDims : (state._spec ? (state._spec.dimensionPreview||'') : null)) : null;
-  try{ return phListHtmlBody(state,onUse,onMore,extraFor); } finally { phCmpBase=null; }
+  phTargetState=state?{by:state._matchBy||'overall',target:state._matchTarget||''}:null;
+  try{ return phListHtmlBody(state,onUse,onMore,extraFor); } finally { phCmpBase=null; phTargetState=null; }
 }
 function phListHtmlBody(state,onUse,onMore,extraFor){
   if(!state) return '<div class="ph-empty-msg">'+escHtml(dcT('phLoadFailed'))+'</div>';
@@ -12119,7 +12144,7 @@ function phListHtmlBody(state,onUse,onMore,extraFor){
 }
 
 /* ── The entry form's panel ───────────────────────────────────────────────── */
-let phFormState=null;
+let phFormState=null, phTargetState=null;
 function phFormSpec(){
   const t=currentType;
   /* The rule, and the form's real material — a Welding Anchor Set keeps its in
@@ -12171,7 +12196,7 @@ async function checkPreviousPrice(){
   if(phAutoInflight===key) phAutoInflight=null;
   if(seq!==phAutoSeq) return;                 // a newer lookup has the floor
   phFormState=st;
-  if(phFormState){ phFormState._spec=spec; phFormState._company=company; phFormState._key=key; phFormState._matchBy='overall'; phFormState._matchTarget=''; }
+  if(phFormState){ phFormState._spec=spec; phFormState._company=company; phFormState._key=key; phFormState._matchBy='overall'; phFormState._matchTarget=''; phFormState._matchTargets=phMatchDefaults(spec); }
   el('phEmptyMsg').style.display='none';
   el('phResults').style.display='block';
   phRenderMatchControls();
