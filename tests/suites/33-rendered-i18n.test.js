@@ -463,10 +463,17 @@ module.exports = async (browser, A) => {
   {
     const page = await openApp(browser);
     for (const n of [0, 1, 2, 4]) {
-      const msg = Array.from({ length: n }, (_, i) =>
+      const msg = 'MS SAG ROD PL FULLSIZE\n' + Array.from({ length: n }, (_, i) =>
         `M${12 + i * 4} x ${500 + i * 100} TL 60/60 qty ${3 + i}`).join('\n');
       await page.evaluate(() => { try { wqaHardClose(); } catch (e) {} });
-      if (n) await quickAddPaste(page, msg);
+      if (n) {
+        await quickAddPaste(page, msg);
+        /* The Add button counts the rows that are ready to add, so these rows
+           are given the rates that make them so — the test is about the count
+           surviving a language switch, not about rows with no price. */
+        await page.evaluate(() => { wqa.rows.forEach((r, i) => { wqaEditPrice(i, 'costRate', '5'); wqaEditPrice(i, 'addCost', '1'); }); });
+        await page.waitForTimeout(900);
+      }
       else { await page.evaluate(() => wqaOpen()); await page.waitForTimeout(300); }
 
       /* The page's script is a classic one, so `wqa` is a module-level binding

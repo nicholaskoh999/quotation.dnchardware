@@ -3393,6 +3393,36 @@ html.kb-open .toast{bottom:calc(var(--kb,0px) + 16px)}
 .wqa-sp select:focus{outline:none}
 .wqa-sp select:disabled{cursor:default;color:var(--text-muted)}
 .wqa-sp.is-need{border-color:var(--amber-mid);background:var(--amber-light)}
+.wqa-mv-btn{border:1px solid var(--border);background:var(--surface);color:var(--accent-2);border-radius:50%;width:22px;height:22px;
+  padding:0;margin-right:4px;font:inherit;font-size:14px;font-weight:800;line-height:1;cursor:pointer;flex:0 0 auto}
+.wqa-mv-btn:hover,.wqa-mv-btn.is-on{background:var(--accent-light);border-color:var(--accent-mid)}
+.wqa-mv{margin-top:8px;border:1px solid var(--accent-mid);background:var(--accent-light);border-radius:10px;padding:8px 10px}
+.wqa-mv-t{font-size:11px;font-weight:750;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px}
+.wqa-mv-opts{display:flex;flex-wrap:wrap;gap:6px 12px}
+.wqa-mv-o{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer;min-height:30px}
+.wqa-mv-a{display:flex;gap:6px;margin-top:8px}
+.wqa-var-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wqa-var-n{font-size:12px;font-weight:800;color:var(--accent-2);background:var(--accent-light);border:1px solid var(--accent-mid);
+  border-radius:var(--pill-r);padding:3px 10px}
+.wqa-var-list{margin-top:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:4px 8px}
+.wqa-var-h{font-size:11.5px;font-weight:750;color:var(--text-muted);padding:6px 0 2px}
+.wqa-var-row{display:flex;align-items:center;gap:8px;min-height:32px;font-size:13px;cursor:pointer}
+.wqa-var-row.is-off .wqa-var-l{text-decoration:line-through;color:var(--text-muted)}
+.wqa-var-l{flex:1 1 auto;min-width:0;font-weight:700;overflow-wrap:anywhere}
+.wqa-var-need{color:var(--amber);font-weight:800;font-size:11.5px}
+.wqa-var-st{font-size:12px;font-weight:700;color:var(--text-muted)}
+.wqa-var-st.has-attn{color:var(--amber)}
+.wqa-var-mode{display:inline-flex;border:1px solid var(--border);border-radius:var(--pill-r);overflow:hidden}
+.wqa-var-m{border:0;background:var(--surface);color:var(--text-muted);font:inherit;font-size:12px;font-weight:750;padding:5px 10px;cursor:pointer;min-height:30px}
+.wqa-var-m.is-on{background:var(--accent-light);color:var(--accent-2)}
+.wqa-var-ex{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border)}
+.wqa-var-ex.is-off{opacity:.55}
+.wqa-var-ex.is-attn{background:var(--amber-light);margin:0 -8px;padding:6px 8px}
+.wqa-var-exn{display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:13px}
+.wqa-var-sel{font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:4px 6px;min-height:32px;max-width:100%}
+.wqa-var-add{margin:6px 0 4px}
+.wqa-var-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.wqa-var-px{flex:0 0 auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text-muted)}
 .wqa-rv-shared .wqa-flag{margin-top:6px}
 .wqa-rv-need{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px 8px 12px;border-radius:var(--r-sm);
   background:var(--amber-light);border:1px solid var(--amber-mid);font-size:13px;font-weight:700;color:var(--amber)}
@@ -5421,6 +5451,8 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         </div>
         <!-- What every item shares, as values that are themselves the editor. -->
         <div class="wqa-common wqa-rv-shared" id="wqaCommon"></div>
+        <!-- Variants of one detected spec: a count and, on request, the exact combinations. -->
+        <div class="wqa-var" id="wqaVarBar" hidden></div>
         <div class="wqa-rv-need" id="wqaRvNeed" hidden></div>
         <!-- The customer's own words: one line, closed, until asked for. -->
         <div class="wqa-common wqa-source-common" id="wqaSource" hidden></div>
@@ -6025,7 +6057,7 @@ const I18N={
     wqaNoteLabel:'Additional info for analysis', wqaNoteOpt:'Optional',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
-    wqaNoteUsed:'Your additional info was applied to {n} item(s) — it overrides the document.',
+    wqaNoteUsed:'Your additional info was applied — it overrides the document.',
     wqaNoteUnused:'Part of your additional info was not applied: it names no product and the document has more than one item. Write the product first, e.g. "L BOLT TL 100".',
     wqaLenResolved:'L {v} — the only length not already another item\'s',
     wqaGradeSeen:'{g} stated — a strength class, not a material',
@@ -6472,7 +6504,7 @@ const I18N={
     pmManualGuideEg:'Example: Bolt RM1.80 + accessories RM0.20 → enter Manual Price RM2.00',
     wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'Detected {n} items', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items',
+    wqaRvDetected:'Detected {n} items', wqaRvDetectedOne:'Detected 1 item', wqaAddOneItem:'Add 1 Item to Quotation', wqaVarCount:'{n} variants', wqaVarReview:'Review Variants', wqaVarHide:'Hide Variants', wqaVarMulti:'Select several', wqaVarPickMany:'choose one or more', wqaVarApply:'Apply', wqaVarNone:'Choose at least one option.', wqaVarOff:'Excluded', wqaVarReadyN:'{n} ready', wqaVarExclN:'{n} excluded', wqaVarNeedN:'{n} need attention', wqaVarMode:'Variant mode', wqaVarModeCombine:'Combine selections', wqaVarModeExact:'Exact variants', wqaVarAddRow:'Add variant', wqaVarIncl:'Include this variant', wqaVarRecombine:'Combine selections will make {n} variants from the values used. Continue?', wqaVarExactHint:'Exact variants: edit each row, or switch to Combine selections.', wqaVarAmbiguous:'The note lists items in a way that cannot be read safely — review the variants yourself.', wqaVarExactRead:'Exact variants', wqaVarNeeds:'Needs attention', wqaVarReduced:'Variants reduced — {n} items', wqaVarTooMany:'Too many combinations (maximum {n}).', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Quotation', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellOtherModules:'Other Modules', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
@@ -6616,7 +6648,7 @@ const I18N={
     wqaNoteLabel:'补充分析资料', wqaNoteOpt:'选填',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
-    wqaNoteUsed:'补充资料已套用到 {n} 个项目 — 以补充资料为准。',
+    wqaNoteUsed:'补充资料已套用 — 以补充资料为准。',
     wqaNoteUnused:'部分补充资料未被套用：未指明产品，而文件有多个项目。请先写产品，例如「L BOLT TL 100」。',
     wqaLenResolved:'L {v} —— 其余长度已属于其他项目，只剩此一个',
     wqaGradeSeen:'文件注明 {g} —— 属强度等级，并非材质',
@@ -7001,7 +7033,7 @@ const I18N={
     pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → 手动价格填 RM2.00',
     wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'已识别 {n} 个项目', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目',
+    wqaRvDetected:'已识别 {n} 个项目', wqaRvDetectedOne:'已识别 1 个项目', wqaAddOneItem:'加入 1 个项目到报价', wqaVarCount:'{n} 个版本', wqaVarReview:'查看版本', wqaVarHide:'收起版本', wqaVarMulti:'多选', wqaVarPickMany:'可多选', wqaVarApply:'应用', wqaVarNone:'请至少选择一项。', wqaVarOff:'已排除', wqaVarReadyN:'{n} 个可加入', wqaVarExclN:'{n} 个已排除', wqaVarNeedN:'{n} 个需处理', wqaVarMode:'版本模式', wqaVarModeCombine:'组合选择', wqaVarModeExact:'指定版本', wqaVarAddRow:'新增版本', wqaVarIncl:'包含此版本', wqaVarRecombine:'组合选择将根据已用的值生成 {n} 个版本。继续？', wqaVarExactHint:'指定版本：请逐行修改，或切换为组合选择。', wqaVarAmbiguous:'备注中的项目列表无法安全识别 — 请自行检查版本。', wqaVarExactRead:'指定版本', wqaVarNeeds:'需处理', wqaVarReduced:'已合并版本 — {n} 个项目', wqaVarTooMany:'组合过多（最多 {n} 个）。', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'更多', rspMoreAria:'更多操作', rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'报价', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellOtherModules:'其他模块', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
@@ -15314,12 +15346,18 @@ function wqaUpdateAddButton(){
   /* A known-incomplete extraction is not a successful one. The rows stay, the
      screen says why, and Add waits for an explicit acknowledgement. */
   const needAck = !!(wqa.truncated && !wqa.truncAck);
-  el('wqaRowsCount').textContent=dcT('wqaRvDetected').replace('{n}',live.length);
+  { const sc=wqaSpecCount(live);
+    el('wqaRowsCount').textContent= sc===1 ? dcT('wqaRvDetectedOne') : dcT('wqaRvDetected').replace('{n}',sc); }
+  wqaRenderVarBar();
   /* A row that needs attention holds up itself, not the list. Twenty items
      could not be added because one of them was short of a material, with the
      button greyed and nothing saying which row it meant. */
-  btn.disabled = live.length===0 || blocked>=live.length || needAck;
-  btn.textContent = live.length? dcT('wqaAddNItems').replace('{n}',live.length) : dcT('wqaAddItems');
+  /* The button says what Add will actually add: rows that are not excluded and
+     not waiting on an answer. Rows that wait stay on screen for correction. */
+  const ready=live.filter(wqaRowReady).length;
+  btn.disabled = live.length===0 || ready===0 || needAck;
+  btn.textContent = ready===1 ? dcT('wqaAddOneItem')
+                  : ready ? dcT('wqaAddNItems').replace('{n}',ready) : dcT('wqaAddItems');
   const ft=el('wqaFootTotal'), fn=el('wqaFootNeed');
   if(ft) ft.textContent=dcT('nItems').replace('{n}',live.length);
   if(fn){ const why = blocked ? dcT('needAttention').replace('{n}',blocked)
@@ -16498,6 +16536,13 @@ function wqaNoteFacts(text){
 /* Everything the note says, for the read-back under the input. */
 function wqaNoteSummary(text){
   const out=[];
+  const exs=wqaNoteExactSpecs(text);
+  if(exs&&exs.items) return [dcT('wqaVarExactRead')+' '+exs.items.length+': '+exs.items.map((x,i)=>(i+1)+') '+[x.product?wqaVVal('product',x.product):'',x.material?wqaVVal('material',x.material):'',x.sizeType?wqaVVal('sizeType',x.sizeType):'',x.finish].filter(Boolean).join(' ')).join(' · ')];
+  const axesOf={};
+  const pl0=wqaNoteProductList(text);
+  if(pl0) axesOf.product=pl0.types.map(v=>wqaVVal('product',v)).join(', ');
+  wqaNoteSegs(text).forEach(g=>{ const a=wqaNoteSegAxes(g.text);
+    ['material','finish','sizeType'].forEach(k=>{ if(a[k].length>1) axesOf[k]=a[k].map(v=>wqaVVal(k,v)).join(', '); }); });
   wqaNoteFacts(text).forEach(g=>{
     const p=g.scope&&g.scope!=='all' ? (wqaProductByType(g.scope)||{}).label : '';
     Object.keys(g.facts).forEach(k=>{
@@ -16510,10 +16555,11 @@ function wqaNoteSummary(text){
                    them and must not name a dimension differently. */
                 : k==='length' ? 'L' : (WQA_DIM_LABEL[k]||k);
       const val = k==='threadLen' && g.facts.threadLen2
-                ? g.facts.threadLen+'/'+g.facts.threadLen2 : g.facts[k];
+                ? g.facts.threadLen+'/'+g.facts.threadLen2 : (axesOf[k]||g.facts[k]);
       out.push((p?p+' ':'')+(g.scope==='all'?'all ':'')+lbl+' '+val);
     });
   });
+  if(axesOf.product) out.unshift('Product '+axesOf.product);
   return out;
 }
 /* Apply one segment's facts to one row. A field is only written where the row's
@@ -18177,6 +18223,9 @@ async function wqaAiApply(d, msgTarget, meta){
   await wqaEnterReview(norm.common, norm.rows,
                        fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqaAiFileNames():'file')),
                        [], 'ai', fromText ? 'text' : 'file');
+  /* "MS 4140", "Fullsize Undersize", "PL HDG" in Additional info: several values
+     of one kind are variants of the detected spec, shown for review. */
+  if(noteText) wqaApplyNoteVariants(noteText);
   return true;
 }
 
@@ -18373,6 +18422,7 @@ function wqaResetState(){
   wqa.commonAcc=wqaEmptyAcc(); wqa.commonPrice=wqaEmptyPrice();
   wqa.panels={source:false,fix:false,item:false,price:false,acc:false}; wqa.view='compact';
   wqa.applyScope='all';
+  wqa.mv=null; wqa.varOpen=false; wqa.vmode={};
   wqa.ix=null; wqa.px=null; wqa.selMode=false;
   if(typeof wqaBulkSheetClose==='function') wqaBulkSheetClose();
   wqaRvReviewClass(false);
@@ -18647,11 +18697,11 @@ async function wqaParseAndReview(){
    that never named one still showed a real material sitting in the box — and
    the quotation was committed in it without anyone choosing it. A value nobody
    stated is shown as missing, never as chosen. */
-function wqaMaterialOptions(sel,type){
+function wqaMaterialOptions(sel,type,mixedLabel){
   const src=el((type||wqa.product)+'-material');
   if(!src) return '';
   if(sel===WQA_MIXED)
-    return `<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`
+    return `<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(mixedLabel||dcT('wqaMixed'))}</option>`
       + [...src.options].map(o=>`<option value="${escHtml(o.value)}">${escHtml(o.text)}</option>`).join('');
   const known=[...src.options].some(o=>o.value===sel);
   return (known?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`)
@@ -18704,31 +18754,33 @@ function wqaRenderCommon(){
     ? `<div class="wqa-flag wqa-flag-def">${escHtml(dcT('wqaCustomerLabel').replace('{s}',wqa.aiMeta.src).replace('{d}',wqa.aiMeta.det))}</div>` : '')
     + (wqa.aiWarnings&&wqa.aiWarnings.length
     ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(wqaWarnText(w))}</div>`).join('') : '');
-  const matOpts=wqaMaterialOptions(shownMat);
+  const vProd=wqaVAxisLabel('product'), vMat=wqaVAxisLabel('material'), vFin=wqaVAxisLabel('finish'), vSt=wqaVAxisLabel('sizeType');
+  const matOpts=wqaMaterialOptions(shownMat,null,vMat);
   el('wqaCommon').innerHTML=`
     <div class="wqa-rv-pills">
       <label class="wqa-sp${(prodMixed||wqa.product)?'':' is-need'}"><span class="wqa-sp-k">${escHtml(dcT('fieldProduct'))}${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</span>
         <select id="wqaProduct" class="${(prodMixed||wqa.product)?'':'wqa-needed'}" onchange="wqaChangeProduct(this.value)">
-          ${prodMixed?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
+          ${prodMixed?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(vProd||dcT('wqaMixed'))}</option>`:''}
           ${(prodMixed||wqa.product)?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`}
           ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${!prodMixed&&p.type===wqa.product?' selected':''}>${p.label}</option>`).join('')}
-        </select></label>
+        </select>${wqaMvBtn('product')}</label>
       <label class="wqa-sp${matNeeded?' is-need':''}"><span class="wqa-sp-k">${escHtml(dcT('lblMaterial'))}${matNeeded?' <span class="wqa-req">*</span>':''}</span>
-        <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)"${matOpts?'':' disabled'}>${matOpts||`<option value="">${escHtml(dcT('wqaMixed'))}</option>`}</select></label>
+        <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)"${matOpts?'':' disabled'}>${matOpts||`<option value="">${escHtml(dcT('wqaMixed'))}</option>`}</select>${matOpts?wqaMvBtn('material'):''}</label>
       <label class="wqa-sp"><span class="wqa-sp-k">${escHtml(dcT('lblFinish'))}</span>
         <select id="wqaFinish" onchange="wqaSetCommon('finish',this.value)"${allSS?' disabled':''}>
-          ${shownFin===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
+          ${shownFin===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(vFin||dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownFin===''?' selected':''}>N/A</option>
           ${allSS?'':['PL','ZP','HDG'].map(v=>`<option value="${v}"${shownFin===v?' selected':''}>${v}</option>`).join('')}
-        </select></label>
+        </select>${allSS?'':wqaMvBtn('finish')}</label>
       <label class="wqa-sp${stNeeded?' is-need':''}"><span class="wqa-sp-k">${escHtml(dcT('lblSizeType'))}${(prod.needSizeType&&!allNoSt)?' <span class="wqa-req">*</span>':''}</span>
         <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)"${allNoSt?' disabled':''}>
-          ${shownSt===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
+          ${shownSt===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(vSt||dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownSt===''?' selected':''}>${escHtml(allNoSt?'N/A':dcT(prod.needSizeType?'optRequired':'optNone'))}</option>
           ${allNoSt?'':`<option value="FULLSIZE"${shownSt==='FULLSIZE'?' selected':''}>Fullsize</option>
           <option value="UNDERSIZE"${shownSt==='UNDERSIZE'?' selected':''}>Undersize</option>`}
-        </select></label>
+        </select>${allNoSt?'':wqaMvBtn('sizeType')}</label>
     </div>
+    ${wqaMvPanel()}
     ${matNote}
     ${(prodMixed||wqa.product)?'':'<div class="wqa-flag wqa-flag-req">'+escHtml(dcT('wqaChooseProduct'))+'</div>'}
     ${stNeeded?'<div class="wqa-flag wqa-flag-req">'+dcT('sizeTypeRequired').replace('{p}',prod.label)+'</div>':''}
@@ -18748,13 +18800,24 @@ function wqaChangeProduct(t){
   /* Mixed is not a choice — it is what the rows already say. */
   if(t===WQA_MIXED){ wqaRenderCommon(); return; }
   const prev=wqa.product;
+  /* Rows that are product variants of one spec collapse onto the chosen
+     product (keeping the rows that already are it); every other row takes the
+     ordinary path below. */
+  const varTargets=wqaApplyTargets().filter(r=>r.vg&&!wqaVExact(r));
+  const plainTargets=wqaApplyTargets().filter(r=>!r.vg||wqaVExact(r));
+  if(varTargets.length){
+    const before=wqa.rows.filter(r=>!r.removed).length;
+    wqaVariantApply('product',[t],varTargets);
+    const after=wqa.rows.filter(r=>!r.removed).length;
+    if(after<before) showToast(dcT('wqaVarReduced').replace('{n}',after));
+  }
   wqa.product=t;
   /* Choosing a product at the top is a deliberate action by staff, so it is
      applied to the rows in scope — exactly like Apply to All for material.
      Nothing automatic ever overwrites a row's own product. */
-  const targets=wqaApplyTargets();
+  const targets=varTargets.length ? plainTargets : wqaApplyTargets();
   targets.forEach(r=>{ r.product=t; r.productConflict=null; r.unsupported='';
-    wqaRowRestoreThread(r,t);
+    wqaRowRestoreThread(r,t); wqaThreadBothEnds(r,t);
     r.sizeType=dcSizeTypeFor(t,r.sizeType); if(!r.sizeType) r.stDefaulted=false; });
   if(wqa.applyScope!=='selected') wqa.common.sizeType=dcSizeTypeFor(t,wqa.common.sizeType);
   /* The required common fields change with the product — a Stud loses its
@@ -18778,7 +18841,7 @@ function wqaChangeProduct(t){
      value stays exactly as it is. A field the new product has no use for is
      not shown and not asked for, and is kept in case the product changes
      back. */
-  const mayReparse = wqa.source!=='ai' && wqa.applyScope!=='selected'
+  const mayReparse = !varTargets.length && wqa.source!=='ai' && wqa.applyScope!=='selected'
                   && !wqaAnyRowEdited() && String(wqa.raw||'').trim()!=='';
   if(!mayReparse){
     rebuild();
@@ -18807,7 +18870,17 @@ function wqaSetCommon(k,v){
      selected rows and to nothing else. */
   if(wqa.applyScope!=='selected') wqa.common[k]=v;
   if(k==='material') wqa.common.materialDefaulted=false;
-  if(WQA_ROW_SPEC.indexOf(k)>=0) wqaApplyTargets().forEach(r=>{
+  /* Rows that are variants of one detected spec are collapsed on this axis by
+     the variant machinery, which keeps the rows that already have this value
+     and drops the others. Everything else takes the ordinary path below. */
+  const varTargets=(WQA_ROW_SPEC.indexOf(k)>=0) ? wqaApplyTargets().filter(r=>r.vg&&!wqaVExact(r)) : [];
+  if(varTargets.length){
+    const before=wqa.rows.filter(r=>!r.removed).length;
+    wqaVariantApply(k,[v],varTargets);
+    const after=wqa.rows.filter(r=>!r.removed).length;
+    if(after<before) showToast(dcT('wqaVarReduced').replace('{n}',after));
+  }
+  if(WQA_ROW_SPEC.indexOf(k)>=0) wqaApplyTargets().filter(r=>(!r.vg||wqaVExact(r)) && varTargets.indexOf(r)<0).forEach(r=>{
     /* A finish cannot be applied to a stainless row, and choosing stainless
        clears the finish that row was carrying. The same for a Stud and its
        size type. */
@@ -18820,10 +18893,584 @@ function wqaSetCommon(k,v){
                                 r.finish=wqaFinishFor(v,r.finish); }
   });
   wqaRenderCommon(); wqaRecomputeAll(); }
+/* ══ VARIANTS — one detected spec, several quotation items ═════════════════
+   The detected geometry (product, size, dimensions, qty, accessories) is
+   shared only at the moment of expansion. Each combination of Material /
+   Size Type / Finish becomes its OWN row, exactly like any other row: its own
+   material, its own calculator pass (cost rate, weight, base price, markup,
+   rounding, accessory pricing), its own Pricing History lookup and its own
+   edits. Rows that came from one spec share only a tag, r.vg, so the review
+   can count and list them; the tag is never saved anywhere.
+
+   A clone starts with a clean pricing state — Auto, no manual price, no
+   history reuse, no cost-rate override — because a cost rate or a final price
+   chosen for MS says nothing about 4140. Its accessories are a deep copy.
+
+   Excluding a combination reuses r.removed (the state ✕ already sets) so every
+   count, recompute and Add path already ignores it; r.added marks rows that
+   have really gone into the quotation, which can never be restored.        */
+const WQA_VAR_MAX=24;
+/* Product is the outermost axis. It is different in kind: a product owns its
+   own dimension schema, so a product variant is built by wqaVariantProductMap
+   and never by copying fields across. */
+const WQA_VAR_AXES=['product','material','sizeType','finish'];
+function wqaVAxisVal(r,k){ return k==='product' ? wqaRowProduct(r) : wqaRowSpec(r,k); }
+const WQA_VAR_ST_LABEL={FULLSIZE:'Fullsize',UNDERSIZE:'Undersize'};
+let wqaVgSeq=0;
+function wqaVgNew(){ return 'vg'+(++wqaVgSeq); }
+function wqaVkey(r){ return WQA_VAR_AXES.map(k=>wqaVAxisVal(r,k)).join('|'); }
+function wqaVDistinct(rows,k){
+  const out=[]; rows.forEach(r=>{ const v=wqaVAxisVal(r,k); if(out.indexOf(v)<0) out.push(v); }); return out;
+}
+function wqaVVal(k,v){
+  if(v==='') return 'N/A';
+  if(k==='product') return (wqaProductByType(v)||{label:v}).label;
+  return k==='material' ? materialLabel(v) : k==='sizeType' ? (WQA_VAR_ST_LABEL[v]||v) : v;
+}
+function wqaVGroupRows(vg){ return wqa.rows.filter(r=>r.vg===vg && !r.added); }
+/* Product is named in the list only where the variants actually differ by it. */
+function wqaVShowProduct(){
+  return [...new Set(wqa.rows.filter(r=>r.vg&&!r.added).map(r=>r.vg))]
+    .some(g=>wqaVDistinct(wqaVGroupRows(g),'product').length>1);
+}
+function wqaVBreakdown(g){
+  const rows=wqaVGroupRows(g);
+  const parts=[['product','fieldProduct'],['material','lblMaterial'],['sizeType','lblSizeType'],['finish','lblFinish']]
+    .map(a=>dcT(a[1])+' '+wqaVDistinct(rows,a[0]).length);
+  return parts.join(' × ')+' = '+rows.length;
+}
+function wqaVComboLabel(r){
+  const bits=wqaVShowProduct() ? [wqaVVal('product',wqaRowProduct(r))||'—'] : [];
+  bits.push(wqaRowSpec(r,'material') ? materialLabel(wqaRowSpec(r,'material')) : '—');
+  if(wqaRowSpec(r,'sizeType')) bits.push(WQA_VAR_ST_LABEL[wqaRowSpec(r,'sizeType')]||wqaRowSpec(r,'sizeType'));
+  if(wqaRowSpec(r,'finish'))   bits.push(wqaRowSpec(r,'finish'));
+  return bits.join(' / ');
+}
+/* The header's wording for an axis that has several values, or '' when the
+   rows do not form variant groups that all agree on it. */
+function wqaVAxisLabel(k){
+  const live=wqa.rows.filter(r=>!r.removed);
+  if(!live.length || !live.every(r=>r.vg)) return '';
+  let ref=null, list=null;
+  for(const g of [...new Set(live.map(r=>r.vg))]){
+    const d=wqaVDistinct(wqaVGroupRows(g),k);
+    if(ref===null){ ref=d.join('|'); list=d; } else if(ref!==d.join('|')) return '';
+  }
+  return (list&&list.length>1) ? list.map(v=>wqaVVal(k,v)).join(', ') : '';
+}
+/* Detected N items counts specs: a spec with three variants is one detection. */
+function wqaSpecCount(live){
+  const seen={}; let n=0;
+  live.forEach(r=>{ if(r.vg){ if(!seen[r.vg]){ seen[r.vg]=1; n++; } } else n++; });
+  return n;
+}
+/* Re-express a row's geometry in another product's own dimensions. A dimension
+   crosses only when the target product HAS it and the source product HAS it
+   under the same name (size, length, thread); everything else the target
+   needs stays EMPTY, so wqaRowMissing asks for it — an L Bolt's L600 / W150 is
+   never turned into a J Bolt's H / ID / S. A dimension the target does not
+   use (a Sag Rod's W) is dropped, not hidden. Returns what could not be
+   derived. */
+function wqaVariantProductMap(c,srcProduct,target){
+  const from=wqaProductByType(srcProduct)||WQA_NO_PRODUCT, to=wqaProductByType(target)||WQA_NO_PRODUCT;
+  const lacking=[];
+  WQA_DIMS.forEach(d=>{
+    if(to.dims.indexOf(d)<0){ c[d]=''; return; }                 // not this product's dimension
+    if(from.dims.indexOf(d)<0){ c[d]=''; lacking.push(d); }       // needed, not derivable
+  });
+  if(to.threadEnds===0){ c.threadLen=''; c.threadLen2=''; }
+  else if(to.threadEnds===1){ c.threadLen2=''; }
+  else if(to.threadEnds===2) wqaThreadBothEnds(c,target);   // owner rule: TL100 -> 100/100
+  c.product=target; c.productConflict=null; c.unsupported=''; c.noDia=false; c.issues=[];
+  c.conf=c.conf||{}; c.varLacking=lacking;
+  return lacking;
+}
+function wqaVariantClone(src,spec){
+  const c=JSON.parse(JSON.stringify(src));
+  if(spec.product && spec.product!==wqaRowProduct(src)) wqaVariantProductMap(c,wqaRowProduct(src),spec.product);
+  c.material=spec.material; c.finish=spec.finish; c.sizeType=spec.sizeType;
+  c.matDefaulted=false; c.matFrom=''; c.stDefaulted=false;
+  c.removed=false; c.added=false; c.sel=false; c.open=false; c.accOpen=false;
+  c.hist=undefined; c.histFor=''; c.histOpen=false;
+  c.usedHistoryRef=''; c.usedHistoryRecipe=false; c.histApplied=[];
+  c.priceMode='auto'; c.manualPrice=''; c.priceOverride={}; c.calc=null;
+  c.edited=Object.assign({},c.edited||{});
+  WQA_ROW_SPEC.forEach(k=>{ c.edited[k]=true; });
+  return c;
+}
+/* Set one axis to one or more values for the units (a variant group, or a
+   lone row) the target rows belong to. Combinations are the new values
+   crossed with whatever the other two axes already hold. Rows that already
+   are a surviving combination are kept as they are, with their edits; rows
+   that are not are dropped; missing combinations are cloned. */
+function wqaVariantApply(k,values,targets){
+  values=(values||[]).filter((v,i,a)=>v!=null && a.indexOf(v)===i);
+  if(!values.length || !targets.length) return {ok:false};
+  const units=[], seen={};
+  targets.forEach(t=>{
+    if(t.vg){ if(seen[t.vg]||wqaVExact(t)) return; seen[t.vg]=1; units.push(wqaVGroupRows(t.vg)); }
+    else units.push([t]);
+  });
+  if(!units.length) return {ok:false};
+  const others=WQA_VAR_AXES.filter(x=>x!==k);
+  const plans=[];
+  for(const unit of units){
+    const live0=unit.find(r=>!r.removed)||unit[0];
+    const tuples=[];
+    unit.forEach(r=>{ const t=others.map(o=>wqaVAxisVal(r,o));
+                      if(!tuples.some(x=>x.join('|')===t.join('|'))) tuples.push(t); });
+    const ord={}; WQA_VAR_AXES.forEach(a=>{ ord[a]= a===k ? values : wqaVDistinct(unit,a); });
+    const combos=[], keys={};
+    tuples.forEach(t=>values.forEach(v=>{
+      const spec={}; others.forEach((o,ix)=>{ spec[o]=t[ix]; }); spec[k]=v;
+      spec.finish=wqaFinishFor(spec.material,spec.finish);
+      spec.sizeType=dcSizeTypeFor(spec.product,spec.sizeType);
+      const key=WQA_VAR_AXES.map(a=>spec[a]).join('|');
+      if(!keys[key]){ keys[key]=1; combos.push({spec,key}); }
+    }));
+    const ix=(a,spec)=>ord[a].indexOf(spec[a]);
+    combos.sort((a,b)=>ix('product',a.spec)-ix('product',b.spec)
+                    || ix('material',a.spec)-ix('material',b.spec)
+                    || ix('sizeType',a.spec)-ix('sizeType',b.spec)
+                    || ix('finish',a.spec)-ix('finish',b.spec));
+    if(combos.length>WQA_VAR_MAX){
+      showToast(dcT('wqaVarTooMany').replace('{n}',WQA_VAR_MAX));
+      return {ok:false,tooMany:true};
+    }
+    plans.push({unit,combos,live0});
+  }
+  plans.forEach(wqaVariantCommit);
+  wqaVariantRefresh();
+  return {ok:true};
+}
+function wqaVariantRefresh(){
+  wqa.ix=null; wqa.px=null;
+  wqaRenderCommon();
+  wqaRecomputeAll('force');
+}
+/* Replace a unit's rows by the rows its combinations call for. Combine mode
+   keeps every row that already is a surviving combination; exact mode takes
+   each wanted row once, so two identical wanted rows stay two rows. */
+function wqaVariantCommit(p){
+  const at=Math.min(...p.unit.map(r=>wqa.rows.indexOf(r)));
+  const rows=[], used=new Set();
+  p.combos.forEach(c=>{
+    const have=p.unit.filter(r=>wqaVkey(r)===c.key && !used.has(r));
+    if(p.exact){
+      if(have.length){ used.add(have[0]); rows.push(have[0]); } else rows.push(wqaVariantClone(p.live0,c.spec));
+    } else if(have.length) have.forEach(r=>rows.push(r)); else rows.push(wqaVariantClone(p.live0,c.spec));
+  });
+  const gid=p.unit[0].vg||wqaVgNew();
+  rows.forEach(r=>{ if(rows.length>1) r.vg=gid; else delete r.vg; });
+  (wqa.vmode||(wqa.vmode={}))[gid]= (p.exact && rows.length>1) ? 'exact' : 'combine';
+  wqa.rows=wqa.rows.filter(r=>p.unit.indexOf(r)<0);
+  wqa.rows.splice(at,0,...rows);
+}
+function wqaVSpec(base,sp){
+  const spec={product:sp.product||wqaRowProduct(base), material:sp.material!=null&&sp.material!==''?sp.material:wqaRowSpec(base,'material'),
+              sizeType:sp.sizeType!=null&&sp.sizeType!==''?sp.sizeType:wqaRowSpec(base,'sizeType'),
+              finish:sp.finish!=null&&sp.finish!==''?sp.finish:wqaRowSpec(base,'finish')};
+  spec.finish=wqaFinishFor(spec.material,spec.finish);
+  spec.sizeType=dcSizeTypeFor(spec.product,spec.sizeType);
+  return spec;
+}
+/* Exact variants: the listed rows and no others, from one detected spec. */
+function wqaVariantExact(base,specs){
+  if(!base || specs.length<1) return {ok:false};
+  if(specs.length>WQA_VAR_MAX){ showToast(dcT('wqaVarTooMany').replace('{n}',WQA_VAR_MAX)); return {ok:false,tooMany:true}; }
+  const unit=base.vg ? wqaVGroupRows(base.vg) : [base];
+  const combos=specs.map(sp=>{ const spec=wqaVSpec(base,sp); return {spec,key:WQA_VAR_AXES.map(a=>spec[a]).join('|')}; });
+  wqaVariantCommit({unit,combos,live0:unit.find(r=>!r.removed)||unit[0],exact:true});
+  wqaVariantRefresh();
+  return {ok:true};
+}
+/* Back to Combine selections: every combination of the values the rows hold. */
+function wqaVariantCross(vg){
+  const unit=wqaVGroupRows(vg); if(!unit.length) return {ok:false};
+  const ord={}; WQA_VAR_AXES.forEach(a=>{ ord[a]=wqaVDistinct(unit,a); });
+  const combos=[], keys={};
+  const rec=(i,spec)=>{
+    if(i===WQA_VAR_AXES.length){
+      const sp=Object.assign({},spec);
+      sp.finish=wqaFinishFor(sp.material,sp.finish); sp.sizeType=dcSizeTypeFor(sp.product,sp.sizeType);
+      const key=WQA_VAR_AXES.map(a=>sp[a]).join('|');
+      if(!keys[key]){ keys[key]=1; combos.push({spec:sp,key}); }
+      return;
+    }
+    ord[WQA_VAR_AXES[i]].forEach(v=>rec(i+1,Object.assign({},spec,{[WQA_VAR_AXES[i]]:v})));
+  };
+  rec(0,{});
+  if(combos.length>WQA_VAR_MAX){ showToast(dcT('wqaVarTooMany').replace('{n}',WQA_VAR_MAX)); return {ok:false}; }
+  wqaVariantCommit({unit,combos,live0:unit.find(r=>!r.removed)||unit[0],exact:false});
+  wqaVariantRefresh();
+  return {ok:true};
+}
+function wqaVExact(r){ return !!(r && r.vg && wqa.vmode && wqa.vmode[r.vg]==='exact'); }
+/* A variant row in an exact group: one field changed, nothing else touched. */
+function wqaVarSetField(i,k,v){
+  const r=wqa.rows[i]; if(!r) return;
+  if(k==='product'){
+    if(v===wqaRowProduct(r)) return;
+    wqaVariantProductMap(r,wqaRowProduct(r),v);
+    r.sizeType=dcSizeTypeFor(v,r.sizeType);
+    r.finish=wqaFinishFor(r.material,r.finish);
+    r.priceMode='auto'; r.manualPrice=''; r.priceOverride={}; r.usedHistoryRef='';
+  } else {
+    r[k]=v;
+    if(k==='material'){ r.matDefaulted=false; r.matFrom=''; r.finish=wqaFinishFor(v,r.finish); }
+    if(k==='finish') r.finish=wqaFinishFor(r.material,v);
+    if(k==='sizeType'){ r.sizeType=dcSizeTypeFor(wqaRowProduct(r),v); r.stDefaulted=false; }
+  }
+  r.hist=undefined; r.histFor=''; r.calc=null;
+  wqaMarkEdited(r,k);
+  wqaRenderCommon();
+  wqaRecomputeAll('force');
+}
+function wqaVarAddExact(vg){
+  const unit=wqaVGroupRows(vg); if(!unit.length) return;
+  if(unit.length>=WQA_VAR_MAX){ showToast(dcT('wqaVarTooMany').replace('{n}',WQA_VAR_MAX)); return; }
+  const last=unit[unit.length-1];
+  const c=wqaVariantClone(last,{product:wqaRowProduct(last),material:wqaRowSpec(last,'material'),sizeType:wqaRowSpec(last,'sizeType'),finish:wqaRowSpec(last,'finish')});
+  c.vg=vg;
+  wqa.rows.splice(wqa.rows.indexOf(last)+1,0,c);
+  wqaVariantRefresh();
+}
+function wqaVSetMode(vg,mode){
+  const cur=(wqa.vmode&&wqa.vmode[vg])||'combine';
+  if(mode===cur) return;
+  if(mode==='exact'){ (wqa.vmode||(wqa.vmode={}))[vg]='exact'; wqaRenderCommon(); wqaRenderVarBar(); return; }
+  const unit=wqaVGroupRows(vg);
+  let n=1; WQA_VAR_AXES.forEach(a=>{ n*=wqaVDistinct(unit,a).length; });
+  if(n!==unit.length && !confirm(dcT('wqaVarRecombine').replace('{n}',n))) return;
+  wqaVariantCross(vg);
+}
+/* One source of truth for every number the review shows about variants. */
+function wqaRowReady(r){ return !!r && !r.removed && !r.added && !wqaRowBlocked(r) && parseInt(r.qty,10)>0; }
+function wqaVarCounts(){
+  const vr=wqa.rows.filter(r=>r.vg&&!r.added);
+  const en=vr.filter(r=>!r.removed);
+  const attention=en.filter(r=>!wqaRowReady(r)).length;
+  return {total:vr.length, excluded:vr.length-en.length, attention, ready:en.length-attention};
+}
+
+/* The compact multi-select: a small button on the control opens a checklist
+   below the control row. The control itself stays an ordinary select, so a
+   single choice works exactly as it always did. */
+function wqaMvBtn(k){
+  const on=!!(wqa.mv&&wqa.mv.k===k);
+  return `<button type="button" class="wqa-mv-btn${on?' is-on':''}" data-mv="${k}"
+    aria-expanded="${on?'true':'false'}" title="${escHtml(dcT('wqaVarMulti'))}"
+    aria-label="${escHtml(dcT('wqaVarMulti'))}" onclick="event.preventDefault();event.stopPropagation();wqaMvOpen('${k}')">+</button>`;
+}
+function wqaMvOptions(k){
+  if(k==='product') return WQA_PRODUCTS.map(p=>({v:p.type,t:p.label}));
+  if(k==='finish') return ['PL','ZP','HDG'].map(v=>({v,t:v}));
+  if(k==='sizeType') return [{v:'FULLSIZE',t:'Fullsize'},{v:'UNDERSIZE',t:'Undersize'}];
+  const live=wqa.rows.filter(r=>!r.removed);
+  const src=el((wqaRowProduct(live[0]||{})||wqa.product||'')+'-material');
+  return src ? [...src.options].filter(o=>o.value).map(o=>({v:o.value,t:o.text})) : [];
+}
+function wqaMvOpen(k){
+  if(wqaApplyTargets().some(wqaVExact)){ showToast(dcT('wqaVarExactHint')); return; }
+  wqa.mv = (wqa.mv&&wqa.mv.k===k) ? null : {k};
+  wqaRenderCommon();
+  if(wqa.mv){ const f=document.querySelector('#wqaCommon .wqa-mv input'); if(f){ try{ f.focus({preventScroll:true}); }catch(e){} } }
+}
+function wqaMvClose(){ wqa.mv=null; wqaRenderCommon(); }
+function wqaMvPanel(){
+  if(!wqa.mv) return '';
+  const k=wqa.mv.k;
+  const have=[];
+  wqaApplyTargets().forEach(r=>{
+    (r.vg ? wqaVGroupRows(r.vg) : [r]).forEach(x=>{ const v=wqaVAxisVal(x,k); if(v && have.indexOf(v)<0) have.push(v); });
+  });
+  const title={product:'fieldProduct',material:'lblMaterial',finish:'lblFinish',sizeType:'lblSizeType'}[k];
+  return `<div class="wqa-mv" role="group" aria-label="${escHtml(dcT(title))}">
+    <div class="wqa-mv-t">${escHtml(dcT(title))} · ${escHtml(dcT('wqaVarPickMany'))}</div>
+    <div class="wqa-mv-opts">${wqaMvOptions(k).map(o=>`<label class="wqa-mv-o"><input type="checkbox" value="${escHtml(o.v)}"${have.indexOf(o.v)>=0?' checked':''}><span>${escHtml(o.t)}</span></label>`).join('')}</div>
+    <div class="wqa-mv-a">
+      <button type="button" class="btn btn-primary btn-sm" onclick="wqaMvApply()">${escHtml(dcT('wqaVarApply'))}</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="wqaMvClose()">${escHtml(dcT('cancel'))}</button>
+    </div></div>`;
+}
+function wqaMvApply(){
+  if(!wqa.mv) return;
+  const k=wqa.mv.k;
+  const vals=[...document.querySelectorAll('#wqaCommon .wqa-mv input:checked')].map(x=>x.value);
+  if(!vals.length){ showToast(dcT('wqaVarNone')); return; }
+  wqa.mv=null;
+  if(vals.length===1){ wqaSetCommon(k,vals[0]); return; }
+  /* The product that was detected leads the list; the rest follow in menu order. */
+  if(k==='product'){
+    const base=(wqaApplyTargets()[0]&&wqaRowProduct(wqaApplyTargets()[0]))||'';
+    if(vals.indexOf(base)>0) vals.splice(0,0,vals.splice(vals.indexOf(base),1)[0]);
+  }
+  const targets=wqaApplyTargets();
+  if(!targets.length){ wqaRenderCommon(); return; }
+  const r=wqaVariantApply(k,vals,targets);
+  if(r.ok){ showToast(dcT('wqaVarCount').replace('{n}',wqa.rows.filter(x=>!x.removed&&x.vg).length)); }
+  else wqaRenderCommon();
+}
+
+/* The count and the exact combinations. */
+function wqaVModeHtml(g){
+  const ex=!!(wqa.vmode&&wqa.vmode[g]==='exact');
+  return `<span class="wqa-var-mode" role="group" aria-label="${escHtml(dcT('wqaVarMode'))}">
+    <button type="button" class="wqa-var-m${ex?'':' is-on'}" data-vmode="combine" aria-pressed="${ex?'false':'true'}" onclick="wqaVSetMode('${g}','combine')">${escHtml(dcT('wqaVarModeCombine'))}</button><button type="button"
+      class="wqa-var-m${ex?' is-on':''}" data-vmode="exact" aria-pressed="${ex?'true':'false'}" onclick="wqaVSetMode('${g}','exact')">${escHtml(dcT('wqaVarModeExact'))}</button></span>`;
+}
+function wqaVSelect(i,k,val,opts,off){
+  return `<select class="wqa-var-sel" data-vf="${k}" data-vi="${i}" aria-label="${escHtml(dcT({product:'fieldProduct',material:'lblMaterial',sizeType:'lblSizeType',finish:'lblFinish'}[k]))}"
+    onchange="wqaVarSetField(${i},'${k}',this.value)"${off?' disabled':''}>${opts.map(o=>`<option value="${escHtml(o.v)}"${o.v===val?' selected':''}>${escHtml(o.t)}</option>`).join('')}</select>`;
+}
+function wqaVExactRow(r,i,n){
+  const prod=wqaRowProduct(r), src=el(prod+'-material');
+  const mats=src ? [...src.options].filter(o=>o.value).map(o=>({v:o.value,t:o.text})) : [];
+  const m=wqaRowSpec(r,'material');
+  if(m && !mats.some(o=>o.v===m)) mats.unshift({v:m,t:materialLabel(m)});
+  if(!m) mats.unshift({v:'',t:'—'});
+  const prods=WQA_PRODUCTS.map(p=>({v:p.type,t:p.label}));
+  const sts=[{v:'',t:'N/A'},{v:'FULLSIZE',t:'Fullsize'},{v:'UNDERSIZE',t:'Undersize'}];
+  const fins=[{v:'',t:'N/A'},{v:'PL',t:'PL'},{v:'ZP',t:'ZP'},{v:'HDG',t:'HDG'}];
+  const attn=(!r.removed && !wqaRowReady(r) && wqaRowBlocked(r));
+  return `<div class="wqa-var-ex${r.removed?' is-off':''}${attn?' is-attn':''}"><label class="wqa-var-exn"><input type="checkbox" data-vi="${i}"${r.removed?'':' checked'}
+      onchange="wqaVarToggleRow(${i})" aria-label="${escHtml(dcT('wqaVarIncl'))}"><span>${n}.</span></label>
+    ${wqaVSelect(i,'product',prod,prods)}${wqaVSelect(i,'material',m,mats)}${wqaVSelect(i,'sizeType',wqaRowSpec(r,'sizeType'),sts,!dcProductHasSizeType(prod))}${wqaVSelect(i,'finish',wqaRowSpec(r,'finish'),fins,!dcMaterialHasFinish(m))}
+    <span class="wqa-var-px">${r.removed?escHtml(dcT('wqaVarOff')):(attn?`<span class="wqa-var-need">${escHtml(dcT('wqaVarNeeds'))}</span> `:'')+escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span></div>`;
+}
+function wqaRenderVarBar(){
+  const box=el('wqaVarBar'); if(!box) return;
+  const gids=[...new Set(wqa.rows.filter(r=>r.vg&&!r.added).map(r=>r.vg))];
+  if(!gids.length){ if(!box.hidden){ box.hidden=true; box.innerHTML=''; box.dataset.h=''; } return; }
+  const c=wqaVarCounts();
+  const bits=[dcT('wqaVarReadyN').replace('{n}',c.ready)];
+  if(c.excluded) bits.push(dcT('wqaVarExclN').replace('{n}',c.excluded));
+  if(c.attention) bits.push(dcT('wqaVarNeedN').replace('{n}',c.attention));
+  let html=`<div class="wqa-var-bar"><span class="wqa-var-n" title="${escHtml(gids.map(wqaVBreakdown).join(' · '))}">${escHtml(dcT('wqaVarCount').replace('{n}',c.total))}</span>
+    <span class="wqa-var-st${c.attention?' has-attn':''}">${escHtml(bits.join(' · '))}</span>
+    ${gids.length===1?wqaVModeHtml(gids[0]):''}
+    <button type="button" class="btn btn-ghost btn-sm wqa-var-toggle" aria-expanded="${wqa.varOpen?'true':'false'}"
+      onclick="wqaVarToggle()">${escHtml(dcT(wqa.varOpen?'wqaVarHide':'wqaVarReview'))}</button></div>`;
+  if(wqa.varOpen){
+    html+=`<div class="wqa-var-list">`+gids.map(g=>{
+      const rows=wqaVGroupRows(g), exact=!!(wqa.vmode&&wqa.vmode[g]==='exact');
+      const head=gids.length>1 ? `<div class="wqa-var-h">${escHtml(((wqaProductByType(wqaRowProduct(rows[0]))||{}).label||'')+' '+wqaRvSpecText(rows[0]))}${wqaVModeHtml(g)}</div>` : '';
+      const body=exact ? rows.map((r,n)=>wqaVExactRow(r,wqa.rows.indexOf(r),n+1)).join('')
+                         +`<button type="button" class="btn btn-ghost btn-sm wqa-var-add" onclick="wqaVarAddExact('${g}')">+ ${escHtml(dcT('wqaVarAddRow'))}</button>`
+        : rows.map((r,n)=>{
+        const i=wqa.rows.indexOf(r);
+        const attn=!r.removed && !wqaRowReady(r) && wqaRowBlocked(r);
+        return `<label class="wqa-var-row${r.removed?' is-off':''}"><input type="checkbox" data-vi="${i}"${r.removed?'':' checked'}
+          onchange="wqaVarToggleRow(${i})"><span class="wqa-var-l">${n+1}. ${escHtml(wqaVComboLabel(r))}</span><span class="wqa-var-px">${
+          r.removed?escHtml(dcT('wqaVarOff'))
+          :(attn&&(r.varLacking||[]).length ? `<span class="wqa-var-need">${escHtml(dcT('wqaVarNeeds'))}</span> `:'')+escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span></label>`;
+      }).join('');
+      return head+body;
+    }).join('')+`</div>`;
+  }
+  if(box.dataset.h===html && !box.hidden) return;
+  const a=document.activeElement, keepI=(a&&box.contains(a)&&a.getAttribute)?a.getAttribute('data-vi'):null,
+        keepF=(a&&box.contains(a)&&a.getAttribute)?a.getAttribute('data-vf'):null;
+  box.hidden=false; box.dataset.h=html; box.innerHTML=html;
+  if(keepI!==null){ const n=box.querySelector('[data-vi="'+keepI+'"]'+(keepF?'[data-vf="'+keepF+'"]':'')); if(n){ try{ n.focus({preventScroll:true}); }catch(e){} } }
+}
+function wqaVarToggle(){ wqa.varOpen=!wqa.varOpen; wqaRenderVarBar(); }
+function wqaVarToggleRow(i){
+  const r=wqa.rows[i]; if(!r||r.added) return;
+  r.removed=!r.removed;
+  if(r.removed) wqaMarkEdited(r,'removed');
+  wqaRenderCommon();
+  if(r.removed) wqaRenderRows(true); else wqaRecomputeAll('force');
+}
+/* Variant axes written in the Additional info note: "MS 4140", "Fullsize
+   Undersize", "PL HDG". Read as several values only when the wording names
+   two or more DIFFERENT ones of the same kind. */
+function wqaNoteSegAxes(t){
+  const said=' '+wqaNorm(t)+' ', hay=said.toLowerCase();
+  const out={material:[],finish:[],sizeType:[]};
+  const taken=[], hits=[];
+  WQA_MATERIALS.forEach(m=>{
+    const hit=wqaMatchMaterial(m,said);
+    if(!hit) return;
+    const a=hit.index, b=hit.index+hit[0].length;
+    if(taken.some(x=>a<x[1] && b>x[0])) return;
+    taken.push([a,b]); hits.push({at:a,v:m.value});
+  });
+  hits.sort((x,y)=>x.at-y.at).forEach(h=>{ if(out.material.indexOf(h.v)<0) out.material.push(h.v); });
+  const fh=[];
+  WQA_FINISHES.forEach(f=>{
+    const g=new RegExp(f.re.source,'gi'); let m;
+    while((m=g.exec(hay))!==null){ fh.push({at:m.index,v:f.value}); if(g.lastIndex<=m.index) g.lastIndex=m.index+1; }
+  });
+  fh.sort((x,y)=>x.at-y.at).forEach(h=>{ if(out.finish.indexOf(h.v)<0) out.finish.push(h.v); });
+  const sh=[];
+  [['FULLSIZE',/\bfull\s*sized?\b|\bf\/s\b/i],['UNDERSIZE',/\bunder\s*sized?\b|\bu\/s\b/i]].forEach(p=>{
+    const m=p[1].exec(hay); if(m) sh.push({at:m.index,v:p[0]}); });
+  sh.sort((x,y)=>x.at-y.at).forEach(h=>out.sizeType.push(h.v));
+  return out;
+}
+/* Row-specific statements in Additional info. Returns null when the note is
+   not an item-by-item list, {ambiguous:true} when it looks like one but a line
+   cannot be read safely, else {head, segs:[{text}]}. Three shapes count:
+     "Item 1: ... Item 2: ..." / "1. ... 2. ..."   numbered, 1..n in order
+     "Sag Rod:" then "- ..." bullets                a product header and bullets
+     "...; ..."                                    each part naming 2+ fields
+   Independent field lists ("MS 4140  Fullsize Undersize  PL HDG") are NOT
+   item lists and stay with Combine selections. */
+function wqaNoteExactSplit(text){
+  const s=String(text||'').replace(/\r/g,'').trim();
+  if(!s) return null;
+  const factsOf=t=>{ const a=wqaNoteSegAxes(t); return a.material.length+a.finish.length+a.sizeType.length; };
+  const clean=t=>String(t||'').replace(/^[\s;,:\-\u2022*]+|[\s;,]+$/g,'').trim();
+  /* numbered */
+  const re=/(?:^|[\s;])(?:item\s*#?)?(\d{1,2})\s*[.):]\s*(?=\S)/gi, marks=[]; let m;
+  while((m=re.exec(s))!==null) marks.push({n:parseInt(m[1],10),at:m.index,end:m.index+m[0].length});
+  if(marks.length>=2 && marks.every((x,i)=>x.n===i+1)){
+    const segs=marks.map((x,i)=>({text:clean(s.slice(x.end,i+1<marks.length?marks[i+1].at:s.length))}));
+    return {head:clean(s.slice(0,marks[0].at)),segs};
+  }
+  /* bullets: real lines, or inline dashes */
+  const lines=s.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const bl=lines.filter(x=>/^[-\u2022*]\s*\S/.test(x));
+  if(bl.length>=2){
+    return {head:clean(lines.filter(x=>!/^[-\u2022*]\s*\S/.test(x)).join(' ')), segs:bl.map(x=>({text:clean(x)}))};
+  }
+  const dash=/(?:^|\s)[-\u2022*]\s+(?=[A-Za-z0-9])/g, dm=[]; let d;
+  while((d=dash.exec(s))!==null) dm.push({at:d.index,end:d.index+d[0].length});
+  if(dm.length>=2){
+    const head=clean(s.slice(0,dm[0].at));
+    const segs=dm.map((x,i)=>({text:clean(s.slice(x.end,i+1<dm.length?dm[i+1].at:s.length))}));
+    if(factsOf(head)===0 && segs.every(g=>factsOf(g.text)>=2)) return {head,segs};
+  }
+  /* semicolons */
+  const parts=s.split(/\s*;\s*/).map(clean).filter(Boolean);
+  if(parts.length>=2 && parts.every(x=>factsOf(x)>=2)) return {head:'',segs:parts.map(x=>({text:x}))};
+  return null;
+}
+function wqaNoteProductsIn(t){
+  const out=[];
+  const s=String(t||'');
+  WQA_PRODUCTS.forEach(p=>(p.aliases||[]).forEach(a=>{
+    const re=new RegExp('\\b'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+'\\b','i');
+    const x=re.exec(s); if(x && out.findIndex(o=>o.type===p.type)<0) out.push({type:p.type,at:x.index});
+  }));
+  return out.sort((a,b)=>a.at-b.at).map(o=>o.type);
+}
+function wqaNoteExactSpecs(text){
+  const sp=wqaNoteExactSplit(text);
+  if(!sp) return null;
+  const headProds=wqaNoteProductsIn(sp.head);
+  if(headProds.length>1) return {ambiguous:true};
+  const items=[];
+  for(const g of sp.segs){
+    const ax=wqaNoteSegAxes(g.text), pr=wqaNoteProductsIn(g.text);
+    if(ax.material.length>1||ax.finish.length>1||ax.sizeType.length>1||pr.length>1) return {ambiguous:true};
+    const n=ax.material.length+ax.finish.length+ax.sizeType.length+pr.length;
+    if(!n) return {ambiguous:true};
+    items.push({product:pr[0]||headProds[0]||'',material:ax.material[0]||'',sizeType:ax.sizeType[0]||'',finish:ax.finish[0]||''});
+  }
+  return {items};
+}
+/* The note cut at the products it names, as wqaNoteFacts does. */
+function wqaNoteSegs(text){
+  const s=String(text||'').trim();
+  if(!s) return [];
+  const marks=[];
+  WQA_PRODUCTS.forEach(p=>(p.aliases||[]).forEach(a=>{
+    const re=new RegExp('\\b'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+'\\b','gi');
+    let m; while((m=re.exec(s))!==null) marks.push({at:m.index,len:m[0].length,type:p.type});
+  }));
+  marks.sort((a,b)=>a.at-b.at||b.len-a.len);
+  const cuts=[]; let end=-1;
+  marks.forEach(m=>{ if(m.at<end) return; cuts.push(m); end=m.at+m.len; });
+  const segs=[];
+  const head=cuts.length ? s.slice(0,cuts[0].at) : s;
+  if(head.trim()) segs.push({scope:WQA_NOTE_ALL_RE.test(head)?'all':null,text:head});
+  cuts.forEach((c,i)=>{ segs.push({scope:c.type,text:s.slice(c.at+c.len,i+1<cuts.length?cuts[i+1].at:s.length)}); });
+  return segs;
+}
+/* A run of canonical product names written as a list ("L Bolt Sag Rod",
+   "Product: L Bolt, Sag Rod", "L bolt / sag rod") is a product variant request;
+   facts that follow it belong to every product in the list. Only names that
+   match WQA_PRODUCTS count — nothing product-like is invented. */
+function wqaNoteProductList(text){
+  const s=String(text||'');
+  const marks=[];
+  WQA_PRODUCTS.forEach(p=>(p.aliases||[]).forEach(a=>{
+    const re=new RegExp('\\b'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+'\\b','gi');
+    let m; while((m=re.exec(s))!==null) marks.push({at:m.index,end:m.index+m[0].length,type:p.type});
+  }));
+  marks.sort((a,b)=>a.at-b.at||b.end-a.end);
+  const cuts=[]; let end=-1;
+  marks.forEach(m=>{ if(m.at<end) return; cuts.push(m); end=m.end; });
+  if(cuts.length<2) return null;
+  const lead=s.slice(0,cuts[0].at);
+  if(/\S/.test(lead.replace(/\b(?:products?|type|item)s?\s*[:=\-]?/ig,'').replace(/[\s,;:\/&+\-]|\b(?:and|or|for|all)\b/ig,''))) return null;
+  const types=[cuts[0].type]; let last=cuts[0];
+  for(let i=1;i<cuts.length;i++){
+    const gap=s.slice(last.end,cuts[i].at);
+    if(/[^\s,;\/&+]/.test(gap.replace(/\b(?:and|or)\b/ig,''))) break;
+    if(types.indexOf(cuts[i].type)<0) types.push(cuts[i].type);
+    last=cuts[i];
+  }
+  return types.length>1 ? {types, rest:s.slice(last.end)} : null;
+}
+/* Scoped like the single-value facts: a product's own segment goes to that
+   product's rows, "all" to every row, an unscoped segment only to a single row.
+   Returns how many axes were expanded. */
+function wqaApplyNoteVariants(text){
+  let n=0;
+  /* Item-by-item statements keep their pairings: exact variants, never a
+     Cartesian product of the fields they mention. */
+  const ex=wqaNoteExactSpecs(text);
+  if(ex){
+    const live=wqa.rows.filter(r=>!r.removed&&!r.added);
+    if(ex.ambiguous || wqaSpecCount(live)!==1){
+      wqa.aiWarnings=(wqa.aiWarnings||[]).concat([{k:'wqaVarAmbiguous'}]);
+      wqaRenderCommon();
+      return 0;
+    }
+    return wqaVariantExact(live[0],ex.items).ok ? ex.items.length : 0;
+  }
+  let segsText=text, listScope=null;
+  const pl=wqaNoteProductList(text);
+  if(pl){
+    /* The list names the products; it needs exactly one detected spec to
+       expand, like any unscoped fact. */
+    const live=wqa.rows.filter(r=>!r.removed&&!r.added);
+    if(wqaSpecCount(live)===1 && wqaVariantApply('product',pl.types,live).ok){ n++; listScope=pl.types; segsText=pl.rest; }
+    else segsText='';
+  }
+  (listScope ? [{scope:listScope,text:segsText}] : wqaNoteSegs(segsText)).forEach(g=>{
+    const ax=wqaNoteSegAxes(g.text);
+    ['material','sizeType','finish'].forEach(k=>{
+      if(ax[k].length<2) return;
+      /* Re-read each time: the previous axis replaced the rows. A variant group
+         counts as one lone row for scoping, so an unscoped note still needs
+         exactly one detected spec. */
+      const live=wqa.rows.filter(r=>!r.removed&&!r.added);
+      const specs=wqaSpecCount(live);
+      const targets = g.scope==='all' ? live
+                    : Array.isArray(g.scope) ? live.filter(r=>g.scope.indexOf(wqaRowProduct(r))>=0)
+                    : g.scope ? live.filter(r=>wqaRowProduct(r)===g.scope)
+                    : (specs===1?live:[]);
+      if(targets.length && wqaVariantApply(k,ax[k],targets).ok) n++;
+    });
+  });
+  return n;
+}
 /* A row's own product, chosen on its own card. Changing it re-reads that row
    through that product's calculator — nothing else on the list moves. */
 /* A thread the message stated, put into the row once the row has somewhere to
    put it. Only ever fills an empty field, and only for a product that has one. */
+/* OWNER RULE (locked): a single Thread Length on a product that threads both
+   ends is the same length at both ends — TL100 becomes TL100/100. Used by the
+   product switch and by variant expansion so the two cannot disagree. Only
+   ever fills an empty second end; nothing else about the thread is touched. */
+function wqaThreadBothEnds(r,product){
+  if(!r || wqaThreadEnds(product)!==2) return;
+  if(String(r.threadLen||'').trim() && !String(r.threadLen2||'').trim()) r.threadLen2=String(r.threadLen).trim();
+}
 function wqaRowRestoreThread(r,product){
   const ends=wqaThreadEnds(product);
   if(ends<1 || !r || !r.threadSeen || r.threadLen) return;
@@ -18844,6 +19491,7 @@ function wqaEditRowProduct(i,v){
   r.productConflict=null;
   if(v) r.unsupported='';
   wqaRowRestoreThread(r,v);
+  wqaThreadBothEnds(r,v);
   /* Anchor Bolt -> Stud takes the size type with it. */
   r.sizeType=dcSizeTypeFor(v,r.sizeType); if(!r.sizeType) r.stDefaulted=false;
   wqaRenderCommon();
@@ -20874,7 +21522,7 @@ async function wqaAddAll(){
       try{ addCurrentItem(); }            // the REAL add path: validation, calc, pushItem
       catch(err){ dcToastCapture.push(String((err&&err.message)||err)); }
       const said=dcToastCapture||[]; dcToastCapture=null;
-      if(quoteItems.length>n0) r.removed=true;           // it is in the quotation now
+      if(quoteItems.length>n0){ r.removed=true; r.added=true; }   // it is in the quotation now
       else stuck.push({r, why:`${nameOf(r)} — `+(said[0]||dcT('wqaAddRefused'))});
     }
   } finally {
