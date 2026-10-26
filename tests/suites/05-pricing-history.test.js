@@ -341,10 +341,13 @@ module.exports = async (browser, A) => {
     phFormState._matchTargets=phMatchDefaults(phFormState._spec);
     const reload=window.phReloadMatchPriority; window.phReloadMatchPriority=async()=>{};
     phSetMatchBy('length'); const lengthAuto=el('phMatchTarget').value;
+    const lengthVisible=el('phMatchTargetRow').getClientRects().length>0;
     phSetMatchTarget('1200'); phSetMatchBy('thread'); const threadAuto=el('phMatchTarget').value;
+    const threadVisible=el('phMatchTargetRow').getClientRects().length>0;
     phSetMatchTarget('300'); phSetMatchBy('length'); const lengthRemembered=el('phMatchTarget').value;
     phSetMatchBy('thread'); const threadRemembered=el('phMatchTarget').value;
     phSetMatchBy('overall'); const targetHidden=el('phMatchTargetRow').hidden;
+    const overallVisible=el('phMatchTargetRow').getClientRects().length>0;
     window.phReloadMatchPriority=reload;
     const card=phListHtml({_matchBy:'length',_matchTarget:'1200',_spec:phFormState._spec,
       records:[{...phFormState.records[0],dimensionPreview:'L 1200 x TL 300/300mm',exactDims:false}],total:1});
@@ -355,13 +358,16 @@ module.exports = async (browser, A) => {
       costRate: document.getElementById('lbolt-costRate').value,
       markup: document.getElementById('lbolt-markup').value,
     };
-    return {lengthAuto,threadAuto,lengthRemembered,threadRemembered,targetHidden,card,before,after};
+    return {lengthAuto,threadAuto,lengthRemembered,threadRemembered,targetHidden,overallVisible,lengthVisible,threadVisible,card,before,after};
   });
   A.eq(targetUi.lengthAuto, '1219', 'Length auto target comes from the current item');
   A.eq(targetUi.threadAuto, '305', 'symmetric Thread Length auto target is one scalar');
   A.eq(targetUi.lengthRemembered, '1200', 'Length manual target stays remembered');
   A.eq(targetUi.threadRemembered, '300', 'Thread Length manual target stays remembered');
   A.eq(targetUi.targetHidden, 'true', 'Overall hides the Target row');
+  A.eq(targetUi.overallVisible, 'false', 'Overall removes Target label, input and mm from layout');
+  A.eq(targetUi.lengthVisible, 'true', 'Length shows its Target control');
+  A.eq(targetUi.threadVisible, 'true', 'Thread Length shows its Target control');
   A.includes(targetUi.card, 'Target exact', 'a target match is labelled separately from the current item');
   A.includes(targetUi.card, 'L -19mm', 'current-item dimension difference remains visible');
   A.eq(JSON.stringify(targetUi.after), JSON.stringify(targetUi.before), 'match controls never mutate the quotation item');

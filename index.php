@@ -2779,6 +2779,7 @@ input,select,textarea{
 .ph-match-option{min-height:36px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);color:var(--text-2);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .ph-match-option.is-active{border-color:var(--accent);background:var(--accent-light);color:var(--accent-2)}
 .ph-match-target{display:flex;align-items:center;gap:8px;margin-top:9px}
+.ph-match-target[hidden]{display:none}
 .ph-match-target input{width:min(150px,48vw);min-height:38px;padding:6px 9px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);color:var(--text);font:inherit;font-weight:700}
 .ph-match-unit{font-size:12px;font-weight:700;color:var(--text-muted)}
 #phDrawer .ph-list,#phDrawer .ph-scroll{max-height:none;overflow:visible;padding-right:0}
