@@ -1578,6 +1578,8 @@ if ($action === 'get_next_ref') {
         'cleanSize'        => trim($_GET['cleanSize'] ?? ''),
         'dimensionPreview' => trim($_GET['dimensionPreview'] ?? ''),
         'companyId'        => intval($_GET['company_id'] ?? 0),
+        'matchBy'          => trim($_GET['matchBy'] ?? 'overall'),
+        'matchTarget'      => trim($_GET['matchTarget'] ?? ''),
     ];
     $offset = max(0, intval($_GET['offset'] ?? 0));
     $limit  = min(100, max(1, intval($_GET['limit'] ?? 20)));
@@ -1636,7 +1638,7 @@ if ($action === 'get_next_ref') {
             if ($rec !== null) $records[] = $rec;
         }
     }
-    dc_history_sort($records);
+    dc_history_sort($records, $want['matchBy']);
 
     echo json_encode(['ok'=>true,'data'=>[
         'records'    => array_slice($records, $offset, $limit),

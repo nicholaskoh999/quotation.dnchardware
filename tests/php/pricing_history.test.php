@@ -202,6 +202,24 @@ eq($pairRec('L 1000 x TL 100/100mm')['dimDistance'], 0.0, 'the same pair of thre
 eq($pairRec('L 1000 x TL 100/50mm')['dimDistance'], 50.0, 'a shorter second end is 50 away, not zero');
 eq($pairRec('L 900 x TL 100/100mm')['dimDistance'], 100.0, 'and the length still counts');
 
+eq(dc_history_priority_distance('L 1217 x TL 305/305mm', 'length', '1200'), 17.0,
+   'length priority measures the stored L against the requested target');
+eq(dc_history_priority_distance('L 1106 x TL 305/305mm', 'length', '1200'), 94.0,
+   'so L1217 is nearer to L1200 than L1106');
+eq(dc_history_priority_distance('L 1219 x TL 305/305mm', 'thread', '300'), 10.0,
+   'a scalar thread target compares both stored ends: 5mm per side');
+eq(dc_history_priority_distance('L 1219 x TL 100/150mm', 'thread', '100/150'), 0.0,
+   'an asymmetric target keeps each end explicit instead of averaging it');
+$priorityRows = [
+    dc_history_record(item(['dimensionPreview'=>'L 1106 x W 100 x TL 80/80mm']), $L600, meta(1,'L1106','2026-01-01','ADVANCE',7)),
+    dc_history_record(item(['dimensionPreview'=>'L 1217 x W 100 x TL 305/305mm']), $L600, meta(2,'L1217','2026-01-02','ADVANCE',7)),
+];
+foreach ($priorityRows as &$priorityRow) $priorityRow['matchDistance']=dc_history_priority_distance($priorityRow['dimensionPreview'], 'length', '1200');
+unset($priorityRow);
+dc_history_sort($priorityRows, 'length');
+eq(implode(',', array_map(function ($r) { return $r['refNo']; }, $priorityRows)), 'L1217,L1106',
+   'length priority reorders only already-compatible records by target distance');
+
 /* Nothing measurable on one side is unknown, not close. */
 eq($near('')['dimDistance'], null, 'a record with no dimensions has no distance');
 eq(dc_history_record(item(), ['productType'=>'L BOLT','material'=>'4140','sizeType'=>'FULLSIZE',

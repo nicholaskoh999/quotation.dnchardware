@@ -101,6 +101,38 @@ function dc_dim_distance($wantDims, $recordDims) {
     return round($total, 4);
 }
 
+/* A history view can prioritise one dimension without changing what counts as
+   the same item. A scalar TL target applies to each end; a pair keeps each end
+   explicit, which makes asymmetric rods explainable instead of averaged. */
+function dc_history_priority($raw) {
+    return in_array($raw, ['length', 'thread'], true) ? $raw : 'overall';
+}
+function dc_history_target_values($priority, $raw) {
+    $raw = trim((string)$raw);
+    if ($raw === '') return [];
+    if (!preg_match('/^([0-9]+(?:\.[0-9]+)?)(?:\s*\/\s*([0-9]+(?:\.[0-9]+)?))?$/', $raw, $m)) return [];
+    $first = (float)$m[1];
+    if ($priority === 'length') return ['L' => $first];
+    if ($priority === 'thread') {
+        $second = isset($m[2]) && $m[2] !== '' ? (float)$m[2] : $first;
+        return ['TL' => $first, 'TL2' => $second];
+    }
+    return [];
+}
+function dc_history_priority_distance($recordDims, $priority, $target) {
+    $values = dc_dim_values($recordDims);
+    $targetValues = dc_history_target_values($priority, $target);
+    if (!$values || !$targetValues) return null;
+    if ($priority === 'length') return isset($values['L']) ? round(abs($values['L'] - $targetValues['L']), 4) : null;
+    if ($priority === 'thread') {
+        if (!isset($values['TL'])) return null;
+        $total = abs($values['TL'] - $targetValues['TL']);
+        if (isset($values['TL2'])) $total += abs($values['TL2'] - $targetValues['TL2']);
+        return round($total, 4);
+    }
+    return null;
+}
+
 /**
  * An item saved before the normalised fields existed, read out of its
  * description and size label. Returns null when it cannot be read safely —
@@ -305,6 +337,9 @@ function dc_history_record($item, $want, $meta) {
     $num = function ($v) { return ($v === null || $v === '') ? null : (float)$v; };
     $wantDims = (string)($want['dimensionPreview'] ?? '');
     $dist     = dc_dim_distance($wantDims, $dimPreview);
+    $priority = dc_history_priority($want['matchBy'] ?? 'overall');
+    $priorityDistance = $priority === 'overall' ? $dist
+        : dc_history_priority_distance($dimPreview, $priority, $want['matchTarget'] ?? '');
     /* An exact dimensional match is a distance of zero. The string comparison
        is kept as a second way in, for a dimension written in wording the
        labels above cannot read — identical text is identical geometry. */
@@ -333,6 +368,7 @@ function dc_history_record($item, $want, $meta) {
         'dimensionPreview' => $dimPreview,
         'exactDims'    => $exact,
         'dimDistance'  => $dist,
+        'matchDistance' => $priorityDistance,
         'qty'          => (int)($item['qty'] ?? 0),
         'unitPrice'    => $unit,
         /* What the customer's line actually came to, settled above per vintage:
@@ -377,8 +413,9 @@ function dc_history_record($item, $want, $meta) {
  * Nothing is merged across customers and nothing is averaged: two customers'
  * prices for one specification are two facts about two customers.
  */
-function dc_history_sort(array &$records) {
-    usort($records, function ($a, $b) {
+function dc_history_sort(array &$records, $priority = 'overall') {
+    $priority = dc_history_priority($priority);
+    usort($records, function ($a, $b) use ($priority) {
         $ra = empty($a['own']) ? 1 : 0;
         $rb = empty($b['own']) ? 1 : 0;
         if ($ra !== $rb) return $ra <=> $rb;
@@ -387,9 +424,15 @@ function dc_history_sort(array &$records) {
         $fa = (isset($a['finishMatch']) && $a['finishMatch'] === false) ? 1 : 0;
         $fb = (isset($b['finishMatch']) && $b['finishMatch'] === false) ? 1 : 0;
         if ($fa !== $fb) return $fa <=> $fb;
-        $da = $a['dimDistance'] === null ? INF : (float)$a['dimDistance'];
-        $db = $b['dimDistance'] === null ? INF : (float)$b['dimDistance'];
+        $field = $priority === 'overall' ? 'dimDistance' : 'matchDistance';
+        $da = $a[$field] === null ? INF : (float)$a[$field];
+        $db = $b[$field] === null ? INF : (float)$b[$field];
         if ($da !== $db) return $da <=> $db;
+        if ($priority !== 'overall') {
+            $oa = $a['dimDistance'] === null ? INF : (float)$a['dimDistance'];
+            $ob = $b['dimDistance'] === null ? INF : (float)$b['dimDistance'];
+            if ($oa !== $ob) return $oa <=> $ob;
+        }
         $d = strcmp((string)$b['date'], (string)$a['date']);
         if ($d !== 0) return $d;
         return $b['quotationId'] <=> $a['quotationId'];

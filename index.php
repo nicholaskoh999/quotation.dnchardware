@@ -2773,6 +2773,14 @@ input,select,textarea{
 .ph-drawer-x:hover{border-color:var(--accent-mid);color:var(--accent-2)}
 .ph-drawer-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   padding:0 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.ph-match{padding:12px 0 2px;border-bottom:1px solid var(--border)}
+.ph-match-label{display:block;margin-bottom:6px;font-size:11px;font-weight:800;color:var(--text-muted)}
+.ph-match-options{display:flex;flex-wrap:wrap;gap:6px}
+.ph-match-option{min-height:36px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);color:var(--text-2);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.ph-match-option.is-active{border-color:var(--accent);background:var(--accent-light);color:var(--accent-2)}
+.ph-match-target{display:flex;align-items:center;gap:8px;margin-top:9px}
+.ph-match-target input{width:min(150px,48vw);min-height:38px;padding:6px 9px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);color:var(--text);font:inherit;font-weight:700}
+.ph-match-unit{font-size:12px;font-weight:700;color:var(--text-muted)}
 #phDrawer .ph-list,#phDrawer .ph-scroll{max-height:none;overflow:visible;padding-right:0}
 #phDrawer .ph-count{margin:0 -16px 10px;padding:10px 16px 8px}
 #phDrawer .ph-empty-msg{padding:16px 0}
@@ -5811,6 +5819,15 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     </div>
   </div>
   <div class="ph-drawer-body" id="phDrawerBody">
+    <div class="ph-match" id="phMatchControls" hidden>
+      <span class="ph-match-label" data-i18n="phMatchBy">Match by</span>
+      <div class="ph-match-options" role="group" data-i18n-aria="phMatchBy">
+        <button type="button" class="ph-match-option" data-ph-match="overall" onclick="phSetMatchBy('overall')" data-i18n="phMatchOverall">Overall</button>
+        <button type="button" class="ph-match-option" data-ph-match="length" onclick="phSetMatchBy('length')" data-i18n="phMatchLength">Length</button>
+        <button type="button" class="ph-match-option" data-ph-match="thread" onclick="phSetMatchBy('thread')" data-i18n="phMatchThread">Thread Length</button>
+      </div>
+      <label class="ph-match-target" id="phMatchTargetRow" hidden><span class="ph-match-label" data-i18n="phTarget">Target</span><input id="phMatchTarget" type="text" inputmode="decimal" autocomplete="off" onchange="phSetMatchTarget(this.value)"><span class="ph-match-unit">mm</span></label>
+    </div>
     <div id="phResults" style="display:none">
       <div id="phList" class="ph-list"></div>
     </div>
@@ -6146,6 +6163,7 @@ const I18N={
     phNoCurrentDims:'Enter this item\'s dimensions to compare', phComparedWith:'compared with {d}',
     phDiffLegend:'Differences = history − this item', phDiffTitle:'History minus this item, per dimension', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
     phBadgeThisCustomer:'This customer', phBadgeExact:'Exact match', phBadgeClose:'Close match', phBadgeRef:'Reference only',
+    phMatchBy:'Match by', phMatchOverall:'Overall', phMatchLength:'Length', phMatchThread:'Thread Length', phTarget:'Target',
     phSumMatching:'{n} matching', phSumFinal:'Final', phSumBolt:'Bolt', phSumManual:'Manual',
     phUseThis:'Use this pricing', phUseSetup:'Use pricing setup',
     phCfTitleThis:'Use this historical pricing?', phCfTitleSetup:'Use this pricing setup?',
@@ -6724,6 +6742,7 @@ const I18N={
     phNoCurrentDims:'输入本项目尺寸后即可比较', phComparedWith:'对比 {d}',
     phDiffLegend:'差值 = 历史 − 本项目', phDiffTitle:'各尺寸差值：历史减本项目', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
     phBadgeThisCustomer:'本客户', phBadgeExact:'完全匹配', phBadgeClose:'相近规格', phBadgeRef:'仅供参考',
+    phMatchBy:'匹配方式', phMatchOverall:'综合', phMatchLength:'长度', phMatchThread:'牙长', phTarget:'目标',
     phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动价格',
     phUseThis:'套用此定价', phUseSetup:'套用定价参数',
     phCfTitleThis:'要套用这笔历史定价吗？', phCfTitleSetup:'要套用这笔定价参数吗？',
@@ -12003,15 +12022,51 @@ function phRecordHtml(rec,onUse,extra){
 }
 /* One page of history for one specification. null means the lookup could not
    run at all, which is not the same answer as "there is nothing". */
-async function phFetch(spec,companyId,offset,limit){
+async function phFetch(spec,companyId,offset,limit,match){
   if(!spec) return null;
-  const params=new URLSearchParams({action:'get_pricing_history', ...spec,
+  const params=new URLSearchParams({action:'get_pricing_history', ...spec, ...(match||{}),
                                     offset:String(offset||0), limit:String(limit||20)});
   if(companyId!=null) params.set('company_id',String(companyId));
   try{
     const res=await fetch('api.php?'+params.toString()).then(r=>r.json());
     return (res&&res.ok&&res.data) ? res.data : null;
   }catch(e){ return null; }
+}
+function phMatchDefaults(spec){
+  const d=phDimValues((spec&&spec.dimensionPreview)||'');
+  return {length:d.L===undefined?'':cleanNum(d.L),thread:d.TL===undefined?'':cleanNum(d.TL)+(d.TL2===undefined?'':'/'+cleanNum(d.TL2))};
+}
+function phMatchTargetValid(by,value){
+  const s=String(value||'').trim();
+  return by==='length' ? /^[0-9]+(?:\.[0-9]+)?$/.test(s) : /^[0-9]+(?:\.[0-9]+)?(?:\s*\/\s*[0-9]+(?:\.[0-9]+)?)?$/.test(s);
+}
+function phRenderMatchControls(){
+  const box=el('phMatchControls'), state=phFormState;
+  if(!box) return; box.hidden=!state; if(!state) return;
+  const by=state._matchBy||'overall', defaults=phMatchDefaults(state._spec);
+  document.querySelectorAll('[data-ph-match]').forEach(b=>{const active=b.dataset.phMatch===by;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',active?'true':'false');});
+  const row=el('phMatchTargetRow'), input=el('phMatchTarget'); if(row) row.hidden=by==='overall';
+  if(input&&by!=='overall') input.value=state._matchTarget||defaults[by]||'';
+}
+async function phReloadMatchPriority(){
+  if(!phFormState||!phFormState._spec) return;
+  const old=phFormState,by=old._matchBy||'overall',target=old._matchTarget||'',seq=++phAutoSeq;
+  const next=await phFetch(old._spec,old._company,0,20,{matchBy:by,matchTarget:target}); if(seq!==phAutoSeq) return;
+  if(!next){phFormState=null;el('phList').innerHTML=phFormListHtml();phRenderMatchControls();return;}
+  phFormState={...next,_spec:old._spec,_company:old._company,_key:old._key,_matchBy:by,_matchTarget:target};
+  el('phList').innerHTML=phFormListHtml();phRenderMatchControls();phRenderSummary();
+}
+function phSetMatchBy(by){
+  if(!phFormState||!['overall','length','thread'].includes(by)) return;
+  phFormState._matchBy=by;
+  if(by!=='overall'&&!phMatchTargetValid(by,phFormState._matchTarget)) phFormState._matchTarget=phMatchDefaults(phFormState._spec)[by]||'';
+  phRenderMatchControls(); if(by==='overall'||phMatchTargetValid(by,phFormState._matchTarget)) phReloadMatchPriority();
+}
+function phSetMatchTarget(value){
+  if(!phFormState) return; const by=phFormState._matchBy||'overall'; if(by==='overall') return;
+  const next=String(value||'').trim()||phMatchDefaults(phFormState._spec)[by]||'';
+  if(!phMatchTargetValid(by,next)){phRenderMatchControls();return;} if(next===phFormState._matchTarget) return;
+  phFormState._matchTarget=next; phReloadMatchPriority();
 }
 function phListHtml(state,onUse,onMore,extraFor){
   phCmpBase=state ? (state._cmpDims!==undefined ? state._cmpDims : (state._spec ? (state._spec.dimensionPreview||'') : null)) : null;
@@ -12112,22 +12167,24 @@ async function checkPreviousPrice(){
   phDrawerOpen();
   const company=selectedCompanyId, key=phAutoKey(spec);
   phAutoInflight=key; const seq=++phAutoSeq;
-  const st=await phFetch(spec,company,0,20);
+  const st=await phFetch(spec,company,0,20,{matchBy:'overall'});
   if(phAutoInflight===key) phAutoInflight=null;
   if(seq!==phAutoSeq) return;                 // a newer lookup has the floor
   phFormState=st;
-  if(phFormState){ phFormState._spec=spec; phFormState._company=company; phFormState._key=key; }
+  if(phFormState){ phFormState._spec=spec; phFormState._company=company; phFormState._key=key; phFormState._matchBy='overall'; phFormState._matchTarget=''; }
   el('phEmptyMsg').style.display='none';
   el('phResults').style.display='block';
+  phRenderMatchControls();
   el('phList').innerHTML=phFormListHtml();
   phRenderSummary();
 }
 async function phFormMore(){
   if(!phFormState||!phFormState._spec) return;
-  const next=await phFetch(phFormState._spec,selectedCompanyId,phFormState.records.length,20);
+  const next=await phFetch(phFormState._spec,selectedCompanyId,phFormState.records.length,20,{matchBy:phFormState._matchBy||'overall',matchTarget:phFormState._matchTarget||''});
   if(!next) return;
   phFormState.records=phFormState.records.concat(next.records||[]);
   el('phList').innerHTML=phFormListHtml();
+  phRenderMatchControls();
   /* The pressed Load More was just replaced; keep focus inside the drawer
      (without moving its scroll) so Escape and Tab still belong to it. */
   const d=el('phDrawer');
@@ -12146,6 +12203,7 @@ function phViewHistory(){
   if(phFormState && (phFormState._key===phAutoKey(spec) || sameRod)){
     phDrawerSetSub(spec);
     el('phResults').style.display='block';
+    phRenderMatchControls();
     el('phList').innerHTML=phFormListHtml();
     phDrawerOpen();
     return;
