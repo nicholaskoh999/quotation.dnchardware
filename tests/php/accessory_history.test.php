@@ -19,4 +19,19 @@ same($fw['type'],'Flat Washer','Flat Washer is typed'); same($fw['unitPrice'],0.
 $custom=dc_accessory_history_record($item,['type'=>'custom','cleanSize'=>'M12','text'=>'special cap'],$meta);
 same($custom['unitPrice'],1.75,'Custom exact normalised text is supported');
 same(dc_accessory_history_record($item,['type'=>'custom','cleanSize'=>'M12','text'=>'cap'],$meta),null,'Custom fuzzy match is refused');
-echo "ok accessory history (11 assertions)\n";
+$records=[
+  ['refNo'=>'Q-2026-1158','date'=>'2026-10-26','type'=>'Nut','size'=>'M12','finish'=>'','unitPrice'=>0.18],
+  ['refNo'=>'Q-2026-1057','date'=>'2026-10-20','type'=>'Nut','size'=>'M12','finish'=>'','unitPrice'=>0.15],
+  ['refNo'=>'Q-2026-1057','date'=>'2026-10-20','type'=>'Nut','size'=>'M12','finish'=>'','unitPrice'=>0.15],
+  ['refNo'=>'Q-2026-1057','date'=>'2026-10-20','type'=>'Nut','size'=>'M12','finish'=>'','unitPrice'=>0.15],
+  ['refNo'=>'Q-2026-1057','date'=>'2026-10-20','type'=>'Nut','size'=>'M12','finish'=>'ZP','unitPrice'=>0.20],
+  ['refNo'=>'Q-2026-1057','date'=>'2026-10-20','type'=>'Nut','size'=>'M12','finish'=>'','unitPrice'=>0.20],
+];
+$dedup=dc_accessory_history_deduplicate($records);
+same(count($dedup),4,'exact duplicate accessory records collapse to one');
+same($dedup[0]['refNo'],'Q-2026-1158','newest record remains first');
+same($dedup[1]['unitPrice'],0.15,'first identical record is retained');
+same($dedup[2]['finish'],'ZP','same quotation with different finish is retained');
+same($dedup[3]['unitPrice'],0.20,'same quotation with different price is retained');
+ok(!array_key_exists('customer',$dedup[0]),'deduplication does not add customer metadata');
+echo "ok accessory history (17 assertions)\n";

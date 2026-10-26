@@ -248,6 +248,32 @@ function dc_accessory_history_record($item, $want, $meta) {
 }
 
 /**
+ * Several quotation items can carry the same matching accessory. History is a
+ * compact reference, so repeated occurrences with the same visible meaning
+ * must not produce repeated cards. The caller supplies newest-first records;
+ * retaining the first occurrence preserves that ordering.
+ */
+function dc_accessory_history_deduplicate($records) {
+    $seen = [];
+    $out = [];
+    foreach ($records as $record) {
+        if (!is_array($record)) continue;
+        $key = implode("\x1f", [
+            (string)($record['refNo'] ?? ''),
+            (string)($record['date'] ?? ''),
+            (string)($record['type'] ?? ''),
+            (string)($record['size'] ?? ''),
+            (string)($record['finish'] ?? ''),
+            number_format((float)($record['unitPrice'] ?? 0), 4, '.', ''),
+        ]);
+        if (isset($seen[$key])) continue;
+        $seen[$key] = true;
+        $out[] = $record;
+    }
+    return $out;
+}
+
+/**
  * One saved item against the item being quoted.
  *
  * Returns the history record, or null when the item is not the same item.

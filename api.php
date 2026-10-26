@@ -1668,7 +1668,9 @@ if ($action === 'get_next_ref') {
         $meta=['quotationId'=>(int)$row['id'], 'refNo'=>$row['ref_no'], 'date'=>$row['quote_date'] ?: $row['created_at']];
         foreach ($items as $item) { $record=dc_accessory_history_record($item,$want,$meta); if ($record!==null) $records[]=$record; }
     }
-    usort($records, function($a,$b){ $d=strcmp((string)$b['date'],(string)$a['date']); return $d ?: ($b['quotationId'] <=> $a['quotationId']); });
+    /* The query already supplies newest-first, then stable item order within a
+       quotation. Collapse only records with every visible field identical. */
+    $records=dc_accessory_history_deduplicate($records);
     $total=count($records);
     $records=array_map(function($r){ return ['type'=>$r['type'],'size'=>$r['size'],'finish'=>$r['finish'],
         'unitPrice'=>$r['unitPrice'],'refNo'=>$r['refNo'],'date'=>$r['date']]; }, array_slice($records,0,50));

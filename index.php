@@ -1877,6 +1877,7 @@ input,select,textarea{
 .acc-rows .acc-enable{pointer-events:none; cursor:default}
 .acc-rows .acc-enable input[type=checkbox]{position:absolute; width:1px; height:1px; opacity:0; margin:0}
 .acc-rows .acc-item-head{margin-bottom:8px}
+.acc-history-btn{flex:0 0 auto;min-width:72px;padding:6px 9px;white-space:nowrap}
 .acc-addbar{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px}
 .acc-addbar-title{font-size:13px; font-weight:900; color:var(--text-2)}
 .acc-empty{font-size:12px; font-weight:600; color:var(--text-muted); margin-right:auto}
@@ -1902,6 +1903,7 @@ input,select,textarea{
 }
 @media (max-width:640px){
   .acc-rows .acc-item-head{flex-direction:row; align-items:center}
+  .acc-history-btn{min-width:68px;padding-inline:8px}
 }
 
 /* ═══ Responsive row integrity ═══════════════════════════════════════════════
@@ -2740,6 +2742,10 @@ input,select,textarea{
 .ph-rec-warn{background:rgba(214,158,46,.18);color:#8a5a00}
 .ph-rec-use{margin-left:auto}
 .ph-more{margin-top:8px;width:100%}
+/* Accessory history keeps its header and close control in reach while a real
+   quotation archive scrolls inside this compact dialog. */
+#accHistoryModal .acc-history-modal{display:flex;flex-direction:column;max-height:calc(100vh - 10vh);margin-bottom:0}
+#accHistoryModal .acc-history-body{display:flex;flex:1 1 auto;flex-direction:column;gap:9px;min-height:0;overflow-x:hidden;overflow-y:auto;padding-right:4px}
 /* Inside a product form: a full-width row of the form grid, between the
    accessories and Pricing Entry, at most about two lines tall. */
 .item-form > .ph-mini{grid-column:1/-1; margin-top:0; min-width:0}
@@ -8995,7 +9001,7 @@ function dcAccEnhancePanel(panel){
          price; applying a historical price is a separate explicit action. */
       const hist=document.createElement('button');
       hist.type='button'; hist.className='acc-act acc-history-btn'; hist.dataset.acc=m[1]; hist.dataset.type=type;
-      hist.textContent=dcT('accHistory'); hist.setAttribute('aria-label',dcT('accHistory'));
+      hist.textContent=dcT('accHistory'); hist.setAttribute('data-i18n','accHistory'); hist.setAttribute('aria-label',dcT('accHistory'));
       hist.addEventListener('click',()=>accHistoryOpen(type,m[1])); head.appendChild(hist);
     }
   });
@@ -9059,7 +9065,7 @@ let accHistoryState=null;
 function accHistoryModal(){
   let modal=el('accHistoryModal'); if(modal) return modal;
   modal=document.createElement('div'); modal.id='accHistoryModal'; modal.className='modal-overlay';
-  modal.innerHTML='<div class="modal modal-sm"><div class="modal-header"><h2 id="accHistoryTitle"></h2><button class="modal-close" type="button" onclick="closeModal(\'accHistoryModal\')">✕</button></div><div class="modal-body" id="accHistoryBody"></div></div>';
+  modal.innerHTML='<div class="modal modal-sm acc-history-modal"><div class="modal-header"><h2 id="accHistoryTitle"></h2><button class="modal-close" type="button" onclick="closeModal(\'accHistoryModal\')">✕</button></div><div class="modal-body acc-history-body" id="accHistoryBody"></div></div>';
   document.body.appendChild(modal); return modal;
 }
 function accHistoryApply(n){
