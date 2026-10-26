@@ -6543,7 +6543,7 @@ const I18N={
     /* accessories */
     accessories:'配件', accToggleSub:'Nut / Flat Washer / 自定义 · 选填',
     accAddNut:'+ Nut', accAddFW:'+ Flat Washer',
-    accNone:'无配件', accNut:'螺母', accFW:'平垫圈', accCustom:'自定义', accHistory:'历史', accUsePrice:'采用此价格', accHistoryNone:'没有兼容的配件历史。', accHistoryApplied:'配件价格已采用。', accHistoryCustomNeedText:'请输入自定义文字以查看完全一致的历史。',
+    accNone:'无配件', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom', accHistory:'历史价格', accUsePrice:'套用此价格', accHistoryNone:'没有兼容的配件历史。', accHistoryApplied:'配件价格已采用。', accHistoryCustomNeedText:'请输入自定义文字以查看完全一致的历史。',
     accPlusNut:'+ Nut', accPlusFW:'+ Flat Washer', accPlusCustom:'+ 自定义',
     accQtyPerItem:'每件数量', accRemove:'移除',
     mbAddShort:'＋ 加入', mbUpdateShort:'更新',
@@ -7782,17 +7782,11 @@ function validateFinalItem(qty,finalUnitPrice,totalAmount){
   return true;
 }
 function round05(v){
-  const r=Math.round(v*100)/100;
-  const cents=Math.round(r*100)%10;
-  if(cents===9) return Math.round((r+0.01)*10)/10;
-  if(cents===1) return Math.floor(r*10)/10;
-  return r;
+  return roundMoney2(Math.round((Number(v)||0)*20)/20);
 }
 function roundCustom10(v){
-  const cents=Math.round((v+0.0000001)*100);
-  const last=cents%10;
-  const rounded=last<=3?cents-last:cents+(10-last);
-  return rounded/100;
+  const n=Number(v)||0, whole=Math.floor(n), cents=roundMoney2(n-whole);
+  return cents<=0.30 ? whole : whole+1;
 }
 function roundMoney2(v){return Math.round((Number(v)||0)*100)/100}
 function getPriceMode(type){
@@ -7825,12 +7819,15 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
     finalUnitPrice=roundMoney2(manualUnitPrice);
     boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
   }else{
-    boltUnitPrice=roundMoney2(mode==='no_round'?rawUnitPrice:autoRoundedUnitPrice);
+    /* Owner model: Sag Rod rounds to nearest 5 sen; every other family uses
+       the shared .30/.31 whole-Ringgit threshold.  No Round is currency only. */
+    const auto=type==='sagrod' ? round05(rawUnitPrice) : roundCustom10(rawUnitPrice);
+    boltUnitPrice=roundMoney2(mode==='no_round'?rawUnitPrice:auto);
     finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
   }
   priceCalcState[type]={
     priceMode:mode,manualUnitPrice:manualRaw,rawUnitPrice:Number(rawUnitPrice)||0,
-    roundedUnitPrice:Number(autoRoundedUnitPrice)||0,accessoriesCost:accUnit,
+    roundedUnitPrice:Number(type==='sagrod'?round05(rawUnitPrice):roundCustom10(rawUnitPrice))||0,accessoriesCost:accUnit,
     boltUnitPrice:Number(boltUnitPrice)||0,
     finalUnitPrice:Number(finalUnitPrice)||0,
     /* One number under two names: what the customer pays for a piece IS the
