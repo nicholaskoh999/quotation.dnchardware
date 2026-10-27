@@ -4011,6 +4011,30 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
   .wqa-gacc-own:empty{display:none}
   .wqa-it-gacc{padding:0 10px 10px 10px}
 }
+/* ── Owner smoke fix pass (2026-10-27) ──────────────────────────────────── */
+/* Ø and its value are one token, wherever they are drawn. */
+#wqaModal .wqa-gx-dia,#wqaModal .wqa-it-toks .wqa-gx-dia{display:inline-flex!important;flex-direction:row!important;align-items:baseline;white-space:nowrap;gap:0;min-height:0}
+#wqaModal .wqa-gx-dia .wqa-dia-sym{margin-right:1px}
+#wqaModal .wqa-ser-dia{white-space:nowrap}
+#wqaModal .wqa-dia-grp,#wqaModal .wqa-it-note{display:inline-flex;align-items:center;white-space:nowrap}
+#wqaModal .wqa-it-note .wqa-pill{margin-left:2px}
+/* Rounded-to-the-mm values: a quiet ≈, the original in the tooltip. */
+.wqa-mm-rnd{font-size:.7em;font-weight:700;color:var(--text-muted);margin-left:1px;vertical-align:super;line-height:0}
+.wqa-px-ok{color:#1f7a4d;border-color:rgba(52,168,110,.35);background:rgba(52,168,110,.10)}
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  /* A series row's L, its notice, Qty and price read together; the free width
+     goes to the right of the figures, before the actions. */
+  #wqaModal .wqa-it-s .wqa-it-main{grid-template-columns:30px minmax(150px,260px) 76px 120px 106px minmax(130px,210px) minmax(0,1fr) 212px;
+    grid-template-areas:"no spec qty price wt px . acts"}
+  #wqaModal .wqa-it-s .wqa-fig-qty{justify-content:flex-start;gap:6px}
+  /* An item on its own keeps its whole spec (Ø included) on one line; its
+     pricing summary is the part that wraps. */
+  #wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{grid-template-columns:30px minmax(0,1fr) 76px 120px 106px minmax(120px,176px) 212px}
+}
+@media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
+  #wqaModal .wqa-it-s .wqa-it-main{grid-template-columns:30px minmax(130px,220px) 74px 118px 104px minmax(0,1fr) 178px;
+    grid-template-areas:"no spec qty price wt . acts" "no spec px px px . acts"}
+}
 /* ══ DNC shared desktop shell (2026-10-24) ═════════════════════════════════
    The same block in index.php and companies.php, and the same values as the
    Internal PO shell: 240px sidebar, 64px brand row, 36px rows, 8px radius,
@@ -6780,7 +6804,7 @@ const I18N={
     pmManualGuideEg:'Example: Bolt RM1.80 + accessories RM0.20 → enter Manual Price RM2.00',
     wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'Detected {n} items', wqaRvDetectedOne:'Detected 1 item', wqaAddOneItem:'Add 1 Item to Quotation', wqaVarCount:'{n} variants', wqaVarReview:'Review Variants', wqaVarHide:'Hide Variants', wqaVarMulti:'Select several', wqaVarPickMany:'choose one or more', wqaVarApply:'Apply', wqaVarNone:'Choose at least one option.', wqaVarOff:'Excluded', wqaVarReadyN:'{n} ready', wqaVarExclN:'{n} excluded', wqaVarNeedN:'{n} need attention', wqaVarMode:'Variant mode', wqaVarModeCombine:'Combine selections', wqaVarModeExact:'Exact variants', wqaVarAddRow:'Add variant', wqaVarIncl:'Include this variant', wqaVarRecombine:'Combine selections will make {n} variants from the values used. Continue?', wqaVarExactHint:'Exact variants: edit each row, or switch to Combine selections.', wqaVarAmbiguous:'The note lists items in a way that cannot be read safely — review the variants yourself.', wqaVarExactRead:'Exact variants', wqaVarNeeds:'Needs attention', wqaVarReduced:'Variants reduced — {n} items', wqaVarTooMany:'Too many combinations (maximum {n}).', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items', wqaBsScopeGrp:'Current group ({n})', wqaGxDone:'{f} {v} applied to {n} items in this group', wqaGxBad:'Enter a number for {f}.', wqaGxEdit:'Click to edit for this group', wqaGrpAdjust:'Bulk Adjust this group', fieldEffDia:'Effective Diameter', wqaDupTitle:'Possible repeated group detected', wqaDupBody:'This group appears more than once in the source.', wqaDupKeep:'Keep Both', wqaDupMerge:'Merge Quantities', wqaDupRemove:'Remove Duplicate', wqaDupKept:'Repeated group · both kept', wqaDupMerged:'Quantities merged from a repeated group', wqaDupRemoved:'Repeated group removed', wqaDupUndo:'Undo', wqaDupReview:'Review', wqaDupMergedT:'Merged {n} quantities into the first group', wqaDupRemovedT:'Removed the repeated group ({n} items)', wqaGrpNote:'Group note', wqaGrpNotePh:'Reason / Label (optional)', wqaGxEditRow:'Click to edit this item', wqaGxDoneRow:'{f} {v} applied to this item', fieldAccessoryQty:'Accessory Qty', accQtyItem:'Qty / item', accSameFinish:'Same finish', accDiffFinish:'Different finish', accHistN:'History {n}', accHistSplit:'{a} same finish · {b} different finish', accNeedQty:'Qty needs confirmation', accFromProduct:'follows product', accUseDiffAsk:'This price was quoted for {h}; this accessory is {c}. Use {v} anyway? The finish stays {c}.', wqaAccScopeAsk:'Accessory wording appears more than once and it is not clear which items each belongs to — set the accessories yourself.', accOwnRow:'own', accRowsOwn:'{n} item(s) set their own',
+    wqaRvDetected:'Detected {n} items', wqaRvDetectedOne:'Detected 1 item', wqaAddOneItem:'Add 1 Item to Quotation', wqaVarCount:'{n} variants', wqaVarReview:'Review Variants', wqaVarHide:'Hide Variants', wqaVarMulti:'Select several', wqaVarPickMany:'choose one or more', wqaVarApply:'Apply', wqaVarNone:'Choose at least one option.', wqaVarOff:'Excluded', wqaVarReadyN:'{n} ready', wqaVarExclN:'{n} excluded', wqaVarNeedN:'{n} need attention', wqaVarMode:'Variant mode', wqaVarModeCombine:'Combine selections', wqaVarModeExact:'Exact variants', wqaVarAddRow:'Add variant', wqaVarIncl:'Include this variant', wqaVarRecombine:'Combine selections will make {n} variants from the values used. Continue?', wqaVarExactHint:'Exact variants: edit each row, or switch to Combine selections.', wqaVarAmbiguous:'The note lists items in a way that cannot be read safely — review the variants yourself.', wqaVarExactRead:'Exact variants', wqaVarNeeds:'Needs attention', wqaVarReduced:'Variants reduced — {n} items', wqaVarTooMany:'Too many combinations (maximum {n}).', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items', wqaBsScopeGrp:'Current group ({n})', wqaGxDone:'{f} {v} applied to {n} items in this group', wqaGxBad:'Enter a number for {f}.', wqaGxEdit:'Click to edit for this group', wqaGrpAdjust:'Bulk Adjust this group', fieldEffDia:'Effective Diameter', wqaDupTitle:'Possible repeated group detected', wqaDupBody:'This group appears more than once in the source.', wqaDupKeep:'Keep Both', wqaDupMerge:'Merge Quantities', wqaDupRemove:'Remove Duplicate', wqaDupKept:'Repeated group · both kept', wqaDupMerged:'Quantities merged from a repeated group', wqaDupRemoved:'Repeated group removed', wqaDupUndo:'Undo', wqaDupReview:'Review', wqaDupMergedT:'Merged {n} quantities into the first group', wqaDupRemovedT:'Removed the repeated group ({n} items)', wqaGrpNote:'Group note', wqaGrpNotePh:'Reason / Label (optional)', wqaGxEditRow:'Click to edit this item', wqaPxApplied:'Pricing applied ✓', wqaMmRounded:'Original: {v} mm. Displayed as nearest 1 mm. Calculation keeps original precision.', wqaGxDoneRow:'{f} {v} applied to this item', fieldAccessoryQty:'Accessory Qty', accQtyItem:'Qty / item', accSameFinish:'Same finish', accDiffFinish:'Different finish', accHistN:'History {n}', accHistSplit:'{a} same finish · {b} different finish', accNeedQty:'Qty needs confirmation', accFromProduct:'follows product', accUseDiffAsk:'This price was quoted for {h}; this accessory is {c}. Use {v} anyway? The finish stays {c}.', wqaAccScopeAsk:'Accessory wording appears more than once and it is not clear which items each belongs to — set the accessories yourself.', accOwnRow:'own', accRowsOwn:'{n} item(s) set their own',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Quotation', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellOtherModules:'Other Modules', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
@@ -7309,7 +7333,7 @@ const I18N={
     pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → 手动价格填 RM2.00',
     wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'已识别 {n} 个项目', wqaRvDetectedOne:'已识别 1 个项目', wqaAddOneItem:'加入 1 个项目到报价', wqaVarCount:'{n} 个版本', wqaVarReview:'查看版本', wqaVarHide:'收起版本', wqaVarMulti:'多选', wqaVarPickMany:'可多选', wqaVarApply:'应用', wqaVarNone:'请至少选择一项。', wqaVarOff:'已排除', wqaVarReadyN:'{n} 个可加入', wqaVarExclN:'{n} 个已排除', wqaVarNeedN:'{n} 个需处理', wqaVarMode:'版本模式', wqaVarModeCombine:'组合选择', wqaVarModeExact:'指定版本', wqaVarAddRow:'新增版本', wqaVarIncl:'包含此版本', wqaVarRecombine:'组合选择将根据已用的值生成 {n} 个版本。继续？', wqaVarExactHint:'指定版本：请逐行修改，或切换为组合选择。', wqaVarAmbiguous:'备注中的项目列表无法安全识别 — 请自行检查版本。', wqaVarExactRead:'指定版本', wqaVarNeeds:'需处理', wqaVarReduced:'已合并版本 — {n} 个项目', wqaVarTooMany:'组合过多（最多 {n} 个）。', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目', wqaBsScopeGrp:'当前分组（{n}）', wqaGxDone:'已将{f} {v} 应用到本组 {n} 个项目', wqaGxBad:'请为{f}输入数字。', wqaGxEdit:'点击修改本组', wqaGrpAdjust:'批量调整本组', fieldEffDia:'有效直径', wqaDupTitle:'检测到可能重复的分组', wqaDupBody:'这个分组在来源内容中出现了多次。', wqaDupKeep:'保留两组', wqaDupMerge:'合并数量', wqaDupRemove:'删除重复项', wqaDupKept:'重复分组 · 已保留两组', wqaDupMerged:'已合并重复分组的数量', wqaDupRemoved:'已删除重复分组', wqaDupUndo:'撤销', wqaDupReview:'重新选择', wqaDupMergedT:'已将 {n} 个数量合并到第一组', wqaDupRemovedT:'已删除重复分组（{n} 个项目）', wqaGrpNote:'分组备注', wqaGrpNotePh:'原因 / 标签（可选）', wqaGxEditRow:'点击修改此项目', wqaGxDoneRow:'已将{f} {v} 应用到此项目', fieldAccessoryQty:'配件数量', accQtyItem:'每件数量', accSameFinish:'相同表面处理', accDiffFinish:'不同表面处理', accHistN:'历史价格 {n}', accHistSplit:'相同表面处理 {a} · 不同表面处理 {b}', accNeedQty:'数量待确认', accFromProduct:'跟随主产品', accUseDiffAsk:'此价格报价时为 {h}；当前配件为 {c}。仍然套用 {v} 吗？表面处理保持 {c}。', wqaAccScopeAsk:'配件说明出现多次，无法确定各自属于哪些项目，请自行设定配件。', accOwnRow:'单独设定', accRowsOwn:'{n} 个项目单独设定',
+    wqaRvDetected:'已识别 {n} 个项目', wqaRvDetectedOne:'已识别 1 个项目', wqaAddOneItem:'加入 1 个项目到报价', wqaVarCount:'{n} 个版本', wqaVarReview:'查看版本', wqaVarHide:'收起版本', wqaVarMulti:'多选', wqaVarPickMany:'可多选', wqaVarApply:'应用', wqaVarNone:'请至少选择一项。', wqaVarOff:'已排除', wqaVarReadyN:'{n} 个可加入', wqaVarExclN:'{n} 个已排除', wqaVarNeedN:'{n} 个需处理', wqaVarMode:'版本模式', wqaVarModeCombine:'组合选择', wqaVarModeExact:'指定版本', wqaVarAddRow:'新增版本', wqaVarIncl:'包含此版本', wqaVarRecombine:'组合选择将根据已用的值生成 {n} 个版本。继续？', wqaVarExactHint:'指定版本：请逐行修改，或切换为组合选择。', wqaVarAmbiguous:'备注中的项目列表无法安全识别 — 请自行检查版本。', wqaVarExactRead:'指定版本', wqaVarNeeds:'需处理', wqaVarReduced:'已合并版本 — {n} 个项目', wqaVarTooMany:'组合过多（最多 {n} 个）。', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目', wqaBsScopeGrp:'当前分组（{n}）', wqaGxDone:'已将{f} {v} 应用到本组 {n} 个项目', wqaGxBad:'请为{f}输入数字。', wqaGxEdit:'点击修改本组', wqaGrpAdjust:'批量调整本组', fieldEffDia:'有效直径', wqaDupTitle:'检测到可能重复的分组', wqaDupBody:'这个分组在来源内容中出现了多次。', wqaDupKeep:'保留两组', wqaDupMerge:'合并数量', wqaDupRemove:'删除重复项', wqaDupKept:'重复分组 · 已保留两组', wqaDupMerged:'已合并重复分组的数量', wqaDupRemoved:'已删除重复分组', wqaDupUndo:'撤销', wqaDupReview:'重新选择', wqaDupMergedT:'已将 {n} 个数量合并到第一组', wqaDupRemovedT:'已删除重复分组（{n} 个项目）', wqaGrpNote:'分组备注', wqaGrpNotePh:'原因 / 标签（可选）', wqaGxEditRow:'点击修改此项目', wqaPxApplied:'价格已应用 ✓', wqaMmRounded:'原始：{v} mm。显示按最接近 1 mm 取整，计算仍保留原始精度。', wqaGxDoneRow:'已将{f} {v} 应用到此项目', fieldAccessoryQty:'配件数量', accQtyItem:'每件数量', accSameFinish:'相同表面处理', accDiffFinish:'不同表面处理', accHistN:'历史价格 {n}', accHistSplit:'相同表面处理 {a} · 不同表面处理 {b}', accNeedQty:'数量待确认', accFromProduct:'跟随主产品', accUseDiffAsk:'此价格报价时为 {h}；当前配件为 {c}。仍然套用 {v} 吗？表面处理保持 {c}。', wqaAccScopeAsk:'配件说明出现多次，无法确定各自属于哪些项目，请自行设定配件。', accOwnRow:'单独设定', accRowsOwn:'{n} 个项目单独设定',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'更多', rspMoreAria:'更多操作', rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'报价', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellOtherModules:'其他模块', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
@@ -15712,9 +15736,10 @@ function wqaRowBadges(r){
      press that opens the record. Not repeated here. */
   return out;
 }
-function wqaBadgeHtml(r){
+function wqaBadgeHtml(r,only){
   const ri=wqa.rows.indexOf(r);
-  return wqaRowBadges(r).map(b=>{
+  const inline=b=>b.k==='info' && !b.cell && !b.quoted;
+  return wqaRowBadges(r).filter(b=>only==='inline'?inline(b):only==='rest'?!inline(b):true).map(b=>{
     const cls=`wqa-pill wqa-pill-${b.k}${b.w?' wqa-pill-why':''}`;
     if(b.cell) return `<button type="button" class="${cls} wqa-pill-go"
         onclick="event.stopPropagation();wqaEditStart(${ri},'${b.cell}')">${escHtml(b.t)}</button>`;
@@ -20662,6 +20687,16 @@ function wqaIxCommit(i,f,inp,step){
 }
 
 /* ── How a value reads on the row ──────────────────────────────────────── */
+/* DISPLAY ONLY: a dimension shown to the nearest 1 mm (304.8 → 305). The row
+   keeps — and every weight and price uses — the precise value. */
+function wqaMmShow(v){
+  const s=String(v==null?'':v).trim();
+  return s.split('/').map(x=>{ const n=Number(x); return (x.trim()!==''&&isFinite(n)&&Math.round(n)!==n) ? String(Math.round(n)) : x.trim(); }).join('/');
+}
+function wqaRvTokShow(r,f){
+  const v=wqaRvTokVal(r,f);
+  return (f==='size'||f==='qty') ? v : wqaMmShow(v);
+}
 function wqaRvTokVal(r,f){
   if(f==='size')      return sizeDisplay(r.size)||'';
   if(f==='threadLen') return wqaThreadValue(r)||'';
@@ -20690,9 +20725,10 @@ function wqaRvTok(r,i,f){
   }
   const miss=!String(v).trim();
   const name=f==='size'?dcT('lblSize'):lbl;
-  return `<button type="button" class="${cls}${miss?' is-miss':''}" data-tok="${f}"
-      title="${escHtml(dcT('wqaRvTapEdit').replace('{f}',name))}"
-      onclick="event.stopPropagation();wqaIxOpen(${i},'${f}')">${lbl?`<span class="wqa-tok-k">${escHtml(lbl)}</span>`:''}<span class="wqa-tok-v${vcls}">${escHtml(miss?(f==='size'?dcT('lblSize')+' ?':'?'):v)}</span></button>`;
+  const show=wqaRvTokShow(r,f), rnd=!miss && show!==String(v).trim();
+  return `<button type="button" class="${cls}${miss?' is-miss':''}${rnd?' is-mm-rnd':''}" data-tok="${f}"
+      title="${escHtml(rnd?dcT('wqaMmRounded').replace('{v}',String(v).trim().replace('/',' / ')):dcT('wqaRvTapEdit').replace('{f}',name))}"
+      onclick="event.stopPropagation();wqaIxOpen(${i},'${f}')">${lbl?`<span class="wqa-tok-k">${escHtml(lbl)}</span>`:''}<span class="wqa-tok-v${vcls}">${escHtml(miss?(f==='size'?dcT('lblSize')+' ?':'?'):show)}</span>${rnd?'<span class="wqa-mm-rnd" aria-hidden="true">≈</span>':''}</button>`;
 }
 /* The spec line, in the drawing's order: M10 × L1070 × TL70/70. A series
    row leaves out what its heading already says. */
@@ -20745,7 +20781,9 @@ function wqaRvSubHtml(r,i){
       escHtml(dcT('lblAccessoriesColon'))} ${escHtml(wqaAccShortSummary(r.acc))}${accAddon(r.acc)>0?' · +'+escHtml(fmt(accAddon(r.acc)))+'/pc':''}</button>`);
   /* A typed bar is already said where it is read — Ø in the spec line (or on
      the group heading), marked as typed — so the row does not repeat it. */
-  const badges=wqaBadgeHtml(r);
+  const badges=wqaBadgeHtml(r,'rest');
+  /* Pricing was taken but the item still asks for something else. */
+  if(r.pxApplied && (wqaRowMissing(r).length || !(parseFloat(r.calc&&r.calc.finalUnitPrice)>0))) bits.push(`<span class="wqa-rv-chip wqa-px-ok">${escHtml(dcT('wqaPxApplied'))}</span>`);
   return `<div class="wqa-it-sub"${(bits.length||badges)?'':' hidden'}>${bits.join('')}<span class="wqa-sum-badges">${badges}</span></div>`;
 }
 function wqaRvOpenAcc(i){
@@ -20797,10 +20835,21 @@ function wqaRvPxEditor(r,i){
         value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></label>`:''}
     </div>`;
 }
+/* Done commits what was typed — the row's own pricing state, the one the
+   editor wrote into — and prices the row now rather than after a debounce.
+   If the row still cannot price (a Size Type, a size …) it says the pricing
+   was taken, without claiming the item is ready. */
+function wqaPxDone(i,from){
+  const r=wqa.rows[i]; if(!r) return;
+  clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
+  r.pxApplied=true;
+  if(from==='strip'){ wqa.px=null; } else { r.open=false; }
+  wqaRecomputeAll('force');
+}
 function wqaRvPxStrip(r,i){
   return `<div class="wqa-px" onclick="event.stopPropagation()">
       ${wqaRvPxEditor(r,i)}
-      <div class="wqa-px-foot"><button type="button" class="btn btn-outline btn-sm" onclick="wqaPxToggle(${i})">${escHtml(dcT('btnDone'))}</button></div>
+      <div class="wqa-px-foot"><button type="button" class="btn btn-outline btn-sm" onclick="wqaPxDone(${i},'strip')">${escHtml(dcT('btnDone'))}</button></div>
     </div>`;
 }
 /* ── The item's own panel ─────────────────────────────────────────────────
@@ -20924,7 +20973,7 @@ function wqaRvDetail(r,i){
     ${String(r.raw||'').trim()?`<div class="wqa-row-raw-full"><span class="wqa-w-lbl">${escHtml(dcT('wqaRvFromLine'))}</span> ${escHtml(r.raw)}</div>`:''}
     <div class="wqa-dt-foot">
       <button type="button" class="btn btn-ghost btn-sm wqa-dt-del" onclick="wqaRemoveRow(${i})">${escHtml(dcT('btnRemove'))}</button>
-      <button type="button" class="btn btn-outline btn-sm" onclick="wqaToggleRow(${i})">${escHtml(dcT('btnDone'))}</button>
+      <button type="button" class="btn btn-outline btn-sm" onclick="wqaPxDone(${i},'panel')">${escHtml(dcT('btnDone'))}</button>
     </div>
   </div>`;
 }
@@ -21001,8 +21050,10 @@ function wqaRvItemHtml(r,i,series){
       onclick="event.stopPropagation()" onchange="wqaRvToggleSel(${i})"
       aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
   const showDia=!series || (r.diaManual && String(r.diaMm||'').trim()!=='' && wqaGxVal(r,'dia')!==wqaGxCommon(series.idx,'dia'));
+  const note=wqaBadgeHtml(r,'inline');
   const toks=wqaRvSpecToks(r,i,series?WQA_RV_KEY_FIELDS:null)
-    +(showDia?'<span class="wqa-tok-x wqa-dia-x">·</span>'+wqaGxCell('r',i,'dia',[i]):'');
+    +(showDia?'<span class="wqa-dia-grp"><span class="wqa-tok-x wqa-dia-x">·</span>'+wqaGxCell('r',i,'dia',[i])+'</span>':'')
+    +(note?'<span class="wqa-it-note"><span class="wqa-tok-x">·</span>'+note+'</span>':'');
   return `<div class="wqa-it${series?' wqa-it-s':''}${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}${wqa.px===i?' is-px':''}" data-wqa-row="${i}">
     <div class="wqa-it-main" onclick="wqaRvRowClick(${i})">
       <span class="wqa-it-no">${pick}<span class="wqa-it-n">${i+1}</span></span>
@@ -21382,7 +21433,8 @@ function wqaRvSeriesHead(g){
   const size=sizeDisplay(r.size);
   const tl=wqaThreadValue(r);
   const head=[size?`<b>${escHtml(size)}</b>`:`<b class="is-miss">${escHtml(dcT('lblSize'))} ?</b>`];
-  if(wqaThreadEnds(wqaRowProduct(r))>0) head.push(tl?`<b>TL ${escHtml(tl)}</b>`:`<b class="is-miss">TL ?</b>`);
+  const tlShow=wqaMmShow(tl);
+  if(wqaThreadEnds(wqaRowProduct(r))>0) head.push(tl?(tlShow!==tl?`<b class="is-mm-rnd" title="${escHtml(dcT('wqaMmRounded').replace('{v}',tl.replace('/',' / ')))}">TL ${escHtml(tlShow)}<span class="wqa-mm-rnd" aria-hidden="true">≈</span></b>`:`<b>TL ${escHtml(tl)}</b>`):`<b class="is-miss">TL ?</b>`);
   /* Same size, same Size 规格: the same bar. Said once; a row with a bar
      typed by hand says its own. */
   if(g.idx.some(k=>String(wqa.rows[k].diaMm||'').trim()!=='')) head.push(`<span class="wqa-ser-dia">${wqaGxCell('g',g.idx[0],'dia',g.idx)}</span>`);
@@ -21452,7 +21504,7 @@ function wqaPatchRows(){
     });
     const px=card.querySelector('.wqa-px-sum'); if(px) px.textContent=wqaRvPxText(r);
     card.querySelectorAll('button[data-tok]').forEach(b=>{
-      const f=b.getAttribute('data-tok'); const v=wqaRvTokVal(r,f);
+      const f=b.getAttribute('data-tok'); const v=wqaRvTokShow(r,f);
       const vn=b.querySelector('.wqa-tok-v');
       if(vn) vn.textContent = String(v).trim() ? v : (f==='size'?dcT('lblSize')+' ?':'?');
       b.classList.toggle('is-miss',!String(v).trim());
