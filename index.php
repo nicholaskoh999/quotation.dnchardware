@@ -9310,7 +9310,8 @@ function dcAccEnhancePanel(panel){
          price; applying a historical price is a separate explicit action. */
       const hist=document.createElement('button');
       hist.type='button'; hist.className='acc-act acc-history-btn'; hist.dataset.acc=m[1]; hist.dataset.type=type;
-      hist.setAttribute('data-i18n-title','accHistory'); hist.title=dcT('accHistory'); hist.setAttribute('aria-label',dcT('accHistory'));
+      hist.setAttribute('data-i18n-title','accHistory'); hist.title=dcT('accHistory');
+      hist.setAttribute('data-i18n-aria','accHistory'); hist.setAttribute('aria-label',dcT('accHistory'));
       hist.innerHTML=dcHistIcon();
       hist.addEventListener('click',()=>accHistoryOpen(type,m[1])); head.appendChild(hist);
     }

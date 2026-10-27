@@ -229,6 +229,6 @@ module.exports = async (browser, A) => {
   const zb = await p.evaluate(() => { const b = document.querySelector('#sagrod-accPanel .acc-history-btn'); const r = b.getBoundingClientRect();
     return { text: [b.title, b.textContent.trim()].join('|'), aria: b.getAttribute('aria-label'), oneLine: r.height < 40 }; });
   A.eq(zb.text + '/' + zb.oneLine, '历史价格|/true', '中文: icon-only History, tooltip 历史价格, one line');
-  A.ok(!!zb.aria, '中文: and it keeps an accessible name');
+  A.eq(zb.aria, '历史价格', '中文: and its aria-label is 历史价格');
   await ctx.close();
 };
