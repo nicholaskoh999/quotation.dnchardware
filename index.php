@@ -4034,6 +4034,17 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
   #wqaModal{--wqa-row-cols:28px minmax(0,1fr) 70px 112px 100px 150px 178px}
   #wqaModal .wqa-it-toks{flex-wrap:wrap}
 }
+/* Spec cell hierarchy: product · material · finish · size type over the
+   dimensions; a dense spec breaks only between its clusters. */
+#wqaModal .wqa-it-title{align-items:baseline;gap:0 4px}
+#wqaModal .wqa-it-title .wqa-title-x{font-size:11px;margin:0 1px}
+#wqaModal .wqa-it-title .wqa-row-spec{margin-left:0}
+#wqaModal .wqa-toks-dense{display:inline-flex;flex-wrap:wrap;align-items:center;row-gap:0;column-gap:0;line-height:1.3}
+#wqaModal .wqa-tok-grp{display:inline-flex;align-items:center;white-space:nowrap}
+#wqaModal .wqa-toks-dense .wqa-tok-x{margin:0 2px}
+@media (max-width:599px){
+  #wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-title{flex-direction:row;flex-wrap:wrap;align-items:baseline}
+}
 /* ══ DNC shared desktop shell (2026-10-24) ═════════════════════════════════
    The same block in index.php and companies.php, and the same values as the
    Internal PO shell: 240px sidebar, 64px brand row, 36px rows, 8px radius,
@@ -20731,6 +20742,23 @@ function wqaRvTok(r,i,f){
 }
 /* The spec line, in the drawing's order: M10 × L1070 × TL70/70. A series
    row leaves out what its heading already says. */
+/* A long spec (five dimensions or more — a J Bolt's M · H · ID · S · TL) reads
+   in clusters that never split inside: [M20 · H500 · ID100] [S70] [TL150 · Ø20].
+   The line may only break BETWEEN clusters, so a desktop cell wraps as
+   "M20 · H500 · ID100 · S70 / TL150 · Ø20" and a phone as
+   "M20 · H500 · ID100 / S70 · TL150 · Ø20". Order is the drawing's order. */
+function wqaRvDenseToks(r,i,diaCell){
+  const order=wqaIxOrder(r).filter(f=>f!=='qty');
+  if(order.length<5) return null;
+  const x='<span class="wqa-tok-x">·</span>';
+  const tl=order.filter(f=>f==='threadLen'), rest=order.filter(f=>f!=='threadLen');
+  const head=rest.slice(0,3), mid=rest.slice(3);
+  const grp=(fs,extra)=>`<span class="wqa-tok-grp">${fs.map(f=>wqaRvTok(r,i,f)).concat(extra||[]).join(x)}</span>`;
+  const out=[grp(head)];
+  if(mid.length) out.push(grp(mid));
+  if(tl.length||diaCell) out.push(grp(tl,diaCell?[diaCell]:[]));
+  return `<span class="wqa-toks-dense">${out.join(x)}</span>`;
+}
 function wqaRvSpecToks(r,i,skip){
   const order=wqaIxOrder(r).filter(f=>f!=='qty' && !(skip&&skip.indexOf(f)>=0));
   return order.map(f=>wqaRvTok(r,i,f)).join('<span class="wqa-tok-x">×</span>');
@@ -21050,14 +21078,17 @@ function wqaRvItemHtml(r,i,series){
       aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
   const showDia=!series || (r.diaManual && String(r.diaMm||'').trim()!=='' && wqaGxVal(r,'dia')!==wqaGxCommon(series.idx,'dia'));
   const note=wqaBadgeHtml(r,'inline');
-  const toks=wqaRvSpecToks(r,i,series?WQA_RV_KEY_FIELDS:null)
-    +(showDia?'<span class="wqa-dia-grp"><span class="wqa-tok-x wqa-dia-x">·</span>'+wqaGxCell('r',i,'dia',[i])+'</span>':'')
+  const diaCell=showDia?wqaGxCell('r',i,'dia',[i]):'';
+  const dense=series?null:wqaRvDenseToks(r,i,diaCell);
+  const toks=(dense!==null ? dense
+    : wqaRvSpecToks(r,i,series?WQA_RV_KEY_FIELDS:null)
+      +(showDia?'<span class="wqa-dia-grp"><span class="wqa-tok-x wqa-dia-x">·</span>'+diaCell+'</span>':''))
     +(note?'<span class="wqa-it-note"><span class="wqa-tok-x">·</span>'+note+'</span>':'');
   return `<div class="wqa-it${series?' wqa-it-s':''}${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}${wqa.px===i?' is-px':''}" data-wqa-row="${i}">
     <div class="wqa-it-main" onclick="wqaRvRowClick(${i})">
       <span class="wqa-it-no">${pick}<span class="wqa-it-n">${i+1}</span></span>
       <div class="wqa-it-spec">
-        ${series?'':`<div class="wqa-it-title"><span class="wqa-it-prod">${escHtml(title)}</span>${spec?`<span class="wqa-row-spec">${escHtml(spec)}</span>`:''}</div>`}
+        ${series?'':`<div class="wqa-it-title"><span class="wqa-it-prod">${escHtml(title)}</span>${spec?`<span class="wqa-tok-x wqa-title-x">·</span><span class="wqa-row-spec">${escHtml(spec)}</span>`:''}</div>`}
         <div class="wqa-it-toks">${toks||'<span class="wqa-tok-none">—</span>'}</div>
       </div>
       <div class="wqa-it-fig">
