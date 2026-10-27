@@ -244,6 +244,7 @@ function dc_accessory_history_record($item, $want, $meta) {
         'unitPrice' => round((float)$part['unitPrice'], 4),
         'refNo' => (string)($meta['refNo'] ?? ''), 'date' => (string)($meta['date'] ?? ''),
         'quotationId' => (int)($meta['quotationId'] ?? 0),
+        'customer' => (string)($meta['customer'] ?? ''),
     ];
 }
 
@@ -392,6 +393,7 @@ function dc_history_record($item, $want, $meta) {
     }
 
     $num = function ($v) { return ($v === null || $v === '') ? null : (float)$v; };
+    $positive = function ($v) { return (is_numeric($v) && (float)$v > 0) ? round((float)$v, 4) : null; };
     $wantDims = (string)($want['dimensionPreview'] ?? '');
     $dist     = dc_dim_distance($wantDims, $dimPreview);
     $priority = dc_history_priority($want['matchBy'] ?? 'overall');
@@ -443,7 +445,23 @@ function dc_history_record($item, $want, $meta) {
         'markup'       => isset($item['markup']) ? (float)$item['markup'] : $num($form['markup'] ?? null),
         'weight'       => isset($item['weight']) ? (float)$item['weight'] : null,
         'legacy'       => $legacy,
+        /* Manual Price context: the formula's own figure and the Auto Round
+           reference beside the typed price, ONLY where the item stored them.
+           Older quotations never did, and nothing is reconstructed for them. */
+        'rawUnitPrice'       => $mode === 'manual' ? $positive($item['rawUnitPrice'] ?? ($form['rawUnitPrice'] ?? null)) : null,
+        'autoRoundUnitPrice' => $mode === 'manual' ? $positive($item['roundedUnitPrice'] ?? ($form['roundedUnitPrice'] ?? null)) : null,
     ];
+}
+
+/**
+ * Exact / Similar / Reference only — the browser's phMatchInfo, in PHP:
+ * another coating is a reference; identical dimensions are exact; any
+ * comparable distance is similar; anything not comparable is a reference.
+ */
+function dc_history_class($r) {
+    if (($r['finishMatch'] ?? true) === false) return 'ref';
+    if (!empty($r['exactDims'])) return 'exact';
+    return ($r['dimDistance'] ?? null) !== null ? 'close' : 'ref';
 }
 
 /**

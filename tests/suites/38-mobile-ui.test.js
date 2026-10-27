@@ -226,7 +226,10 @@ module.exports = async (browser, A) => {
     A.eq(r.over.page <= 0 && r.over.modal <= 0 && r.over.list <= 0, true,
       `${w}px: nothing scrolls sideways — page ${r.over.page}, dialog ${r.over.modal}, list ${r.over.list}`);
     A.eq(r.head.join(','), '', `${w}px: there is no table header`);
-    A.eq(r.hidden.join(','), '0,0,0', `${w}px: a closed row shows no pricing line, row actions or weight — it is compact`);
+    /* 2026-10-27 (owner hierarchy): a closed row now shows its weight and its
+       pricing line (read-only) — still no row actions; a tap opens the panel. */
+    A.eq(r.hidden[1], 0, `${w}px: a closed row shows no row actions — it is compact`);
+    A.eq(r.hidden[0] > 0 && r.hidden[0] === r.hidden[2], true, `${w}px: and every closed row shows its pricing line and weight (${r.hidden.join(',')})`);
     A.eq(r.pillsOneLine && r.pillsScroll === 'auto', true,
       `${w}px: the shared values stay on one line and scroll sideways (${r.pillsScroll})`);
 
@@ -261,7 +264,7 @@ module.exports = async (browser, A) => {
       return {
         open: wqa.rows.map((r, i) => r.open ? i : -1).filter(i => i >= 0).join(','),
         ix: document.querySelectorAll('#wqaRows .wqa-ix').length,
-        carries: vis(p && p.querySelector('.wqa-dt-foot .wqa-row-hist')) && vis(p && p.querySelector('.wqa-dt-del'))
+        carries: vis(p && p.querySelector('.wqa-dt-hist .wqa-dt-histbar')) && vis(p && p.querySelector('.wqa-dt-del'))
               && vis(p && p.querySelector('[data-px="costRate"]')),
         fields: p ? [...p.querySelectorAll('input,select')].filter(vis).map(n => +n.getBoundingClientRect().height.toFixed(1)) : [],
         over: sc.scrollWidth - sc.clientWidth,

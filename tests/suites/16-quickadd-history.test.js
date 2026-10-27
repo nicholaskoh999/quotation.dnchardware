@@ -142,8 +142,8 @@ module.exports = async (browser, A) => {
   A.eq(panels[0].open, 'true', 'row 1 shows its history');
   A.eq(panels[1].open, 'false', 'row 2 shows nothing — it was not asked');
   A.ok(panels[0].refs.every(x => x.startsWith('M20-')), 'and every record shown is row 1\'s own');
-  A.eq((await actionsOf(0)).count + '/' + (await actionsOf(1)).count, '5/',
-    'row 1\'s History now carries its record count, row 2\'s still none');
+  A.eq((await actionsOf(0)).count + '/' + (await actionsOf(1)).count, '3/',   // 2026-10-27: the EXACT-match count (3 of 5), never a bare total
+    'row 1\'s History now carries its exact-match count, row 2\'s still none');
 
   await page.click('[data-wqa-row="1"] .wqa-it-acts .wqa-row-hist');
   await page.waitForTimeout(700);

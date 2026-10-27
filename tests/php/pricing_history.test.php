@@ -578,6 +578,27 @@ $e3 = dc_history_record($early('M12 X 1000'), $SAG_WANT, meta(3, 'Q-2019-0003', 
 eq($e3, null, 'EARLY: a label without the × format is left exactly as before (not guessed at)');
 
 
+// ── 2026-10-27: Exact / Similar / Reference only, and Manual Price context ──
+$cls = function ($over, $want = null) use ($WANT, $M) { $r = dc_history_record(item($over), $want ?: $WANT, $M); return $r === null ? null : dc_history_class($r); };
+eq($cls([]), 'exact', 'CLASS: identical specification and dimensions is exact');
+eq($cls(['dimensionPreview' => 'L 1050 x W 100 x TL 150mm']), 'close', 'CLASS: same identity, L +50 is similar');
+eq($cls(['finish' => 'HDG']), 'ref', 'CLASS: another finish is reference only, even at identical dimensions');
+eq($cls(['dimensionPreview' => 'custom shape']), 'ref', 'CLASS: dimensions that cannot be compared are reference only');
+$man = dc_history_record(item(['priceMode' => 'manual', 'finalUnitPrice' => 7.20,
+    'formData' => ['costRate' => '5.00', 'addCost' => '0.60', 'markup' => '0', 'priceMode' => 'manual',
+                   'manualUnitPrice' => '7.20', 'rawUnitPrice' => 6.43, 'roundedUnitPrice' => 6.40]]), $WANT, $M);
+eq($man['rawUnitPrice'], 6.43, 'MANUAL: the calculated figure saved with the item is returned');
+eq($man['autoRoundUnitPrice'], 6.40, 'MANUAL: and the Auto Round reference beside it');
+eq($man['unitPrice'], 7.20, 'MANUAL: the quoted price is unchanged');
+$old = dc_history_record(item(['priceMode' => 'manual', 'finalUnitPrice' => 7.20,
+    'formData' => ['priceMode' => 'manual', 'manualUnitPrice' => '7.20']]), $WANT, $M);
+eq($old['rawUnitPrice'], null, 'MANUAL: an old quotation that never stored it gets no invented calculated price');
+eq($old['autoRoundUnitPrice'], null, 'MANUAL: nor an invented Auto Round reference');
+$zero = dc_history_record(item(['priceMode' => 'manual', 'formData' => ['priceMode' => 'manual', 'rawUnitPrice' => 0, 'roundedUnitPrice' => 0]]), $WANT, $M);
+eq($zero['rawUnitPrice'], null, 'MANUAL: a zero (nothing was calculated) is not shown as RM 0.00');
+$auto = dc_history_record(item(['rawUnitPrice' => 29.8, 'roundedUnitPrice' => 29.8]), $WANT, $M);
+eq($auto['rawUnitPrice'], null, 'AUTO: the manual context is only for Manual Price records');
+
 // ── report ──────────────────────────────────────────────────────────────────
 echo "  " . (count($failures) ? 'FAIL' : 'ok  ')
    . "  pricing history — identity, accessories, ranking  ($asserts assertions"

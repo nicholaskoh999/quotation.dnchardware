@@ -44,7 +44,11 @@ const layoutOf = width => width >= 1024 ? 'desktop' : width >= 600 ? 'tablet' : 
    few px: desktop = a title line over one value line (63px measured); tablet
    = title + 42px tokens, 44px figures, 40px pricing button, stacked (188px);
    mobile = title, values, figures (88px). */
-const MAIN_BUDGET = { desktop: 66, tablet: 192, mobile: 92 };
+/* 2026-10-27 (owner-smoke follow-up): mobile is the owner's stacked
+   hierarchy — product, material · finish · size type, values (· Ø), figures
+   with weight, and the pricing line (~134px measured; a J Bolt's five
+   dimensions plus Ø wrap to a second line at 390px, ~149px). */
+const MAIN_BUDGET = { desktop: 66, tablet: 192, mobile: 152 };
 
 /* Where each control actually is, and whether it is usable: a real box,
    inside the list and its own row, not overlapping any other control. */
@@ -107,7 +111,7 @@ const PANEL = () => {
     const r = n.getBoundingClientRect();
     return r.width > 8 && r.height > 8 && r.left >= list.left - 0.5 && r.right <= Math.min(list.right, W) + 0.5; };
   return { open: !!card.querySelector('.wqa-rv-detail'),
-           hist: at('.wqa-rv-detail .wqa-row-hist'), del: at('.wqa-rv-detail .wqa-dt-del'),
+           hist: at('.wqa-rv-detail .wqa-dt-histbar'), del: at('.wqa-rv-detail .wqa-dt-del'),
            pageWide: document.documentElement.scrollWidth <= window.innerWidth + 1 };
 };
 
@@ -132,9 +136,14 @@ module.exports = async (browser, A) => {
         A.ok(g.price && g.price.inside, `${at}: the price is visible inside the row`);
         A.ok(g.px && g.px.inside, `${at}: the pricing summary is visible inside the row`);
       } else {
-        /* The row is the control: no per-row buttons beside the values. */
-        A.ok(!g.hist && !g.del && !g.more && !g.px,
-          `${at}: no History / remove / More / pricing buttons on the compact card`);
+        /* The row is the control: no per-row buttons beside the values. The
+           pricing line is shown (owner hierarchy, line 5) but is read-only —
+           a tap still opens the row's panel. */
+        A.ok(!g.hist && !g.del && !g.more,
+          `${at}: no History / remove / More buttons on the compact card`);
+        A.eq(await page.evaluate(() => { const n = document.querySelector('[data-wqa-row="0"] .wqa-it-px');
+          return !!n && getComputedStyle(n).pointerEvents === 'none'; }), 'true',
+          `${at}: the pricing line is shown read-only`);
         A.eq(g.toksLive, 'false', `${at}: values are not separate targets — the row is`);
       }
       A.ok(g.toksInside, `${at}: every value is visible inside the row`);

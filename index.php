@@ -3681,6 +3681,124 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 .wqa-rv-dia:hover{background:var(--accent-light);color:var(--text)}
 .wqa-rv-dia.is-manual{color:var(--accent-2);font-weight:800}
 .wqa-ser-dia{font-size:12px;font-weight:700;color:var(--text-muted);margin-left:4px}
+/* ── Owner-smoke follow-up: one reading order on every width ──────────────
+   Product · Material/Finish/Size Type · dimensions (· Ø) · Qty/Price/Weight ·
+   status · pricing · pricing history · actions. Only the arrangement moves. */
+.wqa-it-toks .wqa-rv-dia{display:inline-flex;align-items:baseline;white-space:nowrap;min-height:0;font-size:.86em;font-weight:720;color:var(--text-muted);padding:2px 3px;line-height:1.35}
+.wqa-it-toks .wqa-rv-dia.is-manual{color:var(--accent-2)}
+.wqa-dia-sym{font-weight:800;margin-right:1px}
+.wqa-dia-x{margin:0 3px}
+.wqa-it-title .wqa-row-spec{color:var(--text-muted);line-height:1.25}
+.wqa-it-title{line-height:1.25}
+/* The group heading's pricing is the editor: values that look like values,
+   a light highlight and a small pencil only on hover. */
+.wqa-ser-gx{display:inline-flex;align-items:center;flex-wrap:wrap;gap:2px 2px}
+.wqa-gx{display:inline-flex;align-items:baseline;gap:3px;border:0;border-bottom:1.5px dashed transparent;background:transparent;
+  font:inherit;font-size:12px;font-weight:650;color:var(--text-muted);padding:2px 5px;border-radius:6px 6px 2px 2px;cursor:text}
+.wqa-gx-v{font-weight:800;color:var(--text)}
+.wqa-gx::after{content:'✎';font-size:10px;opacity:0;margin-left:2px;color:var(--accent-2);transition:opacity var(--mo-fast) var(--mo-ease)}
+.wqa-gx.is-ix::after{content:none}
+.wqa-gx-x{color:var(--text-muted);font-weight:600}
+.wqa-gx:hover,.wqa-gx:focus-visible{background:var(--accent-light);border-bottom-color:var(--accent-mid)}
+.wqa-gx:hover::after,.wqa-gx:focus-visible::after{opacity:1}
+.wqa-gx.is-ix{padding:0 2px;background:transparent}
+.wqa-gx-in{width:7ch;min-width:54px;font-size:12.5px}
+.wqa-gx-mode{font-size:11.5px;font-weight:700;color:var(--text-muted);margin-left:6px}
+button.wqa-ser-n{border:1px solid transparent;background:transparent;font:inherit;font-size:11.5px;font-weight:750;color:var(--text-muted);
+  border-radius:var(--pill-r);padding:2px 9px;cursor:pointer}
+button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-light);color:var(--accent-2)}
+/* A possible repeat: a warning in the heading it belongs to, never a block. */
+.wqa-dup{flex:1 0 100%;display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;padding:7px 10px;border-radius:var(--r-xs);
+  background:var(--amber-light);border:1px solid var(--amber-mid);font-size:12px}
+.wqa-dup-t{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 220px}
+.wqa-dup-t b{font-weight:800;color:var(--amber)}
+.wqa-dup-t span{color:var(--text-muted);font-weight:600}
+.wqa-dup-acts{display:flex;flex-wrap:wrap;gap:6px}
+.wqa-dup-acts .btn{white-space:nowrap}
+.wqa-dup-rm{color:var(--red)}
+.wqa-dup.is-done{background:var(--surface);border-color:var(--border);color:var(--text-muted);font-weight:650;padding:3px 8px}
+.wqa-grp-note{flex:1 0 100%;display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:750;color:var(--text-muted)}
+.wqa-grp-note input{flex:1 1 auto;max-width:320px;min-width:0;font:inherit;font-size:12.5px;font-weight:600;color:var(--text);
+  border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--surface)}
+/* History is a clock, in the QUO icon language (24px stroke, currentColor). */
+.dc-hist-ico{width:14px;height:14px;flex:0 0 auto;vertical-align:-2px}
+.wqa-rv-act.wqa-row-hist{display:inline-flex;align-items:center;gap:5px}
+.acc-history-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.acc-history-btn span{white-space:nowrap}
+.wqa-rv-act .wqa-row-actn.is-ref{background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
+/* Pricing History attached to the item's PRICING section. */
+.wqa-dt-sec-hist{margin-top:10px}
+.wqa-dt-histbar{display:flex;align-items:center;gap:8px;width:100%;border:1px solid var(--border);background:var(--surface2);
+  border-radius:var(--r-xs);padding:7px 10px;font:inherit;font-size:12.5px;font-weight:700;color:var(--accent-2);cursor:pointer;text-align:left}
+.wqa-dt-histbar:hover,.wqa-dt-histbar.is-on{border-color:var(--accent-mid);background:var(--accent-light)}
+.wqa-dt-histsum{flex:1 1 auto;min-width:0}
+.wqa-dt-hist .wqa-hist-inline{margin:8px 0 0}
+/* One primary class per card; everything else is quiet reasons. */
+.ph-cls{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid var(--border)}
+.ph-cls-exact{background:rgba(52,168,110,.16);color:#1f7a4d;border-color:transparent}
+.ph-cls-close{background:var(--accent-light);color:var(--accent-2);border-color:transparent}
+.ph-cls-ref{background:rgba(214,158,46,.18);color:#8a5a00;border-color:transparent}
+.ph-cls-why{font-size:11.5px;font-weight:650;color:var(--text-muted)}
+.ph-rec-notes{display:contents}
+.ph-rec-notes .ph-rec-tag{border:0;background:transparent;padding:0;text-transform:none;letter-spacing:0;font-size:11px;font-weight:600;color:var(--text-muted)}
+.ph-rec-notes .ph-rec-tag+.ph-rec-tag::before{content:'· ';}
+/* The primary class and its reasons already say exact / close / which
+   millimetres / another finish: the older per-tag wording stays in the DOM
+   for readers of it, not on screen twice. */
+.ph-rec-notes .ph-rec-exact,.ph-rec-notes .ph-rec-close,.ph-rec-notes .ph-rec-diff,.ph-rec-notes .ph-rec-finish{display:none}
+.ph-rec-is-ref{background:var(--surface2)}
+.ph-rec-is-ref .ph-rec-unit{color:var(--text-muted)}
+.ph-rec-cust{display:block;font-size:12.5px;font-weight:750;margin-top:2px}
+.ph-rec-cmp{margin-top:7px;font-size:12px;font-weight:650;color:var(--text)}
+.ph-rec-cmp-k{color:var(--text-muted);font-weight:700}
+.ph-use-weak{color:var(--text-muted);border:1px dashed var(--border)}
+.ph-mx{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-top:8px;padding:7px 9px;border-radius:var(--r-xs);
+  border:1px solid var(--amber-mid);background:var(--amber-light);font-size:12px}
+.ph-mx-t{flex:1 0 100%;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--amber)}
+.ph-mx-l{display:flex;flex-direction:column;min-width:0}
+.ph-mx-l label{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:700}
+.ph-mx-l.is-final{font-weight:850;font-size:13.5px}
+.ph-mx-l.is-diff{font-weight:800;color:var(--amber)}
+.ph-count-cls{font-weight:800;color:var(--text)}
+/* Accessory History: one card per price, every quotation that used it. */
+.acc-hist-price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.acc-hist-used{font-size:11.5px;font-weight:700;color:var(--text-muted)}
+.acc-hist-refs{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12px}
+.acc-hist-refs .ph-rec-cust{display:inline;font-size:12px;margin:0}
+.acc-hist-refs .ph-rec-date{margin:0}
+/* Desktop: the specification line keeps its whole width (Ø included); the
+   pricing summary is the part that wraps. */
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  .wqa-it:not(.wqa-it-s) .wqa-it-main{grid-template-columns:34px minmax(max-content,1.4fr) auto minmax(0,auto) auto}
+  .wqa-it:not(.wqa-it-s) .wqa-it-px{white-space:normal;max-width:230px}
+}
+/* Narrow desktop: History keeps its clock and its count; the word goes to
+   the tooltip, so the dimensions never have to wrap. */
+@media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
+  .wqa-it-main .wqa-row-hist > span:not(.wqa-row-actn){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+}
+@media (min-width:600px) and (max-width:1023px), (min-width:600px) and (pointer:coarse){
+  .wqa-rv-detail .wqa-px-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .wqa-it-toks .wqa-rv-dia{min-height:42px;align-items:center;padding:6px 8px}
+  .wqa-gx{min-height:36px;font-size:13px}
+}
+@media (max-width:599px){
+  /* Stacked, same order: Product / Material · Finish · Size Type / dims · Ø /
+     Qty · price · weight / pricing. */
+  .wqa-it:not(.wqa-it-s) .wqa-it-main{grid-template-areas:"no spec" "no fig" "no px"}
+  .wqa-it:not(.wqa-it-s) .wqa-it-title{flex-direction:column;align-items:flex-start;gap:1px}
+  .wqa-it:not(.wqa-it-s) .wqa-it-title .wqa-row-spec{margin-left:0}
+  .wqa-it:not(.wqa-it-s) .wqa-it-px{display:block;pointer-events:none;text-align:left;padding:0;font-size:12px;white-space:normal}
+  .wqa-it:not(.wqa-it-s) .wqa-fig-w{display:inline-flex}
+  .wqa-it-fig{flex-wrap:wrap}
+  .wqa-it-toks .wqa-rv-dia{pointer-events:none}
+  .wqa-dup-acts{width:100%}
+  .wqa-dup-acts .btn{flex:1 1 auto;min-height:40px}
+  .wqa-gx{min-height:36px}
+  .wqa-grp-note{flex-wrap:wrap}
+  .wqa-grp-note input{max-width:none;min-height:40px;font-size:16px}
+  .wqa-dt-histbar{min-height:44px}
+}
 /* Narrow desktop (1024–1279, mouse): the values keep their one line, and the
    pricing summary — the most compressible thing on the row — wraps instead. */
 @media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
@@ -5981,7 +6099,7 @@ const I18N={
     /* accessories */
     accessories:'Accessories', accToggleSub:'Nut / Flat Washer / Custom · Optional',
     accAddNut:'+ Nut', accAddFW:'+ Flat Washer',
-    accNone:'No accessories', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom', accHistory:'History', accUsePrice:'Use this price', accHistoryNone:'No compatible accessory history.', accHistoryApplied:'Accessory price applied.', accHistoryCustomNeedText:'Enter Custom text to view its exact history.',
+    accNone:'No accessories', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom', accHistory:'History', accUsePrice:'Use this price', accHistoryNone:'No compatible accessory history.', accHistoryApplied:'Accessory price applied.', accHistoryCustomNeedText:'Enter Custom text to view its exact history.', accUsedIn:'Used in {n} quotations', accUsedInOne:'Used in 1 quotation', accUseRm:'Use {v}',
     accPlusNut:'+ Nut', accPlusFW:'+ Flat Washer', accPlusCustom:'+ Custom',
     accQtyPerItem:'Qty per item', accRemove:'Remove',
     mbAddShort:'＋ Add', mbUpdateShort:'Update',
@@ -6198,7 +6316,7 @@ const I18N={
     refHintRevised:'Revision {n} · sent to the customer as {r}', phDimNotOnRecord:'not on record', phDimNotInItem:'not entered on this item',
     phNoCurrentDims:'Enter this item\'s dimensions to compare', phComparedWith:'compared with {d}',
     phDiffLegend:'Differences = history − this item', phDiffTitle:'History minus this item, per dimension', phModeManual:'Manual', phModeUnknown:'Legacy / Unknown',
-    phBadgeThisCustomer:'This customer', phBadgeExact:'Current exact', phBadgeClose:'Current close', phBadgeRef:'Reference only',
+    phBadgeThisCustomer:'This customer', phBadgeExact:'Current exact', phBadgeClose:'Current close', phBadgeRef:'Reference only', phClsExact:'Exact', phClsClose:'Similar', phClsRef:'Reference only', phCntExact:'{n} exact', phCntClose:'{n} similar', phCntRef:'{n} reference only', phNoCustomer:'Customer not selected', phCompared:'Compared with current:', phFinishVs:'Finish {a} → current {b}', phDiffFinishShort:'Different finish', phUseAnyway:'Use anyway', phUseAnywayAsk:'{r} is not an exact match ({why}). Use its pricing anyway?', phUseScope:'Uses: Cost Rate · Additional Cost · Markup · Price Mode', phMxTitle:'Manual Price', phMxCalc:'Calculated', phMxAuto:'Auto Round Ref', phMxQuoted:'Quoted', phMxDiff:'Difference', phHistShow:'Show records', phHistSection:'Pricing History',
     phTargetExact:'Target exact', phTargetDiff:'Target {d}',
     phMatchBy:'Match by', phMatchOverall:'Overall', phMatchLength:'Length', phMatchWidth:'Width', phMatchThread:'Thread Length', phMatchH:'H', phMatchS:'S', phMatchID:'ID', phMatchIH:'IH', phMatchOH:'OH', phMatchThickness:'Thickness', phMatchB:'B', phMatchR:'R', phMatchCL:'CL', phMatchCH:'CH', phTarget:'Target',
     phSumMatching:'{n} matching', phSumFinal:'Final', phSumBolt:'Bolt', phSumManual:'Manual',
@@ -6504,7 +6622,7 @@ const I18N={
     pmManualGuideEg:'Example: Bolt RM1.80 + accessories RM0.20 → enter Manual Price RM2.00',
     wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'Detected {n} items', wqaRvDetectedOne:'Detected 1 item', wqaAddOneItem:'Add 1 Item to Quotation', wqaVarCount:'{n} variants', wqaVarReview:'Review Variants', wqaVarHide:'Hide Variants', wqaVarMulti:'Select several', wqaVarPickMany:'choose one or more', wqaVarApply:'Apply', wqaVarNone:'Choose at least one option.', wqaVarOff:'Excluded', wqaVarReadyN:'{n} ready', wqaVarExclN:'{n} excluded', wqaVarNeedN:'{n} need attention', wqaVarMode:'Variant mode', wqaVarModeCombine:'Combine selections', wqaVarModeExact:'Exact variants', wqaVarAddRow:'Add variant', wqaVarIncl:'Include this variant', wqaVarRecombine:'Combine selections will make {n} variants from the values used. Continue?', wqaVarExactHint:'Exact variants: edit each row, or switch to Combine selections.', wqaVarAmbiguous:'The note lists items in a way that cannot be read safely — review the variants yourself.', wqaVarExactRead:'Exact variants', wqaVarNeeds:'Needs attention', wqaVarReduced:'Variants reduced — {n} items', wqaVarTooMany:'Too many combinations (maximum {n}).', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items',
+    wqaRvDetected:'Detected {n} items', wqaRvDetectedOne:'Detected 1 item', wqaAddOneItem:'Add 1 Item to Quotation', wqaVarCount:'{n} variants', wqaVarReview:'Review Variants', wqaVarHide:'Hide Variants', wqaVarMulti:'Select several', wqaVarPickMany:'choose one or more', wqaVarApply:'Apply', wqaVarNone:'Choose at least one option.', wqaVarOff:'Excluded', wqaVarReadyN:'{n} ready', wqaVarExclN:'{n} excluded', wqaVarNeedN:'{n} need attention', wqaVarMode:'Variant mode', wqaVarModeCombine:'Combine selections', wqaVarModeExact:'Exact variants', wqaVarAddRow:'Add variant', wqaVarIncl:'Include this variant', wqaVarRecombine:'Combine selections will make {n} variants from the values used. Continue?', wqaVarExactHint:'Exact variants: edit each row, or switch to Combine selections.', wqaVarAmbiguous:'The note lists items in a way that cannot be read safely — review the variants yourself.', wqaVarExactRead:'Exact variants', wqaVarNeeds:'Needs attention', wqaVarReduced:'Variants reduced — {n} items', wqaVarTooMany:'Too many combinations (maximum {n}).', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items', wqaBsScopeGrp:'Current group ({n})', wqaGxDone:'{f} {v} applied to {n} items in this group', wqaGxBad:'Enter a number for {f}.', wqaGxEdit:'Click to edit for this group', wqaGrpAdjust:'Bulk Adjust this group', fieldEffDia:'Effective Diameter', wqaDupTitle:'Possible repeated group detected', wqaDupBody:'This group appears more than once in the source.', wqaDupKeep:'Keep Both', wqaDupMerge:'Merge Quantities', wqaDupRemove:'Remove Duplicate', wqaDupKept:'Repeated group · both kept', wqaDupMerged:'Quantities merged from a repeated group', wqaDupRemoved:'Repeated group removed', wqaDupUndo:'Undo', wqaDupReview:'Review', wqaDupMergedT:'Merged {n} quantities into the first group', wqaDupRemovedT:'Removed the repeated group ({n} items)', wqaGrpNote:'Group note', wqaGrpNotePh:'Reason / Label (optional)',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Quotation', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellOtherModules:'Other Modules', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
@@ -6579,7 +6697,7 @@ const I18N={
     /* accessories */
     accessories:'配件', accToggleSub:'Nut / Flat Washer / 自定义 · 选填',
     accAddNut:'+ Nut', accAddFW:'+ Flat Washer',
-    accNone:'无配件', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom', accHistory:'历史价格', accUsePrice:'套用此价格', accHistoryNone:'没有兼容的配件历史。', accHistoryApplied:'配件价格已采用。', accHistoryCustomNeedText:'请输入自定义文字以查看完全一致的历史。',
+    accNone:'无配件', accNut:'Nut', accFW:'Flat Washer', accCustom:'Custom', accHistory:'历史价格', accUsePrice:'套用此价格', accHistoryNone:'没有兼容的配件历史。', accHistoryApplied:'配件价格已采用。', accHistoryCustomNeedText:'请输入自定义文字以查看完全一致的历史。', accUsedIn:'用于 {n} 份报价', accUsedInOne:'用于 1 份报价', accUseRm:'套用 {v}',
     accPlusNut:'+ Nut', accPlusFW:'+ Flat Washer', accPlusCustom:'+ 自定义',
     accQtyPerItem:'每件数量', accRemove:'移除',
     mbAddShort:'＋ 加入', mbUpdateShort:'更新',
@@ -6778,7 +6896,7 @@ const I18N={
     refHintRevised:'修订版本 {n} · 发给客户的编号为 {r}', phDimNotOnRecord:'无记录', phDimNotInItem:'本项目未填',
     phNoCurrentDims:'输入本项目尺寸后即可比较', phComparedWith:'对比 {d}',
     phDiffLegend:'差值 = 历史 − 本项目', phDiffTitle:'各尺寸差值：历史减本项目', phModeManual:'手动价格', phModeUnknown:'旧记录 / 未知',
-    phBadgeThisCustomer:'本客户', phBadgeExact:'本项完全匹配', phBadgeClose:'本项相近', phBadgeRef:'仅供参考',
+    phBadgeThisCustomer:'本客户', phBadgeExact:'本项完全匹配', phBadgeClose:'本项相近', phBadgeRef:'仅供参考', phClsExact:'完全一致', phClsClose:'相近', phClsRef:'仅供参考', phCntExact:'{n} 条完全一致', phCntClose:'{n} 条相近', phCntRef:'{n} 条仅供参考', phNoCustomer:'未选择客户', phCompared:'与当前相比：', phFinishVs:'表面处理 {a} → 当前 {b}', phDiffFinishShort:'表面处理不同', phUseAnyway:'仍然使用', phUseAnywayAsk:'{r} 不是完全一致的记录（{why}）。仍然使用其定价吗？', phUseScope:'套用：成本价 · 加工费 · 加价 · 价格模式', phMxTitle:'手动价格', phMxCalc:'计算价', phMxAuto:'自动进位参考', phMxQuoted:'报价', phMxDiff:'差额', phHistShow:'查看记录', phHistSection:'历史价格',
     phTargetExact:'目标一致', phTargetDiff:'目标 {d}',
     phMatchBy:'匹配方式', phMatchOverall:'综合', phMatchLength:'长度', phMatchWidth:'宽度', phMatchThread:'牙长', phMatchH:'H', phMatchS:'S', phMatchID:'内径', phMatchIH:'内高', phMatchOH:'外高', phMatchThickness:'厚度', phMatchB:'B', phMatchR:'R', phMatchCL:'CL', phMatchCH:'CH', phTarget:'目标',
     phSumMatching:'{n} 条匹配', phSumFinal:'最终单价', phSumBolt:'螺栓单价', phSumManual:'手动价格',
@@ -7033,7 +7151,7 @@ const I18N={
     pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → 手动价格填 RM2.00',
     wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'已识别 {n} 个项目', wqaRvDetectedOne:'已识别 1 个项目', wqaAddOneItem:'加入 1 个项目到报价', wqaVarCount:'{n} 个版本', wqaVarReview:'查看版本', wqaVarHide:'收起版本', wqaVarMulti:'多选', wqaVarPickMany:'可多选', wqaVarApply:'应用', wqaVarNone:'请至少选择一项。', wqaVarOff:'已排除', wqaVarReadyN:'{n} 个可加入', wqaVarExclN:'{n} 个已排除', wqaVarNeedN:'{n} 个需处理', wqaVarMode:'版本模式', wqaVarModeCombine:'组合选择', wqaVarModeExact:'指定版本', wqaVarAddRow:'新增版本', wqaVarIncl:'包含此版本', wqaVarRecombine:'组合选择将根据已用的值生成 {n} 个版本。继续？', wqaVarExactHint:'指定版本：请逐行修改，或切换为组合选择。', wqaVarAmbiguous:'备注中的项目列表无法安全识别 — 请自行检查版本。', wqaVarExactRead:'指定版本', wqaVarNeeds:'需处理', wqaVarReduced:'已合并版本 — {n} 个项目', wqaVarTooMany:'组合过多（最多 {n} 个）。', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目',
+    wqaRvDetected:'已识别 {n} 个项目', wqaRvDetectedOne:'已识别 1 个项目', wqaAddOneItem:'加入 1 个项目到报价', wqaVarCount:'{n} 个版本', wqaVarReview:'查看版本', wqaVarHide:'收起版本', wqaVarMulti:'多选', wqaVarPickMany:'可多选', wqaVarApply:'应用', wqaVarNone:'请至少选择一项。', wqaVarOff:'已排除', wqaVarReadyN:'{n} 个可加入', wqaVarExclN:'{n} 个已排除', wqaVarNeedN:'{n} 个需处理', wqaVarMode:'版本模式', wqaVarModeCombine:'组合选择', wqaVarModeExact:'指定版本', wqaVarAddRow:'新增版本', wqaVarIncl:'包含此版本', wqaVarRecombine:'组合选择将根据已用的值生成 {n} 个版本。继续？', wqaVarExactHint:'指定版本：请逐行修改，或切换为组合选择。', wqaVarAmbiguous:'备注中的项目列表无法安全识别 — 请自行检查版本。', wqaVarExactRead:'指定版本', wqaVarNeeds:'需处理', wqaVarReduced:'已合并版本 — {n} 个项目', wqaVarTooMany:'组合过多（最多 {n} 个）。', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目', wqaBsScopeGrp:'当前分组（{n}）', wqaGxDone:'已将{f} {v} 应用到本组 {n} 个项目', wqaGxBad:'请为{f}输入数字。', wqaGxEdit:'点击修改本组', wqaGrpAdjust:'批量调整本组', fieldEffDia:'有效直径', wqaDupTitle:'检测到可能重复的分组', wqaDupBody:'这个分组在来源内容中出现了多次。', wqaDupKeep:'保留两组', wqaDupMerge:'合并数量', wqaDupRemove:'删除重复项', wqaDupKept:'重复分组 · 已保留两组', wqaDupMerged:'已合并重复分组的数量', wqaDupRemoved:'已删除重复分组', wqaDupUndo:'撤销', wqaDupReview:'重新选择', wqaDupMergedT:'已将 {n} 个数量合并到第一组', wqaDupRemovedT:'已删除重复分组（{n} 个项目）', wqaGrpNote:'分组备注', wqaGrpNotePh:'原因 / 标签（可选）',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'更多', rspMoreAria:'更多操作', rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'报价', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellOtherModules:'其他模块', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
@@ -7820,9 +7938,12 @@ function validateFinalItem(qty,finalUnitPrice,totalAmount){
 function round05(v){
   return roundMoney2(Math.round((Number(v)||0)*20)/20);
 }
+/* Non-Sag Auto Round (owner-locked): RM0.10 bands. Inside each 10-sen band
+   x.x0–x.x3 rounds down to the band, x.x4–x.x9 rounds up to the next band.
+   Worked in whole cents so 10.04 cannot become 10.0399… on the way. */
 function roundCustom10(v){
-  const n=Number(v)||0, whole=Math.floor(n), cents=roundMoney2(n-whole);
-  return cents<=0.30 ? whole : whole+1;
+  const cents=Math.round((Number(v)||0)*100), band=Math.floor(cents/10)*10;
+  return roundMoney2(((cents-band)<=3 ? band : band+10)/100);
 }
 function roundMoney2(v){return Math.round((Number(v)||0)*100)/100}
 function getPriceMode(type){
@@ -7856,7 +7977,7 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
     boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
   }else{
     /* Owner model: Sag Rod rounds to nearest 5 sen; every other family uses
-       the shared .30/.31 whole-Ringgit threshold.  No Round is currency only. */
+       the RM0.10 band rule (x.x3 down, x.x4 up).  No Round is currency only. */
     const auto=type==='sagrod' ? round05(rawUnitPrice) : roundCustom10(rawUnitPrice);
     boltUnitPrice=roundMoney2(mode==='no_round'?rawUnitPrice:auto);
     finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
@@ -9031,7 +9152,7 @@ function dcAccEnhancePanel(panel){
          price; applying a historical price is a separate explicit action. */
       const hist=document.createElement('button');
       hist.type='button'; hist.className='acc-act acc-history-btn'; hist.dataset.acc=m[1]; hist.dataset.type=type;
-      hist.textContent=dcT('accHistory'); hist.setAttribute('data-i18n','accHistory'); hist.setAttribute('aria-label',dcT('accHistory'));
+      hist.innerHTML=dcHistIcon()+'<span data-i18n="accHistory">'+escHtml(dcT('accHistory'))+'</span>'; hist.setAttribute('aria-label',dcT('accHistory'));
       hist.addEventListener('click',()=>accHistoryOpen(type,m[1])); head.appendChild(hist);
     }
   });
@@ -9118,7 +9239,22 @@ async function accHistoryOpen(type,kind){
     const res=await fetch('api.php?'+q.toString()).then(r=>r.json());
     const records=res&&res.ok&&res.data&&Array.isArray(res.data.records)?res.data.records:[];
     accHistoryState={type,kind,records};
-    body.innerHTML=records.length?records.map((r,n)=>'<div class="ph-rec"><div class="ph-rec-head"><span class="ph-rec-ref">'+escHtml(r.refNo||'—')+'</span><span class="ph-rec-date">'+escHtml(fmtDateShort(r.date))+'</span></div><div class="ph-rec-spec">'+escHtml([r.type,r.size,r.finish].filter(Boolean).join(' · '))+'</div><div class="ph-rec-nums"><span class="ph-rec-unit"><label>'+escHtml(dcT('lblUnitPrice'))+'</label>'+escHtml(phMoney(r.unitPrice))+'</span></div><div class="ph-rec-foot"><button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="accHistoryApply('+n+')">'+escHtml(dcT('accUsePrice'))+'</button></div></div>').join(''):'<div class="ph-empty-msg">'+escHtml(dcT('accHistoryNone'))+'</div>';
+    /* Visual grouping only: one card per historical PRICE, every quotation
+       that used it listed under it. The records themselves are untouched —
+       the server's exact dedup is the only thing that ever collapses one. */
+    const groups=[];
+    records.forEach((r,n)=>{
+      const k=Number(r.unitPrice).toFixed(4)+'|'+(r.finish||'');
+      let g=groups.find(x=>x.k===k);
+      if(!g){ g={k,first:n,price:r.unitPrice,spec:[r.type,r.size,r.finish].filter(Boolean).join(' · '),recs:[]}; groups.push(g); }
+      g.recs.push(r);
+    });
+    const qn=g=>new Set(g.recs.map(r=>r.refNo||'')).size;
+    body.innerHTML=groups.length?groups.map(g=>'<div class="ph-rec acc-hist-group">'
+      +'<div class="acc-hist-price"><span class="ph-rec-unit">'+escHtml(phMoney(g.price))+'</span><span class="acc-hist-used">'+escHtml(qn(g)===1?dcT('accUsedInOne'):dcT('accUsedIn').replace('{n}',qn(g)))+'</span></div>'
+      +'<div class="ph-rec-spec">'+escHtml(g.spec)+'</div>'
+      +'<ul class="acc-hist-refs">'+g.recs.map(r=>'<li><span class="ph-rec-ref">'+escHtml(r.refNo||'—')+'</span> · <span class="ph-rec-date">'+escHtml(fmtDateShort(r.date))+'</span> · <span class="ph-rec-cust">'+escHtml(r.customer||'—')+'</span></li>').join('')+'</ul>'
+      +'<div class="ph-rec-foot"><button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="accHistoryApply('+g.first+')">'+escHtml(dcT('accUseRm').replace('{v}',phMoney(g.price)))+'</button></div></div>').join(''):'<div class="ph-empty-msg">'+escHtml(dcT('accHistoryNone'))+'</div>';
   }catch(e){ body.innerHTML='<div class="ph-empty-msg">'+escHtml(dcT('phLoadFailed'))+'</div>'; }
 }
 function resetAccPanel(type){
@@ -11962,7 +12098,7 @@ function phRecCompare(rec,base){
   if(rec.exactDims) return {state:'exact'};
   return phDimDiff(base,rec.dimensionPreview);
 }
-let phCmpBase=null;
+let phCmpBase=null, phCmpFinish=null;
 function phDimDistance(wantStr,recStr){
   const a=phDimValues(wantStr), b=phDimValues(recStr);
   const ka=Object.keys(a), kb=Object.keys(b);
@@ -12057,15 +12193,44 @@ function phRecordHtml(rec,onUse,extra){
      is what changes the cost rate. It is a reference, so it is not offered as
      a recipe to reuse. */
   const otherFinish = rec.finishMatch===false;
-  if(otherFinish) tags.push(`<span class="ph-rec-tag ph-rec-warn">${escHtml(dcT('phDiffFinish').replace('{f}',rec.finish||'—'))}</span>`);
+  if(otherFinish) tags.push(`<span class="ph-rec-tag ph-rec-warn ph-rec-finish">${escHtml(dcT('phDiffFinish').replace('{f}',rec.finish||'—'))}</span>`);
+  const cls=phMatchInfo(rec).match;
+  /* Exact may be used straight away; a similar record is a weaker action that
+     asks first. A reference (another coating) offers none at all. */
+  const why=[];
+  if(cmp && cmp.state==='diff') why.push(phDimDiffText(cmp.parts));
+  else if(!cmp && !rec.exactDims && dist!==null) why.push(dcT('phDiffersBy').replace('{d}',phDimText(dist)));
+  if(otherFinish) why.push(dcT('phDiffFinishShort'));
   const useBtn = onUse && phRecordReusable(rec)
-    ? `<button type="button" class="btn btn-outline btn-sm ph-rec-use" onclick="${onUse}">${escHtml(dcT('phUseOnThis'))}</button>` : '';
-  return `<div class="ph-rec${own?' ph-rec-own':''}">
+    ? (cls==='exact'
+       ? `<button type="button" class="btn btn-primary btn-sm ph-rec-use ph-use-strong" title="${escHtml(dcT('phUseScope'))}" onclick="${onUse}">${escHtml(dcT('phUseOnThis'))}</button>`
+       : `<button type="button" class="btn btn-ghost btn-sm ph-rec-use ph-use-weak" title="${escHtml(dcT('phUseScope'))}"
+            onclick="if(confirm(${escHtml(JSON.stringify(dcT('phUseAnywayAsk').replace('{r}',rec.refNo||'—').replace('{why}',why.join(' · ')||dcT('phClsClose'))))}))${onUse}">${escHtml(dcT('phUseAnyway'))}</button>`)
+    : '';
+  const compare=[];
+  if(cmp && cmp.state==='diff') compare.push(phDimDiffText(cmp.parts));
+  if(otherFinish) compare.push(phCmpFinish ? dcT('phFinishVs').replace('{a}',rec.finish||'—').replace('{b}',phCmpFinish||'—') : dcT('phDiffFinishShort'));
+  /* Manual Price explains itself: what the formula said, what Auto Round
+     would have quoted, and by how much the person moved it. Only what the
+     record actually stored — older quotations show the quoted price alone. */
+  let manual='';
+  if(String(rec.priceMode||'')==='manual'){
+    const raw=Number(rec.rawUnitPrice), ar=Number(rec.autoRoundUnitPrice);
+    const quoted=bolt===null?Number(rec.unitPrice):bolt;
+    const line=(k,v,c)=>`<span class="ph-mx-l${c?' '+c:''}"><label>${escHtml(dcT(k))}</label>${escHtml(v)}</span>`;
+    const parts=[];
+    if(raw>0) parts.push(line('phMxCalc',phMoney(raw)));
+    if(ar>0)  parts.push(line('phMxAuto',phMoney(ar)));
+    parts.push(line('phMxQuoted',phMoney(quoted),'is-final'));
+    if(ar>0){ const d=roundMoney2(quoted-ar); parts.push(line('phMxDiff',(d>=0?'+':'−')+'RM '+Math.abs(d).toFixed(2),'is-diff')); }
+    manual=`<div class="ph-mx"><span class="ph-mx-t">${escHtml(dcT('phMxTitle'))}</span>${parts.join('')}</div>`;
+  }
+  return `<div class="ph-rec${own?' ph-rec-own':''} ph-rec-is-${cls}" data-ph-class="${cls}">
     <div class="ph-rec-head">
       <span class="ph-rec-ref">${escHtml(rec.refNo||'—')}</span>
-      <span class="ph-rec-cust">${escHtml(rec.customer||'—')}</span>
       <span class="ph-rec-date">${escHtml(fmtDateShort(rec.date))}</span>
     </div>
+    <div class="ph-rec-cust">${escHtml(rec.customer||'—')}</div>
     <div class="ph-rec-spec">${escHtml(spec)}</div>
     <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · ${escHtml(dcT('phQtyLabel').replace('{n}',parseInt(rec.qty,10)||0))}</div>
     <div class="ph-rec-nums">
@@ -12076,8 +12241,10 @@ function phRecordHtml(rec,onUse,extra){
       <span><label data-i18n="lblPriceMode">${escHtml(dcT('lblPriceMode'))}</label>${escHtml(phPriceMode(rec))}</span>
       <span class="ph-rec-unit"><label>${escHtml(dcT(bolt===null?'lblUnitPrice':'phBoltUnitPrice'))}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
     </div>
+    ${manual}
+    ${compare.length?`<div class="ph-rec-cmp"><span class="ph-rec-cmp-k">${escHtml(dcT('phCompared'))}</span> ${escHtml(compare.join(' · '))}</div>`:''}
     ${acc>0?`<div class="ph-rec-acc">${escHtml(dcT('phAccSeparately'))} ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' '+escHtml(dcT('phLineWas').replace('{v}',phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)))}</div>`:''}
-    <div class="ph-rec-foot">${tags.join('')}${useBtn}${extra||''}</div>
+    <div class="ph-rec-foot"><span class="ph-cls ph-cls-${cls}">${escHtml(dcT(cls==='exact'?'phClsExact':cls==='close'?'phClsClose':'phClsRef'))}</span>${why.length?`<span class="ph-cls-why">${escHtml(why.join(' · '))}</span>`:''}<span class="ph-rec-notes">${tags.join('')}</span>${useBtn}${extra||''}</div>
   </div>`;
 }
 /* One page of history for one specification. null means the lookup could not
@@ -12146,8 +12313,9 @@ function phSetMatchTarget(value){
 }
 function phListHtml(state,onUse,onMore,extraFor){
   phCmpBase=state ? (state._cmpDims!==undefined ? state._cmpDims : (state._spec ? (state._spec.dimensionPreview||'') : null)) : null;
+  phCmpFinish=state ? (state._curFinish!==undefined ? state._curFinish : (state._spec ? state._spec.finish : null)) : null;
   phTargetState=state?{by:state._matchBy||'overall',target:state._matchTarget||''}:null;
-  try{ return phListHtmlBody(state,onUse,onMore,extraFor); } finally { phCmpBase=null; phTargetState=null; }
+  try{ return phListHtmlBody(state,onUse,onMore,extraFor); } finally { phCmpBase=null; phCmpFinish=null; phTargetState=null; }
 }
 function phListHtmlBody(state,onUse,onMore,extraFor){
   if(!state) return '<div class="ph-empty-msg">'+escHtml(dcT('phLoadFailed'))+'</div>';
@@ -12190,7 +12358,8 @@ function phListHtmlBody(state,onUse,onMore,extraFor){
     ? ' · '+dcT('phThisCustomer').replace('{n}',state.ownTotal)
       +' · '+dcT('phOther').replace('{n}',state.otherTotal)
     : '';
-  return `<div class="ph-count">${escHtml(dcT('phShowingOf').replace('{a}',shown).replace('{b}',total))}`
+  const cls=phClassText(state);
+  return `<div class="ph-count">${cls?`<span class="ph-count-cls">${escHtml(cls)}</span> · `:''}${escHtml(dcT('phShowingOf').replace('{a}',shown).replace('{b}',total))}`
        + escHtml(split)
        + `</div><div class="ph-scroll">` + body + `</div>${more}`;
 }
@@ -12341,6 +12510,25 @@ function phMatchInfo(rec){
   const hasCustomer=selectedCompanyId!==null&&selectedCompanyId!==undefined&&selectedCompanyId!=='';
   return {match, own:hasCustomer&&!!rec.own, dist};
 }
+/* Exact / Similar / Reference only, over the WHOLE matching set when the
+   server counted it, otherwise over the records loaded so far. The same rule
+   as phMatchInfo, so a count never disagrees with the badges under it. */
+function phClassCounts(st){
+  if(!st) return {exact:0,close:0,ref:0};
+  if(st.exactTotal!==undefined && st.exactTotal!==null)
+    return {exact:Number(st.exactTotal)||0, close:Number(st.closeTotal)||0, ref:Number(st.refTotal)||0};
+  const c={exact:0,close:0,ref:0};
+  (st.records||[]).forEach(r=>{ c[phMatchInfo(r).match]++; });
+  return c;
+}
+function phClassText(st){
+  const c=phClassCounts(st), out=[];
+  if(c.exact) out.push(dcT('phCntExact').replace('{n}',c.exact));
+  if(c.close) out.push(dcT('phCntClose').replace('{n}',c.close));
+  if(c.ref)   out.push(dcT('phCntRef').replace('{n}',c.ref));
+  return out.join(' · ');
+}
+function phHasCustomer(){ return selectedCompanyId!==null&&selectedCompanyId!==undefined&&selectedCompanyId!==''; }
 function phBadgeHtml(rec){
   const m=phMatchInfo(rec);
   const words=(m.own?[dcT('phBadgeThisCustomer')]:[]).concat(dcT(m.match==='exact'?'phBadgeExact':m.match==='close'?'phBadgeClose':'phBadgeRef'));
@@ -12449,7 +12637,7 @@ function phRenderSummary(){
   const hasCustomer=selectedCompanyId!==null&&selectedCompanyId!==undefined&&selectedCompanyId!=='';
   const segs=a=>'<span class="dc-segs">'+a.filter(Boolean).map((x,k)=>'<span class="dc-seg">'+(k?'<span class="dc-sep"> · </span>':'')+x+'</span>').join('')+'</span>';
   const num=v=>(v===null||v===undefined||v==='')?'—':escHtml(dcRateText(Number(v)));
-  const count=dcT('phSumMatching').replace('{n}',total)+(hasCustomer&&st.ownTotal!==undefined?' · '+dcT('phThisCustomer').replace('{n}',st.ownTotal):'');
+  const count=(phClassText(st)||dcT('phSumMatching').replace('{n}',total))+(hasCustomer&&st.ownTotal!==undefined?' · '+dcT('phThisCustomer').replace('{n}',st.ownTotal):'');
   const cmp=phRecCompare(r,(st._spec&&st._spec.dimensionPreview)||'');
   const diff=cmp&&cmp.state==='diff'?'<span class="ph-sum-diff" title="'+escHtml(dcT('phDiffTitle'))+'">'+escHtml(phDimDiffText(cmp.parts))+'</span>':'';
   box.innerHTML=
@@ -14121,6 +14309,18 @@ function wqaApplyPriceToAll(){
   const c=wqa.commonPrice||wqaEmptyPrice();
   const targets=wqaApplyTargets();
   if(!targets.length){ showToast(dcT(wqa.applyScope==='selected'?'wqaToastNoneSelected':'wqaToastNoItems')); return; }
+  const droppedLast=wqaApplyPriceTo(targets,c,wqa.commonPriceModeSet);
+  wqa.panels.price=true;    // stay open while staff keep editing
+  wqaRenderCommonPrice();
+  wqaRecomputeAll();
+  showToast(wqaAppliedToast('wqaToastPriceApplied','wqaToastPriceAppliedSel',targets.length)
+    +(droppedLast?' · '+dcT('wqaToastLastPriceOff').replace('{n}',droppedLast):''));
+}
+/* The rows' side of applying pricing: every writer (the common panel, Bulk
+   Adjust, a group heading) goes through here, so a blank field is "leave it"
+   everywhere and a reused record is superseded by the same rule everywhere.
+   Returns how many rows let go of a reused record. */
+function wqaApplyPriceTo(targets,c,modeSet){
   let droppedLast=0;
   targets.forEach(r=>{
     wqaMarkEdited(r,'price');
@@ -14133,7 +14333,7 @@ function wqaApplyPriceToAll(){
        the list silently took row 3 off the Manual Price of RM 50 somebody had
        set for it and re-priced it from the formula. It follows the same rule
        as the fields beside it: stated, or left alone. */
-    if(wqa.commonPriceModeSet) r.priceMode=c.priceMode||'auto';
+    if(modeSet) r.priceMode=c.priceMode||'auto';
     /* A row priced from a historical record keeps that provenance until this
        panel actually SUPERSEDES it — which it does by stating any component of
        the pricing, or by moving the row to a different mode. A reused recipe
@@ -14141,7 +14341,7 @@ function wqaApplyPriceToAll(){
        it would have quietly dropped the reference off every recipe row this
        panel merely passed over. */
     const supersedes=(c.costRate!=='')||(c.addCost!=='')||(c.markup!=='')
-                   ||(wqa.commonPriceModeSet && (c.priceMode||'auto')!==histMode);
+                   ||(modeSet && (c.priceMode||'auto')!==histMode);
     if(r.usedHistoryRef && supersedes){
       r.usedHistoryRef=''; r.usedHistoryRecipe=false; r.manualPrice='';
       (r.histApplied||[]).forEach(k=>{ delete r.priceOverride[k]; });
@@ -14149,11 +14349,7 @@ function wqaApplyPriceToAll(){
       droppedLast++;
     }
   });
-  wqa.panels.price=true;    // stay open while staff keep editing
-  wqaRenderCommonPrice();
-  wqaRecomputeAll();
-  showToast(wqaAppliedToast('wqaToastPriceApplied','wqaToastPriceAppliedSel',targets.length)
-    +(droppedLast?' · '+dcT('wqaToastLastPriceOff').replace('{n}',droppedLast):''));
+  return droppedLast;
 }
 /* Separate, manual-only, and never triggered by the button above. */
 function wqaApplyManualPriceToAll(){
@@ -18412,6 +18608,9 @@ function wqaResetState(){
   wqa._deferred={};
 
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
+  /* Group-level state: the heading being edited, the group last worked in,
+     and the owner's answers to repeated groups. */
+  wqa.gx=null; wqa.curGrp=null; wqa.dupKeep={}; wqa.dupLog=[];
   /* Whatever the last message's specifications looked up belongs to it. */
   wqa.histCache=new Map();
   /* Both source states, and which of them the Review is showing. */
@@ -20202,10 +20401,11 @@ function wqaRvPxText(r){
           dcT('sumMarkup')+' '+wqaMetaPct(c.markup)].join(' · ')
        + (mode==='no_round'?' · '+dcT('pmNoRound'):'');
 }
+function dcHistIcon(){ return '<svg class="dc-hist-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>'; }
 function wqaRvHistBtn(r,i){
   return `<button type="button" class="wqa-rv-act wqa-row-hist${r.histOpen?' is-on':''}"
       aria-expanded="${r.histOpen?'true':'false'}" title="${escHtml(dcT('tipItemHistory'))}"
-      onclick="event.stopPropagation();wqaHistToggle(${i})">${escHtml(dcT('phTitle'))}${wqaHistCountLabel(r)}</button>`;
+      onclick="event.stopPropagation();wqaHistToggle(${i})">${dcHistIcon()}<span>${escHtml(dcT('phTitle'))}</span>${wqaHistCountLabel(r)}</button>`;
 }
 function wqaRvDelBtn(i){
   return `<button type="button" class="wqa-rv-act wqa-row-del" title="${escHtml(dcT('btnRemove'))}"
@@ -20229,7 +20429,7 @@ function wqaRvSubHtml(r,i){
     bits.push(`<button type="button" class="wqa-rv-chip wqa-rv-acc" onclick="event.stopPropagation();wqaRvOpenAcc(${i})">${
       escHtml(dcT('lblAccessoriesColon'))} ${escHtml(wqaAccShortSummary(r.acc))}${accAddon(r.acc)>0?' · +'+escHtml(fmt(accAddon(r.acc)))+'/pc':''}</button>`);
   if(r.diaManual && String(r.diaMm||'').trim()!=='')
-    bits.push(`<span class="wqa-rv-chip">${escHtml(dcT('fieldDiameter'))} ${escHtml(String(r.diaMm))} · ${escHtml(dcT('diaManual'))}</span>`);
+    bits.push(`<span class="wqa-rv-chip">${escHtml(dcT('fieldEffDia'))} Ø${escHtml(String(r.diaMm))} · ${escHtml(dcT('diaManual'))}</span>`);
   const badges=wqaBadgeHtml(r);
   return `<div class="wqa-it-sub"${(bits.length||badges)?'':' hidden'}>${bits.join('')}<span class="wqa-sum-badges">${badges}</span></div>`;
 }
@@ -20243,9 +20443,11 @@ function wqaRvOpenAcc(i){
    item's panel on its Diameter box; "Manual" when a person typed it. */
 function wqaRvDiaHtml(r,i){
   const manual=!!r.diaManual && String(r.diaMm||'').trim()!=='';
+  /* Specification, not price metadata: a compact Ø at the end of the
+     dimensions. The full name is in the tooltip and in the item's panel. */
   return `<button type="button" class="wqa-rv-dia${manual?' is-manual':''}" data-cell="dia"
-      title="${escHtml(dcT(manual?'diaManual':'diaDefault'))}"
-      onclick="event.stopPropagation();wqaIxOpen(${i},'dia')"><span class="wqa-tok-k">${escHtml(dcT('fieldDiameter'))}</span> <span class="wqa-c-dia">${escHtml(wqaDiaText(r))}</span>${
+      title="${escHtml(dcT('fieldEffDia')+' · '+dcT(manual?'diaManual':'diaDefault'))}"
+      onclick="event.stopPropagation();wqaIxOpen(${i},'dia')"><span class="wqa-dia-sym" aria-label="${escHtml(dcT('fieldEffDia'))}">Ø</span><span class="wqa-c-dia">${escHtml(wqaDiaText(r))}</span>${
       manual?`<span class="wqa-dia-tag"> · ${escHtml(dcT('diaManualShort'))}</span>`:''}</button>`;
 }
 /* ── Pricing, opened from the pricing line ────────────────────────────────
@@ -20254,6 +20456,7 @@ function wqaRvDiaHtml(r,i){
 function wqaPxToggle(i){
   if(wqa.selMode){ wqaRvToggleSel(i); return; }
   const r=wqa.rows[i]; if(!r) return;
+  wqa.curGrp=i;
   if(wqaRvMobile() || r.open){
     if(!r.open){ wqa.rows.forEach(o=>{ if(o!==r) o.open=false; }); r.open=true; wqaRenderRows(true); }
     wqaRvFocus(i,'[data-px="costRate"]');
@@ -20374,7 +20577,7 @@ function wqaRvDetail(r,i){
           ${[['','—'],['FULLSIZE','Fullsize'],['UNDERSIZE','Undersize']].map(o=>`<option value="${o[0]}"${wqaRowSpec(r,'sizeType')===o[0]?' selected':''}>${escHtml(o[1])}</option>`).join('')}
         </select></label>`:''}
       ${wqaRvDetailIn(r,i,'size',dcT('lblSize'))}
-      ${wqaRvDetailIn(r,i,'dia',dcT('fieldDiameter'))}
+      ${wqaRvDetailIn(r,i,'dia',dcT('fieldEffDia'))}
       ${dims.join('')}
       ${wqaRvDetailIn(r,i,'qty',dcT('lblQty'))}
       <label class="wqa-dt-f wqa-dt-tref"><span>${escHtml(dcT('wqaThreadRef'))}</span>
@@ -20386,13 +20589,13 @@ function wqaRvDetail(r,i){
       ${r.radius?`<label class="wqa-dt-f"><span>${escHtml(dcT('wqaRadius'))}</span>
         <input type="text" value="${escHtml(r.radius)}" disabled><small class="wqa-hint-sm">${escHtml(dcT('wqaEvidenceOnly'))}</small></label>`:''}
     </div>
-    <div class="wqa-dt-sec">${escHtml(dcT('sumPricing'))}</div>
-    ${wqaRvPxEditor(r,i)}
     <div class="wqa-dt-weights">
       <span><span class="wqa-w-lbl">${escHtml(dcT('lblUnitWeight'))}</span> <b class="wqa-uw-full">${wqaFmtWeight(calc.weight)}</b></span>
       <span><span class="wqa-w-lbl">${escHtml(dcT('lblTotalWeight'))}</span> <b class="wqa-tw">${wqaFmtTotalWeight(calc.weight,r.qty)}</b></span>
-      <span><span class="wqa-w-lbl">${escHtml(dcT('fieldDiameter'))}</span> <b class="wqa-actual-dia">${escHtml(wqaDiaText(r))}</b></span>
     </div>
+    <div class="wqa-dt-sec wqa-dt-sec-px">${escHtml(dcT('sumPricing'))}</div>
+    ${wqaRvPxEditor(r,i)}
+    ${wqaRvHistSection(r,i)}
     <div class="wqa-row-acc">
       <button type="button" class="wqa-acc-bar" onclick="wqaToggleAccOpen(${i})">
         <span class="wqa-acc-arrow">${r.accOpen?'▾':'▸'}</span>
@@ -20405,16 +20608,40 @@ function wqaRvDetail(r,i){
     </div>
     ${String(r.raw||'').trim()?`<div class="wqa-row-raw-full"><span class="wqa-w-lbl">${escHtml(dcT('wqaRvFromLine'))}</span> ${escHtml(r.raw)}</div>`:''}
     <div class="wqa-dt-foot">
-      ${wqaRvHistBtn(r,i)}
       <button type="button" class="btn btn-ghost btn-sm wqa-dt-del" onclick="wqaRemoveRow(${i})">${escHtml(dcT('btnRemove'))}</button>
       <button type="button" class="btn btn-outline btn-sm" onclick="wqaToggleRow(${i})">${escHtml(dcT('btnDone'))}</button>
     </div>
   </div>`;
 }
 /* The history panel for a row: the records themselves, exactly as before. */
+/* Pricing History as the reference layer of the item's pricing editor: a
+   section directly under PRICING, opening in place for THIS item. */
+function wqaRvHistSection(r,i){
+  const h=r.hist, loaded=h && !h.failed && h.records;
+  const sum = h===undefined && r.histOpen ? dcT('phLoading')
+            : loaded ? (h.records.length ? phClassText(h) : dcT('phNoneExact'))
+            : dcT('phHistShow');
+  const cust = loaded && h.records.length && phHasCustomer()
+    ? ' · '+dcT('phThisCustomer').replace('{n}',h.ownTotal||0)+' · '+dcT('phOther').replace('{n}',h.otherTotal||0) : '';
+  return `<div class="wqa-dt-sec wqa-dt-sec-hist">${escHtml(dcT('phHistSection'))}</div>
+    <div class="wqa-dt-hist" data-hist-row="${i}">
+      <button type="button" class="wqa-dt-histbar${r.histOpen?' is-on':''}" aria-expanded="${r.histOpen?'true':'false'}"
+        onclick="event.stopPropagation();wqaHistToggle(${i})">${dcHistIcon()}<span class="wqa-dt-histsum">${escHtml(sum+cust)}</span><span class="wqa-hist-arrow">${r.histOpen?'▾':'▸'}</span></button>
+      ${r.histOpen?wqaRvHistBody(r,i):''}
+    </div>`;
+}
+function wqaRvHistBody(r,i){
+  const hist=r.hist;
+  if(hist===undefined) return '<div class="wqa-hist">'+escHtml(dcT('phLoading'))+'</div>';
+  if(hist && hist.failed) return '<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
+  if(!hist || !hist.records || !hist.records.length) return '<div class="wqa-hist wqa-hist-none">'+escHtml(dcT('phNoneExact'))+'</div>';
+  return `<div class="wqa-hist wqa-hist-panel wqa-hist-inline" onclick="event.stopPropagation()">
+    ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,(rec,n)=>wqaHistRecExtra(i,n,rec))}
+  </div>`;
+}
 function wqaRvHistHtml(r,i){
   const hist=r.hist;
-  if(!r.histOpen) return '';
+  if(!r.histOpen || wqaRowIsOpen(r)) return '';
   if(hist===undefined) return '<div class="wqa-hist">'+escHtml(dcT('phLoading'))+'</div>';
   if(hist && hist.failed) return '<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
   if(!hist || !hist.records || !hist.records.length) return '<div class="wqa-hist wqa-hist-none">'+escHtml(dcT('phNoneExact'))+'</div>';
@@ -20423,13 +20650,13 @@ function wqaRvHistHtml(r,i){
     <button type="button" class="wqa-hist-bar" onclick="wqaHistToggle(${i})">
       <span class="wqa-hist-arrow">▾</span>
       <span class="wqa-hist-lbl">${escHtml(dcT('phTitle'))}</span>
-      <span class="wqa-hist-count">${escHtml(dcT((hist.total||hist.records.length)===1?'phRecordCount':'phRecordCountPlural').replace('{n}',hist.total||hist.records.length))}${own?' · '+escHtml(dcT('phThisCustomer').replace('{n}',own)):''}${other?' · '+escHtml(dcT('phOther').replace('{n}',other)):''}</span>
+      <span class="wqa-hist-count">${escHtml(phClassText(hist)||dcT((hist.total||hist.records.length)===1?'phRecordCount':'phRecordCountPlural').replace('{n}',hist.total||hist.records.length))}${phHasCustomer()?' · '+escHtml(dcT('phThisCustomer').replace('{n}',own))+' · '+escHtml(dcT('phOther').replace('{n}',other)):''}</span>
     </button>
     ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,(rec,n)=>wqaHistRecExtra(i,n,rec))}
   </div>`;
 }
-function wqaRvSpecText(r){
-  const show=wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('sizeType')||wqaIsMixed('product')
+function wqaRvSpecText(r,always){
+  const show=always||wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('sizeType')||wqaIsMixed('product')
            ||r.bodyDia||(r.dimNorm&&r.dimNorm.length);
   if(!show) return '';
   const bits=[];
@@ -20451,14 +20678,16 @@ function wqaRvItemHtml(r,i,series){
   const calc=r.calc||{};
   const prod=wqaProductByType(wqaRowProduct(r));
   const title=prod?prod.label:dcT('needs').replace('{f}',dcT('fieldProduct'));
-  const spec=series?'':wqaRvSpecText(r);
+  const spec=series?'':wqaRvSpecText(r,true);
   /* In a series the heading states the pricing most of its rows share; a row
      says its own only when it differs — which is exactly the row to look at. */
   const showPx=!series || wqa.px===i || wqaRvPxText(r)!==series.px;
   const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick"${r.sel?' checked':''}
       onclick="event.stopPropagation()" onchange="wqaRvToggleSel(${i})"
       aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
-  const toks=wqaRvSpecToks(r,i,series?WQA_RV_KEY_FIELDS:null);
+  const showDia=!series || (r.diaManual && String(r.diaMm||'').trim()!=='');
+  const toks=wqaRvSpecToks(r,i,series?WQA_RV_KEY_FIELDS:null)
+    +(showDia?'<span class="wqa-tok-x wqa-dia-x">·</span>'+wqaRvDiaHtml(r,i):'');
   return `<div class="wqa-it${series?' wqa-it-s':''}${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}${wqa.px===i?' is-px':''}" data-wqa-row="${i}">
     <div class="wqa-it-main" onclick="wqaRvRowClick(${i})">
       <span class="wqa-it-no">${pick}<span class="wqa-it-n">${i+1}</span></span>
@@ -20471,8 +20700,7 @@ function wqaRvItemHtml(r,i,series){
         <button type="button" class="wqa-fig wqa-fig-price" onclick="event.stopPropagation();wqaPxToggle(${i})"
           title="${escHtml(dcT('sumPricing'))}"><span class="wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
         <span class="wqa-fig wqa-fig-w"><span class="wqa-uw wqa-uw-full" data-tw="${escHtml(wqaFmtTotalWeight(calc.weight,r.qty))}"
-          title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span>${
-          (!series || (r.diaManual && String(r.diaMm||'').trim()!=='')) ? wqaRvDiaHtml(r,i) : ''}</span>
+          title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span></span>
       </div>
       ${showPx?`<button type="button" class="wqa-it-px${series?' is-own':''}" onclick="event.stopPropagation();wqaPxToggle(${i})"
         aria-expanded="${wqa.px===i?'true':'false'}"><span class="wqa-px-sum">${escHtml(wqaRvPxText(r))}</span></button>`
@@ -20489,7 +20717,7 @@ function wqaRvItemHtml(r,i,series){
    selecting, tick it. */
 function wqaRvRowClick(i){
   if(wqa.selMode){ wqaRvToggleSel(i); return; }
-  wqa.ix=null; wqa.px=null;
+  wqa.ix=null; wqa.px=null; wqa.curGrp=i;
   wqaToggleRow(i);
 }
 /* ── Series ───────────────────────────────────────────────────────────────
@@ -20507,13 +20735,174 @@ function wqaRvInSeries(i){
   return wqaRvGroups().some(g=>g.idx.length>1 && g.idx.indexOf(i)>=0);
 }
 function wqaRvGroups(){
-  const out=[];
+  const runs=[];
   wqa.rows.forEach((r,i)=>{
     if(r.removed) return;
-    const k=wqaRvGroupKey(r), g=out[out.length-1];
-    if(g && g.key===k) g.idx.push(i); else out.push({key:k, idx:[i]});
+    const k=wqaRvGroupKey(r), g=runs[runs.length-1];
+    if(g && g.key===k) g.idx.push(i); else runs.push({key:k, idx:[i]});
+  });
+  /* A group pasted twice back to back reads as one long run. When the second
+     half repeats the first line for line, it is drawn as the two groups it
+     was, so the repeat can be seen and decided on. */
+  const out=[];
+  runs.forEach(g=>{
+    const n=g.idx.length, h=n/2;
+    if(n>=4 && n%2===0 && g.idx.slice(0,h).every((k,j)=>wqaRvRowSig(wqa.rows[k])===wqaRvRowSig(wqa.rows[g.idx[h+j]]))){
+      out.push({key:g.key, idx:g.idx.slice(0,h)}, {key:g.key, idx:g.idx.slice(h)});
+    } else out.push(g);
+  });
+  /* Possible repeated group: same identity, same lines, same quantities. A
+     warning only — the owner decides; nothing is merged or removed here. */
+  const seen={};
+  out.forEach(g=>{
+    if(g.idx.length<2) return;
+    g.sig=g.key+'#'+g.idx.map(k=>wqaRvRowSig(wqa.rows[k])).join(';');
+    if(seen[g.sig]){ g.dupOf=seen[g.sig]; seen[g.sig].hasDup=true; }
+    else seen[g.sig]=g;
   });
   return out;
+}
+/* One line of a group: its dimensions and quantity, as drawn. */
+function wqaRvRowSig(r){ return wqaIxOrder(r).map(f=>f+'='+String(wqaRvTokVal(r,f)).trim()).join('|'); }
+function wqaRvRowDimSig(r){ return wqaIxOrder(r).filter(f=>f!=='qty').map(f=>f+'='+String(wqaRvTokVal(r,f)).trim()).join('|'); }
+function wqaRvGroupOf(i){ return wqaRvGroups().find(g=>g.idx.indexOf(i)>=0)||null; }
+
+/* ── A group's pricing, edited on its heading ────────────────────────────
+   ALL (Bulk Adjust) · GROUP (here) · ITEM (the row). Enter or leaving the box
+   commits to every item of THIS group and nothing else; a blank or unchanged
+   value changes nothing. */
+const WQA_GX_FIELDS=[['costRate','rvCost'],['addCost','rvAdd'],['markup','sumMarkup']];
+function wqaGxVals(idx,k){ return idx.map(j=>String(((wqa.rows[j].calc||{})[k])==null?'':(wqa.rows[j].calc||{})[k]).trim()); }
+/* What most of the group shares — the heading has always stated that, and a
+   row that differs says its own beside it. */
+function wqaGxCommon(idx,k){
+  const tally={}; wqaGxVals(idx,k).forEach(v=>{ tally[v]=(tally[v]||0)+1; });
+  return Object.keys(tally).sort((x,y)=>tally[y]-tally[x])[0]||'';
+}
+function wqaGxHtml(g){
+  const first=g.idx[0];
+  const allManual=g.idx.every(j=>(wqa.rows[j].priceMode||'auto')==='manual');
+  if(allManual) return g.px?`<span class="wqa-ser-px">${escHtml(g.px)}</span>`:'';
+  const bits=WQA_GX_FIELDS.map(([k,lk])=>{
+    const v=wqaGxCommon(g.idx,k);
+    const shown = k==='markup' ? wqaMetaPct(v) : wqaRvNum(v);
+    if(wqa.gx && wqa.gx.i===first && wqa.gx.f===k)
+      return `<span class="wqa-gx is-ix"><span class="wqa-gx-k">${escHtml(dcT(lk))}</span><input class="wqa-ix wqa-gx-in" type="text" inputmode="decimal"
+        autocomplete="off" spellcheck="false" data-gx-in="${k}" value="${escHtml(v==null?'':v)}" aria-label="${escHtml(dcT(lk))}"
+        onclick="event.stopPropagation()" onkeydown="wqaGxKey(event,${first},'${k}',this)" onblur="wqaGxCommit(${first},'${k}',this.value)"></span>`;
+    return `<button type="button" class="wqa-gx" data-gx="${k}" title="${escHtml(dcT('wqaGxEdit'))}"
+        onclick="event.stopPropagation();wqaGxOpen(${first},'${k}')"><span class="wqa-gx-k">${escHtml(dcT(lk))}</span> <span class="wqa-gx-v">${escHtml(shown)}</span></button>`;
+  });
+  const modes=[...new Set(g.idx.map(j=>wqa.rows[j].priceMode||'auto'))];
+  const tail=modes.length===1&&modes[0]==='no_round'?`<span class="wqa-gx-mode">${escHtml(dcT('pmNoRound'))}</span>`:'';
+  return `<span class="wqa-ser-px wqa-ser-gx">${bits.join('<span class="wqa-gx-x"> · </span>')}${tail}</span>`;
+}
+function wqaGxOpen(first,k){
+  if(wqa.selMode) return;
+  wqa.ix=null; wqa.px=null; wqa.gx={i:first,f:k}; wqa.curGrp=first;
+  wqaRenderRows(true);
+  const n=document.querySelector('#wqaRows [data-gx-in="'+k+'"]');
+  if(n){ try{ n.focus({preventScroll:true}); n.select(); }catch(e){} }
+}
+function wqaGxKey(ev,first,k,inp){
+  if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); return; }
+  if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); wqa.gx=null; wqaRenderRows(true); }
+}
+function wqaGxCommit(first,k,raw){
+  if(!wqa.gx || wqa.gx.i!==first || wqa.gx.f!==k) return;
+  wqa.gx=null;
+  const g=wqaRvGroupOf(first);
+  const v=String(raw==null?'':raw).trim();
+  const lbl=dcT((WQA_GX_FIELDS.find(x=>x[0]===k)||[])[1]||'');
+  if(!g || v==='' || wqaGxVals(g.idx,k).every(x=>x===v)){ wqaRenderRows(true); return; }
+  if(!isReadableAmount(v) || evalExpr(v)<0){ showToast(dcT('wqaGxBad').replace('{f}',lbl)); wqaRenderRows(true); return; }
+  const c=Object.assign(wqaEmptyPrice(),{costRate:'',addCost:'',markup:''}); c[k]=v;
+  const rows=g.idx.map(j=>wqa.rows[j]);
+  const dropped=wqaApplyPriceTo(rows,c,false);
+  wqaFlashRows(g.idx);
+  wqaRecomputeAll('force');
+  showToast(dcT('wqaGxDone').replace('{f}',lbl).replace('{v}',k==='markup'?v+'%':v).replace('{n}',rows.length)
+    +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
+}
+
+/* ── Possible repeated group: the owner's three answers ───────────────────
+   Keep Both is a valid answer (bulk packing, delivery split, a project
+   phase). Merge and Remove happen only on a press, and stay undoable until
+   the items are added. */
+function wqaDupFind(first){ const g=wqaRvGroupOf(first); return g&&g.dupOf?g:null; }
+function wqaDupKeep(first){
+  const g=wqaDupFind(first); if(!g) return;
+  (wqa.dupKeep||(wqa.dupKeep={}))[g.sig]=true;
+  wqaRenderRows(true);
+}
+function wqaDupReview(first){
+  const g=wqaDupFind(first); if(!g||!wqa.dupKeep) return;
+  delete wqa.dupKeep[g.sig];
+  wqaRenderRows(true);
+}
+function wqaDupMerge(first){
+  const g=wqaDupFind(first); if(!g) return;
+  const used=new Set(), adds=[];
+  g.idx.forEach(j=>{
+    const r=wqa.rows[j];
+    const t=g.dupOf.idx.find(k=>!used.has(k) && wqaRvRowDimSig(wqa.rows[k])===wqaRvRowDimSig(r));
+    if(t===undefined) return;
+    used.add(t);
+    const q=parseInt(r.qty,10)||0, tr=wqa.rows[t];
+    tr.qty=String((parseInt(tr.qty,10)||0)+q); wqaMarkEdited(tr,'qty');
+    r.removed=true; wqaMarkEdited(r,'removed');
+    adds.push([t,q,j]);
+  });
+  (wqa.dupLog||(wqa.dupLog=[])).push({kind:'merge', host:g.dupOf.idx[0], adds});
+  wqaRecomputeAll('force');
+  showToast(dcT('wqaDupMergedT').replace('{n}',adds.length));
+}
+function wqaDupRemove(first){
+  const g=wqaDupFind(first); if(!g) return;
+  g.idx.forEach(j=>{ wqa.rows[j].removed=true; wqaMarkEdited(wqa.rows[j],'removed'); });
+  (wqa.dupLog||(wqa.dupLog=[])).push({kind:'remove', host:g.dupOf.idx[0], rows:g.idx.slice()});
+  wqaRecomputeAll('force');
+  showToast(dcT('wqaDupRemovedT').replace('{n}',g.idx.length));
+}
+function wqaDupUndo(n){
+  const e=(wqa.dupLog||[])[n]; if(!e) return;
+  if(e.kind==='merge') e.adds.forEach(([t,q,j])=>{
+    const tr=wqa.rows[t]; tr.qty=String(Math.max(0,(parseInt(tr.qty,10)||0)-q)); wqa.rows[j].removed=false; });
+  else e.rows.forEach(j=>{ wqa.rows[j].removed=false; });
+  wqa.dupLog.splice(n,1);
+  wqaRecomputeAll('force');
+}
+function wqaDupHtml(g){
+  const first=g.idx[0], out=[];
+  (wqa.dupLog||[]).forEach((e,n)=>{
+    if(e.host!==first) return;
+    out.push(`<div class="wqa-dup is-done"><span>${escHtml(dcT(e.kind==='merge'?'wqaDupMerged':'wqaDupRemoved'))}</span>
+      <button type="button" class="btn btn-ghost btn-sm" data-dup-act="undo" onclick="event.stopPropagation();wqaDupUndo(${n})">${escHtml(dcT('wqaDupUndo'))}</button></div>`);
+  });
+  if(g.dupOf && !(wqa.dupKeep&&wqa.dupKeep[g.sig])){
+    out.push(`<div class="wqa-dup" role="status" data-dup="${first}" onclick="event.stopPropagation()">
+      <div class="wqa-dup-t"><b>${escHtml(dcT('wqaDupTitle'))}</b><span>${escHtml(dcT('wqaDupBody'))}</span></div>
+      <div class="wqa-dup-acts">
+        <button type="button" class="btn btn-outline btn-sm" data-dup-act="keep" onclick="wqaDupKeep(${first})">${escHtml(dcT('wqaDupKeep'))}</button>
+        <button type="button" class="btn btn-outline btn-sm" data-dup-act="merge" onclick="wqaDupMerge(${first})">${escHtml(dcT('wqaDupMerge'))}</button>
+        <button type="button" class="btn btn-ghost btn-sm wqa-dup-rm" data-dup-act="remove" onclick="wqaDupRemove(${first})">${escHtml(dcT('wqaDupRemove'))}</button>
+      </div></div>`);
+  } else if(g.dupOf){
+    out.push(`<div class="wqa-dup is-done"><span>${escHtml(dcT('wqaDupKept'))}</span>
+      <button type="button" class="btn btn-ghost btn-sm" data-dup-act="review" onclick="event.stopPropagation();wqaDupReview(${first})">${escHtml(dcT('wqaDupReview'))}</button></div>`);
+  }
+  /* An optional label, offered only where a repeat makes one useful. */
+  if(g.dupOf || g.hasDup){
+    const note=String(wqa.rows[first].grpNote||'');
+    out.push(`<label class="wqa-grp-note" onclick="event.stopPropagation()"><span>${escHtml(dcT('wqaGrpNote'))}</span>
+      <input type="text" value="${escHtml(note)}" placeholder="${escHtml(dcT('wqaGrpNotePh'))}" maxlength="60"
+        onchange="wqaGrpNoteSet(${first},this.value)"></label>`);
+  }
+  return out.join('');
+}
+function wqaGrpNoteSet(first,v){
+  const g=wqaRvGroupOf(first); if(!g) return;
+  g.idx.forEach(j=>{ wqa.rows[j].grpNote=String(v||'').trim(); });
 }
 function wqaRvSeriesHead(g){
   const r=wqa.rows[g.idx[0]];
@@ -20529,7 +20918,7 @@ function wqaRvSeriesHead(g){
   /* Same size, same Size 规格: the same bar. Said once; a row with a bar
      typed by hand says its own. */
   const bar=g.idx.map(k=>wqa.rows[k]).find(x=>!x.diaManual);
-  if(bar && String(bar.diaMm||'').trim()!=='') head.push(`<span class="wqa-ser-dia">${escHtml(dcT('fieldDiameter'))} ${escHtml(wqaDiaText(bar))}</span>`);
+  if(bar && String(bar.diaMm||'').trim()!=='') head.push(`<span class="wqa-ser-dia" title="${escHtml(dcT('fieldEffDia'))}">Ø${escHtml(wqaDiaText(bar))}</span>`);
   if(wqaAccHas(r.acc)) head.push(escHtml(dcT('lblAccessoriesColon'))+' '+escHtml(wqaAccShortSummary(r.acc)));
   const all=g.idx.every(k=>wqa.rows[k].sel);
   const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick wqa-pick-ser"${all?' checked':''}
@@ -20537,8 +20926,10 @@ function wqaRvSeriesHead(g){
   return `<div class="wqa-ser-head">${pick}
       <span class="wqa-ser-title">${escHtml(prod?prod.label:dcT('needs').replace('{f}',dcT('fieldProduct')))}</span>
       <span class="wqa-ser-spec">${head.join('<span class="wqa-tok-x">·</span>')}${bits.length?`<span class="wqa-row-spec">${escHtml(bits.join(' · '))}</span>`:''}</span>
-      <span class="wqa-ser-n">${escHtml(dcT('wqaRvSeriesN').replace('{n}',g.idx.length))}</span>
-      ${g.px?`<span class="wqa-ser-px">${escHtml(g.px)}</span>`:''}
+      <button type="button" class="wqa-ser-n" title="${escHtml(dcT('wqaGrpAdjust'))}"
+        onclick="event.stopPropagation();wqaBulkSheetOpen('group',null,${g.idx[0]})">${escHtml(dcT('wqaRvSeriesN').replace('{n}',g.idx.length))}</button>
+      ${wqaGxHtml(g)}
+      ${wqaDupHtml(g)}
     </div>`;
 }
 function wqaRenderRows(force){
@@ -20690,11 +21081,16 @@ function wqaBsEmpty(){
           size:'', thread:'', acc:WQA_KEEP,
           costRate:'', addCost:'', markup:'', priceMode:WQA_KEEP, manualUnitPrice:''};
 }
-function wqaBulkSheetOpen(scope,focus){
+function wqaBulkSheetOpen(scope,focus,grpRow){
   const live=wqa.rows.filter(r=>!r.removed);
   if(!live.length) return;
-  const sc = scope==='selected' || (scope!=='all' && wqa.selMode && wqaSelCount()>0) ? 'selected' : 'all';
-  wqa.bs={scope:sc, f:wqaBsEmpty(), acc:wqaEmptyAcc()};
+  /* The current group: the one asked for, or the group last worked in. */
+  const gi = grpRow!=null ? grpRow : wqa.curGrp;
+  const g0 = gi!=null && wqa.rows[gi] && !wqa.rows[gi].removed ? wqaRvGroupOf(gi) : null;
+  const g = g0 && g0.idx.length>1 ? g0 : null;       // a group of one is just the item
+  const sc = scope==='group' && g ? 'group'
+           : scope==='selected' || (scope!=='all' && scope!=='group' && wqa.selMode && wqaSelCount()>0) ? 'selected' : 'all';
+  wqa.bs={scope:sc, f:wqaBsEmpty(), acc:wqaEmptyAcc(), grp:g?g.idx.slice():null};
   wqa.ix=null; wqa.px=null;
   el('wqaBulkSheet').hidden=false;
   const md=document.querySelector('#wqaModal .wqa-modal'); if(md) md.classList.add('has-sheet');
@@ -20713,6 +21109,7 @@ function wqaBulkSheetClose(){
 }
 function wqaBsTargets(){
   const live=wqa.rows.filter(r=>!r.removed);
+  if(wqa.bs && wqa.bs.scope==='group') return (wqa.bs.grp||[]).map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
   return wqa.bs && wqa.bs.scope==='selected' ? live.filter(r=>r.sel) : live;
 }
 /* Choosing which items: the sheet steps aside for Selection mode, and the
@@ -20728,7 +21125,7 @@ function wqaBsSet(k,v){
   if(['product','material','finish','sizeType','acc','priceMode','scope'].indexOf(k)>=0) wqaRenderBulkSheet();
   else wqaBsPatchSummary();
 }
-function wqaBsScope(s){ if(!wqa.bs) return; wqa.bs.scope = s==='selected'?'selected':'all'; wqaRenderBulkSheet(); }
+function wqaBsScope(s){ if(!wqa.bs) return; wqa.bs.scope = s==='selected'?'selected':(s==='group'&&wqa.bs.grp)?'group':'all'; wqaRenderBulkSheet(); }
 function wqaBsEditAcc(g,f,v){
   if(!wqa.bs) return;
   wqaSetAccField(wqa.bs.acc,g,f,v);
@@ -20794,6 +21191,7 @@ function wqaRenderBulkSheet(){
       <div class="wqa-bs-scope" role="group">
         <button type="button" class="wqa-bs-sc${b.scope==='all'?' is-on':''}" aria-pressed="${b.scope==='all'}" onclick="wqaBsScope('all')">${escHtml(dcT('wqaBsScopeAll').replace('{n}',nAll))}</button>
         <button type="button" class="wqa-bs-sc${b.scope==='selected'?' is-on':''}" aria-pressed="${b.scope==='selected'}" onclick="wqaBsScope('selected')"${nSel?'':' disabled'}>${escHtml(dcT('wqaBsScopeSel').replace('{n}',nSel))}</button>
+        ${b.grp?`<button type="button" class="wqa-bs-sc${b.scope==='group'?' is-on':''}" data-bs-scope="group" aria-pressed="${b.scope==='group'}" onclick="wqaBsScope('group')">${escHtml(dcT('wqaBsScopeGrp').replace('{n}',b.grp.filter(j=>wqa.rows[j]&&!wqa.rows[j].removed).length))}</button>`:''}
         <button type="button" class="btn btn-ghost btn-sm wqa-bs-pick" onclick="wqaBsPick()">${escHtml(dcT('wqaBsPick'))}</button>
       </div>
       <div class="wqa-bs-sec">${escHtml(dcT('wqaBsFields'))}</div>
@@ -20825,7 +21223,11 @@ function wqaBulkApply(){
   const f=b.f, n=wqaBsTargets().length;
   const saved={scope:wqa.applyScope, fix:wqa.commonFix, item:wqa.commonItem, price:wqa.commonPrice,
                pmSet:wqa.commonPriceModeSet, acc:wqa.commonAcc};
-  wqa.applyScope = b.scope==='selected' ? 'selected' : 'all';
+  /* A group is applied as a selection of exactly its rows; the person's own
+     ticks are put back afterwards. */
+  const selBefore = b.scope==='group' ? wqa.rows.map(r=>r.sel) : null;
+  if(selBefore){ const t=new Set(wqaBsTargets()); wqa.rows.forEach(r=>{ r.sel=t.has(r); }); }
+  wqa.applyScope = b.scope==='all' ? 'all' : 'selected';
   dcToastCapture=[];
   try{
     /* Product, material, finish, Size 规格 — in the order the existing writer
@@ -20855,6 +21257,7 @@ function wqaBulkApply(){
     wqa.applyScope=saved.scope; wqa.commonFix=wqaEmptyFix(); wqa.commonItem=wqaEmptyItem();
     wqa.commonPrice=wqaEmptyPrice(); wqa.commonPriceModeSet=false; wqa.commonAcc=wqaEmptyAcc();
     wqaBulkSheetClose();
+    if(selBefore) wqa.rows.forEach((r,j)=>{ r.sel=!!selBefore[j]; });
     if(b.scope==='selected'){ wqa.selMode=false; wqa.rows.forEach(r=>{ r.sel=false; }); }
     wqaRecomputeAll('force');
     /* The writers' own sentences say what was refused (a stainless row has no
@@ -20868,7 +21271,12 @@ function wqaBulkApply(){
 function wqaHistCountLabel(r){
   const h=r&&r.hist;
   if(!h||h.failed||!h.records||!h.records.length) return '';
-  return ' <span class="wqa-row-actn">'+(h.total||h.records.length)+'</span>';
+  /* The number on the button is the EXACT matches; with none, the total is
+     shown muted so it never reads as "22 exact". */
+  const c=phClassCounts(h);
+  return c.exact
+    ? ' <span class="wqa-row-actn" title="'+escHtml(phClassText(h))+'">'+c.exact+'</span>'
+    : ' <span class="wqa-row-actn is-ref" title="'+escHtml(phClassText(h))+'">'+(h.total||h.records.length)+'</span>';
 }
 /* ── Where this price came from ────────────────────────────────────────────
    "Reusing Q-2026-0403 pricing" was a line of small grey text among several,
@@ -21389,7 +21797,7 @@ function wqaRankHistory(data,spec){
               (wantKey!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===wantKey)};
   });
   phSortRecords(records);
-  return {...data, records, _cmpDims:wantDims};
+  return {...data, records, _cmpDims:wantDims, _curFinish:spec.finish||''};
 }
 async function wqaHistMore(i){
   const r=wqa.rows[i]; if(!r||!r.hist) return;

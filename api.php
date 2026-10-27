@@ -1645,27 +1645,36 @@ if ($action === 'get_next_ref') {
         'total'      => count($records),
         'ownTotal'   => count(array_filter($records, function ($r) { return $r['own']; })),
         'otherTotal' => count(array_filter($records, function ($r) { return !$r['own']; })),
+        /* Exact / Similar / Reference only over the whole set, so the summary
+           never calls every match "matching" — see dc_history_class. */
+        'exactTotal' => count(array_filter($records, function ($r) { return dc_history_class($r) === 'exact'; })),
+        'closeTotal' => count(array_filter($records, function ($r) { return dc_history_class($r) === 'close'; })),
+        'refTotal'   => count(array_filter($records, function ($r) { return dc_history_class($r) === 'ref'; })),
         'offset'     => $offset,
         'limit'      => $limit,
     ]]);
 
 } elseif ($action === 'get_accessory_history') {
     /* Login is required at the top of this QUO-only API.  Read the historical
-       item JSON server-side, but return only the six display fields below. */
+       item JSON server-side, but return only the seven display fields below:
+       the customer/company DISPLAY NAME is the one addition (owner decision
+       2026-10-27) — never its phone, email, address or id. */
     $want = ['type'=>trim($_GET['type'] ?? ''), 'cleanSize'=>trim($_GET['cleanSize'] ?? ''),
              'finish'=>trim($_GET['finish'] ?? ''), 'text'=>trim($_GET['text'] ?? '')];
     if ($want['cleanSize'] === '' || !in_array($want['type'], ['nut','fw','custom'], true)) {
         echo json_encode(['ok'=>true,'data'=>['records'=>[],'total'=>0]]); exit;
     }
     $stmt = prepare_or_fail($db,
-        "SELECT id, ref_no, quote_date, created_at, items FROM quotations
-          ORDER BY COALESCE(quote_date,created_at) DESC, id DESC",
+        "SELECT q.id, q.ref_no, q.quote_date, q.created_at, q.customer_name, q.items, c.name AS company_name
+           FROM quotations q LEFT JOIN companies c ON q.company_id = c.id
+          ORDER BY COALESCE(q.quote_date,q.created_at) DESC, q.id DESC",
         'Accessory history prepare failed');
     execute_or_fail($stmt, 'Accessory history load failed');
     $records=[]; $res=$stmt->get_result();
     while ($row=$res->fetch_assoc()) {
         $items=json_decode($row['items'], true); if (!is_array($items)) continue;
-        $meta=['quotationId'=>(int)$row['id'], 'refNo'=>$row['ref_no'], 'date'=>$row['quote_date'] ?: $row['created_at']];
+        $meta=['quotationId'=>(int)$row['id'], 'refNo'=>$row['ref_no'], 'date'=>$row['quote_date'] ?: $row['created_at'],
+               'customer'=>(string)($row['customer_name'] ?: ($row['company_name'] ?? ''))];
         foreach ($items as $item) { $record=dc_accessory_history_record($item,$want,$meta); if ($record!==null) $records[]=$record; }
     }
     /* The query already supplies newest-first, then stable item order within a
@@ -1673,7 +1682,7 @@ if ($action === 'get_next_ref') {
     $records=dc_accessory_history_deduplicate($records);
     $total=count($records);
     $records=array_map(function($r){ return ['type'=>$r['type'],'size'=>$r['size'],'finish'=>$r['finish'],
-        'unitPrice'=>$r['unitPrice'],'refNo'=>$r['refNo'],'date'=>$r['date']]; }, array_slice($records,0,50));
+        'unitPrice'=>$r['unitPrice'],'refNo'=>$r['refNo'],'date'=>$r['date'],'customer'=>$r['customer']]; }, array_slice($records,0,50));
     echo json_encode(['ok'=>true,'data'=>['records'=>$records,'total'=>$total]]);
 
 } elseif ($action === 'get_default_prices') {

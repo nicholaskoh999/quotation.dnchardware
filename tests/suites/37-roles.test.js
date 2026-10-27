@@ -153,7 +153,7 @@ module.exports = async (browser, A) => {
     });
     A.eq(d.openRows, 1, 'Details opens exactly one row');
     A.eq(String(d.row1Open), 'false', 'and the row beside it stays shut');
-    A.eq(d.sections.join(' · '), 'Specification · Pricing',
+    A.eq(d.sections.join(' · '), 'Specification · Pricing · Pricing History',   // 2026-10-27: history is the pricing editor's reference layer
       'holding the item\'s specification and its pricing');
     /* Retired 2026-10-23 (AI review redesign): "no duplicate geometry inputs of
        any kind" in Details — by design the panel now holds every value of the

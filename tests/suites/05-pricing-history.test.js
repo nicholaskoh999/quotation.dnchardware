@@ -86,11 +86,17 @@ module.exports = async (browser, A) => {
   // ── the bar, and the records behind it ───────────────────────────────────
   let ui = await page.evaluate(() => {
     const card = document.querySelector('[data-wqa-row="0"]');
-    return { bar: (card.querySelector('.wqa-hist-bar') || {}).textContent || '',
-             open: !!card.querySelector('.ph-scroll') };
+    /* 2026-10-27 (owner addendum): an open row carries its history as the
+       PRICING HISTORY section of its own panel; a closed row keeps the bar. */
+    const sec = card.querySelector('.wqa-dt-sec-hist');
+    return { bar: (sec ? sec.textContent + ' ' : '') + ((card.querySelector('.wqa-hist-bar, .wqa-dt-hist .wqa-dt-histbar') || {}).textContent || ''),
+             open: !!card.querySelector('.ph-scroll'),
+             cls: card.querySelectorAll('.ph-cls').length };
   });
   A.includes(ui.bar, 'Pricing History', 'the row carries a Pricing History bar');
-  A.includes(ui.bar, '6 records', 'with the count on it');
+  /* Exact / Similar / Reference only, never a bare "6 records". */
+  A.ok(/\d+ (exact|similar|reference only)/.test(ui.bar), `with the classified count on it (${ui.bar})`);
+  A.eq(ui.cls, 6, 'and each of the 6 records carries one class');
   A.includes(ui.bar, '5 this customer', 'and how many are this customer\'s');
   A.includes(ui.bar, '1 other', 'and how many are not');
   A.eq(ui.open, 'true', 'and the records themselves, because this row was asked about');
