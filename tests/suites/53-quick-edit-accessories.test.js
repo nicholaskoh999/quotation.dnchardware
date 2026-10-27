@@ -198,15 +198,18 @@ module.exports = async (browser, A) => {
       return { over: Math.max(sc.scrollWidth - sc.clientWidth, document.documentElement.scrollWidth - window.innerWidth),
                len: xs('.wqa-it-toks'), qty: xs('.wqa-fig-qty'), price: xs('.wqa-fig-price'), wt: xs('.wqa-fig-w'), hist: xs('.wqa-row-hist'), del: xs('.wqa-row-del'),
                foot: new Set(foot).size, pills: new Set(pills).size,
-               zh: document.querySelector('.wqa-gacc').textContent };
+               zh: document.querySelector('.wqa-gacc').textContent,
+               gh: (b => b ? [b.getAttribute('aria-label'), b.title, b.textContent.trim(), !!b.querySelector('svg.dc-hist-ico')].join('|') : '')(document.querySelector('.wqa-gacc .wqa-gacc-hist')) };
     });
     const at = `Q ${w} ${lang}`;
     A.ok(q.over <= 0, `${at}: no horizontal overflow, history open (${q.over}px)`);
     A.eq([q.len, q.qty, q.price, q.wt, q.hist, q.del].join(), '1,1,1,1,1,1', `${at}: length, Qty, price, weight, History and remove line up on every row`);
     A.eq(q.foot + '/' + q.pills, '1/1', `${at}: footer buttons one height; the four top controls one height`);
     if (lang === 'zh') {
-      ['每件数量', '表面处理', '单价', '历史价格', '相同表面处理', '不同表面处理', 'Nut', 'Flat Washer'].forEach(t =>
+      ['每件数量', '表面处理', '单价', '相同表面处理', '不同表面处理', 'Nut', 'Flat Washer'].forEach(t =>
         A.includes(q.zh, t, `${at}: ${t}`));
+      /* Icon-only History: named by aria-label and tooltip, no visible text. */
+      A.eq(q.gh, '历史价格|历史价格||true', `${at}: accessory History is the icon alone, aria-label and tooltip 历史价格`);
     }
     await ctx.close();
   }

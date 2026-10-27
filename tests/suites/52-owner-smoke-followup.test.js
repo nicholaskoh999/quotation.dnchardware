@@ -211,8 +211,8 @@ module.exports = async (browser, A) => {
   ({ ctx, p } = await open(browser, 1440));
   await p.evaluate(() => { wqaHardClose(); switchType('sagrod'); setFieldValue('sagrod', 'size', 'M16'); onSizeCommit('sagrod'); });
   const ab = await p.evaluate(() => { const b = document.querySelector('#sagrod-accPanel .acc-history-btn');
-    return { icon: !!(b && b.querySelector('svg.dc-hist-ico')), text: b ? b.textContent.trim() : '' }; });
-  A.eq(ab.icon + '/' + ab.text, 'true/History', 'the accessory History button carries the clock icon');
+    return { icon: !!(b && b.querySelector('svg.dc-hist-ico')), text: b ? [b.getAttribute('aria-label'), b.title, b.textContent.trim()].join('|') : '' }; });
+  A.eq(ab.icon + '/' + ab.text, 'true/History|History|', 'the accessory History button is the clock icon alone, named History by aria-label and tooltip');
   await p.evaluate(() => accHistoryOpen('sagrod', 'nut')); await p.waitForTimeout(600);
   const ah = await p.evaluate(() => [...document.querySelectorAll('#accHistoryBody .acc-hist-group')].map(g => ({
     price: g.querySelector('.ph-rec-unit').textContent, used: g.querySelector('.acc-hist-used').textContent,
@@ -227,7 +227,8 @@ module.exports = async (browser, A) => {
   A.eq(nutBefore, '0', 'opening Accessory History changed nothing');
   await p.evaluate(() => { closeModal('accHistoryModal'); dcSetLang('zh'); }); await p.waitForTimeout(300);
   const zb = await p.evaluate(() => { const b = document.querySelector('#sagrod-accPanel .acc-history-btn'); const r = b.getBoundingClientRect();
-    return { text: b.textContent.trim(), oneLine: r.height < 40 }; });
-  A.eq(zb.text + '/' + zb.oneLine, '历史价格/true', '中文: [icon] 历史价格 stays on one line');
+    return { text: [b.title, b.textContent.trim()].join('|'), aria: b.getAttribute('aria-label'), oneLine: r.height < 40 }; });
+  A.eq(zb.text + '/' + zb.oneLine, '历史价格|/true', '中文: icon-only History, tooltip 历史价格, one line');
+  A.ok(!!zb.aria, '中文: and it keeps an accessible name');
   await ctx.close();
 };

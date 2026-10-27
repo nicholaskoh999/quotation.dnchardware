@@ -44,12 +44,15 @@ module.exports = async (browser, A) => {
   await page.waitForTimeout(100);
   const zh=await page.evaluate(()=>{
     const b=document.querySelector('#sagrod-accPanel .acc-history-btn');
-    return {label:b&&b.textContent, wrapped:b&&b.scrollHeight>b.clientHeight,
+    return {label:b&&[b.getAttribute('aria-label'),b.title,b.textContent.trim(),!!b.querySelector('svg.dc-hist-ico')].join('|'), wrapped:b&&b.scrollHeight>b.clientHeight,
       cards:document.querySelectorAll('#accHistoryBody .ph-rec').length,
       refs:[...document.querySelectorAll('#accHistoryBody .ph-rec-ref')].map(n=>n.textContent),
       secure:Object.keys(accHistoryState.records[0]).every(k=>['type','size','finish','unitPrice','refNo','date'].includes(k))};
   });
-  A.eq(zh.label,'历史价格','Chinese accessory History label is retained');
+  /* Icon-only (2026-10-27): the name lives in aria-label and the tooltip, not as visible text. */
+  /* The tooltip follows the language; the aria-label is set when the button is built. */
+  A.eq(zh.label.split('|').slice(1).join('|'),'历史价格||true','Chinese accessory History: icon-only, tooltip 历史价格');
+  A.ok(!!zh.label.split('|')[0],'and it keeps an accessible name');
   A.ok(!zh.wrapped,'Chinese accessory History button stays on one line');
   A.eq(zh.cards,4,'duplicate-free accessory records render once each');
   /* 2026-10-27: the current finish (ZP) is the stronger reference and is listed
@@ -57,7 +60,7 @@ module.exports = async (browser, A) => {
   A.eq(JSON.stringify(zh.refs),JSON.stringify(['Q-2026-1057','Q-2026-1158','Q-2026-1057','Q-2026-1057']),'same-finish reference first, then newest first');
   A.ok(zh.secure,'client receives only the restricted accessory history fields');
   await page.evaluate(()=>{ dcSetLang('en'); closeModal('accHistoryModal'); onAccChange('sagrod'); });
-  const en=await page.evaluate(()=>{ const b=document.querySelector('#sagrod-accPanel .acc-history-btn'); return {label:b&&b.textContent,wrapped:b&&b.scrollHeight>b.clientHeight}; });
-  A.eq(en.label,'History','English accessory History label is retained');
+  const en=await page.evaluate(()=>{ const b=document.querySelector('#sagrod-accPanel .acc-history-btn'); return {label:b&&[b.getAttribute('aria-label'),b.title,b.textContent.trim(),!!b.querySelector('svg.dc-hist-ico')].join('|'),wrapped:b&&b.scrollHeight>b.clientHeight}; });
+  A.eq(en.label,'History|History||true','English accessory History: icon-only, aria-label and tooltip History');
   A.ok(!en.wrapped,'English accessory History button stays on one line');
 };
