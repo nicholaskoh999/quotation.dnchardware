@@ -2596,6 +2596,14 @@ input,select,textarea{
 .wqa-note-in:focus{outline:none;border-color:var(--border-focus);box-shadow:0 0 0 3px var(--accent-light)}
 .wqa-note-read{margin-top:6px;font-size:11.5px;font-weight:700;color:var(--accent-2);
   overflow-wrap:anywhere}
+/* Read-back of a note: what will be applied, light and under its own box. */
+.wqa-nr{display:flex;flex-direction:column;gap:2px;font-size:12px;line-height:1.4}
+.wqa-nr-h{font-weight:700;color:var(--text-muted)}
+.wqa-nr-f,.wqa-nr-a{font-weight:750;color:var(--accent-2)}
+.wqa-nr-k{font-weight:700;color:var(--text-muted)}
+.wqa-nr-u{font-weight:650;color:var(--amber,#b45309)}
+.wqa-nr-low{font-weight:700;color:var(--amber,#b45309)}
+.wqa-sel-noteread{grid-column:2/-1;margin-top:0}
 @media (hover:none) and (pointer:coarse){ .wqa-note-in{min-height:46px} }
 
 /* Quick Add — AI photo / PDF upload (step 1) */
@@ -6536,6 +6544,10 @@ const I18N={
     wqaFileNoteLbl:'Additional info for this file',
     wqaNoteHelp:'Applies to all uploaded files',
     wqaFileNotesCheck:'Per-file notes were given to the AI for their own file only — check each row against its file.',
+    wqaNoteReadFile:'Will be applied to this file:',
+    wqaNoteReadAll:'Will be applied to all uploaded files:',
+    wqaNoteUnrec:'Unrecognized:',
+    wqaNoteLow:'Could not confidently interpret this note',
     wqaDropPaste:'or paste screenshot with Ctrl+V',
     wqaSelImages:'Selected images', wqaSelPdf:'Selected PDF', wqaImgCount:'{n} / {max} images selected',
     wqaRemoveFile:'Remove', wqaMaxImages:'Maximum 5 images per analysis.',
@@ -7186,6 +7198,10 @@ const I18N={
     wqaFileNoteLbl:'此文件补充资料',
     wqaNoteHelp:'适用于所有上传文件',
     wqaFileNotesCheck:'各文件的补充资料只用于该文件 — 请逐项对照其文件确认。',
+    wqaNoteReadFile:'将应用于此文件：',
+    wqaNoteReadAll:'将应用于所有上传文件：',
+    wqaNoteUnrec:'无法识别：',
+    wqaNoteLow:'无法确定识别这项补充资料',
     wqaDropPaste:'或按 Ctrl+V 粘贴截图',
     wqaSelImages:'已选图片', wqaSelPdf:'已选 PDF', wqaImgCount:'已选 {n} / {max} 张图片',
     wqaRemoveFile:'移除', wqaMaxImages:'每次分析最多 5 张图片。',
@@ -17436,6 +17452,112 @@ function wqaNoteSummary(text){
   if(axesOf.product) out.unshift('Product '+axesOf.product);
   return out;
 }
+/* ── What a note was understood to say ────────────────────────────────────
+   ONE reading for every note — a file's own and the global one — so the two
+   cannot disagree; only the heading (this file / all files) differs. It reads
+   with the same rules the merge applies (WQA_NOTE_RE, the size and quantity
+   patterns of wqaNoteSegFacts, wqaDetectCommon for material / finish / size
+   type, wqaAccScan for accessories) and lists each field in the order it was
+   typed. Words none of them took are said back as unrecognised — never
+   silently dropped — and a note none of them understood says so instead of
+   pretending to a structure. */
+const WQA_NOTE_FILLER=/^(?:and|&|\+|all|each|every|per|items?|rows?|sizes?|pcs?|nos?|mm|with|c\/w|cw|the|for|of|to|is|are|be|should|shall|must|use|using|set|change|changed|as|x|qty|=|:|-|\/|\.)$/i;
+function wqaNoteParse(text){
+  const s=String(text||'').trim();
+  if(!s) return null;
+  const facts=[], acc=[], unknown=[];
+  const exs=wqaNoteExactSpecs(s);
+  if(exs&&exs.items){
+    facts.push({at:0,k:'variants',val:dcT('wqaVarExactRead')+' '+exs.items.length+': '+exs.items.map((x,i)=>(i+1)+') '+[x.product?wqaVVal('product',x.product):'',x.material?wqaVVal('material',x.material):'',x.sizeType?wqaVVal('sizeType',x.sizeType):'',x.finish].filter(Boolean).join(' ')).join(' · ')});
+    return {facts,acc,unknown,low:false};
+  }
+  /* Accessories first, so "4 nuts" is never read as a rod quantity. */
+  const a=wqaAccScan(s);
+  let t=s;
+  if(a && a.found){
+    const nm=k=>dcT(k==='nut'?'accNut':'accFW');
+    ['nut','fw'].forEach(k=>{ if(a[k]!=null) acc.push(nm(k)+' ×'+a[k]); });
+    if(a.custom) acc.push(a.custom.text+(a.custom.qty!=null?' ×'+a.custom.qty:''));
+    a.need.filter(k=>k!=='custom').forEach(k=>acc.push(nm(k)+' ×?'));
+    (a.unsure||[]).forEach(x=>unknown.push(x));
+    t=a.rest||'';
+  }
+  const spans=[];
+  const take=(re,fn)=>{ const r=new RegExp(re.source,re.flags.indexOf('g')>=0?re.flags:re.flags+'g'); let m;
+    while((m=r.exec(t))!==null){ if(fn(m)!==false) spans.push([m.index,m.index+m[0].length]); if(!m[0].length) r.lastIndex++; } };
+  const blank=()=>{ spans.forEach(([x,y])=>{ t=t.slice(0,x)+' '.repeat(y-x)+t.slice(y); }); spans.length=0; };
+  /* The products a note names (its scope), as wqaNoteFacts cuts them. */
+  const seenP={};
+  WQA_PRODUCTS.forEach(p=>(p.aliases||[]).forEach(al=>{
+    take(new RegExp('\\b'+al.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+'\\b','i'),m=>{
+      if(!seenP[p.type]){ seenP[p.type]=1; facts.push({at:m.index,k:'product',val:p.label}); } });
+  }));
+  blank();
+  /* Labelled dimensions: H500, ID 100, TL70/200, L595. OD, A, B … are known
+     words but not ours to fill, so they stay behind as unrecognised. */
+  take(WQA_NOTE_RE,m=>{
+    const field=WQA_NOTE_FIELDS[m[1].toUpperCase()]; if(!field) return false;
+    const lbl=field==='threadLen'?'TL':field==='length'?'L':m[1].toUpperCase();
+    facts.push({at:m.index,k:field,val:lbl+cleanNum(m[2])+(field==='threadLen'&&m[3]!=null?'/'+cleanNum(m[3]):'')});
+  });
+  blank();
+  let qd=false, sd=false;
+  take(/\bqty\s*[:=]?\s*(\d+)\b|\b(\d+)\s*(?:pcs|pc|nos|no|sets|set|units|unit)\b/i,m=>{
+    if(qd) return false; qd=true;
+    facts.push({at:m.index,k:'qty',val:dcT('fieldQty')+' '+parseInt(m[1]||m[2],10)+' pcs'});
+  });
+  take(/\bm\s*(\d+(?:\.\d+)?)\b/i,m=>{
+    if(sd) return false; sd=true;
+    facts.push({at:m.index,k:'size',val:dcT('fieldSize')+' M'+m[1].replace(/\.0$/,'')});
+  });
+  blank();
+  /* Material, finish and size type: the values are what the whole note
+     yields (what the merge writes); the words are found to place them. */
+  const d=wqaDetectCommon(s);
+  const toks=[]; { const re=/[^\s,;]+/g; let m; while((m=re.exec(t))!==null) toks.push({at:m.index,w:m[0],used:false}); }
+  [['material',v=>dcT('fieldMaterial')+' '+materialLabel(v)],['finish',v=>dcT('fieldFinish')+' '+v],
+   ['sizeType',v=>dcT('fieldSizeType')+' '+(WQA_VAR_ST_LABEL[v]||v)]].forEach(([k,fmt])=>{
+    if(!d[k]) return;
+    let at=-1;
+    const one=w=>wqaDetectCommon(w)[k]||'';
+    for(let j=0;j<toks.length && at<0;j++){
+      /* A word on its own first. Two words only when the pair — and neither
+         word alone — gives the note's value ("4140 QT"), so "4140 HDG" is
+         never one material-and-finish word. */
+      const single=one(toks[j].w);
+      const next=j+1<toks.length ? toks[j+1].w : '';
+      const pair = next && !one(next) && one(toks[j].w+' '+next)===d[k];
+      /* A material's own grade word after it ("4140 QT") belongs to it. */
+      const suffix = k==='material' && /^(?:QT|Q\.T\.?|HT|HARDEN(?:ED)?|G\d+(?:\.\d+)?)$/i.test(next);
+      const n = (pair && (single!==d[k] || suffix)) ? 2 : single ? 1 : 0;
+      if(n){ for(let q=j;q<j+n;q++) toks[q].used=true; at=toks[j].at; }
+    }
+    facts.push({at:at<0?s.length:at,k,val:fmt(d[k])});
+  });
+  /* Whatever is left, as the person wrote it, runs of words kept together. */
+  let run=[];
+  const flush=()=>{ if(run.length) unknown.push(run.join(' ')); run=[]; };
+  toks.forEach(x=>{
+    const w=x.w.replace(/^[^\w"'\/.]+|[^\w"'\/.]+$/g,'');
+    if(x.used || !w || WQA_NOTE_FILLER.test(w)){ if(x.used) flush(); return; }
+    run.push(w);
+  });
+  flush();
+  facts.sort((p,q)=>p.at-q.at);
+  return {facts,acc,unknown,low:!facts.length&&!acc.length};
+}
+/* The read-back block under a note. scope: 'file' | 'all'. */
+function wqaNoteReadHtml(text,scope){
+  const p=wqaNoteParse(text);
+  if(!p) return '';
+  if(p.low) return `<div class="wqa-nr wqa-nr-low" data-nr="low">${escHtml(dcT('wqaNoteLow'))}</div>`;
+  const line=(cls,lbl,body)=>`<div class="${cls}">${lbl?`<span class="wqa-nr-k">${escHtml(lbl)}</span> `:''}${body}</div>`;
+  const out=[`<div class="wqa-nr-h">${escHtml(dcT(scope==='all'?'wqaNoteReadAll':'wqaNoteReadFile'))}</div>`];
+  if(p.facts.length) out.push(line('wqa-nr-f','',escHtml(p.facts.map(f=>f.val).join(' · '))));
+  if(p.acc.length)   out.push(line('wqa-nr-a',dcT('lblAccessoriesColon'),escHtml(p.acc.join(' · '))));
+  if(p.unknown.length) out.push(line('wqa-nr-u',dcT('wqaNoteUnrec'),escHtml(p.unknown.map(x=>'"'+x+'"').join(' · '))));
+  return `<div class="wqa-nr" data-nr="${p.unknown.length?'partial':'ok'}">${out.join('')}</div>`;
+}
 /* Apply one segment's facts to one row. A field is only written where the row's
    own product HAS it — a Stud gains no thread, a Sag Rod gains no ID — and the
    two hard rules still hold over anything typed here. */
@@ -18561,6 +18683,9 @@ function wqaFileNoteInput(id,v){
   const x=wqaFileById(id); if(!x) return;
   x.note=String(v||'').slice(0,200);
   const b=document.querySelector('[data-fnote-btn="'+id+'"]'); if(b) b.classList.toggle('has-note',!!x.note.trim());
+  /* Read back in place — the box keeps its caret. */
+  const rd=document.querySelector('[data-fnote-read="'+id+'"]');
+  if(rd){ const html=wqaNoteReadHtml(x.note,'file'); rd.innerHTML=html; rd.hidden=!html; }
   wqaAbandonAi();
 }
 function wqaFileNotes(){ return (wqa.aiFiles||[]).map(x=>String(x.note||'').trim()); }
@@ -18598,13 +18723,18 @@ function wqaNoteInput(){
   wqa.aiNote = e ? String(e.value||'') : '';
   const read=el('wqaAiNoteRead');
   if(read){
-    const bits=wqaNoteSummary(wqa.aiNote);
-    read.hidden=!bits.length;
-    read.textContent=bits.length ? dcT('wqaNoteRead')+' '+bits.join(' · ') : '';
+    /* The same reading a file's own note gets, said of every file. */
+    const html=wqaNoteReadHtml(wqa.aiNote,'all');
+    read.hidden=!html;
+    read.innerHTML=html;
   }
 }
-/* The read-back is computed text, so a language switch rewrites it. */
-dcOnRelabel(()=>{ try{ const e=el('wqaAiNote'); if(e && String(e.value||'').trim()) wqaNoteInput(); }catch(err){} });
+/* The read-back is computed text, so a language switch rewrites it — the
+   global note's and every file note's (the file list is redrawn). */
+dcOnRelabel(()=>{ try{
+  const e=el('wqaAiNote'); if(e && String(e.value||'').trim()) wqaNoteInput();
+  if((wqa.aiFiles||[]).length) wqaUpdateAiPane();
+}catch(err){} });
 function wqaClearNote(){
   wqa.aiNote='';
   if(el('wqaAiNote'))     el('wqaAiNote').value='';
@@ -18632,7 +18762,8 @@ function wqaUpdateAiPane(){
           >${escHtml(dcT('wqaRemoveFile'))}</button>
         ${x.noteOpen?`<label class="wqa-sel-notebox"><span>${escHtml(dcT('wqaFileNoteLbl'))}</span>
           <input type="text" class="wqa-note-in" data-fnote="${x.id}" maxlength="200" autocomplete="off" spellcheck="false"
-            placeholder="${escHtml(dcT('wqaNotePh'))}" value="${escHtml(x.note||'')}" oninput="wqaFileNoteInput(${x.id},this.value)"></label>`:''}</li>`).join('');
+            placeholder="${escHtml(dcT('wqaNotePh'))}" value="${escHtml(x.note||'')}" oninput="wqaFileNoteInput(${x.id},this.value)"></label>`:''}
+        ${(x.noteOpen||String(x.note||'').trim())?`<div class="wqa-note-read wqa-sel-noteread" data-fnote-read="${x.id}"${String(x.note||'').trim()?'':' hidden'}>${wqaNoteReadHtml(x.note,'file')}</div>`:''}</li>`).join('');
       info.innerHTML=`<div class="wqa-sel-head">${escHtml(dcT(wqa.aiIsPdf?'wqaSelPdf':'wqaSelImages'))}</div>`
         +`<ol class="wqa-sel-list">${rows}</ol>`
         +(wqa.aiIsPdf?'':`<div class="wqa-sel-count">${escHtml(dcT('wqaImgCount').replace('{n}',files.length).replace('{max}',WQA_AI_MAX_FILES))}</div>`);
