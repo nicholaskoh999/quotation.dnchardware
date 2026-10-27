@@ -2662,6 +2662,42 @@ input,select,textarea{
 .wqa-pdf-badge{flex:0 0 auto;padding:3px 7px;border-radius:4px;background:var(--red);color:#fff;
   font-size:10.5px;font-weight:800;letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){.wqa-drop{transition:none}}
+/* ── Upload section (owner-smoke cleanup) ──────────────────────────────────
+   One section, one drop target. Type: 14 section / file names, 13 controls,
+   12 helper — nothing else. */
+.wqa-up{position:relative;display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--surface);transition:border-color .12s,background .12s}
+.wqa-up.is-drag{border-color:var(--accent);background:var(--accent-light)}
+.wqa-up.is-drag *{pointer-events:none}
+.wqa-up-head{display:flex;flex-direction:column;gap:2px}
+.wqa-up-title{font-size:14px;font-weight:800;color:var(--text)}
+.wqa-up-help{font-size:12px;font-weight:600;color:var(--text-muted)}
+#wqaModal .wqa-up .wqa-drop{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:12px;border-width:1px}
+#wqaModal .wqa-up .wqa-drop-main{font-size:13px;font-weight:700}
+#wqaModal .wqa-up .wqa-drop-or{font-size:13px;font-weight:600;margin:0}
+.wqa-up-over{display:none;position:absolute;inset:0;align-items:center;justify-content:center;border-radius:inherit;
+  font-size:14px;font-weight:800;color:var(--accent-2);background:color-mix(in srgb,var(--accent-light) 88%,transparent)}
+.wqa-up.is-drag .wqa-up-over{display:flex}
+#wqaModal .wqa-up .wqa-file-info{margin:0;font-size:13px}
+#wqaModal .wqa-up .wqa-file-info[hidden]{display:none}
+#wqaModal .wqa-up .wqa-sel-head{font-size:13px}
+#wqaModal .wqa-up .wqa-sel-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto auto;align-items:center;gap:8px;padding:6px 0}
+#wqaModal .wqa-up .wqa-sel-row .wqa-pdf-badge{justify-self:start}
+#wqaModal .wqa-up .wqa-sel-name{font-size:14px;font-weight:700}
+#wqaModal .wqa-up .wqa-sel-size{font-size:12px;text-align:right;white-space:nowrap}
+#wqaModal .wqa-up .wqa-sel-note,#wqaModal .wqa-up .wqa-sel-rm{font-size:13px;white-space:nowrap}
+.wqa-sel-note.has-note{color:var(--accent-2);font-weight:800}
+.wqa-sel-notebox{grid-column:2/-1;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--text-muted)}
+#wqaModal .wqa-up .wqa-sel-count{font-size:12px}
+#wqaModal .wqa-up .wqa-note{margin-top:0}
+#wqaModal .wqa-up .wqa-note-lbl{font-size:13px}
+#wqaModal .wqa-up .wqa-note-opt,.wqa-note-help{font-size:12px;font-weight:600;color:var(--text-muted)}
+.wqa-note-help{flex-basis:100%}
+@media (max-width:599px){
+  #wqaModal .wqa-up .wqa-sel-row{grid-template-columns:32px minmax(0,1fr) auto;row-gap:4px}
+  #wqaModal .wqa-up .wqa-sel-note{grid-column:2;justify-self:start}
+  #wqaModal .wqa-up .wqa-sel-rm{grid-column:3}
+}
 
 /* ── Language switch (EN / 中文) ──────────────────────────────────────────
    Two real buttons, never flags, and the labels themselves are never
@@ -3694,14 +3730,20 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 .wqa-grx-f input::placeholder{color:var(--text-muted);font-weight:600;opacity:.75}
 .wqa-grx-gap{flex:1 1 12px}
 .wqa-grx-n{white-space:nowrap}
+.wqa-grx-mix{white-space:nowrap;color:var(--amber,#b45309);font-weight:700}
 /* Row price: Suggested is muted and dashed, Accepted is green with a tick. */
-.wqa-fig-price.is-pa-sug .wqa-fin{color:var(--text-muted);font-weight:700}
 .wqa-fig-price.is-pa-ok .wqa-fin{color:var(--green)}
+.wqa-fig-price.is-pa-ok .wqa-fin::after{content:" \2713";font-weight:800}
 .wqa-pa{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:750;white-space:nowrap}
 .wqa-pa.is-sug{border:1px dashed var(--border,#cfd6e4);color:var(--text-muted);background:transparent}
 .wqa-pa.is-ok{border:1px solid #bbe5c8;color:var(--green);background:var(--green-light)}
 .wqa-pa-src{font-weight:650;color:var(--text-muted)}
 .wqa-pa-apply{min-height:26px;padding:2px 10px;font-size:12px}
+.wqa-hs{display:inline-flex;align-items:baseline;gap:4px;font-size:12px;font-weight:650;color:var(--text-muted);white-space:nowrap}
+.wqa-hs-k{font-weight:750;color:var(--text-2)}
+.wqa-hs.is-exact b{color:var(--accent-2)}
+.wqa-hs b{font-weight:800;color:var(--text)}
+.wqa-hs-go{min-height:26px;padding:2px 10px;font-size:12px}
 .wqa-fig-w{flex-direction:column;align-items:flex-end;gap:0}
 .wqa-rv-dia{border:0;background:transparent;font:inherit;font-size:11px;font-weight:650;color:var(--text-muted);padding:0 2px;border-radius:4px;cursor:text}
 .wqa-rv-dia:hover{background:var(--accent-light);color:var(--text)}
@@ -5711,27 +5753,27 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       </div>
 
       <div id="wqaUploadPane" hidden>
-        <p class="wqa-hint wqa-upload-hint">
-          <span class="wqa-badge" data-i18n="wqaUploadBadge">Up to 5 images per analysis</span>
-          <span data-i18n="wqaUploadHint">You can upload or paste up to 5 images. All images will be analyzed together.</span><br>
-          <span data-i18n="wqaUploadHint2">Choose multiple files, drag &amp; drop, or paste screenshots with Ctrl+V.</span><br>
-          <span data-i18n="wqaUploadPdf">PDF: 1 file only, max 20 MB, max 10 pages. Images: max 10 MB each.</span>
-        </p>
-        <div id="wqaDropZone" class="wqa-drop" ondragenter="wqaDragEnter(event)" ondragover="wqaDragOver(event)"
+        <!-- The whole section is the drop target — not the page, not the modal —
+             so a file can land anywhere in it, including on the file list. -->
+        <section id="wqaUpSec" class="wqa-up" ondragenter="wqaDragEnter(event)" ondragover="wqaDragOver(event)"
              ondragleave="wqaDragLeave(event)" ondrop="wqaDrop(event)">
-          <div class="wqa-drop-main" data-i18n="wqaDropMain">Drop image or PDF here</div>
-          <div class="wqa-drop-or" data-i18n="wqaDropOr">or</div>
-          <label class="wqa-file-pick">
-            <input type="file" id="wqaFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
-                   multiple onchange="wqaFileChosen(this)">
-            <span class="btn btn-outline" data-i18n="wqaChooseFile">Choose Files…</span>
-          </label>
-          <div class="wqa-drop-paste" data-i18n="wqaDropPaste">or paste screenshot with Ctrl+V</div>
-          <div class="wqa-drop-types">JPG / PNG / WEBP / PDF</div>
+          <div class="wqa-up-head">
+            <span class="wqa-up-title" data-i18n="wqaUpTitle">Upload files</span>
+            <span class="wqa-up-help" data-i18n="wqaUpHelp">JPG / PNG / WEBP / PDF · up to 5 images · PDF max 20 MB · Ctrl+V to paste a screenshot</span>
+          </div>
+          <div id="wqaDropZone" class="wqa-drop">
+            <span class="wqa-drop-main" data-i18n="wqaDropMain">Drop images or PDF here</span>
+            <span class="wqa-drop-or" data-i18n="wqaDropOr">or</span>
+            <label class="wqa-file-pick">
+              <input type="file" id="wqaFileInput" accept="image/jpeg,image/png,image/webp,application/pdf"
+                     multiple onchange="wqaFileChosen(this)">
+              <span class="btn btn-outline btn-sm" data-i18n="wqaChooseFile">Choose Files…</span>
+            </label>
+          </div>
+          <div class="wqa-up-over" aria-hidden="true" data-i18n="wqaDropHere">Drop files here</div>
           <!-- Rendered by wqaUpdateAiPane (a list once files are chosen), so it
                carries no data-i18n: a language switch must not wipe the list. -->
-          <div class="wqa-file-info" id="wqaFileInfo">No file selected</div>
-        </div>
+          <div class="wqa-file-info" id="wqaFileInfo"></div>
         <div class="wqa-ai-preview" id="wqaAiPreviewBox" hidden>
           <img id="wqaAiPreview" data-i18n-alt="altPreview" alt="preview" hidden>
           <div class="wqa-pdf-chip" id="wqaAiPdfChip" hidden>
@@ -5743,14 +5785,16 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
              product already owns goes into that field. -->
         <div class="wqa-note">
           <label class="wqa-note-lbl" for="wqaAiNote">
-            <span data-i18n="wqaNoteLabel">Additional info for analysis</span>
-            <span class="wqa-note-opt" data-i18n="wqaNoteOpt">Optional / 可选</span>
+            <span data-i18n="wqaNoteLabel">Global analysis notes</span>
+            <span class="wqa-note-opt" data-i18n="wqaNoteOpt">(optional)</span>
+            <span class="wqa-note-help" data-i18n="wqaNoteHelp">Applies to all uploaded files</span>
           </label>
           <input type="text" id="wqaAiNote" class="wqa-note-in" maxlength="200" autocomplete="off"
                  spellcheck="false" data-i18n-ph="wqaNotePh" placeholder="H 530, ID 100, TL 75, W 80"
                  oninput="wqaNoteInput()">
           <div class="wqa-note-read" id="wqaAiNoteRead" hidden></div>
         </div>
+        </section>
         <div class="wqa-ai-status" id="wqaAiStatus" hidden>
           <span class="wqa-spinner"></span>
           <span><span data-i18n="wqaAnalyzing">Analyzing document…</span><br><small data-i18n="wqaExtracting">Extracting product, dimensions and quantities…</small></span>
@@ -6369,7 +6413,7 @@ const I18N={
     wqaThreadRefHintMetric:'e.g. 1.75P', wqaThreadRefHintSeries:'UNC / BSW',
     wqaThreadRefHintAny:'',
     phUseOnThis:'Use on this item', phMoreWays:'More ways to apply this price',
-    phApplyCompatible:'Apply to compatible items ({n})…', phSelectItems:'Select items…',
+    phApplyCompatible:'Apply history pricing to compatible items ({n})…', phSelectItems:'Select items…',
     phSelectItemsTitle:'Apply Previous Price', phApplyPrevious:'Apply Previous Price',
     phReusable:'Reusable', phReference:'References',
     wqaCompatible:'compatible', wqaNSelected:'{n} selected',
@@ -6393,7 +6437,7 @@ const I18N={
     wqaProvStated:'stated price',
     wqaApplyPrevPrice:'Apply Previous Price', wqaSelectRows:'Select items',
     wqaThreadRefNote:'reference only — not used in any calculation',
-    wqaNoteLabel:'Additional info for analysis', wqaNoteOpt:'Optional',
+    wqaNoteLabel:'Global analysis notes', wqaNoteOpt:'(optional)',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
     wqaNoteUsed:'Your additional info was applied — it overrides the document.',
@@ -6424,6 +6468,13 @@ const I18N={
     wqaUploadHint2:'Choose multiple files, drag & drop, or paste screenshots with Ctrl+V.',
     wqaUploadPdf:'PDF: 1 file only, max 20 MB, max 10 pages. Images: max 10 MB each.',
     wqaDropMain:'Drop images or PDF here', wqaDropOr:'or', wqaChooseFile:'Choose Files…',
+    wqaUpTitle:'Upload files',
+    wqaUpHelp:'JPG / PNG / WEBP / PDF · up to 5 images · PDF max 20 MB · Ctrl+V to paste a screenshot',
+    wqaDropHere:'Drop files here',
+    wqaFileNoteBtn:'Additional info',
+    wqaFileNoteLbl:'Additional info for this file',
+    wqaNoteHelp:'Applies to all uploaded files',
+    wqaFileNotesCheck:'Per-file notes were given to the AI for their own file only — check each row against its file.',
     wqaDropPaste:'or paste screenshot with Ctrl+V',
     wqaSelImages:'Selected images', wqaSelPdf:'Selected PDF', wqaImgCount:'{n} / {max} images selected',
     wqaRemoveFile:'Remove', wqaMaxImages:'Maximum 5 images per analysis.',
@@ -6671,11 +6722,11 @@ const I18N={
     paSuggestedPrice:'Suggested Price',
     paAcceptedPrice:'Accepted Price',
     paApply:'Apply Price',
-    paApplyAll:'Apply pricing to all',
+    paApplyAll:'Apply pricing to compatible items',
     paApplyGo:'Apply',
     paAcceptAll:'Accept all suggested prices',
     paAcceptSel:'Accept selected suggested prices',
-    paCount:'{a} of {n} accepted',
+    paCount:'Accepted {a} / {n}',
     paAcceptedN:'Accepted {n} prices',
     paAcceptedNone:'No suggested prices to accept',
     paStillNeed:'{n} still need attention',
@@ -6684,8 +6735,19 @@ const I18N={
     paApproveFirst:'Accept the suggested prices (Apply Price or Accept all) before adding.',
     paWhy:'price not accepted yet — press Apply Price',
     paRecipeBlank:'Type a Cost, Add Cost or Markup to apply — blank means no change.',
-    paRecipeDone:'Pricing applied to {n} items — each price is Suggested until accepted',
+    paRecipeDone:'Pricing applied to {n} compatible items — accept the prices when they look right',
     paRecipeManualKept:'{n} on Manual Price kept',
+    paCompatN:'{a} compatible · {b} skipped',
+    paBasisMixed:'Different size basis detected (metric and inch)',
+    paSkippedBasis:'{n} skipped (different size basis)',
+    wqaHsLabel:'History:',
+    wqaHsExact:'Exact',
+    wqaHsSimilar:'Similar',
+    wqaHsNoExact:'No exact match',
+    wqaHsNone:'No history',
+    wqaHsOne:'1 record',
+    wqaHsN:'{n} records',
+    paApplyCompat:'Apply to compatible items',
     tPaAccepted:'Price accepted',
     tPaNothing:'No price to accept yet.',
     tPaNotAccepted:'Price not accepted yet — press Apply Price first.',
@@ -6993,7 +7055,7 @@ const I18N={
     wqaThreadRefHintMetric:'e.g. 1.75P', wqaThreadRefHintSeries:'UNC / BSW',
     wqaThreadRefHintAny:'',
     phUseOnThis:'用于此项目', phMoreWays:'更多应用方式',
-    phApplyCompatible:'应用到相符项目 ({n})…', phSelectItems:'选择项目…',
+    phApplyCompatible:'应用历史定价到兼容项目 ({n})…', phSelectItems:'选择项目…',
     phSelectItemsTitle:'应用历史报价', phApplyPrevious:'应用历史报价',
     phReusable:'可重用', phReference:'参考',
     wqaCompatible:'相符', wqaNSelected:'已选择 {n} 个项目',
@@ -7015,7 +7077,7 @@ const I18N={
     wqaProvStated:'固定价格',
     wqaApplyPrevPrice:'应用历史报价', wqaSelectRows:'选择项目',
     wqaThreadRefNote:'仅供参考 — 不参与任何计算',
-    wqaNoteLabel:'补充分析资料', wqaNoteOpt:'选填',
+    wqaNoteLabel:'全局补充分析资料', wqaNoteOpt:'（可选）',
     wqaNotePh:'H 530, ID 100, TL 75, W 80',
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
     wqaNoteUsed:'补充资料已套用 — 以补充资料为准。',
@@ -7046,6 +7108,13 @@ const I18N={
     wqaUploadHint2:'可多选文件、拖放图片，或使用 Ctrl+V 直接粘贴截图。',
     wqaUploadPdf:'PDF：仅限 1 个，最大 20 MB，最多 10 页。图片：每张最大 10 MB。',
     wqaDropMain:'拖放图片或 PDF 到这里', wqaDropOr:'或', wqaChooseFile:'选择文件…',
+    wqaUpTitle:'上传文件',
+    wqaUpHelp:'支持 JPG / PNG / WEBP / PDF · 最多 5 张图片 · PDF 最大 20 MB · Ctrl+V 粘贴截图',
+    wqaDropHere:'拖放文件到这里',
+    wqaFileNoteBtn:'补充资料',
+    wqaFileNoteLbl:'此文件补充资料',
+    wqaNoteHelp:'适用于所有上传文件',
+    wqaFileNotesCheck:'各文件的补充资料只用于该文件 — 请逐项对照其文件确认。',
     wqaDropPaste:'或按 Ctrl+V 粘贴截图',
     wqaSelImages:'已选图片', wqaSelPdf:'已选 PDF', wqaImgCount:'已选 {n} / {max} 张图片',
     wqaRemoveFile:'移除', wqaMaxImages:'每次分析最多 5 张图片。',
@@ -7264,7 +7333,7 @@ const I18N={
     paSuggestedPrice:'建议价格',
     paAcceptedPrice:'已确认价格',
     paApply:'应用价格',
-    paApplyAll:'应用定价到全部',
+    paApplyAll:'应用定价参数到兼容项目',
     paApplyGo:'应用',
     paAcceptAll:'接受全部建议价格',
     paAcceptSel:'接受所选建议价格',
@@ -7277,8 +7346,19 @@ const I18N={
     paApproveFirst:'添加前请先确认建议价格（应用价格或接受全部）。',
     paWhy:'价格尚未确认 — 请按应用价格',
     paRecipeBlank:'请输入成本、加工费或 Markup — 留空表示不更改。',
-    paRecipeDone:'定价已应用到 {n} 项 — 每个价格在确认前均为建议价格',
+    paRecipeDone:'定价参数已应用到 {n} 个兼容项目 — 确认无误后请接受价格',
     paRecipeManualKept:'{n} 项手动价格保持不变',
+    paCompatN:'{a} 项兼容 · {b} 项跳过',
+    paBasisMixed:'检测到不同尺寸体系（公制与英制）',
+    paSkippedBasis:'{n} 项已跳过（尺寸体系不同）',
+    wqaHsLabel:'历史价格：',
+    wqaHsExact:'完全匹配',
+    wqaHsSimilar:'相似',
+    wqaHsNoExact:'无完全匹配',
+    wqaHsNone:'无历史记录',
+    wqaHsOne:'1 条记录',
+    wqaHsN:'{n} 条记录',
+    paApplyCompat:'应用到兼容项目',
     tPaAccepted:'价格已确认',
     tPaNothing:'暂无可确认的价格。',
     tPaNotAccepted:'价格尚未确认 — 请先按应用价格。',
@@ -18308,7 +18388,7 @@ function wqaClearAiFile(rerender){
 
    dragenter/dragleave fire for every child element the pointer crosses, so the
    highlight is driven by a depth counter rather than by the last event seen. */
-function wqaDragPaint(on){ const z=el('wqaDropZone'); if(z) z.classList.toggle('is-drag',!!on); }
+function wqaDragPaint(on){ ['wqaUpSec','wqaDropZone'].forEach(id=>{ const z=el(id); if(z) z.classList.toggle('is-drag',!!on); }); }
 function wqaDropBad(on){   const z=el('wqaDropZone'); if(z) z.classList.toggle('is-bad',!!on); }
 function wqaDragEnter(e){
   e.preventDefault(); e.stopPropagation();
@@ -18365,7 +18445,9 @@ function wqaAddFiles(list){
     else if(!isPdf && f.size>WQA_AI_MAX_IMG)     e=dcT('errImgTooLarge');
     if(e){ if(!err) err=e; return; }
     let url=''; if(!isPdf){ try{ url=URL.createObjectURL(f); }catch(x){ url=''; } }
-    wqa.aiFiles.push({file:f, name:String(f.name||''), pdf:isPdf, url});
+    /* A stable id, so a note stays with ITS file when another is removed. */
+    wqa._fileSeq=(wqa._fileSeq||0)+1;
+    wqa.aiFiles.push({file:f, name:String(f.name||''), pdf:isPdf, url, id:wqa._fileSeq, note:'', noteOpen:false});
     wqaSyncAiFile(); added++;
   });
   if(added) wqaAbandonAi();           // a different set: any answer in flight is for the old one
@@ -18385,6 +18467,23 @@ function wqaRemoveFile(i){
 function wqaFileChosen(input){
   wqaAddFiles(input.files);
 }
+/* ── A note for ONE file ────────────────────────────────────────────────────
+   Kept on the file's own entry, found by its id, so removing a file takes its
+   note with it and never shifts a note onto the file that moved up. */
+function wqaFileById(id){ return (wqa.aiFiles||[]).find(x=>x.id===id)||null; }
+function wqaFileNoteToggle(id){
+  const x=wqaFileById(id); if(!x) return;
+  x.noteOpen=!x.noteOpen;
+  wqaUpdateAiPane();
+  if(x.noteOpen){ const n=document.querySelector('[data-fnote="'+id+'"]'); if(n) try{ n.focus(); }catch(e){} }
+}
+function wqaFileNoteInput(id,v){
+  const x=wqaFileById(id); if(!x) return;
+  x.note=String(v||'').slice(0,200);
+  const b=document.querySelector('[data-fnote-btn="'+id+'"]'); if(b) b.classList.toggle('has-note',!!x.note.trim());
+  wqaAbandonAi();
+}
+function wqaFileNotes(){ return (wqa.aiFiles||[]).map(x=>String(x.note||'').trim()); }
 /* ── Ctrl+V screenshot paste ──────────────────────────────────────────────
    Active only while Quick Add is open on its input step. An image on the
    clipboard joins the selected list as clipboard-N.png; anything else is left
@@ -18424,6 +18523,8 @@ function wqaNoteInput(){
     read.textContent=bits.length ? dcT('wqaNoteRead')+' '+bits.join(' · ') : '';
   }
 }
+/* The read-back is computed text, so a language switch rewrites it. */
+dcOnRelabel(()=>{ try{ const e=el('wqaAiNote'); if(e && String(e.value||'').trim()) wqaNoteInput(); }catch(err){} });
 function wqaClearNote(){
   wqa.aiNote='';
   if(el('wqaAiNote'))     el('wqaAiNote').value='';
@@ -18435,17 +18536,23 @@ function wqaUpdateAiPane(){
         chip=el('wqaAiPdfChip'), pname=el('wqaAiPdfName'), btn=el('wqaAnalyzeBtn');
   const files=wqa.aiFiles||[];
   if(info){
-    if(!files.length) info.textContent=dcT('wqaNoFile');
+    info.hidden=!files.length;
+    if(!files.length) info.textContent='';
     else {
       /* Read from what is selected RIGHT NOW: numbered images with a small
          thumbnail, or the one PDF with its badge. Each row removes itself. */
-      const rows=files.map((x,i)=>`<li class="wqa-sel-row">${x.pdf
+      const rows=files.map((x,i)=>`<li class="wqa-sel-row" data-file-id="${x.id}">${x.pdf
           ? '<span class="wqa-pdf-badge">PDF</span>'
           : `<img class="wqa-sel-thumb" src="${escHtml(x.url)}" alt="">`}
         <span class="wqa-sel-name" title="${escHtml(x.name)}">${x.pdf?'':(i+1)+'. '}${escHtml(x.name)}</span>
         <span class="wqa-sel-size">${escHtml(wqaFmtBytes(x.file.size))}</span>
+        <button type="button" class="btn btn-ghost btn-sm wqa-sel-note${String(x.note||'').trim()?' has-note':''}" data-fnote-btn="${x.id}"
+          aria-expanded="${x.noteOpen?'true':'false'}" onclick="wqaFileNoteToggle(${x.id})">${x.noteOpen?'−':'+'} ${escHtml(dcT('wqaFileNoteBtn'))}</button>
         <button type="button" class="btn btn-ghost btn-sm wqa-sel-rm" onclick="wqaRemoveFile(${i})"
-          >${escHtml(dcT('wqaRemoveFile'))}</button></li>`).join('');
+          >${escHtml(dcT('wqaRemoveFile'))}</button>
+        ${x.noteOpen?`<label class="wqa-sel-notebox"><span>${escHtml(dcT('wqaFileNoteLbl'))}</span>
+          <input type="text" class="wqa-note-in" data-fnote="${x.id}" maxlength="200" autocomplete="off" spellcheck="false"
+            placeholder="${escHtml(dcT('wqaNotePh'))}" value="${escHtml(x.note||'')}" oninput="wqaFileNoteInput(${x.id},this.value)"></label>`:''}</li>`).join('');
       info.innerHTML=`<div class="wqa-sel-head">${escHtml(dcT(wqa.aiIsPdf?'wqaSelPdf':'wqaSelImages'))}</div>`
         +`<ol class="wqa-sel-list">${rows}</ol>`
         +(wqa.aiIsPdf?'':`<div class="wqa-sel-count">${escHtml(dcT('wqaImgCount').replace('{n}',files.length).replace('{max}',WQA_AI_MAX_FILES))}</div>`);
@@ -18465,7 +18572,7 @@ function wqaUpdateAiPane(){
   const m=el('wqaModal');
   if(!m || !m.classList.contains('open')) return;
   const t=e.target;
-  if(t && t.closest && t.closest('#wqaDropZone')) return;
+  if(t && t.closest && t.closest('#wqaUpSec')) return;
   e.preventDefault();
   if(evt==='drop'){ wqa._dragDepth=0; wqaDragPaint(false); }
 }));
@@ -18488,6 +18595,10 @@ async function wqaAnalyze(){
        blank note leaves the request byte-identical to before. */
     const note=String(wqa.aiNote||'').trim();
     if(note) fd.append('note', note);
+    /* Each file's own note, in file order, so the server can say "for Image 2
+       only". Sent only when one exists: no notes, byte-identical request. */
+    const fnotes=wqaFileNotes();
+    if(fnotes.some(Boolean)) fnotes.forEach(n=>fd.append('file_notes[]', n));
     const res=await fetch('ai_extract.php',{method:'POST',body:fd});
     let j=null; try{ j=await res.json(); }catch(e){}
     if(token!==wqa._aiReq) return;                     // superseded while in flight
@@ -18990,7 +19101,14 @@ async function wqaAiApply(d, msgTarget, meta){
      typing "H 530" has looked at the drawing and decided. No confidence is
      compared and the model is not asked to arbitrate — a field the note names
      is simply the note's value. A blank note does nothing at all. */
-  const noteText=String((msgTarget==='wqaParseMsg') ? '' : (wqa.aiNote||'')).trim();
+  /* The global note reaches every row. A file's own note reaches the rows only
+     when there is ONE file — the rows do not say which image they came from,
+     so with several files a file note is the model's to apply, and the review
+     asks for a check rather than copying one file's note onto another's rows. */
+  const fnotesNow=(msgTarget==='wqaParseMsg') ? [] : wqaFileNotes();
+  const oneFileNote=(fnotesNow.length===1) ? fnotesNow[0] : '';
+  const noteText=String((msgTarget==='wqaParseMsg') ? '' : [wqa.aiNote||'',oneFileNote].filter(x=>String(x).trim()).join(', ')).trim();
+  if(fnotesNow.length>1 && fnotesNow.some(Boolean)) wqa.aiWarnings.push({k:'wqaFileNotesCheck'});
   if(noteText){
     const res=wqaApplyNoteFacts(norm.rows,noteText);
     /* The header says what the rows say — re-read after the merge, exactly as
@@ -19257,6 +19375,7 @@ function wqaResetState(){
   if(el('wqaAiPdfChip'))   el('wqaAiPdfChip').hidden=true;
   if(el('wqaAiPdfName'))   el('wqaAiPdfName').textContent='';
   if(el('wqaDropZone'))    el('wqaDropZone').classList.remove('is-drag','is-bad');
+  if(el('wqaUpSec'))       el('wqaUpSec').classList.remove('is-drag');
   if(el('wqaAiStatus'))    el('wqaAiStatus').hidden=true;
   wqaMsg('wqaAiMsg','',false);
   if(el('wqaPastePane'))   el('wqaPastePane').hidden=false;
@@ -20688,6 +20807,12 @@ function wqaRowAccept(r){
 }
 function wqaPaCls(r){ const st=wqaRowPa(r).state; return st==='accepted'?'is-pa-ok':st==='suggested'?'is-pa-sug':''; }
 function wqaRowPaHtml(r,i){
+  /* Owner-smoke: the row's RM/pc IS the current price, and an accepted one
+     carries a tick on that same figure (wqaPaCls). Nothing else is drawn per
+     row; acceptance is done from the group (Accept all) or by History Apply. */
+  return '';
+}
+function wqaRowPaChipHtml(r,i){
   const st=wqaRowPa(r);
   if(st.state==='none') return '';
   if(st.state==='accepted') return `<span class="wqa-pa is-ok" data-pa="ok">${escHtml(dcT('paAccepted'))} ${escHtml(wqaFmtPrice(st.v))} ✓<span class="wqa-pa-src">${escHtml(dcPaSourceLabel(st.src))}${st.ref&&!r.usedHistoryRef?' · '+escHtml(st.ref):''}</span></span>`;
@@ -20719,15 +20844,29 @@ function wqaSelAccept(){ wqaPaAcceptRows(wqa.rows.map((r,j)=>(r&&!r.removed&&r.s
    The same RECIPE onto every row of the group — never the same price. Each
    row then prices itself from its own weight, and stays Suggested. A blank
    box means no change. */
+/* The pricing basis a recipe can safely cross: metric and inch sizes are not
+   priced from the same basis, so a recipe typed for one is not the other's. */
+function wqaSizeBasis(r){ return wqaInchKey(r&&r.size) ? 'inch' : 'metric'; }
+/* Which rows of a group one recipe may reach: those on the group's main basis
+   (the most rows; on a tie, the first row's). The rest are skipped and said. */
+function wqaGrpCompat(g){
+  const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
+  const tally={}; rows.forEach(r=>{ const k=wqaSizeBasis(r); tally[k]=(tally[k]||0)+1; });
+  const first=rows[0]?wqaSizeBasis(rows[0]):'metric';
+  const basis=Object.keys(tally).sort((a,b)=>(tally[b]-tally[a])||(a===first?-1:b===first?1:0))[0]||first;
+  return {ok:rows.filter(r=>wqaSizeBasis(r)===basis), skip:rows.filter(r=>wqaSizeBasis(r)!==basis), basis};
+}
 function wqaGrpPaHtml(g){
   const first=g.idx[0];
   const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
+  const cp=wqaGrpCompat(g);
   const ok=rows.filter(wqaRowAccepted).length, sug=rows.filter(r=>wqaRowPa(r).state==='suggested').length;
   const box=(f,lbl)=>`<label class="wqa-grx-f"><span>${escHtml(dcT(lbl))}</span><input type="text" inputmode="decimal" autocomplete="off"
       data-grx="${f}" placeholder="${escHtml(wqaGxCommon(g.idx,f)||'—')}" onclick="event.stopPropagation()"
       onkeydown="if(event.key==='Enter'){event.preventDefault();wqaGrpRecipe(${first},this)}"></label>`;
   return `<div class="wqa-grx" data-grx-grp="${first}" onclick="event.stopPropagation()">
       <span class="wqa-grx-t">${escHtml(dcT('paApplyAll'))}</span>
+      ${cp.skip.length?`<span class="wqa-grx-mix" title="${escHtml(dcT('paBasisMixed'))}">${escHtml(dcT('paCompatN').replace('{a}',cp.ok.length).replace('{b}',cp.skip.length))}</span>`:''}
       ${box('costRate','rvCost')}<span class="wqa-gx-x">·</span>${box('addCost','rvAdd')}<span class="wqa-gx-x">·</span>${box('markup','sumMarkup')}
       <button type="button" class="btn btn-outline btn-sm wqa-grx-go" onclick="wqaGrpRecipe(${first},this)">${escHtml(dcT('paApplyGo'))}</button>
       <span class="wqa-grx-gap"></span>
@@ -20747,12 +20886,13 @@ function wqaGrpRecipe(first,src){
     c[f]=v;
   }
   if(!c.costRate && !c.addCost && !c.markup){ showToast(dcT('paRecipeBlank')); return; }
-  const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
+  const cp=wqaGrpCompat(g), rows=cp.ok;
   const manual=rows.filter(r=>(r.priceMode||'auto')==='manual').length;
   const dropped=wqaApplyPriceTo(rows,c,false);
-  wqaFlashRows(g.idx);
+  wqaFlashRows(rows.map(r=>wqa.rows.indexOf(r)));
   wqaRecomputeAll('force');
   showToast(dcT('paRecipeDone').replace('{n}',rows.length)
+    +(cp.skip.length?' · '+dcT('paSkippedBasis').replace('{n}',cp.skip.length):'')
     +(manual?' · '+dcT('paRecipeManualKept').replace('{n}',manual):'')
     +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
 }
@@ -21193,10 +21333,48 @@ function wqaRvMoreBtn(r,i){
 /* Things worth saying under the row, on one thin line, only when there are
    any: where the price came from, the accessories it carries, a typed bar,
    and the row's own warnings. */
+/* A record's pricing is a RECIPE when it carries all three rates and a
+   calculated mode — the same test wqaHistApplyToRow applies. */
+function wqaRecIsRecipe(rec){
+  const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
+  const a=[num(rec&&rec.costRate),num(rec&&rec.addCost),num(rec&&rec.markup)];
+  return WQA_CALC_MODES.indexOf(String(rec&&rec.priceMode||''))>=0 && a.every(x=>x!==null&&isFinite(x));
+}
+/* The one record the row would reuse, if any: an exact match first (a stated
+   price only for the exact spec), else a similar one that carries a recipe —
+   a frozen price is never carried to a different size. */
+function wqaRowBestHist(r){
+  const h=r&&r.hist;
+  if(!h||h.failed||!h.records) return null;
+  const c=phClassCounts(h), recs=h.records;
+  const at=(cls,ok)=>recs.findIndex(x=>phMatchInfo(x).match===cls && phRecordReusable(x) && ok(x));
+  let n=at('exact',()=>true);
+  if(n>=0) return {cls:'exact',n,rec:recs[n],count:c.exact};
+  n=at('close',wqaRecIsRecipe);
+  if(n>=0) return {cls:'close',n,rec:recs[n],count:c.close};
+  return {cls:recs.length?'ref':'none',n:-1,count:recs.length};
+}
+function wqaRowHistSumHtml(r,i){
+  if(r.usedHistoryRef) return '';                 // the provenance chip already says Applied · ref
+  const b=wqaRowBestHist(r); if(!b) return '';
+  const lbl=`<span class="wqa-hs-k">${escHtml(dcT('wqaHsLabel'))}</span>`;
+  if(b.n<0) return `<span class="wqa-hs is-none">${lbl} ${escHtml(dcT(b.cls==='ref'?'wqaHsNoExact':'wqaHsNone'))}</span>`;
+  const price=phMoney(b.rec.boltUnitPrice).replace('RM ','RM');
+  const cnt=dcT(b.count===1?'wqaHsOne':'wqaHsN').replace('{n}',b.count);
+  return `<span class="wqa-hs is-${b.cls}">${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b> · ${escHtml(cnt)}</span>`
+    +`<button type="button" class="btn btn-outline btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHistQuickApply(${i})">${escHtml(dcT('paApplyGo'))}</button>`;
+}
+/* One click: the best record, through the same Use the panel performs — so it
+   is the same explicit acceptance, with no second Apply afterwards. */
+function wqaHistQuickApply(i){
+  const r=wqa.rows[i]; if(!r) return;
+  const b=wqaRowBestHist(r); if(!b||b.n<0) return;
+  wqaHistUse(i,b.n);
+}
 function wqaRvSubHtml(r,i){
   const bits=[];
-  const pa=wqaRowPaHtml(r,i);
-  if(pa) bits.push(pa);
+  const hs=wqaRowHistSumHtml(r,i);
+  if(hs) bits.push(hs);
   const prov=wqaProvBtnHtml(r,i);
   if(prov) bits.push(prov);
   const accOwn=wqaAccHas(r.acc) && ['nut','fw','custom'].some(k=>r.acc[k].enabled && r.acc[k].ov && Object.keys(r.acc[k].ov).length);
@@ -22575,6 +22753,7 @@ function wqaHistCompatRows(i,n){
 function wqaHistApplyRows(i,n,indices){
   const src=wqa.rows[i]; if(!src||!src.hist||!src.hist.records) return;
   const rec=src.hist.records[n]; if(!rec) return;
+  if(!wqaRecIsRecipe(rec)){ showToast(dcT('wqaBulkNone')); return; }   // never copy a frozen price across
   const done=[], refused=[];
   (indices||[]).forEach(k=>{
     const r=wqa.rows[k];
@@ -22626,7 +22805,9 @@ function wqaHistPickToggle(k){
    opens — all of it built only for a record that is REUSABLE, so a reference
    card has nothing to press. */
 function wqaHistRecExtra(i,n,rec){
-  if(!phRecordReusable(rec)) return '';
+  /* A frozen / manual price is for THIS item only (its own Use button); only
+     a recipe is offered to other items, each repriced from its own size. */
+  if(!phRecordReusable(rec) || !wqaRecIsRecipe(rec)) return '';
   const key=i+':'+n, open=wqa.histMenu===key;
   const compat=wqaHistCompatRows(i,n);
   const nOk=compat.filter(x=>x.ok).length;
@@ -22815,10 +22996,14 @@ function wqaHistSpec(r){
    forgets, so the next click fetches fresh rather than showing yesterday's
    size. */
 function wqaLoadHistory(){
+  /* Owner-smoke: history first. Every row whose identity is complete asks for
+     its history, so the best previous price is on the row without opening a
+     panel. One request per distinct identity — rows that share a size share
+     the cached answer (wqa.histCache). */
   wqa.rows.forEach(r=>{
     if(r.removed || !wqaHistStale(r)) return;
-    if(r.histOpen) wqaLoadRowHistory(r);
-    else if(r.hist!==undefined){ r.hist=undefined; r.histFor=''; }
+    if(r.hist===null && r.histFor===wqaHistFor(r)) return;   // no identity yet: nothing to ask
+    wqaLoadRowHistory(r);
   });
 }
 /* Mirror of the dimension string the add functions build, so an exact match

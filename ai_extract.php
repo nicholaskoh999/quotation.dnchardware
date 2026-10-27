@@ -825,8 +825,21 @@ function ai_file_part($upload) {
     return ['type'=>'input_image','image_url'=>$dataUrl,'detail'=>'high'];
 }
 
-/** Build the Responses API payload for one validated upload (or one image set). */
-function ai_build_payload($upload, $note = '') {
+/**
+ * Per-file notes, sent as file_notes[] in file order beside files[] (or beside
+ * the single file). Each is cleaned like the global note. Anything that is not
+ * a list of strings is ignored, never an error.
+ */
+function ai_clean_file_notes($raw) {
+    if (!is_array($raw)) return [];
+    $out = [];
+    foreach (array_values($raw) as $v) $out[] = ai_clean_note($v);
+    return $out;
+}
+
+/** Build the Responses API payload for one validated upload (or one image set).
+ *  $note is the GLOBAL note (every file); $fileNotes[i] belongs to file i only. */
+function ai_build_payload($upload, $note = '', $fileNotes = []) {
     if ($upload['kind'] === 'images') {
         // Several images, ONE request: the model reads them side by side so a
         // dimension on one can be matched to the item drawn on another.
@@ -843,17 +856,35 @@ function ai_build_payload($upload, $note = '') {
         foreach ($upload['parts'] as $i => $p) {
             $fileParts[] = ['type'=>'input_text', 'text'=>'Image '.($i+1).' of '.$n.':'];
             $fileParts[] = ai_file_part($p);
+            // A note written for ONE image is scoped to it, said beside it, and
+            // must not be carried over to items that appear only in other images.
+            $fn = $fileNotes[$i] ?? '';
+            if ($fn !== '') {
+                $fileParts[] = ['type'=>'input_text', 'text'=>'Note for Image '.($i+1).' ONLY (it does not '
+                    . 'apply to the other images). Where it gives a value for a field of an item shown in '
+                    . 'Image '.($i+1).", that value is correct:\n".$fn];
+            }
+        }
+        if (array_filter($fileNotes, 'strlen')) {
+            $lead .= ' Some images carry their own note. Apply each note only to items from its own '
+                   . 'image. If a note for one image conflicts with the note for the whole request, or '
+                   . 'with another image, do not guess: return null for that field and describe the '
+                   . 'conflict in that row\'s "unclear" field.';
         }
     } else {
         $fileParts = [ai_file_part($upload)];
         $lead = 'Extract the quotation specification from this document.';
+        // One document: its own note and the global note describe the same file.
+        $fn = $fileNotes[0] ?? '';
+        if ($fn !== '') $note = $note !== '' ? $note . "\n" . $fn : $fn;
     }
     // The person who uploaded the drawing is looking at it. Where their note
     // gives a value, that value is the answer — said here so the model reads the
     // rest of the drawing in the same terms, and enforced independently by the
     // caller so a model that ignores this line changes nothing.
     if ($note !== '') {
-        $lead .= "\n\nThe person who sent this document added the following note about it. "
+        $lead .= "\n\nThe person who sent this document added the following note about it"
+               . ($upload['kind'] === 'images' ? " (it applies to ALL the images)" : "") . ". "
                . "Where the note gives a value for a field, that value is correct and "
                . "replaces what the document shows for that field:\n" . $note;
     }
@@ -1191,7 +1222,8 @@ if (!defined('AI_EXTRACT_TEST')) {
 
     $payload = $upload['kind'] === 'text'
         ? ai_build_text_payload($upload['text'])
-        : ai_build_payload($upload, ai_clean_note($_POST['note'] ?? ''));
+        : ai_build_payload($upload, ai_clean_note($_POST['note'] ?? ''),
+                           ai_clean_file_notes($_POST['file_notes'] ?? []));
     unset($upload['bytes'], $upload['text'], $upload['parts']);    // free the raw input from memory
 
     list($code, $body, $curlErr, $curlErrNo) = ai_call_openai($payload);
