@@ -3744,6 +3744,51 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 .wqa-hs.is-exact b{color:var(--accent-2)}
 .wqa-hs b{font-weight:800;color:var(--text)}
 .wqa-hs-go{min-height:26px;padding:2px 10px;font-size:12px}
+/* ── The price is the way in ──────────────────────────────────────────────
+   RM/pc opens the row's pricing editor; the History summary is a button that
+   opens a short preview; the full list is a drawer beside Quick Add. */
+#wqaModal .wqa-it-main .wqa-fig-price{pointer-events:auto;cursor:pointer;border-bottom:1.5px dashed transparent;border-radius:4px}
+#wqaModal .wqa-it-main .wqa-fig-price:hover,#wqaModal .wqa-it.is-px .wqa-fig-price{border-bottom-color:var(--accent-mid);background:var(--accent-light)}
+.wqa-rows.is-sel .wqa-it-main .wqa-fig-price{pointer-events:none}
+.wqa-px-head{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--text-muted);text-transform:uppercase}
+.wqa-px-foot{align-items:center;flex-wrap:wrap;gap:8px}
+.wqa-px-cur{margin-right:auto;font-size:13px;font-weight:650;color:var(--text-muted)}
+.wqa-px-cur b{font-size:15px;font-weight:850;color:var(--text);font-variant-numeric:tabular-nums}
+.wqa-px-adv{font-size:12px}
+button.wqa-hs{border:0;background:transparent;font:inherit;font-size:12px;padding:3px 6px;margin:0 -2px;border-radius:6px;cursor:pointer;min-height:26px}
+button.wqa-hs:hover,button.wqa-hs.is-on{background:var(--accent-light);color:var(--text)}
+.wqa-hs-caret{font-size:10px;color:var(--text-muted)}
+.wqa-hq{margin:0 10px 8px 54px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);
+  box-shadow:0 6px 18px rgba(16,24,40,.08);max-width:560px}
+.wqa-hq-t{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted)}
+.wqa-hq-x{margin-left:auto;border:0;background:transparent;font:inherit;font-size:14px;line-height:1;color:var(--text-muted);cursor:pointer;width:28px;height:28px;border-radius:6px}
+.wqa-hq-x:hover{background:var(--surface2);color:var(--text)}
+.wqa-hq-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:4px 10px;padding:5px 0;border-top:1px solid var(--border);font-size:12.5px}
+.wqa-hq-row:first-of-type{border-top:0}
+.wqa-hq-p{font-weight:850;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wqa-hq-c{font-size:11px;font-weight:800;white-space:nowrap;color:var(--text-muted)}
+.wqa-hq-c.is-exact{color:var(--accent-2)}
+.wqa-hq-ref{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2);font-weight:650}
+.wqa-hq-ref small{color:var(--text-muted);font-weight:600}
+.wqa-hq-row .btn{min-height:28px;padding:2px 10px;font-size:12px}
+.wqa-hq-foot{display:flex;justify-content:flex-end;padding-top:6px;border-top:1px solid var(--border)}
+.wqa-hq-empty{padding:4px 0;font-size:12.5px;color:var(--text-muted)}
+.wqa-grx-rc{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wqa-grx-rc .btn{min-height:28px;padding:2px 10px;font-size:12px}
+.wqa-grx-rcv{font-weight:650;color:var(--text-muted)}
+.wqa-px-bulk{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:650;color:var(--text-muted)}
+/* Full history: the Pricing History drawer, beside Quick Add rather than in it. */
+.ph-backdrop.wqa-hd-bd{z-index:525;background:rgba(10,12,20,.18)}
+.ph-drawer.wqa-hd{z-index:530;width:min(400px,94vw)}
+#wqaHd .ph-list,#wqaHd .ph-scroll{max-height:none;overflow:visible;padding-right:0}
+#wqaHd .ph-count{margin:0 -16px 10px;padding:10px 16px 8px}
+#wqaHd .ph-empty-msg{padding:16px 0}
+@media (max-width:640px){ .ph-drawer.wqa-hd{width:100%} }
+@media (max-width:599px){
+  .wqa-hq{margin:0 10px 8px 40px}
+  .wqa-hq-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"p ref act" "c ref act"}
+  .wqa-hq-p{grid-area:p}.wqa-hq-c{grid-area:c}.wqa-hq-ref{grid-area:ref;white-space:normal}.wqa-hq-row .btn{grid-area:act;min-height:36px}
+}
 .wqa-fig-w{flex-direction:column;align-items:flex-end;gap:0}
 .wqa-rv-dia{border:0;background:transparent;font:inherit;font-size:11px;font-weight:650;color:var(--text-muted);padding:0 2px;border-radius:4px;cursor:text}
 .wqa-rv-dia:hover{background:var(--accent-light);color:var(--text)}
@@ -6253,6 +6298,22 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
   </div>
 </aside>
 
+<!-- Quick Add's full Pricing History: the same drawer, for ONE Quick Add row,
+     over the Quick Add modal so the row it was opened from stays in view.
+     Rendered by wqaHdRender; it never touches the entry form's #phDrawer. -->
+<div class="ph-backdrop wqa-hd-bd" id="wqaHdBackdrop" hidden onclick="wqaHdClose()"></div>
+<aside class="ph-drawer wqa-hd" id="wqaHd" role="dialog" aria-modal="true" aria-labelledby="wqaHdTitle" tabindex="-1" hidden>
+  <div class="ph-drawer-head">
+    <div class="ph-drawer-titles">
+      <div class="ph-drawer-title" id="wqaHdTitle"><span data-i18n="prevQuotedPrices">Pricing History</span></div>
+      <div class="ph-drawer-sub" id="wqaHdSub"></div>
+      <div class="ph-drawer-legend" data-i18n="phDiffLegend">Differences = history − this item</div>
+    </div>
+    <button type="button" class="ph-drawer-x" onclick="wqaHdClose()" data-i18n-title="phClose" title="Close" aria-label="Close">✕</button>
+  </div>
+  <div class="ph-drawer-body" id="wqaHdBody"></div>
+</aside>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -6732,8 +6793,8 @@ const I18N={
     paStillNeed:'{n} still need attention',
     paNeedApproval:'{n} prices still need approval',
     paNeedApproval1:'1 price still needs approval',
-    paApproveFirst:'Accept the suggested prices (Apply Price or Accept all) before adding.',
-    paWhy:'price not accepted yet — press Apply Price',
+    paApproveFirst:'Accept the suggested prices (Accept all suggested prices, or History Apply) before adding.',
+    paWhy:'price not accepted yet — use Accept all suggested prices or History Apply',
     paRecipeBlank:'Type a Cost, Add Cost or Markup to apply — blank means no change.',
     paRecipeDone:'Pricing applied to {n} compatible items — accept the prices when they look right',
     paRecipeManualKept:'{n} on Manual Price kept',
@@ -6748,6 +6809,16 @@ const I18N={
     wqaHsOne:'1 record',
     wqaHsN:'{n} records',
     paApplyCompat:'Apply to compatible items',
+    paApplyThis:'Apply this pricing to {n} compatible items',
+    wqaPxEditTip:'Edit this item\'s pricing',
+    wqaPxCurrent:'Current Price:',
+    wqaPxAdvanced:'More',
+    wqaHqTip:'Show previous prices',
+    wqaHqTitle:'Previous Prices',
+    wqaHqPreview:'Preview',
+    wqaHqView:'View',
+    wqaHqFull:'Open full Pricing History',
+    wqaHistFrozenExact:'A manual / fixed price is only reused for the exact same item — use a record with a pricing setup.',
     tPaAccepted:'Price accepted',
     tPaNothing:'No price to accept yet.',
     tPaNotAccepted:'Price not accepted yet — press Apply Price first.',
@@ -7343,8 +7414,8 @@ const I18N={
     paStillNeed:'{n} 项仍需处理',
     paNeedApproval:'{n} 个价格仍需确认',
     paNeedApproval1:'1 个价格仍需确认',
-    paApproveFirst:'添加前请先确认建议价格（应用价格或接受全部）。',
-    paWhy:'价格尚未确认 — 请按应用价格',
+    paApproveFirst:'添加前请先确认建议价格（接受全部建议价格，或使用历史价格的应用）。',
+    paWhy:'价格尚未确认 — 请接受全部建议价格或使用历史价格的应用',
     paRecipeBlank:'请输入成本、加工费或 Markup — 留空表示不更改。',
     paRecipeDone:'定价参数已应用到 {n} 个兼容项目 — 确认无误后请接受价格',
     paRecipeManualKept:'{n} 项手动价格保持不变',
@@ -7359,6 +7430,16 @@ const I18N={
     wqaHsOne:'1 条记录',
     wqaHsN:'{n} 条记录',
     paApplyCompat:'应用到兼容项目',
+    paApplyThis:'应用此定价到 {n} 个兼容项目',
+    wqaPxEditTip:'修改此项目的定价',
+    wqaPxCurrent:'当前价格：',
+    wqaPxAdvanced:'更多',
+    wqaHqTip:'查看历史价格',
+    wqaHqTitle:'历史价格',
+    wqaHqPreview:'预览',
+    wqaHqView:'查看',
+    wqaHqFull:'打开完整历史价格',
+    wqaHistFrozenExact:'手动 / 固定价格只用于完全相同的项目 — 请使用带定价参数的记录。',
     tPaAccepted:'价格已确认',
     tPaNothing:'暂无可确认的价格。',
     tPaNotAccepted:'价格尚未确认 — 请先按应用价格。',
@@ -14391,8 +14472,7 @@ function wqaClearSel(){
 function wqaSelPrevPrice(){
   const k=wqa.rows.findIndex(r=>!r.removed&&r.sel);
   if(k<0) return;
-  const r=wqa.rows[k];
-  if(!r.histOpen) wqaHistToggle(k); else wqaRenderRows(true);
+  wqaHdOpen(k);
   const card=el('wqaRows')&&el('wqaRows').querySelector('[data-wqa-row="'+k+'"]');
   if(card&&card.scrollIntoView) try{ card.scrollIntoView({block:'nearest'}); }catch(e){}
 }
@@ -19331,6 +19411,8 @@ function wqaResetState(){
   clearTimeout(wqa._t); clearTimeout(wqa._ta); clearTimeout(wqa._tm);
   wqa._t=wqa._ta=wqa._tm=null;
   wqa._deferred={};
+  /* Row pricing / history surfaces belong to the rows being reset. */
+  wqa.hq=null; wqa.recipeSrc=null; wqaHdClose();
 
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
   /* Group-level state: the heading being edited, the group last worked in,
@@ -20840,61 +20922,70 @@ function wqaPaAcceptRows(idx){
 }
 function wqaGrpAcceptAll(first){ const g=wqaRvGroupOf(first); if(g) wqaPaAcceptRows(g.idx); }
 function wqaSelAccept(){ wqaPaAcceptRows(wqa.rows.map((r,j)=>(r&&!r.removed&&r.sel)?j:-1).filter(j=>j>=0)); }
-/* ── Apply pricing to all ────────────────────────────────────────────────
-   The same RECIPE onto every row of the group — never the same price. Each
-   row then prices itself from its own weight, and stays Suggested. A blank
-   box means no change. */
 /* The pricing basis a recipe can safely cross: metric and inch sizes are not
    priced from the same basis, so a recipe typed for one is not the other's. */
 function wqaSizeBasis(r){ return wqaInchKey(r&&r.size) ? 'inch' : 'metric'; }
-/* Which rows of a group one recipe may reach: those on the group's main basis
-   (the most rows; on a tie, the first row's). The rest are skipped and said. */
-function wqaGrpCompat(g){
-  const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
-  const tally={}; rows.forEach(r=>{ const k=wqaSizeBasis(r); tally[k]=(tally[k]||0)+1; });
-  const first=rows[0]?wqaSizeBasis(rows[0]):'metric';
-  const basis=Object.keys(tally).sort((a,b)=>(tally[b]-tally[a])||(a===first?-1:b===first?1:0))[0]||first;
-  return {ok:rows.filter(r=>wqaSizeBasis(r)===basis), skip:rows.filter(r=>wqaSizeBasis(r)!==basis), basis};
+/* ── Contextual bulk pricing ──────────────────────────────────────────────
+   No permanent recipe bar. When a row has just been priced — its editor's
+   Done, or a History recipe applied — and its Cost / Add Cost / Markup make a
+   usable recipe, the group offers to copy THAT recipe (never the RM figure) to
+   the rows it can safely reach: same group (Product, Material, Finish, Size
+   Type) and the same size basis (metric vs inch). Each target reprices from
+   its own size. Rows already on the recipe are not counted; rows on another
+   basis are counted as skipped and said. */
+function wqaRowRecipe(r){
+  if(!r||r.removed||(r.priceMode||'auto')==='manual') return null;
+  const c=r.calc||{}, v=k=>String(c[k]==null?'':c[k]).trim();
+  const out={costRate:v('costRate'),addCost:v('addCost'),markup:v('markup')};
+  const okNum=s=>s!=='' && isFinite(Number(s));
+  return (okNum(out.costRate)&&okNum(out.addCost)&&okNum(out.markup)) ? out : null;
+}
+function wqaRecipeOffer(i){
+  const src=wqa.rows[i]; const rc=wqaRowRecipe(src); if(!rc) return null;
+  const g=wqaRvGroupOf(i); if(!g) return null;
+  const basis=wqaSizeBasis(src), same=(a,b)=>Number(a)===Number(b);
+  const others=g.idx.filter(j=>j!==i).map(j=>wqa.rows[j]).filter(r=>r&&!r.removed&&!r.added);
+  const skip=others.filter(r=>wqaSizeBasis(r)!==basis);
+  const ok=others.filter(r=>wqaSizeBasis(r)===basis && (r.priceMode||'auto')!=='manual').filter(r=>{
+    const c=r.calc||{}; return !(same(c.costRate,rc.costRate)&&same(c.addCost,rc.addCost)&&same(c.markup,rc.markup)); });
+  if(!ok.length) return null;
+  return {i,rc,ok,skip,g};
+}
+function wqaRecipeText(rc){
+  return dcT('rvCost')+' '+wqaRvNum(rc.costRate)+' · '+dcT('rvAdd')+' '+wqaRvNum(rc.addCost)+' · '+dcT('sumMarkup')+' '+wqaMetaPct(rc.markup);
+}
+function wqaRecipeOfferHtml(of,where){
+  if(!of) return '';
+  return `<span class="${where==='px'?'wqa-px-bulk':'wqa-grx-rc'}" data-recipe-offer="${of.i}">
+      <button type="button" class="btn btn-outline btn-sm" title="${escHtml(wqaRecipeText(of.rc))}"
+        onclick="event.stopPropagation();wqaRecipeApply(${of.i})">${escHtml(dcT(of.skip.length?'paApplyCompat':'paApplyThis').replace('{n}',of.ok.length))}</button>
+      ${of.skip.length?`<span class="wqa-grx-mix" title="${escHtml(dcT('paBasisMixed'))}">${escHtml(dcT('paCompatN').replace('{a}',of.ok.length).replace('{b}',of.skip.length))}</span>`
+        :(where==='px'?'':`<span class="wqa-grx-rcv">${escHtml(wqaRecipeText(of.rc))}</span>`)}
+    </span>`;
+}
+function wqaRecipeApply(i){
+  const of=wqaRecipeOffer(i);
+  if(!of){ showToast(dcT('wqaBulkNone')); return; }
+  /* Re-checked now, row by row: the list on screen was drawn a moment ago. */
+  const dropped=wqaApplyPriceTo(of.ok,{...of.rc},false);
+  wqaFlashRows(of.ok.map(r=>wqa.rows.indexOf(r)));
+  wqaRecomputeAll('force');
+  showToast(dcT('paRecipeDone').replace('{n}',of.ok.length)
+    +(of.skip.length?' · '+dcT('paSkippedBasis').replace('{n}',of.skip.length):'')
+    +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
 }
 function wqaGrpPaHtml(g){
   const first=g.idx[0];
   const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
-  const cp=wqaGrpCompat(g);
   const ok=rows.filter(wqaRowAccepted).length, sug=rows.filter(r=>wqaRowPa(r).state==='suggested').length;
-  const box=(f,lbl)=>`<label class="wqa-grx-f"><span>${escHtml(dcT(lbl))}</span><input type="text" inputmode="decimal" autocomplete="off"
-      data-grx="${f}" placeholder="${escHtml(wqaGxCommon(g.idx,f)||'—')}" onclick="event.stopPropagation()"
-      onkeydown="if(event.key==='Enter'){event.preventDefault();wqaGrpRecipe(${first},this)}"></label>`;
+  const src=(wqa.recipeSrc!=null && g.idx.indexOf(wqa.recipeSrc)>=0) ? wqa.recipeSrc : null;
+  const offer=src===null ? '' : wqaRecipeOfferHtml(wqaRecipeOffer(src),'grp');
   return `<div class="wqa-grx" data-grx-grp="${first}" onclick="event.stopPropagation()">
-      <span class="wqa-grx-t">${escHtml(dcT('paApplyAll'))}</span>
-      ${cp.skip.length?`<span class="wqa-grx-mix" title="${escHtml(dcT('paBasisMixed'))}">${escHtml(dcT('paCompatN').replace('{a}',cp.ok.length).replace('{b}',cp.skip.length))}</span>`:''}
-      ${box('costRate','rvCost')}<span class="wqa-gx-x">·</span>${box('addCost','rvAdd')}<span class="wqa-gx-x">·</span>${box('markup','sumMarkup')}
-      <button type="button" class="btn btn-outline btn-sm wqa-grx-go" onclick="wqaGrpRecipe(${first},this)">${escHtml(dcT('paApplyGo'))}</button>
+      ${offer}
       <span class="wqa-grx-gap"></span>
       <span class="wqa-grx-n">${escHtml(dcT('paCount').replace('{a}',ok).replace('{n}',rows.length))}</span>
       <button type="button" class="btn btn-primary btn-sm wqa-grx-acc" onclick="wqaGrpAcceptAll(${first})"${sug?'':' disabled'}>${escHtml(dcT('paAcceptAll'))}</button>
     </div>`;
-}
-function wqaGrpRecipe(first,src){
-  const g=wqaRvGroupOf(first); if(!g) return;
-  const host=src&&src.closest?src.closest('.wqa-grx'):null; if(!host) return;
-  const c={costRate:'',addCost:'',markup:''};
-  for(const f of Object.keys(c)){
-    const n=host.querySelector('[data-grx="'+f+'"]');
-    const v=String(n?n.value:'').trim();
-    if(v==='') continue;
-    if(!isReadableAmount(v) || evalExpr(v)<0){ showToast(dcT('wqaGxBad').replace('{f}',wqaGxLabel(f))); return; }
-    c[f]=v;
-  }
-  if(!c.costRate && !c.addCost && !c.markup){ showToast(dcT('paRecipeBlank')); return; }
-  const cp=wqaGrpCompat(g), rows=cp.ok;
-  const manual=rows.filter(r=>(r.priceMode||'auto')==='manual').length;
-  const dropped=wqaApplyPriceTo(rows,c,false);
-  wqaFlashRows(rows.map(r=>wqa.rows.indexOf(r)));
-  wqaRecomputeAll('force');
-  showToast(dcT('paRecipeDone').replace('{n}',rows.length)
-    +(cp.skip.length?' · '+dcT('paSkippedBasis').replace('{n}',cp.skip.length):'')
-    +(manual?' · '+dcT('paRecipeManualKept').replace('{n}',manual):'')
-    +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
 }
 
 /* mode: 'force' = always full render (structural, user-initiated)
@@ -21354,23 +21445,81 @@ function wqaRowBestHist(r){
   if(n>=0) return {cls:'close',n,rec:recs[n],count:c.close};
   return {cls:recs.length?'ref':'none',n:-1,count:recs.length};
 }
+/* "History: Exact RM27.40 · 3 records [Apply] ▾". The summary itself is a
+   button: it opens the quick preview (a click, never a hover). Only an exact
+   reusable record gets a direct Apply; a similar one is previewed first; a
+   reference is never offered as reusable. */
 function wqaRowHistSumHtml(r,i){
-  if(r.usedHistoryRef) return '';                 // the provenance chip already says Applied · ref
   const b=wqaRowBestHist(r); if(!b) return '';
+  const on=wqa.hq===i;
   const lbl=`<span class="wqa-hs-k">${escHtml(dcT('wqaHsLabel'))}</span>`;
-  if(b.n<0) return `<span class="wqa-hs is-none">${lbl} ${escHtml(dcT(b.cls==='ref'?'wqaHsNoExact':'wqaHsNone'))}</span>`;
+  const caret=`<span class="wqa-hs-caret" aria-hidden="true">${on?'▴':'▾'}</span>`;
+  const open=(cls,inner)=>`<button type="button" class="wqa-hs is-${cls}${on?' is-on':''}" data-hs="${i}" aria-expanded="${on?'true':'false'}"
+      title="${escHtml(dcT('wqaHqTip'))}" onclick="event.stopPropagation();wqaHqToggle(${i})">${inner} ${caret}</button>`;
+  /* Applied: the price carries the tick and the provenance chip says
+     "Previous Price · Q-…" (it opens this same preview). */
+  if(r.usedHistoryRef) return '';
+  if(b.n<0){
+    const txt=`${lbl} ${escHtml(dcT(b.cls==='ref'?'wqaHsNoExact':'wqaHsNone'))}`;
+    return b.cls==='ref' ? open('none',txt) : `<span class="wqa-hs is-none">${txt}</span>`;
+  }
   const price=phMoney(b.rec.boltUnitPrice).replace('RM ','RM');
   const cnt=dcT(b.count===1?'wqaHsOne':'wqaHsN').replace('{n}',b.count);
-  return `<span class="wqa-hs is-${b.cls}">${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b> · ${escHtml(cnt)}</span>`
-    +`<button type="button" class="btn btn-outline btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHistQuickApply(${i})">${escHtml(dcT('paApplyGo'))}</button>`;
+  return open(b.cls,`${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b> · ${escHtml(cnt)}`)
+    +(b.cls==='exact'
+      ? `<button type="button" class="btn btn-outline btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHistQuickApply(${i})">${escHtml(dcT('paApplyGo'))}</button>`
+      : `<button type="button" class="btn btn-ghost btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHqToggle(${i},true)">${escHtml(dcT('wqaHqPreview'))}</button>`);
 }
-/* One click: the best record, through the same Use the panel performs — so it
-   is the same explicit acceptance, with no second Apply afterwards. */
+/* One click: the best EXACT record, through the same Use the panel performs —
+   so it is the same explicit acceptance, with no second Apply afterwards. */
 function wqaHistQuickApply(i){
   const r=wqa.rows[i]; if(!r) return;
-  const b=wqaRowBestHist(r); if(!b||b.n<0) return;
+  const b=wqaRowBestHist(r); if(!b||b.n<0||b.cls!=='exact') return;
+  wqa.hq=null;
   wqaHistUse(i,b.n);
 }
+/* ── Quick preview ────────────────────────────────────────────────────────
+   The few records worth acting on, most relevant first — never the whole
+   list. Exact spec in the same finish, this customer's first, then the most
+   recent; then similar; then reference. The full list is the drawer. */
+function wqaHqRanked(r){
+  const h=r&&r.hist; if(!h||h.failed||!h.records) return [];
+  const rank={exact:0,close:1,ref:2};
+  return h.records.map((rec,n)=>({rec,n,cls:phMatchInfo(rec).match}))
+    .sort((a,b)=>(rank[a.cls]-rank[b.cls])
+      || ((b.rec.own?1:0)-(a.rec.own?1:0))
+      || String(b.rec.date||'').localeCompare(String(a.rec.date||''))
+      || ((Number(a.rec.dimDistance)||0)-(Number(b.rec.dimDistance)||0))
+      || (a.n-b.n))
+    .slice(0,5);
+}
+function wqaHqToggle(i,force){
+  const r=wqa.rows[i]; if(!r) return;
+  wqa.hq = (force || wqa.hq!==i) ? i : null;
+  wqa.px=null; wqa.ix=null;
+  wqaRenderRows(true);
+}
+function wqaRvHqHtml(r,i){
+  if(wqa.hq!==i) return '';
+  const top=wqaHqRanked(r);
+  const cls={exact:'phClsExact',close:'phClsClose',ref:'phClsRef'};
+  const rows=top.map(x=>{
+    const rec=x.rec, price=phMoney(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined?rec.unitPrice:rec.boltUnitPrice).replace('RM ','RM');
+    /* Exact + reusable is applied here; anything else is looked at first. */
+    const act = x.cls==='exact' && phRecordReusable(rec)
+      ? `<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();wqaHqApply(${i},${x.n})">${escHtml(dcT('paApplyGo'))}</button>`
+      : `<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();wqaHdOpen(${i})">${escHtml(dcT('wqaHqView'))}</button>`;
+    return `<div class="wqa-hq-row" data-hq-cls="${x.cls}"><span class="wqa-hq-p">${escHtml(price)}</span>
+      <span class="wqa-hq-c is-${x.cls}">${escHtml(dcT(cls[x.cls]))}</span>
+      <span class="wqa-hq-ref">${escHtml(rec.refNo||'—')} <small>· ${escHtml(fmtDateShort(rec.date))}${rec.finish?' · '+escHtml(rec.finish):''}</small></span>${act}</div>`;
+  }).join('');
+  return `<div class="wqa-hq" role="dialog" aria-label="${escHtml(dcT('wqaHqTitle'))}" onclick="event.stopPropagation()">
+      <div class="wqa-hq-t">${escHtml(dcT('wqaHqTitle'))}<button type="button" class="wqa-hq-x" aria-label="${escHtml(dcT('phClose'))}" onclick="wqaHqToggle(${i})">✕</button></div>
+      ${rows||`<div class="wqa-hq-empty">${escHtml(dcT('phNoneExact'))}</div>`}
+      <div class="wqa-hq-foot"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();wqaHdOpen(${i})">${escHtml(dcT('wqaHqFull'))}</button></div>
+    </div>`;
+}
+function wqaHqApply(i,n){ wqa.hq=null; wqaHistUse(i,n); }
 function wqaRvSubHtml(r,i){
   const bits=[];
   const hs=wqaRowHistSumHtml(r,i);
@@ -21412,12 +21561,13 @@ function wqaPxToggle(i){
   if(wqa.selMode){ wqaRvToggleSel(i); return; }
   const r=wqa.rows[i]; if(!r) return;
   wqa.curGrp=i;
-  if(wqaRvMobile() || r.open){
-    if(!r.open){ wqa.rows.forEach(o=>{ if(o!==r) o.open=false; }); r.open=true; wqaRenderRows(true); }
+  /* An open panel already carries the same editor; anywhere else — a phone
+     included — RM/pc opens the editor directly under its own row. */
+  if(r.open){
     wqaRvFocus(i,'[data-px="costRate"]');
     return;
   }
-  wqa.ix=null;
+  wqa.ix=null; wqa.hq=null;
   wqa.px = wqa.px===i ? null : i;
   wqaRenderRows(true);
   if(wqa.px===i) wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'costRate')+'"]');
@@ -21445,13 +21595,24 @@ function wqaPxDone(i,from){
   const r=wqa.rows[i]; if(!r) return;
   clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
   r.pxApplied=true;
+  /* This row's recipe is now the one its group may be offered (wqaRecipeOffer). */
+  wqa.recipeSrc=i;
   if(from==='strip'){ wqa.px=null; } else { r.open=false; }
   wqaRecomputeAll('force');
 }
+/* The editor under the row: PRICING, the row's own four values, the price
+   they make now, and Done. "More" is the full panel, for Manual Price and the
+   rest. Nothing here is a second pricing state — every box writes the row. */
 function wqaRvPxStrip(r,i){
-  return `<div class="wqa-px" onclick="event.stopPropagation()">
+  return `<div class="wqa-px" data-px-row="${i}" onclick="event.stopPropagation()">
+      <div class="wqa-px-head">${escHtml(dcT('sumPricing'))}</div>
       ${wqaRvPxEditor(r,i)}
-      <div class="wqa-px-foot"><button type="button" class="btn btn-outline btn-sm" onclick="wqaPxDone(${i},'strip')">${escHtml(dcT('btnDone'))}</button></div>
+      <div class="wqa-px-foot">
+        <span class="wqa-px-slot">${wqaRecipeOfferHtml(wqaRecipeOffer(i),'px')}</span>
+        <span class="wqa-px-cur">${escHtml(dcT('wqaPxCurrent'))} <b class="wqa-px-curv">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</b>${escHtml(dcT('rvPerPc'))}</span>
+        <button type="button" class="btn btn-ghost btn-sm wqa-px-adv" onclick="wqa.px=null;wqaToggleRow(${i})">${escHtml(dcT('wqaPxAdvanced'))}</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="wqaPxDone(${i},'strip')">${escHtml(dcT('btnDone'))}</button>
+      </div>
     </div>`;
 }
 /* ── The item's own panel ─────────────────────────────────────────────────
@@ -21584,42 +21745,18 @@ function wqaRvDetail(r,i){
    section directly under PRICING, opening in place for THIS item. */
 function wqaRvHistSection(r,i){
   const h=r.hist, loaded=h && !h.failed && h.records;
-  const sum = h===undefined && r.histOpen ? dcT('phLoading')
+  const sum = h===undefined && wqaHistSpec(r) ? dcT('phLoading')
             : loaded ? (h.records.length ? phClassText(h) : dcT('phNoneExact'))
             : dcT('phHistShow');
   const cust = loaded && h.records.length && phHasCustomer()
     ? ' · '+dcT('phThisCustomer').replace('{n}',h.ownTotal||0)+' · '+dcT('phOther').replace('{n}',h.otherTotal||0) : '';
+  /* A summary bar only: the records themselves open in the drawer beside
+     Quick Add, never as a table inside the row. */
   return `<div class="wqa-dt-sec wqa-dt-sec-hist">${escHtml(dcT('phHistSection'))}</div>
     <div class="wqa-dt-hist" data-hist-row="${i}">
-      <button type="button" class="wqa-dt-histbar${r.histOpen?' is-on':''}" aria-expanded="${r.histOpen?'true':'false'}"
-        onclick="event.stopPropagation();wqaHistToggle(${i})">${dcHistIcon()}<span class="wqa-dt-histsum">${escHtml(sum+cust)}</span><span class="wqa-hist-arrow">${r.histOpen?'▾':'▸'}</span></button>
-      ${r.histOpen?wqaRvHistBody(r,i):''}
+      <button type="button" class="wqa-dt-histbar" aria-haspopup="dialog"
+        onclick="event.stopPropagation();wqaHdOpen(${i})">${dcHistIcon()}<span class="wqa-dt-histsum">${escHtml(sum+cust)}</span><span class="wqa-hist-arrow">▸</span></button>
     </div>`;
-}
-function wqaRvHistBody(r,i){
-  const hist=r.hist;
-  if(hist===undefined) return '<div class="wqa-hist">'+escHtml(dcT('phLoading'))+'</div>';
-  if(hist && hist.failed) return '<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
-  if(!hist || !hist.records || !hist.records.length) return '<div class="wqa-hist wqa-hist-none">'+escHtml(dcT('phNoneExact'))+'</div>';
-  return `<div class="wqa-hist wqa-hist-panel wqa-hist-inline" onclick="event.stopPropagation()">
-    ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,(rec,n)=>wqaHistRecExtra(i,n,rec))}
-  </div>`;
-}
-function wqaRvHistHtml(r,i){
-  const hist=r.hist;
-  if(!r.histOpen || wqaRowIsOpen(r)) return '';
-  if(hist===undefined) return '<div class="wqa-hist">'+escHtml(dcT('phLoading'))+'</div>';
-  if(hist && hist.failed) return '<div class="wqa-hist wqa-hist-similar">'+escHtml(dcT('phLoadFailed'))+'</div>';
-  if(!hist || !hist.records || !hist.records.length) return '<div class="wqa-hist wqa-hist-none">'+escHtml(dcT('phNoneExact'))+'</div>';
-  const own=hist.ownTotal||0, other=hist.otherTotal||0;
-  return `<div class="wqa-hist wqa-hist-panel" onclick="event.stopPropagation()">
-    <button type="button" class="wqa-hist-bar" onclick="wqaHistToggle(${i})">
-      <span class="wqa-hist-arrow">▾</span>
-      <span class="wqa-hist-lbl">${escHtml(dcT('phTitle'))}</span>
-      <span class="wqa-hist-count">${escHtml(phClassText(hist)||dcT((hist.total||hist.records.length)===1?'phRecordCount':'phRecordCountPlural').replace('{n}',hist.total||hist.records.length))}${phHasCustomer()?' · '+escHtml(dcT('phThisCustomer').replace('{n}',own))+' · '+escHtml(dcT('phOther').replace('{n}',other)):''}</span>
-    </button>
-    ${phListHtml(hist,`wqaHistUse(${i},{n})`,`wqaHistMore(${i})`,(rec,n)=>wqaHistRecExtra(i,n,rec))}
-  </div>`;
 }
 function wqaRvSpecText(r,always){
   const show=always||wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('sizeType')||wqaIsMixed('product')
@@ -21647,8 +21784,9 @@ function wqaRvItemHtml(r,i,series){
   const spec=series?'':wqaRvSpecText(r,true);
   /* In a series the heading states the pricing most of its rows share; a row
      says its own only when it differs — which is exactly the row to look at. */
-  /* Every row is priced on its own, so every row states its own recipe. */
-  const showPx=true;
+  /* Owner-smoke: no permanent Cost · Add Cost · Markup block. The RM/pc is the
+     way into the row's pricing (wqaPxToggle); the recipe is read there. */
+  const showPx=false;
   const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick"${r.sel?' checked':''}
       onclick="event.stopPropagation()" onchange="wqaRvToggleSel(${i})"
       aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
@@ -21671,7 +21809,7 @@ function wqaRvItemHtml(r,i,series){
       <div class="wqa-it-fig">
         <span class="wqa-fig wqa-fig-qty">${wqaRvTok(r,i,'qty')}</span>
         <button type="button" class="wqa-fig wqa-fig-price ${wqaPaCls(r)}" onclick="event.stopPropagation();wqaPxToggle(${i})"
-          title="${escHtml(dcT('sumPricing'))}"><span class="wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
+          aria-expanded="${wqa.px===i?'true':'false'}" title="${escHtml(dcT('wqaPxEditTip'))}"><span class="wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
         <span class="wqa-fig wqa-fig-w"><span class="wqa-uw wqa-uw-full" data-tw="${escHtml(wqaFmtTotalWeight(calc.weight,r.qty))}"
           title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span></span>
       </div>
@@ -21684,9 +21822,9 @@ function wqaRvItemHtml(r,i,series){
     </div>
     ${wqaRvSubHtml(r,i)}
     ${(!series && wqaAccHas(r.acc))?`<div class="wqa-it-gacc">${wqaGaccHtml(i,[i])}</div>`:''}
+    ${wqaRvHqHtml(r,i)}
     ${(!open && wqa.px===i)?wqaRvPxStrip(r,i):''}
     ${open?wqaRvDetail(r,i):''}
-    ${wqaRvHistHtml(r,i)}
   </div>`;
 }
 /* A press on the row itself, not on a value: open its panel — or, while
@@ -22102,6 +22240,8 @@ function wqaPatchRows(){
     card.classList.toggle('wqa-row-block',wqaRowMissing(r).length>0);
     card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight(calc.weight); });
     const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaFmtPrice(wqaShownPrice(r));
+    const cur=card.querySelector('.wqa-px-curv'); if(cur) cur.textContent=wqaFmtPrice(wqaShownPrice(r));
+    const slot=card.querySelector('.wqa-px-slot'); if(slot) slot.innerHTML=wqaRecipeOfferHtml(wqaRecipeOffer(i),'px');
     const fig=card.querySelector('.wqa-fig-price');
     if(fig){ fig.classList.remove('is-pa-sug','is-pa-ok'); const c=wqaPaCls(r); if(c) fig.classList.add(c); }
     const tw=card.querySelector('.wqa-tw'); if(tw) tw.textContent=wqaFmtTotalWeight(calc.weight,r.qty);
@@ -22497,8 +22637,8 @@ function wqaRowMetaHtml(r,i){
 }
 function wqaProvOpen(i){
   const r=wqa.rows[i]; if(!r) return;
-  if(!r.histOpen) wqaHistToggle(i);
-  else wqaRenderRows(true);
+  if(r.hist&&r.hist.records&&r.hist.records.length) wqaHqToggle(i,true);
+  else wqaHdOpen(i);
 }
 /* The printed quotation keeps its English date — that document's language is
    an open business question and is deliberately not decided here. This is the
@@ -22714,8 +22854,18 @@ function wqaHistApplyToRow(r,rec){
 function wqaHistUse(i,n){
   const r=wqa.rows[i]; if(!r||!r.hist||!r.hist.records) return;
   const rec=r.hist.records[n]; if(!rec) return;
+  wqaHistUseRec(i,rec);
+}
+/* The record itself, from wherever it is shown (row, quick preview, drawer).
+   A frozen / manual price is the price of ITS item, so it is taken only for
+   the exact specification; a different size is priced from a recipe or not
+   at all. Returns whether the price was taken. */
+function wqaHistUseRec(i,rec){
+  const r=wqa.rows[i]; if(!r||!rec) return false;
+  if(!wqaRecIsRecipe(rec) && phMatchInfo(rec).match!=='exact'){ showToast(dcT('wqaHistFrozenExact')); return false; }
   const out=wqaHistApplyToRow(r,rec);
-  if(!out.ok){ showToast(dcT(out.why)); return; }
+  if(!out.ok){ showToast(dcT(out.why)); return false; }
+  if(out.recipe) wqa.recipeSrc=i;
   wqaFlashRows([i]);
   wqaRecomputeAll('force');
   if(out.recipe){
@@ -22726,6 +22876,7 @@ function wqaHistUse(i,n){
     showToast((out.mode==='manual' ? dcT('wqaHistManual') : dcT('wqaHistFinalOnly'))
       .replace('{r}',rec.refNo||'—').replace('{v}',out.bolt.toFixed(2)));
   }
+  return true;
 }
 /* ── The same record onto every row it also describes ──────────────────────
    Which rows those are is wqaHistCompat's answer, not a second opinion: same
@@ -22863,12 +23014,119 @@ function wqaHistPickApply(){
 }
 /* Opening one row's history says nothing about any other row's, and asks for
    nothing until it is asked for. */
-function wqaHistToggle(i){
+/* The row's History button: the full list, in the drawer. */
+function wqaHistToggle(i){ wqaHdOpen(i); }
+
+/* ── Full Pricing History drawer (Quick Add) ───────────────────────────────
+   ONE row's history, with Match by — the entry form's drawer look and the
+   same record renderer, but its own state (wqa.hd), so the entry form's
+   phFormState is never touched. Match by asks the server to rank by one
+   dimension; Overall keeps this row's own ranking (wqaRankHistory). The
+   dimensions offered are the ones this row's dimension string actually has,
+   so an L Bolt offers L / W / TL and a J Bolt H / ID / S / TL. */
+async function wqaHdOpen(i){
   const r=wqa.rows[i]; if(!r) return;
-  r.histOpen=!r.histOpen;
-  if(r.histOpen && wqaHistStale(r)) wqaLoadRowHistory(r);   // fetches, then re-renders
-  wqaRenderRows(true);
+  const spec=wqaHistSpec(r);
+  if(!spec){ showToast(dcT('tEnterSizeFirst')); return; }
+  wqa.hq=null;
+  wqa.hd={i, spec, by:'overall', target:'', targets:phMatchDefaults(spec), st:undefined, seq:0};
+  wqaHdShow();
+  wqaHdRender();
+  await wqaHdLoad();
 }
+async function wqaHdLoad(){
+  const hd=wqa.hd; if(!hd) return;
+  const seq=++hd.seq;
+  hd.st=undefined; wqaHdRender();
+  const match={matchBy:hd.by}; if(hd.by!=='overall') match.matchTarget=hd.target;
+  const data=await phFetch(hd.spec,selectedCompanyId,0,20,match);
+  if(wqa.hd!==hd || seq!==hd.seq) return;
+  hd.st = data===null ? null : wqaRankHistory(data,hd.spec,hd.by!=='overall');
+  if(hd.st){ hd.st._matchBy=hd.by; hd.st._matchTarget=hd.target; }
+  wqaHdRender();
+}
+async function wqaHdMore(){
+  const hd=wqa.hd; if(!hd||!hd.st) return;
+  const match={matchBy:hd.by}; if(hd.by!=='overall') match.matchTarget=hd.target;
+  const seq=hd.seq;
+  const next=await phFetch(hd.spec,selectedCompanyId,(hd.st.records||[]).length,20,match);
+  if(!next || wqa.hd!==hd || seq!==hd.seq) return;
+  hd.st.records=(hd.st.records||[]).concat(wqaRankHistory(next,hd.spec,true).records||[]);
+  wqaHdRender();
+}
+function wqaHdSetBy(by){
+  const hd=wqa.hd; if(!hd) return;
+  if(!['overall'].concat(phMatchModes(hd.spec).map(m=>m.id)).includes(by)) return;
+  hd.by=by;
+  hd.target = by==='overall' ? '' : (hd.targets[by]||'');
+  if(by==='overall' || phMatchTargetValid(by,hd.target)) wqaHdLoad(); else wqaHdRender();
+}
+function wqaHdSetTarget(v){
+  const hd=wqa.hd; if(!hd||hd.by==='overall') return;
+  const next=String(v||'').trim()||hd.targets[hd.by]||'';
+  if(!phMatchTargetValid(hd.by,next)){ wqaHdRender(); return; }
+  if(next===hd.target) return;
+  hd.target=next; hd.targets[hd.by]=next;
+  wqaHdLoad();
+}
+function wqaHdRender(){
+  const hd=wqa.hd, body=el('wqaHdBody'), sub=el('wqaHdSub');
+  if(!hd||!body) return;
+  const s=hd.spec;
+  if(sub) sub.textContent=[materialLabel(s.material),s.sizeType,s.productType,sizeDisplay(s.cleanSize),s.finish].filter(Boolean).join(' · ')
+    +(s.dimensionPreview?' · '+dcT('phComparedWith').replace('{d}',s.dimensionPreview):'');
+  const modes=phMatchModes(s);
+  const opt=(id,lbl)=>`<button type="button" class="ph-match-option${hd.by===id?' is-active':''}" data-wqa-hd-match="${id}"
+      aria-pressed="${hd.by===id?'true':'false'}" onclick="wqaHdSetBy('${id}')">${escHtml(lbl)}</button>`;
+  const match=`<div class="ph-match">
+      <span class="ph-match-label">${escHtml(dcT('phMatchBy'))}</span>
+      <div class="ph-match-options" role="group" aria-label="${escHtml(dcT('phMatchBy'))}">${opt('overall',dcT('phMatchOverall'))}${modes.map(m=>opt(m.id,m.label)).join('')}</div>
+      ${hd.by==='overall'?'':`<label class="ph-match-target"><span class="ph-match-label">${escHtml(dcT('phTarget'))}</span><input type="text" inputmode="decimal" autocomplete="off"
+        data-wqa-hd-target value="${escHtml(hd.target)}" onchange="wqaHdSetTarget(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();wqaHdSetTarget(this.value)}"><span class="ph-match-unit">mm</span></label>`}
+    </div>`;
+  const list = hd.st===undefined ? `<div class="ph-empty-msg">${escHtml(dcT('phLoading'))}</div>`
+             : phListHtml(hd.st,'wqaHdUse({n})','wqaHdMore()',null);
+  body.innerHTML=match+`<div class="ph-list">${list}</div>`;
+}
+/* Use from the drawer is the same Use as everywhere: the record onto THIS
+   row, and that press is the acceptance. */
+function wqaHdUse(n){
+  const hd=wqa.hd; if(!hd||!hd.st||!hd.st.records) return;
+  const rec=hd.st.records[n]; if(!rec) return;
+  const i=hd.i;
+  if(!wqaHistUseRec(i,rec)) return;
+  wqaHdClose();
+}
+let wqaHdReturn=null;
+function wqaHdShow(){
+  const d=el('wqaHd'), b=el('wqaHdBackdrop'); if(!d||!b) return;
+  if(d.hidden){
+    wqaHdReturn=document.activeElement;
+    d.hidden=false; b.hidden=false;
+    el('wqaHdBody').scrollTop=0;
+    requestAnimationFrame(()=>{ d.classList.add('open'); b.classList.add('open'); });
+  }
+  try{ d.focus({preventScroll:true}); }catch(e){}
+}
+function wqaHdClose(){
+  const d=el('wqaHd'), b=el('wqaHdBackdrop');
+  wqa.hd=null;
+  if(!d||d.hidden) return;
+  d.classList.remove('open'); b.classList.remove('open');
+  d.hidden=true; b.hidden=true;
+  const back=wqaHdReturn&&document.contains(wqaHdReturn)?wqaHdReturn:null;
+  wqaHdReturn=null;
+  if(back){ try{ back.focus({preventScroll:true}); }catch(e){} }
+}
+/* Escape closes the drawer, then the quick preview — before Quick Add sees it. */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const d=el('wqaHd');
+  if(d && !d.hidden){ e.preventDefault(); e.stopImmediatePropagation(); wqaHdClose(); return; }
+  if(typeof wqa!=='undefined' && wqa && wqa.hq!=null){ e.preventDefault(); e.stopImmediatePropagation(); wqa.hq=null; wqaRenderRows(true); }
+},true);
+/* The drawer's words are computed, so a language switch redraws them. */
+dcOnRelabel(()=>{ try{ if(wqa && wqa.hd) wqaHdRender(); }catch(err){} });
 /* What a loaded history was loaded FOR: the identity it was matched on and the
    geometry it was ranked against. When either moves — a size retyped, a length
    corrected, a finish chosen — what is on screen no longer describes this row,
@@ -22928,7 +23186,7 @@ async function wqaLoadRowHistory(r){
 }
 /* The shared answer, measured against ONE row's geometry — the same distance
    and the same order the entry form's panel uses. */
-function wqaRankHistory(data,spec){
+function wqaRankHistory(data,spec,keepOrder){
   const wantDims=String(spec.dimensionPreview||'');
   const wantKey=wantDims.toUpperCase().replace(/[^A-Z0-9]+/g,'');
   const records=(data.records||[]).map(rec=>{
@@ -22937,7 +23195,8 @@ function wqaRankHistory(data,spec){
             exactDims: dist===0 ||
               (wantKey!=='' && String(rec.dimensionPreview||'').toUpperCase().replace(/[^A-Z0-9]+/g,'')===wantKey)};
   });
-  phSortRecords(records);
+  /* Match by: the server already ranked by the chosen dimension — keep it. */
+  if(!keepOrder) phSortRecords(records);
   return {...data, records, _cmpDims:wantDims, _curFinish:spec.finish||''};
 }
 async function wqaHistMore(i){
