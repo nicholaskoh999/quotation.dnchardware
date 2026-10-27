@@ -3975,7 +3975,7 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 .wqa-gacc-it.is-need .wqa-gacc-f input[data-gacc-f="qty"]{border-color:var(--amber-mid);background:var(--amber-light)}
 .wqa-gacc-inh{font-weight:650;text-transform:none;letter-spacing:0}
 .wqa-gacc .wqa-rv-act{height:32px;min-height:32px;display:inline-flex;align-items:center;gap:5px;padding:0 9px;white-space:nowrap}
-.wqa-gacc .wqa-gacc-rm{width:32px;padding:0;justify-content:center}
+.wqa-gacc .wqa-gacc-rm,.wqa-gacc .wqa-gacc-hist{width:32px;padding:0;justify-content:center}
 .wqa-gacc-own{align-self:center;font-size:11px;font-weight:700;color:var(--accent-2);min-width:0}
 .wqa-gacc-f > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wqa-gacc-hp{grid-column:1 / -1;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto;padding:4px 0 2px}
@@ -3992,7 +3992,7 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
   .wqa-gacc{grid-template-columns:96px 84px 140px 100px minmax(0,1fr) 42px}
   .wqa-gacc-own{grid-column:1 / -1}
   .wqa-gacc-f input,.wqa-gacc-f select,.wqa-gacc .wqa-rv-act{height:42px;min-height:42px}
-  .wqa-gacc .wqa-gacc-rm{width:42px}
+  .wqa-gacc .wqa-gacc-rm,.wqa-gacc .wqa-gacc-hist{width:42px}
   .wqa-it-gacc{padding:0 12px 12px 12px}
 }
 @media (max-width:599px){
@@ -4007,7 +4007,7 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
   .wqa-gacc-own{grid-column:1 / -1}
   .wqa-gacc-f input,.wqa-gacc-f select{height:40px;font-size:16px}
   .wqa-gacc .wqa-rv-act{height:40px}
-  .wqa-gacc .wqa-gacc-rm{width:40px}
+  .wqa-gacc .wqa-gacc-rm,.wqa-gacc .wqa-gacc-hist{width:40px}
   .wqa-gacc-own:empty{display:none}
   .wqa-it-gacc{padding:0 10px 10px 10px}
 }
@@ -21209,8 +21209,8 @@ function wqaGaccHtml(i,idx){
         <select data-gacc-f="finish" onclick="event.stopPropagation()" onchange="wqaGaccSet(${i},'${k}','finish',this.value)">${fin(finish)}</select></label>`}
       <label class="wqa-gacc-f wqa-gacc-p"><span>${escHtml(dcT('lblUnitPriceShort'))}</span><input type="text" inputmode="decimal" data-gacc-f="unitPrice"
         value="${escHtml(Number(price)>0?Number(price).toFixed(2):'')}" placeholder="RM—" onclick="event.stopPropagation()" onchange="wqaGaccSet(${i},'${k}','unitPrice',this.value)"></label>
-      <button type="button" class="wqa-rv-act wqa-gacc-hist${open?' is-on':''}" aria-expanded="${open?'true':'false'}" title="${escHtml(h.split||'')}"
-        onclick="event.stopPropagation();wqaAccHistToggle(${i},'${k}')">${dcHistIcon()}<span>${escHtml(h.n!=null?dcT('accHistN').replace('{n}',h.n):dcT('accHistory'))}</span></button>
+      <button type="button" class="wqa-rv-act wqa-row-del wqa-gacc-hist${open?' is-on':''}" aria-expanded="${open?'true':'false'}" title="${escHtml(dcT('accHistory'))}"
+        aria-label="${escHtml(dcT('accHistory'))}" onclick="event.stopPropagation();wqaAccHistToggle(${i},'${k}')">${dcHistIcon()}</button>
       <button type="button" class="wqa-rv-act wqa-row-del wqa-gacc-rm" title="${escHtml(dcT('accRemove'))}" aria-label="${escHtml(dcT('accRemove'))}"
         onclick="event.stopPropagation();wqaGaccRemove(${i},'${k}')">✕</button>
       <span class="wqa-gacc-own">${own?escHtml(dcT('accRowsOwn').replace('{n}',own)):''}</span>
