@@ -330,6 +330,35 @@ function build_csv($header, $rows) {
 }
 
 
+// ── Suggested / Accepted price (owner rule) ──
+// The browser commits an item only once its price was ACCEPTED, and records
+// that on the item as priceAcceptance {state, value, source, at, historyRef?}
+// inside the items JSON — no schema change. An item WITHOUT the key predates
+// the rule (or came from a handoff) and is accepted as saved, so every legacy
+// quotation still loads and re-saves. An item that carries the key must say
+// it was accepted, at the price it is being saved with.
+const DC_PRICE_SOURCES = ['built_in', 'default_rule', 'manual_recipe', 'history_recipe',
+                          'history_manual', 'manual', 'legacy_saved'];
+function dc_price_acceptance_ok($item, &$error, $n) {
+    if (!array_key_exists('priceAcceptance', $item)) return true;
+    $pa = $item['priceAcceptance'];
+    if (!is_array($pa) || ($pa['state'] ?? '') !== 'accepted') {
+        $error = "Item {$n}: the price has not been accepted. Press Apply Price, then save again.";
+        return false;
+    }
+    if (isset($pa['source']) && !in_array($pa['source'], DC_PRICE_SOURCES, true)) {
+        $error = "Item {$n}: unknown price source.";
+        return false;
+    }
+    $v = $pa['value'] ?? null;
+    $p = $item['finalUnitPrice'] ?? null;
+    if (!is_numeric($v) || !is_numeric($p) || abs((float)$v - (float)$p) > 0.005) {
+        $error = "Item {$n}: the unit price differs from the accepted price. Review it and press Apply Price again.";
+        return false;
+    }
+    return true;
+}
+
 // ── Phase 1 stability: server-side quotation validation ──
 // Lenient on missing fields (legacy quotations may lack some keys) but strict
 // on present-and-invalid values, so bad new input can never be saved while
@@ -365,6 +394,7 @@ function validate_quotation_payload($input, &$error) {
                 return false;
             }
         }
+        if (!dc_price_acceptance_ok($item, $error, $n)) return false;
     }
     $total = $input['total_amount'] ?? 0;
     if (!is_numeric($total) || (float)$total < 0) {

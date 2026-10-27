@@ -537,6 +537,18 @@ input,select,textarea{font-family:inherit}
 .cp-item .cp-line-note,.calc-preview .cp-final span.cp-line-note{
   display:block;font-size:11.5px;font-weight:700;color:var(--text-muted);margin-top:3px;letter-spacing:0}
 .cp-line-note[hidden],.calc-preview .cp-final span.cp-line-note[hidden]{display:none}
+/* Suggested / Accepted under the Final Unit Price. Suggested is the weaker
+   voice; Accepted carries the tick. The source is a quiet note. */
+.calc-preview .cp-accept{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  margin-top:8px;padding:8px 10px;border-radius:var(--r-sm,8px);font-size:13px;font-weight:650}
+.calc-preview .cp-accept[hidden]{display:none}
+.cp-accept.is-sug{background:var(--surface-2,#f4f6fb);border:1px dashed var(--border,#cfd6e4);color:var(--text-muted)}
+.cp-accept.is-ok{background:var(--green-light);border:1px solid #bbe5c8;color:var(--green)}
+.cp-accept b{font-weight:800;color:var(--text)}
+.cp-accept.is-ok b{color:var(--green)}
+.cp-pa-src{font-size:11.5px;font-weight:650;color:var(--text-muted)}
+.cp-pa-sec{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)}
+.cp-pa-apply{margin-left:auto}
 .qi-meta-pill strong{color:var(--text)}
 .qi-price-group{display:flex;align-items:baseline;gap:8px}
 .qi-unit{font-size:13px;color:var(--text-muted);font-weight:600}
@@ -3674,6 +3686,22 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 .wqa-it-s .wqa-it-main{grid-template-columns:34px minmax(96px,190px) auto minmax(0,1fr) auto}
 .wqa-it-s .wqa-it-px{justify-self:end}
 .wqa-ser-px{flex:1 0 100%;font-size:12px;font-weight:650;color:var(--text-muted)}
+/* ── Group pricing tools: a recipe for every row, then acceptance ─────── */
+.wqa-grx{flex:1 0 100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:12px;font-weight:650;color:var(--text-muted)}
+.wqa-grx-t{font-weight:750;color:var(--text-2)}
+.wqa-grx-f{display:inline-flex;align-items:center;gap:4px}
+.wqa-grx-f input{width:62px;min-height:28px;padding:2px 6px;border:1px solid var(--border,#cfd6e4);border-radius:6px;font:inherit;font-weight:700;color:var(--text);background:#fff}
+.wqa-grx-f input::placeholder{color:var(--text-muted);font-weight:600;opacity:.75}
+.wqa-grx-gap{flex:1 1 12px}
+.wqa-grx-n{white-space:nowrap}
+/* Row price: Suggested is muted and dashed, Accepted is green with a tick. */
+.wqa-fig-price.is-pa-sug .wqa-fin{color:var(--text-muted);font-weight:700}
+.wqa-fig-price.is-pa-ok .wqa-fin{color:var(--green)}
+.wqa-pa{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:750;white-space:nowrap}
+.wqa-pa.is-sug{border:1px dashed var(--border,#cfd6e4);color:var(--text-muted);background:transparent}
+.wqa-pa.is-ok{border:1px solid #bbe5c8;color:var(--green);background:var(--green-light)}
+.wqa-pa-src{font-weight:650;color:var(--text-muted)}
+.wqa-pa-apply{min-height:26px;padding:2px 10px;font-size:12px}
 .wqa-fig-w{flex-direction:column;align-items:flex-end;gap:0}
 .wqa-rv-dia{border:0;background:transparent;font:inherit;font-size:11px;font-weight:650;color:var(--text-muted);padding:0 2px;border-radius:4px;cursor:text}
 .wqa-rv-dia:hover{background:var(--accent-light);color:var(--text)}
@@ -5191,6 +5219,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="cp-item"><label data-i18n="lblBasePrice">Base Price</label><span id="cpBase">—</span></div>
           <div class="cp-item cp-acc"><label><span data-i18n="accessories">Accessories</span></label><span id="cpAcc">—</span></div>
           <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Final Unit Price</label><span id="cpFinal">—</span><span id="cpLine" class="cp-line-note" hidden></span></div>
+          <div id="cpAccept" class="cp-accept" hidden aria-live="polite"></div>
         </div></div>
         <div class="price-mode-preview" id="priceModePreview">
           <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
@@ -6636,7 +6665,38 @@ const I18N={
     tUnitNeg:'Unit price is negative — check Cost Rate / Markup',
     tLineNeg:'Line total is negative — check inputs',
     tIdIhNeg:'ID / IH cannot be negative', tItemUpdated:'Item updated',
-    tOldNoRate:'Old item has no saved Cost Rate. Please confirm pricing.',
+    tOldNoRate:'Old item has no saved Cost Rate. Its saved price stays accepted; change a price input to get a new suggestion.',
+    paSuggested:'Suggested',
+    paAccepted:'Accepted',
+    paSuggestedPrice:'Suggested Price',
+    paAcceptedPrice:'Accepted Price',
+    paApply:'Apply Price',
+    paApplyAll:'Apply pricing to all',
+    paApplyGo:'Apply',
+    paAcceptAll:'Accept all suggested prices',
+    paAcceptSel:'Accept selected suggested prices',
+    paCount:'{a} of {n} accepted',
+    paAcceptedN:'Accepted {n} prices',
+    paAcceptedNone:'No suggested prices to accept',
+    paStillNeed:'{n} still need attention',
+    paNeedApproval:'{n} prices still need approval',
+    paNeedApproval1:'1 price still needs approval',
+    paApproveFirst:'Accept the suggested prices (Apply Price or Accept all) before adding.',
+    paWhy:'price not accepted yet — press Apply Price',
+    paRecipeBlank:'Type a Cost, Add Cost or Markup to apply — blank means no change.',
+    paRecipeDone:'Pricing applied to {n} items — each price is Suggested until accepted',
+    paRecipeManualKept:'{n} on Manual Price kept',
+    tPaAccepted:'Price accepted',
+    tPaNothing:'No price to accept yet.',
+    tPaNotAccepted:'Price not accepted yet — press Apply Price first.',
+    tPaChanged:'The price changed after it was accepted — review it and apply again.',
+    paSrc_built_in:'Built-in',
+    paSrc_default_rule:'Default Price',
+    paSrc_manual_recipe:'Manual Recipe',
+    paSrc_history_recipe:'Previous Pricing',
+    paSrc_history_manual:'Previous Price',
+    paSrc_manual:'Manual Price',
+    paSrc_legacy_saved:'Saved price',
     tLegacyAccSplit:'{n} manually-priced item(s) were saved when accessories were charged separately. Their accessories are now inside the Final Unit Price. The customer total is unchanged.',
     tDraftRestored:'Draft restored', tDraftDiscarded:'Draft discarded',
     ubPipeSize:'Pipe Size', ubPipeSel:'Select Pipe Size', ubPreset:'Preset',
@@ -7198,7 +7258,38 @@ const I18N={
     tUnitNeg:'单价为负数，请检查每公斤成本 / Markup',
     tLineNeg:'总额为负数，请检查输入',
     tIdIhNeg:'ID / IH 不能为负数', tItemUpdated:'产品已更新',
-    tOldNoRate:'旧项目没有保存每公斤成本，请确认价格。',
+    tOldNoRate:'旧项目没有保存每公斤成本。已保存价格保持已确认；更改定价条件后会生成新的建议价格。',
+    paSuggested:'建议',
+    paAccepted:'已确认',
+    paSuggestedPrice:'建议价格',
+    paAcceptedPrice:'已确认价格',
+    paApply:'应用价格',
+    paApplyAll:'应用定价到全部',
+    paApplyGo:'应用',
+    paAcceptAll:'接受全部建议价格',
+    paAcceptSel:'接受所选建议价格',
+    paCount:'已确认 {a} / {n}',
+    paAcceptedN:'已确认 {n} 个价格',
+    paAcceptedNone:'没有可接受的建议价格',
+    paStillNeed:'{n} 项仍需处理',
+    paNeedApproval:'{n} 个价格仍需确认',
+    paNeedApproval1:'1 个价格仍需确认',
+    paApproveFirst:'添加前请先确认建议价格（应用价格或接受全部）。',
+    paWhy:'价格尚未确认 — 请按应用价格',
+    paRecipeBlank:'请输入成本、加工费或 Markup — 留空表示不更改。',
+    paRecipeDone:'定价已应用到 {n} 项 — 每个价格在确认前均为建议价格',
+    paRecipeManualKept:'{n} 项手动价格保持不变',
+    tPaAccepted:'价格已确认',
+    tPaNothing:'暂无可确认的价格。',
+    tPaNotAccepted:'价格尚未确认 — 请先按应用价格。',
+    tPaChanged:'价格在确认后已变动 — 请检查并重新应用。',
+    paSrc_built_in:'内置',
+    paSrc_default_rule:'默认价格',
+    paSrc_manual_recipe:'手动定价',
+    paSrc_history_recipe:'历史定价',
+    paSrc_history_manual:'历史价格',
+    paSrc_manual:'手动价格',
+    paSrc_legacy_saved:'已保存价格',
     tLegacyAccSplit:'有 {n} 个手动定价项目建立于配件另计时期，其配件现已计入最终单价，客户总额不变。',
     tDraftRestored:'草稿已恢复', tDraftDiscarded:'草稿已删除',
     ubPipeSize:'管径', ubPipeSel:'选择管径', ubPreset:'预设',
@@ -8175,6 +8266,9 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
     finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
   }
   priceCalcState[type]={
+    /* The weight is published by updatePreview; an add path that re-resolves
+       the price without redrawing the preview must not lose it. */
+    weight:Number((priceCalcState[type]||{}).weight)||0,
     priceMode:mode,manualUnitPrice:manualRaw,rawUnitPrice:Number(rawUnitPrice)||0,
     roundedUnitPrice:Number(type==='sagrod'?round05(rawUnitPrice):roundCustom10(rawUnitPrice))||0,accessoriesCost:accUnit,
     boltUnitPrice:Number(boltUnitPrice)||0,
@@ -8192,6 +8286,146 @@ function getPriceModeSaveData(type){
     priceMode:getPriceMode(type),manualUnitPrice:fv(type,'manualUnitPrice'),
     rawUnitPrice:state.rawUnitPrice??0,roundedUnitPrice:state.roundedUnitPrice??0
   };
+}
+/* ── Suggested and Accepted (owner rule) ───────────────────────────────────
+   Calculation happens on its own; acceptance never does. Whatever the engine
+   works out — a built-in Sag Rod rate, a Default Price rule, a recipe somebody
+   typed — is a SUGGESTED price. It becomes the quotation's selling price only
+   when a person accepts it: Apply Price, Accept all, or an explicit Use on a
+   History record. A Manual Price is a person stating the figure, so it is
+   accepted as typed.
+
+   An acceptance is the value AND a fingerprint of everything that priced it.
+   Change any of it — a length, the finish, a rate, an accessory — and the
+   fingerprint no longer matches, so the price is Suggested again and has to
+   be accepted again. Nothing is deleted: the recipe stays in its boxes.
+
+   The fingerprint reads the product's own form (every box whose id starts
+   with the product type), its finish and accessories, and the price itself.
+   Qty is left out: it changes the line, never the unit price.               */
+const DC_PRICE_SOURCES=['built_in','default_rule','manual_recipe','history_recipe','history_manual','manual','legacy_saved'];
+let dcFormPa={};        // type -> {v,src,ref,sig,saved,orig} for the entry form
+let dcPaGrant=null;     // Quick Add: the accepted row being committed right now
+function dcFormPaSig(type){
+  const vals=[];
+  document.querySelectorAll('[id^="'+type+'-"]').forEach(n=>{
+    if(!/^(INPUT|SELECT|TEXTAREA)$/.test(n.tagName) || n.id===type+'-qty') return;
+    vals.push(n.id+'='+((n.type==='checkbox'||n.type==='radio')?(n.checked?'1':'0'):String(n.value)));
+  });
+  document.querySelectorAll('input[type=radio][name^="'+type+'-"]:checked').forEach(n=>vals.push(n.name+'='+n.value));
+  const st=priceCalcState[type]||{};
+  return JSON.stringify([vals,getFinish(type),getAccessories(type),roundMoney2(st.finalUnitPrice)]);
+}
+/* Where a suggestion came from, in the order a person would explain it. */
+function dcSuggestSource(type){
+  if(getPriceMode(type)==='manual') return 'manual';
+  if(['costRate','addCost','markup'].some(f=>isUserPriced(type,f))) return 'manual_recipe';
+  const dp=typeof dpAutoFilled!=='undefined' ? dpAutoFilled[type] : null;
+  if(dp && dp.key===dpIdentityKey(type) && dp.custom && (dp.costRate||dp.addCost||dp.markup)) return 'default_rule';
+  return 'built_in';
+}
+function dcPaSourceLabel(src){ return dcT('paSrc_'+(DC_PRICE_SOURCES.indexOf(src)>=0?src:'built_in')); }
+/* Can this form's price be accepted at all? A weight of zero with a surcharge
+   on top is still a number, and the preview already refuses to show it. */
+function dcFormPriced(type){
+  const st=priceCalcState[type]||{};
+  if(!(Number(st.finalUnitPrice)>0)) return false;
+  if(getPriceMode(type)==='manual') return isReadableAmount(fv(type,'manualUnitPrice'));
+  return type==='was' || type==='plate' || Number(st.weight)>0;
+}
+function dcFormPaState(type){
+  const st=priceCalcState[type]||{};
+  const sug=roundMoney2(st.finalUnitPrice);
+  const a=dcFormPa[type];
+  if(a && a.sig===dcFormPaSig(type)) return {state:'accepted',v:a.v,src:a.src,ref:a.ref||'',saved:!!a.saved,orig:a.orig,sug};
+  if(getPriceMode(type)==='manual' && dcFormPriced(type)) return {state:'accepted',v:sug,src:'manual',ref:'',sug};
+  return {state:dcFormPriced(type)?'suggested':'none',v:sug,src:dcSuggestSource(type),ref:'',sug};
+}
+function dcFormPaAccept(type,src,ref){
+  if(!dcFormPriced(type)) return false;
+  dcFormPa[type]={v:roundMoney2((priceCalcState[type]||{}).finalUnitPrice),src:src||dcSuggestSource(type),ref:ref||'',sig:dcFormPaSig(type)};
+  return true;
+}
+/* Apply Price on the entry form. */
+function dcFormPaApply(){
+  const t=currentType;
+  if(!dcFormPaAccept(t)){ showToast(dcT('tPaNothing')); return; }
+  dcRenderFormPa(t);
+  showToast(dcT('tPaAccepted'));
+}
+/* Opening a saved item: the price it was saved with IS the accepted price,
+   whatever today's rates or rounding would make of it. */
+function dcFormPaFromSaved(type,item){
+  const pa=item&&item.priceAcceptance;
+  dcFormPa[type]={v:dcItemFinalUnit(item),src:(pa&&DC_PRICE_SOURCES.indexOf(pa.source)>=0)?pa.source:'legacy_saved',
+                  ref:(pa&&pa.historyRef)||'',sig:dcFormPaSig(type),saved:true,orig:item};
+  dcRenderFormPa(type);
+}
+function dcPaDropSaved(){ Object.keys(dcFormPa).forEach(t=>{ if(dcFormPa[t]&&dcFormPa[t].saved) delete dcFormPa[t]; }); }
+function dcPaMeta(src,ref,v){
+  const m={state:'accepted',value:roundMoney2(v),source:DC_PRICE_SOURCES.indexOf(src)>=0?src:'built_in',at:new Date().toISOString()};
+  if(ref) m.historyRef=String(ref);
+  return m;
+}
+/* The gate every commit passes: Add Item, Update Item, and each Quick Add row.
+   Returns null (and says why) when the price has not been accepted, or
+   {meta, keep} — keep is the saved item whose price stands unchanged. */
+function dcPaCommit(type,final){
+  final=roundMoney2(final);
+  const same=v=>Math.abs(roundMoney2(v)-final)<0.005;
+  if(dcPaGrant && dcPaGrant.type===type){
+    const g=dcPaGrant; dcPaGrant=null;
+    if(!same(g.v)){ showToast(dcT('tPaChanged')); return null; }
+    return {meta:dcPaMeta(g.src,g.ref,final)};
+  }
+  const st=dcFormPaState(type);
+  if(st.state!=='accepted'){ showToast(dcT('tPaNotAccepted')); return null; }
+  if(st.saved){
+    const o=st.orig&&st.orig.priceAcceptance;
+    const meta=(o&&o.state==='accepted'&&same(o.value)) ? o : dcPaMeta(st.src,st.ref,st.v);
+    return same(st.v) ? {meta:Object.assign({},meta,{value:final})} : {meta, keep:st.orig};
+  }
+  if(!same(st.v)){ showToast(dcT('tPaChanged')); return null; }
+  return {meta:dcPaMeta(st.src,st.ref,final)};
+}
+/* Update Item with nothing price-affecting changed, on an item whose saved
+   price today's calculation would not reproduce (an older rate, an older
+   rounding rule, no recipe at all): the saved price and the recipe it was
+   saved with stand. Only what is not price — qty, notes — moves. */
+const DC_PA_KEEP_FD=['costRate','addCost','markup','priceMode','manualUnitPrice','rawUnitPrice','roundedUnitPrice',
+  'anchorCostRate','basePlateCostRate','trianglePlateCostRate'];
+function dcPaKeepSaved(item,orig){
+  const qty=parseInt(item.qty,10)||0, v=dcItemFinalUnit(orig);
+  if(item.pricingModel) Object.assign(item,dcLineMoney(v,item.accessories,qty));
+  else { item.finalUnitPrice=v; item.totalAmount=roundMoney2(v*qty); }
+  ['priceMode','manualUnitPrice','rawUnitPrice','roundedUnitPrice','markup'].forEach(k=>{
+    if(Object.prototype.hasOwnProperty.call(orig,k)) item[k]=orig[k]; else delete item[k];
+  });
+  const ofd=orig.formData||{};
+  if(item.formData) DC_PA_KEEP_FD.forEach(k=>{
+    if(Object.prototype.hasOwnProperty.call(ofd,k)) item.formData[k]=ofd[k]; else delete item.formData[k];
+  });
+  return item;
+}
+/* Suggested / Accepted under the entry form's Final Unit Price. */
+function dcRenderFormPa(type){
+  if(type!==currentType) return;
+  const box=el('cpAccept'); if(!box) return;
+  const st=dcFormPaState(type);
+  if(st.state==='none'){ box.hidden=true; box.innerHTML=''; return; }
+  box.hidden=false;
+  const src=`<span class="cp-pa-src">${escHtml(dcPaSourceLabel(st.src))}${st.ref?' · '+escHtml(st.ref):''}</span>`;
+  if(st.state==='accepted'){
+    const differ=Math.abs(st.v-st.sug)>=0.005 && st.sug>0;
+    box.className='cp-accept is-ok';
+    box.innerHTML=`<span class="cp-pa-ok">${escHtml(dcT('paAcceptedPrice'))} <b>${escHtml(fmt(st.v))}</b> ✓</span>${src}`
+      +(differ?`<span class="cp-pa-sec">${escHtml(dcT('paSuggestedPrice'))} ${escHtml(fmt(st.sug))}
+        <button type="button" class="btn btn-ghost btn-sm cp-pa-apply" onclick="dcFormPaApply()">${escHtml(dcT('paApply'))}</button></span>`:'');
+    return;
+  }
+  box.className='cp-accept is-sug';
+  box.innerHTML=`<span class="cp-pa-sug">${escHtml(dcT('paSuggestedPrice'))} <b>${escHtml(fmt(st.v))}</b></span>${src}
+    <button type="button" class="btn btn-primary btn-sm cp-pa-apply" onclick="dcFormPaApply()">${escHtml(dcT('paApply'))}</button>`;
 }
 function validatePriceMode(type){
   if(getPriceMode(type)!=='manual') return true;
@@ -8219,7 +8453,14 @@ function dcNeedsTypedAddCost(type){ return DC_TYPED_RATE_PRODUCTS.indexOf(String
    value. Refusing it there was the live blocker: a J Bolt priced RM 7.40 off
    Q-2026-0125 could not be added, because a J Bolt never gets an automatic rate
    and the reused price had not put one in the box. */
-function dcRateRequired(type){ return getPriceMode(type)!=='manual'; }
+/* The same holds for a saved item updated with nothing price-affecting
+   changed: its saved price stands (dcPaCommit keeps it), so an older item
+   saved without a rate is not refused for lacking one. */
+function dcRateRequired(type){
+  if(getPriceMode(type)==='manual') return false;
+  const st=dcFormPaState(type);
+  return !(st.state==='accepted' && st.saved);
+}
 function syncCostRateWarning(type){
   const warning=el(type+'-warn');
   if(!warning) return;
@@ -8241,6 +8482,7 @@ function updatePriceModePreview(type){
     mode.textContent=dcT(k);
   }
   if(final) final.textContent=fmt(Number(state.finalUnitPrice)||0);
+  dcRenderFormPa(type);
 }
 function onPriceModeChange(type){
   const manual=getPriceMode(type)==='manual';
@@ -10191,6 +10433,8 @@ function fillItemFormFromItemInner(item){
 function setItemEditMode(index){
   editingItemIndex=Number.isInteger(index)?index:null;
   const editing=editingItemIndex!==null;
+  /* A saved item's acceptance belongs to that edit and ends with it. */
+  if(!editing) dcPaDropSaved();
   const note=el('itemEditNote');
   if(note){
     note.classList.toggle('show',editing);
@@ -10253,6 +10497,7 @@ function editItem(i){
   fillItemFormFromItem(quoteItems[i]);
   editingItemIndex=i;
   setItemEditMode(i);
+  dcFormPaFromSaved(currentType,quoteItems[i]);
   goToStep(2);
 }
 /* Duplicate: a NEW row carrying the source's specification and pricing inputs, with
@@ -10491,6 +10736,8 @@ function addPlate(){
   const money=dcLineMoney(resolvePriceMode('plate',raw,round05(raw),accAddon(acc)),acc,qty);
   const finalUnitPrice=money.finalUnitPrice, totalAmount=money.totalAmount;
   if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return; // Phase 1 fix
+  const pa=dcPaCommit('plate',finalUnitPrice);
+  if(!pa) return;
   // Build size string (English only)
   const sizeStr=buildPlateSizeStr();
   // Desc includes plate subtype for WA grouping
@@ -10507,8 +10754,10 @@ function addPlate(){
     productType:t==='ms_plate'?'MS PLATE':'TRIANGLE PLATE',
     cleanSize:'',dimensionPreview:sizeStr,
     accessories:acc,weight,customDimensions:dcReadCustomDims(),formData,
-    ...getPriceModeSaveData('plate'),...money
+    ...getPriceModeSaveData('plate'),...money,priceAcceptance:pa.meta
   };
+  if(pa.keep) dcPaKeepSaved(item,pa.keep);
+  delete dcFormPa.plate;
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const idx=editingItemIndex;
     quoteItems[idx]=dcCarryItemUid(quoteItems[idx],item);
@@ -10717,6 +10966,8 @@ function addWAS(){
   const finalUnitPrice=calc.finalUnitPrice;
   const totalAmount=finalUnitPrice*qty;
   if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return; // Phase 1 fix
+  const pa=dcPaCommit('was',finalUnitPrice);
+  if(!pa) return;
   // Build size string for quote list
   const {abLine,compLines}=buildWASSizeMultiline();
   const sizeStr=abLine+'\n'+compLines;
@@ -10750,8 +11001,10 @@ function addWAS(){
     productType:desc,
     cleanSize:'',dimensionPreview:abLine,
     accessories:acc,weight:calc.weights.setWeight,customDimensions:dcReadCustomDims(),formData,...getPriceModeSaveData('was'),
-    wasData:{abLine,compLines}
+    wasData:{abLine,compLines},priceAcceptance:pa.meta
   };
+  if(pa.keep) dcPaKeepSaved(item,pa.keep);
+  delete dcFormPa.was;
   if(editingItemIndex!==null&&quoteItems[editingItemIndex]){
     const idx=editingItemIndex;
     quoteItems[idx]=dcCarryItemUid(quoteItems[idx],item);
@@ -10864,9 +11117,14 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   const money=dcLineMoney(finalUnitPrice,acc,qty);
   finalUnitPrice=money.finalUnitPrice; totalAmount=money.totalAmount;
   if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return false; // Phase 1 fix: final safety net
+  /* Only an ACCEPTED price is a selling price. */
+  const pa=dcPaCommit(type,finalUnitPrice);
+  if(!pa) return false;
   const productType=type==='others'?(fv(type,'productName').trim()||ITEM_TYPES[type]):(ITEM_TYPES[type]||type);
   const priceData=getPriceModeSaveData(type);
-  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),threadRef:dcReadItemThreadRef(),formData:captureItemFormData(type),...priceData,...money};
+  const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),threadRef:dcReadItemThreadRef(),formData:captureItemFormData(type),...priceData,...money,priceAcceptance:pa.meta};
+  if(pa.keep){ dcPaKeepSaved(item,pa.keep); finalUnitPrice=item.finalUnitPrice; }
+  delete dcFormPa[type];
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const updatedIndex=editingItemIndex;
     quoteItems[updatedIndex]=dcCarryItemUid(quoteItems[updatedIndex],item);
@@ -12830,6 +13088,10 @@ function phCfApply(){
   else if(man){ man.value=''; productEntryTouchedFields.delete(t+'-manualUnitPrice'); }
   onPriceModeChange(t);
   recalcCurrent();
+  /* Pressing Use on a record IS the acceptance: a recipe is priced from this
+     item's own size first, a stated price is taken as it stands. */
+  dcFormPaAccept(t,p.kind==='manual'?'history_manual':'history_recipe',rec.refNo||'');
+  dcRenderFormPa(t);
   scheduleDraftAutosave();
   phDrawerClose();
   showToast(dcT('phApplied').replace('{r}',rec.refNo||'—'));
@@ -13263,6 +13525,9 @@ function applyDefaultPrice(){
        previous identity to be stale against — so the two screens disagreed
        about the same item. */
     dpAutoFilled[type]={key,
+      /* A system rule is the built-in price; a rule staff saved is a Default
+         Price rule. Said separately so a Suggested price names the right one. */
+      custom: wrote ? match.source==='custom' : !!carried.custom,
       costRate: mine.costRate&&crEl ? crEl.value : carried.costRate,
       addCost:  mine.addCost&&acEl  ? acEl.value : carried.addCost,
       markup:   mine.markup&&mkEl   ? mkEl.value : carried.markup};
@@ -13289,7 +13554,7 @@ function applyDefaultPrice(){
        the one before it: an MS Sag Rod M16 x 300 TL 50/50 quoted RM 1.93 by
        hand came out of a two-row Quick Add at RM 1.33, the surcharge silently
        gone from a customer's price. */
-    dpAutoFilled[type]={key, costRate:carried.costRate, addCost:carried.addCost,
+    dpAutoFilled[type]={key, custom:!!carried.custom, costRate:carried.costRate, addCost:carried.addCost,
                              markup:carried.markup};
     if(stat) stat.classList.remove('show');
     if(cleared) recalcCurrent();
@@ -15800,14 +16065,16 @@ function wqaUpdateAddButton(){
      button greyed and nothing saying which row it meant. */
   /* The button says what Add will actually add: rows that are not excluded and
      not waiting on an answer. Rows that wait stay on screen for correction. */
-  const ready=live.filter(wqaRowReady).length;
+  const ready=live.filter(r=>wqaRowReady(r)&&wqaRowAccepted(r)).length;
+  const unapproved=live.filter(r=>wqaRowReady(r)&&!wqaRowAccepted(r)).length;
   btn.disabled = live.length===0 || ready===0 || needAck;
   btn.textContent = ready===1 ? dcT('wqaAddOneItem')
                   : ready ? dcT('wqaAddNItems').replace('{n}',ready) : dcT('wqaAddItems');
   const ft=el('wqaFootTotal'), fn=el('wqaFootNeed');
   if(ft) ft.textContent=dcT('nItems').replace('{n}',live.length);
-  if(fn){ const why = blocked ? dcT('needAttention').replace('{n}',blocked)
-                    : (needAck ? dcT('wqaPartialBlocked') : '');
+  if(fn){ const why = [blocked ? dcT('needAttention').replace('{n}',blocked) : '',
+                       unapproved ? (unapproved===1?dcT('paNeedApproval1'):dcT('paNeedApproval').replace('{n}',unapproved)) : '']
+                       .filter(Boolean).join(' · ') || (needAck ? dcT('wqaPartialBlocked') : '');
           fn.textContent=why; fn.hidden=!why; }
   /* A greyed button is a fact without a reason. When rows exist and every one
      is blocked, this line says what to do about it — and it is DERIVED from
@@ -15816,7 +16083,8 @@ function wqaUpdateAddButton(){
      its own, more specific banner. */
   const fh=el('wqaFootHelp');
   if(fh){ const stuck = live.length>0 && blocked>=live.length && !needAck;
-          fh.textContent=stuck?dcT('wqaCompleteFirst'):''; fh.hidden=!stuck; }
+          const approve = !stuck && !needAck && ready===0 && unapproved>0;
+          fh.textContent=stuck?dcT('wqaCompleteFirst'):approve?dcT('paApproveFirst'):''; fh.hidden=!(stuck||approve); }
   /* Keeps the "N incomplete" badge live as rows are edited, without ever
      re-rendering the panel out from under a caret. */
   wqaPatchItemPanel();
@@ -20366,6 +20634,129 @@ function wqaReadFormPricing(t){
           weight:Number(st.weight)||0};          // straight from the calculator
 }
 
+/* ── Quick Add: every row's Suggested and Accepted price ────────────────────
+   The same owner rule as the entry form (see dcFormPaSig): the row's price is
+   SUGGESTED until a person accepts it. r.pa = {v, src, ref, sig}; sig is the
+   row's price-affecting state plus the price it produced, so any change to
+   them (a length, Ø, a rate, the finish, an accessory) leaves the row
+   Suggested again. r.paPending carries an explicit History "Use" across the
+   recompute that prices it, and becomes r.pa there. A row on Manual Price is
+   a person stating the figure and is accepted as typed. */
+function wqaRowPaSig(r){
+  const c=r.calc||{};
+  return JSON.stringify([wqaRowProduct(r),wqaRowSpec(r,'material'),wqaRowSpec(r,'finish'),wqaRowSpec(r,'sizeType'),
+    wqaRvRowDimSig(r), r.diaManual?String(r.diaMm||''):'', r.priceMode||'auto',
+    (r.priceMode||'auto')==='manual'?String(r.manualPrice||''):'',
+    String(c.costRate||''),String(c.addCost||''),String(c.markup||''),
+    roundMoney2(c.finalUnitPrice),roundMoney2(c.accessoriesCost),r.acc?wqaAccForForm(r.acc):null]);
+}
+/* Read while the form holds this row (wqaRecomputeAll). */
+function wqaRowSuggestSource(r,t){
+  if((r.priceMode||'auto')==='manual') return (r.usedHistoryRef&&!r.usedHistoryRecipe)?'history_manual':'manual';
+  const hist=r.histApplied||[];
+  if(['costRate','addCost','markup'].some(k=>r.priceOverride[k]!==undefined && hist.indexOf(k)<0)) return 'manual_recipe';
+  if(hist.length) return 'history_recipe';
+  const dp=dpAutoFilled[t];
+  if(dp && dp.key===dpIdentityKey(t) && dp.custom && (dp.costRate||dp.addCost||dp.markup)) return 'default_rule';
+  return 'built_in';
+}
+function wqaRowPriceable(r){
+  return !!r && !r.removed && !r.added && !wqaRowBlocked(r) && !!r.calc && Number(wqaShownPrice(r))>0;
+}
+function wqaRowPa(r){
+  if(!wqaRowPriceable(r)) return {state:'none'};
+  const v=roundMoney2(r.calc.finalUnitPrice);
+  if(r.pa && r.pa.sig===wqaRowPaSig(r)) return {state:'accepted',v:r.pa.v,src:r.pa.src,ref:r.pa.ref||''};
+  if((r.priceMode||'auto')==='manual') return {state:'accepted',v,src:r.calc.src||'manual',ref:r.usedHistoryRef||''};
+  return {state:'suggested',v,src:r.calc.src||'built_in',ref:''};
+}
+function wqaRowAccepted(r){ return wqaRowPa(r).state==='accepted'; }
+/* After a recompute: a pending Use becomes the acceptance, a stale one goes. */
+function wqaRowPaSettle(r){
+  if(!r.calc){ r.pa=null; r.paPending=null; return; }
+  if(r.paPending){
+    r.pa={v:roundMoney2(r.calc.finalUnitPrice),src:r.paPending.src,ref:r.paPending.ref||'',sig:wqaRowPaSig(r)};
+    r.paPending=null; return;
+  }
+  if(r.pa && r.pa.sig!==wqaRowPaSig(r)) r.pa=null;
+}
+function wqaRowAccept(r){
+  const st=wqaRowPa(r);
+  if(st.state!=='suggested') return false;
+  r.pa={v:st.v,src:st.src,ref:'',sig:wqaRowPaSig(r)};
+  return true;
+}
+function wqaPaCls(r){ const st=wqaRowPa(r).state; return st==='accepted'?'is-pa-ok':st==='suggested'?'is-pa-sug':''; }
+function wqaRowPaHtml(r,i){
+  const st=wqaRowPa(r);
+  if(st.state==='none') return '';
+  if(st.state==='accepted') return `<span class="wqa-pa is-ok" data-pa="ok">${escHtml(dcT('paAccepted'))} ${escHtml(wqaFmtPrice(st.v))} ✓<span class="wqa-pa-src">${escHtml(dcPaSourceLabel(st.src))}${st.ref&&!r.usedHistoryRef?' · '+escHtml(st.ref):''}</span></span>`;
+  return `<span class="wqa-pa is-sug" data-pa="sug">${escHtml(dcT('paSuggested'))} ${escHtml(wqaFmtPrice(st.v))}</span>`
+    +`<button type="button" class="btn btn-outline btn-sm wqa-pa-apply" onclick="event.stopPropagation();wqaPaApply(${i})">${escHtml(dcT('paApply'))}</button>`;
+}
+function wqaPaApply(i){
+  const r=wqa.rows[i]; if(!r) return;
+  if(!wqaRowAccept(r)){ showToast(dcT('tPaNothing')); return; }
+  wqaRenderRows(true);
+  showToast(dcT('tPaAccepted'));
+}
+/* Accept every current suggestion in a set of rows. Rows that cannot price,
+   are blocked or are unresolved are left as they are and counted. */
+function wqaPaAcceptRows(idx){
+  let done=0, need=0;
+  idx.forEach(j=>{
+    const r=wqa.rows[j]; if(!r||r.removed||r.added) return;
+    if(wqaRowAccept(r)) done++;
+    else if(!wqaRowAccepted(r)) need++;
+  });
+  wqaRenderRows(true);
+  showToast((done?dcT('paAcceptedN').replace('{n}',done):dcT('paAcceptedNone'))
+    +(need?' · '+dcT('paStillNeed').replace('{n}',need):''));
+}
+function wqaGrpAcceptAll(first){ const g=wqaRvGroupOf(first); if(g) wqaPaAcceptRows(g.idx); }
+function wqaSelAccept(){ wqaPaAcceptRows(wqa.rows.map((r,j)=>(r&&!r.removed&&r.sel)?j:-1).filter(j=>j>=0)); }
+/* ── Apply pricing to all ────────────────────────────────────────────────
+   The same RECIPE onto every row of the group — never the same price. Each
+   row then prices itself from its own weight, and stays Suggested. A blank
+   box means no change. */
+function wqaGrpPaHtml(g){
+  const first=g.idx[0];
+  const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
+  const ok=rows.filter(wqaRowAccepted).length, sug=rows.filter(r=>wqaRowPa(r).state==='suggested').length;
+  const box=(f,lbl)=>`<label class="wqa-grx-f"><span>${escHtml(dcT(lbl))}</span><input type="text" inputmode="decimal" autocomplete="off"
+      data-grx="${f}" placeholder="${escHtml(wqaGxCommon(g.idx,f)||'—')}" onclick="event.stopPropagation()"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();wqaGrpRecipe(${first},this)}"></label>`;
+  return `<div class="wqa-grx" data-grx-grp="${first}" onclick="event.stopPropagation()">
+      <span class="wqa-grx-t">${escHtml(dcT('paApplyAll'))}</span>
+      ${box('costRate','rvCost')}<span class="wqa-gx-x">·</span>${box('addCost','rvAdd')}<span class="wqa-gx-x">·</span>${box('markup','sumMarkup')}
+      <button type="button" class="btn btn-outline btn-sm wqa-grx-go" onclick="wqaGrpRecipe(${first},this)">${escHtml(dcT('paApplyGo'))}</button>
+      <span class="wqa-grx-gap"></span>
+      <span class="wqa-grx-n">${escHtml(dcT('paCount').replace('{a}',ok).replace('{n}',rows.length))}</span>
+      <button type="button" class="btn btn-primary btn-sm wqa-grx-acc" onclick="wqaGrpAcceptAll(${first})"${sug?'':' disabled'}>${escHtml(dcT('paAcceptAll'))}</button>
+    </div>`;
+}
+function wqaGrpRecipe(first,src){
+  const g=wqaRvGroupOf(first); if(!g) return;
+  const host=src&&src.closest?src.closest('.wqa-grx'):null; if(!host) return;
+  const c={costRate:'',addCost:'',markup:''};
+  for(const f of Object.keys(c)){
+    const n=host.querySelector('[data-grx="'+f+'"]');
+    const v=String(n?n.value:'').trim();
+    if(v==='') continue;
+    if(!isReadableAmount(v) || evalExpr(v)<0){ showToast(dcT('wqaGxBad').replace('{f}',wqaGxLabel(f))); return; }
+    c[f]=v;
+  }
+  if(!c.costRate && !c.addCost && !c.markup){ showToast(dcT('paRecipeBlank')); return; }
+  const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
+  const manual=rows.filter(r=>(r.priceMode||'auto')==='manual').length;
+  const dropped=wqaApplyPriceTo(rows,c,false);
+  wqaFlashRows(g.idx);
+  wqaRecomputeAll('force');
+  showToast(dcT('paRecipeDone').replace('{n}',rows.length)
+    +(manual?' · '+dcT('paRecipeManualKept').replace('{n}',manual):'')
+    +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
+}
+
 /* mode: 'force' = always full render (structural, user-initiated)
          'patch' = never re-render, just refresh the derived read-only values
          omitted = full render unless someone is typing                    */
@@ -20501,7 +20892,9 @@ async function wqaRecomputeAll(mode){
     if(!r.diaManual) r.diaMm = r.noDia ? '' : String(fn(t,'diameter'));
     if(r.noDia){ r.calc=null; return; }
     r.calc=wqaReadFormPricing(t);
+    r.calc.src=wqaRowSuggestSource(r,t);
   });
+  wqa.rows.forEach(r=>{ if(!r.removed) wqaRowPaSettle(r); });
   /* A row that had a price and now has a different one. A row seeing its FIRST
      price is not a change — that is every row on the first parse, and twenty
      figures lighting up at once says nothing. */
@@ -20755,10 +21148,10 @@ function wqaRvDenseToks(r,i,diaCell,skip){
   const tl=order.filter(f=>f==='threadLen'), rest=order.filter(f=>f!=='threadLen');
   const head=rest.slice(0,3), mid=rest.slice(3);
   if(!head.length && !tl.length) return null;
-  const grp=(fs,extra)=>`<span class="wqa-tok-grp">${fs.map(f=>wqaRvTok(r,i,f)).concat(extra||[]).join(x)}</span>`;
-  const out=head.length?[grp(head)]:[];
+  const grp=(fs,pre)=>`<span class="wqa-tok-grp">${(pre||[]).concat(fs.map(f=>wqaRvTok(r,i,f))).join(x)}</span>`;
+  const out=head.length?[grp(head,diaCell?[diaCell]:[])]:(diaCell?[grp([],[diaCell])]:[]);
   if(mid.length) out.push(grp(mid));
-  if(tl.length||diaCell) out.push(grp(tl,diaCell?[diaCell]:[]));
+  if(tl.length) out.push(grp(tl));
   return `<span class="wqa-toks-dense">${out.join(x)}</span>`;
 }
 function wqaRvSpecToks(r,i,skip){
@@ -20802,6 +21195,8 @@ function wqaRvMoreBtn(r,i){
    and the row's own warnings. */
 function wqaRvSubHtml(r,i){
   const bits=[];
+  const pa=wqaRowPaHtml(r,i);
+  if(pa) bits.push(pa);
   const prov=wqaProvBtnHtml(r,i);
   if(prov) bits.push(prov);
   const accOwn=wqaAccHas(r.acc) && ['nut','fw','custom'].some(k=>r.acc[k].enabled && r.acc[k].ov && Object.keys(r.acc[k].ov).length);
@@ -21074,18 +21469,19 @@ function wqaRvItemHtml(r,i,series){
   const spec=series?'':wqaRvSpecText(r,true);
   /* In a series the heading states the pricing most of its rows share; a row
      says its own only when it differs — which is exactly the row to look at. */
-  const showPx=!series || wqa.px===i || wqaRvPxText(r)!==series.px;
+  /* Every row is priced on its own, so every row states its own recipe. */
+  const showPx=true;
   const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick"${r.sel?' checked':''}
       onclick="event.stopPropagation()" onchange="wqaRvToggleSel(${i})"
       aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
-  const showDia=!series || (r.diaManual && String(r.diaMm||'').trim()!=='' && wqaGxVal(r,'dia')!==wqaGxCommon(series.idx,'dia'));
+  /* The heading is identity only, so the row carries its whole spec, the
+     bar first: Ø10.6 · M12 × L595 × TL70/200. */
   const note=wqaBadgeHtml(r,'inline');
-  const diaCell=showDia?wqaGxCell('r',i,'dia',[i]):'';
-  const skip=series?wqaRvHeadFields(r):null;
+  const diaCell=wqaGxCell('r',i,'dia',[i]);
+  const skip=null;
   const dense=wqaRvDenseToks(r,i,diaCell,skip);
   const toks=(dense!==null ? dense
-    : wqaRvSpecToks(r,i,skip)
-      +(showDia?'<span class="wqa-dia-grp"><span class="wqa-tok-x wqa-dia-x">·</span>'+diaCell+'</span>':''))
+    : '<span class="wqa-dia-grp">'+diaCell+'<span class="wqa-tok-x wqa-dia-x">·</span></span>'+wqaRvSpecToks(r,i,skip))
     +(note?'<span class="wqa-it-note"><span class="wqa-tok-x">·</span>'+note+'</span>':'');
   return `<div class="wqa-it${series?' wqa-it-s':''}${miss.length?' wqa-row-block':''}${open?' is-open':''}${r.sel?' is-picked':''}${wqa.px===i?' is-px':''}" data-wqa-row="${i}">
     <div class="wqa-it-main" onclick="wqaRvRowClick(${i})">
@@ -21096,16 +21492,16 @@ function wqaRvItemHtml(r,i,series){
       </div>
       <div class="wqa-it-fig">
         <span class="wqa-fig wqa-fig-qty">${wqaRvTok(r,i,'qty')}</span>
-        <button type="button" class="wqa-fig wqa-fig-price" onclick="event.stopPropagation();wqaPxToggle(${i})"
+        <button type="button" class="wqa-fig wqa-fig-price ${wqaPaCls(r)}" onclick="event.stopPropagation();wqaPxToggle(${i})"
           title="${escHtml(dcT('sumPricing'))}"><span class="wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
         <span class="wqa-fig wqa-fig-w"><span class="wqa-uw wqa-uw-full" data-tw="${escHtml(wqaFmtTotalWeight(calc.weight,r.qty))}"
           title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span></span>
       </div>
       ${!showPx?'<span class="wqa-it-px is-shared" aria-hidden="true"></span>'
         : (r.priceMode||'auto')==='manual'
-        ? `<button type="button" class="wqa-it-px${series?' is-own':''}" onclick="event.stopPropagation();wqaPxToggle(${i})"
+        ? `<button type="button" class="wqa-it-px" onclick="event.stopPropagation();wqaPxToggle(${i})"
         aria-expanded="${wqa.px===i?'true':'false'}"><span class="wqa-px-sum">${escHtml(wqaRvPxText(r))}</span></button>`
-        : `<span class="wqa-it-px wqa-it-gx${series?' is-own':''}" data-gx-sc="r"><span class="wqa-px-sum" hidden>${escHtml(wqaRvPxText(r))}</span>${wqaGxPxHtml('r',i,[i],'wqa-gx-line')}</span>`}
+        : `<span class="wqa-it-px wqa-it-gx" data-gx-sc="r"><span class="wqa-px-sum" hidden>${escHtml(wqaRvPxText(r))}</span>${wqaGxPxHtml('r',i,[i],'wqa-gx-line')}</span>`}
       <span class="wqa-it-acts">${wqaRvHistBtn(r,i)}${wqaRvDelBtn(i)}${wqaRvMoreBtn(r,i)}</span>
     </div>
     ${wqaRvSubHtml(r,i)}
@@ -21127,9 +21523,11 @@ function wqaRvRowClick(i){
    quantity and price. Product, material, finish, Size 规格, the thread size
    and TL are the same by construction, so they are said once above them. */
 function wqaRvGroupKey(r){
+  /* Business context only (owner rule): Product + Material + Finish + Size
+     Type. Size, Ø, every dimension, TL, qty and every pricing value are the
+     ROW's own, so rows that differ in them still belong to one group. */
   return JSON.stringify([wqaRowProduct(r),wqaRowSpec(r,'material'),wqaRowSpec(r,'finish'),
-    wqaRowSpec(r,'sizeType'),String(r.size||''),wqaThreadValue(r),wqaAccKinds(r.acc),
-    !!r.unsupported,!!r.productConflict]);
+    wqaRowSpec(r,'sizeType'),!!r.unsupported,!!r.productConflict]);
 }
 /* Is this row drawn under a series heading? Then its size and TL live in the
    heading, and are edited in the row's own panel. */
@@ -21460,31 +21858,27 @@ function wqaGrpNoteSet(first,v){
   const g=wqaRvGroupOf(first); if(!g) return;
   g.idx.forEach(j=>{ wqa.rows[j].grpNote=String(v||'').trim(); });
 }
+/* The heading names the group's identity and nothing else:
+   MS UNDERSIZE SAG ROD · ZP. */
+function wqaRvGroupTitle(r){
+  const t=wqaRowProduct(r), prod=wqaProductByType(t);
+  const m=wqaRowSpec(r,'material'), f=wqaRowSpec(r,'finish');
+  const words=[m?materialLabel(m):dcT('needs').replace('{f}',dcT('fieldMaterial'))];
+  if(dcProductHasSizeType(t)){ const st=wqaRowSpec(r,'sizeType'); if(st) words.push(st); }
+  words.push(prod?prod.label.toUpperCase():dcT('needs').replace('{f}',dcT('fieldProduct')));
+  return words.join(' ')+(f?' · '+f:(wqaNoFinish(m)?' · N/A':''));
+}
 function wqaRvSeriesHead(g){
   const r=wqa.rows[g.idx[0]];
-  const prod=wqaProductByType(wqaRowProduct(r));
-  const bits=[];
-  /* The material, finish and Size 规格 are already said once for the whole
-     list at the top — repeated here only when the list disagrees. */
-  const spec=wqaRvSpecText(r,true); if(spec) bits.push(spec);
-  const size=sizeDisplay(r.size);
-  const tl=wqaThreadValue(r);
-  const head=[size?`<b>${escHtml(size)}</b>`:`<b class="is-miss">${escHtml(dcT('lblSize'))} ?</b>`];
-  const tlShow=wqaMmShow(tl);
-  if(wqaThreadEnds(wqaRowProduct(r))>=2) head.push(tl?(tlShow!==tl?`<b class="is-mm-rnd" title="${escHtml(dcT('wqaMmRounded').replace('{v}',tl.replace('/',' / ')))}">TL ${escHtml(tlShow)}<span class="wqa-mm-rnd" aria-hidden="true">≈</span></b>`:`<b>TL ${escHtml(tl)}</b>`):`<b class="is-miss">TL ?</b>`);
-  /* Same size, same Size 规格: the same bar. Said once; a row with a bar
-     typed by hand says its own. */
-  if(g.idx.some(k=>String(wqa.rows[k].diaMm||'').trim()!=='')) head.push(`<span class="wqa-ser-dia">${wqaGxCell('g',g.idx[0],'dia',g.idx)}</span>`);
 
   const all=g.idx.every(k=>wqa.rows[k].sel);
   const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick wqa-pick-ser"${all?' checked':''}
       onchange="wqaRvSelSeries('${g.idx.join(',')}',this.checked)" aria-label="${escHtml(dcT('wqaRvSelSeries'))}">`:'';
   return `<div class="wqa-ser-head">${pick}
-      <span class="wqa-ser-lead"><span class="wqa-ser-title">${escHtml(prod?prod.label:dcT('needs').replace('{f}',dcT('fieldProduct')))}</span>
-      <span class="wqa-ser-spec">${head.join('<span class="wqa-tok-x">·</span>')}${bits.length?`<span class="wqa-row-spec">${escHtml(bits.join(' · '))}</span>`:''}</span></span>
+      <span class="wqa-ser-lead"><span class="wqa-ser-title">${escHtml(wqaRvGroupTitle(r))}</span></span>
       <button type="button" class="wqa-ser-n" title="${escHtml(dcT('wqaGrpAdjust'))}"
         onclick="event.stopPropagation();wqaBulkSheetOpen('group',null,${g.idx[0]})">${escHtml(g.idx.length===1?dcT('wqaRvSeriesOne'):dcT('wqaRvSeriesN').replace('{n}',g.idx.length))}</button>
-      ${wqaGxHtml(g)}
+      ${wqaGrpPaHtml(g)}
       ${wqaGaccHtml(g.idx[0],g.idx)}
       ${wqaDupHtml(g)}
     </div>`;
@@ -21530,6 +21924,8 @@ function wqaPatchRows(){
     card.classList.toggle('wqa-row-block',wqaRowMissing(r).length>0);
     card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight(calc.weight); });
     const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaFmtPrice(wqaShownPrice(r));
+    const fig=card.querySelector('.wqa-fig-price');
+    if(fig){ fig.classList.remove('is-pa-sug','is-pa-ok'); const c=wqaPaCls(r); if(c) fig.classList.add(c); }
     const tw=card.querySelector('.wqa-tw'); if(tw) tw.textContent=wqaFmtTotalWeight(calc.weight,r.qty);
     const ad=card.querySelector('.wqa-actual-dia'); if(ad) ad.textContent=wqaDiaText(r);
     card.querySelectorAll('.wqa-uw[data-tw]').forEach(n=>{ const t=wqaFmtTotalWeight(calc.weight,r.qty); n.dataset.tw=t; n.title=dcT('lblTotalWeight')+' '+t; });
@@ -21598,6 +21994,7 @@ function wqaRvRenderSelBar(){
     <button type="button" class="btn btn-ghost btn-sm" onclick="wqaRvSelAll()">${escHtml(dcT(all?'wqaRvSelNone':'wqaRvSelAll'))}</button>
     <span class="wqa-selbar-gap"></span>
     <button type="button" class="btn btn-outline btn-sm" ${n?'':'disabled'} onclick="wqaBulkSheetOpen('selected')">${escHtml(dcT('wqaBulkEdit'))}</button>
+    <button type="button" class="btn btn-outline btn-sm wqa-sel-acc" ${n?'':'disabled'} onclick="wqaSelAccept()">${escHtml(dcT('paAcceptSel'))}</button>
     <button type="button" class="btn btn-outline btn-sm wqa-sel-del" ${n?'':'disabled'} onclick="wqaSelRemove()">${escHtml(dcT('wqaRvRemoveSel'))}</button>
     <button type="button" class="btn btn-primary btn-sm" onclick="wqaSelExit()">${escHtml(dcT('btnDone'))}</button>`;
 }
@@ -22113,6 +22510,7 @@ function wqaHistApplyToRow(r,rec){
     r.histApplied=['costRate','addCost','markup'];
     r.usedHistoryRef=rec.refNo||'';
     r.usedHistoryRecipe=true;
+    r.paPending={src:'history_recipe',ref:rec.refNo||''};     // the Use IS the acceptance
     return {ok:true,recipe:true,rate,add,mk,mode};
   }
   /* Priced by hand when it was quoted, or saved before the breakdown was
@@ -22130,6 +22528,7 @@ function wqaHistApplyToRow(r,rec){
   r.manualPrice=String(roundMoney2(bolt+rowAcc));
   r.usedHistoryRef=rec.refNo||'';
   r.usedHistoryRecipe=false;
+  r.paPending={src:'history_manual',ref:rec.refNo||''};
   return {ok:true,recipe:false,bolt,mode};
 }
 /* One record onto the row it belongs to — the button the whole feature is
@@ -22482,14 +22881,22 @@ async function wqaAddAll(){
         stuck.push({r, why:`${nameOf(r)} — `+dcT('needs').replace('{f}',dcT('fieldQty'))});
         continue;
       }
+      /* Add never turns a Suggested price into an accepted one. */
+      const pa=wqaRowPa(r);
+      if(pa.state!=='accepted'){
+        stuck.push({r, why:`${nameOf(r)} — `+dcT('paWhy')});
+        continue;
+      }
       /* Each row is committed through ITS OWN product's calculator — the same
          add path as before, chosen per row instead of once for the list. */
       const n0=quoteItems.length;
       switchType(wqaRowProduct(r));
       wqaApplyRowToForm(r);
       dcToastCapture=[];
+      dcPaGrant={type:wqaRowProduct(r),v:pa.v,src:pa.src,ref:pa.ref};
       try{ addCurrentItem(); }            // the REAL add path: validation, calc, pushItem
       catch(err){ dcToastCapture.push(String((err&&err.message)||err)); }
+      finally{ dcPaGrant=null; }
       const said=dcToastCapture||[]; dcToastCapture=null;
       if(quoteItems.length>n0){ r.removed=true; r.added=true; }   // it is in the quotation now
       else stuck.push({r, why:`${nameOf(r)} — `+(said[0]||dcT('wqaAddRefused'))});
