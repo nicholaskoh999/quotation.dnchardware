@@ -121,6 +121,9 @@ const reviewAtPhone = page => page.evaluate(() => {
     hidden: ['.wqa-it-px', '.wqa-it-acts', '.wqa-fig-w']
       .map(s => [...document.querySelectorAll('#wqaRows .wqa-it:not(.is-open) ' + s)].filter(vis).length),
     pillsOneLine: pills.length > 1 && pills.every(t => t === pills[0]),
+    pillsGrid: (() => { const n = [...document.querySelectorAll('#wqaCommon .wqa-rv-pills .wqa-sp')];
+      const tops = new Set(n.map(x => Math.round(x.getBoundingClientRect().top))), lefts = new Set(n.map(x => Math.round(x.getBoundingClientRect().left)));
+      return tops.size + 'x' + lefts.size; })(),
     pillsScroll: getComputedStyle(document.querySelector('#wqaCommon .wqa-rv-pills')).overflowX,
     rows: [...document.querySelectorAll('#wqaRows .wqa-it-main')].filter(vis).map(box),
     foot: [...document.querySelectorAll('.wqa-sticky-actions .btn')].filter(vis).map(box),
@@ -226,12 +229,12 @@ module.exports = async (browser, A) => {
     A.eq(r.over.page <= 0 && r.over.modal <= 0 && r.over.list <= 0, true,
       `${w}px: nothing scrolls sideways — page ${r.over.page}, dialog ${r.over.modal}, list ${r.over.list}`);
     A.eq(r.head.join(','), '', `${w}px: there is no table header`);
-    /* 2026-10-27 (owner hierarchy): a closed row now shows its weight and its
-       pricing line (read-only) — still no row actions; a tap opens the panel. */
-    A.eq(r.hidden[1], 0, `${w}px: a closed row shows no row actions — it is compact`);
-    A.eq(r.hidden[0] > 0 && r.hidden[0] === r.hidden[2], true, `${w}px: and every closed row shows its pricing line and weight (${r.hidden.join(',')})`);
-    A.eq(r.pillsOneLine && r.pillsScroll === 'auto', true,
-      `${w}px: the shared values stay on one line and scroll sideways (${r.pillsScroll})`);
+    /* 2026-10-27 (owner alignment round): every closed row is the same stack —
+       values, Qty + weight, and History ✕ ▼ on a line of their own; a row that
+       states its own pricing shows its quick-edit pricing line too. */
+    A.eq(r.hidden[1] > 0 && r.hidden[1] === r.hidden[2], true, `${w}px: every closed row shows its weight and its actions line (${r.hidden.join(',')})`);
+    A.eq(r.hidden[0] > 0, true, `${w}px: and rows with their own pricing show it (${r.hidden.join(',')})`);
+    A.eq(r.pillsGrid, '2x2', `${w}px: the four shared values are a clean 2 × 2 grid (${r.pillsGrid})`);
 
     /* the footer stays on screen wherever the list is scrolled */
     A.eq(String(r.scrolls), 'true', `${w}px: the list is long enough to scroll`);

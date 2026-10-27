@@ -1660,7 +1660,10 @@ if ($action === 'get_next_ref') {
        the customer/company DISPLAY NAME is the one addition (owner decision
        2026-10-27) — never its phone, email, address or id. */
     $want = ['type'=>trim($_GET['type'] ?? ''), 'cleanSize'=>trim($_GET['cleanSize'] ?? ''),
-             'finish'=>trim($_GET['finish'] ?? ''), 'text'=>trim($_GET['text'] ?? '')];
+             'finish'=>trim($_GET['finish'] ?? ''), 'text'=>trim($_GET['text'] ?? ''),
+             /* all=1: every finish of this type and size, each record saying its
+                own finish — the browser labels same vs different finish. */
+             'anyFinish'=>($_GET['all'] ?? '') === '1'];
     if ($want['cleanSize'] === '' || !in_array($want['type'], ['nut','fw','custom'], true)) {
         echo json_encode(['ok'=>true,'data'=>['records'=>[],'total'=>0]]); exit;
     }

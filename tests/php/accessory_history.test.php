@@ -15,6 +15,9 @@ same($nut['type'],'Nut','Nut is typed'); same($nut['size'],'M12','Nut uses canon
 same($nut['customer'],'ABC HARDWARE','customer/company display name is returned (owner decision 2026-10-27)');
 foreach (['phone','email','address','companyId','customerId','items','formData'] as $k) ok(!array_key_exists($k,$nut),"no $k is returned");
 same(dc_accessory_history_record($item,['type'=>'nut','cleanSize'=>'M12','finish'=>'PL'],$meta),null,'wrong finish is refused');
+$any=dc_accessory_history_record($item,['type'=>'nut','cleanSize'=>'M12','finish'=>'PL','anyFinish'=>true],$meta);
+same($any['finish'],'ZP','all=1: another finish is returned, saying its own finish (ZP)');
+same(dc_accessory_history_record($item,['type'=>'custom','cleanSize'=>'M12','text'=>'cap','anyFinish'=>true],$meta),null,'all=1 never loosens Custom wording');
 $fw=dc_accessory_history_record($item,['type'=>'fw','cleanSize'=>'M12','finish'=>'PL'],$meta);
 same($fw['type'],'Flat Washer','Flat Washer is typed'); same($fw['unitPrice'],0.12,'Flat Washer price returned');
 $custom=dc_accessory_history_record($item,['type'=>'custom','cleanSize'=>'M12','text'=>'special cap'],$meta);
@@ -40,4 +43,4 @@ $two=dc_accessory_history_deduplicate([
   ['refNo'=>'Q-2026-0586','date'=>'2026-08-18','type'=>'Nut','size'=>'M12','finish'=>'','unitPrice'=>0.15,'customer'=>'XYZ'],
 ]);
 same(count($two),2,'the same price in two quotations stays two historical records');
-echo "ok accessory history (25 assertions)\n";
+echo "ok accessory history (27 assertions)\n";

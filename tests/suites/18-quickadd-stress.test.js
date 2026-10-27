@@ -58,7 +58,9 @@ const SERIES = ['MS SAG ROD PL FULLSIZE']
 
 /* Per-row height of a series row, measured: 41px desktop (one line), 69px
    tablet (42–44px targets plus the card's padding), 42px mobile. */
-const SERIES_ROW_BUDGET = { desktop: 46, tablet: 70, mobile: 46 };
+/* 2026-10-27 (owner alignment round): tablet is two fixed lines (values;
+   weight + History ✕ ▼), mobile three (L + price; Qty + weight; actions). */
+const SERIES_ROW_BUDGET = { desktop: 46, tablet: 125, mobile: 120 };
 
 /* The series, measured: its rows, their boxes, and where each price starts. */
 const SERIES_SHAPE = () => {
@@ -80,7 +82,7 @@ const SERIES_SHAPE = () => {
     heights: rows.map(r => Math.round(r.getBoundingClientRect().height)),
     toks: [...new Set(rows.map(r => [...r.querySelectorAll('.wqa-it-toks .wqa-tok')].map(t => t.dataset.tok).join(',')))],
     withFigures: rows.filter(r => shown(r.querySelector('.wqa-fig-qty .wqa-tok')) && shown(r.querySelector('.wqa-fig-price'))).length,
-    ownPx: rows.filter(r => shown(r.querySelector('button.wqa-it-px'))).map(r => +r.dataset.wqaRow),
+    ownPx: rows.filter(r => shown(r.querySelector('.wqa-it-px:not(.is-shared)'))).map(r => +r.dataset.wqaRow),
     priceX: [...new Set(rows.map(r => Math.round(r.querySelector('.wqa-fig-price').getBoundingClientRect().left)))],
     actions: rows.filter(r => ['.wqa-row-hist', '.wqa-row-del'].every(s => {
       const n = r.querySelector(s); if (!shown(n)) return false;
@@ -173,13 +175,15 @@ module.exports = async (browser, A) => {
      something (29px). Each part is measured separately so a row that grows
      anything else still fails. Retired 2026-10-23 (AI review redesign): the
      separate pricing-summary line (<=40px) — it now sits on the item line. */
-  A.ok(Math.max(...shape.mains) <= 70,
+  /* 2026-10-27 (owner alignment round): fixed columns; a J Bolt's spec and
+     the narrow-desktop pricing line may take a second line. */
+  A.ok(Math.max(...shape.mains) <= 90,
     `no item is taller than a title over one value line (tallest ${Math.max(...shape.mains)}px)`);
   A.ok(Math.max(...shape.subs) <= 30,
     `a warning is one thin strip (tallest ${Math.max(...shape.subs)}px)`);
-  A.ok(Math.max(...shape.heights) <= 100,
+  A.ok(Math.max(...shape.heights) <= 120,
     `so no item is two full rows tall (tallest ${Math.max(...shape.heights)}px)`);
-  A.ok(shape.total <= shape.n * 108,
+  A.ok(shape.total <= shape.n * 125,
     `twenty rows stay compact overall: ${shape.total}px for ${shape.n} rows`);
   /* And the controls really are the size they are meant to be. On desktop a
      mouse aims at them; a touch screen gets the tablet layout (40px+, held in
@@ -274,7 +278,8 @@ module.exports = async (browser, A) => {
       A.ok(Math.max(...s.priceX) - Math.min(...s.priceX) <= 1,
         `${at}: every price in the series starts at the same x (${s.priceX.join(',')})`);
     } else {
-      A.eq(s.anyActions, 0, `${at}: the compact rows carry no per-row buttons — the row is the target`);
+      /* 2026-10-27: the phone row ends in its own History ✕ ▼ line. */
+      A.ok(s.anyActions > 0, `${at}: every phone row carries its History / remove / More line`);
     }
     if (L.mode === 'desktop') {
       /* A row whose pricing differs from its heading says so on its own line.
@@ -288,7 +293,8 @@ module.exports = async (browser, A) => {
       const s2 = await sp.evaluate(SERIES_SHAPE);
       A.eq(s2.ownPx.join(','), '5', `${at}: the one row priced differently shows its own pricing`);
       A.eq(s2.sers, 1, `${at}: and stays in its series`);
-      A.ok(Math.max(...s2.heights) <= budget, `${at}: still within the row budget (${Math.max(...s2.heights)}px)`);
+      /* 2026-10-27: its own quick-edit pricing may wrap to a second line in the fixed pricing column. */
+      A.ok(Math.max(...s2.heights) <= budget + 20, `${at}: still within the row budget (${Math.max(...s2.heights)}px)`);
       A.eq(s2.spill.join(','), '', `${at}: with nothing drawn outside it`);
     }
     A.ok(sp._dcErrors.length === 0, `${at}: no page errors: ` + sp._dcErrors.join(' | '));

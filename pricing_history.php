@@ -237,7 +237,7 @@ function dc_accessory_history_record($item, $want, $meta) {
            whitespace-normalised wording is safe; fuzzy equivalence is not. */
         $normalise = function ($v) { return strtolower(preg_replace('/\s+/', ' ', trim((string)$v))); };
         if ($normalise($part['text'] ?? '') === '' || $normalise($part['text'] ?? '') !== $normalise($want['text'] ?? '')) return null;
-    } elseif (strcasecmp($finish, trim((string)($want['finish'] ?? ''))) !== 0) return null;
+    } elseif (empty($want['anyFinish']) && strcasecmp($finish, trim((string)($want['finish'] ?? ''))) !== 0) return null;
     return [
         'type' => $type === 'fw' ? 'Flat Washer' : ($type === 'nut' ? 'Nut' : 'Custom'),
         'size' => $size, 'finish' => $finish,

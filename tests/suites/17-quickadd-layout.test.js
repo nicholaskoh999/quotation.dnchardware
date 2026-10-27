@@ -48,7 +48,11 @@ const layoutOf = width => width >= 1024 ? 'desktop' : width >= 600 ? 'tablet' : 
    hierarchy — product, material · finish · size type, values (· Ø), figures
    with weight, and the pricing line (~134px measured; a J Bolt's five
    dimensions plus Ø wrap to a second line at 390px, ~149px). */
-const MAIN_BUDGET = { desktop: 66, tablet: 192, mobile: 152 };
+/* 2026-10-27 (owner alignment round): fixed semantic columns. Desktop keeps
+   one value line but a J Bolt's five dimensions + Ø and the narrow-desktop
+   pricing line take a second (~74–87px); tablet is three deliberate lines
+   (values, weight + actions, pricing ~233px); mobile adds the actions line. */
+const MAIN_BUDGET = { desktop: 90, tablet: 240, mobile: 220 };
 
 /* Where each control actually is, and whether it is usable: a real box,
    inside the list and its own row, not overlapping any other control. */
@@ -81,7 +85,7 @@ const GEOMETRY = () => {
   const sub = card.querySelector('.wqa-it-sub');
   return {
     hist: box('.wqa-row-hist'), del: box('.wqa-row-del'), more: box('.wqa-rv-more'),
-    price: box('.wqa-fig-price'), px: box('button.wqa-it-px'), dia: box('.wqa-rv-dia'),
+    price: box('.wqa-fig-price'), px: box('.wqa-it-px:not(.is-shared)'), dia: box('.wqa-rv-dia'),
     clash, spill: spill.slice(0, 4),
     toks: toks.map(t => t.dataset.tok),
     toksInside: toks.every(t => shown(t) && boxOf(t).inside),
@@ -136,14 +140,12 @@ module.exports = async (browser, A) => {
         A.ok(g.price && g.price.inside, `${at}: the price is visible inside the row`);
         A.ok(g.px && g.px.inside, `${at}: the pricing summary is visible inside the row`);
       } else {
-        /* The row is the control: no per-row buttons beside the values. The
-           pricing line is shown (owner hierarchy, line 5) but is read-only —
-           a tap still opens the row's panel. */
-        A.ok(!g.hist && !g.del && !g.more,
-          `${at}: no History / remove / More buttons on the compact card`);
-        A.eq(await page.evaluate(() => { const n = document.querySelector('[data-wqa-row="0"] .wqa-it-px');
-          return !!n && getComputedStyle(n).pointerEvents === 'none'; }), 'true',
-          `${at}: the pricing line is shown read-only`);
+        /* 2026-10-27 (owner alignment round): the phone row is stacked —
+           values, Qty + weight, the quick-edit pricing line, then History ✕ ▼
+           on a line of their own, each a fixed-size target inside the row. */
+        A.ok(g.hist && g.hist.inside && g.del && g.del.inside && g.more && g.more.inside,
+          `${at}: History, remove and More sit on their own line inside the card`);
+        A.ok(g.px && g.px.inside, `${at}: the pricing line is shown, and quick-editable`);
         A.eq(g.toksLive, 'false', `${at}: values are not separate targets — the row is`);
       }
       A.ok(g.toksInside, `${at}: every value is visible inside the row`);
@@ -203,17 +205,17 @@ module.exports = async (browser, A) => {
        Retired 2026-10-23 (AI review redesign): the separate `.wqa-meta`
        pricing-summary line (<=40px) — the summary is now `.wqa-it-px` on the
        item's own line, so it costs no height and is covered by the item budget. */
-    A.ok(clean.mainHeight <= 66, `a clean item is a title over one value line (${clean.mainHeight}px)`);
-    A.ok(clean.rowHeight <= 68, `so a clean row is that and nothing else (${clean.rowHeight}px)`);
+    A.ok(clean.mainHeight <= MAIN_BUDGET.desktop, `a clean item is a title over one value line (${clean.mainHeight}px)`);
+    A.ok(clean.rowHeight <= MAIN_BUDGET.desktop + 2, `so a clean row is that and nothing else (${clean.rowHeight}px)`);
 
     /* A J Bolt has no automatic rate, so it asks for one. */
     await quickAddPaste(page, FIXTURES.jbolt.msg, { expanded: false, settle: 700 });
     const warned = await page.evaluate(GEOMETRY);
     A.eq(warned.statusShown, 'true', 'a row that needs something says so on its own line');
-    A.ok(warned.mainHeight <= 66,
+    A.ok(warned.mainHeight <= MAIN_BUDGET.desktop,
       `and its item stays exactly as compact (${warned.mainHeight}px)`);
     A.ok(warned.subHeight <= 30, `its status line is one thin strip (${warned.subHeight}px)`);
-    A.ok(warned.rowHeight <= 98,
+    A.ok(warned.rowHeight <= MAIN_BUDGET.desktop + 32,
       `with the status line adding one thin strip, not a second row (${warned.rowHeight}px)`);
     A.includes(warned.statusText, 'Needs', 'and the warning is on it');
 
@@ -229,8 +231,8 @@ module.exports = async (browser, A) => {
     await page.waitForTimeout(900);
     const answered = await page.evaluate(GEOMETRY);
     A.eq(answered.statusShown, 'false', 'answering it takes the line away');
-    A.ok(answered.mainHeight <= 66, 'and the item is one value line again');
-    A.ok(answered.rowHeight <= 68,
+    A.ok(answered.mainHeight <= MAIN_BUDGET.desktop, 'and the item is one value line again');
+    A.ok(answered.rowHeight <= MAIN_BUDGET.desktop + 2,
       `leaving the row at its clean height (${answered.rowHeight}px)`);
     await page.close();
   }

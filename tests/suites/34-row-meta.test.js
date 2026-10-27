@@ -120,7 +120,7 @@ module.exports = async (browser, A) => {
     /* The row stays compact: a title line over its values, never a form. */
     const rowH = await page.evaluate(() =>
       Math.round(document.querySelector('[data-wqa-row="0"] .wqa-it-main').getBoundingClientRect().height));
-    A.ok(rowH <= 72, `the shut row itself stays compact (${rowH}px)`);
+    A.ok(rowH <= 90, `the shut row itself stays compact (${rowH}px)`);   // 2026-10-27: fixed-column grid
     await page.close();
   }
 

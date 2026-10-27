@@ -52,7 +52,9 @@ module.exports = async (browser, A) => {
   A.eq(zh.label,'历史价格','Chinese accessory History label is retained');
   A.ok(!zh.wrapped,'Chinese accessory History button stays on one line');
   A.eq(zh.cards,4,'duplicate-free accessory records render once each');
-  A.eq(JSON.stringify(zh.refs),JSON.stringify(['Q-2026-1158','Q-2026-1057','Q-2026-1057','Q-2026-1057']),'newest unique accessory reference remains first');
+  /* 2026-10-27: the current finish (ZP) is the stronger reference and is listed
+     first; newest first within each finish. */
+  A.eq(JSON.stringify(zh.refs),JSON.stringify(['Q-2026-1057','Q-2026-1158','Q-2026-1057','Q-2026-1057']),'same-finish reference first, then newest first');
   A.ok(zh.secure,'client receives only the restricted accessory history fields');
   await page.evaluate(()=>{ dcSetLang('en'); closeModal('accHistoryModal'); onAccChange('sagrod'); });
   const en=await page.evaluate(()=>{ const b=document.querySelector('#sagrod-accPanel .acc-history-btn'); return {label:b&&b.textContent,wrapped:b&&b.scrollHeight>b.clientHeight}; });

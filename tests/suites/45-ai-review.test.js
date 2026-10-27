@@ -208,7 +208,7 @@ module.exports = async (browser, A) => {
       rows: document.querySelectorAll('#wqaRows .wqa-ser [data-wqa-row]').length,
       head: document.querySelector('#wqaRows .wqa-ser-head').innerText.replace(/\s+/g, ' '),
       sizeToks: document.querySelectorAll('#wqaRows .wqa-ser-rows [data-tok="size"], #wqaRows .wqa-ser-rows [data-tok="threadLen"]').length,
-      pxShown: document.querySelectorAll('#wqaRows .wqa-ser-rows button.wqa-it-px').length,
+      pxShown: document.querySelectorAll('#wqaRows .wqa-ser-rows .wqa-it-px:not(.is-shared)').length,
       h: document.querySelector('#wqaRows .wqa-ser-rows [data-wqa-row="5"]').getBoundingClientRect().height }));
     ok(g.ser === 1 && g.rows === 25, `25 Sag Rods are one series of 25 rows (${g.ser}/${g.rows})`);
     ok(/M10/.test(g.head) && /TL 70\/70/.test(g.head) && g.sizeToks === 0, `the shared M10 · TL 70/70 is said once, not per row (${g.head})`);
@@ -221,8 +221,8 @@ module.exports = async (browser, A) => {
     await p.evaluate(() => wqaPxToggle(4)); await p.waitForTimeout(100);
     await p.fill('#wqaRows [data-wqa-row="4"] [data-px="markup"]', '9'); await p.waitForTimeout(500);
     await p.evaluate(() => wqaPxToggle(4)); await p.waitForTimeout(150);
-    ok(await p.evaluate(() => document.querySelectorAll('#wqaRows .wqa-ser-rows button.wqa-it-px').length === 1
-      && !!document.querySelector('#wqaRows [data-wqa-row="4"] button.wqa-it-px.is-own')), 'a row priced differently from its series shows its own pricing');
+    ok(await p.evaluate(() => document.querySelectorAll('#wqaRows .wqa-ser-rows .wqa-it-px:not(.is-shared)').length === 1
+      && !!document.querySelector('#wqaRows [data-wqa-row="4"] .wqa-it-px.is-own')), 'a row priced differently from its series shows its own pricing');
     /* changing one row's size moves it out of the series */
     await p.evaluate(() => wqaToggleRow(6)); await p.waitForTimeout(150);
     const sz = '#wqaRows [data-wqa-row="6"] .wqa-rv-detail [data-ef="size"]';
