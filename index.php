@@ -6317,7 +6317,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       <div class="ph-drawer-sub" id="wqaHdSub"></div>
       <div class="ph-drawer-legend" data-i18n="phDiffLegend">Differences = history − this item</div>
     </div>
-    <button type="button" class="ph-drawer-x" onclick="wqaHdClose()" data-i18n-title="phClose" title="Close" aria-label="Close">✕</button>
+    <button type="button" class="ph-drawer-x" onclick="wqaHdClose()" data-i18n-title="phClose" data-i18n-aria="phClose" title="Close" aria-label="Close">✕</button>
   </div>
   <div class="ph-drawer-body" id="wqaHdBody"></div>
 </aside>
@@ -23205,7 +23205,7 @@ function wqaHdRender(){
   if(!hd||!body) return;
   const s=hd.spec;
   if(sub) sub.textContent=[materialLabel(s.material),s.sizeType,s.productType,sizeDisplay(s.cleanSize),s.finish].filter(Boolean).join(' · ')
-    +(s.dimensionPreview?' · '+dcT('phComparedWith').replace('{d}',s.dimensionPreview):'');
+    +(s.dimensionPreview?' · '+dcT('phComparedWith').replace('{d}',String(s.dimensionPreview).replace(/(\d)mm\b/g,'$1 mm')):'');
   const modes=phMatchModes(s);
   const opt=(id,lbl)=>`<button type="button" class="ph-match-option${hd.by===id?' is-active':''}" data-wqa-hd-match="${id}"
       aria-pressed="${hd.by===id?'true':'false'}" onclick="wqaHdSetBy('${id}')">${escHtml(lbl)}</button>`;
@@ -23245,6 +23245,9 @@ function wqaHdClose(){
   if(!d||d.hidden) return;
   d.classList.remove('open'); b.classList.remove('open');
   d.hidden=true; b.hidden=true;
+  /* Nothing of a closed drawer stays in the page. */
+  if(el('wqaHdSub')) el('wqaHdSub').textContent='';
+  if(el('wqaHdBody')) el('wqaHdBody').innerHTML='';
   const back=wqaHdReturn&&document.contains(wqaHdReturn)?wqaHdReturn:null;
   wqaHdReturn=null;
   if(back){ try{ back.focus({preventScroll:true}); }catch(e){} }
