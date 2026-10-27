@@ -4021,19 +4021,18 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 /* Rounded-to-the-mm values: a quiet ≈, the original in the tooltip. */
 .wqa-mm-rnd{font-size:.7em;font-weight:700;color:var(--text-muted);margin-left:1px;vertical-align:super;line-height:0}
 .wqa-px-ok{color:#1f7a4d;border-color:rgba(52,168,110,.35);background:rgba(52,168,110,.10)}
+/* ONE collapsed-row grid for every row type — series, standalone, mixed,
+   warned, long or short spec. The spec cell is the only flexible one and
+   wraps inside itself; Qty, price, weight, pricing, History and the actions
+   start at the same x on every row. */
 @media (min-width:1024px) and (hover:hover) and (pointer:fine){
-  /* A series row's L, its notice, Qty and price read together; the free width
-     goes to the right of the figures, before the actions. */
-  #wqaModal .wqa-it-s .wqa-it-main{grid-template-columns:30px minmax(150px,260px) 76px 120px 106px minmax(130px,210px) minmax(0,1fr) 212px;
-    grid-template-areas:"no spec qty price wt px . acts"}
-  #wqaModal .wqa-it-s .wqa-fig-qty{justify-content:flex-start;gap:6px}
-  /* An item on its own keeps its whole spec (Ø included) on one line; its
-     pricing summary is the part that wraps. */
-  #wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{grid-template-columns:30px minmax(0,1fr) 76px 120px 106px minmax(120px,176px) 212px}
+  #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
+    grid-template-columns:var(--wqa-row-cols,30px minmax(0,1fr) 76px 120px 106px 176px 212px);
+    grid-template-areas:"no spec qty price wt px acts"}
 }
 @media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
-  #wqaModal .wqa-it-s .wqa-it-main{grid-template-columns:30px minmax(130px,220px) 74px 118px 104px minmax(0,1fr) 178px;
-    grid-template-areas:"no spec qty price wt . acts" "no spec px px px . acts"}
+  #wqaModal{--wqa-row-cols:28px minmax(0,1fr) 70px 112px 100px 150px 178px}
+  #wqaModal .wqa-it-toks{flex-wrap:wrap}
 }
 /* ══ DNC shared desktop shell (2026-10-24) ═════════════════════════════════
    The same block in index.php and companies.php, and the same values as the
