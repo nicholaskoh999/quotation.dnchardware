@@ -1876,7 +1876,6 @@ input,select,textarea{
 .acc-rows .acc-enable{pointer-events:none; cursor:default}
 .acc-rows .acc-enable input[type=checkbox]{position:absolute; width:1px; height:1px; opacity:0; margin:0}
 .acc-rows .acc-item-head{margin-bottom:8px}
-.acc-history-btn{flex:0 0 auto;min-width:72px;padding:6px 9px;white-space:nowrap}
 .acc-addbar{display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px}
 .acc-addbar-title{font-size:13px; font-weight:900; color:var(--text-2)}
 .acc-empty{font-size:12px; font-weight:600; color:var(--text-muted); margin-right:auto}
@@ -1890,19 +1889,18 @@ input,select,textarea{
 .acc-rows:has([data-acc=nut] .acc-enable input:checked) .acc-add-btn[data-acc=nut],
 .acc-rows:has([data-acc=fw] .acc-enable input:checked) .acc-add-btn[data-acc=fw],
 .acc-rows:has([data-acc=custom] .acc-enable input:checked) .acc-add-btn[data-acc=custom]{display:none}
-.acc-remove-btn{flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+.acc-remove-btn,.acc-history-btn{flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
   width:36px; height:36px; padding:0; border:1.5px solid var(--border); border-radius:var(--r-xs);
   background:var(--surface); color:var(--text-muted); cursor:pointer}
-.acc-remove-btn:hover{border-color:var(--red,#c0392b); color:var(--red,#c0392b)}
-.acc-remove-btn:disabled{opacity:.5; cursor:not-allowed}
-.acc-remove-btn svg{width:17px; height:17px}
+.acc-remove-btn:hover,.acc-history-btn:hover{border-color:var(--red,#c0392b); color:var(--red,#c0392b)}
+.acc-remove-btn:disabled,.acc-history-btn:disabled{opacity:.5; cursor:not-allowed}
+.acc-remove-btn svg,.acc-history-btn svg{width:17px; height:17px}
 @media (hover:none) and (pointer:coarse){
   .acc-add-btn{min-height:44px; padding:8px 14px}
-  .acc-remove-btn{width:44px; height:44px}
+  .acc-remove-btn,.acc-history-btn{width:44px; height:44px}
 }
 @media (max-width:640px){
   .acc-rows .acc-item-head{flex-direction:row; align-items:center}
-  .acc-history-btn{min-width:68px;padding-inline:8px}
 }
 
 /* ═══ Responsive row integrity ═══════════════════════════════════════════════
@@ -3726,8 +3724,6 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 /* History is a clock, in the QUO icon language (24px stroke, currentColor). */
 .dc-hist-ico{width:14px;height:14px;flex:0 0 auto;vertical-align:-2px}
 .wqa-rv-act.wqa-row-hist{display:inline-flex;align-items:center;gap:5px}
-.acc-history-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px}
-.acc-history-btn span{white-space:nowrap}
 .wqa-rv-act .wqa-row-actn.is-ref{background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
 /* Pricing History attached to the item's PRICING section. */
 .wqa-dt-sec-hist{margin-top:10px}
@@ -9314,7 +9310,8 @@ function dcAccEnhancePanel(panel){
          price; applying a historical price is a separate explicit action. */
       const hist=document.createElement('button');
       hist.type='button'; hist.className='acc-act acc-history-btn'; hist.dataset.acc=m[1]; hist.dataset.type=type;
-      hist.innerHTML=dcHistIcon()+'<span data-i18n="accHistory">'+escHtml(dcT('accHistory'))+'</span>'; hist.setAttribute('aria-label',dcT('accHistory'));
+      hist.setAttribute('data-i18n-title','accHistory'); hist.title=dcT('accHistory'); hist.setAttribute('aria-label',dcT('accHistory'));
+      hist.innerHTML=dcHistIcon();
       hist.addEventListener('click',()=>accHistoryOpen(type,m[1])); head.appendChild(hist);
     }
   });
