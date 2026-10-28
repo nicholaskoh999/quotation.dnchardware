@@ -4037,13 +4037,14 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
    price, weight, History and the two actions start at the same x on every
    row; numbers are tabular, prices and weights right-aligned, so RM3.35 and
    RM10.15 end in one place and "/pc" never moves a digit.
-     desktop   No | spec | Qty | Price | Weight | pricing | History ✕ ▼
+     desktop   No | spec | Qty | Price | Weight | Cost | Add | Markup | History | ✕ ▼
+               — ONE row, whatever the width; one header names the columns.
      tablet    No | spec | Qty | Price
-               No | weight | pricing | History ✕ ▼
-     mobile    No | spec | Price
-               No | Qty | Weight
-               No | pricing
-               No | History ……… ✕ ▼                                         */
+               No | weight | History | ✕ ▼
+               No | Cost  Add  Markup
+     mobile    No | spec ………………… ✕ ▼
+               No | Qty | Price | Weight
+               No | Cost  Add  Markup | History                               */
 #wqaModal .wqa-it-main{font-variant-numeric:tabular-nums}
 #wqaModal .wqa-it-fig{display:contents}
 #wqaModal .wqa-fig-qty{grid-area:qty;justify-self:stretch;display:flex;justify-content:space-between;align-items:baseline;white-space:nowrap}
@@ -4062,24 +4063,75 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 #wqaModal .wqa-it-spec{grid-area:spec}
 #wqaModal .wqa-gx-line{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:0 1px}
 #wqaModal .wqa-it-gx .wqa-gx{font-size:12px}
+/* Cost · Add · Markup: compact cells, not form fields. */
+#wqaModal .wqa-ip-set{grid-area:px;display:flex;align-items:flex-end;gap:8px;min-width:0}
+#wqaModal .wqa-ip{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 0;cursor:text}
+#wqaModal .wqa-ip-k{font-size:10.5px;font-weight:700;color:var(--text-muted);user-select:none;-webkit-user-select:none;white-space:nowrap;background:none}
+#wqaModal .wqa-ip-k::selection{background:transparent}
+#wqaModal .wqa-ip-box{display:flex;align-items:center;height:30px;padding:0 7px;border:1px solid var(--border);border-radius:var(--r-xs);
+  background:var(--surface);transition:border-color .12s,box-shadow .12s}
+#wqaModal .wqa-ip-box:hover{border-color:var(--accent-mid)}
+#wqaModal .wqa-ip-box:focus-within{border-color:var(--border-focus);box-shadow:0 0 0 2px var(--accent-light)}
+#wqaModal .wqa-ip.is-bad .wqa-ip-box{border-color:var(--red);box-shadow:0 0 0 2px var(--red-light)}
+#wqaModal .wqa-ip-in{flex:1 1 auto;width:100%;min-width:0;height:100%;border:0;outline:0;background:transparent;padding:0;
+  font:inherit;font-size:13px;font-weight:650;color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
+#wqaModal .wqa-ip-in::placeholder{color:var(--text-muted);opacity:.55;font-weight:500}
+#wqaModal .wqa-ip-u{margin-left:2px;font-size:12px;font-weight:650;color:var(--text-muted);user-select:none}
+#wqaModal .wqa-ip-man{border:1px dashed var(--border);border-radius:var(--r-xs);background:transparent;font:inherit;font-size:12px;
+  font-weight:650;color:var(--text-2);height:30px;padding:0 10px;cursor:pointer;white-space:nowrap}
+#wqaModal .wqa-ip-man:hover{background:var(--accent-light);border-color:var(--accent-mid)}
+/* History: one short word, a column of its own. */
+#wqaModal .wqa-it-hs{grid-area:hist;display:inline-flex;align-items:center;justify-content:space-between;gap:4px;min-width:0;height:30px;
+  padding:0 7px;border:1px solid transparent;border-radius:var(--r-xs);background:transparent;font:inherit;font-size:12px;font-weight:650;
+  color:var(--text-muted);white-space:nowrap;overflow:hidden}
+#wqaModal button.wqa-it-hs{cursor:pointer}
+#wqaModal button.wqa-it-hs:hover,#wqaModal .wqa-it-hs.is-on{background:var(--surface2);border-color:var(--border)}
+#wqaModal .wqa-it-hs.is-exact{color:var(--green)}
+#wqaModal .wqa-it-hs.is-close{color:var(--amber)}
+#wqaModal .wqa-it-hs.is-none,#wqaModal .wqa-it-hs.is-load{justify-content:center;opacity:.7}
+#wqaModal .wqa-hs-t{overflow:hidden;text-overflow:ellipsis}
+#wqaModal .wqa-hs-caret{font-size:10px;opacity:.75}
+#wqaModal .wqa-px-note{margin-top:6px;font-size:11.5px;color:var(--text-muted)}
+.wqa-rows.is-sel .wqa-ip-set,.wqa-rows.is-sel .wqa-it-hs{pointer-events:none}
+#wqaModal .wqa-colhead{display:none}
+/* Desktop: everything on ONE row, the same tracks on every row and on the
+   header, so Qty, Price, Weight and the three rates line up down the list
+   whatever the product. Spec takes what is left and wraps inside its cell. */
 @media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  #wqaModal{--wqa-ipc:30px minmax(0,1fr) 62px 104px 92px 62px 62px 62px 82px 72px;--wqa-gap:8px}
   #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
-    grid-template-columns:30px minmax(0,1fr) 76px 120px 106px minmax(130px,210px) 72px;
-    grid-template-areas:"no spec qty price wt px acts";column-gap:10px;align-items:center}
+    grid-template-columns:var(--wqa-ipc);
+    grid-template-areas:"no spec qty price wt cost add mk hist acts";column-gap:var(--wqa-gap);row-gap:0;align-items:center}
   #wqaModal .wqa-it-s .wqa-it-main{min-height:42px}
+  #wqaModal .wqa-ip-set{display:contents}
+  #wqaModal .wqa-ip-costRate{grid-area:cost}
+  #wqaModal .wqa-ip-addCost{grid-area:add}
+  #wqaModal .wqa-ip-markup{grid-area:mk}
+  #wqaModal .wqa-ip-k{display:none}
+  #wqaModal .wqa-ip-man{grid-area:cost / cost / mk / mk;justify-self:stretch}
+  #wqaModal .wqa-colhead{display:grid;grid-template-columns:var(--wqa-ipc);column-gap:var(--wqa-gap);
+    grid-template-areas:"no spec qty price wt cost add mk hist acts";align-items:end;padding:0 11px 2px;margin-bottom:-4px;
+    font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
+    user-select:none;-webkit-user-select:none}
+  #wqaModal .wqa-ch{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #wqaModal .wqa-ch-qty{grid-area:qty}
+  #wqaModal .wqa-ch-price{grid-area:price;text-align:right}
+  #wqaModal .wqa-ch-wt{grid-area:wt;text-align:right}
+  #wqaModal .wqa-ch-cost{grid-area:cost;text-align:right;padding-right:8px}
+  #wqaModal .wqa-ch-add{grid-area:add;text-align:right;padding-right:8px}
+  #wqaModal .wqa-ch-mk{grid-area:mk;text-align:right;padding-right:8px}
+  #wqaModal .wqa-ch-hist{grid-area:hist;padding-left:8px}
 }
-/* Narrow desktop: the pricing line moves under the figures it explains. */
+/* Narrow desktop: the same one row, on tighter tracks. */
 @media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
-  #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
-    grid-template-columns:30px minmax(0,1fr) 74px 118px 104px 72px;
-    grid-template-areas:"no spec qty price wt acts" "no spec px px px acts";row-gap:2px}
-  #wqaModal .wqa-it-px{text-align:right;justify-self:end}
-  #wqaModal .wqa-it-px.is-shared{display:none}
+  #wqaModal{--wqa-ipc:28px minmax(0,1fr) 54px 92px 82px 56px 56px 66px 74px 72px;--wqa-gap:6px}
 }
 @media (min-width:600px) and (max-width:1023px), (min-width:600px) and (pointer:coarse){
   #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
     grid-template-columns:36px minmax(0,1fr) 112px 150px;
-    grid-template-areas:"no spec qty price" "no wt acts acts" "no px px px";column-gap:12px;row-gap:6px;align-items:center;padding:10px 12px}
+    grid-template-areas:"no spec qty price" "no wt hist acts" "no px px px";column-gap:12px;row-gap:6px;align-items:center;padding:10px 12px}
+  #wqaModal .wqa-ip-set{max-width:420px}
+  #wqaModal .wqa-ip-box,#wqaModal .wqa-ip-man,#wqaModal .wqa-it-hs{height:38px}
   #wqaModal .wqa-it-no{align-self:start;padding-top:10px}
   #wqaModal .wqa-fig-w,#wqaModal .wqa-it-s .wqa-fig-w{display:inline-flex;justify-self:start}
   #wqaModal .wqa-it-px.is-shared{display:none}
@@ -4091,7 +4143,13 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 @media (max-width:599px){
   #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
     grid-template-columns:26px minmax(0,1fr) auto auto;
-    grid-template-areas:"no spec spec price" "no qty wt acts" "no px px px";column-gap:8px;row-gap:4px;padding:10px;align-items:center}
+    grid-template-areas:"no spec spec acts" "no qty price wt" "no px px hist";column-gap:8px;row-gap:6px;padding:10px;align-items:center}
+  #wqaModal .wqa-it-acts{align-self:start}
+  #wqaModal .wqa-fig-price{justify-self:end}
+  #wqaModal .wqa-ip-set{gap:6px}
+  #wqaModal .wqa-ip-box,#wqaModal .wqa-ip-man{height:36px}
+  #wqaModal .wqa-ip-in{font-size:14px}
+  #wqaModal .wqa-it-hs{height:36px;align-self:end;max-width:96px}
   #wqaModal .wqa-it-no{align-self:start;padding-top:3px}
   #wqaModal .wqa-fig-qty{justify-self:start}
   #wqaModal .wqa-fig-w{display:inline-flex;justify-self:end}
@@ -4206,11 +4264,10 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
    start at the same x on every row. */
 @media (min-width:1024px) and (hover:hover) and (pointer:fine){
   #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
-    grid-template-columns:var(--wqa-row-cols,30px minmax(0,1fr) 76px 120px 106px 176px 212px);
-    grid-template-areas:"no spec qty price wt px acts"}
+    grid-template-columns:var(--wqa-ipc);
+    grid-template-areas:"no spec qty price wt cost add mk hist acts"}
 }
 @media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
-  #wqaModal{--wqa-row-cols:28px minmax(0,1fr) 70px 112px 100px 150px 178px}
   #wqaModal .wqa-it-toks{flex-wrap:wrap}
 }
 /* Spec cell hierarchy: product · material · finish · size type over the
@@ -6905,6 +6962,8 @@ const I18N={
     wqaHqView:'View',
     wqaHqFull:'Open full Pricing History',
     wqaHqCurrent:'This item:',
+    wqaColQty:'Qty', wqaColPrice:'Price', wqaColWeight:'Weight', wqaColCost:'Cost', wqaColAdd:'Add', wqaColMarkup:'Markup', wqaColHist:'History',
+    wqaPxOnRow:'Cost, Add and Markup are edited on the row.',
     wqaHistFrozenExact:'A manual / fixed price is only reused for the exact same item — use a record with a pricing setup.',
     tPaAccepted:'Price accepted',
     tPaNothing:'No price to accept yet.',
@@ -7549,6 +7608,8 @@ const I18N={
     wqaHqView:'查看',
     wqaHqFull:'打开完整历史价格',
     wqaHqCurrent:'本项目：',
+    wqaColQty:'数量', wqaColPrice:'单价', wqaColWeight:'重量', wqaColCost:'成本', wqaColAdd:'加工费', wqaColMarkup:'Markup', wqaColHist:'历史价格',
+    wqaPxOnRow:'成本、加工费和 Markup 直接在行内修改。',
     wqaHistFrozenExact:'手动 / 固定价格只用于完全相同的项目 — 请使用带定价参数的记录。',
     tPaAccepted:'价格已确认',
     tPaNothing:'暂无可确认的价格。',
@@ -21769,42 +21830,104 @@ function wqaRowBestHist(r){
   if(n>=0) return {cls:'close',n,rec:recs[n],count:c.close};
   return {cls:recs.length?'ref':'none',n:-1,count:recs.length};
 }
-/* "History: Exact RM27.40 ▾ [Apply]". The summary itself is a button: it
-   opens the quick preview (a click, never a hover), and it is the row's ONE
-   way into history — the preview leads on to the full drawer. How many
-   records there are is said in the preview, not on every row. Only an exact
-   reusable record gets a direct Apply; a similar one is previewed first; a
-   reference is never offered as reusable. */
-function wqaRowHistSumHtml(r,i){
-  const b=wqaRowBestHist(r); if(!b) return '';
+/* History as one compact cell on the row: "Exact ▾", "Similar ▾",
+   "History ▾" (reference only) or "—". It opens the quick preview (a click,
+   never a hover), the row's ONE way into history — the preview leads on to
+   the full drawer. The best price and how far a Similar one is sit in the
+   tooltip; the preview says the rest, so the row keeps its columns. */
+function wqaRvHsCell(r,i){
   const on=wqa.hq===i;
-  const lbl=`<span class="wqa-hs-k">${escHtml(dcT('wqaHsLabel'))}</span>`;
-  const caret=`<span class="wqa-hs-caret" aria-hidden="true">${on?'▴':'▾'}</span>`;
-  const open=(cls,inner)=>`<button type="button" class="wqa-hs is-${cls}${on?' is-on':''}" data-hs="${i}" aria-expanded="${on?'true':'false'}"
-      title="${escHtml(dcT('wqaHqTip'))}" onclick="event.stopPropagation();wqaHqToggle(${i})">${inner} ${caret}</button>`;
-  /* Applied: the price carries the tick and the provenance chip says
-     "Previous Price · Q-…" (it opens this same preview). */
-  if(r.usedHistoryRef) return '';
-  if(b.n<0){
-    const txt=`${lbl} ${escHtml(dcT(b.cls==='ref'?'wqaHsNoExact':'wqaHsNone'))}`;
-    return b.cls==='ref' ? open('none',txt) : `<span class="wqa-hs is-none">${txt}</span>`;
+  if(r.hist===undefined && wqaHistSpec(r))
+    return `<span class="wqa-it-hs is-load" data-hs-cell="${i}">…</span>`;
+  const b=wqaRowBestHist(r);
+  if(!b || b.cls==='none') return `<span class="wqa-it-hs is-none" data-hs-cell="${i}" title="${escHtml(dcT('wqaHsNone'))}">—</span>`;
+  let txt=dcT('wqaColHist'), tip=dcT('wqaHsNoExact');
+  if(b.n>=0){
+    txt=dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar');
+    const far=b.cls==='close' ? wqaHsDiffShort(r.hist,b.rec) : '';
+    tip=txt+' '+phMoney(b.rec.boltUnitPrice).replace('RM ','RM')+(far?' · '+far:'');
   }
-  const price=phMoney(b.rec.boltUnitPrice).replace('RM ','RM');
-  /* A Similar price is the price of ANOTHER length: the row says how far —
-     the first two measured differences only; the preview has the rest. */
-  const far=b.cls==='close' ? wqaHsDiffShort(r.hist,b.rec) : '';
-  return open(b.cls,`${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b>${far?` <span class="wqa-hs-d">${escHtml(far)}</span>`:''}`)
-    +(b.cls==='exact'
-      ? `<button type="button" class="btn btn-outline btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHistQuickApply(${i})">${escHtml(dcT('paApplyGo'))}</button>`
-      : `<button type="button" class="btn btn-ghost btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHqToggle(${i},true)">${escHtml(dcT('wqaHqPreview'))}</button>`);
+  return `<button type="button" class="wqa-it-hs is-${b.n>=0?b.cls:'ref'}${on?' is-on':''}" data-hs="${i}" data-hs-cell="${i}"
+      aria-expanded="${on?'true':'false'}" title="${escHtml(dcT('wqaHsLabel')+' '+tip+' · '+dcT('wqaHqTip'))}"
+      onclick="event.stopPropagation();wqaHqToggle(${i})"><span class="wqa-hs-t">${escHtml(txt)}</span><span class="wqa-hs-caret" aria-hidden="true">${on?'▴':'▾'}</span></button>`;
 }
-/* One click: the best EXACT record, through the same Use the panel performs —
-   so it is the same explicit acceptance, with no second Apply afterwards. */
-function wqaHistQuickApply(i){
+/* ── Cost · Add · Markup, on the row ──────────────────────────────────────
+   The row's own boxes, bound to the same state the pricing editor always
+   wrote (r.priceOverride, read back through r.calc): no second copy. Typing
+   reprices this row live through the existing calculator and rounding;
+   leaving a changed box settles it (arithmetic, a check that it is a number),
+   and makes this row's recipe the one its group may be offered
+   (wqaRecipeOffer) — the same moment the editor's Done was. A Manual Price
+   row states its figure instead, so it has no recipe boxes. */
+const WQA_IP_FIELDS=[['costRate','wqaColCost','4.2'],['addCost','wqaColAdd','0.6'],['markup','wqaColMarkup','15']];
+function wqaIpVal(r,k){ const c=r.calc||{}; return String(c[k]==null?'':c[k]).trim(); }
+function wqaIpLabel(k){ return dcT((WQA_IP_FIELDS.find(x=>x[0]===k)||[])[1]||''); }
+function wqaRvIpHtml(r,i){
+  if((r.priceMode||'auto')==='manual')
+    return `<span class="wqa-ip-set is-manual"><button type="button" class="wqa-ip-man" data-ip-man="${i}"
+      onclick="event.stopPropagation();wqaPxToggle(${i})">${escHtml(dcT('pmManualPrice'))} ▾</button></span>`;
+  return `<span class="wqa-ip-set">${WQA_IP_FIELDS.map(([k,lbl,ph])=>
+    `<label class="wqa-ip wqa-ip-${k}" onclick="event.stopPropagation()"><span class="wqa-ip-k">${escHtml(dcT(lbl))}</span><span class="wqa-ip-box"><input type="text"
+      inputmode="decimal" autocomplete="off" spellcheck="false" class="wqa-ip-in" data-ip="${k}" placeholder="${ph}"
+      value="${escHtml(wqaIpVal(r,k))}" aria-label="${escHtml(dcT(lbl)+' · '+(i+1))}"
+      onfocus="wqaIpFocus(${i},'${k}',this)" oninput="wqaIpInput(${i},'${k}',this)"
+      onkeydown="wqaIpKey(event,${i},'${k}',this)" onchange="wqaIpCommit(${i},'${k}',this)">${
+      k==='markup'?'<span class="wqa-ip-u">%</span>':''}</span></label>`).join('')}</span>`;
+}
+function wqaIpOk(v){
+  if(wqaCalc(v)!=null) return true;
+  return isReadableAmount(v) && isFinite(Number(v)) && Number(v)>=0;
+}
+function wqaIpBad(inp,on){ inp.classList.toggle('is-bad',!!on); const b=inp.closest('.wqa-ip'); if(b) b.classList.toggle('is-bad',!!on); }
+/* What the box held when it was entered, so Escape (or a value nobody could
+   mean) puts back exactly that — override and all. */
+function wqaIpFocus(i,k,inp){
   const r=wqa.rows[i]; if(!r) return;
-  const b=wqaRowBestHist(r); if(!b||b.n<0||b.cls!=='exact') return;
-  wqa.hq=null;
-  wqaHistUse(i,b.n);
+  wqa._ip={i,k,had:Object.prototype.hasOwnProperty.call(r.priceOverride,k),ov:r.priceOverride[k],v:inp.value};
+  try{ inp.select(); }catch(e){}
+}
+function wqaIpRestore(i,k,inp){
+  const r=wqa.rows[i], s=wqa._ip; if(!r||!s||s.i!==i||s.k!==k) return;
+  if(s.had) r.priceOverride[k]=s.ov; else delete r.priceOverride[k];
+  inp.value=s.v; wqaIpBad(inp,false);
+  clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),0);
+}
+/* Live: a plain number reprices now (the same debounced patch the editor
+   used); arithmetic and anything unreadable wait for the box to be left. */
+function wqaIpInput(i,k,inp){
+  const v=String(inp.value).trim();
+  wqaIpBad(inp, v!=='' && !wqaIpOk(v));
+  if(v==='' || wqaCalc(v)!=null || !wqaIpOk(v)) return;
+  wqaEditPrice(i,k,v);
+}
+function wqaIpKey(ev,i,k,inp){
+  if(ev.key==='Enter'){ ev.preventDefault(); ev.stopPropagation(); inp.blur(); return; }
+  if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); wqaIpRestore(i,k,inp); }
+}
+function wqaIpCommit(i,k,inp){
+  const r=wqa.rows[i]; if(!r) return;
+  const s=(wqa._ip&&wqa._ip.i===i&&wqa._ip.k===k)?wqa._ip:null;
+  let v=String(inp.value).trim();
+  const sum=wqaCalc(v); if(sum!=null) v=sum;
+  if(v==='' || !wqaIpOk(v)){
+    if(v!=='') showToast(dcT('wqaGxBad').replace('{f}',wqaIpLabel(k)));
+    wqaIpRestore(i,k,inp);
+    return;
+  }
+  inp.value=v; wqaIpBad(inp,false);
+  if(s && v===s.v) return;                         // unchanged: nothing to settle
+  wqaMarkEdited(r,'price');
+  r.priceOverride[k]=v;
+  /* A rate typed over a reused recipe makes the rates the person's own — the
+     other two stay exactly as they are; only the provenance goes. */
+  if(r.usedHistoryRef && r.usedHistoryRecipe){ r.usedHistoryRef=''; r.usedHistoryRecipe=false; r.histApplied=[]; }
+  r.pxApplied=true;
+  wqa.recipeSrc=i; wqa.rcPick=null;
+  if(s) s.v=v;
+  /* After the focus has moved on (Tab to the next box), so the redraw that
+     brings the group's offer puts the caret back where the person now is. */
+  clearTimeout(wqa._t); wqa._t=null;
+  setTimeout(()=>wqaRecomputeAll('force'),0);
 }
 /* ── Quick preview ────────────────────────────────────────────────────────
    The few records worth acting on, most relevant first — never the whole
@@ -21897,8 +22020,6 @@ function wqaRvSubHtml(r,i){
   const bits=[];
   const pa=wqaRowAcceptHtml(r,i);
   if(pa) bits.push(pa);
-  const hs=wqaRowHistSumHtml(r,i);
-  if(hs) bits.push(hs);
   const prov=wqaProvBtnHtml(r,i);
   if(prov) bits.push(prov);
   const accOwn=wqaAccHas(r.acc) && ['nut','fw','custom'].some(k=>r.acc[k].enabled && r.acc[k].ov && Object.keys(r.acc[k].ov).length);
@@ -21939,7 +22060,7 @@ function wqaPxToggle(i){
   /* An open panel already carries the same editor; anywhere else — a phone
      included — RM/pc opens the editor directly under its own row. */
   if(r.open){
-    wqaRvFocus(i,'[data-px="costRate"]');
+    wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'priceMode')+'"]');
     return;
   }
   wqa.ix=null; wqa.hq=null;
@@ -21948,22 +22069,20 @@ function wqaPxToggle(i){
      onto the editor's captions as it opens under the pointer. */
   try{ const s=window.getSelection&&window.getSelection(); if(s&&s.rangeCount) s.removeAllRanges(); }catch(e){}
   wqaRenderRows(true);
-  if(wqa.px===i) wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'costRate')+'"]');
+  if(wqa.px===i) wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'priceMode')+'"]');
 }
+/* Advanced pricing: the price mode, and the Manual Price it may ask for.
+   Cost / Add / Markup are edited on the row itself (wqaRvIpHtml) and are not
+   drawn a second time here. */
 function wqaRvPxEditor(r,i){
-  const calc=r.calc||{}, mode=r.priceMode||'auto';
+  const mode=r.priceMode||'auto';
   return `<div class="wqa-px-grid">
-      <label class="wqa-px-f"><span>${escHtml(dcT('fieldCostRate'))}</span><input type="text" inputmode="decimal" data-px="costRate" placeholder="4.2"
-        value="${escHtml(calc.costRate||'')}" oninput="wqaEditPrice(${i},'costRate',this.value)"></label>
-      <label class="wqa-px-f"><span>${escHtml(dcT('fieldAdditionalCost'))}</span><input type="text" inputmode="decimal" data-px="addCost" placeholder="0.6"
-        value="${escHtml(calc.addCost||'')}" oninput="wqaEditPrice(${i},'addCost',this.value)"></label>
-      <label class="wqa-px-f"><span>${escHtml(dcT('lblMarkup'))} (%)</span><input type="text" inputmode="decimal" data-px="markup" placeholder="15"
-        value="${escHtml(calc.markup||'')}" oninput="wqaEditPrice(${i},'markup',this.value)"></label>
       <label class="wqa-px-f"><span>${escHtml(dcT('lblPriceMode'))}</span><select data-px="priceMode" onchange="wqaEditRowMode(${i},this.value)">${
         WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${mode===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')}</select></label>
       ${mode==='manual'?`<label class="wqa-px-f"><span>${escHtml(dcT('lblManualUnitPrice'))}</span><input type="text" inputmode="decimal" data-px="manualPrice" placeholder="2.75"
         value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></label>`:''}
-    </div>`;
+    </div>
+    ${mode==='manual'?'':`<div class="wqa-px-note">${escHtml(dcT('wqaPxOnRow'))}</div>`}`;
 }
 /* Done commits what was typed — the row's own pricing state, the one the
    editor wrote into — and prices the row now rather than after a debounce.
@@ -21983,7 +22102,7 @@ function wqaPxDone(i,from){
    rest. Nothing here is a second pricing state — every box writes the row. */
 function wqaRvPxStrip(r,i){
   return `<div class="wqa-px" data-px-row="${i}" onclick="event.stopPropagation()">
-      <div class="wqa-px-head">${escHtml(dcT('sumPricing'))}</div>
+      <div class="wqa-px-head">${escHtml(dcT('lblPriceMode'))}</div>
       ${wqaRvPxEditor(r,i)}
       <div class="wqa-px-foot">
         <span class="wqa-px-cur">${escHtml(dcT('wqaPxCurrent'))} <b class="wqa-px-curv">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</b>${escHtml(dcT('rvPerPc'))}</span>
@@ -22159,11 +22278,8 @@ function wqaRvItemHtml(r,i,series){
   const prod=wqaProductByType(wqaRowProduct(r));
   const title=prod?prod.label:dcT('needs').replace('{f}',dcT('fieldProduct'));
   const spec=series?'':wqaRvSpecText(r,true);
-  /* In a series the heading states the pricing most of its rows share; a row
-     says its own only when it differs — which is exactly the row to look at. */
-  /* Owner-smoke: no permanent Cost · Add Cost · Markup block. The RM/pc is the
-     way into the row's pricing (wqaPxToggle); the recipe is read there. */
-  const showPx=false;
+  /* Owner-smoke: Cost / Add / Markup are the row's own boxes, on the row
+     (wqaRvIpHtml); RM/pc is the result they make. */
   const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick"${r.sel?' checked':''}
       onclick="event.stopPropagation()" onchange="wqaRvToggleSel(${i})"
       aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
@@ -22190,11 +22306,8 @@ function wqaRvItemHtml(r,i,series){
         <span class="wqa-fig wqa-fig-w"><span class="wqa-uw wqa-uw-full" data-tw="${escHtml(wqaFmtTotalWeight(calc.weight,r.qty))}"
           title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span></span>
       </div>
-      ${!showPx?'<span class="wqa-it-px is-shared" aria-hidden="true"></span>'
-        : (r.priceMode||'auto')==='manual'
-        ? `<button type="button" class="wqa-it-px" onclick="event.stopPropagation();wqaPxToggle(${i})"
-        aria-expanded="${wqa.px===i?'true':'false'}"><span class="wqa-px-sum">${escHtml(wqaRvPxText(r))}</span></button>`
-        : `<span class="wqa-it-px wqa-it-gx" data-gx-sc="r"><span class="wqa-px-sum" hidden>${escHtml(wqaRvPxText(r))}</span>${wqaGxPxHtml('r',i,[i],'wqa-gx-line')}</span>`}
+      ${wqaRvIpHtml(r,i)}
+      ${wqaRvHsCell(r,i)}
       <span class="wqa-it-acts">${wqaRvDelBtn(i)}${wqaRvMoreBtn(r,i)}</span>
     </div>
     ${wqaRvSubHtml(r,i)}
@@ -22587,10 +22700,14 @@ function wqaRenderRows(force){
   /* Where focus was, so a redraw a person caused puts it back. */
   const a=document.activeElement, card=a&&a.closest&&a.closest('[data-wqa-row]');
   const back = (card && box.contains(card)) ? {row:card.getAttribute('data-wqa-row'),
-     ef:a.getAttribute('data-ef'), px:a.getAttribute('data-px'), tok:a.getAttribute('data-tok')} : null;
+     ef:a.getAttribute('data-ef'), px:a.getAttribute('data-px'), tok:a.getAttribute('data-tok'), ip:a.getAttribute('data-ip')} : null;
   const groups=wqaRvGroups();
   box.classList.toggle('is-sel',!!wqa.selMode);
-  box.innerHTML=groups.map(g=>{
+  /* Desktop names each column once, above the rows, instead of on every row. */
+  const colHead=groups.length ? `<div class="wqa-colhead" aria-hidden="true">${
+    [['qty','wqaColQty'],['price','wqaColPrice'],['wt','wqaColWeight'],['cost','wqaColCost'],['add','wqaColAdd'],['mk','wqaColMarkup'],['hist','wqaColHist']]
+      .map(([a,k])=>`<span class="wqa-ch wqa-ch-${a}">${escHtml(dcT(k))}</span>`).join('')}</div>` : '';
+  box.innerHTML=colHead+groups.map(g=>{
 
     /* The pricing most of this series shares. */
     const tally={};
@@ -22602,9 +22719,9 @@ function wqaRenderRows(force){
   }).join('') || `<div class="wqa-rv-empty">${escHtml(dcT('wqaRvEmpty'))}</div>`;
   if(back && !wqa.ix){
     const c2=box.querySelector('[data-wqa-row="'+back.row+'"]');
-    const sel = back.ef ? '[data-ef="'+back.ef+'"]' : back.px ? '[data-px="'+back.px+'"]' : back.tok ? '[data-tok="'+back.tok+'"]' : '';
+    const sel = back.ef ? '[data-ef="'+back.ef+'"]' : back.px ? '[data-px="'+back.px+'"]' : back.tok ? '[data-tok="'+back.tok+'"]' : back.ip ? '[data-ip="'+back.ip+'"]' : '';
     const n=c2&&sel?c2.querySelector(sel):null;
-    if(n){ try{ n.focus({preventScroll:true}); }catch(e){} }
+    if(n){ try{ n.focus({preventScroll:true}); if(back.ip) n.select(); }catch(e){} }
   }
   wqaRvRenderHead();
   wqaApplyFlash();
@@ -22633,6 +22750,13 @@ function wqaPatchRows(){
       if(f==='dia') b.classList.toggle('is-manual',!!r.diaManual);
     });
     const px=card.querySelector('.wqa-px-sum'); if(px) px.textContent=wqaRvPxText(r);
+    card.querySelectorAll('.wqa-it-main [data-ip]').forEach(n=>{
+      if(n===document.activeElement) return;
+      const want=wqaIpVal(r,n.getAttribute('data-ip'));
+      if(n.value!==want) n.value=want;
+    });
+    const hsc=card.querySelector('.wqa-it-main [data-hs-cell]');
+    if(hsc){ const t=document.createElement('div'); t.innerHTML=wqaRvHsCell(r,i); if(t.firstElementChild) hsc.replaceWith(t.firstElementChild); }
     card.querySelectorAll('button[data-tok]').forEach(b=>{
       const f=b.getAttribute('data-tok'); const v=wqaRvTokShow(r,f);
       const vn=b.querySelector('.wqa-tok-v');
