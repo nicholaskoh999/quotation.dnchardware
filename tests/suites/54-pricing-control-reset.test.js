@@ -78,8 +78,8 @@ module.exports = async (browser, A) => {
   A.eq(studRec.c, '', 'custom Default Price rule does NOT fill the Cost Rate');
   A.ok(studRec.pa !== 'accepted', 'showing a recommendation creates no pricing state');
 
-  // ═══ entry form: Fill in → Use This Pricing → Add; no carry-over ══════════
-  A.suite('pricing reset — entry form Use This Pricing and no carry-over');
+  // ═══ entry form: what is typed is the price; no carry-over ════════════════
+  A.suite('pricing reset — entry form: typed pricing is active, no carry-over');
   const flow = await p.evaluate(() => {
     switchType('sagrod');
     setFieldValue('sagrod', 'material', 'MS'); onMaterialSizeChange('sagrod', false, 'material');
@@ -92,26 +92,19 @@ module.exports = async (browser, A) => {
     const refused = quoteItems.length === n0;
     dcRecFill();
     const filled = { c: fv('sagrod', 'costRate'), a: fv('sagrod', 'addCost'), m: fv('sagrod', 'markup') };
-    const before = dcFormPaState('sagrod').state;
-    const box = el('cpAccept').textContent;
-    addCurrentItem();
-    const refused2 = quoteItems.length === n0;
-    dcFormPaApply();
     const after = dcFormPaState('sagrod').state;
+    const box = el('cpAccept').hidden ? '' : el('cpAccept').textContent;
     addCurrentItem();
     const it = quoteItems[quoteItems.length - 1];
-    return { refused, refused2, filled, before, box, after, added: quoteItems.length - n0, src: it.priceAcceptance && it.priceAcceptance.source,
+    return { refused, filled, box, after, added: quoteItems.length - n0, src: it.priceAcceptance && it.priceAcceptance.source,
              itRate: it.formData && it.formData.costRate,
              next: { c: fv('sagrod', 'costRate'), a: fv('sagrod', 'addCost'), m: fv('sagrod', 'markup') } };
   });
   A.ok(flow.refused, 'Add refuses an item whose pricing was never set');
   A.eq(JSON.stringify(flow.filled), '{"c":"2.80","a":"0.60","m":"0"}', 'Fill in copies the recommendation into the boxes (explicit)');
-  A.ok(flow.before !== 'accepted', 'filled but not used yet');
-  A.includes(flow.box, 'Use This Pricing', 'the entry form offers Use This Pricing');
-  A.ok(!/Suggested Price|Accepted Price|Accept/.test(flow.box), 'no Suggested / Accepted wording');
-  A.ok(flow.refused2, 'still refused until Use This Pricing');
-  A.eq(flow.after, 'accepted', 'Use This Pricing prices the item');
-  A.eq(flow.added, 1, 'then Add works');
+  A.eq(flow.after, 'accepted', 'a typed / filled setup is the item\'s price straight away — no confirmation');
+  A.eq(flow.box, '', 'no confirmation row under the price');
+  A.eq(flow.added, 1, 'Add works without any Use step');
   A.eq(flow.src, 'built_in', 'saved with the recommendation as its source');
   A.eq(flow.itRate, '2.80', 'the added item keeps its own Cost Rate');
   A.ok(zero(flow.next), 'the next new item starts 0 / 0 / 0 — no carry-over');
@@ -126,14 +119,12 @@ module.exports = async (browser, A) => {
     setFieldValue('sagrod', 'length', '1300');
     setFieldValue('sagrod', 'costRate', '3'); setFieldValue('sagrod', 'addCost', '0.5'); setFieldValue('sagrod', 'markup', '0');
     setFieldValue('sagrod', 'priceMode', 'no_round'); onPriceModeChange('sagrod'); recalcCurrent();
-    dcFormPaApply();
     const lenBefore = dcFormPaState('sagrod').state;
     setFieldValue('sagrod', 'length', '1350'); recalcCurrent();
     const lenAfter = dcFormPaState('sagrod').state;
     setFieldValue('sagrod', 'costRate', '3.1'); recalcCurrent();
     const rateAfter = dcFormPaState('sagrod').state;
     setFieldValue('sagrod', 'costRate', '3'); recalcCurrent();
-    dcFormPaApply();
     addCurrentItem();
     const nr = quoteItems[quoteItems.length - 1];
     return { added: quoteItems.length - n0, man: man.finalUnitPrice, manMode: man.priceMode, nrMode: nr.priceMode,
@@ -142,8 +133,8 @@ module.exports = async (browser, A) => {
   A.eq(modes.manMode, 'manual', 'Manual Price still works');
   A.near(modes.man, 9.99, 0.001, 'at the typed figure');
   A.eq(modes.nrMode, 'no_round', 'No Round still works');
-  A.eq(modes.lenAfter, 'accepted', 'a different length keeps the used setup (the RM figure is not what was approved)');
-  A.ok(modes.rateAfter !== 'accepted', 'changing the setup itself needs Use This Pricing again');
+  A.eq(modes.lenAfter, 'accepted', 'a different length simply recalculates');
+  A.eq(modes.rateAfter, 'accepted', 'an edited rate is active immediately');
   A.eq(modes.added, 2, 'both added');
 
   // ── saved items reopen with their pricing; legacy items get nothing injected ──
@@ -167,134 +158,197 @@ module.exports = async (browser, A) => {
   A.eq(JSON.stringify(p._dcErrors), '[]', 'no page errors (entry form)');
   await p.close();
 
-  // ═══ Sessions B / C / D — Quick Add ═══════════════════════════════════════
-  A.suite('pricing reset — Quick Add recommendation, editor, apply setup');
-  p = await openApp(browser, { api: { get_default_prices: { ok: true, data: DP }, get_pricing_history: HIST } });
+  // ═══ Quick Add — live editor, History beside it, apply setup ══════════════
+  A.suite('pricing reset — Quick Add: typed pricing is live, no confirmation');
+  const HIST2 = { ok: true, data: { records: [HREC, Object.assign({}, HREC, { quotationId: 10, refNo: 'Q-2026-1010', dimensionPreview: 'L 1100 x TL 100/100mm',
+    exactDims: false, dimDistance: 100, costRate: 3.8, addCost: 0.6, markup: 0, priceMode: 'no_round', unitPrice: 3.9, boltUnitPrice: 3.9 })],
+    total: 2, ownTotal: 0, otherTotal: 2, exactTotal: 1, closeTotal: 1, refTotal: 0, offset: 0, limit: 20 } };
+  p = await openApp(browser, { api: { get_default_prices: { ok: true, data: DP }, get_pricing_history: HIST2 } });
   await quickAddPaste(p, SAG, { expanded: false, settle: 900 });
-  let st = await p.evaluate(() => wqa.rows.map((r, i) => ({ c: String(r.calc.costRate), a: String(r.calc.addCost), m: String(r.calc.markup),
-    rec: r.rec, ok: wqaRowAccepted(r), shown: document.querySelector('[data-wqa-row="' + i + '"] .wqa-fin').textContent,
-    cells: document.querySelector('[data-wqa-row="' + i + '"] .wqa-ip-set').className, miss: wqaRowMissing(r) })));
-  A.eq(st.length, 3, 'three rows');
-  A.ok(st.every(r => r.c === '' && r.a === '' && r.m === ''), 'every Quick Add row starts 0 / 0 / 0');
-  A.ok(st.every(r => r.rec && r.rec.costRate === '2.80' && r.rec.addCost === '0.60'), 'each row carries the built-in recommendation (2.80 · +0.60)');
-  A.ok(st.every(r => !r.ok), 'no row is priced by a recommendation');
-  A.ok(st.every(r => r.shown === 'Set price'), 'RM/pc says "Set price" until the row is priced');
-  A.ok(st.every(r => /is-rec/.test(r.cells)), 'the row shows the recommendation as a recommendation (view only)');
-  A.ok(st.every(r => r.miss.indexOf('Cost Rate') < 0), 'an unpriced row is not flagged as missing a Cost Rate');
-  A.eq(await p.evaluate(() => document.querySelectorAll('#wqaRows .wqa-ip-set input').length), 0, 'no editable boxes on the row');
-  const foot = await p.evaluate(() => ({ need: el('wqaFootNeed').textContent, dis: el('wqaAddBtn').disabled }));
-  A.includes(foot.need, '3 items not priced yet', 'the footer counts unpriced items');
-  A.ok(foot.dis, 'Add waits for pricing');
-  A.eq(await p.evaluate(() => document.querySelectorAll('#wqaRows .wqa-grx-acc, #wqaRows .wqa-grx-n, .wqa-sel-acc').length), 0,
-       'no Accept-all / Accepted N/M group UX');
-
-  // history loads as reference and never prices the row on its own
   await p.waitForTimeout(400);
-  A.ok(await p.evaluate(() => !!(wqa.rows[0].hist && wqa.rows[0].hist.records) && !wqaRowAccepted(wqa.rows[0])),
-       'History loads automatically and does not price the row');
+  const row = (i) => p.evaluate(i => { const r = wqa.rows[i], card = document.querySelector('[data-wqa-row="' + i + '"]');
+    return { ok: wqaRowAccepted(r), c: String(r.calc.costRate), a: String(r.calc.addCost), m: String(r.calc.markup), px: r.calc.finalUnitPrice,
+      mode: r.priceMode || 'auto', man: r.manualPrice || '', shown: card.querySelector('.wqa-fin').textContent,
+      cells: card.querySelector('.wqa-ip-set').className, cellText: card.querySelector('.wqa-ip-set').textContent }; }, i);
+  let r0 = await row(0);
+  A.ok(r0.c === '' && r0.a === '' && r0.m === '', 'a new row starts 0 / 0 / 0');
+  A.eq(r0.shown, 'Set price', 'RM/pc says Set price');
+  A.ok(/is-rec/.test(r0.cells), 'the recommendation is shown as reference (view only)');
+  A.eq(await p.evaluate(() => document.querySelectorAll('#wqaRows .wqa-ip-set input').length), 0, 'no editable boxes on the row');
+  A.ok(await p.evaluate(() => !!(wqa.rows[0].hist && wqa.rows[0].hist.records) && !wqaRowAccepted(wqa.rows[0])), 'History loads and prices nothing');
+  let foot = await p.evaluate(() => ({ need: el('wqaFootNeed').textContent, dis: el('wqaAddBtn').disabled }));
+  A.includes(foot.need, '3 items need a price', 'the footer counts items without a price');
+  A.ok(!/approval|accept/i.test(foot.need), 'no approval wording');
 
-  // ── C: RM/pc opens the editor on the recommendation; typing touches only the draft
   await p.click('[data-wqa-row="0"] .wqa-fig-price');
   await p.waitForTimeout(250);
   let ed = await p.evaluate(() => ({ c: document.querySelector('[data-pxe="0"] [data-px="costRate"]').value,
-    a: document.querySelector('[data-pxe="0"] [data-px="addCost"]').value, m: document.querySelector('[data-pxe="0"] [data-px="markup"]').value,
-    out: document.querySelector('[data-pxe="0"] .wqa-pxd-v').textContent, use: document.querySelector('[data-px-use="0"]').textContent,
-    rowOv: JSON.stringify(wqa.rows[0].priceOverride), ok: wqaRowAccepted(wqa.rows[0]) }));
-  A.eq(JSON.stringify([ed.c, ed.a, ed.m]), '["2.80","0.60","0"]', 'the editor opens on the recommended setup');
-  A.ok(/^RM\d+\.\d\d$/.test(ed.out), 'and shows what it calculates to');
-  A.eq(ed.use, 'Use This Pricing', 'button says Use This Pricing (not Use RM…)');
-  A.eq(ed.rowOv, '{}', 'opening the editor changes nothing on the row');
-  await p.fill('[data-pxe="0"] [data-px="costRate"]', '3.5');
-  await p.dispatchEvent('[data-pxe="0"] [data-px="costRate"]', 'input');
-  const out2 = await p.textContent('[data-pxe="0"] .wqa-pxd-v');
-  A.ok(out2 !== ed.out, 'editing Cost recalculates the draft figure');
-  A.ok(await p.evaluate(() => !wqaRowAccepted(wqa.rows[0]) && wqa.rows[0].priceOverride.costRate === undefined), 'the row is untouched until Use');
-  await p.click('[data-px-use="0"]');
-  await p.waitForTimeout(500);
-  st = await p.evaluate(() => wqa.rows.map((r, i) => ({ ok: wqaRowAccepted(r), c: String(r.calc.costRate), px: r.calc.finalUnitPrice,
-    shown: document.querySelector('[data-wqa-row="' + i + '"] .wqa-fin').textContent })));
-  A.ok(st[0].ok && st[0].c === '3.5', 'Use This Pricing prices the row with the reviewed setup');
-  A.eq(st[0].shown, 'RM' + Number(st[0].px).toFixed(2), 'and RM/pc shows the calculated price');
-  A.ok(!st[1].ok && !st[2].ok, 'other rows stay unpriced');
-  // ── D: the offer appears only now
+    use: document.querySelectorAll('[data-px-use], .cp-pa-apply').length, rec: (document.querySelector('[data-pxe-rec="0"]') || {}).textContent || '' }));
+  A.eq(ed.c, '', 'the editor opens on the row\'s own (empty) setup — the recommendation is not filled in');
+  A.includes(ed.rec, '2.80 · +0.60 · 0%', 'the recommendation is shown beside the boxes');
+  A.eq(ed.use, 0, 'there is no Use This Pricing button');
+  await p.fill('[data-pxe="0"] [data-px="costRate"]', '4');
+  await p.fill('[data-pxe="0"] [data-px="addCost"]', '4');
+  await p.fill('[data-pxe="0"] [data-px="markup"]', '4');
+  await p.waitForTimeout(400);
+  r0 = await row(0);
+  A.ok(r0.ok && r0.c === '4' && r0.a === '4' && r0.m === '4', 'typing Cost / Add / Markup makes them the row\'s active pricing at once');
+  A.eq(r0.shown, 'RM' + Number(r0.px).toFixed(2), 'RM/pc shows the calculated price immediately');
+  A.eq(await p.textContent('[data-pxe="0"] .wqa-pxd-v'), r0.shown, 'and the editor shows the same figure');
+  await p.press('[data-pxe="0"] [data-px="markup"]', 'Tab');
+  await p.waitForTimeout(600);
   let offer = await p.evaluate(() => (document.querySelector('#wqaRows [data-recipe-offer]') || {}).textContent || '');
-  A.includes(offer, 'Apply this pricing setup to other compatible items?', 'D: the offer appears after Use This Pricing');
-  A.includes(offer, 'Apply to 2 other items', 'D: counting the compatible items');
+  A.includes(offer, 'Apply setup to other compatible items?', 'C: the offer follows a setup on one row');
+  A.includes(offer, 'Apply to 2 other items', 'C: counting the compatible rows');
   await p.click('#wqaRows [data-rc="dismiss"]');
-  await p.waitForTimeout(200);
-  A.ok(await p.evaluate(() => !document.querySelector('#wqaRows [data-recipe-offer]') && !wqaRowAccepted(wqa.rows[1])), 'D: Not now changes nothing');
+  await p.waitForTimeout(250);
+  A.ok(await p.evaluate(() => !document.querySelector('#wqaRows [data-recipe-offer]') && !wqaRowAccepted(wqa.rows[1])), 'C: Not now changes nothing');
 
-  // manual row is protected
-  await p.click('[data-wqa-row="2"] .wqa-fig-price');
+  // Price modes
+  await p.click('[data-wqa-row="0"] .wqa-fig-price');
+  await p.waitForTimeout(200);
+  if (!(await p.$('[data-pxe="0"]'))) { await p.click('[data-wqa-row="0"] .wqa-fig-price'); await p.waitForTimeout(200); }
+  await p.selectOption('[data-pxe="0"] [data-px="priceMode"]', 'no_round');
+  await p.waitForTimeout(300);
+  r0 = await row(0);
+  A.ok(r0.ok && r0.mode === 'no_round', 'No Round applies immediately');
+  await p.selectOption('[data-pxe="0"] [data-px="priceMode"]', 'auto');
+  await p.waitForTimeout(300);
+  A.eq((await row(0)).mode, 'auto', 'Auto Round applies immediately');
+
+  // Manual row 3 — protected later
+  await p.evaluate(() => wqaPxToggle(2));
   await p.waitForTimeout(200);
   await p.selectOption('[data-pxe="2"] [data-px="priceMode"]', 'manual');
   await p.waitForTimeout(300);
   await p.fill('[data-pxe="2"] [data-px="manualPrice"]', '50');
-  await p.dispatchEvent('[data-pxe="2"] [data-px="manualPrice"]', 'input');
-  await p.click('[data-px-use="2"]');
+  await p.waitForTimeout(400);
+  let r2 = await row(2);
+  A.ok(r2.ok && r2.mode === 'manual' && Number(r2.px) === 50, 'Manual Price is active as soon as it is typed');
+
+  // ── B: History beside the editor — quick preview
+  await p.evaluate(() => { wqa.px = null; wqaPxToggle(1); });
+  await p.waitForTimeout(250);
+  await p.click('[data-px-row="1"] .wqa-px-hist');
+  await p.waitForTimeout(300);
+  let both = await p.evaluate(() => ({ ed: !!document.querySelector('[data-pxe="1"] [data-px="costRate"]'), hq: !!document.querySelector('[data-wqa-row="1"] .wqa-hq'),
+    rcp: [...document.querySelectorAll('[data-wqa-row="1"] [data-hq-recipe]')].map(n => n.textContent),
+    acts: [...document.querySelectorAll('[data-wqa-row="1"] [data-hq-act="apply"]')].map(n => n.textContent) }));
+  A.ok(both.ed && both.hq, 'B: the quick history preview opens WITHOUT closing the pricing editor');
+  A.ok(both.rcp.some(t => t === '3.50 · +0.60 · 5% · Auto Round'), 'B: the preview shows the record\'s recipe (Cost · Add · Markup · Mode)');
+  A.ok(both.acts.length >= 1 && both.acts.every(t => t === 'Use this setup'), 'B: records offer "Use this setup"');
+  await p.click('[data-wqa-row="1"] [data-hq-act="apply"]');
   await p.waitForTimeout(500);
-  A.ok(await p.evaluate(() => wqaRowAccepted(wqa.rows[2]) && wqa.rows[2].priceMode === 'manual'), 'Manual Price via the editor prices the row');
-  A.eq(await p.evaluate(() => document.querySelectorAll('#wqaRows [data-recipe-offer]').length), 0, 'a Manual Price is not offered as a setup');
-  // use row 0 again → offer → apply
-  await p.click('[data-wqa-row="0"] .wqa-fig-price');
-  await p.waitForTimeout(200);
-  await p.click('[data-px-use="0"]');
-  await p.waitForTimeout(500);
+  let r1 = await row(1);
+  const first = r1.c;
+  A.ok(r1.ok && (Number(r1.c) === 3.8 || Number(r1.c) === 3.5), 'B: Use this setup copies the recipe and the row is priced — no second confirmation');
+  A.ok(await p.evaluate(c => document.querySelector('[data-pxe="1"] [data-px="costRate"]').value === c && !!document.querySelector('[data-wqa-row="1"] .wqa-hq'), r1.c),
+       'B: the editor (still open) shows the copied values, and the preview stays open');
+
+  // ── B: Full drawer docked beside the editor
+  await p.evaluate(() => wqaHdOpen(1));
+  await p.waitForTimeout(600);
+  const dock = await p.evaluate(() => { const inp = document.querySelector('[data-pxe="1"] [data-px="costRate"]'); const b = inp.getBoundingClientRect();
+    const d = document.getElementById('wqaHd').getBoundingClientRect(); const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    return { side: document.body.classList.contains('wqa-hd-side'), sep: b.right <= d.left, hit: hit === inp,
+      recs: document.querySelectorAll('#wqaHdBody .ph-rec').length, nums: (document.querySelector('#wqaHdBody .ph-rec-nums') || {}).textContent || '' }; });
+  A.ok(dock.side && dock.sep, 'B: desktop docks the drawer beside Quick Add — the editor is not covered');
+  A.ok(dock.hit, 'B: the editor input is still reachable (not behind a backdrop)');
+  A.ok(dock.recs === 2 && /Cost Rate/.test(dock.nums) && /Markup/.test(dock.nums) && /Price Mode/.test(dock.nums), 'B: drawer records show Cost / Add / Markup / Price Mode');
+  await p.fill('[data-pxe="1"] [data-px="markup"]', '2');
+  await p.waitForTimeout(400);
+  A.eq((await row(1)).m, '2', 'B: the editor stays editable while the drawer is open');
+  const want = Number(first) === 3.8 ? 'Q-2026-0909' : 'Q-2026-1010';
+  await p.evaluate(ref => { const rec = [...document.querySelectorAll('#wqaHdBody .ph-rec')].find(n => n.textContent.includes(ref)); rec.querySelector('.ph-rec-use').click(); }, want);
+  await p.waitForTimeout(600);
+  r1 = await row(1);
+  A.ok(r1.ok && Number(r1.c) === (want === 'Q-2026-1010' ? 3.8 : 3.5) && r1.m !== '2', 'B: the drawer\'s Use this setup (after its Similar prompt) is copied and active ' + JSON.stringify({ want, r1 }));
+  A.ok(await p.evaluate(c => Number(document.querySelector('[data-pxe="1"] [data-px="costRate"]').value) === Number(c), r1.c), 'B: the editor beside the drawer updates at once');
+  A.ok(await p.evaluate(() => !document.getElementById('wqaHd').hidden), 'B: the drawer stays open on desktop after Use this setup');
+  await p.evaluate(() => wqaHdClose());
+
+  // ── C: apply the setup on row 1 to compatible rows
+  await p.evaluate(() => { wqa.px = null; wqa.hq = null; wqaPxToggle(0); });
+  await p.waitForTimeout(250);
+  await p.fill('[data-pxe="0"] [data-px="markup"]', '0');
+  await p.press('[data-pxe="0"] [data-px="markup"]', 'Tab');
+  await p.waitForTimeout(600);
   await p.click('#wqaRows [data-rc="open"]');
   await p.waitForTimeout(250);
   const pick = await p.evaluate(() => ({ items: [...document.querySelectorAll('#wqaRows [data-rcp]')].map(n => n.getAttribute('data-rcp') + ':' + n.checked),
     skip: [...document.querySelectorAll('#wqaRows [data-rcp-skip]')].map(n => n.textContent.replace(/\s+/g, ' ').trim()) }));
-  A.eq(JSON.stringify(pick.items), '["1:true"]', 'D: preview lists the compatible unpriced item, ticked');
-  A.ok(pick.skip.length === 1 && /Manual price kept/.test(pick.skip[0]), 'D: the Manual Price row is listed as skipped (protected)');
+  A.eq(JSON.stringify(pick.items), '["1:false"]', 'C: an already-priced compatible row is listed but not ticked');
+  A.ok(pick.skip.length === 1 && /Manual price kept/.test(pick.skip[0]), 'C: the Manual Price row is skipped with its reason');
+  await p.click('#wqaRows [data-rcp="1"]');
+  await p.waitForTimeout(200);
   await p.click('#wqaRows [data-rc="apply"]');
   await p.waitForTimeout(600);
-  st = await p.evaluate(() => wqa.rows.map(r => ({ ok: wqaRowAccepted(r), c: String(r.calc.costRate), a: String(r.calc.addCost), m: String(r.calc.markup),
-    px: r.calc.finalUnitPrice, mode: r.priceMode, man: r.manualPrice })));
-  A.ok(st[1].ok && st[1].c === '3.5' && st[1].a === '0.60' && st[1].m === '0', 'D: the target gets the SETUP (3.5 · 0.60 · 0%) and is priced');
-  A.ok(st[1].px > st[0].px, 'D: a longer rod recalculates to its own, higher RM/pc — the figure is not copied');
-  A.ok(st[2].mode === 'manual' && st[2].man === '50', 'D: the Manual Price row is untouched');
+  r0 = await row(0); r1 = await row(1); r2 = await row(2);
+  A.ok(r1.c === '4' && r1.a === '4' && r1.m === '0' && r1.mode === 'auto', 'C: the target gets the setup (Cost / Add / Markup / Mode) ' + JSON.stringify({ r0, r1 }));
+  A.ok(r1.ok && r1.px > r0.px, 'C: and recalculates its own, higher RM/pc for its longer length — the figure is not copied');
+  A.ok(r2.mode === 'manual' && r2.man === '50', 'C: the Manual Price row is untouched');
 
-  // History explicit Apply prices a row (and only then)
-  await p.evaluate(() => { wqa.rows[1].pa = null; wqa.rows[1].priceOverride = {}; return wqaRecomputeAll('force'); });
-  await p.waitForTimeout(400);
-  A.ok(await p.evaluate(() => !wqaRowAccepted(wqa.rows[1])), 'History: row 2 reset to unpriced');
-  await p.evaluate(() => wqaHistUse(1, 0));
-  await p.waitForTimeout(500);
-  const h = await p.evaluate(() => ({ ok: wqaRowAccepted(wqa.rows[1]), src: wqaRowPa(wqa.rows[1]).src, c: String(wqa.rows[1].calc.costRate) }));
-  A.ok(h.ok && h.src === 'history_recipe' && Number(h.c) === 3.5, 'History explicit Apply prices the row from the record\'s setup');
-
-  // Add: every priced row goes in with its acceptance
   const add = await p.evaluate(async () => { const n0 = quoteItems.length; await wqaAddAll();
     return { n: quoteItems.length - n0, src: quoteItems.slice(-3).map(it => it.priceAcceptance && it.priceAcceptance.source) }; });
-  A.eq(add.n, 3, 'Add puts the three priced rows into the quotation');
-  A.eq(JSON.stringify(add.src), '["manual_recipe","history_recipe","manual"]', 'each with the source of its pricing');
-  A.eq(JSON.stringify(p._dcErrors), '[]', 'no page errors (Quick Add)');
+  A.eq(add.n, 3, 'Add Items to Quotation adds all three');
+  A.eq(JSON.stringify(add.src), '["manual_recipe","manual_recipe","manual"]', 'each saved with its pricing source');
+  A.eq(JSON.stringify(p._dcErrors), '[]', 'no page errors (multi-item Quick Add)');
+
+  // ── incompatible basis + one-item + L Bolt
+  A.suite('pricing reset — one item, L Bolt, incompatible rows');
+  await p.close();
+  p = await openApp(browser, { api: { get_default_prices: { ok: true, data: DP } } });
+  await quickAddPaste(p, 'MS SAG ROD PL FULLSIZE\nM12 x 1000 x 100/100 - 2pcs\n1/2" x 1200 x 100/100 - 2pcs\nM12 x 1400 x 100/100 - 2pcs', { expanded: false, settle: 900 });
+  const basis = await p.evaluate(() => wqa.rows.map(r => wqaSizeBasis(r)));
+  await p.evaluate(() => { wqaPxToggle(0); });
+  await p.waitForTimeout(200);
+  await p.fill('[data-pxe="0"] [data-px="costRate"]', '4.2');
+  await p.press('[data-pxe="0"] [data-px="costRate"]', 'Tab');
+  await p.waitForTimeout(600);
+  const of = await p.evaluate(() => { const o = wqaRecipeOffer(0); return o ? { ok: o.ok.map(r => wqa.rows.indexOf(r)), skip: o.skip.map(x => x.why) } : null; });
+  if (basis.indexOf('inch') >= 0) A.ok(of && of.skip.indexOf('paSkipBasis') >= 0, 'an inch-size row is skipped as a different pricing basis');
+  A.ok(of && of.ok.indexOf(2) >= 0, 'the metric row of the same group is compatible');
+
+  await quickAddPaste(p, 'MS SAG ROD PL FULLSIZE\nM16 x 2000 x 100/100 - 5pcs', { expanded: false, settle: 900 });
+  await p.evaluate(() => wqaPxToggle(0));
+  await p.waitForTimeout(200);
+  await p.fill('[data-pxe="0"] [data-px="costRate"]', '3');
+  await p.waitForTimeout(400);
+  A.ok(await p.evaluate(() => wqaRowAccepted(wqa.rows[0]) && !el('wqaAddBtn').disabled), 'one-item Quick Add: typed Cost prices it and Add is enabled');
+  A.eq(await p.evaluate(() => document.querySelectorAll('#wqaRows [data-recipe-offer]').length), 0, 'one-item: no apply offer (nothing to apply to)');
+
+  await quickAddPaste(p, 'MS L BOLT PL FULLSIZE\nM20 x 950 x 400 x 150 - 9pcs', { expanded: false, settle: 900 });
+  const lb0 = await p.evaluate(() => ({ t: wqaRowProduct(wqa.rows[0]), shown: document.querySelector('[data-wqa-row="0"] .wqa-fin').textContent }));
+  A.eq(lb0.t, 'lbolt', 'L Bolt row');
+  A.eq(lb0.shown, 'Set price', 'L Bolt starts without a price');
+  await p.evaluate(() => wqaPxToggle(0));
+  await p.waitForTimeout(200);
+  await p.fill('[data-pxe="0"] [data-px="costRate"]', '4.5');
+  await p.fill('[data-pxe="0"] [data-px="addCost"]', '1.2');
+  await p.waitForTimeout(400);
+  A.ok(await p.evaluate(() => wqaRowAccepted(wqa.rows[0]) && wqa.rows[0].calc.finalUnitPrice > 0), 'L Bolt: typed Cost + Add is its price');
+  A.eq(JSON.stringify(p._dcErrors), '[]', 'no page errors');
 
   // ── EN / CN
   await setLang(p, 'zh');
   await quickAddPaste(p, SAG, { expanded: false, settle: 900 });
   const zh = await p.evaluate(() => ({ fin: document.querySelector('[data-wqa-row="0"] .wqa-fin').textContent, need: el('wqaFootNeed').textContent }));
   A.eq(zh.fin, '设定价格', 'CN: RM/pc reads 设定价格');
-  A.includes(zh.need, '尚未定价', 'CN: footer says 尚未定价');
-  await p.click('[data-wqa-row="0"] .wqa-fig-price');
-  await p.waitForTimeout(200);
-  A.eq(await p.textContent('[data-px-use="0"]'), '使用此定价', 'CN: Use This Pricing = 使用此定价');
+  A.includes(zh.need, '需要定价', 'CN: footer says 需要定价');
   await setLang(p, 'en');
   await p.close();
 
-  // ── tablet / phone quick check: editor fits, no sideways scroll
+  // ── tablet / phone quick check
   for (const w of [820, 390]) {
     const q = await openApp(browser, { viewport: { width: w, height: 900 }, api: { get_pricing_history: HIST } });
     await quickAddPaste(q, SAG, { expanded: false, settle: 900 });
     await q.evaluate(() => wqaPxToggle(0));
     await q.waitForTimeout(300);
-    const lay = await q.evaluate(() => { const b = document.querySelector('[data-px-use="0"]').getBoundingClientRect();
-      const m = document.querySelector('#wqaModal .modal, #wqaModal .modal-box, #wqaModal') ;
-      return { use: b.width > 0 && b.right <= window.innerWidth + 1, sx: document.documentElement.scrollWidth <= window.innerWidth + 1,
-               h: b.height }; });
-    A.ok(lay.use, `${w}px: Use This Pricing is on screen`);
+    const lay = await q.evaluate(() => { const b = document.querySelector('[data-pxe="0"] [data-px="costRate"]').closest('.wqa-pxe-box').getBoundingClientRect();
+      return { on: b.width > 0 && b.right <= window.innerWidth + 1, sx: document.documentElement.scrollWidth <= window.innerWidth + 1, h: b.height }; });
+    A.ok(lay.on, `${w}px: the editor is on screen`);
     A.ok(lay.sx, `${w}px: no horizontal page scroll`);
-    A.ok(lay.h >= 40, `${w}px: Use This Pricing is a touch-size target`);
+    A.ok(lay.h >= 40, `${w}px: touch-size inputs`);
     A.eq(JSON.stringify(q._dcErrors), '[]', `${w}px: no page errors`);
     await q.close();
   }
