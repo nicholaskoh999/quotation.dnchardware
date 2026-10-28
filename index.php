@@ -3790,12 +3790,21 @@ button.wqa-hs:hover,button.wqa-hs.is-on{background:var(--accent-light);color:var
 .wqa-hq-t{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted)}
 .wqa-hq-x{margin-left:auto;border:0;background:transparent;font:inherit;font-size:14px;line-height:1;color:var(--text-muted);cursor:pointer;width:28px;height:28px;border-radius:6px}
 .wqa-hq-x:hover{background:var(--surface2);color:var(--text)}
-.wqa-hq-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:4px 10px;padding:5px 0;border-top:1px solid var(--border);font-size:12.5px}
+.wqa-hq-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l1 act" "spec act" "diff act" "ref act";
+  align-items:center;gap:1px 10px;padding:7px 0;border-top:1px solid var(--border);font-size:12.5px}
+.wqa-hq-l1{grid-area:l1;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px}
+.wqa-hq-spec{grid-area:spec;font-weight:750;color:var(--text);overflow-wrap:anywhere}
+.wqa-hq-diff{grid-area:diff;font-size:12px;font-weight:700;color:var(--amber,#b45309);overflow-wrap:anywhere}
+.wqa-hq-act{grid-area:act;align-self:center}
+.wqa-hq-tag{font-size:10.5px;font-weight:700;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--pill-r);padding:0 6px}
+.wqa-hq-cur{padding:2px 0 6px;font-size:12px;color:var(--text-muted)}
+.wqa-hq-cur b{color:var(--text);font-weight:750}
+.wqa-hs-d{font-weight:650;color:var(--amber,#b45309)}
 .wqa-hq-row:first-of-type{border-top:0}
 .wqa-hq-p{font-weight:850;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
 .wqa-hq-c{font-size:11px;font-weight:800;white-space:nowrap;color:var(--text-muted)}
 .wqa-hq-c.is-exact{color:var(--accent-2)}
-.wqa-hq-ref{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2);font-weight:650}
+.wqa-hq-ref{grid-area:ref;min-width:0;overflow-wrap:anywhere;font-size:11.5px;color:var(--text-muted);font-weight:600}
 .wqa-hq-ref small{color:var(--text-muted);font-weight:600}
 .wqa-hq-row .btn{min-height:28px;padding:2px 10px;font-size:12px}
 .wqa-hq-foot{display:flex;justify-content:flex-end;padding-top:6px;border-top:1px solid var(--border)}
@@ -3812,9 +3821,8 @@ button.wqa-hs:hover,button.wqa-hs.is-on{background:var(--accent-light);color:var
 #wqaHd .ph-empty-msg{padding:16px 0}
 @media (max-width:640px){ .ph-drawer.wqa-hd{width:100%} }
 @media (max-width:599px){
-  .wqa-hq{margin:0 10px 8px 40px}
-  .wqa-hq-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"p ref act" "c ref act"}
-  .wqa-hq-p{grid-area:p}.wqa-hq-c{grid-area:c}.wqa-hq-ref{grid-area:ref;white-space:normal}.wqa-hq-row .btn{grid-area:act;min-height:36px}
+  .wqa-hq{margin:0 8px 8px 8px}
+  .wqa-hq-row .btn{min-height:36px}
 }
 .wqa-fig-w{flex-direction:column;align-items:flex-end;gap:0}
 .wqa-rv-dia{border:0;background:transparent;font:inherit;font-size:11px;font-weight:650;color:var(--text-muted);padding:0 2px;border-radius:4px;cursor:text}
@@ -6853,6 +6861,7 @@ const I18N={
     wqaHqPreview:'Preview',
     wqaHqView:'View',
     wqaHqFull:'Open full Pricing History',
+    wqaHqCurrent:'This item:',
     wqaHistFrozenExact:'A manual / fixed price is only reused for the exact same item — use a record with a pricing setup.',
     tPaAccepted:'Price accepted',
     tPaNothing:'No price to accept yet.',
@@ -7482,6 +7491,7 @@ const I18N={
     wqaHqPreview:'预览',
     wqaHqView:'查看',
     wqaHqFull:'打开完整历史价格',
+    wqaHqCurrent:'本项目：',
     wqaHistFrozenExact:'手动 / 固定价格只用于完全相同的项目 — 请使用带定价参数的记录。',
     tPaAccepted:'价格已确认',
     tPaNothing:'暂无可确认的价格。',
@@ -21647,7 +21657,9 @@ function wqaRowHistSumHtml(r,i){
     return b.cls==='ref' ? open('none',txt) : `<span class="wqa-hs is-none">${txt}</span>`;
   }
   const price=phMoney(b.rec.boltUnitPrice).replace('RM ','RM');
-  return open(b.cls,`${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b>`)
+  /* A Similar price is the price of ANOTHER length: the row says how far. */
+  const far=b.cls==='close' ? wqaHqDiffText(r.hist,b.rec,'close') : '';
+  return open(b.cls,`${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b>${far?` <span class="wqa-hs-d">${escHtml(far)}</span>`:''}`)
     +(b.cls==='exact'
       ? `<button type="button" class="btn btn-outline btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHistQuickApply(${i})">${escHtml(dcT('paApplyGo'))}</button>`
       : `<button type="button" class="btn btn-ghost btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHqToggle(${i},true)">${escHtml(dcT('wqaHqPreview'))}</button>`);
@@ -21664,16 +21676,42 @@ function wqaHistQuickApply(i){
    The few records worth acting on, most relevant first — never the whole
    list. Exact spec in the same finish, this customer's first, then the most
    recent; then similar; then reference. The full list is the drawer. */
+/* Usefulness, not date alone: exact spec (same finish by construction —
+   another coating is a reference), this customer's first, then the latest;
+   then Similar NEAREST first, so a distant one never leads as if it were
+   strong; then reference. */
 function wqaHqRanked(r){
   const h=r&&r.hist; if(!h||h.failed||!h.records) return [];
   const rank={exact:0,close:1,ref:2};
+  const dist=x=>{ const d=Number(x.rec.dimDistance); return (x.rec.dimDistance===null||x.rec.dimDistance===undefined||!isFinite(d))?Infinity:d; };
   return h.records.map((rec,n)=>({rec,n,cls:phMatchInfo(rec).match}))
     .sort((a,b)=>(rank[a.cls]-rank[b.cls])
       || ((b.rec.own?1:0)-(a.rec.own?1:0))
+      || (a.cls==='close' ? (dist(a)-dist(b)) : 0)
       || String(b.rec.date||'').localeCompare(String(a.rec.date||''))
-      || ((Number(a.rec.dimDistance)||0)-(Number(b.rec.dimDistance)||0))
+      || (dist(a)-dist(b))
       || (a.n-b.n))
     .slice(0,5);
+}
+/* A record's own item, the way a row reads: M12 × L595 × TL70/200. Read off
+   the record's size and the dimensions it was saved with — never the row's. */
+function phSpecShort(cleanSize,dims){
+  const out=[sizeDisplay(cleanSize)||''];
+  const re=new RegExp(PH_DIM_RE.source,'gi'); let m;
+  while((m=re.exec(String(dims||'')))!==null) out.push(m[1].toUpperCase()+m[2]+(m[3]!==undefined?'/'+m[3]:''));
+  return out.filter(Boolean).join(' × ');
+}
+/* What differs from the row, compactly: "Δ L -435mm" (history − this item),
+   another coating said as such. Empty for an exact record. */
+function wqaHqDiffText(h,rec,cls){
+  const out=[];
+  if(cls!=='exact'){
+    const d=phDimDiff(h&&h._cmpDims,rec.dimensionPreview);
+    if(d.state==='diff') out.push('Δ '+phDimDiffText(d.parts));
+  }
+  if(rec.finishMatch===false)
+    out.push(h&&h._curFinish ? dcT('phFinishVs').replace('{a}',rec.finish||'—').replace('{b}',h._curFinish) : dcT('phDiffFinishShort'));
+  return out.join(' · ');
 }
 function wqaHqToggle(i,force){
   const r=wqa.rows[i]; if(!r) return;
@@ -21685,18 +21723,32 @@ function wqaRvHqHtml(r,i){
   if(wqa.hq!==i) return '';
   const top=wqaHqRanked(r);
   const cls={exact:'phClsExact',close:'phClsClose',ref:'phClsRef'};
+  const h=r.hist||{};
+  /* A price is never shown without the item it was the price OF: its own
+     spec, what differs from this row, and where it came from (quotation,
+     date, finish, the customer's display name — nothing else of theirs). */
   const rows=top.map(x=>{
     const rec=x.rec, price=phMoney(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined?rec.unitPrice:rec.boltUnitPrice).replace('RM ','RM');
-    /* Exact + reusable is applied here; anything else is looked at first. */
+    /* Exact + reusable is applied here; a Similar or Reference record is
+       looked at first, in the full history. */
     const act = x.cls==='exact' && phRecordReusable(rec)
-      ? `<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation();wqaHqApply(${i},${x.n})">${escHtml(dcT('paApplyGo'))}</button>`
-      : `<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();wqaHdOpen(${i})">${escHtml(dcT('wqaHqView'))}</button>`;
-    return `<div class="wqa-hq-row" data-hq-cls="${x.cls}"><span class="wqa-hq-p">${escHtml(price)}</span>
-      <span class="wqa-hq-c is-${x.cls}">${escHtml(dcT(cls[x.cls]))}</span>
-      <span class="wqa-hq-ref">${escHtml(rec.refNo||'—')} <small>· ${escHtml(fmtDateShort(rec.date))}${rec.finish?' · '+escHtml(rec.finish):''}</small></span>${act}</div>`;
+      ? `<button type="button" class="btn btn-outline btn-sm" data-hq-act="apply" onclick="event.stopPropagation();wqaHqApply(${i},${x.n})">${escHtml(dcT('paApplyGo'))}</button>`
+      : `<button type="button" class="btn btn-ghost btn-sm" data-hq-act="view" onclick="event.stopPropagation();wqaHdOpen(${i})">${escHtml(dcT('wqaHqView'))}</button>`;
+    const diff=wqaHqDiffText(h,rec,x.cls);
+    const tags=(x.rec.own&&phHasCustomer()?`<span class="wqa-hq-tag">${escHtml(dcT('phBadgeThisCustomer'))}</span>`:'')
+      +(String(rec.priceMode||'')==='manual'?`<span class="wqa-hq-tag">${escHtml(dcT('phMxTitle'))}</span>`:'');
+    const prov=[rec.refNo||'—',fmtDateShort(rec.date),rec.finish||'',rec.customer||''].filter(Boolean);
+    return `<div class="wqa-hq-row" data-hq-cls="${x.cls}">
+      <div class="wqa-hq-l1"><span class="wqa-hq-p">${escHtml(price)}</span><span class="wqa-hq-c is-${x.cls}">${escHtml(dcT(cls[x.cls]))}</span>${tags}</div>
+      <div class="wqa-hq-spec">${escHtml(phSpecShort(rec.cleanSize,rec.dimensionPreview)||'—')}</div>
+      ${diff?`<div class="wqa-hq-diff">${escHtml(diff)}</div>`:''}
+      <div class="wqa-hq-ref">${escHtml(prov.join(' · '))}</div>
+      <div class="wqa-hq-act">${act}</div></div>`;
   }).join('');
+  const cur=phSpecShort(normalizeSizeValue(r.size),h._cmpDims);
   return `<div class="wqa-hq" role="dialog" aria-label="${escHtml(dcT('wqaHqTitle'))}" onclick="event.stopPropagation()">
-      <div class="wqa-hq-t">${escHtml(dcT('wqaHqTitle'))}${r.hist&&r.hist.records&&r.hist.records.length?`<span class="wqa-hq-cnt">${escHtml(phClassText(r.hist))}</span>`:''}<button type="button" class="wqa-hq-x" aria-label="${escHtml(dcT('phClose'))}" onclick="wqaHqToggle(${i})">✕</button></div>
+      <div class="wqa-hq-t">${escHtml(dcT('wqaHqTitle'))}${r.hist&&r.hist.records&&r.hist.records.length?`<span class="wqa-hq-cnt">${escHtml(dcT((r.hist.total||r.hist.records.length)===1?'wqaHsOne':'wqaHsN').replace('{n}',r.hist.total||r.hist.records.length))}</span>`:''}<button type="button" class="wqa-hq-x" aria-label="${escHtml(dcT('phClose'))}" onclick="wqaHqToggle(${i})">✕</button></div>
+      ${cur?`<div class="wqa-hq-cur">${escHtml(dcT('wqaHqCurrent'))} <b>${escHtml(cur)}</b></div>`:''}
       ${rows||`<div class="wqa-hq-empty">${escHtml(dcT('phNoneExact'))}</div>`}
       <div class="wqa-hq-foot"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();wqaHdOpen(${i})">${escHtml(dcT('wqaHqFull'))}</button></div>
     </div>`;
