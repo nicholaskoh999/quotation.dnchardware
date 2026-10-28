@@ -3812,7 +3812,36 @@ button.wqa-hs:hover,button.wqa-hs.is-on{background:var(--accent-light);color:var
 .wqa-grx-rc{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
 .wqa-grx-rc .btn{min-height:28px;padding:2px 10px;font-size:12px}
 .wqa-grx-rcv{font-weight:650;color:var(--text-muted)}
-.wqa-px-bulk{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:650;color:var(--text-muted)}
+/* The compatible-items question and its selection: contextual, inside the
+   group heading, gone again once answered. */
+.wqa-grx-ask{font-weight:700;color:var(--text-2)}
+.wqa-rcp{flex:1 0 100%;margin-top:2px;padding:10px 12px;border:1px solid var(--accent-mid);border-radius:var(--r-sm);background:var(--surface);
+  box-shadow:0 6px 18px rgba(16,24,40,.08);font-size:12.5px}
+.wqa-rcp-t{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-2)}
+.wqa-rcp-rc{margin-top:3px;font-weight:700;color:var(--text)}
+.wqa-rcp-note{margin-top:2px;font-size:11.5px;color:var(--text-muted)}
+.wqa-rcp-list{display:flex;flex-direction:column;margin-top:6px;border-top:1px solid var(--border)}
+.wqa-rcp-it,.wqa-rcp-sk{display:grid;grid-template-columns:auto 22px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:36px;
+  padding:3px 2px;border-bottom:1px solid var(--border)}
+.wqa-rcp-it{cursor:pointer}
+.wqa-rcp-it input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+.wqa-rcp-sk{grid-template-columns:22px minmax(0,1fr) auto;color:var(--text-muted)}
+.wqa-rcp-n{font-size:11px;font-weight:700;color:var(--text-muted);text-align:right}
+.wqa-rcp-spec{font-weight:750;color:var(--text);overflow-wrap:anywhere}
+.wqa-rcp-sk .wqa-rcp-spec{color:var(--text-muted)}
+.wqa-rcp-was{font-size:12px;font-weight:650;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.wqa-rcp-why{font-size:11.5px;font-weight:700;color:var(--amber,#b45309);text-align:right}
+.wqa-rcp-skh{margin-top:8px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted)}
+.wqa-rcp-foot{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px 8px;margin-top:8px}
+.wqa-rcp-cnt{margin-right:auto;font-weight:700;color:var(--text-2)}
+@media (max-width:599px){
+  .wqa-rcp{padding:10px}
+  .wqa-rcp-it,.wqa-rcp-sk{min-height:44px}
+  .wqa-rcp-sk{grid-template-columns:22px minmax(0,1fr);grid-template-areas:"n spec" "n why"}
+  .wqa-rcp-sk .wqa-rcp-n{grid-area:n}.wqa-rcp-sk .wqa-rcp-spec{grid-area:spec}.wqa-rcp-sk .wqa-rcp-why{grid-area:why;text-align:left}
+  .wqa-rcp-foot .btn{min-height:40px}
+  .wqa-rcp-cnt{flex:1 0 100%}
+}
 /* Full history: the Pricing History drawer, beside Quick Add rather than in it. */
 .ph-backdrop.wqa-hd-bd{z-index:525;background:rgba(10,12,20,.18)}
 .ph-drawer.wqa-hd{z-index:530;width:min(400px,94vw)}
@@ -4101,7 +4130,7 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 #wqaModal .wqa-ser-head > .wqa-pick{grid-column:1 / -1}
 #wqaModal .wqa-ser-head .wqa-ser-n{grid-column:2;grid-row:1;justify-self:end;margin:0}
 #wqaModal .wqa-ser-head > .wqa-ser-px,#wqaModal .wqa-ser-head > .wqa-gacc,#wqaModal .wqa-ser-head > .wqa-dup,
-#wqaModal .wqa-ser-head > .wqa-grp-note{grid-column:1 / -1}
+#wqaModal .wqa-ser-head > .wqa-grp-note,#wqaModal .wqa-ser-head > .wqa-grx,#wqaModal .wqa-ser-head > .wqa-rcp{grid-column:1 / -1}
 #wqaModal .wqa-ser-lead{grid-column:1;grid-row:1;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;min-width:0}
 /* Footer: count left, actions right, one button height; on a phone the
    count takes its own line and the two buttons share the next. */
@@ -6853,6 +6882,20 @@ const I18N={
     wqaHsN:'{n} records',
     paApplyCompat:'Apply to compatible items',
     paApplyThis:'Apply this pricing to {n} compatible items',
+    paRcAsk:'Apply this pricing to other compatible items?',
+    paApplyToN:'Apply to {n} compatible items',
+    paApplyTo1:'Apply to 1 compatible item',
+    paNotNow:'Not now',
+    paRcTitle:'Apply pricing to compatible items',
+    paRcFrom:'From item {n}: {r}',
+    paRcRecalc:'Each item is recalculated from its own size and dimensions — the RM figure is not copied.',
+    paRcSel:'{a} compatible items selected',
+    paRcSel1:'1 compatible item selected',
+    paRcSkippedN:'{n} skipped',
+    paRcSkipped:'Skipped',
+    paSkipBasis:'Different pricing basis (metric / inch)',
+    paSkipManual:'Manual price kept',
+    paRcGo:'Apply pricing ({n})',
     wqaPxEditTip:'Edit this item\'s pricing',
     wqaPxCurrent:'Current Price:',
     wqaPxAdvanced:'More',
@@ -7483,6 +7526,20 @@ const I18N={
     wqaHsN:'{n} 条记录',
     paApplyCompat:'应用到兼容项目',
     paApplyThis:'应用此定价到 {n} 个兼容项目',
+    paRcAsk:'要将此定价应用到其他兼容项目吗？',
+    paApplyToN:'应用到 {n} 个兼容项目',
+    paApplyTo1:'应用到 1 个兼容项目',
+    paNotNow:'暂不',
+    paRcTitle:'将定价应用到兼容项目',
+    paRcFrom:'来自第 {n} 项：{r}',
+    paRcRecalc:'每个项目按自身尺寸重新计算 —— 不复制 RM 价格。',
+    paRcSel:'已选 {a} 个兼容项目',
+    paRcSel1:'已选 1 个兼容项目',
+    paRcSkippedN:'{n} 项跳过',
+    paRcSkipped:'已跳过',
+    paSkipBasis:'计价基准不同（公制 / 英制）',
+    paSkipManual:'保留手动价格',
+    paRcGo:'应用定价（{n}）',
     wqaPxEditTip:'修改此项目的定价',
     wqaPxCurrent:'当前价格：',
     wqaPxAdvanced:'更多',
@@ -19591,7 +19648,7 @@ function wqaResetState(){
   wqa._t=wqa._ta=wqa._tm=null;
   wqa._deferred={};
   /* Row pricing / history surfaces belong to the rows being reset. */
-  wqa.hq=null; wqa.recipeSrc=null; wqaHdClose();
+  wqa.hq=null; wqa.recipeSrc=null; wqa.rcPick=null; wqaHdClose();
 
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
   /* Group-level state: the heading being edited, the group last worked in,
@@ -21119,38 +21176,112 @@ function wqaRowRecipe(r){
   const okNum=s=>s!=='' && isFinite(Number(s));
   return (okNum(out.costRate)&&okNum(out.addCost)&&okNum(out.markup)) ? out : null;
 }
+/* Rows the recipe could reach, and the ones it must not, each with its reason:
+   another size basis (metric vs inch prices from a different basis), or a
+   Manual Price somebody set (a stated price is never overwritten by a
+   recipe). Rows already on the recipe are neither. */
 function wqaRecipeOffer(i){
   const src=wqa.rows[i]; const rc=wqaRowRecipe(src); if(!rc) return null;
   const g=wqaRvGroupOf(i); if(!g) return null;
   const basis=wqaSizeBasis(src), same=(a,b)=>Number(a)===Number(b);
   const others=g.idx.filter(j=>j!==i).map(j=>wqa.rows[j]).filter(r=>r&&!r.removed&&!r.added);
-  const skip=others.filter(r=>wqaSizeBasis(r)!==basis);
-  const ok=others.filter(r=>wqaSizeBasis(r)===basis && (r.priceMode||'auto')!=='manual').filter(r=>{
-    const c=r.calc||{}; return !(same(c.costRate,rc.costRate)&&same(c.addCost,rc.addCost)&&same(c.markup,rc.markup)); });
+  const skip=[], ok=[];
+  others.forEach(r=>{
+    if(wqaSizeBasis(r)!==basis){ skip.push({r,why:'paSkipBasis'}); return; }
+    if((r.priceMode||'auto')==='manual'){ skip.push({r,why:'paSkipManual'}); return; }
+    const c=r.calc||{};
+    if(!(same(c.costRate,rc.costRate)&&same(c.addCost,rc.addCost)&&same(c.markup,rc.markup))) ok.push(r);
+  });
   if(!ok.length) return null;
   return {i,rc,ok,skip,g};
 }
 function wqaRecipeText(rc){
   return dcT('rvCost')+' '+wqaRvNum(rc.costRate)+' · '+dcT('rvAdd')+' '+wqaRvNum(rc.addCost)+' · '+dcT('sumMarkup')+' '+wqaMetaPct(rc.markup);
 }
-function wqaRecipeOfferHtml(of,where){
+/* The question, asked once a row HAS been priced — never before: "Apply this
+   pricing to other compatible items? [Apply to 4 compatible items] [Not now]".
+   Pressing Apply opens the selection (wqaRcPickHtml); nothing is copied yet. */
+function wqaRecipeOfferHtml(of){
   if(!of) return '';
-  return `<span class="${where==='px'?'wqa-px-bulk':'wqa-grx-rc'}" data-recipe-offer="${of.i}">
-      <button type="button" class="btn btn-outline btn-sm" title="${escHtml(wqaRecipeText(of.rc))}"
-        onclick="event.stopPropagation();wqaRecipeApply(${of.i})">${escHtml(dcT(of.skip.length?'paApplyCompat':'paApplyThis').replace('{n}',of.ok.length))}</button>
-      ${of.skip.length?`<span class="wqa-grx-mix" title="${escHtml(dcT('paBasisMixed'))}">${escHtml(dcT('paCompatN').replace('{a}',of.ok.length).replace('{b}',of.skip.length))}</span>`
-        :(where==='px'?'':`<span class="wqa-grx-rcv">${escHtml(wqaRecipeText(of.rc))}</span>`)}
+  const n=of.ok.length;
+  return `<span class="wqa-grx-rc" data-recipe-offer="${of.i}">
+      <span class="wqa-grx-ask">${escHtml(dcT('paRcAsk'))}</span>
+      <button type="button" class="btn btn-outline btn-sm" data-rc="open" title="${escHtml(wqaRecipeText(of.rc))}"
+        onclick="event.stopPropagation();wqaRcPickOpen(${of.i})">${escHtml(dcT(n===1?'paApplyTo1':'paApplyToN').replace('{n}',n))}</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-rc="dismiss" onclick="event.stopPropagation();wqaRecipeDismiss()">${escHtml(dcT('paNotNow'))}</button>
     </span>`;
 }
-function wqaRecipeApply(i){
+/* Not now: the offer goes, nothing changes. Another explicit pricing action
+   (Done, a History recipe) may offer again. */
+function wqaRecipeDismiss(){
+  wqa.recipeSrc=null; wqa.rcPick=null;
+  wqaRenderRows(true);
+}
+function wqaRcPickOpen(i){
   const of=wqaRecipeOffer(i);
-  if(!of){ showToast(dcT('wqaBulkNone')); return; }
-  /* Re-checked now, row by row: the list on screen was drawn a moment ago. */
-  const dropped=wqaApplyPriceTo(of.ok,{...of.rc},false);
-  wqaFlashRows(of.ok.map(r=>wqa.rows.indexOf(r)));
+  if(!of){ showToast(dcT('wqaBulkNone')); wqa.recipeSrc=null; wqaRenderRows(true); return; }
+  const sel={}; of.ok.forEach(r=>{ sel[wqa.rows.indexOf(r)]=true; });
+  wqa.rcPick={src:i,sel};
+  wqa.px=null; wqa.hq=null;
+  wqaRenderRows(true);
+}
+function wqaRcPickToggle(j,on){
+  if(!wqa.rcPick) return;
+  wqa.rcPick.sel[j]=!!on;
+  wqaRenderRows(true);
+}
+function wqaRcPickCancel(){ wqa.rcPick=null; wqaRenderRows(true); }
+function wqaRcRowSpec(r){
+  return phSpecShort(normalizeSizeValue(r.size),wqaExpectedDimPreview(r))||String(r.size||'—');
+}
+/* The selection: every compatible row ticked, each one named by its spec;
+   rows the recipe must not reach listed with why; the recipe itself, and
+   that each item is recalculated from its own size — the RM figure is not
+   what is copied. */
+function wqaRcPickHtml(g){
+  const pk=wqa.rcPick; if(!pk || g.idx.indexOf(pk.src)<0) return '';
+  const of=wqaRecipeOffer(pk.src); if(!of) return '';
+  const picked=of.ok.filter(r=>pk.sel[wqa.rows.indexOf(r)]).length;
+  const items=of.ok.map(r=>{
+    const j=wqa.rows.indexOf(r), on=!!pk.sel[j];
+    return `<label class="wqa-rcp-it"><input type="checkbox"${on?' checked':''} data-rcp="${j}" onchange="wqaRcPickToggle(${j},this.checked)">
+        <span class="wqa-rcp-n">${j+1}</span><span class="wqa-rcp-spec">${escHtml(wqaRcRowSpec(r))}</span>
+        <span class="wqa-rcp-was">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span></label>`;
+  }).join('');
+  const skipped=of.skip.map(x=>{
+    const j=wqa.rows.indexOf(x.r);
+    return `<div class="wqa-rcp-sk" data-rcp-skip="${j}"><span class="wqa-rcp-n">${j+1}</span><span class="wqa-rcp-spec">${escHtml(wqaRcRowSpec(x.r))}</span>
+        <span class="wqa-rcp-why">${escHtml(dcT(x.why))}</span></div>`;
+  }).join('');
+  const count=dcT(picked===1?'paRcSel1':'paRcSel').replace('{a}',picked)
+    +(of.skip.length?' · '+dcT('paRcSkippedN').replace('{n}',of.skip.length):'');
+  return `<div class="wqa-rcp" role="group" aria-label="${escHtml(dcT('paRcTitle'))}" onclick="event.stopPropagation()">
+      <div class="wqa-rcp-t">${escHtml(dcT('paRcTitle'))}</div>
+      <div class="wqa-rcp-rc">${escHtml(dcT('paRcFrom').replace('{n}',pk.src+1).replace('{r}',wqaRecipeText(of.rc)))}</div>
+      <div class="wqa-rcp-note">${escHtml(dcT('paRcRecalc'))}</div>
+      <div class="wqa-rcp-list">${items}</div>
+      ${skipped?`<div class="wqa-rcp-skh">${escHtml(dcT('paRcSkipped'))}</div><div class="wqa-rcp-list is-skip">${skipped}</div>`:''}
+      <div class="wqa-rcp-foot"><span class="wqa-rcp-cnt">${escHtml(count)}</span>
+        <button type="button" class="btn btn-ghost btn-sm" data-rc="cancel" onclick="wqaRcPickCancel()">${escHtml(dcT('cancel'))}</button>
+        <button type="button" class="btn btn-primary btn-sm" data-rc="apply" onclick="wqaRecipeApply()"${picked?'':' disabled'}>${escHtml(dcT('paRcGo').replace('{n}',picked))}</button></div>
+    </div>`;
+}
+/* Copies the RECIPE — Cost Rate, Additional Cost, Markup — to the ticked
+   rows; each reprices from its own size (wqaRecomputeAll). Re-checked now,
+   row by row: the list on screen was drawn a moment ago. The new prices are
+   suggestions, accepted the usual way. Afterwards the group is quiet. */
+function wqaRecipeApply(){
+  const pk=wqa.rcPick; if(!pk) return;
+  const of=wqaRecipeOffer(pk.src);
+  const targets=of ? of.ok.filter(r=>pk.sel[wqa.rows.indexOf(r)]) : [];
+  wqa.rcPick=null; wqa.recipeSrc=null;
+  if(!targets.length){ showToast(dcT('wqaBulkNone')); wqaRenderRows(true); return; }
+  const dropped=wqaApplyPriceTo(targets,{...of.rc},false);
+  wqaFlashRows(targets.map(r=>wqa.rows.indexOf(r)));
   wqaRecomputeAll('force');
-  showToast(dcT('paRecipeDone').replace('{n}',of.ok.length)
-    +(of.skip.length?' · '+dcT('paSkippedBasis').replace('{n}',of.skip.length):'')
+  const left=of.ok.length-targets.length+of.skip.length;
+  showToast(dcT('paRecipeDone').replace('{n}',targets.length)
+    +(left?' · '+dcT('paRcSkippedN').replace('{n}',left):'')
     +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
 }
 /* Acceptance is offered only where there is something to accept. A row at
@@ -21163,7 +21294,9 @@ function wqaGrpPaHtml(g){
   const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
   const ok=rows.filter(wqaRowAccepted).length, sug=rows.filter(r=>wqaRowPa(r).state==='suggested').length;
   const src=(wqa.recipeSrc!=null && g.idx.indexOf(wqa.recipeSrc)>=0) ? wqa.recipeSrc : null;
-  const offer=src===null ? '' : wqaRecipeOfferHtml(wqaRecipeOffer(src),'grp');
+  /* While its selection is open, the selection is the offer. */
+  const picking=!!(wqa.rcPick && g.idx.indexOf(wqa.rcPick.src)>=0);
+  const offer=(src===null||picking) ? '' : wqaRecipeOfferHtml(wqaRecipeOffer(src));
   let acc='';
   if(rows.length>1 && sug>0)
     acc=`${ok?`<span class="wqa-grx-n">${escHtml(dcT('paCount').replace('{a}',ok).replace('{n}',rows.length))}</span>`:''}
@@ -21835,7 +21968,7 @@ function wqaPxDone(i,from){
   clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
   r.pxApplied=true;
   /* This row's recipe is now the one its group may be offered (wqaRecipeOffer). */
-  wqa.recipeSrc=i;
+  wqa.recipeSrc=i; wqa.rcPick=null;
   if(from==='strip'){ wqa.px=null; } else { r.open=false; }
   wqaRecomputeAll('force');
 }
@@ -21847,7 +21980,6 @@ function wqaRvPxStrip(r,i){
       <div class="wqa-px-head">${escHtml(dcT('sumPricing'))}</div>
       ${wqaRvPxEditor(r,i)}
       <div class="wqa-px-foot">
-        <span class="wqa-px-slot">${wqaRecipeOfferHtml(wqaRecipeOffer(i),'px')}</span>
         <span class="wqa-px-cur">${escHtml(dcT('wqaPxCurrent'))} <b class="wqa-px-curv">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</b>${escHtml(dcT('rvPerPc'))}</span>
         <button type="button" class="btn btn-ghost btn-sm wqa-px-adv" onclick="wqa.px=null;wqaToggleRow(${i})">${escHtml(dcT('wqaPxAdvanced'))}</button>
         <button type="button" class="btn btn-primary btn-sm" onclick="wqaPxDone(${i},'strip')">${escHtml(dcT('btnDone'))}</button>
@@ -22435,6 +22567,7 @@ function wqaRvSeriesHead(g){
       <button type="button" class="wqa-ser-n" title="${escHtml(dcT('wqaGrpAdjust'))}"
         onclick="event.stopPropagation();wqaBulkSheetOpen('group',null,${g.idx[0]})">${escHtml(g.idx.length===1?dcT('wqaRvSeriesOne'):dcT('wqaRvSeriesN').replace('{n}',g.idx.length))}</button>
       ${wqaGrpPaHtml(g)}
+      ${wqaRcPickHtml(g)}
       ${wqaGaccHtml(g.idx[0],g.idx)}
       ${wqaDupHtml(g)}
     </div>`;
@@ -22482,7 +22615,6 @@ function wqaPatchRows(){
     card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight(calc.weight); });
     const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaFmtPrice(wqaShownPrice(r));
     const cur=card.querySelector('.wqa-px-curv'); if(cur) cur.textContent=wqaFmtPrice(wqaShownPrice(r));
-    const slot=card.querySelector('.wqa-px-slot'); if(slot) slot.innerHTML=wqaRecipeOfferHtml(wqaRecipeOffer(i),'px');
     const fig=card.querySelector('.wqa-fig-price');
     if(fig){ fig.classList.remove('is-pa-sug','is-pa-ok'); const c=wqaPaCls(r); if(c) fig.classList.add(c); }
     const tw=card.querySelector('.wqa-tw'); if(tw) tw.textContent=wqaFmtTotalWeight(calc.weight,r.qty);
@@ -23094,7 +23226,7 @@ function wqaHistUseRec(i,rec){
   if(!wqaRecIsRecipe(rec) && phMatchInfo(rec).match!=='exact'){ showToast(dcT('wqaHistFrozenExact')); return false; }
   const out=wqaHistApplyToRow(r,rec);
   if(!out.ok){ showToast(dcT(out.why)); return false; }
-  if(out.recipe) wqa.recipeSrc=i;
+  if(out.recipe){ wqa.recipeSrc=i; wqa.rcPick=null; }
   wqaFlashRows([i]);
   wqaRecomputeAll('force');
   if(out.recipe){
