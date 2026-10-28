@@ -3575,6 +3575,12 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
   min-height:36px;padding:5px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);min-width:0}
 .wqa-px-f input:focus,.wqa-px-f select:focus,.wqa-dt-f input:focus,.wqa-dt-f select:focus{outline:none;border-color:var(--accent);
   box-shadow:0 0 0 3px var(--accent-light)}
+/* A field's name is a caption, never content: a stray double-click on the
+   price, a drag or a tap must not leave Cost Rate / Additional Cost / Markup
+   looking selected (owner-smoke: blue selection-like captions). */
+.wqa-px-f,.wqa-dt-f{-webkit-tap-highlight-color:transparent}
+.wqa-px-f>span,.wqa-dt-f>span{background:none;user-select:none;-webkit-user-select:none}
+.wqa-px-f>span::selection,.wqa-dt-f>span::selection{background:transparent}
 .wqa-dt-f input.is-bad{border-color:var(--red)}
 .wqa-dt-f.is-manual input{border-color:var(--accent-mid);background:var(--accent-light)}
 .wqa-dt-f .wqa-hint-sm{font-weight:600}
@@ -3752,6 +3758,19 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
 .wqa-hs.is-exact b{color:var(--accent-2)}
 .wqa-hs b{font-weight:800;color:var(--text)}
 .wqa-hs-go{min-height:26px;padding:2px 10px;font-size:12px}
+/* Owner-smoke hierarchy: Spec · Qty · RM/pc · Weight lead the row; what is
+   under it (history, notes, provenance, acceptance) is quieter, smaller and
+   never a filled accent. */
+#wqaModal .wqa-it-sub{gap:4px 8px;font-size:11.5px}
+#wqaModal .wqa-hs,#wqaModal button.wqa-hs{font-size:11.5px;font-weight:600}
+#wqaModal .wqa-hs-k{font-weight:650;color:var(--text-muted)}
+#wqaModal .wqa-hs b,#wqaModal .wqa-hs.is-exact b{font-weight:750;color:var(--text-2)}
+#wqaModal .wqa-hs-go,#wqaModal .wqa-pa-row{min-height:24px;padding:1px 9px;font-size:11.5px;font-weight:700}
+#wqaModal .wqa-it-note .wqa-pill-info{background:transparent;border-color:var(--border);color:var(--text-muted);font-weight:700}
+.wqa-ser-note{margin-left:8px;font-size:11px;font-weight:700;color:var(--text-muted);border:1px solid var(--border);
+  border-radius:var(--pill-r);padding:1px 7px;white-space:nowrap;vertical-align:1px}
+.wqa-grx-n.is-done{color:var(--green);font-weight:700}
+.wqa-hq-cnt{font-size:11px;font-weight:650;letter-spacing:0;text-transform:none;color:var(--text-muted)}
 /* ── The price is the way in ──────────────────────────────────────────────
    RM/pc opens the row's pricing editor; the History summary is a button that
    opens a short preview; the full list is a drawer beside Quick Add. */
@@ -3994,7 +4013,9 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 #wqaModal .wqa-fig-price{grid-area:price;justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
 #wqaModal .wqa-fig-w{grid-area:wt;justify-self:end;flex-direction:row;align-items:baseline;white-space:nowrap}
 #wqaModal .wqa-it-px{grid-area:px;justify-self:stretch;text-align:left;white-space:normal;max-width:none;min-width:0}
-#wqaModal .wqa-it-acts{grid-area:acts;display:grid;grid-template-columns:132px 34px 34px;gap:4px;justify-self:end;align-items:center}
+/* Two actions — remove and the item's panel. History is the summary under
+   the row (owner-smoke: one way into it, not two). */
+#wqaModal .wqa-it-acts{grid-area:acts;display:grid;grid-template-columns:34px 34px;gap:4px;justify-self:end;align-items:center}
 #wqaModal .wqa-it-acts .wqa-rv-act{height:34px;min-height:34px;justify-content:center;padding:0 8px}
 #wqaModal .wqa-it-acts .wqa-row-hist{justify-content:flex-start;overflow:hidden;white-space:nowrap}
 #wqaModal .wqa-it-acts .wqa-row-hist > span:not(.wqa-row-actn){overflow:hidden;text-overflow:ellipsis}
@@ -4006,17 +4027,15 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 #wqaModal .wqa-it-gx .wqa-gx{font-size:12px}
 @media (min-width:1024px) and (hover:hover) and (pointer:fine){
   #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
-    grid-template-columns:30px minmax(0,1fr) 76px 120px 106px minmax(130px,210px) 212px;
+    grid-template-columns:30px minmax(0,1fr) 76px 120px 106px minmax(130px,210px) 72px;
     grid-template-areas:"no spec qty price wt px acts";column-gap:10px;align-items:center}
-  #wqaModal .wqa-it-acts{grid-template-columns:136px 34px 34px}
   #wqaModal .wqa-it-s .wqa-it-main{min-height:42px}
 }
 /* Narrow desktop: the pricing line moves under the figures it explains. */
 @media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
   #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
-    grid-template-columns:30px minmax(0,1fr) 74px 118px 104px 178px;
+    grid-template-columns:30px minmax(0,1fr) 74px 118px 104px 72px;
     grid-template-areas:"no spec qty price wt acts" "no spec px px px acts";row-gap:2px}
-  #wqaModal .wqa-it-acts{grid-template-columns:102px 34px 34px}
   #wqaModal .wqa-it-px{text-align:right;justify-self:end}
   #wqaModal .wqa-it-px.is-shared{display:none}
 }
@@ -4027,21 +4046,21 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
   #wqaModal .wqa-it-no{align-self:start;padding-top:10px}
   #wqaModal .wqa-fig-w,#wqaModal .wqa-it-s .wqa-fig-w{display:inline-flex;justify-self:start}
   #wqaModal .wqa-it-px.is-shared{display:none}
-  #wqaModal .wqa-it-acts{grid-template-columns:minmax(0,1fr) 42px 42px;width:min(100%,300px);min-width:0;justify-self:end}
+  #wqaModal .wqa-it-acts{grid-template-columns:42px 42px;min-width:0;justify-self:end}
   #wqaModal .wqa-it-acts .wqa-rv-act{height:42px;min-height:42px}
   #wqaModal .wqa-it-acts .wqa-row-del,#wqaModal .wqa-it-acts .wqa-rv-more{width:42px}
   #wqaModal .wqa-it-acts .wqa-row-hist{padding:0 8px;min-width:0}
 }
 @media (max-width:599px){
   #wqaModal .wqa-it-main,#wqaModal .wqa-it-s .wqa-it-main,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-main{
-    grid-template-columns:26px minmax(0,1fr) auto;
-    grid-template-areas:"no spec price" "no qty wt" "no px px" "no acts acts";column-gap:8px;row-gap:4px;padding:10px;align-items:center}
+    grid-template-columns:26px minmax(0,1fr) auto auto;
+    grid-template-areas:"no spec spec price" "no qty wt acts" "no px px px";column-gap:8px;row-gap:4px;padding:10px;align-items:center}
   #wqaModal .wqa-it-no{align-self:start;padding-top:3px}
   #wqaModal .wqa-fig-qty{justify-self:start}
   #wqaModal .wqa-fig-w{display:inline-flex;justify-self:end}
   #wqaModal .wqa-it-px,#wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-px{display:block;pointer-events:auto;font-size:12px;padding:0}
   #wqaModal .wqa-it-px.is-shared{display:none}
-  #wqaModal .wqa-it-acts{display:grid;grid-template-columns:minmax(0,1fr) 40px 40px;width:100%;justify-self:stretch}
+  #wqaModal .wqa-it-acts{display:grid;grid-template-columns:40px 40px;justify-self:end}
   #wqaModal .wqa-it-acts .wqa-rv-act{height:40px;min-height:40px}
   #wqaModal .wqa-it-acts .wqa-row-del,#wqaModal .wqa-it-acts .wqa-rv-more{width:40px}
   #wqaModal .wqa-it-acts .wqa-row-hist{justify-self:start;width:auto;max-width:100%}
@@ -6805,8 +6824,12 @@ const I18N={
     paStillNeed:'{n} still need attention',
     paNeedApproval:'{n} prices still need approval',
     paNeedApproval1:'1 price still needs approval',
-    paApproveFirst:'Accept the suggested prices (Accept all suggested prices, or History Apply) before adding.',
-    paWhy:'price not accepted yet — use Accept all suggested prices or History Apply',
+    paApproveFirst:'Accept the suggested prices (Accept, or History Apply) before adding.',
+    paWhy:'price not accepted yet — use Accept or History Apply',
+    paAcceptN:'Accept {n} suggested prices',
+    paAcceptN1:'Accept 1 suggested price',
+    paAcceptOne:'Accept {v}',
+    paAllAccepted:'All {n} prices accepted ✓',
     paRecipeBlank:'Type a Cost, Add Cost or Markup to apply — blank means no change.',
     paRecipeDone:'Pricing applied to {n} compatible items — accept the prices when they look right',
     paRecipeManualKept:'{n} on Manual Price kept',
@@ -7430,8 +7453,12 @@ const I18N={
     paStillNeed:'{n} 项仍需处理',
     paNeedApproval:'{n} 个价格仍需确认',
     paNeedApproval1:'1 个价格仍需确认',
-    paApproveFirst:'添加前请先确认建议价格（接受全部建议价格，或使用历史价格的应用）。',
-    paWhy:'价格尚未确认 — 请接受全部建议价格或使用历史价格的应用',
+    paApproveFirst:'添加前请先确认建议价格（接受，或使用历史价格的应用）。',
+    paWhy:'价格尚未确认 — 请按接受或使用历史价格的应用',
+    paAcceptN:'接受 {n} 个建议价格',
+    paAcceptN1:'接受 1 个建议价格',
+    paAcceptOne:'接受 {v}',
+    paAllAccepted:'{n} 个价格均已确认 ✓',
     paRecipeBlank:'请输入成本、加工费或 Markup — 留空表示不更改。',
     paRecipeDone:'定价参数已应用到 {n} 个兼容项目 — 确认无误后请接受价格',
     paRecipeManualKept:'{n} 项手动价格保持不变',
@@ -16187,10 +16214,21 @@ function wqaRowBadges(r){
      press that opens the record. Not repeated here. */
   return out;
 }
-function wqaBadgeHtml(r,only){
+function wqaBadgeIsInline(b){ return b.k==='info' && !b.cell && !b.quoted; }
+/* The inline notes (information, never a warning or a missing field) that
+   every row of a group carries — "Unequal Thread" on all five rods. Said once
+   on the heading; a row repeats nothing it shares, and still shows any note
+   that is its own. */
+function wqaGrpSharedNotes(g){
+  if(!g || g.idx.length<2) return [];
+  const sets=g.idx.map(k=>wqaRowBadges(wqa.rows[k]).filter(wqaBadgeIsInline).map(b=>b.t));
+  return sets[0].filter((t,n)=>sets[0].indexOf(t)===n && sets.every(s=>s.indexOf(t)>=0));
+}
+function wqaBadgeHtml(r,only,skip){
   const ri=wqa.rows.indexOf(r);
-  const inline=b=>b.k==='info' && !b.cell && !b.quoted;
-  return wqaRowBadges(r).filter(b=>only==='inline'?inline(b):only==='rest'?!inline(b):true).map(b=>{
+  const inline=wqaBadgeIsInline;
+  return wqaRowBadges(r).filter(b=>only==='inline'?inline(b):only==='rest'?!inline(b):true)
+    .filter(b=>!(skip && inline(b) && skip.indexOf(b.t)>=0)).map(b=>{
     const cls=`wqa-pill wqa-pill-${b.k}${b.w?' wqa-pill-why':''}`;
     if(b.cell) return `<button type="button" class="${cls} wqa-pill-go"
         onclick="event.stopPropagation();wqaEditStart(${ri},'${b.cell}')">${escHtml(b.t)}</button>`;
@@ -21105,18 +21143,35 @@ function wqaRecipeApply(i){
     +(of.skip.length?' · '+dcT('paSkippedBasis').replace('{n}',of.skip.length):'')
     +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
 }
+/* Acceptance is offered only where there is something to accept. A row at
+   RM— or still asking for a Cost Rate has no suggestion (wqaRowPa 'none'), so
+   it never counts as ready. A one-item group accepts on its row
+   (wqaRowAcceptHtml); a group with nothing pending says nothing, or — once
+   every price is accepted — a quiet tick. */
 function wqaGrpPaHtml(g){
   const first=g.idx[0];
   const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
   const ok=rows.filter(wqaRowAccepted).length, sug=rows.filter(r=>wqaRowPa(r).state==='suggested').length;
   const src=(wqa.recipeSrc!=null && g.idx.indexOf(wqa.recipeSrc)>=0) ? wqa.recipeSrc : null;
   const offer=src===null ? '' : wqaRecipeOfferHtml(wqaRecipeOffer(src),'grp');
+  let acc='';
+  if(rows.length>1 && sug>0)
+    acc=`${ok?`<span class="wqa-grx-n">${escHtml(dcT('paCount').replace('{a}',ok).replace('{n}',rows.length))}</span>`:''}
+      <button type="button" class="btn btn-primary btn-sm wqa-grx-acc" onclick="wqaGrpAcceptAll(${first})">${escHtml(dcT(sug===1?'paAcceptN1':'paAcceptN').replace('{n}',sug))}</button>`;
+  else if(rows.length>1 && ok===rows.length)
+    acc=`<span class="wqa-grx-n is-done">${escHtml(dcT('paAllAccepted').replace('{n}',ok))}</span>`;
+  if(!offer && !acc) return '';
   return `<div class="wqa-grx" data-grx-grp="${first}" onclick="event.stopPropagation()">
       ${offer}
       <span class="wqa-grx-gap"></span>
-      <span class="wqa-grx-n">${escHtml(dcT('paCount').replace('{a}',ok).replace('{n}',rows.length))}</span>
-      <button type="button" class="btn btn-primary btn-sm wqa-grx-acc" onclick="wqaGrpAcceptAll(${first})"${sug?'':' disabled'}>${escHtml(dcT('paAcceptAll'))}</button>
+      ${acc}
     </div>`;
+}
+/* A one-item group has no group action: its row accepts its own suggestion. */
+function wqaRowAcceptHtml(r,i){
+  if(wqaRowPa(r).state!=='suggested') return '';
+  const g=wqaRvGroupOf(i); if(g && g.idx.length>1) return '';
+  return `<button type="button" class="btn btn-outline btn-sm wqa-pa-row" onclick="event.stopPropagation();wqaPaApply(${i})">${escHtml(dcT('paAcceptOne').replace('{v}',wqaFmtPrice(wqaRowPa(r).v)))}</button>`;
 }
 
 /* mode: 'force' = always full render (structural, user-initiated)
@@ -21536,11 +21591,6 @@ function wqaRvPxText(r){
        + (mode==='no_round'?' · '+dcT('pmNoRound'):'');
 }
 function dcHistIcon(){ return '<svg class="dc-hist-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="8" cy="16" r="6"/><path d="M9.5 17.5 8 16.25V14"/></svg>'; }
-function wqaRvHistBtn(r,i){
-  return `<button type="button" class="wqa-rv-act wqa-row-hist${r.histOpen?' is-on':''}"
-      aria-expanded="${r.histOpen?'true':'false'}" title="${escHtml(dcT('tipItemHistory'))}"
-      onclick="event.stopPropagation();wqaHistToggle(${i})">${dcHistIcon()}<span>${escHtml(dcT('phTitle'))}</span>${wqaHistCountLabel(r)}</button>`;
-}
 function wqaRvDelBtn(i){
   return `<button type="button" class="wqa-rv-act wqa-row-del" title="${escHtml(dcT('btnRemove'))}"
       aria-label="${escHtml(dcT('ariaRemoveItem').replace('{n}',i+1))}"
@@ -21576,8 +21626,10 @@ function wqaRowBestHist(r){
   if(n>=0) return {cls:'close',n,rec:recs[n],count:c.close};
   return {cls:recs.length?'ref':'none',n:-1,count:recs.length};
 }
-/* "History: Exact RM27.40 · 3 records [Apply] ▾". The summary itself is a
-   button: it opens the quick preview (a click, never a hover). Only an exact
+/* "History: Exact RM27.40 ▾ [Apply]". The summary itself is a button: it
+   opens the quick preview (a click, never a hover), and it is the row's ONE
+   way into history — the preview leads on to the full drawer. How many
+   records there are is said in the preview, not on every row. Only an exact
    reusable record gets a direct Apply; a similar one is previewed first; a
    reference is never offered as reusable. */
 function wqaRowHistSumHtml(r,i){
@@ -21595,8 +21647,7 @@ function wqaRowHistSumHtml(r,i){
     return b.cls==='ref' ? open('none',txt) : `<span class="wqa-hs is-none">${txt}</span>`;
   }
   const price=phMoney(b.rec.boltUnitPrice).replace('RM ','RM');
-  const cnt=dcT(b.count===1?'wqaHsOne':'wqaHsN').replace('{n}',b.count);
-  return open(b.cls,`${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b> · ${escHtml(cnt)}`)
+  return open(b.cls,`${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b>`)
     +(b.cls==='exact'
       ? `<button type="button" class="btn btn-outline btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHistQuickApply(${i})">${escHtml(dcT('paApplyGo'))}</button>`
       : `<button type="button" class="btn btn-ghost btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHqToggle(${i},true)">${escHtml(dcT('wqaHqPreview'))}</button>`);
@@ -21645,7 +21696,7 @@ function wqaRvHqHtml(r,i){
       <span class="wqa-hq-ref">${escHtml(rec.refNo||'—')} <small>· ${escHtml(fmtDateShort(rec.date))}${rec.finish?' · '+escHtml(rec.finish):''}</small></span>${act}</div>`;
   }).join('');
   return `<div class="wqa-hq" role="dialog" aria-label="${escHtml(dcT('wqaHqTitle'))}" onclick="event.stopPropagation()">
-      <div class="wqa-hq-t">${escHtml(dcT('wqaHqTitle'))}<button type="button" class="wqa-hq-x" aria-label="${escHtml(dcT('phClose'))}" onclick="wqaHqToggle(${i})">✕</button></div>
+      <div class="wqa-hq-t">${escHtml(dcT('wqaHqTitle'))}${r.hist&&r.hist.records&&r.hist.records.length?`<span class="wqa-hq-cnt">${escHtml(phClassText(r.hist))}</span>`:''}<button type="button" class="wqa-hq-x" aria-label="${escHtml(dcT('phClose'))}" onclick="wqaHqToggle(${i})">✕</button></div>
       ${rows||`<div class="wqa-hq-empty">${escHtml(dcT('phNoneExact'))}</div>`}
       <div class="wqa-hq-foot"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();wqaHdOpen(${i})">${escHtml(dcT('wqaHqFull'))}</button></div>
     </div>`;
@@ -21653,6 +21704,8 @@ function wqaRvHqHtml(r,i){
 function wqaHqApply(i,n){ wqa.hq=null; wqaHistUse(i,n); }
 function wqaRvSubHtml(r,i){
   const bits=[];
+  const pa=wqaRowAcceptHtml(r,i);
+  if(pa) bits.push(pa);
   const hs=wqaRowHistSumHtml(r,i);
   if(hs) bits.push(hs);
   const prov=wqaProvBtnHtml(r,i);
@@ -21700,6 +21753,9 @@ function wqaPxToggle(i){
   }
   wqa.ix=null; wqa.hq=null;
   wqa.px = wqa.px===i ? null : i;
+  /* A double-click on the price would otherwise carry its word selection
+     onto the editor's captions as it opens under the pointer. */
+  try{ const s=window.getSelection&&window.getSelection(); if(s&&s.rangeCount) s.removeAllRanges(); }catch(e){}
   wqaRenderRows(true);
   if(wqa.px===i) wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'costRate')+'"]');
 }
@@ -21923,7 +21979,7 @@ function wqaRvItemHtml(r,i,series){
       aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}">`:'';
   /* The heading is identity only, so the row carries its whole spec, the
      bar first: Ø10.6 · M12 × L595 × TL70/200. */
-  const note=wqaBadgeHtml(r,'inline');
+  const note=wqaBadgeHtml(r,'inline',series&&series.shared);
   const diaCell=wqaGxCell('r',i,'dia',[i]);
   const skip=null;
   const dense=wqaRvDenseToks(r,i,diaCell,skip);
@@ -21949,7 +22005,7 @@ function wqaRvItemHtml(r,i,series){
         ? `<button type="button" class="wqa-it-px" onclick="event.stopPropagation();wqaPxToggle(${i})"
         aria-expanded="${wqa.px===i?'true':'false'}"><span class="wqa-px-sum">${escHtml(wqaRvPxText(r))}</span></button>`
         : `<span class="wqa-it-px wqa-it-gx" data-gx-sc="r"><span class="wqa-px-sum" hidden>${escHtml(wqaRvPxText(r))}</span>${wqaGxPxHtml('r',i,[i],'wqa-gx-line')}</span>`}
-      <span class="wqa-it-acts">${wqaRvHistBtn(r,i)}${wqaRvDelBtn(i)}${wqaRvMoreBtn(r,i)}</span>
+      <span class="wqa-it-acts">${wqaRvDelBtn(i)}${wqaRvMoreBtn(r,i)}</span>
     </div>
     ${wqaRvSubHtml(r,i)}
     ${(!series && wqaAccHas(r.acc))?`<div class="wqa-it-gacc">${wqaGaccHtml(i,[i])}</div>`:''}
@@ -22322,7 +22378,8 @@ function wqaRvSeriesHead(g){
   const pick=wqa.selMode?`<input type="checkbox" class="wqa-pick wqa-pick-ser"${all?' checked':''}
       onchange="wqaRvSelSeries('${g.idx.join(',')}',this.checked)" aria-label="${escHtml(dcT('wqaRvSelSeries'))}">`:'';
   return `<div class="wqa-ser-head">${pick}
-      <span class="wqa-ser-lead"><span class="wqa-ser-title">${escHtml(wqaRvGroupTitle(r))}</span></span>
+      <span class="wqa-ser-lead"><span class="wqa-ser-title">${escHtml(wqaRvGroupTitle(r))}</span>${
+        (g.shared||[]).map(t=>`<span class="wqa-ser-note">${escHtml(t)}</span>`).join('')}</span>
       <button type="button" class="wqa-ser-n" title="${escHtml(dcT('wqaGrpAdjust'))}"
         onclick="event.stopPropagation();wqaBulkSheetOpen('group',null,${g.idx[0]})">${escHtml(g.idx.length===1?dcT('wqaRvSeriesOne'):dcT('wqaRvSeriesN').replace('{n}',g.idx.length))}</button>
       ${wqaGrpPaHtml(g)}
@@ -22348,6 +22405,7 @@ function wqaRenderRows(force){
     const tally={};
     g.idx.forEach(k=>{ const t=wqaRvPxText(wqa.rows[k]); tally[t]=(tally[t]||0)+1; });
     g.px=Object.keys(tally).sort((x,y)=>tally[y]-tally[x])[0]||'';
+    g.shared=wqaGrpSharedNotes(g);
     return `<div class="wqa-ser">${wqaRvSeriesHead(g)}<div class="wqa-ser-rows">${
       g.idx.map(i=>wqaRvItemHtml(wqa.rows[i],i,g)).join('')}</div></div>`;
   }).join('') || `<div class="wqa-rv-empty">${escHtml(dcT('wqaRvEmpty'))}</div>`;
@@ -22672,18 +22730,6 @@ function wqaBulkApply(){
     const extra=said.filter(s=>/·/.test(s)).map(s=>s.split(' · ').slice(1).join(' · ')).filter(Boolean);
     showToast(dcT('wqaBsDone').replace('{n}',n)+(extra.length?' · '+extra.join(' · '):''));
   }
-}
-/* How many records this row has, once it knows — a count on a closed control
-   is the reason to open it. Silent until the row has actually asked. */
-function wqaHistCountLabel(r){
-  const h=r&&r.hist;
-  if(!h||h.failed||!h.records||!h.records.length) return '';
-  /* The number on the button is the EXACT matches; with none, the total is
-     shown muted so it never reads as "22 exact". */
-  const c=phClassCounts(h);
-  return c.exact
-    ? ' <span class="wqa-row-actn" title="'+escHtml(phClassText(h))+'">'+c.exact+'</span>'
-    : ' <span class="wqa-row-actn is-ref" title="'+escHtml(phClassText(h))+'">'+(h.total||h.records.length)+'</span>';
 }
 /* ── Where this price came from ────────────────────────────────────────────
    "Reusing Q-2026-0403 pricing" was a line of small grey text among several,
