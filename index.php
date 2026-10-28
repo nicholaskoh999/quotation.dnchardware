@@ -3762,7 +3762,7 @@ button.wqa-rv-chip:hover{border-color:var(--accent-mid);background:var(--accent-
    under it (history, notes, provenance, acceptance) is quieter, smaller and
    never a filled accent. */
 #wqaModal .wqa-it-sub{gap:4px 8px;font-size:11.5px}
-#wqaModal .wqa-hs,#wqaModal button.wqa-hs{font-size:11.5px;font-weight:600}
+#wqaModal .wqa-hs,#wqaModal button.wqa-hs{font-size:11.5px;font-weight:600;white-space:normal;flex-wrap:wrap;text-align:left;min-width:0;max-width:100%}
 #wqaModal .wqa-hs-k{font-weight:650;color:var(--text-muted)}
 #wqaModal .wqa-hs b,#wqaModal .wqa-hs.is-exact b{font-weight:750;color:var(--text-2)}
 #wqaModal .wqa-hs-go,#wqaModal .wqa-pa-row{min-height:24px;padding:1px 9px;font-size:11.5px;font-weight:700}
@@ -21790,8 +21790,9 @@ function wqaRowHistSumHtml(r,i){
     return b.cls==='ref' ? open('none',txt) : `<span class="wqa-hs is-none">${txt}</span>`;
   }
   const price=phMoney(b.rec.boltUnitPrice).replace('RM ','RM');
-  /* A Similar price is the price of ANOTHER length: the row says how far. */
-  const far=b.cls==='close' ? wqaHqDiffText(r.hist,b.rec,'close') : '';
+  /* A Similar price is the price of ANOTHER length: the row says how far —
+     the first two measured differences only; the preview has the rest. */
+  const far=b.cls==='close' ? wqaHsDiffShort(r.hist,b.rec) : '';
   return open(b.cls,`${lbl} ${escHtml(dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'))} <b>${escHtml(price)}</b>${far?` <span class="wqa-hs-d">${escHtml(far)}</span>`:''}`)
     +(b.cls==='exact'
       ? `<button type="button" class="btn btn-outline btn-sm wqa-hs-go" onclick="event.stopPropagation();wqaHistQuickApply(${i})">${escHtml(dcT('paApplyGo'))}</button>`
@@ -21836,6 +21837,11 @@ function phSpecShort(cleanSize,dims){
 }
 /* What differs from the row, compactly: "Δ L -435mm" (history − this item),
    another coating said as such. Empty for an exact record. */
+function wqaHsDiffShort(h,rec){
+  const d=phDimDiff(h&&h._cmpDims,rec.dimensionPreview);
+  const parts=d.state==='diff' ? d.parts.filter(p=>!p.miss) : [];
+  return parts.length ? 'Δ '+phDimDiffText(parts.slice(0,2))+(parts.length>2?' …':'') : '';
+}
 function wqaHqDiffText(h,rec,cls){
   const out=[];
   if(cls!=='exact'){
