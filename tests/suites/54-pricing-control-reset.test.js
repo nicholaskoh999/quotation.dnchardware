@@ -197,9 +197,9 @@ module.exports = async (browser, A) => {
   A.eq(await p.textContent('[data-pxe="0"] .wqa-pxd-v'), r0.shown, 'and the editor shows the same figure');
   await p.press('[data-pxe="0"] [data-px="markup"]', 'Tab');
   await p.waitForTimeout(600);
-  let offer = await p.evaluate(() => (document.querySelector('#wqaRows [data-recipe-offer]') || {}).textContent || '');
-  A.includes(offer, 'Apply setup to other compatible items?', 'C: the offer follows a setup on one row');
-  A.includes(offer, 'Apply to 2 other items', 'C: counting the compatible rows');
+  let offer = await p.evaluate(() => (document.querySelector('[data-pxe="0"] [data-recipe-offer]') || {}).textContent || '');
+  A.includes(offer, 'Apply this setup to 2 other compatible items?', 'C: the offer follows a setup on one row, in its editor');
+  A.includes(offer, 'Apply to 2 items', 'C: counting the compatible rows');
   await p.click('#wqaRows [data-rc="dismiss"]');
   await p.waitForTimeout(250);
   A.ok(await p.evaluate(() => !document.querySelector('#wqaRows [data-recipe-offer]') && !wqaRowAccepted(wqa.rows[1])), 'C: Not now changes nothing');
