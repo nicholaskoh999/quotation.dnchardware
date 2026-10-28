@@ -22,7 +22,8 @@ module.exports = async (browser, A) => {
   const dp = await page.evaluate(() => {
     const read = () => ({ size: fv('stud', 'size'), rate: fv('stud', 'costRate'),
                           add: fv('stud', 'addCost'), mk: fv('stud', 'markup'),
-                          badge: (document.getElementById('dpStatus') || {}).className || '' });
+                          badge: (document.getElementById('dpStatus') || {}).className || '',
+                          rec: dcRecommendFor('stud') || {} });
     switchType('stud');
     document.getElementById('stud-material').value = 'MS';
     document.getElementById('stud-size').value = 'M16'; onStudSizeCommit();
@@ -33,13 +34,14 @@ module.exports = async (browser, A) => {
     const none = read();
     return { m16, m20, none };
   });
-  A.eq(dp.m16.rate, '5.00', 'the M16 rule fills the M16 rate');
-  A.eq(dp.m16.mk, '10', 'and its markup');
-  A.eq(dp.m20.rate, '7.50', 'changing the size to M20 brings the M20 rate — it does not keep M16s');
-  A.eq(dp.m20.add, '2.00', 'and the M20 additional cost');
-  A.eq(dp.m20.mk, '20', 'and the M20 markup');
-  A.eq(dp.none.rate, '', 'a size with no rule clears what the previous size\'s rule wrote');
-  A.ok(!/show/.test(dp.none.badge), 'and the "Default price applied" badge goes out with it');
+  /* Pricing Control Reset: a rule is a RECOMMENDATION that follows the
+     identity; it never fills the boxes. */
+  A.eq(dp.m16.rate, '', 'the M16 rule does not fill the rate (recommendation only)');
+  A.eq(dp.m16.rec.costRate + '/' + dp.m16.rec.markup, '5.00/10', 'the M16 rule is the recommendation');
+  A.eq(dp.m20.rec.costRate + '/' + dp.m20.rec.addCost + '/' + dp.m20.rec.markup, '7.50/2.00/20', 'changing the size to M20 brings the M20 recommendation');
+  A.eq(dp.m20.rate + dp.m20.add + dp.m20.mk, '', 'and still writes nothing');
+  A.eq(dp.none.rate, '', 'a size with no rule leaves the rate empty');
+  A.ok(!/show/.test(dp.none.badge), 'and no recommendation is shown');
 
   // ── a rate the PERSON typed is theirs and survives ───────────────────────
   const mine = await page.evaluate(() => {
@@ -51,7 +53,7 @@ module.exports = async (browser, A) => {
     return { rate: fv('stud', 'costRate'), add: fv('stud', 'addCost') };
   });
   A.eq(mine.rate, '99.99', 'a rate the person typed is not replaced by a rule for the new size');
-  A.eq(mine.add, '2.00', 'while a field they did not touch still follows the identity');
+  A.eq(mine.add, '', 'while a field they did not touch stays empty — rules never fill it');
 
   // ── a rate restored with a draft is still the rules', not the person's ───
   const restored = await page.evaluate(() => {
@@ -73,9 +75,9 @@ module.exports = async (browser, A) => {
     return { afterRestore, rate: fv('stud', 'costRate'), add: fv('stud', 'addCost'), mk: fv('stud', 'markup') };
   });
   A.eq(restored.afterRestore.rate, '5.00', 'the draft came back with the M16 rate');
-  A.eq(restored.rate, '7.50', 'and changing the size to M20 still refreshes it after a reload');
-  A.eq(restored.add, '2.00', 'additional cost too');
-  A.eq(restored.mk, '20', 'and markup');
+  /* Pricing Control Reset: nothing re-derives rates, so the restored values
+     are simply what the form holds. */
+  A.eq(restored.rate, '5.00', 'a size change does not rewrite the restored rate');
 
   // ── finish is part of the identity too ───────────────────────────────────
   const fin = await page.evaluate(() => {
@@ -85,12 +87,13 @@ module.exports = async (browser, A) => {
     document.getElementById('anchorbolt-sizeType').value = 'FULLSIZE';
     document.getElementById('anchorbolt-size').value = 'M20'; onSizeCommit('anchorbolt');
     setFinishValue('anchorbolt', 'PL'); onFinishChange('anchorbolt');
-    const pl = fv('anchorbolt', 'costRate');
+    const pl = (dcRecommendFor('anchorbolt') || {}).costRate;
     setFinishValue('anchorbolt', 'HDG'); onFinishChange('anchorbolt');
-    return { pl, hdg: fv('anchorbolt', 'costRate') };
+    return { pl, hdg: (dcRecommendFor('anchorbolt') || {}).costRate, box: fv('anchorbolt', 'costRate') };
   });
-  A.eq(fin.pl, '4.00', 'the PL rule');
-  A.eq(fin.hdg, '9.00', 'and changing the finish to HDG brings the HDG rate, not PLs');
+  A.eq(fin.pl, '4.00', 'the PL rule is the PL recommendation');
+  A.eq(fin.hdg, '9.00', 'and changing the finish to HDG recommends the HDG rate, not PLs');
+  A.eq(fin.box, '', 'without writing either');
 
   // ── material is part of the identity too ─────────────────────────────────
   const mat = await page.evaluate(() => {
@@ -98,7 +101,7 @@ module.exports = async (browser, A) => {
     productEntryTouchedFields.clear();
     document.getElementById('stud-material').value = 'MS';
     document.getElementById('stud-size').value = 'M16'; onStudSizeCommit();
-    const before = fv('stud', 'costRate');
+    const before = (dcRecommendFor('stud') || {}).costRate;
     document.getElementById('stud-material').value = 'SS304';
     onMaterialSizeChange('stud', false, 'material');
     return { before, after: fv('stud', 'costRate'), material: fv('stud', 'material') };

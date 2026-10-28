@@ -775,11 +775,16 @@ input,select,textarea{font-family:inherit}
 /* ═══════════════ DEFAULT PRICE SETTINGS ═══════════════ */
 .dp-status{
   display:none; align-items:center; gap:6px; margin-top:8px;
-  background:var(--green-light); border:1px solid var(--green-2); border-radius:var(--r-xs);
-  padding:6px 10px; font-size:11.5px; font-weight:700; color:var(--green);
+  background:var(--surface2); border:1px dashed var(--border); border-radius:var(--r-xs);
+  padding:6px 10px; font-size:11.5px; font-weight:650; color:var(--text-2); flex-wrap:wrap;
 }
 .dp-status.show{display:flex}
-.dp-status .dp-edit{margin-left:auto; background:none; border:none; color:var(--green); cursor:pointer; font-size:11px; font-weight:700; text-decoration:underline; padding:0}
+/* A recommendation, not a price in use: a reference line, never green. */
+.dp-status .dp-rec-k{color:var(--text-muted); font-weight:700}
+.dp-status .dp-rec-v{color:var(--text); font-variant-numeric:tabular-nums}
+.dp-status .dp-rec-src{color:var(--text-muted); font-weight:600}
+.dp-status .dp-edit{background:none; border:none; color:var(--accent-2,var(--accent)); cursor:pointer; font-size:11px; font-weight:700; text-decoration:underline; padding:0}
+.dp-status .dp-edit:first-of-type{margin-left:auto}
 
 .dp-table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:var(--r-sm)}
 table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:12.5px}
@@ -4281,6 +4286,64 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 @media (max-width:599px){
   #wqaModal .wqa-it:not(.wqa-it-s) .wqa-it-title{flex-direction:row;flex-wrap:wrap;align-items:baseline}
 }
+/* ── Pricing Control Reset (2026-10-28) ─────────────────────────────────── */
+/* RM/pc: a priced row shows its price with a quiet tick; an unpriced one is
+   the way into the editor ("Set price"), never a number nobody chose. */
+.wqa-fig-price.is-pa-ok .wqa-fin{color:var(--text)}
+.wqa-fig-price.is-pa-ok .wqa-fin::after{content:" \2713";font-size:.8em;font-weight:800;color:var(--green)}
+.wqa-fig-price.is-pa-none .wqa-fin{font-size:12.5px;font-weight:750;color:var(--accent-2,var(--accent));text-decoration:underline dotted;text-underline-offset:3px}
+.wqa-fig-price.is-pa-none small{display:none}
+/* Cost · Add · Markup on the row: values to read, not boxes to type in. */
+#wqaModal .wqa-ip-set{cursor:pointer;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:2px}
+#wqaModal .wqa-ip-set .wqa-ip{flex-direction:row;align-items:baseline;gap:4px;flex:0 0 auto;min-width:auto;cursor:pointer}
+#wqaModal .wqa-ip-v{font-size:13px;font-weight:650;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+#wqaModal .wqa-ip-set.is-rec .wqa-ip-v{color:var(--text-2);font-style:italic;font-weight:600}
+#wqaModal .wqa-ip-set.is-none .wqa-ip-v{color:var(--text-muted);font-weight:500}
+#wqaModal .wqa-ip-tag{align-self:center;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
+  border:1px dashed var(--border);border-radius:99px;padding:0 6px;white-space:nowrap}
+#wqaModal .wqa-ip-set:hover .wqa-ip-v{text-decoration:underline dotted;text-underline-offset:3px}
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  #wqaModal .wqa-ip-set .wqa-ip{justify-content:flex-end;padding-right:8px}
+  #wqaModal .wqa-ip-tag{display:none}
+}
+/* The editor: one horizontal row on desktop, wrapping where width runs out. */
+.wqa-pxe-rec{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin-bottom:8px;font-size:12px;font-weight:650;color:var(--text-2)}
+.wqa-pxe-rk{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted)}
+.wqa-pxe-rec b{font-variant-numeric:tabular-nums;color:var(--text)}
+.wqa-pxe-rs{color:var(--text-muted);font-weight:600}
+.wqa-pxe-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 10px}
+.wqa-pxe-f{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:11px;font-weight:750;color:var(--text-muted)}
+.wqa-pxe-k{user-select:none;-webkit-user-select:none;white-space:nowrap}
+.wqa-pxe-box{display:flex;align-items:center;height:34px;padding:0 8px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);width:92px;box-sizing:border-box}
+.wqa-pxe-box:focus-within{border-color:var(--border-focus,var(--accent));box-shadow:0 0 0 2px var(--accent-light)}
+.wqa-pxe-f.is-bad .wqa-pxe-box{border-color:var(--red);box-shadow:0 0 0 2px var(--red-light)}
+.wqa-pxe-box input{flex:1 1 auto;width:100%;min-width:0;border:0;outline:0;background:transparent;padding:0;font:inherit;font-size:14px;font-weight:700;
+  color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
+.wqa-pxe-box input::placeholder{color:var(--text-muted);opacity:.6}
+.wqa-pxe-u{margin-left:2px;font-size:12px;font-weight:700;color:var(--text-muted)}
+.wqa-pxe-manualPrice .wqa-pxe-box{width:120px}
+.wqa-pxe-mode select{height:34px;min-width:128px;padding:0 6px;border:1px solid var(--border);border-radius:var(--r-xs);background:var(--surface);
+  font:inherit;font-size:13px;font-weight:650;color:var(--text)}
+.wqa-pxe-out{display:inline-flex;align-items:baseline;gap:4px;height:34px;line-height:34px;white-space:nowrap;font-size:12px;color:var(--text-muted)}
+.wqa-pxe-out b{font-size:16px;font-weight:850;color:var(--text);font-variant-numeric:tabular-nums}
+.wqa-pxe-arr{font-weight:800}
+.wqa-pxe-use{height:34px;min-height:34px;white-space:nowrap}
+.wqa-px .wqa-px-foot{margin-top:8px;justify-content:flex-end}
+@media (min-width:600px) and (max-width:1023px), (min-width:600px) and (pointer:coarse){
+  .wqa-pxe-box,.wqa-pxe-mode select,.wqa-pxe-out,.wqa-pxe-use{height:44px;min-height:44px;line-height:44px}
+  .wqa-pxe-box input{font-size:16px}
+}
+@media (max-width:599px){
+  .wqa-px{padding-left:12px}
+  .wqa-pxe-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .wqa-pxe-box{width:100%;height:44px}
+  .wqa-pxe-box input{font-size:16px}
+  .wqa-pxe-mode{grid-column:1 / -1}
+  .wqa-pxe-mode select{width:100%;height:44px}
+  .wqa-pxe-manualPrice{grid-column:1 / -1}
+  .wqa-pxe-out{grid-column:1 / 2;height:44px;line-height:44px}
+  .wqa-pxe-use{grid-column:2 / -1;height:44px;min-height:44px;width:100%}
+}
 /* ══ DNC shared desktop shell (2026-10-24) ═════════════════════════════════
    The same block in index.php and companies.php, and the same values as the
    Internal PO shell: 240px sidebar, 64px brand row, 36px rows, 8px radius,
@@ -4828,9 +4891,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="sagrod-costRate" placeholder="4.2" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0.6" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="sagrod-markup" placeholder="15" min="0" oninput="calcSagRod()"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="sagrod-costRate" placeholder="0" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="sagrod-markup" placeholder="0" min="0" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="sagrod-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="sagrod-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -4883,9 +4946,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="stud-costRate" placeholder="4.2" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0.6" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="stud-markup" placeholder="15" min="0" oninput="calcStud()"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="stud-costRate" placeholder="0" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="stud-markup" placeholder="0" min="0" oninput="calcStud()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="stud-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="stud-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -4943,9 +5006,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="anchorbolt-costRate" placeholder="4.2" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0.6" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="anchorbolt-markup" placeholder="15" min="0" oninput="calcAnchorBolt()"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="anchorbolt-costRate" placeholder="0" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="anchorbolt-markup" placeholder="0" min="0" oninput="calcAnchorBolt()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="anchorbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="anchorbolt-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -4999,9 +5062,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="ubolt-costRate" placeholder="4.2" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0.6" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="ubolt-markup" placeholder="15" min="0" oninput="calcUBolt('ubolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="ubolt-costRate" placeholder="0" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="ubolt-markup" placeholder="0" min="0" oninput="calcUBolt('ubolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="ubolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="ubolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5054,9 +5117,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="squbolt-costRate" placeholder="4.2" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0.6" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="squbolt-markup" placeholder="15" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="squbolt-costRate" placeholder="0" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="squbolt-markup" placeholder="0" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="squbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="squbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5109,9 +5172,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="lbolt-costRate" placeholder="4.2" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0.6" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="lbolt-markup" placeholder="15" min="0" oninput="calcLBolt('lbolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="lbolt-costRate" placeholder="0" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="lbolt-markup" placeholder="0" min="0" oninput="calcLBolt('lbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="lbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="lbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5165,9 +5228,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             </div>
           </div>
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
-          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="jbolt-costRate" placeholder="4.2" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','costRate');}"></div>
-          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0.6" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="jbolt-markup" placeholder="15" min="0" oninput="calcJBolt('jbolt',true)"></div>
+          <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="jbolt-costRate" placeholder="0" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','costRate');}"></div>
+          <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
+          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="jbolt-markup" placeholder="0" min="0" oninput="calcJBolt('jbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="jbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="jbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5465,7 +5528,10 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           </div>
         </div>
         <div class="dp-status" id="dpStatus">
-          <span data-i18n="mDefaultApplied">Default price applied</span>
+          <span class="dp-rec-k" data-i18n="recPricing">Recommended</span>
+          <b class="dp-rec-v" id="dpRecV"></b>
+          <span class="dp-rec-src" id="dpRecSrc"></span>
+          <button class="dp-edit" onclick="dcRecFill()" data-i18n="recFill">Fill in</button>
           <button class="dp-edit" onclick="openDPModal()" data-i18n="mManageRules">Manage rules</button>
         </div>
 
@@ -6902,12 +6968,13 @@ const I18N={
     tUnitNeg:'Unit price is negative — check Cost Rate / Markup',
     tLineNeg:'Line total is negative — check inputs',
     tIdIhNeg:'ID / IH cannot be negative', tItemUpdated:'Item updated',
-    tOldNoRate:'Old item has no saved Cost Rate. Its saved price stays accepted; change a price input to get a new suggestion.',
-    paSuggested:'Suggested',
-    paAccepted:'Accepted',
-    paSuggestedPrice:'Suggested Price',
-    paAcceptedPrice:'Accepted Price',
-    paApply:'Apply Price',
+    tOldNoRate:'Old item has no saved Cost Rate. Its saved price stays as saved — nothing was filled in.',
+    paSuggested:'Not priced yet',
+    paAccepted:'Priced',
+    paSuggestedPrice:'Calculated',
+    paAcceptedPrice:'Pricing used',
+    paApply:'Use This Pricing',
+    recPricing:'Recommended', recFill:'Fill in', wqaPxSet:'Set price', wqaPxUse:'Use This Pricing', wqaRecTag:'Recommended', wqaRecTip:'Recommended pricing — not used until you press Use This Pricing', wqaPxNeedRate:'Enter a Cost Rate before using this pricing.', wqaPxNeedManual:'Enter the Manual Price.', wqaPxCalc:'Calculated', wqaColPricing:'Pricing',
     paApplyAll:'Apply pricing to compatible items',
     paApplyGo:'Apply',
     paAcceptAll:'Accept all suggested prices',
@@ -6916,16 +6983,16 @@ const I18N={
     paAcceptedN:'Accepted {n} prices',
     paAcceptedNone:'No suggested prices to accept',
     paStillNeed:'{n} still need attention',
-    paNeedApproval:'{n} prices still need approval',
-    paNeedApproval1:'1 price still needs approval',
-    paApproveFirst:'Accept the suggested prices (Accept, or History Apply) before adding.',
-    paWhy:'price not accepted yet — use Accept or History Apply',
+    paNeedApproval:'{n} items not priced yet',
+    paNeedApproval1:'1 item not priced yet',
+    paApproveFirst:'Set each item\'s pricing first: click RM/pc, review it, then Use This Pricing.',
+    paWhy:'not priced yet — click RM/pc and Use This Pricing',
     paAcceptN:'Accept {n} suggested prices',
     paAcceptN1:'Accept 1 suggested price',
     paAcceptOne:'Accept {v}',
     paAllAccepted:'All {n} prices accepted ✓',
     paRecipeBlank:'Type a Cost, Add Cost or Markup to apply — blank means no change.',
-    paRecipeDone:'Pricing applied to {n} compatible items — accept the prices when they look right',
+    paRecipeDone:'Pricing setup applied to {n} items — each recalculated from its own size',
     paRecipeManualKept:'{n} on Manual Price kept',
     paCompatN:'{a} compatible · {b} skipped',
     paBasisMixed:'Different size basis detected (metric and inch)',
@@ -6939,11 +7006,11 @@ const I18N={
     wqaHsN:'{n} records',
     paApplyCompat:'Apply to compatible items',
     paApplyThis:'Apply this pricing to {n} compatible items',
-    paRcAsk:'Apply this pricing to other compatible items?',
-    paApplyToN:'Apply to {n} compatible items',
-    paApplyTo1:'Apply to 1 compatible item',
+    paRcAsk:'Apply this pricing setup to other compatible items?',
+    paApplyToN:'Apply to {n} other items',
+    paApplyTo1:'Apply to 1 other item',
     paNotNow:'Not now',
-    paRcTitle:'Apply pricing to compatible items',
+    paRcTitle:'Apply pricing setup to compatible items',
     paRcFrom:'From item {n}: {r}',
     paRcRecalc:'Each item is recalculated from its own size and dimensions — the RM figure is not copied.',
     paRcSel:'{a} compatible items selected',
@@ -6952,9 +7019,9 @@ const I18N={
     paRcSkipped:'Skipped',
     paSkipBasis:'Different pricing basis (metric / inch)',
     paSkipManual:'Manual price kept',
-    paRcGo:'Apply pricing ({n})',
+    paRcGo:'Apply pricing setup ({n})',
     wqaPxEditTip:'Edit this item\'s pricing',
-    wqaPxCurrent:'Current Price:',
+    wqaPxCurrent:'',
     wqaPxAdvanced:'More',
     wqaHqTip:'Show previous prices',
     wqaHqTitle:'Previous Prices',
@@ -6965,10 +7032,10 @@ const I18N={
     wqaColQty:'Qty', wqaColPrice:'Price', wqaColWeight:'Weight', wqaColCost:'Cost', wqaColAdd:'Add', wqaColMarkup:'Markup', wqaColHist:'History',
     wqaPxOnRow:'Cost, Add and Markup are edited on the row.',
     wqaHistFrozenExact:'A manual / fixed price is only reused for the exact same item — use a record with a pricing setup.',
-    tPaAccepted:'Price accepted',
-    tPaNothing:'No price to accept yet.',
-    tPaNotAccepted:'Price not accepted yet — press Apply Price first.',
-    tPaChanged:'The price changed after it was accepted — review it and apply again.',
+    tPaAccepted:'Pricing used',
+    tPaNothing:'Nothing to price yet — enter a Cost Rate first.',
+    tPaNotAccepted:'Pricing not set yet — review it and press Use This Pricing.',
+    tPaChanged:'The pricing changed — review it and press Use This Pricing again.',
     paSrc_built_in:'Built-in',
     paSrc_default_rule:'Default Price',
     paSrc_manual_recipe:'Manual Recipe',
@@ -7153,7 +7220,7 @@ const I18N={
     pmManualGuideEg:'Example: Bolt RM1.80 + accessories RM0.20 → enter Manual Price RM2.00',
     wasCostNoteTitle:'Processing costs', wasCostNote:'Welding, hole drilling and other processing go in Additional Cost.',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'Detected {n} items', wqaRvDetectedOne:'Detected 1 item', wqaAddOneItem:'Add 1 Item to Quotation', wqaVarCount:'{n} variants', wqaVarReview:'Review Variants', wqaVarHide:'Hide Variants', wqaVarMulti:'Select several', wqaVarPickMany:'choose one or more', wqaVarApply:'Apply', wqaVarNone:'Choose at least one option.', wqaVarOff:'Excluded', wqaVarReadyN:'{n} ready', wqaVarExclN:'{n} excluded', wqaVarNeedN:'{n} need attention', wqaVarMode:'Variant mode', wqaVarModeCombine:'Combine selections', wqaVarModeExact:'Exact variants', wqaVarAddRow:'Add variant', wqaVarIncl:'Include this variant', wqaVarRecombine:'Combine selections will make {n} variants from the values used. Continue?', wqaVarExactHint:'Exact variants: edit each row, or switch to Combine selections.', wqaVarAmbiguous:'The note lists items in a way that cannot be read safely — review the variants yourself.', wqaVarExactRead:'Exact variants', wqaVarNeeds:'Needs attention', wqaVarReduced:'Variants reduced — {n} items', wqaVarTooMany:'Too many combinations (maximum {n}).', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvSeriesOne:'1 item', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items', wqaBsScopeGrp:'Current group ({n})', wqaGxDone:'{f} {v} applied to {n} items in this group', wqaGxBad:'Enter a number for {f}.', wqaGxEdit:'Click to edit for this group', wqaGrpAdjust:'Bulk Adjust this group', fieldEffDia:'Effective Diameter', wqaDupTitle:'Possible repeated group detected', wqaDupBody:'This group appears more than once in the source.', wqaDupKeep:'Keep Both', wqaDupMerge:'Merge Quantities', wqaDupRemove:'Remove Duplicate', wqaDupKept:'Repeated group · both kept', wqaDupMerged:'Quantities merged from a repeated group', wqaDupRemoved:'Repeated group removed', wqaDupUndo:'Undo', wqaDupReview:'Review', wqaDupMergedT:'Merged {n} quantities into the first group', wqaDupRemovedT:'Removed the repeated group ({n} items)', wqaGrpNote:'Group note', wqaGrpNotePh:'Reason / Label (optional)', wqaGxEditRow:'Click to edit this item', wqaPxApplied:'Pricing applied ✓', wqaMmRounded:'Original: {v} mm. Displayed as nearest 1 mm. Calculation keeps original precision.', wqaGxDoneRow:'{f} {v} applied to this item', fieldAccessoryQty:'Accessory Qty', accQtyItem:'Qty / item', accSameFinish:'Same finish', accDiffFinish:'Different finish', accHistN:'History {n}', accHistSplit:'{a} same finish · {b} different finish', accNeedQty:'Qty needs confirmation', accFromProduct:'follows product', accUseDiffAsk:'This price was quoted for {h}; this accessory is {c}. Use {v} anyway? The finish stays {c}.', wqaAccScopeAsk:'Accessory wording appears more than once and it is not clear which items each belongs to — set the accessories yourself.', accOwnRow:'own', accRowsOwn:'{n} item(s) set their own',
+    wqaRvDetected:'Detected {n} items', wqaRvDetectedOne:'Detected 1 item', wqaAddOneItem:'Add 1 Item to Quotation', wqaVarCount:'{n} variants', wqaVarReview:'Review Variants', wqaVarHide:'Hide Variants', wqaVarMulti:'Select several', wqaVarPickMany:'choose one or more', wqaVarApply:'Apply', wqaVarNone:'Choose at least one option.', wqaVarOff:'Excluded', wqaVarReadyN:'{n} ready', wqaVarExclN:'{n} excluded', wqaVarNeedN:'{n} need attention', wqaVarMode:'Variant mode', wqaVarModeCombine:'Combine selections', wqaVarModeExact:'Exact variants', wqaVarAddRow:'Add variant', wqaVarIncl:'Include this variant', wqaVarRecombine:'Combine selections will make {n} variants from the values used. Continue?', wqaVarExactHint:'Exact variants: edit each row, or switch to Combine selections.', wqaVarAmbiguous:'The note lists items in a way that cannot be read safely — review the variants yourself.', wqaVarExactRead:'Exact variants', wqaVarNeeds:'Needs attention', wqaVarReduced:'Variants reduced — {n} items', wqaVarTooMany:'Too many combinations (maximum {n}).', wqaRvSelect:'Select', wqaRvSelAll:'Select all', wqaRvSelNone:'Clear selection', wqaRvRemoveSel:'Remove selected', wqaRvRemoveSelAsk:'Remove the {n} selected items from this review?', wqaRvRemovedN:'{n} items removed', wqaRvSelSeries:'Select this series', wqaRvSeriesN:'{n} items', wqaRvSeriesOne:'1 item', wqaRvEmpty:'No items left to add.', wqaRvNeedFix:'{n} items need a Thread Size or TL', wqaRvTapEdit:'Edit {f}', wqaRvMore:'More', wqaRvLess:'Less', wqaRvFromLine:'Read from:', rvCost:'Cost', rvAdd:'Add. Cost', rvPerPc:'/ pc', wqaBsKeep:'No change', wqaBsScope:'Apply to', wqaBsScopeAll:'All items ({n})', wqaBsScopeSel:'Selected items ({n})', wqaBsPick:'Choose items…', wqaBsFields:'Fields to change', wqaBsAccSet:'Set accessories', wqaBsAccClear:'Remove all accessories', wqaBsWillSet:'Set {f} to {v}', wqaBsWillClearAcc:'Remove accessories', wqaBsWillApplyN:'Applies to {n} items', wqaBsNothing:'Choose at least one field to change.', wqaBsNoneSel:'No items selected yet.', wqaBsApply:'Apply Adjustment', wqaBsDone:'Adjusted {n} items', wqaBsScopeGrp:'Current group ({n})', wqaGxDone:'{f} {v} applied to {n} items in this group', wqaGxBad:'Enter a number for {f}.', wqaGxEdit:'Click to edit for this group', wqaGrpAdjust:'Bulk Adjust this group', fieldEffDia:'Effective Diameter', wqaDupTitle:'Possible repeated group detected', wqaDupBody:'This group appears more than once in the source.', wqaDupKeep:'Keep Both', wqaDupMerge:'Merge Quantities', wqaDupRemove:'Remove Duplicate', wqaDupKept:'Repeated group · both kept', wqaDupMerged:'Quantities merged from a repeated group', wqaDupRemoved:'Repeated group removed', wqaDupUndo:'Undo', wqaDupReview:'Review', wqaDupMergedT:'Merged {n} quantities into the first group', wqaDupRemovedT:'Removed the repeated group ({n} items)', wqaGrpNote:'Group note', wqaGrpNotePh:'Reason / Label (optional)', wqaGxEditRow:'Click to edit this item', wqaPxApplied:'Pricing used ✓', wqaMmRounded:'Original: {v} mm. Displayed as nearest 1 mm. Calculation keeps original precision.', wqaGxDoneRow:'{f} {v} applied to this item', fieldAccessoryQty:'Accessory Qty', accQtyItem:'Qty / item', accSameFinish:'Same finish', accDiffFinish:'Different finish', accHistN:'History {n}', accHistSplit:'{a} same finish · {b} different finish', accNeedQty:'Qty needs confirmation', accFromProduct:'follows product', accUseDiffAsk:'This price was quoted for {h}; this accessory is {c}. Use {v} anyway? The finish stays {c}.', wqaAccScopeAsk:'Accessory wording appears more than once and it is not clear which items each belongs to — set the accessories yourself.', accOwnRow:'own', accRowsOwn:'{n} item(s) set their own',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Quotation', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellOtherModules:'Other Modules', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
@@ -7548,12 +7615,13 @@ const I18N={
     tUnitNeg:'单价为负数，请检查每公斤成本 / Markup',
     tLineNeg:'总额为负数，请检查输入',
     tIdIhNeg:'ID / IH 不能为负数', tItemUpdated:'产品已更新',
-    tOldNoRate:'旧项目没有保存每公斤成本。已保存价格保持已确认；更改定价条件后会生成新的建议价格。',
-    paSuggested:'建议',
-    paAccepted:'已确认',
-    paSuggestedPrice:'建议价格',
-    paAcceptedPrice:'已确认价格',
-    paApply:'应用价格',
+    tOldNoRate:'旧项目没有保存每公斤成本。已保存价格保持不变 — 不会自动填入任何定价。',
+    paSuggested:'尚未定价',
+    paAccepted:'已定价',
+    paSuggestedPrice:'计算结果',
+    paAcceptedPrice:'已使用定价',
+    paApply:'使用此定价',
+    recPricing:'推荐定价', recFill:'填入', wqaPxSet:'设定价格', wqaPxUse:'使用此定价', wqaRecTag:'推荐', wqaRecTip:'推荐定价 — 按「使用此定价」之前不会使用', wqaPxNeedRate:'使用此定价前请先输入成本。', wqaPxNeedManual:'请输入手动价格。', wqaPxCalc:'计算结果', wqaColPricing:'定价',
     paApplyAll:'应用定价参数到兼容项目',
     paApplyGo:'应用',
     paAcceptAll:'接受全部建议价格',
@@ -7562,16 +7630,16 @@ const I18N={
     paAcceptedN:'已确认 {n} 个价格',
     paAcceptedNone:'没有可接受的建议价格',
     paStillNeed:'{n} 项仍需处理',
-    paNeedApproval:'{n} 个价格仍需确认',
-    paNeedApproval1:'1 个价格仍需确认',
-    paApproveFirst:'添加前请先确认建议价格（接受，或使用历史价格的应用）。',
-    paWhy:'价格尚未确认 — 请按接受或使用历史价格的应用',
+    paNeedApproval:'{n} 个项目尚未定价',
+    paNeedApproval1:'1 个项目尚未定价',
+    paApproveFirst:'请先为每个项目定价：点击 RM/pc，检查后按「使用此定价」。',
+    paWhy:'尚未定价 — 请点击 RM/pc 并按「使用此定价」',
     paAcceptN:'接受 {n} 个建议价格',
     paAcceptN1:'接受 1 个建议价格',
     paAcceptOne:'接受 {v}',
     paAllAccepted:'{n} 个价格均已确认 ✓',
     paRecipeBlank:'请输入成本、加工费或 Markup — 留空表示不更改。',
-    paRecipeDone:'定价参数已应用到 {n} 个兼容项目 — 确认无误后请接受价格',
+    paRecipeDone:'定价设置已应用到 {n} 个项目 — 各自按尺寸重新计算',
     paRecipeManualKept:'{n} 项手动价格保持不变',
     paCompatN:'{a} 项兼容 · {b} 项跳过',
     paBasisMixed:'检测到不同尺寸体系（公制与英制）',
@@ -7585,11 +7653,11 @@ const I18N={
     wqaHsN:'{n} 条记录',
     paApplyCompat:'应用到兼容项目',
     paApplyThis:'应用此定价到 {n} 个兼容项目',
-    paRcAsk:'要将此定价应用到其他兼容项目吗？',
-    paApplyToN:'应用到 {n} 个兼容项目',
-    paApplyTo1:'应用到 1 个兼容项目',
+    paRcAsk:'要将此定价设置应用到其他兼容项目吗？',
+    paApplyToN:'应用到其他 {n} 个项目',
+    paApplyTo1:'应用到其他 1 个项目',
     paNotNow:'暂不',
-    paRcTitle:'将定价应用到兼容项目',
+    paRcTitle:'将定价设置应用到兼容项目',
     paRcFrom:'来自第 {n} 项：{r}',
     paRcRecalc:'每个项目按自身尺寸重新计算 —— 不复制 RM 价格。',
     paRcSel:'已选 {a} 个兼容项目',
@@ -7598,9 +7666,9 @@ const I18N={
     paRcSkipped:'已跳过',
     paSkipBasis:'计价基准不同（公制 / 英制）',
     paSkipManual:'保留手动价格',
-    paRcGo:'应用定价（{n}）',
+    paRcGo:'应用定价设置（{n}）',
     wqaPxEditTip:'修改此项目的定价',
-    wqaPxCurrent:'当前价格：',
+    wqaPxCurrent:'',
     wqaPxAdvanced:'更多',
     wqaHqTip:'查看历史价格',
     wqaHqTitle:'历史价格',
@@ -7611,10 +7679,10 @@ const I18N={
     wqaColQty:'数量', wqaColPrice:'单价', wqaColWeight:'重量', wqaColCost:'成本', wqaColAdd:'加工费', wqaColMarkup:'Markup', wqaColHist:'历史价格',
     wqaPxOnRow:'成本、加工费和 Markup 直接在行内修改。',
     wqaHistFrozenExact:'手动 / 固定价格只用于完全相同的项目 — 请使用带定价参数的记录。',
-    tPaAccepted:'价格已确认',
-    tPaNothing:'暂无可确认的价格。',
-    tPaNotAccepted:'价格尚未确认 — 请先按应用价格。',
-    tPaChanged:'价格在确认后已变动 — 请检查并重新应用。',
+    tPaAccepted:'已使用此定价',
+    tPaNothing:'尚无可定价的内容 — 请先输入成本。',
+    tPaNotAccepted:'尚未定价 — 请检查后按「使用此定价」。',
+    tPaChanged:'定价已变动 — 请检查后重新按「使用此定价」。',
     paSrc_built_in:'内置',
     paSrc_default_rule:'默认价格',
     paSrc_manual_recipe:'手动定价',
@@ -7766,7 +7834,7 @@ const I18N={
     pmManualGuideEg:'例子：Bolt RM1.80 + 配件 RM0.20 → 手动价格填 RM2.00',
     wasCostNoteTitle:'加工费说明', wasCostNote:'焊接费、开洞费、加工费请放在额外加工费。',
     /* AI 智能识别 review (2026-10-23) */
-    wqaRvDetected:'已识别 {n} 个项目', wqaRvDetectedOne:'已识别 1 个项目', wqaAddOneItem:'加入 1 个项目到报价', wqaVarCount:'{n} 个版本', wqaVarReview:'查看版本', wqaVarHide:'收起版本', wqaVarMulti:'多选', wqaVarPickMany:'可多选', wqaVarApply:'应用', wqaVarNone:'请至少选择一项。', wqaVarOff:'已排除', wqaVarReadyN:'{n} 个可加入', wqaVarExclN:'{n} 个已排除', wqaVarNeedN:'{n} 个需处理', wqaVarMode:'版本模式', wqaVarModeCombine:'组合选择', wqaVarModeExact:'指定版本', wqaVarAddRow:'新增版本', wqaVarIncl:'包含此版本', wqaVarRecombine:'组合选择将根据已用的值生成 {n} 个版本。继续？', wqaVarExactHint:'指定版本：请逐行修改，或切换为组合选择。', wqaVarAmbiguous:'备注中的项目列表无法安全识别 — 请自行检查版本。', wqaVarExactRead:'指定版本', wqaVarNeeds:'需处理', wqaVarReduced:'已合并版本 — {n} 个项目', wqaVarTooMany:'组合过多（最多 {n} 个）。', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvSeriesOne:'1 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目', wqaBsScopeGrp:'当前分组（{n}）', wqaGxDone:'已将{f} {v} 应用到本组 {n} 个项目', wqaGxBad:'请为{f}输入数字。', wqaGxEdit:'点击修改本组', wqaGrpAdjust:'批量调整本组', fieldEffDia:'有效直径', wqaDupTitle:'检测到可能重复的分组', wqaDupBody:'这个分组在来源内容中出现了多次。', wqaDupKeep:'保留两组', wqaDupMerge:'合并数量', wqaDupRemove:'删除重复项', wqaDupKept:'重复分组 · 已保留两组', wqaDupMerged:'已合并重复分组的数量', wqaDupRemoved:'已删除重复分组', wqaDupUndo:'撤销', wqaDupReview:'重新选择', wqaDupMergedT:'已将 {n} 个数量合并到第一组', wqaDupRemovedT:'已删除重复分组（{n} 个项目）', wqaGrpNote:'分组备注', wqaGrpNotePh:'原因 / 标签（可选）', wqaGxEditRow:'点击修改此项目', wqaPxApplied:'价格已应用 ✓', wqaMmRounded:'原始：{v} mm。显示按最接近 1 mm 取整，计算仍保留原始精度。', wqaGxDoneRow:'已将{f} {v} 应用到此项目', fieldAccessoryQty:'配件数量', accQtyItem:'每件数量', accSameFinish:'相同表面处理', accDiffFinish:'不同表面处理', accHistN:'历史价格 {n}', accHistSplit:'相同表面处理 {a} · 不同表面处理 {b}', accNeedQty:'数量待确认', accFromProduct:'跟随主产品', accUseDiffAsk:'此价格报价时为 {h}；当前配件为 {c}。仍然套用 {v} 吗？表面处理保持 {c}。', wqaAccScopeAsk:'配件说明出现多次，无法确定各自属于哪些项目，请自行设定配件。', accOwnRow:'单独设定', accRowsOwn:'{n} 个项目单独设定',
+    wqaRvDetected:'已识别 {n} 个项目', wqaRvDetectedOne:'已识别 1 个项目', wqaAddOneItem:'加入 1 个项目到报价', wqaVarCount:'{n} 个版本', wqaVarReview:'查看版本', wqaVarHide:'收起版本', wqaVarMulti:'多选', wqaVarPickMany:'可多选', wqaVarApply:'应用', wqaVarNone:'请至少选择一项。', wqaVarOff:'已排除', wqaVarReadyN:'{n} 个可加入', wqaVarExclN:'{n} 个已排除', wqaVarNeedN:'{n} 个需处理', wqaVarMode:'版本模式', wqaVarModeCombine:'组合选择', wqaVarModeExact:'指定版本', wqaVarAddRow:'新增版本', wqaVarIncl:'包含此版本', wqaVarRecombine:'组合选择将根据已用的值生成 {n} 个版本。继续？', wqaVarExactHint:'指定版本：请逐行修改，或切换为组合选择。', wqaVarAmbiguous:'备注中的项目列表无法安全识别 — 请自行检查版本。', wqaVarExactRead:'指定版本', wqaVarNeeds:'需处理', wqaVarReduced:'已合并版本 — {n} 个项目', wqaVarTooMany:'组合过多（最多 {n} 个）。', wqaRvSelect:'选择', wqaRvSelAll:'全选', wqaRvSelNone:'取消全选', wqaRvRemoveSel:'删除所选', wqaRvRemoveSelAsk:'从识别结果中删除所选的 {n} 个项目？', wqaRvRemovedN:'已删除 {n} 个项目', wqaRvSelSeries:'选择这一组', wqaRvSeriesN:'{n} 个项目', wqaRvSeriesOne:'1 个项目', wqaRvEmpty:'没有可加入的项目。', wqaRvNeedFix:'{n} 个项目缺少螺纹 Size 或 TL', wqaRvTapEdit:'修改 {f}', wqaRvMore:'更多', wqaRvLess:'收起', wqaRvFromLine:'识别自：', rvCost:'成本', rvAdd:'加工费', rvPerPc:'/ pc', wqaBsKeep:'不修改', wqaBsScope:'应用范围', wqaBsScopeAll:'全部项目（{n}）', wqaBsScopeSel:'已选择项目（{n}）', wqaBsPick:'选择项目…', wqaBsFields:'要修改的字段', wqaBsAccSet:'设定配件', wqaBsAccClear:'清除全部配件', wqaBsWillSet:'将 {f} 改为 {v}', wqaBsWillClearAcc:'清除配件', wqaBsWillApplyN:'应用到 {n} 个项目', wqaBsNothing:'请至少选择一个要修改的字段。', wqaBsNoneSel:'尚未选择项目。', wqaBsApply:'应用调整', wqaBsDone:'已调整 {n} 个项目', wqaBsScopeGrp:'当前分组（{n}）', wqaGxDone:'已将{f} {v} 应用到本组 {n} 个项目', wqaGxBad:'请为{f}输入数字。', wqaGxEdit:'点击修改本组', wqaGrpAdjust:'批量调整本组', fieldEffDia:'有效直径', wqaDupTitle:'检测到可能重复的分组', wqaDupBody:'这个分组在来源内容中出现了多次。', wqaDupKeep:'保留两组', wqaDupMerge:'合并数量', wqaDupRemove:'删除重复项', wqaDupKept:'重复分组 · 已保留两组', wqaDupMerged:'已合并重复分组的数量', wqaDupRemoved:'已删除重复分组', wqaDupUndo:'撤销', wqaDupReview:'重新选择', wqaDupMergedT:'已将 {n} 个数量合并到第一组', wqaDupRemovedT:'已删除重复分组（{n} 个项目）', wqaGrpNote:'分组备注', wqaGrpNotePh:'原因 / 标签（可选）', wqaGxEditRow:'点击修改此项目', wqaPxApplied:'已使用定价 ✓', wqaMmRounded:'原始：{v} mm。显示按最接近 1 mm 取整，计算仍保留原始精度。', wqaGxDoneRow:'已将{f} {v} 应用到此项目', fieldAccessoryQty:'配件数量', accQtyItem:'每件数量', accSameFinish:'相同表面处理', accDiffFinish:'不同表面处理', accHistN:'历史价格 {n}', accHistSplit:'相同表面处理 {a} · 不同表面处理 {b}', accNeedQty:'数量待确认', accFromProduct:'跟随主产品', accUseDiffAsk:'此价格报价时为 {h}；当前配件为 {c}。仍然套用 {v} 吗？表面处理保持 {c}。', wqaAccScopeAsk:'配件说明出现多次，无法确定各自属于哪些项目，请自行设定配件。', accOwnRow:'单独设定', accRowsOwn:'{n} 个项目单独设定',
     /* DNC shared desktop shell (2026-10-24) */
     rspNavMore:'更多', rspMoreAria:'更多操作', rspNavQuotation:'报价', rspNavSaved:'已保存', rspNavTools:'工具', rspNavAccount:'账户', rspMainNav:'主导航', rspOpenMenu:'打开菜单', rspClose:'关闭', rspQuickAria:'快捷操作', rspQuickPo:'内部 PO', shellNav:'DNC 导航', shellHome:'DNC 报价 — 首页', shellBack:'返回工作台', shellNewQuotation:'新建报价', shellModules:'报价', shellQuotations:'报价单', shellIpo:'内部 PO', shellQuoTools:'报价工具', shellOtherModules:'其他模块', shellCompaniesSaved:'公司与已保存报价', shellDefaultPrices:'默认价格', shellDiameterSettings:'直径设置', shellPricingGuide:'价格说明', shellWhatsNew:'最新更新', shellSystemVersion:'系统版本', shellSignOut:'退出', shellAccountMenu:'账户菜单', shellPageQuotations:'报价单', shellPageCompanies:'公司与已保存报价', shellCfmLeaveDraft:'未保存的报价草稿会保留在此设备上，返回时可恢复。前往内部 PO？',
   },
@@ -8619,25 +8687,22 @@ function getPriceModeSaveData(type){
     rawUnitPrice:state.rawUnitPrice??0,roundedUnitPrice:state.roundedUnitPrice??0
   };
 }
-/* ── Suggested and Accepted (owner rule) ───────────────────────────────────
-   Calculation happens on its own; acceptance never does. Whatever the engine
-   works out — a built-in Sag Rod rate, a Default Price rule, a recipe somebody
-   typed — is a SUGGESTED price. It becomes the quotation's selling price only
-   when a person accepts it: Apply Price, Accept all, or an explicit Use on a
-   History record. A Manual Price is a person stating the figure, so it is
-   accepted as typed.
+/* ── Pricing used (owner rule, Pricing Control Reset) ──────────────────────
+   Calculation happens on its own; using a price never does. A person
+   approves the PRICING SETUP — Cost Rate, Additional Cost, Markup and Price
+   Mode — with Use This Pricing (or an explicit History Use / Apply). The RM
+   figure is only what that setup calculates to, so it is never what is
+   approved: change a length and the same setup simply recalculates.
 
-   An acceptance is the value AND a fingerprint of everything that priced it.
-   Change any of it — a length, the finish, a rate, an accessory — and the
-   fingerprint no longer matches, so the price is Suggested again and has to
-   be accepted again. Nothing is deleted: the recipe stays in its boxes.
-
-   The fingerprint reads the product's own form (every box whose id starts
-   with the product type), its finish and accessories, and the price itself.
-   Qty is left out: it changes the line, never the unit price.               */
+   So a fresh acceptance fingerprints the setup and the identity it was set
+   for (product, material, size type, finish) — change any of them and the
+   item is not priced again until a person uses its pricing. A SAVED item
+   opened for edit is different: its saved price stands only while nothing
+   price-affecting moves (dcPaKeepSaved), so that one keeps the full
+   fingerprint of the form and the price itself. Qty is never part of it.  */
 const DC_PRICE_SOURCES=['built_in','default_rule','manual_recipe','history_recipe','history_manual','manual','legacy_saved'];
 let dcFormPa={};        // type -> {v,src,ref,sig,saved,orig} for the entry form
-let dcPaGrant=null;     // Quick Add: the accepted row being committed right now
+let dcPaGrant=null;     // Quick Add: the priced row being committed right now
 function dcFormPaSig(type){
   const vals=[];
   document.querySelectorAll('[id^="'+type+'-"]').forEach(n=>{
@@ -8648,16 +8713,24 @@ function dcFormPaSig(type){
   const st=priceCalcState[type]||{};
   return JSON.stringify([vals,getFinish(type),getAccessories(type),roundMoney2(st.finalUnitPrice)]);
 }
-/* Where a suggestion came from, in the order a person would explain it. */
+/* The pricing setup and the identity it was set for. */
+function dcFormRecipeSig(type){
+  const num=f=>{ const v=String(fv(type,f)||'').trim(); const n=Number(v||0); return isFinite(n)?String(n):v; };
+  const mode=getPriceMode(type);
+  return JSON.stringify([type,fv(type,'material'),fieldExists(type,'sizeType')?fv(type,'sizeType'):'',getFinish(type),
+    num('costRate'),num('addCost'),num('markup'),mode,mode==='manual'?String(fv(type,'manualUnitPrice')||'').trim():'']);
+}
+/* Where a setup came from, in the order a person would explain it. */
 function dcSuggestSource(type){
   if(getPriceMode(type)==='manual') return 'manual';
-  if(['costRate','addCost','markup'].some(f=>isUserPriced(type,f))) return 'manual_recipe';
-  const dp=typeof dpAutoFilled!=='undefined' ? dpAutoFilled[type] : null;
-  if(dp && dp.key===dpIdentityKey(type) && dp.custom && (dp.costRate||dp.addCost||dp.markup)) return 'default_rule';
-  return 'built_in';
+  /* The recommendation, taken as it stands, keeps its own name; anything
+     else in the boxes is the person's own pricing setup. */
+  const rec=dcRecommendFor(type);
+  if(rec && dcRecSame(rec,{costRate:fv(type,'costRate'),addCost:fv(type,'addCost'),markup:fv(type,'markup')})) return rec.src;
+  return 'manual_recipe';
 }
 function dcPaSourceLabel(src){ return dcT('paSrc_'+(DC_PRICE_SOURCES.indexOf(src)>=0?src:'built_in')); }
-/* Can this form's price be accepted at all? A weight of zero with a surcharge
+/* Can this form's price be used at all? A weight of zero with a surcharge
    on top is still a number, and the preview already refuses to show it. */
 function dcFormPriced(type){
   const st=priceCalcState[type]||{};
@@ -8669,24 +8742,25 @@ function dcFormPaState(type){
   const st=priceCalcState[type]||{};
   const sug=roundMoney2(st.finalUnitPrice);
   const a=dcFormPa[type];
-  if(a && a.sig===dcFormPaSig(type)) return {state:'accepted',v:a.v,src:a.src,ref:a.ref||'',saved:!!a.saved,orig:a.orig,sug};
+  if(a && a.saved && a.sig===dcFormPaSig(type)) return {state:'accepted',v:a.v,src:a.src,ref:a.ref||'',saved:true,orig:a.orig,sug};
+  if(a && !a.saved && a.sig===dcFormRecipeSig(type) && dcFormPriced(type)) return {state:'accepted',v:sug,src:a.src,ref:a.ref||'',sug};
   if(getPriceMode(type)==='manual' && dcFormPriced(type)) return {state:'accepted',v:sug,src:'manual',ref:'',sug};
   return {state:dcFormPriced(type)?'suggested':'none',v:sug,src:dcSuggestSource(type),ref:'',sug};
 }
 function dcFormPaAccept(type,src,ref){
   if(!dcFormPriced(type)) return false;
-  dcFormPa[type]={v:roundMoney2((priceCalcState[type]||{}).finalUnitPrice),src:src||dcSuggestSource(type),ref:ref||'',sig:dcFormPaSig(type)};
+  dcFormPa[type]={v:roundMoney2((priceCalcState[type]||{}).finalUnitPrice),src:src||dcSuggestSource(type),ref:ref||'',sig:dcFormRecipeSig(type)};
   return true;
 }
-/* Apply Price on the entry form. */
+/* Use This Pricing on the entry form. */
 function dcFormPaApply(){
   const t=currentType;
   if(!dcFormPaAccept(t)){ showToast(dcT('tPaNothing')); return; }
   dcRenderFormPa(t);
   showToast(dcT('tPaAccepted'));
 }
-/* Opening a saved item: the price it was saved with IS the accepted price,
-   whatever today's rates or rounding would make of it. */
+/* Opening a saved item: the price it was saved with IS its price, whatever
+   today's rates or rounding would make of it. */
 function dcFormPaFromSaved(type,item){
   const pa=item&&item.priceAcceptance;
   dcFormPa[type]={v:dcItemFinalUnit(item),src:(pa&&DC_PRICE_SOURCES.indexOf(pa.source)>=0)?pa.source:'legacy_saved',
@@ -8700,8 +8774,9 @@ function dcPaMeta(src,ref,v){
   return m;
 }
 /* The gate every commit passes: Add Item, Update Item, and each Quick Add row.
-   Returns null (and says why) when the price has not been accepted, or
-   {meta, keep} — keep is the saved item whose price stands unchanged. */
+   Returns null (and says why) when no pricing has been used, or
+   {meta, keep} — keep is the saved item whose price stands unchanged. The
+   value recorded is the price the used setup calculates to NOW. */
 function dcPaCommit(type,final){
   final=roundMoney2(final);
   const same=v=>Math.abs(roundMoney2(v)-final)<0.005;
@@ -8717,7 +8792,6 @@ function dcPaCommit(type,final){
     const meta=(o&&o.state==='accepted'&&same(o.value)) ? o : dcPaMeta(st.src,st.ref,st.v);
     return same(st.v) ? {meta:Object.assign({},meta,{value:final})} : {meta, keep:st.orig};
   }
-  if(!same(st.v)){ showToast(dcT('tPaChanged')); return null; }
   return {meta:dcPaMeta(st.src,st.ref,final)};
 }
 /* Update Item with nothing price-affecting changed, on an item whose saved
@@ -8739,7 +8813,8 @@ function dcPaKeepSaved(item,orig){
   });
   return item;
 }
-/* Suggested / Accepted under the entry form's Final Unit Price. */
+/* Under the entry form's Final Unit Price: whether this item's pricing has
+   been used. The calculated figure is output, never the thing approved. */
 function dcRenderFormPa(type){
   if(type!==currentType) return;
   const box=el('cpAccept'); if(!box) return;
@@ -8747,17 +8822,16 @@ function dcRenderFormPa(type){
   if(st.state==='none'){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false;
   const src=`<span class="cp-pa-src">${escHtml(dcPaSourceLabel(st.src))}${st.ref?' · '+escHtml(st.ref):''}</span>`;
+  const use=cls=>`<button type="button" class="btn ${cls} btn-sm cp-pa-apply" onclick="dcFormPaApply()">${escHtml(dcT('paApply'))}</button>`;
   if(st.state==='accepted'){
-    const differ=Math.abs(st.v-st.sug)>=0.005 && st.sug>0;
+    const differ=st.saved && Math.abs(st.v-st.sug)>=0.005 && st.sug>0;
     box.className='cp-accept is-ok';
-    box.innerHTML=`<span class="cp-pa-ok">${escHtml(dcT('paAcceptedPrice'))} <b>${escHtml(fmt(st.v))}</b> ✓</span>${src}`
-      +(differ?`<span class="cp-pa-sec">${escHtml(dcT('paSuggestedPrice'))} ${escHtml(fmt(st.sug))}
-        <button type="button" class="btn btn-ghost btn-sm cp-pa-apply" onclick="dcFormPaApply()">${escHtml(dcT('paApply'))}</button></span>`:'');
+    box.innerHTML=`<span class="cp-pa-ok">${escHtml(dcT('paAcceptedPrice'))}${st.saved?' <b>'+escHtml(fmt(st.v))+'</b>':''} ✓</span>${src}`
+      +(differ?`<span class="cp-pa-sec">${escHtml(dcT('paSuggestedPrice'))} ${escHtml(fmt(st.sug))} ${use('btn-ghost')}</span>`:'');
     return;
   }
   box.className='cp-accept is-sug';
-  box.innerHTML=`<span class="cp-pa-sug">${escHtml(dcT('paSuggestedPrice'))} <b>${escHtml(fmt(st.v))}</b></span>${src}
-    <button type="button" class="btn btn-primary btn-sm cp-pa-apply" onclick="dcFormPaApply()">${escHtml(dcT('paApply'))}</button>`;
+  box.innerHTML=`<span class="cp-pa-sug">${escHtml(dcT('paSuggested'))}</span>${use('btn-primary')}`;
 }
 function validatePriceMode(type){
   if(getPriceMode(type)!=='manual') return true;
@@ -9392,21 +9466,22 @@ function getAddCostFromTL(s){
    the same places productEntryTouchedFields was already cleared. */
 function isUserPriced(type,field){ return productEntryTouchedFields.has(type+'-'+field); }
 function markUserPriced(type,field){ productEntryTouchedFields.add(type+'-'+field); }
-/* Write an automatic price into a field.
-   force=true (material change): always write and clear the manual flag.
-   force=false: skip the write when the field is user-edited. */
+/* Pricing Control Reset (owner rule): automatic pricing never WRITES a rate.
+   The built-in Sag Rod rates, the thread-length band, the 4140 table and the
+   Default Price rules are recommendations only (dcRecommendFor) — a new item
+   starts at Cost 0 / Add 0 / Markup 0 and a person sets its pricing. What is
+   left here is the one thing that is not a price: a MATERIAL change clears the
+   previous material's rates (force), so they are never carried onto a
+   different identity. Any non-empty value is ignored. */
 function setAutoRate(type,field,value,force){
   const e=el(type+'-'+field); if(!e) return;
-  if(force){ e.value=value; productEntryTouchedFields.delete(type+'-'+field); return; }
-  if(isUserPriced(type,field)) return;
-  e.value=value;
+  if(String(value)!=='' || !force) return;
+  e.value=''; productEntryTouchedFields.delete(type+'-'+field);
 }
 
 function onThreadLenChange(type,force){
-  const material=fv(type,'material');
-  const isUnknown=['S45C','S45C_HARDEN_G8_8','SS304','SS316','4340','4140','4140_HARDEN_G10_9','4140_PLAIN','Y_BAR'].includes(material);
-  if(!isUnknown && getFinish(type)!=='HDG') setAutoRate(type,'addCost',getAddCostFromTL(fv(type,'threadLen')).toFixed(2),force);
   calcSagRod();
+  if(type===currentType) dcRenderRec(type);
 }
 /* Typing in the entry form's SIZE box. autoFillDiameter normalises the box as
    part of resolving the diameter, which is right for every programmatic caller
@@ -9439,25 +9514,13 @@ function onMaterialSizeChange(type,skipDiameterRefill,trigger){
   updateFinishAvailability(type);
   const warnEl=el(type+'-warn');
   if(type==='sagrod'){
-    const material=fv('sagrod','material'), finish=getFinish('sagrod');
+    const material=fv('sagrod','material');
     const force=trigger==='material';
     const isUnknown=['S45C','S45C_HARDEN_G8_8','SS304','SS316','4340','4140_HARDEN_G10_9','4140_PLAIN','Y_BAR'].includes(material);
-    if(isUnknown){
-      setAutoRate('sagrod','costRate','',force); setAutoRate('sagrod','addCost','',force);
-      if(warnEl) warnEl.style.display='block';
-    } else {
-      if(warnEl) warnEl.style.display='none';
-      if(material==='MS'){
-        setAutoRate('sagrod','costRate',RATES[finish].costRate.toFixed(2),force);
-        if(finish==='HDG'){ setAutoRate('sagrod','addCost','1.60',force); } else { onThreadLenChange('sagrod',force); }
-      } else if(material==='4140'){
-        const desc=buildDesc('sagrod'), size=normalizeSizeValue(fv('sagrod','size'));
-        const r=get4140Rates(desc,size,finish);
-        /* Rates only. The diameter is Diameter Settings' answer, not a rate
-           table's — writing one here was the second competing source. */
-        if(r){ setAutoRate('sagrod','costRate',r.costRate.toFixed(2),force); setAutoRate('sagrod','addCost',r.addCost.toFixed(2),force); }
-      }
-    }
+    /* A material change clears the previous material's rates; the built-in
+       MS / 4140 tables are only recommendations now (dcRecommendFor). */
+    setAutoRate('sagrod','costRate','',force); setAutoRate('sagrod','addCost','',force);
+    if(warnEl) warnEl.style.display=isUnknown?'block':'none';
   } else {
     /* Every other product. A material change is an identity change: SS304 is
        not priced at mild steel's rate, and 4140 QT is not priced at SS304's.
@@ -11466,6 +11529,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
     /* The updated item has its accessories captured above — the form now returns
        to "next item" state, so its accessory panel must not leak into it. */
     resetAccPanel(type);
+    dcResetPricingAfterAdd(type);
     dcClearCustomDims();
     dcClearItemThreadRef();
     renderQuote(updatedIndex);
@@ -11483,6 +11547,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
      calculation rather than from the last one's typed figure. */
   resetAccPanel(type);
   resetPriceModeAfterAdd(type);
+  dcResetPricingAfterAdd(type);
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);
   showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',sizeStr).replace('{p}',fmt(finalUnitPrice)));
@@ -11502,6 +11567,17 @@ function resetPriceModeAfterAdd(type){
   productEntryTouchedFields.delete(type+'-manualUnitPrice');
   productEntryTouchedFields.delete(type+'-priceMode');
   if(typeof onPriceModeChange==='function') onPriceModeChange(type);
+}
+/* Pricing Control Reset: the item just added keeps its Cost / Add / Markup
+   (captured above); the next item starts neutral at 0 / 0 / 0 instead of
+   inheriting them. */
+function dcResetPricingAfterAdd(type){
+  ['costRate','addCost','markup'].forEach(f=>{
+    const e=el(type+'-'+f); if(e) e.value='';
+    productEntryTouchedFields.delete(type+'-'+f);
+  });
+  delete dcFormPa[type];
+  if(type===currentType){ recalcCurrent(); dcRenderRec(type); }
 }
 function resetAllPriceModes(){
   ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others']
@@ -13789,109 +13865,79 @@ function findDPMatch(type,material,sizeType,size,finish){
   })||null;
 }
 
-/* ── Auto-fill when form changes ───────────────────────────────────────────
-   A rate belongs to an item's IDENTITY — its product, material, size type,
-   size and finish. Change any of those and it is a different item, so the
-   previous one's rate is not its price.
-
-   This used to refill only an EMPTY box, which meant a rate the rules
-   themselves had written a keystroke earlier blocked the rule for the new
-   size. An M16 stud priced at 5.00 kept 5.00 when it became an M20 that the
-   rules price at 7.50 — and the green "Default price applied" badge stayed lit
-   while nothing had in fact been applied.
-
-   So the two kinds of value are told apart. A value the PERSON typed is
-   theirs: isUserPriced, never touched, and a deliberate blank stays blank. A
-   value the RULES wrote is ours, and it does not outlive the identity it was
-   written for — replaced by the new identity's rule, or cleared when there is
-   none, because a blank rate is a question and a stale one is a wrong price. */
+/* Provenance of rates the rules once wrote. Since the Pricing Control Reset
+   the rules write nothing (dcRecommendFor), so this stays empty; the draft
+   restore still records a baseline in it and nothing reads it as a price. */
 const dpAutoFilled={};
 function dpIdentityKey(type){
   return [type, fv(type,'material'), type==='stud'?'':fv(type,'sizeType'),
           normalizeSizeValue(fv(type,'size')), getFinish(type)].join('|');
 }
-function applyDefaultPrice(){
-  const type=currentType;
-  const stat=el('dpStatus');
-  if(type==='others'){
-    if(stat) stat.classList.remove('show');
-    return;
-  }
+/* ── Recommended pricing (Pricing Control Reset) ────────────────────────────
+   Owner rule: the system never decides an item's active pricing. A new item
+   starts at Cost 0 / Add 0 / Markup 0; the built-in tables and the Default
+   Price rules are REFERENCE only — shown as a recommendation, written into
+   nothing. The tables themselves are kept (RATES, RATES_4140, the TL band,
+   the Default Price rules) so the recommendation is exactly what they used to
+   fill in.
+
+   Order: a Default Price rule staff saved (custom) is the most specific
+   answer and leads; then the built-in MS Sag Rod rates with the thread-length
+   band (HDG: its fixed 1.60), then the 4140 table. Returns
+   {costRate, addCost, markup, src} as strings, or null when nothing knows the
+   item. Reads the product's own form, so a Quick Add row asks it while the
+   form holds that row. */
+function dcRecommendFor(type){
+  if(!type || type==='others' || !el(type+'-costRate')) return null;
   const material=fv(type,'material');
   const sizeType=type==='stud' ? '' : fv(type,'sizeType');
   const size=normalizeSizeValue(fv(type,'size'));
   const finish=getFinish(type);
-  const key=dpIdentityKey(type);
-  const prev=dpAutoFilled[type];
-  const stale=!!(prev && prev.key!==key);
-  const crEl=el(type+'-costRate'), acEl=el(type+'-addCost'), mkEl=el(type+'-markup');
+  const out=(c,a,m,src)=>({costRate:(Number(c)||0).toFixed(2), addCost:(Number(a)||0).toFixed(2), markup:String(Number(m)||0), src});
   const match=findDPMatch(type,material,sizeType,size,finish);
-  /* What the rules have already written FOR THIS IDENTITY. applyDefaultPrice
-     runs several times per identity — a size commit, a recalculation, a render
-     — and only the first of those actually writes anything, so provenance has
-     to survive the calls that write nothing. */
-  const carried=(prev && prev.key===key) ? prev : {costRate:'',addCost:'',markup:''};
-  /* Ours to write: not the person's, and either empty or still holding exactly
-     what we wrote for a different identity. */
-  const ours=(box,field)=>{
-    if(!box || isUserPriced(type,field)) return false;
-    if(!box.value) return true;
-    return stale && String(box.value)===String(prev[field]);
-  };
-  if(match){
-    /* Decided BEFORE anything is written, because writing changes the very
-       values these answers are read from. */
-    const mine={costRate:ours(crEl,'costRate'), addCost:ours(acEl,'addCost'), markup:ours(mkEl,'markup')};
-    let wrote=false;
-    if(mine.costRate){ crEl.value=parseFloat(match.costRate||0).toFixed(2); wrote=true; }
-    if(mine.addCost){  acEl.value=parseFloat(match.addCost||0).toFixed(2);  wrote=true; }
-    if(mine.markup){   mkEl.value=String(match.markup||0);                  wrote=true; }
-    /* Provenance covers the fields this rule actually WROTE — not whatever was
-       standing in the boxes. Recording the boxes claimed the thread-length
-       surcharge that onThreadLenChange had just derived, and the next identity
-       change then overwrote it as if it were ours. In a Quick Add list every
-       row is a new identity, so each row wiped the one before it: an MS Sag Rod
-       M16 x 300 TL 50/50 that the calculator quotes at RM 1.93 came out of a
-       two-row Quick Add at RM 1.33, the surcharge silently gone from a
-       customer's price. Entered by hand it kept the 0.60, because there was no
-       previous identity to be stale against — so the two screens disagreed
-       about the same item. */
-    dpAutoFilled[type]={key,
-      /* A system rule is the built-in price; a rule staff saved is a Default
-         Price rule. Said separately so a Suggested price names the right one. */
-      custom: wrote ? match.source==='custom' : !!carried.custom,
-      costRate: mine.costRate&&crEl ? crEl.value : carried.costRate,
-      addCost:  mine.addCost&&acEl  ? acEl.value : carried.addCost,
-      markup:   mine.markup&&mkEl   ? mkEl.value : carried.markup};
-    /* The badge is a statement about THIS item. It must not claim a rule was
-       applied to an item whose rates the person supplied themselves. */
-    if(stat) stat.classList.toggle('show', wrote || !!(prev&&prev.key===key));
-    recalcCurrent();
-  } else {
-    let cleared=false;
-    if(stale){
-      if(crEl && !isUserPriced(type,'costRate') && crEl.value===prev.costRate){ crEl.value=''; cleared=true; }
-      if(acEl && !isUserPriced(type,'addCost')  && acEl.value===prev.addCost){  acEl.value=''; cleared=true; }
-      if(mkEl && !isUserPriced(type,'markup')   && mkEl.value===prev.markup){   mkEl.value=''; cleared=true; }
-      delete dpAutoFilled[type];
+  if(match && match.source==='custom') return out(match.costRate,match.addCost,match.markup,'default_rule');
+  if(type==='sagrod'){
+    if(material==='MS' && RATES[finish])
+      return out(RATES[finish].costRate, finish==='HDG' ? 1.60 : getAddCostFromTL(fv(type,'threadLen')), 0, 'built_in');
+    if(material==='4140'){
+      const r=get4140Rates(buildDesc(type),size,finish);
+      if(r) return out(r.costRate,r.addCost,0,'built_in');
     }
-    /* Provenance is recorded even when no rule matched, so the NEXT identity
-       change can still tell a value the rules wrote from one a person typed.
-
-       What is recorded is what the rules WROTE, and when no rule matched they
-       wrote nothing. Recording the boxes instead claimed everything standing in
-       them — including the thread-length surcharge onThreadLenChange had just
-       derived — and the next identity change then deleted it as if it were
-       ours. In a Quick Add list every row is a new identity, so each row wiped
-       the one before it: an MS Sag Rod M16 x 300 TL 50/50 quoted RM 1.93 by
-       hand came out of a two-row Quick Add at RM 1.33, the surcharge silently
-       gone from a customer's price. */
-    dpAutoFilled[type]={key, custom:!!carried.custom, costRate:carried.costRate, addCost:carried.addCost,
-                             markup:carried.markup};
-    if(stat) stat.classList.remove('show');
-    if(cleared) recalcCurrent();
   }
+  if(match) return out(match.costRate,match.addCost,match.markup,'built_in');
+  return null;
 }
+/* Same pricing setup? Blank reads as 0, the way the calculator reads it. */
+function dcRecSame(a,b){
+  if(!a||!b) return false;
+  const n=v=>Number(String(v==null?'':v).trim()||0);
+  return ['costRate','addCost','markup'].every(k=>Math.abs(n(a[k])-n(b[k]))<0.00001);
+}
+/* "4.20 · +1.00 · 0%" — the pricing setup, never a final RM figure. */
+function dcRecText(rec){
+  if(!rec) return '';
+  const n=v=>{ const x=Number(v); return isFinite(x)?x.toFixed(2):String(v); };
+  return n(rec.costRate)+' · +'+n(rec.addCost)+' · '+(Number(rec.markup)||0)+'%';
+}
+/* The entry form's recommendation line: view only, with an explicit Fill in
+   that copies it into the boxes (still not used until Use This Pricing). */
+function dcRenderRec(type){
+  const stat=el('dpStatus'); if(!stat) return;
+  const rec=(type===currentType) ? dcRecommendFor(type) : null;
+  stat.classList.toggle('show',!!rec);
+  const v=el('dpRecV'), s=el('dpRecSrc');
+  if(v) v.textContent=rec?dcRecText(rec):'';
+  if(s){ const k='paSrc_'+(rec?rec.src:'built_in'); s.dataset.i18n=k; s.textContent=rec?dcT(k):''; }
+}
+function dcRecFill(){
+  const t=currentType, rec=dcRecommendFor(t); if(!rec) return;
+  ['costRate','addCost','markup'].forEach(f=>{ setFieldValue(t,f,rec[f]); markUserPriced(t,f); });
+  recalcCurrent();
+  syncCostRateWarning(t);
+}
+/* Kept under its old name: every caller that used to auto-fill now only
+   refreshes the recommendation. Nothing is written. */
+function applyDefaultPrice(){ dcRenderRec(currentType); }
 
 /* ── Modal open/close ── */
 async function openDPModal(){
@@ -14188,9 +14234,9 @@ function ensureOthersForm(){
     </div>
     ${accessoriesHtml}
     <div class="group-label full" data-i18n="pricingEntry">${escHtml(dcT('pricingEntry'))}</div>
-    <div class="field"><label><span data-i18n="lblCostRate">${escHtml(dcT('lblCostRate'))}</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" placeholder="4.2" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
-    <div class="field"><label data-i18n="lblAdditionalCost">${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" class="hl" id="others-addCost" placeholder="0.6" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
-    <div class="field"><label><span data-i18n="lblMarkup">${escHtml(dcT('lblMarkup'))}</span> <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="15" min="0" oninput="calcOthers()"></div>
+    <div class="field"><label><span data-i18n="lblCostRate">${escHtml(dcT('lblCostRate'))}</span> <span class="hint">(RM/kg)</span></label><input type="text" class="hl" id="others-costRate" placeholder="0" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','costRate');}"></div>
+    <div class="field"><label data-i18n="lblAdditionalCost">${escHtml(dcT('lblAdditionalCost'))}</label><input type="text" class="hl" id="others-addCost" placeholder="0" oninput="calcOthers()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('others','addCost');}"></div>
+    <div class="field"><label><span data-i18n="lblMarkup">${escHtml(dcT('lblMarkup'))}</span> <span class="hint">(%)</span></label><input type="number" id="others-markup" placeholder="0" min="0" oninput="calcOthers()"></div>
     <div class="field"><label data-i18n="lblQty">${escHtml(dcT('lblQty'))}</label><input type="number" id="others-qty" value="1" min="1" step="1" oninput="calcOthers()"></div>`;
   source.insertAdjacentElement('afterend',form);
 }
@@ -15162,7 +15208,7 @@ function wqaApplyPriceToAll(){
    Adjust, a group heading) goes through here, so a blank field is "leave it"
    everywhere and a reused record is superseded by the same rule everywhere.
    Returns how many rows let go of a reused record. */
-function wqaApplyPriceTo(targets,c,modeSet){
+function wqaApplyPriceTo(targets,c,modeSet,src){
   let droppedLast=0;
   targets.forEach(r=>{
     wqaMarkEdited(r,'price');
@@ -15190,6 +15236,9 @@ function wqaApplyPriceTo(targets,c,modeSet){
       r.histApplied=[];
       droppedLast++;
     }
+    /* A setup a person states for these rows prices them (Pricing Control
+       Reset): it is their decision, made for exactly these rows. */
+    if(supersedes || (c.costRate!==''||c.addCost!==''||c.markup!=='')) r.paPending={src:src||'manual_recipe',ref:''};
   });
   return droppedLast;
 }
@@ -20988,14 +21037,18 @@ function wqaRowMissing(r){
      is the one above, and hide it. Same rule as Valid Size, three lines up. */
   let rateMissing=false;
   if(wqaSizeTypeOpen(r)) return miss;
-  if(t && (r.priceMode||'auto')!=='manual'){
+  /* A row nobody has priced yet is not short of a rate: it is NOT PRICED,
+     which RM/pc says ("Set price") and the footer counts. The rate and price
+     questions start once a person has set pricing on it. */
+  const priced=wqaRowHasPricing(r);
+  if(t && priced && (r.priceMode||'auto')!=='manual'){
     if(!String((r.calc&&r.calc.costRate)||'').trim()){ miss.push('Cost Rate'); rateMissing=true; }
     if(dcNeedsTypedAddCost(t) && !String((r.calc&&r.calc.addCost)||'').trim()){
       miss.push('Additional Cost'); rateMissing=true; }
   }
   /* A blank rate ALREADY explains a price of zero. Saying both would ask the
      same question twice and hide which one to answer. */
-  if(!rateMissing && !(parseFloat(r.calc&&r.calc.finalUnitPrice)>0)) miss.push('Price');
+  if(priced && !rateMissing && !(parseFloat(r.calc&&r.calc.finalUnitPrice)>0)) miss.push('Price');
   /* An accessory the message named without a count it could be read from:
      detected, kept, and asked for — never guessed. */
   if(wqaAccNeedsQty(r.acc)) miss.push('Accessory Qty');
@@ -21132,31 +21185,38 @@ function wqaReadFormPricing(t){
           weight:Number(st.weight)||0};          // straight from the calculator
 }
 
-/* ── Quick Add: every row's Suggested and Accepted price ────────────────────
-   The same owner rule as the entry form (see dcFormPaSig): the row's price is
-   SUGGESTED until a person accepts it. r.pa = {v, src, ref, sig}; sig is the
-   row's price-affecting state plus the price it produced, so any change to
-   them (a length, Ø, a rate, the finish, an accessory) leaves the row
-   Suggested again. r.paPending carries an explicit History "Use" across the
-   recompute that prices it, and becomes r.pa there. A row on Manual Price is
-   a person stating the figure and is accepted as typed. */
+/* ── Quick Add: is this row priced? ─────────────────────────────────────────
+   The same owner rule as the entry form (see dcFormRecipeSig): a row starts
+   at Cost 0 / Add 0 / Markup 0 and is NOT priced until a person uses a
+   pricing setup for it — Use This Pricing in its editor, an explicit History
+   Use / Apply, or applying a setup they just used to compatible items. A
+   recommendation (r.rec) is never a price.
+
+   r.pa = {src, ref, sig}; sig is the row's pricing SETUP and the identity it
+   was set for (product, material, finish, size type), so changing either
+   leaves the row unpriced again — while a different length simply
+   recalculates from the same setup. r.paPending carries an explicit action
+   across the recompute that prices it and becomes r.pa there. A row on
+   Manual Price is a person stating the figure and is priced as typed. */
 function wqaRowPaSig(r){
-  const c=r.calc||{};
+  const c=r.calc||{}, mode=r.priceMode||'auto';
+  const n=v=>{ const s=String(v==null?'':v).trim(), x=Number(s||0); return isFinite(x)?String(x):s; };
   return JSON.stringify([wqaRowProduct(r),wqaRowSpec(r,'material'),wqaRowSpec(r,'finish'),wqaRowSpec(r,'sizeType'),
-    wqaRvRowDimSig(r), r.diaManual?String(r.diaMm||''):'', r.priceMode||'auto',
-    (r.priceMode||'auto')==='manual'?String(r.manualPrice||''):'',
-    String(c.costRate||''),String(c.addCost||''),String(c.markup||''),
-    roundMoney2(c.finalUnitPrice),roundMoney2(c.accessoriesCost),r.acc?wqaAccForForm(r.acc):null]);
+    mode, mode==='manual'?String(r.manualPrice||'').trim():'', n(c.costRate),n(c.addCost),n(c.markup)]);
 }
 /* Read while the form holds this row (wqaRecomputeAll). */
 function wqaRowSuggestSource(r,t){
   if((r.priceMode||'auto')==='manual') return (r.usedHistoryRef&&!r.usedHistoryRecipe)?'history_manual':'manual';
-  const hist=r.histApplied||[];
-  if(['costRate','addCost','markup'].some(k=>r.priceOverride[k]!==undefined && hist.indexOf(k)<0)) return 'manual_recipe';
-  if(hist.length) return 'history_recipe';
-  const dp=dpAutoFilled[t];
-  if(dp && dp.key===dpIdentityKey(t) && dp.custom && (dp.costRate||dp.addCost||dp.markup)) return 'default_rule';
-  return 'built_in';
+  if((r.histApplied||[]).length) return 'history_recipe';
+  const c=r.calc||{};
+  if(r.rec && dcRecSame(r.rec,c)) return r.rec.src;
+  return 'manual_recipe';
+}
+/* Has a person set any pricing on this row at all? Until then the row is
+   simply not priced yet — not short of a Cost Rate. */
+function wqaRowHasPricing(r){
+  return !!r && (!!r.pa || !!r.paPending || (r.priceMode||'auto')==='manual'
+    || ['costRate','addCost','markup'].some(k=>r.priceOverride && r.priceOverride[k]!==undefined));
 }
 function wqaRowPriceable(r){
   return !!r && !r.removed && !r.added && !wqaRowBlocked(r) && !!r.calc && Number(wqaShownPrice(r))>0;
@@ -21164,61 +21224,23 @@ function wqaRowPriceable(r){
 function wqaRowPa(r){
   if(!wqaRowPriceable(r)) return {state:'none'};
   const v=roundMoney2(r.calc.finalUnitPrice);
-  if(r.pa && r.pa.sig===wqaRowPaSig(r)) return {state:'accepted',v:r.pa.v,src:r.pa.src,ref:r.pa.ref||''};
+  if(r.pa && r.pa.sig===wqaRowPaSig(r)) return {state:'accepted',v,src:r.pa.src,ref:r.pa.ref||''};
   if((r.priceMode||'auto')==='manual') return {state:'accepted',v,src:r.calc.src||'manual',ref:r.usedHistoryRef||''};
-  return {state:'suggested',v,src:r.calc.src||'built_in',ref:''};
+  return {state:'none'};
 }
 function wqaRowAccepted(r){ return wqaRowPa(r).state==='accepted'; }
-/* After a recompute: a pending Use becomes the acceptance, a stale one goes. */
+/* After a recompute: a pending action becomes the row's pricing, a stale one goes. */
 function wqaRowPaSettle(r){
   if(!r.calc){ r.pa=null; r.paPending=null; return; }
   if(r.paPending){
-    r.pa={v:roundMoney2(r.calc.finalUnitPrice),src:r.paPending.src,ref:r.paPending.ref||'',sig:wqaRowPaSig(r)};
+    r.pa={src:r.paPending.src,ref:r.paPending.ref||'',sig:wqaRowPaSig(r)};
     r.paPending=null; return;
   }
   if(r.pa && r.pa.sig!==wqaRowPaSig(r)) r.pa=null;
 }
-function wqaRowAccept(r){
-  const st=wqaRowPa(r);
-  if(st.state!=='suggested') return false;
-  r.pa={v:st.v,src:st.src,ref:'',sig:wqaRowPaSig(r)};
-  return true;
-}
-function wqaPaCls(r){ const st=wqaRowPa(r).state; return st==='accepted'?'is-pa-ok':st==='suggested'?'is-pa-sug':''; }
-function wqaRowPaHtml(r,i){
-  /* Owner-smoke: the row's RM/pc IS the current price, and an accepted one
-     carries a tick on that same figure (wqaPaCls). Nothing else is drawn per
-     row; acceptance is done from the group (Accept all) or by History Apply. */
-  return '';
-}
-function wqaRowPaChipHtml(r,i){
-  const st=wqaRowPa(r);
-  if(st.state==='none') return '';
-  if(st.state==='accepted') return `<span class="wqa-pa is-ok" data-pa="ok">${escHtml(dcT('paAccepted'))} ${escHtml(wqaFmtPrice(st.v))} ✓<span class="wqa-pa-src">${escHtml(dcPaSourceLabel(st.src))}${st.ref&&!r.usedHistoryRef?' · '+escHtml(st.ref):''}</span></span>`;
-  return `<span class="wqa-pa is-sug" data-pa="sug">${escHtml(dcT('paSuggested'))} ${escHtml(wqaFmtPrice(st.v))}</span>`
-    +`<button type="button" class="btn btn-outline btn-sm wqa-pa-apply" onclick="event.stopPropagation();wqaPaApply(${i})">${escHtml(dcT('paApply'))}</button>`;
-}
-function wqaPaApply(i){
-  const r=wqa.rows[i]; if(!r) return;
-  if(!wqaRowAccept(r)){ showToast(dcT('tPaNothing')); return; }
-  wqaRenderRows(true);
-  showToast(dcT('tPaAccepted'));
-}
-/* Accept every current suggestion in a set of rows. Rows that cannot price,
-   are blocked or are unresolved are left as they are and counted. */
-function wqaPaAcceptRows(idx){
-  let done=0, need=0;
-  idx.forEach(j=>{
-    const r=wqa.rows[j]; if(!r||r.removed||r.added) return;
-    if(wqaRowAccept(r)) done++;
-    else if(!wqaRowAccepted(r)) need++;
-  });
-  wqaRenderRows(true);
-  showToast((done?dcT('paAcceptedN').replace('{n}',done):dcT('paAcceptedNone'))
-    +(need?' · '+dcT('paStillNeed').replace('{n}',need):''));
-}
-function wqaGrpAcceptAll(first){ const g=wqaRvGroupOf(first); if(g) wqaPaAcceptRows(g.idx); }
-function wqaSelAccept(){ wqaPaAcceptRows(wqa.rows.map((r,j)=>(r&&!r.removed&&r.sel)?j:-1).filter(j=>j>=0)); }
+function wqaPaCls(r){ return wqaRowAccepted(r)?'is-pa-ok':'is-pa-none'; }
+/* RM/pc on the row: the price once the row is priced, otherwise the way in. */
+function wqaRowPriceText(r){ return wqaRowAccepted(r) ? wqaFmtPrice(wqaShownPrice(r)) : dcT('wqaPxSet'); }
 /* The pricing basis a recipe can safely cross: metric and inch sizes are not
    priced from the same basis, so a recipe typed for one is not the other's. */
 function wqaSizeBasis(r){ return wqaInchKey(r&&r.size) ? 'inch' : 'metric'; }
@@ -21230,10 +21252,13 @@ function wqaSizeBasis(r){ return wqaInchKey(r&&r.size) ? 'inch' : 'metric'; }
    Type) and the same size basis (metric vs inch). Each target reprices from
    its own size. Rows already on the recipe are not counted; rows on another
    basis are counted as skipped and said. */
+/* Only a row a person has PRICED offers its setup — a recommendation never
+   does. The setup is Cost / Add / Markup and the Price Mode (Auto Round or
+   No Round); Manual Price is a figure, not a setup, and is never copied. */
 function wqaRowRecipe(r){
-  if(!r||r.removed||(r.priceMode||'auto')==='manual') return null;
+  if(!r||r.removed||(r.priceMode||'auto')==='manual'||!wqaRowAccepted(r)) return null;
   const c=r.calc||{}, v=k=>String(c[k]==null?'':c[k]).trim();
-  const out={costRate:v('costRate'),addCost:v('addCost'),markup:v('markup')};
+  const out={costRate:v('costRate'),addCost:v('addCost'),markup:v('markup'),priceMode:r.priceMode||'auto'};
   const okNum=s=>s!=='' && isFinite(Number(s));
   return (okNum(out.costRate)&&okNum(out.addCost)&&okNum(out.markup)) ? out : null;
 }
@@ -21251,7 +21276,8 @@ function wqaRecipeOffer(i){
     if(wqaSizeBasis(r)!==basis){ skip.push({r,why:'paSkipBasis'}); return; }
     if((r.priceMode||'auto')==='manual'){ skip.push({r,why:'paSkipManual'}); return; }
     const c=r.calc||{};
-    if(!(same(c.costRate,rc.costRate)&&same(c.addCost,rc.addCost)&&same(c.markup,rc.markup))) ok.push(r);
+    if(!(same(c.costRate,rc.costRate)&&same(c.addCost,rc.addCost)&&same(c.markup,rc.markup)
+         &&(r.priceMode||'auto')===rc.priceMode&&wqaRowAccepted(r))) ok.push(r);
   });
   if(!ok.length) return null;
   return {i,rc,ok,skip,g};
@@ -21281,7 +21307,9 @@ function wqaRecipeDismiss(){
 function wqaRcPickOpen(i){
   const of=wqaRecipeOffer(i);
   if(!of){ showToast(dcT('wqaBulkNone')); wqa.recipeSrc=null; wqaRenderRows(true); return; }
-  const sel={}; of.ok.forEach(r=>{ sel[wqa.rows.indexOf(r)]=true; });
+  /* Rows not priced yet are ticked; a row a person already priced on a
+     different setup is listed but left unticked — never overwritten unasked. */
+  const sel={}; of.ok.forEach(r=>{ sel[wqa.rows.indexOf(r)]=!wqaRowAccepted(r); });
   wqa.rcPick={src:i,sel};
   wqa.px=null; wqa.hq=null;
   wqaRenderRows(true);
@@ -21307,7 +21335,7 @@ function wqaRcPickHtml(g){
     const j=wqa.rows.indexOf(r), on=!!pk.sel[j];
     return `<label class="wqa-rcp-it"><input type="checkbox"${on?' checked':''} data-rcp="${j}" onchange="wqaRcPickToggle(${j},this.checked)">
         <span class="wqa-rcp-n">${j+1}</span><span class="wqa-rcp-spec">${escHtml(wqaRcRowSpec(r))}</span>
-        <span class="wqa-rcp-was">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span></label>`;
+        <span class="wqa-rcp-was">${escHtml(wqaRowPriceText(r))}</span></label>`;
   }).join('');
   const skipped=of.skip.map(x=>{
     const j=wqa.rows.indexOf(x.r);
@@ -21327,17 +21355,20 @@ function wqaRcPickHtml(g){
         <button type="button" class="btn btn-primary btn-sm" data-rc="apply" onclick="wqaRecipeApply()"${picked?'':' disabled'}>${escHtml(dcT('paRcGo').replace('{n}',picked))}</button></div>
     </div>`;
 }
-/* Copies the RECIPE — Cost Rate, Additional Cost, Markup — to the ticked
-   rows; each reprices from its own size (wqaRecomputeAll). Re-checked now,
-   row by row: the list on screen was drawn a moment ago. The new prices are
-   suggestions, accepted the usual way. Afterwards the group is quiet. */
+/* Copies the pricing SETUP — Cost Rate, Additional Cost, Markup and the
+   Price Mode — to the ticked rows, never the RM figure; each reprices from
+   its own size, weight and accessories (wqaRecomputeAll). Re-checked now,
+   row by row: the list on screen was drawn a moment ago. The person chose
+   this setup and these rows, so the targets are priced by it. Afterwards
+   the group is quiet. */
 function wqaRecipeApply(){
   const pk=wqa.rcPick; if(!pk) return;
   const of=wqaRecipeOffer(pk.src);
   const targets=of ? of.ok.filter(r=>pk.sel[wqa.rows.indexOf(r)]) : [];
   wqa.rcPick=null; wqa.recipeSrc=null;
   if(!targets.length){ showToast(dcT('wqaBulkNone')); wqaRenderRows(true); return; }
-  const dropped=wqaApplyPriceTo(targets,{...of.rc},false);
+  const s=wqaRowPa(wqa.rows[pk.src]).src;
+  const dropped=wqaApplyPriceTo(targets,{...of.rc},true,(s==='built_in'||s==='default_rule')?s:'manual_recipe');
   wqaFlashRows(targets.map(r=>wqa.rows.indexOf(r)));
   wqaRecomputeAll('force');
   const left=of.ok.length-targets.length+of.skip.length;
@@ -21345,37 +21376,19 @@ function wqaRecipeApply(){
     +(left?' · '+dcT('paRcSkippedN').replace('{n}',left):'')
     +(dropped?' · '+dcT('wqaToastLastPriceOff').replace('{n}',dropped):''));
 }
-/* Acceptance is offered only where there is something to accept. A row at
-   RM— or still asking for a Cost Rate has no suggestion (wqaRowPa 'none'), so
-   it never counts as ready. A one-item group accepts on its row
-   (wqaRowAcceptHtml); a group with nothing pending says nothing, or — once
-   every price is accepted — a quiet tick. */
+/* The group's one pricing action: the offer that follows Use This Pricing
+   on one of its rows. No acceptance counters, no group-wide accept — a row
+   is priced by a person, one setup at a time. */
 function wqaGrpPaHtml(g){
   const first=g.idx[0];
-  const rows=g.idx.map(j=>wqa.rows[j]).filter(r=>r&&!r.removed);
-  const ok=rows.filter(wqaRowAccepted).length, sug=rows.filter(r=>wqaRowPa(r).state==='suggested').length;
   const src=(wqa.recipeSrc!=null && g.idx.indexOf(wqa.recipeSrc)>=0) ? wqa.recipeSrc : null;
   /* While its selection is open, the selection is the offer. */
   const picking=!!(wqa.rcPick && g.idx.indexOf(wqa.rcPick.src)>=0);
   const offer=(src===null||picking) ? '' : wqaRecipeOfferHtml(wqaRecipeOffer(src));
-  let acc='';
-  if(rows.length>1 && sug>0)
-    acc=`${ok?`<span class="wqa-grx-n">${escHtml(dcT('paCount').replace('{a}',ok).replace('{n}',rows.length))}</span>`:''}
-      <button type="button" class="btn btn-primary btn-sm wqa-grx-acc" onclick="wqaGrpAcceptAll(${first})">${escHtml(dcT(sug===1?'paAcceptN1':'paAcceptN').replace('{n}',sug))}</button>`;
-  else if(rows.length>1 && ok===rows.length)
-    acc=`<span class="wqa-grx-n is-done">${escHtml(dcT('paAllAccepted').replace('{n}',ok))}</span>`;
-  if(!offer && !acc) return '';
+  if(!offer) return '';
   return `<div class="wqa-grx" data-grx-grp="${first}" onclick="event.stopPropagation()">
       ${offer}
-      <span class="wqa-grx-gap"></span>
-      ${acc}
     </div>`;
-}
-/* A one-item group has no group action: its row accepts its own suggestion. */
-function wqaRowAcceptHtml(r,i){
-  if(wqaRowPa(r).state!=='suggested') return '';
-  const g=wqaRvGroupOf(i); if(g && g.idx.length>1) return '';
-  return `<button type="button" class="btn btn-outline btn-sm wqa-pa-row" onclick="event.stopPropagation();wqaPaApply(${i})">${escHtml(dcT('paAcceptOne').replace('{v}',wqaFmtPrice(wqaRowPa(r).v)))}</button>`;
 }
 
 /* mode: 'force' = always full render (structural, user-initiated)
@@ -21513,6 +21526,8 @@ async function wqaRecomputeAll(mode){
     if(!r.diaManual) r.diaMm = r.noDia ? '' : String(fn(t,'diameter'));
     if(r.noDia){ r.calc=null; return; }
     r.calc=wqaReadFormPricing(t);
+    /* What the tables and Default Price rules would set — reference only. */
+    r.rec=dcRecommendFor(t);
     r.calc.src=wqaRowSuggestSource(r,t);
   });
   wqa.rows.forEach(r=>{ if(!r.removed) wqaRowPaSettle(r); });
@@ -21851,83 +21866,37 @@ function wqaRvHsCell(r,i){
       aria-expanded="${on?'true':'false'}" title="${escHtml(dcT('wqaHsLabel')+' '+tip+' · '+dcT('wqaHqTip'))}"
       onclick="event.stopPropagation();wqaHqToggle(${i})"><span class="wqa-hs-t">${escHtml(txt)}</span><span class="wqa-hs-caret" aria-hidden="true">${on?'▴':'▾'}</span></button>`;
 }
-/* ── Cost · Add · Markup, on the row ──────────────────────────────────────
-   The row's own boxes, bound to the same state the pricing editor always
-   wrote (r.priceOverride, read back through r.calc): no second copy. Typing
-   reprices this row live through the existing calculator and rounding;
-   leaving a changed box settles it (arithmetic, a check that it is a number),
-   and makes this row's recipe the one its group may be offered
-   (wqaRecipeOffer) — the same moment the editor's Done was. A Manual Price
-   row states its figure instead, so it has no recipe boxes. */
-const WQA_IP_FIELDS=[['costRate','wqaColCost','4.2'],['addCost','wqaColAdd','0.6'],['markup','wqaColMarkup','15']];
+/* ── Cost · Add · Markup, on the row — VIEW ONLY ──────────────────────────
+   Pricing Control Reset: the row shows its pricing setup, it does not edit
+   it. Once the row is priced these are the setup in use; before that they
+   are the recommendation (r.rec), drawn as a recommendation — never as a
+   price in use and never as a box to type in. Pressing them, like RM/pc,
+   opens the pricing editor. A Manual Price row states its figure instead. */
+const WQA_IP_FIELDS=[['costRate','wqaColCost'],['addCost','wqaColAdd'],['markup','wqaColMarkup']];
 function wqaIpVal(r,k){ const c=r.calc||{}; return String(c[k]==null?'':c[k]).trim(); }
-function wqaIpLabel(k){ return dcT((WQA_IP_FIELDS.find(x=>x[0]===k)||[])[1]||''); }
+/* What the cells show: {vals, kind} — kind 'used', 'rec' or 'none'. */
+function wqaIpShown(r){
+  if(wqaRowAccepted(r)) return {kind:'used',vals:{costRate:wqaIpVal(r,'costRate'),addCost:wqaIpVal(r,'addCost'),markup:wqaIpVal(r,'markup')}};
+  if(['costRate','addCost','markup'].some(k=>r.priceOverride && r.priceOverride[k]!==undefined))
+    return {kind:'rec',vals:{costRate:wqaIpVal(r,'costRate'),addCost:wqaIpVal(r,'addCost'),markup:wqaIpVal(r,'markup')}};
+  if(r.rec) return {kind:'rec',vals:r.rec};
+  return {kind:'none',vals:{}};
+}
 function wqaRvIpHtml(r,i){
   if((r.priceMode||'auto')==='manual')
     return `<span class="wqa-ip-set is-manual"><button type="button" class="wqa-ip-man" data-ip-man="${i}"
       onclick="event.stopPropagation();wqaPxToggle(${i})">${escHtml(dcT('pmManualPrice'))} ▾</button></span>`;
-  return `<span class="wqa-ip-set">${WQA_IP_FIELDS.map(([k,lbl,ph])=>
-    `<label class="wqa-ip wqa-ip-${k}" onclick="event.stopPropagation()"><span class="wqa-ip-k">${escHtml(dcT(lbl))}</span><span class="wqa-ip-box"><input type="text"
-      inputmode="decimal" autocomplete="off" spellcheck="false" class="wqa-ip-in" data-ip="${k}" placeholder="${ph}"
-      value="${escHtml(wqaIpVal(r,k))}" aria-label="${escHtml(dcT(lbl)+' · '+(i+1))}"
-      onfocus="wqaIpFocus(${i},'${k}',this)" oninput="wqaIpInput(${i},'${k}',this)"
-      onkeydown="wqaIpKey(event,${i},'${k}',this)" onchange="wqaIpCommit(${i},'${k}',this)">${
-      k==='markup'?'<span class="wqa-ip-u">%</span>':''}</span></label>`).join('')}</span>`;
+  const sh=wqaIpShown(r);
+  const txt=(k,v)=>{ const s=String(v==null?'':v).trim(); if(s==='') return '—';
+    return k==='markup' ? wqaMetaPct(s) : (k==='addCost'&&sh.kind==='rec'?'+':'')+wqaRvNum(s); };
+  const tip=sh.kind==='rec' ? dcT('wqaRecTip')+(r.rec?' · '+dcPaSourceLabel(r.rec.src):'') : dcT('wqaPxEditTip');
+  return `<span class="wqa-ip-set is-${sh.kind}" data-ip-set="${i}" title="${escHtml(tip)}"
+      onclick="event.stopPropagation();wqaPxToggle(${i})">${sh.kind==='rec'?`<span class="wqa-ip-tag">${escHtml(dcT('wqaRecTag'))}</span>`:''}${
+    WQA_IP_FIELDS.map(([k,lbl])=>`<span class="wqa-ip wqa-ip-${k}" data-ip="${k}"><span class="wqa-ip-k">${escHtml(dcT(lbl))}</span><span class="wqa-ip-v">${escHtml(txt(k,sh.vals[k]))}</span></span>`).join('')}</span>`;
 }
 function wqaIpOk(v){
   if(wqaCalc(v)!=null) return true;
   return isReadableAmount(v) && isFinite(Number(v)) && Number(v)>=0;
-}
-function wqaIpBad(inp,on){ inp.classList.toggle('is-bad',!!on); const b=inp.closest('.wqa-ip'); if(b) b.classList.toggle('is-bad',!!on); }
-/* What the box held when it was entered, so Escape (or a value nobody could
-   mean) puts back exactly that — override and all. */
-function wqaIpFocus(i,k,inp){
-  const r=wqa.rows[i]; if(!r) return;
-  wqa._ip={i,k,had:Object.prototype.hasOwnProperty.call(r.priceOverride,k),ov:r.priceOverride[k],v:inp.value};
-  try{ inp.select(); }catch(e){}
-}
-function wqaIpRestore(i,k,inp){
-  const r=wqa.rows[i], s=wqa._ip; if(!r||!s||s.i!==i||s.k!==k) return;
-  if(s.had) r.priceOverride[k]=s.ov; else delete r.priceOverride[k];
-  inp.value=s.v; wqaIpBad(inp,false);
-  clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),0);
-}
-/* Live: a plain number reprices now (the same debounced patch the editor
-   used); arithmetic and anything unreadable wait for the box to be left. */
-function wqaIpInput(i,k,inp){
-  const v=String(inp.value).trim();
-  wqaIpBad(inp, v!=='' && !wqaIpOk(v));
-  if(v==='' || wqaCalc(v)!=null || !wqaIpOk(v)) return;
-  wqaEditPrice(i,k,v);
-}
-function wqaIpKey(ev,i,k,inp){
-  if(ev.key==='Enter'){ ev.preventDefault(); ev.stopPropagation(); inp.blur(); return; }
-  if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); wqaIpRestore(i,k,inp); }
-}
-function wqaIpCommit(i,k,inp){
-  const r=wqa.rows[i]; if(!r) return;
-  const s=(wqa._ip&&wqa._ip.i===i&&wqa._ip.k===k)?wqa._ip:null;
-  let v=String(inp.value).trim();
-  const sum=wqaCalc(v); if(sum!=null) v=sum;
-  if(v==='' || !wqaIpOk(v)){
-    if(v!=='') showToast(dcT('wqaGxBad').replace('{f}',wqaIpLabel(k)));
-    wqaIpRestore(i,k,inp);
-    return;
-  }
-  inp.value=v; wqaIpBad(inp,false);
-  if(s && v===s.v) return;                         // unchanged: nothing to settle
-  wqaMarkEdited(r,'price');
-  r.priceOverride[k]=v;
-  /* A rate typed over a reused recipe makes the rates the person's own — the
-     other two stay exactly as they are; only the provenance goes. */
-  if(r.usedHistoryRef && r.usedHistoryRecipe){ r.usedHistoryRef=''; r.usedHistoryRecipe=false; r.histApplied=[]; }
-  r.pxApplied=true;
-  wqa.recipeSrc=i; wqa.rcPick=null;
-  if(s) s.v=v;
-  /* After the focus has moved on (Tab to the next box), so the redraw that
-     brings the group's offer puts the caret back where the person now is. */
-  clearTimeout(wqa._t); wqa._t=null;
-  setTimeout(()=>wqaRecomputeAll('force'),0);
 }
 /* ── Quick preview ────────────────────────────────────────────────────────
    The few records worth acting on, most relevant first — never the whole
@@ -22018,8 +21987,6 @@ function wqaRvHqHtml(r,i){
 function wqaHqApply(i,n){ wqa.hq=null; wqaHistUse(i,n); }
 function wqaRvSubHtml(r,i){
   const bits=[];
-  const pa=wqaRowAcceptHtml(r,i);
-  if(pa) bits.push(pa);
   const prov=wqaProvBtnHtml(r,i);
   if(prov) bits.push(prov);
   const accOwn=wqaAccHas(r.acc) && ['nut','fw','custom'].some(k=>r.acc[k].enabled && r.acc[k].ov && Object.keys(r.acc[k].ov).length);
@@ -22050,64 +22017,174 @@ function wqaRvDiaHtml(r,i){
       onclick="event.stopPropagation();wqaIxOpen(${i},'dia')"><span class="wqa-dia-sym" aria-label="${escHtml(dcT('fieldEffDia'))}">Ø</span><span class="wqa-c-dia">${escHtml(wqaDiaText(r))}</span>${
       manual?`<span class="wqa-dia-tag"> · ${escHtml(dcT('diaManualShort'))}</span>`:''}</button>`;
 }
-/* ── Pricing, opened from the pricing line ────────────────────────────────
-   The same four values and the same handlers the expanded form always had,
-   in a strip under the row. Typing patches the price beside it live. */
+/* ── The pricing editor, opened from RM/pc ────────────────────────────────
+   Pricing Control Reset. The owner reviews a pricing SETUP — Cost, Add Cost,
+   Markup, Price Mode — and uses it; the RM figure beside it is only what
+   that setup calculates to. So the editor works on a DRAFT (wqa.pxd): it
+   opens on the row's setup in use, or on the recommendation when there is
+   none yet, and nothing reaches the row until Use This Pricing. Typing
+   recalculates the draft live through the same calculator (wqaPxDraftCalc);
+   Cancel, Escape or closing leaves the row exactly as it was. */
 function wqaPxToggle(i){
   if(wqa.selMode){ wqaRvToggleSel(i); return; }
   const r=wqa.rows[i]; if(!r) return;
   wqa.curGrp=i;
   /* An open panel already carries the same editor; anywhere else — a phone
      included — RM/pc opens the editor directly under its own row. */
-  if(r.open){
-    wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'priceMode')+'"]');
-    return;
-  }
-  wqa.ix=null; wqa.hq=null;
+  if(r.open){ wqaRvFocus(i,wqaPxFocusSel(r,i)); return; }
+  wqa.ix=null; wqa.hq=null; wqa.pxd=null;
   wqa.px = wqa.px===i ? null : i;
   /* A double-click on the price would otherwise carry its word selection
      onto the editor's captions as it opens under the pointer. */
   try{ const s=window.getSelection&&window.getSelection(); if(s&&s.rangeCount) s.removeAllRanges(); }catch(e){}
   wqaRenderRows(true);
-  if(wqa.px===i) wqaRvFocus(i,'[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'priceMode')+'"]');
+  if(wqa.px===i) wqaRvFocus(i,wqaPxFocusSel(r,i));
 }
-/* Advanced pricing: the price mode, and the Manual Price it may ask for.
-   Cost / Add / Markup are edited on the row itself (wqaRvIpHtml) and are not
-   drawn a second time here. */
+function wqaPxFocusSel(r,i){
+  const d=wqaPxDraft(r,i);
+  return '[data-px="'+(d.priceMode==='manual'?'manualPrice':'costRate')+'"]';
+}
+/* The draft for row i: its setup in use, else the recommendation, else 0s. */
+function wqaPxDraft(r,i){
+  if(wqa.pxd && wqa.pxd.i===i) return wqa.pxd;
+  const c=r.calc||{}, str=v=>String(v==null?'':v).trim();
+  const own=wqaRowAccepted(r) || ['costRate','addCost','markup'].some(k=>r.priceOverride && r.priceOverride[k]!==undefined);
+  const base=own ? c : (r.rec||{});
+  const d={i, costRate:str(base.costRate), addCost:str(base.addCost), markup:str(base.markup),
+           priceMode:r.priceMode||'auto', manualPrice:str(r.manualPrice), v:0};
+  wqa.pxd=d;
+  wqaPxDraftCalc(r,d);
+  return d;
+}
+/* What the draft calculates to for THIS row — its own size, weight and
+   accessories — through the one form and calculator every row uses. The row
+   itself is not touched: a copy carries the draft. */
+function wqaPxDraftVal(v){ const s=String(v==null?'':v).trim(), n=wqaCalc(s); return n!=null ? String(n) : (s===''?'0':s); }
+function wqaPxDraftCalc(r,d){
+  d.v=0;
+  const t=wqaRowProduct(r); if(!t || !r.calc) return;
+  const keep=currentType;
+  const tmp=Object.assign({},r,{priceOverride:{costRate:wqaPxDraftVal(d.costRate),addCost:wqaPxDraftVal(d.addCost),markup:wqaPxDraftVal(d.markup)},
+                                 priceMode:d.priceMode, manualPrice:d.manualPrice});
+  try{
+    switchType(t);
+    wqaApplyRowToForm(tmp);
+    const md=r.diaManual ? parseFloat(String(r.diaMm||'').trim()) : NaN;
+    if(md>0){ setFieldValue(t,'diameter',String(md)); recalcCurrent(); }
+    d.v=Number(wqaReadFormPricing(t).finalUnitPrice)||0;
+  } finally {
+    resetAccPanel(t);
+    switchType(keep);
+  }
+}
 function wqaRvPxEditor(r,i){
-  const mode=r.priceMode||'auto';
-  return `<div class="wqa-px-grid">
-      <label class="wqa-px-f"><span>${escHtml(dcT('lblPriceMode'))}</span><select data-px="priceMode" onchange="wqaEditRowMode(${i},this.value)">${
-        WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${mode===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')}</select></label>
-      ${mode==='manual'?`<label class="wqa-px-f"><span>${escHtml(dcT('lblManualUnitPrice'))}</span><input type="text" inputmode="decimal" data-px="manualPrice" placeholder="2.75"
-        value="${escHtml(r.manualPrice||'')}" oninput="wqaEditRowManualPrice(${i},this.value)"></label>`:''}
-    </div>
-    ${mode==='manual'?'':`<div class="wqa-px-note">${escHtml(dcT('wqaPxOnRow'))}</div>`}`;
+  const d=wqaPxDraft(r,i), manual=d.priceMode==='manual';
+  const f=(k,lbl,unit)=>`<label class="wqa-pxe-f wqa-pxe-${k}"><span class="wqa-pxe-k">${escHtml(dcT(lbl))}</span><span class="wqa-pxe-box"><input type="text"
+      inputmode="decimal" autocomplete="off" spellcheck="false" data-px="${k}" placeholder="0" value="${escHtml(d[k])}"
+      aria-label="${escHtml(dcT(lbl)+' · '+(i+1))}" onfocus="try{this.select()}catch(e){}"
+      oninput="wqaPxdInput(${i},'${k}',this)" onkeydown="wqaPxdKey(event,${i})">${unit?`<span class="wqa-pxe-u">${unit}</span>`:''}</span></label>`;
+  const rec=r.rec ? `<div class="wqa-pxe-rec" data-pxe-rec="${i}"><span class="wqa-pxe-rk">${escHtml(dcT('recPricing'))}</span>
+      <b>${escHtml(dcRecText(r.rec))}</b><span class="wqa-pxe-rs">${escHtml(dcPaSourceLabel(r.rec.src))}</span></div>` : '';
+  return `<div class="wqa-pxe" data-pxe="${i}">
+      ${rec}
+      <div class="wqa-pxe-row">
+        ${manual?'':f('costRate','wqaColCost','')+f('addCost','wqaColAdd','')+f('markup','wqaColMarkup','%')}
+        <label class="wqa-pxe-f wqa-pxe-mode"><span class="wqa-pxe-k">${escHtml(dcT('lblPriceMode'))}</span><select data-px="priceMode" onchange="wqaPxdMode(${i},this.value)">${
+          WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${d.priceMode===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')}</select></label>
+        ${manual?f('manualPrice','lblManualUnitPrice',''):''}
+        <span class="wqa-pxe-out" aria-live="polite"><span class="wqa-pxe-arr" aria-hidden="true">→</span><b class="wqa-pxd-v">${escHtml(wqaFmtPrice(d.v))}</b><small>${escHtml(dcT('rvPerPc'))}</small></span>
+        <button type="button" class="btn btn-primary btn-sm wqa-pxe-use" data-px-use="${i}" onclick="event.stopPropagation();wqaPxUse(${i})">${escHtml(dcT('wqaPxUse'))}</button>
+      </div>
+    </div>`;
 }
-/* Done commits what was typed — the row's own pricing state, the one the
-   editor wrote into — and prices the row now rather than after a debounce.
-   If the row still cannot price (a Size Type, a size …) it says the pricing
-   was taken, without claiming the item is ready. */
+/* Typing: the draft only, and the figure beside it. Nothing is redrawn, so
+   the caret stays where it is. */
+function wqaPxdInput(i,k,inp){
+  const r=wqa.rows[i], d=wqa.pxd; if(!r||!d||d.i!==i) return;
+  d[k]=inp.value;
+  const v=String(inp.value).trim();
+  const bad=v!=='' && !wqaIpOk(v);
+  inp.classList.toggle('is-bad',bad);
+  const box=inp.closest('.wqa-pxe-f'); if(box) box.classList.toggle('is-bad',bad);
+  if(bad) return;
+  wqaPxDraftCalc(r,d);
+  document.querySelectorAll('#wqaRows [data-pxe="'+i+'"] .wqa-pxd-v').forEach(n=>{ n.textContent=wqaFmtPrice(d.v); });
+}
+function wqaPxdKey(ev,i){
+  if(ev.key==='Enter'){ ev.preventDefault(); ev.stopPropagation(); wqaPxUse(i); return; }
+  if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); wqaPxCancel(i); }
+}
+/* The mode changes which boxes the editor asks for, so it redraws. */
+function wqaPxdMode(i,mode){
+  const r=wqa.rows[i], d=wqa.pxd; if(!r||!d||d.i!==i) return;
+  d.priceMode=mode;
+  wqaPxDraftCalc(r,d);
+  wqaRenderRows(true);
+  wqaRvFocus(i,'[data-px="'+(mode==='manual'?'manualPrice':'priceMode')+'"]');
+}
+function wqaPxCancel(i){
+  const r=wqa.rows[i];
+  wqa.pxd=null;
+  if(wqa.px===i) wqa.px=null; else if(r) r.open=false;
+  wqaRenderRows(true);
+}
+/* Use This Pricing: the draft becomes the row's pricing setup and the row is
+   priced. Then — and only then — its group may offer the same setup to the
+   compatible items (wqaRecipeOffer). */
+function wqaPxUse(i){
+  const r=wqa.rows[i], d=wqa.pxd; if(!r||!d||d.i!==i) return;
+  const mode=d.priceMode||'auto';
+  const val=k=>wqaPxDraftVal(d[k]);
+  const sel=k=>'[data-pxe="'+i+'"] [data-px="'+k+'"]';
+  if(mode==='manual'){
+    const m=wqaPxDraftVal(d.manualPrice);
+    if(!String(d.manualPrice||'').trim() || !wqaIpOk(m) || !(Number(m)>0)){ showToast(dcT('wqaPxNeedManual')); wqaRvFocus(i,sel('manualPrice')); return; }
+  } else {
+    for(const k of ['costRate','addCost','markup']){
+      if(!wqaIpOk(val(k))){ showToast(dcT('wqaGxBad').replace('{f}',dcT((WQA_IP_FIELDS.find(x=>x[0]===k)||[])[1]))); wqaRvFocus(i,sel(k)); return; }
+    }
+    if(!(Number(val('costRate'))>0)){ showToast(dcT('wqaPxNeedRate')); wqaRvFocus(i,sel('costRate')); return; }
+  }
+  const next={costRate:val('costRate'),addCost:val('addCost'),markup:val('markup')};
+  /* A reused History record keeps its name only while what is used is still
+     exactly what it brought. */
+  const prevMode=r.priceMode||'auto';
+  const histKept=!!r.usedHistoryRef && mode===prevMode && (r.usedHistoryRecipe
+    ? (mode!=='manual' && dcRecSame(r.calc||{},next))
+    : (mode==='manual' && String(r.manualPrice||'').trim()===String(d.manualPrice||'').trim()));
+  wqaMarkEdited(r,'price');
+  if(!histKept){ r.usedHistoryRef=''; r.usedHistoryRecipe=false; r.histApplied=[]; }
+  r.priceOverride=next;
+  r.priceMode=mode;
+  r.manualPrice=mode==='manual' ? String(d.manualPrice||'').trim() : '';
+  const src = mode==='manual' ? (histKept?'history_manual':'manual')
+            : histKept ? 'history_recipe'
+            : (r.rec && dcRecSame(r.rec,next)) ? r.rec.src : 'manual_recipe';
+  r.paPending={src, ref:histKept?r.usedHistoryRef:''};
+  r.pxApplied=true;
+  wqa.recipeSrc = mode==='manual' ? null : i; wqa.rcPick=null;
+  wqa.pxd=null;
+  if(wqa.px===i) wqa.px=null;
+  clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
+  wqaRecomputeAll('force');
+  showToast(dcT('tPaAccepted'));
+}
+/* The panel's Done: closes it. Pricing is never taken from here without Use
+   This Pricing — a draft left in the editor is dropped. */
 function wqaPxDone(i,from){
   const r=wqa.rows[i]; if(!r) return;
   clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
-  r.pxApplied=true;
-  /* This row's recipe is now the one its group may be offered (wqaRecipeOffer). */
-  wqa.recipeSrc=i; wqa.rcPick=null;
+  wqa.pxd=null;
   if(from==='strip'){ wqa.px=null; } else { r.open=false; }
   wqaRecomputeAll('force');
 }
-/* The editor under the row: PRICING, the row's own four values, the price
-   they make now, and Done. "More" is the full panel, for Manual Price and the
-   rest. Nothing here is a second pricing state — every box writes the row. */
+/* The editor under the row, and the way on to the item's full panel. */
 function wqaRvPxStrip(r,i){
   return `<div class="wqa-px" data-px-row="${i}" onclick="event.stopPropagation()">
-      <div class="wqa-px-head">${escHtml(dcT('lblPriceMode'))}</div>
       ${wqaRvPxEditor(r,i)}
       <div class="wqa-px-foot">
-        <span class="wqa-px-cur">${escHtml(dcT('wqaPxCurrent'))} <b class="wqa-px-curv">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</b>${escHtml(dcT('rvPerPc'))}</span>
         <button type="button" class="btn btn-ghost btn-sm wqa-px-adv" onclick="wqa.px=null;wqaToggleRow(${i})">${escHtml(dcT('wqaPxAdvanced'))}</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="wqaPxDone(${i},'strip')">${escHtml(dcT('btnDone'))}</button>
+        <button type="button" class="btn btn-ghost btn-sm wqa-px-cancel" onclick="wqaPxCancel(${i})">${escHtml(dcT('cancel'))}</button>
       </div>
     </div>`;
 }
@@ -22302,7 +22379,7 @@ function wqaRvItemHtml(r,i,series){
       <div class="wqa-it-fig">
         <span class="wqa-fig wqa-fig-qty">${wqaRvTok(r,i,'qty')}</span>
         <button type="button" class="wqa-fig wqa-fig-price ${wqaPaCls(r)}" onclick="event.stopPropagation();wqaPxToggle(${i})"
-          aria-expanded="${wqa.px===i?'true':'false'}" title="${escHtml(dcT('wqaPxEditTip'))}"><span class="wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
+          aria-expanded="${wqa.px===i?'true':'false'}" title="${escHtml(dcT('wqaPxEditTip'))}"><span class="wqa-fin">${escHtml(wqaRowPriceText(r))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
         <span class="wqa-fig wqa-fig-w"><span class="wqa-uw wqa-uw-full" data-tw="${escHtml(wqaFmtTotalWeight(calc.weight,r.qty))}"
           title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span></span>
       </div>
@@ -22736,10 +22813,9 @@ function wqaPatchRows(){
     const calc=r.calc||{};
     card.classList.toggle('wqa-row-block',wqaRowMissing(r).length>0);
     card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight(calc.weight); });
-    const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaFmtPrice(wqaShownPrice(r));
-    const cur=card.querySelector('.wqa-px-curv'); if(cur) cur.textContent=wqaFmtPrice(wqaShownPrice(r));
+    const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaRowPriceText(r);
     const fig=card.querySelector('.wqa-fig-price');
-    if(fig){ fig.classList.remove('is-pa-sug','is-pa-ok'); const c=wqaPaCls(r); if(c) fig.classList.add(c); }
+    if(fig){ fig.classList.remove('is-pa-none','is-pa-ok'); fig.classList.add(wqaPaCls(r)); }
     const tw=card.querySelector('.wqa-tw'); if(tw) tw.textContent=wqaFmtTotalWeight(calc.weight,r.qty);
     const ad=card.querySelector('.wqa-actual-dia'); if(ad) ad.textContent=wqaDiaText(r);
     card.querySelectorAll('.wqa-uw[data-tw]').forEach(n=>{ const t=wqaFmtTotalWeight(calc.weight,r.qty); n.dataset.tw=t; n.title=dcT('lblTotalWeight')+' '+t; });
@@ -22750,11 +22826,8 @@ function wqaPatchRows(){
       if(f==='dia') b.classList.toggle('is-manual',!!r.diaManual);
     });
     const px=card.querySelector('.wqa-px-sum'); if(px) px.textContent=wqaRvPxText(r);
-    card.querySelectorAll('.wqa-it-main [data-ip]').forEach(n=>{
-      if(n===document.activeElement) return;
-      const want=wqaIpVal(r,n.getAttribute('data-ip'));
-      if(n.value!==want) n.value=want;
-    });
+    const ips=card.querySelector('.wqa-it-main .wqa-ip-set');
+    if(ips){ const t=document.createElement('div'); t.innerHTML=wqaRvIpHtml(r,i); if(t.firstElementChild) ips.replaceWith(t.firstElementChild); }
     const hsc=card.querySelector('.wqa-it-main [data-hs-cell]');
     if(hsc){ const t=document.createElement('div'); t.innerHTML=wqaRvHsCell(r,i); if(t.firstElementChild) hsc.replaceWith(t.firstElementChild); }
     card.querySelectorAll('button[data-tok]').forEach(b=>{
@@ -22815,7 +22888,6 @@ function wqaRvRenderSelBar(){
     <button type="button" class="btn btn-ghost btn-sm" onclick="wqaRvSelAll()">${escHtml(dcT(all?'wqaRvSelNone':'wqaRvSelAll'))}</button>
     <span class="wqa-selbar-gap"></span>
     <button type="button" class="btn btn-outline btn-sm" ${n?'':'disabled'} onclick="wqaBulkSheetOpen('selected')">${escHtml(dcT('wqaBulkEdit'))}</button>
-    <button type="button" class="btn btn-outline btn-sm wqa-sel-acc" ${n?'':'disabled'} onclick="wqaSelAccept()">${escHtml(dcT('paAcceptSel'))}</button>
     <button type="button" class="btn btn-outline btn-sm wqa-sel-del" ${n?'':'disabled'} onclick="wqaSelRemove()">${escHtml(dcT('wqaRvRemoveSel'))}</button>
     <button type="button" class="btn btn-primary btn-sm" onclick="wqaSelExit()">${escHtml(dcT('btnDone'))}</button>`;
 }
