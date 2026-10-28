@@ -71,7 +71,7 @@ module.exports = async (browser, A) => {
   ok(rows[0].vg && rows[0].vg === rows[1].vg, 'B: both belong to one detected spec');
   A.eq(await p.evaluate(() => document.querySelector('#wqaVarBar .wqa-var-n').textContent.trim()), '2 variants', 'B: variant count');
   A.eq(await addText(p), 'Add 2 Items to Quotation', 'B: button counts enabled variants');
-  ok(await p.evaluate(() => /MS, 4140|4140 QT, MS|MS, 4140 QT/.test(document.getElementById('wqaMaterial').selectedOptions[0].textContent)), 'B: the Material control summarises both');
+  ok(await p.evaluate(() => { const s = document.getElementById('wqaMaterial'); return s.selectedOptions[0].textContent === 'Mixed' && /MS/.test(s.title) && /4140/.test(s.title); }), 'B: the Material control says Mixed, both named in its tooltip');
   A.eq(await p.evaluate(() => document.getElementById('wqaRowsCount').textContent), 'Detected 1 item', 'B: still one detected spec');
   ok(await p.evaluate(() => !/Needs Material/i.test(document.getElementById('wqaCommon').textContent)), 'B: no Needs Material with two valid materials');
 
@@ -227,7 +227,7 @@ module.exports = async (browser, A) => {
     A.eq(L.px, lAlone.px, 'PE: the L Bolt variant prices exactly as an L Bolt detected alone');
     A.eq(S.px, sAlone.px, 'PE: the Sag Rod variant prices exactly as a Sag Rod detected alone');
     ok(L.wt !== S.wt, 'PE: weights are each product own');
-    ok(await pp.evaluate(() => /L Bolt, Sag Rod/.test(document.getElementById('wqaProduct').selectedOptions[0].textContent)), 'PA: the Product control summarises both');
+    ok(await pp.evaluate(() => { const s = document.getElementById('wqaProduct'); return s.selectedOptions[0].textContent === 'Mixed' && /L Bolt · Sag Rod/.test(s.title); }), 'PA: the Product control says Mixed, both named in its tooltip');
 
     /* B. product x material */
     await multi(pp, 'material', ['MS', '4140']);

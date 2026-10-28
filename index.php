@@ -4095,7 +4095,9 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 #wqaModal .wqa-it-hs.is-close{color:var(--amber)}
 #wqaModal .wqa-it-hs.is-none,#wqaModal .wqa-it-hs.is-load{justify-content:center;opacity:.7}
 #wqaModal .wqa-hs-t{overflow:hidden;text-overflow:ellipsis}
-#wqaModal .wqa-hs-caret{font-size:10px;opacity:.75}
+#wqaModal .wqa-hs-caret{display:inline-flex;opacity:.8}
+#wqaModal .wqa-hs-caret svg{width:10px;height:6px;transition:transform .15s}
+#wqaModal .wqa-hs-caret.is-up svg{transform:rotate(180deg)}
 #wqaModal .wqa-px-note{margin-top:6px;font-size:11.5px;color:var(--text-muted)}
 .wqa-rows.is-sel .wqa-ip-set,.wqa-rows.is-sel .wqa-it-hs{pointer-events:none}
 #wqaModal .wqa-colhead{display:none}
@@ -6059,7 +6061,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             <span class="wqa-note-help" data-i18n="wqaNoteHelp">Applies to all uploaded files</span>
           </label>
           <input type="text" id="wqaAiNote" class="wqa-note-in" maxlength="200" autocomplete="off"
-                 spellcheck="false" data-i18n-ph="wqaNotePh" placeholder="H 530, ID 100, TL 75, W 80"
+                 spellcheck="false" data-i18n-ph="wqaNotePh" placeholder="Add missing details for AI, e.g. M12 Fullsize, L1000 W100 TL75, Qty 20, MS, ZP, Remark: urgent"
                  oninput="wqaNoteInput()">
           <div class="wqa-note-read" id="wqaAiNoteRead" hidden></div>
         </div>
@@ -6723,7 +6725,7 @@ const I18N={
     wqaApplyPrevPrice:'Apply Previous Price', wqaSelectRows:'Select items',
     wqaThreadRefNote:'reference only — not used in any calculation',
     wqaNoteLabel:'Global analysis notes', wqaNoteOpt:'(optional)',
-    wqaNotePh:'H 530, ID 100, TL 75, W 80',
+    wqaNotePh:'Add missing details for AI, e.g. M12 Fullsize, L1000 W100 TL75, Qty 20, MS, ZP, Remark: urgent',
     wqaNoteRead:'Will be applied:', wqaNoteBadge:'From your note:',
     wqaNoteUsed:'Your additional info was applied — it overrides the document.',
     wqaNoteUnused:'Part of your additional info was not applied: it names no product and the document has more than one item. Write the product first, e.g. "L BOLT TL 100".',
@@ -7072,7 +7074,7 @@ const I18N={
     wqaPxEditTip:'Edit this item\'s pricing',
     wqaPxCurrent:'',
     wqaPxAdvanced:'More',
-    wqaHqTip:'Show previous prices',
+    wqaHqTip:'Show previous prices', wqaHqTipClose:'Hide previous prices',
     wqaHqTitle:'Previous Prices',
     wqaHqPreview:'Preview',
     wqaHqView:'View',
@@ -7411,7 +7413,7 @@ const I18N={
     wqaApplyPrevPrice:'应用历史报价', wqaSelectRows:'选择项目',
     wqaThreadRefNote:'仅供参考 — 不参与任何计算',
     wqaNoteLabel:'全局补充分析资料', wqaNoteOpt:'（可选）',
-    wqaNotePh:'H 530, ID 100, TL 75, W 80',
+    wqaNotePh:'补充 AI 识别不到的资料，例如 M12 Fullsize，L1000 W100 TL75，Qty 20，MS，ZP，Remark：urgent',
     wqaNoteRead:'将会套用：', wqaNoteBadge:'来自补充资料：',
     wqaNoteUsed:'补充资料已套用 — 以补充资料为准。',
     wqaNoteUnused:'部分补充资料未被套用：未指明产品，而文件有多个项目。请先写产品，例如「L BOLT TL 100」。',
@@ -7731,7 +7733,7 @@ const I18N={
     wqaPxEditTip:'修改此项目的定价',
     wqaPxCurrent:'',
     wqaPxAdvanced:'更多',
-    wqaHqTip:'查看历史价格',
+    wqaHqTip:'查看历史价格', wqaHqTipClose:'收起历史价格',
     wqaHqTitle:'历史价格',
     wqaHqPreview:'预览',
     wqaHqView:'查看',
@@ -20109,11 +20111,20 @@ function wqaMaterialOptions(sel,type,mixedLabel){
   const src=el((type||wqa.product)+'-material');
   if(!src) return '';
   if(sel===WQA_MIXED)
-    return `<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(mixedLabel||dcT('wqaMixed'))}</option>`
+    return `<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`
       + [...src.options].map(o=>`<option value="${escHtml(o.value)}">${escHtml(o.text)}</option>`).join('');
   const known=[...src.options].some(o=>o.value===sel);
   return (known?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`)
     + [...src.options].map(o=>`<option value="${escHtml(o.value)}"${o.value===sel?' selected':''}>${escHtml(o.text)}</option>`).join('');
+}
+/* A Mixed summary says Mixed — "MS, 4140 QT" in the box read as one
+   material. Which values it covers is in the tooltip, read from the rows;
+   nothing about the rows changes. */
+function wqaMixedTitle(k,mixed,list){
+  if(!mixed) return '';
+  const vals=list||[...new Set(wqa.rows.filter(r=>!r.removed).map(r=>k==='product'?wqaRowProduct(r):wqaRowSpec(r,k))
+    .filter(Boolean))].map(v=>k==='product'?((wqaProductByType(v)||{}).label||v):wqaVVal(k,v)).join(' · ');
+  return vals ? ` title="${escHtml(vals)}" data-mixed="${escHtml(vals)}"` : '';
 }
 function wqaRenderCommon(){
   const c=wqa.common;
@@ -20167,22 +20178,22 @@ function wqaRenderCommon(){
   el('wqaCommon').innerHTML=`
     <div class="wqa-rv-pills">
       <label class="wqa-sp${(prodMixed||wqa.product)?'':' is-need'}"><span class="wqa-sp-k">${escHtml(dcT('fieldProduct'))}${(prodMixed||wqa.product)?'':' <span class="wqa-req">*</span>'}</span>
-        <select id="wqaProduct" class="${(prodMixed||wqa.product)?'':'wqa-needed'}" onchange="wqaChangeProduct(this.value)">
-          ${prodMixed?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(vProd||dcT('wqaMixed'))}</option>`:''}
+        <select id="wqaProduct" class="${(prodMixed||wqa.product)?'':'wqa-needed'}"${wqaMixedTitle('product',prodMixed,vProd)} onchange="wqaChangeProduct(this.value)">
+          ${prodMixed?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           ${(prodMixed||wqa.product)?'':`<option value="" selected>${escHtml(dcT('optRequired'))}</option>`}
           ${WQA_PRODUCTS.map(p=>`<option value="${p.type}"${!prodMixed&&p.type===wqa.product?' selected':''}>${p.label}</option>`).join('')}
         </select>${wqaMvBtn('product')}</label>
       <label class="wqa-sp${matNeeded?' is-need':''}"><span class="wqa-sp-k">${escHtml(dcT('lblMaterial'))}${matNeeded?' <span class="wqa-req">*</span>':''}</span>
-        <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}" onchange="wqaSetCommon('material',this.value)"${matOpts?'':' disabled'}>${matOpts||`<option value="">${escHtml(dcT('wqaMixed'))}</option>`}</select>${matOpts?wqaMvBtn('material'):''}</label>
+        <select id="wqaMaterial" class="${matNeeded?'wqa-needed':''}"${wqaMixedTitle('material',shownMat===WQA_MIXED,vMat)} onchange="wqaSetCommon('material',this.value)"${matOpts?'':' disabled'}>${matOpts||`<option value="">${escHtml(dcT('wqaMixed'))}</option>`}</select>${matOpts?wqaMvBtn('material'):''}</label>
       <label class="wqa-sp"><span class="wqa-sp-k">${escHtml(dcT('lblFinish'))}</span>
-        <select id="wqaFinish" onchange="wqaSetCommon('finish',this.value)"${allSS?' disabled':''}>
-          ${shownFin===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(vFin||dcT('wqaMixed'))}</option>`:''}
+        <select id="wqaFinish"${wqaMixedTitle('finish',shownFin===WQA_MIXED,vFin)} onchange="wqaSetCommon('finish',this.value)"${allSS?' disabled':''}>
+          ${shownFin===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownFin===''?' selected':''}>N/A</option>
           ${allSS?'':['PL','ZP','HDG'].map(v=>`<option value="${v}"${shownFin===v?' selected':''}>${v}</option>`).join('')}
         </select>${allSS?'':wqaMvBtn('finish')}</label>
       <label class="wqa-sp${stNeeded?' is-need':''}"><span class="wqa-sp-k">${escHtml(dcT('lblSizeType'))}${(prod.needSizeType&&!allNoSt)?' <span class="wqa-req">*</span>':''}</span>
-        <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}" onchange="wqaSetCommon('sizeType',this.value)"${allNoSt?' disabled':''}>
-          ${shownSt===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(vSt||dcT('wqaMixed'))}</option>`:''}
+        <select id="wqaSizeType" class="${stNeeded?'wqa-needed':''}"${wqaMixedTitle('sizeType',shownSt===WQA_MIXED,vSt)} onchange="wqaSetCommon('sizeType',this.value)"${allNoSt?' disabled':''}>
+          ${shownSt===WQA_MIXED?`<option value="${escHtml(WQA_MIXED)}" selected>${escHtml(dcT('wqaMixed'))}</option>`:''}
           <option value=""${shownSt===''?' selected':''}>${escHtml(allNoSt?'N/A':dcT(prod.needSizeType?'optRequired':'optNone'))}</option>
           ${allNoSt?'':`<option value="FULLSIZE"${shownSt==='FULLSIZE'?' selected':''}>Fullsize</option>
           <option value="UNDERSIZE"${shownSt==='UNDERSIZE'?' selected':''}>Undersize</option>`}
@@ -20364,7 +20375,7 @@ function wqaVAxisLabel(k){
     const d=wqaVDistinct(wqaVGroupRows(g),k);
     if(ref===null){ ref=d.join('|'); list=d; } else if(ref!==d.join('|')) return '';
   }
-  return (list&&list.length>1) ? list.map(v=>wqaVVal(k,v)).join(', ') : '';
+  return (list&&list.length>1) ? list.map(v=>wqaVVal(k,v)).join(' · ') : '';
 }
 /* Detected N items counts specs: a spec with three variants is one detection. */
 function wqaSpecCount(live){
@@ -21923,10 +21934,15 @@ function wqaRowBestHist(r){
   if(!h||h.failed||!h.records) return null;
   const c=phClassCounts(h), recs=h.records;
   const at=(cls,ok)=>recs.findIndex(x=>phMatchInfo(x).match===cls && phRecordReusable(x) && ok(x));
+  /* The badge is the class of the WHOLE set, by the counts Full History
+     shows (Exact → Similar → Reference): one exact record anywhere makes the
+     row Exact, whether or not it is the one that would be reused. */
   let n=at('exact',()=>true);
   if(n>=0) return {cls:'exact',n,rec:recs[n],count:c.exact};
+  if(c.exact>0) return {cls:'exact',n:-1,rec:null,count:c.exact};
   n=at('close',wqaRecIsRecipe);
   if(n>=0) return {cls:'close',n,rec:recs[n],count:c.close};
+  if(c.close>0) return {cls:'close',n:-1,rec:null,count:c.close};
   return {cls:recs.length?'ref':'none',n:-1,count:recs.length};
 }
 /* History as one compact cell on the row: "Exact ▾", "Similar ▾",
@@ -21934,6 +21950,10 @@ function wqaRowBestHist(r){
    never a hover), the row's ONE way into history — the preview leads on to
    the full drawer. The best price and how far a Similar one is sit in the
    tooltip; the preview says the rest, so the row keeps its columns. */
+/* Open / closed, drawn rather than typed: a 10px ▾ read as a dash. */
+function wqaHsCaret(on){
+  return `<span class="wqa-hs-caret${on?' is-up':''}" data-open="${on?'1':'0'}" aria-hidden="true"><svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg></span>`;
+}
 function wqaRvHsCell(r,i){
   const on=wqa.hq===i;
   if(r.hist===undefined && wqaHistSpec(r))
@@ -21941,14 +21961,17 @@ function wqaRvHsCell(r,i){
   const b=wqaRowBestHist(r);
   if(!b || b.cls==='none') return `<span class="wqa-it-hs is-none" data-hs-cell="${i}" title="${escHtml(dcT('wqaHsNone'))}">—</span>`;
   let txt=dcT('wqaColHist'), tip=dcT('wqaHsNoExact');
-  if(b.n>=0){
-    txt=dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar');
-    const far=b.cls==='close' ? wqaHsDiffShort(r.hist,b.rec) : '';
-    tip=txt+' '+phMoney(b.rec.boltUnitPrice).replace('RM ','RM')+(far?' · '+far:'');
+  if(b.cls==='exact'||b.cls==='close'){
+    txt=dcT(b.cls==='exact'?'wqaHsExact':'wqaHsSimilar'); tip=txt;
+    if(b.rec){
+      const far=b.cls==='close' ? wqaHsDiffShort(r.hist,b.rec) : '';
+      tip=txt+' '+phMoney(b.rec.boltUnitPrice).replace('RM ','RM')+(far?' · '+far:'');
+    }
   }
-  return `<button type="button" class="wqa-it-hs is-${b.n>=0?b.cls:'ref'}${on?' is-on':''}" data-hs="${i}" data-hs-cell="${i}"
-      aria-expanded="${on?'true':'false'}" title="${escHtml(dcT('wqaHsLabel')+' '+tip+' · '+dcT('wqaHqTip'))}"
-      onclick="event.stopPropagation();wqaHqToggle(${i})"><span class="wqa-hs-t">${escHtml(txt)}</span><span class="wqa-hs-caret" aria-hidden="true">${on?'▴':'▾'}</span></button>`;
+  /* The same control opens and closes the preview: ▾ closed, ▴ open. */
+  return `<button type="button" class="wqa-it-hs is-${(b.cls==='exact'||b.cls==='close')?b.cls:'ref'}${on?' is-on':''}" data-hs="${i}" data-hs-cell="${i}"
+      aria-expanded="${on?'true':'false'}" title="${escHtml(dcT('wqaHsLabel')+' '+tip+' · '+dcT(on?'wqaHqTipClose':'wqaHqTip'))}"
+      onclick="event.stopPropagation();wqaHqToggle(${i})"><span class="wqa-hs-t">${escHtml(txt)}</span>${wqaHsCaret(on)}</button>`;
 }
 /* ── Cost · Add · Markup, on the row — VIEW ONLY ──────────────────────────
    Pricing Control Reset: the row shows its pricing setup, it does not edit
@@ -22252,7 +22275,7 @@ function wqaRvPxStrip(r,i){
   return `<div class="wqa-px" data-px-row="${i}" onclick="event.stopPropagation()">
       ${wqaRvPxEditor(r,i)}
       <div class="wqa-px-foot">
-        <button type="button" class="btn btn-ghost btn-sm wqa-px-hist" onclick="event.stopPropagation();wqaHqToggle(${i})">${dcHistIcon()} ${escHtml(dcT('wqaColHist'))}</button>
+        <button type="button" class="btn btn-ghost btn-sm wqa-px-hist${wqa.hq===i?' is-on':''}" aria-expanded="${wqa.hq===i?'true':'false'}" onclick="event.stopPropagation();wqaHqToggle(${i})">${dcHistIcon()} ${escHtml(dcT('wqaColHist'))} ${wqaHsCaret(wqa.hq===i)}</button>
         <button type="button" class="btn btn-ghost btn-sm wqa-px-adv" onclick="wqa.px=null;wqaToggleRow(${i})">${escHtml(dcT('wqaPxAdvanced'))}</button>
         <button type="button" class="btn btn-outline btn-sm wqa-px-done" onclick="wqaPxDone(${i},'strip')">${escHtml(dcT('btnDone'))}</button>
       </div>
@@ -23672,6 +23695,10 @@ async function wqaHdOpen(i){
   const spec=wqaHistSpec(r);
   if(!spec){ showToast(dcT('tEnterSizeFirst')); return; }
   wqa.hd={i, spec, by:'overall', target:'', targets:phMatchDefaults(spec), st:undefined, seq:0};
+  /* The drawer REPLACES the quick preview — the same history twice is one
+     too many. Only the preview goes: the pricing editor stays open beside
+     the drawer, and closing the drawer does not bring the preview back. */
+  if(wqa.hq!=null){ wqa.hq=null; wqaRenderRows(true); }
   wqaHdShow();
   wqaHdRender();
   await wqaHdLoad();
@@ -23814,9 +23841,13 @@ function wqaHistIdentityGuard(r,change){
   r.usedHistoryRef=''; r.usedHistoryRecipe=false;
   return true;
 }
-/* One row's lookup. The identity is shared, so two rows of the same
-   specification wait on ONE request; the ranking is each row's own, because
-   two lengths of one specification are ranked differently. */
+/* One row's lookup. The server ranks and pages the set against the
+   dimensions it is SENT, so the request is keyed by this row's geometry as
+   well as its identity: two rows of one specification and one size wait on
+   ONE request, but an L500 row and an L900 row each get their own page.
+   Keyed by identity alone, the first row's page (ranked for L500) was reused
+   for L900, whose exact records sat beyond it — the row said Similar while
+   Full History, asked for L900, found Exact. */
 async function wqaLoadRowHistory(r){
   const token=wqa.session;
   const spec=wqaHistSpec(r);
@@ -23825,9 +23856,9 @@ async function wqaLoadRowHistory(r){
   r.hist=undefined;                                  // shows "Loading…" on this row only
   r.histFor=forKey;
   try{
-    const key=JSON.stringify([spec.productType,spec.material,spec.sizeType,spec.finish,spec.cleanSize]);
+    const key=forKey;
     if(!wqa.histCache) wqa.histCache=new Map();
-    if(!wqa.histCache.has(key)) wqa.histCache.set(key, phFetch(spec,selectedCompanyId,0,20));
+    if(!wqa.histCache.has(key)) wqa.histCache.set(key, wqaHistFetchRow(spec));
     const data=await wqa.histCache.get(key);
     if(token!==wqa.session) return;
     if(r.histFor!==wqaHistFor(r)) return;             // the row moved on while we waited
@@ -23838,6 +23869,22 @@ async function wqaLoadRowHistory(r){
     r.hist={failed:true};
   }
   if(token===wqa.session) wqaRenderRows();
+}
+/* One row's first page, plus — when the whole set has exact records the page
+   did not reach (this customer's own similar records rank above a stranger's
+   exact one) — the further pages that hold them, so the row, its preview and
+   Full History all read the same Exact. Bounded: at most five more pages. */
+async function wqaHistFetchRow(spec){
+  const data=await phFetch(spec,selectedCompanyId,0,20);
+  if(!data||!data.records) return data;
+  const want=Number(data.exactTotal)||0;
+  const has=()=>data.records.filter(x=>x.finishMatch!==false&&x.exactDims).length;
+  for(let k=0;k<5 && has()<want && data.records.length<(Number(data.total)||0);k++){
+    const next=await phFetch(spec,selectedCompanyId,data.records.length,100);
+    if(!next||!next.records||!next.records.length) break;
+    data.records=data.records.concat(next.records);
+  }
+  return data;
 }
 /* The shared answer, measured against ONE row's geometry — the same distance
    and the same order the entry form's panel uses. */
