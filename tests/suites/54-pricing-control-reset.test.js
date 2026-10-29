@@ -139,7 +139,8 @@ module.exports = async (browser, A) => {
 
   // ── saved items reopen with their pricing; legacy items get nothing injected ──
   const saved = await p.evaluate(() => {
-    const i = quoteItems.findIndex(it => it.priceMode === 'no_round');
+    // the LAST No Round item: a new Sag Rod now starts on No Round (owner rule 2026-10-29)
+    const i = quoteItems.map(it => it.priceMode === 'no_round').lastIndexOf(true);
     editItem(i);
     const kept = { c: fv('sagrod', 'costRate'), a: fv('sagrod', 'addCost'), m: fv('sagrod', 'markup'), pa: dcFormPaState('sagrod').state };
     editingItemIndex = null; setItemEditMode(null);

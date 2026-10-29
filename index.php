@@ -8696,6 +8696,12 @@ function getPriceMode(type){
   const value=fv(type,'priceMode');
   return ['auto','no_round','manual'].includes(value)?value:'auto';
 }
+/* The Price Mode a genuinely NEW item starts on. Owner rule (2026-10-29):
+   a new Sag Rod starts on No Round so L1070 and L1072 keep their own prices
+   instead of collapsing to one RM0.05 step; every other product starts on
+   Auto Round. Creation-time only — restore, History, Apply-setup and the
+   legacy 'auto' fallbacks never consult it. */
+function dcDefaultPriceMode(type){ return type==='sagrod'?'no_round':'auto'; }
 function getPriceModeKey(mode){return mode==='manual'?'pmManualPrice':mode==='no_round'?'pmNoRound':'pmAutoRound'}
 function getPriceModeLabel(mode){return dcT(getPriceModeKey(mode))}
 function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost=0){
@@ -11619,7 +11625,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
    already resets the accessory panel after every add: the one part of the form
    that silently carries a CHARGE forward must not do so unasked. */
 function resetPriceModeAfterAdd(type){
-  const modeEl=el(type+'-priceMode'); if(modeEl) modeEl.value='auto';
+  const modeEl=el(type+'-priceMode'); if(modeEl) modeEl.value=dcDefaultPriceMode(type);
   const manEl=el(type+'-manualUnitPrice'); if(manEl) manEl.value='';
   productEntryTouchedFields.delete(type+'-manualUnitPrice');
   productEntryTouchedFields.delete(type+'-priceMode');
@@ -14323,6 +14329,7 @@ function ensurePriceModeControls(){
     const qtyField=el(type+'-qty')?.closest('.field');
     (qtyField||pricingLabel).insertAdjacentElement('afterend',modeField);
     modeField.insertAdjacentElement('afterend',manualField);
+    el(type+'-priceMode').value=dcDefaultPriceMode(type);   // explicit, not option order
   });
 }
 
@@ -19932,7 +19939,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
     wqa.textSource = String(rawText||'');
   }
   wqa.common={...common};
-  wqa.rows=rows.map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',
+  wqa.rows=rows.map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:dcDefaultPriceMode(wqaRowProduct(r)),usedHistoryRef:'',manualPrice:'',
                          priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   wqa.skipped=skipped||[];
   wqa.ix=null; wqa.px=null; wqa.selMode=false; wqaBulkSheetClose();
@@ -20235,7 +20242,14 @@ function wqaChangeProduct(t){
      applied to the rows in scope — exactly like Apply to All for material.
      Nothing automatic ever overwrites a row's own product. */
   const targets=varTargets.length ? plainTargets : wqaApplyTargets();
-  targets.forEach(r=>{ r.product=t; r.productConflict=null; r.unsupported='';
+  targets.forEach(r=>{
+    /* A row nobody has priced yet takes the new product's starting Price Mode
+       (a Sag Rod starts on No Round); a mode somebody chose, or one History
+       supplied, is left exactly as it is. */
+    const was=String(r.product||'')||String(prev||'');   // wqa.product is already t here
+    if(was!==t && !(r.edited&&r.edited.price) && !r.usedHistoryRef && (r.priceMode||'auto')===dcDefaultPriceMode(was))
+      r.priceMode=dcDefaultPriceMode(t);
+    r.product=t; r.productConflict=null; r.unsupported='';
     wqaRowRestoreThread(r,t); wqaThreadBothEnds(r,t);
     r.sizeType=dcSizeTypeFor(t,r.sizeType); if(!r.sizeType) r.stDefaulted=false; });
   if(wqa.applyScope!=='selected') wqa.common.sizeType=dcSizeTypeFor(t,wqa.common.sizeType);
@@ -20272,7 +20286,7 @@ function wqaChangeProduct(t){
   /* Same pipeline as the first parse, so header context and inheritance behave
      identically after a product switch. */
   wqa.rows=wqaParseText(wqa.raw,t).rows
-    .map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:'auto',usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
+    .map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:dcDefaultPriceMode(wqaRowProduct(r)),usedHistoryRef:'',manualPrice:'',priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
   rebuild();
   wqaRecomputeAll();
 }
@@ -20412,7 +20426,7 @@ function wqaVariantClone(src,spec){
   c.removed=false; c.added=false; c.sel=false; c.open=false; c.accOpen=false;
   c.hist=undefined; c.histFor=''; c.histOpen=false;
   c.usedHistoryRef=''; c.usedHistoryRecipe=false; c.histApplied=[];
-  c.priceMode='auto'; c.manualPrice=''; c.priceOverride={}; c.calc=null;
+  c.priceMode=dcDefaultPriceMode(wqaRowProduct(c)); c.manualPrice=''; c.priceOverride={}; c.calc=null;
   c.edited=Object.assign({},c.edited||{});
   WQA_ROW_SPEC.forEach(k=>{ c.edited[k]=true; });
   return c;
@@ -20533,7 +20547,7 @@ function wqaVarSetField(i,k,v){
     wqaVariantProductMap(r,wqaRowProduct(r),v);
     r.sizeType=dcSizeTypeFor(v,r.sizeType);
     r.finish=wqaFinishFor(r.material,r.finish);
-    r.priceMode='auto'; r.manualPrice=''; r.priceOverride={}; r.usedHistoryRef='';
+    r.priceMode=dcDefaultPriceMode(v); r.manualPrice=''; r.priceOverride={}; r.usedHistoryRef='';
   } else {
     r[k]=v;
     if(k==='material'){ r.matDefaulted=false; r.matFrom=''; r.finish=wqaFinishFor(v,r.finish); }
