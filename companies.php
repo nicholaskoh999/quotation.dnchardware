@@ -16,10 +16,10 @@
 </script>
 <title>Der-Cheng Quotation / Companies</title>
 <!-- App icons / Home Screen -->
-<link rel="icon" type="image/svg+xml" href="/assets/icons/dnc-logo.svg">
-<link rel="icon" href="/assets/icons/favicon.ico" sizes="any">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="assets/icons/dnc-logo.svg">
+<link rel="icon" href="assets/icons/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+<?= dc_page_head_meta() /* CSRF token; manifest on quo.dnchardware.com only */ ?>
 <meta name="theme-color" content="#5b7af5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -977,7 +977,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 <aside class="dnc-shell" id="dncShell" data-i18n-aria="shellNav" aria-label="DNC navigation">
   <button type="button" class="rsp-close" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
   <a class="dnc-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
-    <img class="dnc-mark" src="/assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
+    <img class="dnc-mark" src="assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
   <div class="dnc-back-wrap">
@@ -1025,7 +1025,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 <div class="rsp-top" id="rspTop">
   <button type="button" class="rsp-burger" id="rspBurger" aria-expanded="false" aria-controls="dncShell" data-i18n-aria="rspOpenMenu" aria-label="Open menu" onclick="rspOpen('drawer')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
   <a class="rsp-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
-    <img class="dnc-mark" src="/assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
+    <img class="dnc-mark" src="assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
   <button type="button" class="rsp-avatar-btn" id="rspAvatarBtn" aria-expanded="false" aria-controls="rspAcct" data-i18n-aria="shellAccountMenu" aria-label="Account menu" onclick="rspOpen('account')"><span class="dnc-avatar" id="rspAvatarTop" aria-hidden="true" data-i18n-skip>·</span></button>
@@ -1282,6 +1282,7 @@ const I18N={
     cpNoPhone:'No phone on file',
     cpConfirmDeleteCompany:'Delete company “{n}”?\nAll linked quotations will be unlinked.',
     cpConfirmDeleteQuote:'Delete this quotation?', cpSignedOut:'Signed out',
+    errCsrfReload:'This page has expired. Please reload it and try again.',
     cpSavedQuotes:'Saved quotes: {n} · Latest: {d}', cpNoSavedQuotes:'No saved quotations',
     cpLastUpdated:'Last Updated', cpLatestProduct:'Latest Product',
     qoRenumbered:'Quotation {r} was renumbered.', qoChooseOne:'{n} quotations match “{r}”. Choose one:',
@@ -1356,6 +1357,7 @@ const I18N={
     cpNoPhone:'未登记电话',
     cpConfirmDeleteCompany:'确定删除公司「{n}」？\n所有关联的报价单将会解除关联。',
     cpConfirmDeleteQuote:'确定删除此报价单？', cpSignedOut:'已退出登录',
+    errCsrfReload:'此页面已过期，请刷新后重试。',
     cpSavedQuotes:'已保存报价：{n} · 最新：{d}', cpNoSavedQuotes:'尚无已保存报价',
     cpLastUpdated:'最后更新', cpLatestProduct:'最新产品',
     /* DNC shared desktop shell (2026-10-24) */
@@ -1442,16 +1444,33 @@ function showToast(msg){
 }
 
 /* ── API ── */
+/* This session's CSRF token, printed once in <head> by auth.php
+   dc_page_head_meta(). Every state-changing request sends it (X-DC-CSRF). */
+function dcCsrf(){ const m=document.querySelector('meta[name="dc-csrf"]'); return m?m.content:''; }
+/* Sign Out posts the token (logout.php refuses a bare GET). Same links, same
+   one click; without a token the link's own GET shows logout.php's button. */
+document.addEventListener('click',e=>{
+  const a=e.target&&e.target.closest&&e.target.closest('a[href="logout.php"]');
+  const t=a&&!e.defaultPrevented&&dcCsrf();
+  if(!t) return;
+  e.preventDefault();
+  const f=document.createElement('form'); f.method='post'; f.action='logout.php'; f.hidden=true;
+  const i=document.createElement('input'); i.type='hidden'; i.name='csrf'; i.value=t;
+  f.appendChild(i); document.body.appendChild(f); f.submit();
+});
 async function api(action,data={},method='GET'){
   const url='api.php?action='+action;
-  const opts=method==='GET'?{method:'GET'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)};
+  const opts=method==='GET'?{method:'GET'}:{method:'POST',headers:{'Content-Type':'application/json','X-DC-CSRF':dcCsrf()},body:JSON.stringify(data)};
   const r=await fetch(url,opts);
   /* Session expired (or signed out in another tab) — go to login, then back. */
   if(r.status===401){
     location.href='login.php?next='+encodeURIComponent(location.pathname+location.search);
     return {ok:false,error:dcT('cpSignedOut')};
   }
-  return r.json();
+  const json=await r.json();
+  /* A page older than this session's token: nothing was written; reload. */
+  if(json&&json.error==='csrf') return {ok:false,error:dcT('errCsrfReload')};
+  return json;
 }
 
 /* ── Companies ── */

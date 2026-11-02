@@ -745,13 +745,14 @@ for ($i = 0; $i < 60 && !$up; $i++) { $fp = @fsockopen('127.0.0.1', $PORT, $e1, 
 ok($up, "R: the sandbox server is listening on 127.0.0.1:{$PORT}");
 
 /** A raw HTTP request. $https adds X-Forwarded-Proto: https (what the live proxy sends). */
-function http($method, $path, ?string $cookie = null, bool $https = true, string $body = '') {
+function http($method, $path, ?string $cookie = null, bool $https = true, string $body = '', array $extra = []) {
     global $PORT;
     $s = fsockopen('127.0.0.1', $PORT, $en, $es, 5);
     $req = "$method $path HTTP/1.1\r\nHost: quo.dnchardware.com\r\nConnection: close\r\n"
          . ($https ? "X-Forwarded-Proto: https\r\n" : '')
          . ($cookie ? "Cookie: $cookie\r\n" : '')
          . ($body !== '' ? "Content-Type: application/json\r\nContent-Length: " . strlen($body) . "\r\n" : '')
+         . implode('', array_map(fn ($k, $v) => "$k: $v\r\n", array_keys($extra), $extra))
          . "\r\n" . $body;
     fwrite($s, $req);
     $raw = ''; while (!feof($s)) $raw .= fread($s, 65536);
@@ -818,10 +819,21 @@ if ($up) {
 
     $q->query("INSERT INTO companies (name) VALUES ('Alpha Engineering Sdn Bhd')");
     $cid = (int)$q->insert_id;
-    $save = http('POST', '/api.php?action=save_quotation', $cookie2, true, json_encode([
+    $saveBody = json_encode([
         'company_id' => $cid, 'ref_no' => '', 'quote_date' => date('Y-m-d'), 'valid_until' => '', 'prepared_by' => 'Desk',
         'remarks' => '', 'customer_name' => 'Beta', 'customer_phone' => '', 'total_amount' => 1,
-        'items' => [['desc' => 'SAG ROD', 'size' => 'M20', 'qty' => 1, 'finalUnitPrice' => 1, 'totalAmount' => 1]]]));
+        'items' => [['desc' => 'SAG ROD', 'size' => 'M20', 'qty' => 1, 'finalUnitPrice' => 1, 'totalAmount' => 1]]]);
+    /* The page prints this session's CSRF token; a write without it is refused before the database. */
+    preg_match('#<meta name="dc-csrf" content="([0-9a-f]{64})">#', $page['body'], $tm);
+    ok(isset($tm[1]), 'R: the page carries the session CSRF token');
+    $before = (int)$q->query('SELECT COUNT(*) FROM quotations')->fetch_row()[0];
+    $noTok = http('POST', '/api.php?action=save_quotation', $cookie2, true, $saveBody);
+    eq([$noTok['status'], json_decode(trim($noTok['body']), true)['error'] ?? null], [403, 'csrf'], 'R: a save without the token is 403 csrf');
+    $badTok = http('POST', '/api.php?action=save_quotation', $cookie2, true, $saveBody, ['X-DC-CSRF' => str_repeat('0', 64)]);
+    eq($badTok['status'], 403, 'R: a save with a wrong token is 403');
+    eq((int)$q->query('SELECT COUNT(*) FROM quotations')->fetch_row()[0], $before, 'R: and neither wrote anything');
+    $save = http('POST', '/api.php?action=save_quotation', $cookie2, true, $saveBody, ['X-DC-CSRF' => $tm[1] ?? '']);
+    ok(stripos(implode("\n", array_keys($save['h'])), 'access-control-') === false, 'R: api.php sends no CORS headers');
     $sj = json_decode(trim($save['body']), true);
     ok(($sj['ok'] ?? false) === true, 'R: a DNC user saves a quotation through the shipped api.php (' . substr(trim($save['body']), 0, 120) . ')');
     $rev = $q->query('SELECT actor_user_id, actor_username, actor_display_name FROM quotation_revisions ORDER BY id DESC LIMIT 1');

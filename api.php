@@ -1,14 +1,28 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+/* No CORS headers. The app's only client is its own pages, by relative URL
+   (same origin on quo.dnchardware.com and under the Portal mount). The old
+   Access-Control-Allow-Origin: * granted nothing a credentialed call could use
+   (docs/audit/2026-10-20-csrf-design.md §5) and nothing depended on it. */
 
 // ── Login required (shared staff account) ──
 // Returns HTTP 401 + JSON when not signed in. Runs before db.php so an
 // unauthenticated request never touches the database.
 require_once __DIR__ . '/auth.php';
 dc_require_api_login();
+
+/* Every action that writes (docs/audit/2026-10-20-csrf-design.md §2.1). They
+   must arrive as a same-origin JSON POST carrying this session's X-DC-CSRF
+   token, and are refused before the database is opened. Reads are unchanged. */
+const DC_MUTATING_ACTIONS = [
+    'add_company', 'update_company', 'delete_company',
+    'save_quotation', 'update_quotation', 'delete_quotation',
+    'save_default_price', 'update_default_price', 'delete_default_price',
+    'save_diameter_setting', 'update_diameter_setting', 'delete_diameter_setting',
+    'save_whatsapp_template', 'reset_whatsapp_template',
+    'import_diameter_settings', 'import_default_prices',
+];
+if (in_array((string)($_GET['action'] ?? ''), DC_MUTATING_ACTIONS, true)) dc_require_csrf_api(true);
 
 /* ── The one line that keeps this application working on PHP 8.1 and later ──
    PHP 8.1 changed the DEFAULT mysqli report mode from MYSQLI_REPORT_OFF to

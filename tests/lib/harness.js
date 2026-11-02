@@ -33,7 +33,15 @@ try {
    echo on the page. A server renders a real user there; the test page renders
    a fixed one, so the account block has something true to show. */
 const SHELL_TEST_USER = { name: 'Test User', username: 'test.user' };
+/* The <head> echo (auth.php dc_page_head_meta) prints the session's CSRF token
+   and, on quo.dnchardware.com, the manifest link. The test page gets a fixed
+   token and the direct-domain shape; it must be replaced before the generic
+   user echo below, which would otherwise drop a JSON object into <head>. */
+const CSRF_TEST_TOKEN = 'a'.repeat(64);
+const HEAD_META_TEST  = '<meta name="dc-csrf" content="' + CSRF_TEST_TOKEN + '">\n'
+                      + '<link rel="manifest" href="/manifest.webmanifest">';
 function withShellUser(html) {
+  html = html.replace(/<\?=\s*dc_page_head_meta\(\)[\s\S]*?\?>/g, HEAD_META_TEST);
   return html.replace(/<\?=[\s\S]*?\?>/g, JSON.stringify(SHELL_TEST_USER));
 }
 function buildPage() {
@@ -93,6 +101,9 @@ async function openApp(browser, opts = {}) {
   }
 
   const html = buildPage();
+  /* `opts.path` serves the page somewhere else, e.g. '/quo/index.php' for the
+     same-origin Portal mount, so relative requests can be checked from there. */
+  const pagePath = opts.path || '/app.html';
   await page.route('**/*', route => {
     const url = route.request().url();
     if (url.includes('api.php')) {
@@ -103,14 +114,14 @@ async function openApp(browser, opts = {}) {
       if (body === undefined) body = { ok: true, data: [] };
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
     }
-    if (/\/app\.html$/.test(url)) {
+    if (new URL(url).pathname === pagePath) {
       return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
     }
     /* icons, manifest, anything else the page reaches for */
     return route.fulfill({ status: 200, contentType: 'text/plain', body: '' });
   });
 
-  await page.goto(ORIGIN + '/app.html', { waitUntil: 'domcontentloaded' });
+  await page.goto(ORIGIN + pagePath, { waitUntil: 'domcontentloaded' });
   /* The script is a classic one, so its function declarations reach window but
      its `let` state does not. Boot is complete when init() has filled the
      reference number it fetches last. */

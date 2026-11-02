@@ -37,6 +37,7 @@ use App\Handoff\Contract\InvalidHandoffToken;
 
 const DC_HANDOFF_AUDIENCE    = HandoffToken::AUDIENCE_QUOTATION;
 const DC_HANDOFF_STATES      = 'dnc_handoff_states';
+/** App paths, not URLs: dc_url() adds the base ('/quo' under the Portal mount). */
 const DC_HANDOFF_HOME        = '/';
 const DC_HANDOFF_LOGIN       = '/login.php';
 const DC_HANDOFF_PORTAL_URL  = 'https://portal.dnchardware.com';
@@ -347,7 +348,7 @@ function dc_handoff_fail($reason, ?array $claims = null) {
     if ($claims !== null) { $f['jti'] = $claims['jti']; $f['sub'] = $claims['sub']; }
     dc_handoff_log('auth.handoff_failed', $f);
     $_SESSION['dc_flash'] = 'handoff_failed';
-    return dc_handoff_response(303, DC_HANDOFF_LOGIN);
+    return dc_handoff_response(303, dc_url(DC_HANDOFF_LOGIN));
 }
 
 /** The pending map this browser's session holds, or [] for anything else. */
@@ -361,7 +362,7 @@ function dc_handoff_pending() {
 /** Reads no query parameter: redirect_uri, next, url, callback… are ignored. */
 function dc_handoff_start($now = null) {
     $now = $now ?? time();
-    if (!dc_handoff_enabled()) return dc_handoff_response(303, DC_HANDOFF_LOGIN);
+    if (!dc_handoff_enabled()) return dc_handoff_response(303, dc_url(DC_HANDOFF_LOGIN));
 
     dc_session_start();
     $limited = dc_handoff_rate_limited(dc_handoff_quo_db(), 'start', $now);
@@ -377,7 +378,20 @@ function dc_handoff_start($now = null) {
     [$state, $pending] = HandoffToken::startState(dc_handoff_pending(), $now);
     $_SESSION[DC_HANDOFF_STATES] = $pending;
 
-    return dc_handoff_response(303, HandoffToken::authorizeUrl($portal, DC_HANDOFF_AUDIENCE, $state));
+    return dc_handoff_response(303, dc_handoff_authorize_url($portal, $state));
+}
+
+/**
+ * The Portal's authorize URL. A copy served under the Portal mount
+ * (dc_base_path() '/quo') adds mount=portal, the one extra word the Portal
+ * reads: it then sends the token to the callback it has configured for that
+ * mount (https://portal.dnchardware.com/quo/auth/handoff/callback) instead of
+ * quo.dnchardware.com. It is never a URL: the Portal only chooses between
+ * callbacks it already holds, and the direct copy's request is unchanged.
+ */
+function dc_handoff_authorize_url($portal, $state) {
+    $url = HandoffToken::authorizeUrl($portal, DC_HANDOFF_AUDIENCE, $state);
+    return dc_base_path() === '' ? $url : $url . '&mount=portal';
 }
 
 // ── GET /auth/handoff/callback (§6.3, processing order §6.4) ─────────────────
@@ -385,7 +399,7 @@ function dc_handoff_start($now = null) {
 function dc_handoff_callback($now = null) {
     $now = $now ?? time();
     // 0
-    if (!dc_handoff_enabled()) return dc_handoff_response(303, DC_HANDOFF_LOGIN);
+    if (!dc_handoff_enabled()) return dc_handoff_response(303, dc_url(DC_HANDOFF_LOGIN));
 
     dc_session_start();
     $quoDb   = dc_handoff_quo_db();
@@ -448,5 +462,5 @@ function dc_handoff_callback($now = null) {
     dc_handoff_prune_jtis($quoDb, $now);
 
     // 10
-    return dc_handoff_response(303, DC_HANDOFF_HOME);
+    return dc_handoff_response(303, dc_url(DC_HANDOFF_HOME));
 }

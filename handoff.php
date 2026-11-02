@@ -5,6 +5,9 @@
  *   GET /auth/handoff/start
  *   GET /auth/handoff/callback?token=v2.…
  *
+ * (or /quo/auth/handoff/… when this copy is served under the Portal mount;
+ * the base is stripped before matching, see dc_app_path()).
+ *
  * The host rewrites exactly those two paths here (docs/handoff/QUOTATION-HANDOFF.md
  * §5). The action comes from the request PATH, never from a parameter, and
  * any other path or method is a 404 / 405 with an empty body.
@@ -26,7 +29,7 @@
  *      a mysqli_sql_exception, a bug) becomes the generic failure.
  *   4. A shutdown function catches the exits nothing can catch — die()/exit in
  *      db.php, a fatal error — and replaces whatever was about to be sent with
- *      the generic failure: 303 to /login.php, the one flash message.
+ *      the generic failure: 303 to login.php, the one flash message.
  *
  * Headers set along the way are dropped too (the 500 db.php sets, a
  * Content-Type), except Set-Cookie: the session cookie must survive, or the
@@ -70,12 +73,14 @@ register_shutdown_function(function () {
         error_log($line);
     }
     if (session_status() === PHP_SESSION_ACTIVE) $_SESSION['dc_flash'] = 'handoff_failed';
-    dc_handoff_send(303, '/login.php');
+    dc_handoff_send(303, function_exists('dc_url') ? dc_url('/login.php') : '/login.php');
 });
 
 require_once __DIR__ . '/dnc_handoff.php';
 
-$path = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+/* The logical path: under the Portal mount /quo/auth/handoff/start is the
+   same route as /auth/handoff/start on quo.dnchardware.com. */
+$path = dc_app_path((string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));
 $routes = [
     '/auth/handoff/start'    => 'dc_handoff_start',
     '/auth/handoff/callback' => 'dc_handoff_callback',

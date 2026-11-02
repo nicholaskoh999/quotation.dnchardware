@@ -52,6 +52,45 @@ const DC_AUTH_LIFETIME = 604800; // 7 * 24 * 60 * 60
  */
 const DC_AUTH_DUMMY_HASH = '$2y$12$beZY8mkX8rSDm4Cd/E0/D.dmpbugEPQBbP/QWXjTFwZbyr8MmSeoK';
 
+// ── Base path (same-origin Portal mount) ─────────────────────────────────────
+
+/**
+ * The URL path this copy of the app is served under, with no trailing slash:
+ * '' on https://quo.dnchardware.com/, '/quo' when the same files are served as
+ * a real directory at https://portal.dnchardware.com/quo/ (so the installed
+ * DNC Workspace app keeps Quotation inside its own window). Read from
+ * SCRIPT_NAME, which the web server sets from the URL of the script it ran —
+ * every entry point lives in the app root, so its directory IS the base.
+ * Anything that is not a plain path of simple segments reads as ''.
+ */
+function dc_base_path() {
+    $dir = str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/index.php')));
+    $dir = rtrim($dir, '/');
+    if ($dir === '' || $dir === '.') return '';
+    if (preg_match('#^(?:/[A-Za-z0-9_-][A-Za-z0-9._-]*)+$#', $dir) !== 1 || strpos($dir, '/..') !== false) return '';
+    return $dir;
+}
+
+/** An app path ('/login.php', '/') as a URL path for this copy: dc_url('/') is '/' or '/quo/'. */
+function dc_url($path) {
+    return dc_base_path() . '/' . ltrim((string)$path, '/');
+}
+
+/**
+ * A request path with this copy's base removed, so routing sees the same
+ * logical path in both places: '/quo/auth/handoff/start' -> '/auth/handoff/start'
+ * under '/quo'. A path outside the base is returned unchanged (and matches
+ * nothing that expects the base).
+ */
+function dc_app_path($path) {
+    $path = (string)$path;
+    $base = dc_base_path();
+    if ($base === '') return $path;
+    if ($path === $base) return '/';
+    if (strpos($path, $base . '/') === 0) return substr($path, strlen($base));
+    return $path;
+}
+
 // ── Session bootstrap ────────────────────────────────────────────────────────
 
 /** True when the request arrived over HTTPS (handles LiteSpeed/proxy headers). */
@@ -77,6 +116,13 @@ function dc_session_cookie_name() {
  * Start the app session with cookie flags: HttpOnly, SameSite=Lax,
  * Secure (on HTTPS — the live site), Path=/, host-only (no Domain), 7-day
  * lifetime. Safe to call more than once.
+ *
+ * Under the Portal mount (dc_base_path() '/quo') the same cookie is bound to
+ * portal.dnchardware.com, still with Path=/: __Host- forbids any other path.
+ * It is a separate session from the one on quo.dnchardware.com, and the
+ * browser also sends it with the Portal's own requests (the Portal ignores
+ * it; its own cookie has a different name). That is why the CSRF gate below
+ * exists: the cookie alone no longer marks a request as Quotation's.
  */
 function dc_session_start() {
     if (session_status() === PHP_SESSION_ACTIVE) return;
@@ -276,8 +322,9 @@ function dc_login($db, $username, $password) {
 
     session_regenerate_id(true);       // new id after login (session fixation)
     /* A password sign-in is an app_users identity: nothing of an earlier DNC
-       Workspace session in this browser may survive into it. */
-    unset($_SESSION['dc_auth_source'], $_SESSION['dc_dnc_user_id'], $_SESSION['dc_dnc_role']);
+       Workspace session in this browser may survive into it — the pre-login
+       CSRF token included (a new one is minted on first use). */
+    unset($_SESSION['dc_auth_source'], $_SESSION['dc_dnc_user_id'], $_SESSION['dc_dnc_role'], $_SESSION['dc_csrf']);
     $_SESSION['dc_auth']         = true;
     $_SESSION['dc_user_id']      = $id;
     $_SESSION['dc_username']     = $stored;
@@ -303,11 +350,19 @@ function dc_logout() {
 
 // ── Guards ───────────────────────────────────────────────────────────────────
 
-/** Only allow same-site relative paths as a post-login redirect target. */
+/**
+ * Only allow same-site relative paths as a post-login redirect target. Under
+ * the Portal mount the path must also stay inside this copy ('/quo' or
+ * '/quo/…'), so a Quotation sign-in never lands on a Portal page.
+ */
 function dc_safe_next($raw) {
     $raw = (string)$raw;
     if ($raw === '' || $raw[0] !== '/' || strpos($raw, '//') === 0 || strpos($raw, "\\") !== false) {
-        return '/index.php';
+        return dc_url('/index.php');
+    }
+    $base = dc_base_path();
+    if ($base !== '' && $raw !== $base && strpos($raw, $base . '/') !== 0 && strpos($raw, $base . '?') !== 0) {
+        return dc_url('/index.php');
     }
     return $raw;
 }
@@ -318,7 +373,7 @@ function dc_safe_next($raw) {
  */
 function dc_require_login() {
     if (dc_is_logged_in()) return;
-    $next = $_SERVER['REQUEST_URI'] ?? '/index.php';
+    $next = $_SERVER['REQUEST_URI'] ?? dc_url('/index.php');
     header('Location: login.php?next=' . rawurlencode($next), true, 302);
     exit;
 }
@@ -330,4 +385,78 @@ function dc_require_api_login() {
     header('Content-Type: application/json');
     echo json_encode(['ok' => false, 'error' => 'Not signed in', 'auth' => false]);
     exit;
+}
+
+// ── CSRF (docs/audit/2026-10-20-csrf-design.md, layers 1 and 2) ──────────────
+//
+// SameSite=Lax alone is not enough once Quotation shares an origin with the
+// Portal, and it never covered same-site sibling hosts or state changes by
+// GET. Every state-changing request now also needs: POST, a token from this
+// session, and — when the browser says where the request came from
+// (Sec-Fetch-Site) — the same origin. The DNC Workspace handoff callback is
+// NOT gated here: it is a top-level GET from the Portal, protected by its own
+// signed token bound to a state this session created (dnc_handoff.php).
+
+/** This session's CSRF token, minted on first use. Rotated at sign-in and sign-out. */
+function dc_csrf_token() {
+    dc_session_start();
+    $t = $_SESSION['dc_csrf'] ?? null;
+    if (!is_string($t) || strlen($t) !== 64) {
+        $t = bin2hex(random_bytes(32));
+        $_SESSION['dc_csrf'] = $t;
+    }
+    return $t;
+}
+
+/** True only for this session's token, compared in constant time. */
+function dc_csrf_verify($sent) {
+    dc_session_start();
+    $t = $_SESSION['dc_csrf'] ?? null;
+    return is_string($t) && strlen($t) === 64 && is_string($sent) && hash_equals($t, $sent);
+}
+
+/**
+ * Why a state-changing request is refused, or null to allow it. $token is what
+ * the client sent (X-DC-CSRF header or a form field); $requireJson is for
+ * api.php, whose client always sends application/json — a text/plain form
+ * that happens to parse as JSON is refused before anything else.
+ */
+function dc_csrf_refusal($token, $requireJson) {
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') return 'method';
+    if ($requireJson) {
+        $ct = strtolower(trim(explode(';', (string)($_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? ''))[0]));
+        if ($ct !== 'application/json') return 'content_type';
+    }
+    $site = strtolower((string)($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
+    if ($site !== '' && $site !== 'same-origin') return 'cross_site';
+    if (!dc_csrf_verify($token)) return 'token';
+    return null;
+}
+
+/**
+ * API gate (api.php mutating actions, ai_extract.php): a JSON 405 / 415 / 403
+ * and exit, or return. The client's api() helper shows the 403 as "reload".
+ */
+function dc_require_csrf_api($requireJson) {
+    $reason = dc_csrf_refusal($_SERVER['HTTP_X_DC_CSRF'] ?? null, $requireJson);
+    if ($reason === null) return;
+    error_log('[csrf] rejected reason=' . $reason . ' script=' . basename((string)($_SERVER['SCRIPT_NAME'] ?? '')));
+    $status = ['method' => 405, 'content_type' => 415][$reason] ?? 403;
+    http_response_code($status);
+    if ($status === 405) header('Allow: POST');
+    header('Content-Type: application/json');
+    echo json_encode(['ok' => false, 'error' => 'csrf', 'auth' => true]);
+    exit;
+}
+
+/**
+ * The page's <head> lines that depend on the server: the CSRF token for the
+ * client, and the Quotation manifest — on quo.dnchardware.com only. Under the
+ * Portal mount the installed DNC Workspace app is already the web app, and a
+ * second manifest with scope "/" on the Portal's origin would compete with it.
+ */
+function dc_page_head_meta() {
+    $out = '<meta name="dc-csrf" content="' . htmlspecialchars(dc_csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+    if (dc_base_path() === '') $out .= "\n" . '<link rel="manifest" href="/manifest.webmanifest">';
+    return $out;
 }

@@ -18,10 +18,10 @@
 </script>
 <title>DNC QUOTATION</title>
 <!-- App icons / Home Screen -->
-<link rel="icon" type="image/svg+xml" href="/assets/icons/dnc-logo.svg">
-<link rel="icon" href="/assets/icons/favicon.ico" sizes="any">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="assets/icons/dnc-logo.svg">
+<link rel="icon" href="assets/icons/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+<?= dc_page_head_meta() /* CSRF token; manifest on quo.dnchardware.com only */ ?>
 <meta name="theme-color" content="#5b7af5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4650,7 +4650,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 <aside class="dnc-shell" id="dncShell" data-i18n-aria="shellNav" aria-label="DNC navigation">
   <button type="button" class="rsp-close" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
   <a class="dnc-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
-    <img class="dnc-mark" src="/assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
+    <img class="dnc-mark" src="assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
   <div class="dnc-back-wrap">
@@ -4698,7 +4698,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 <div class="rsp-top" id="rspTop">
   <button type="button" class="rsp-burger" id="rspBurger" aria-expanded="false" aria-controls="dncShell" data-i18n-aria="rspOpenMenu" aria-label="Open menu" onclick="rspOpen('drawer')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
   <a class="rsp-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
-    <img class="dnc-mark" src="/assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
+    <img class="dnc-mark" src="assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
   <button type="button" class="rsp-avatar-btn" id="rspAvatarBtn" aria-expanded="false" aria-controls="rspAcct" data-i18n-aria="shellAccountMenu" aria-label="Account menu" onclick="rspOpen('account')"><span class="dnc-avatar" id="rspAvatarTop" aria-hidden="true" data-i18n-skip>·</span></button>
@@ -6581,6 +6581,7 @@ const DC_LANG_KEY='dc_lang', DC_LANGS=['en','zh'];
    translation, that exact wording is reused rather than reinvented. */
 const I18N={
   en:{
+    errCsrfReload:'This page has expired. Please reload it and try again.',
     badgeSystemDefault:'System Default', badgeCustom:'Custom', qoRenumbered:'Quotation {r} was renumbered.', qoChooseOne:'{n} quotations match “{r}”. Choose one:',
     language:'Language', langAria:'Language', langSwitched:'Language set to English',
     /* header + sidebar */
@@ -7276,6 +7277,7 @@ const I18N={
     rspNavMore:'More', rspMoreAria:'More actions', rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Quotation', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellOtherModules:'Other Modules', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
   zh:{
+    errCsrfReload:'此页面已过期，请刷新后重试。',
     badgeSystemDefault:'系统默认', badgeCustom:'自定义', qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
     /* header + sidebar */
@@ -7967,7 +7969,7 @@ const DC_ERR={
   no_file:'errNoFile', too_large:'errTooLarge', upload_failed:'errUploadFailed',
   empty_file:'errEmptyFile', no_fileinfo:'errNoFileinfo', unsupported_type:'errUnsupportedType',
   too_many_pages:'errTooManyPages', network:'errNetwork', auth:'errAuth', rate:'errRate',
-  upstream:'errUpstream', request:'errRequest', method:'errMethod',
+  upstream:'errUpstream', request:'errRequest', method:'errMethod', csrf:'errCsrfReload',
   not_configured:'errNotConfigured', ai_output_invalid:'errAiOutputInvalid',
   no_text:'errNoText', text_too_long:'errTextTooLong',
 };
@@ -11961,10 +11963,24 @@ function todayStr(){
 }
 
 /* ── API / saved production data ── */
+/* This session's CSRF token, printed once in <head> by auth.php
+   dc_page_head_meta(). Every state-changing request sends it (X-DC-CSRF). */
+function dcCsrf(){ const m=document.querySelector('meta[name="dc-csrf"]'); return m?m.content:''; }
+/* Sign Out posts the token (logout.php refuses a bare GET). Same links, same
+   one click; without a token the link's own GET shows logout.php's button. */
+document.addEventListener('click',e=>{
+  const a=e.target&&e.target.closest&&e.target.closest('a[href="logout.php"]');
+  const t=a&&!e.defaultPrevented&&dcCsrf();
+  if(!t) return;
+  e.preventDefault();
+  const f=document.createElement('form'); f.method='post'; f.action='logout.php'; f.hidden=true;
+  const i=document.createElement('input'); i.type='hidden'; i.name='csrf'; i.value=t;
+  f.appendChild(i); document.body.appendChild(f); f.submit();
+});
 async function api(action,data={},method='GET'){
   const opts=method==='GET'
     ? {method:'GET'}
-    : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)};
+    : {method:'POST',headers:{'Content-Type':'application/json','X-DC-CSRF':dcCsrf()},body:JSON.stringify(data)};
   const sep=action.includes('&')?'&':'';
   const url='api.php?action='+action+sep;
   const res=await fetch(url,opts);
@@ -11976,6 +11992,8 @@ async function api(action,data={},method='GET'){
     return {ok:false,error:'Signed out'};
   }
   const json=await res.json().catch(()=>({ok:false,error:'Invalid JSON response'}));
+  /* A page older than this session's token: nothing was written; reload. */
+  if(json&&json.error==='csrf') return {ok:false,error:dcT('errCsrfReload')};
   return json;
 }
 /* ── Quick Open ───────────────────────────────────────────────────────────
@@ -19088,7 +19106,7 @@ async function wqaAnalyze(){
        only". Sent only when one exists: no notes, byte-identical request. */
     const fnotes=wqaFileNotes();
     if(fnotes.some(Boolean)) fnotes.forEach(n=>fd.append('file_notes[]', n));
-    const res=await fetch('ai_extract.php',{method:'POST',body:fd});
+    const res=await fetch('ai_extract.php',{method:'POST',headers:{'X-DC-CSRF':dcCsrf()},body:fd});
     let j=null; try{ j=await res.json(); }catch(e){}
     if(token!==wqa._aiReq) return;                     // superseded while in flight
     if(!j || !j.ok){
@@ -19768,7 +19786,7 @@ async function wqaTextFallback(text){
   try{
     const fd = new FormData();
     fd.append('text', text);                    // the key never leaves the server
-    const res = await fetch('ai_extract.php',{method:'POST',body:fd});
+    const res = await fetch('ai_extract.php',{method:'POST',headers:{'X-DC-CSRF':dcCsrf()},body:fd});
     let j=null; try{ j=await res.json(); }catch(e){}
     if(!j || !j.ok || !j.data){
       /* Deliberately NOT dcServerError(): those messages are written for the

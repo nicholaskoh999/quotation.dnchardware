@@ -133,7 +133,7 @@ register_shutdown_function(function () use ($SB) {
 copy($ROOT . '/api.php', $SB . '/api.php');
 copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
 file_put_contents($SB . '/auth.php',
-    "<?php function dc_require_api_login(){}\n"
+    "<?php function dc_require_api_login(){} function dc_require_csrf_api(\$json){} /* gate: same_origin_mount.test.php */\n"
   . "function dc_current_user(){ return ['id'=>7,'username'=>'nicholas','display_name'=>'Nicholas Koh']; }\n");
 file_put_contents($SB . '/db.php',
     "<?php function getDB(){ static \$d; if(!\$d){ \$d = new mysqli('{$H}','{$U}','{$W}',null,{$P}); \$d->select_db('{$DBN}'); } return \$d; }\n");

@@ -1174,6 +1174,10 @@ if (!defined('AI_EXTRACT_TEST')) {
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
         ai_json(['ok'=>false,'error'=>'method','message'=>'POST only.'], 405);
     }
+    /* Same origin + this session's token (X-DC-CSRF), so no other page —
+       the Portal's origin included — can spend OpenAI quota as this user.
+       Multipart, so no JSON content-type requirement. */
+    dc_require_csrf_api(false);
     if (OPENAI_API_KEY === '' || OPENAI_API_KEY === 'sk-REPLACE-ME') {
         ai_json(['ok'=>false,'error'=>'not_configured',
                  'message'=>'AI extraction is not configured on this server yet.'], 503);

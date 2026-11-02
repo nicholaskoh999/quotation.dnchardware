@@ -138,7 +138,7 @@ copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
    writer records can be checked against something known. Same shape the
    accepted Actor Identity contract returns. */
 file_put_contents($SB . '/auth.php',
-    "<?php function dc_require_api_login(){}\n"
+    "<?php function dc_require_api_login(){} function dc_require_csrf_api(\$json){} /* gate: same_origin_mount.test.php */\n"
   . "function dc_current_user(){ if (getenv('DC_NO_ACTOR')) return null;\n"
   . "  return ['id'=>7,'username'=>'nicholas','display_name'=>'Nicholas Koh']; }\n");
 file_put_contents($SB . '/db.php',

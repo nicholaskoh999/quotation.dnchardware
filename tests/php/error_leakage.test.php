@@ -176,7 +176,7 @@ copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
 ok(sha1_file($SB . '/api.php') === sha1_file($ROOT . '/api.php'),
    '2: the sandbox runs a byte-identical copy of the shipped api.php');
 file_put_contents($SB . '/auth.php',
-    "<?php function dc_require_api_login(){}\n"
+    "<?php function dc_require_api_login(){} function dc_require_csrf_api(\$json){} /* gate: same_origin_mount.test.php */\n"
   . "function dc_current_user(){ return ['id'=>7,'username'=>'nicholas','display_name'=>'Nicholas Koh']; }\n");
 
 /* The fake driver. Scenario chosen per request by ?scenario=, which api.php

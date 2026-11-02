@@ -2,7 +2,7 @@
 require_once __DIR__ . '/auth.php';
 dc_session_start();
 
-$next  = dc_safe_next($_GET['next'] ?? ($_POST['next'] ?? '/index.php'));
+$next  = dc_safe_next($_GET['next'] ?? ($_POST['next'] ?? dc_url('/index.php')));
 $error = '';
 $errorCode = '';
 
@@ -23,7 +23,13 @@ if (dc_is_logged_in() && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $u = trim((string)($_POST['username'] ?? ''));
     $p = (string)($_POST['password'] ?? '');
-    if ($u === '' || $p === '') {
+    /* Login CSRF: the form carries this session's token (dc_csrf_token(), minted
+       on the GET that rendered it), so another site cannot sign this browser
+       into an account of its choosing. A stale form just asks again. */
+    if (dc_csrf_refusal($_POST['csrf'] ?? null, false) !== null) {
+        $error = 'This sign-in page expired. Please try again.';
+        $errorCode = 'errLoginExpired';
+    } elseif ($u === '' || $p === '') {
         $error = 'Please enter both username and password.';
         $errorCode = 'errLoginMissing';
     } elseif (dc_login(dc_login_db(), $u, $p)) {
@@ -79,9 +85,9 @@ function dc_login_db() {
 }catch(e){}})();
 </script>
 <title>Sign In · Der-Cheng Quotation</title>
-<link rel="icon" href="/assets/icons/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" href="assets/icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 <meta name="theme-color" content="#ffffff">
 <meta name="color-scheme" content="light">
 <meta name="robots" content="noindex,nofollow">
@@ -284,6 +290,7 @@ function dc_login_db() {
 
     <form method="post" action="login.php" autocomplete="on">
       <input type="hidden" name="next" value="<?= htmlspecialchars($next, ENT_QUOTES, 'UTF-8') ?>">
+      <input type="hidden" name="csrf" value="<?= htmlspecialchars(dc_csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
       <div class="field">
         <label for="username" data-i18n="lblUsername">Username</label>
         <input type="text" id="username" name="username" autocomplete="username"
@@ -319,7 +326,8 @@ const I18N={
        stays7Days:'Stays signed in for about 7 days on this device.',
        errLoginMissing:'Please enter both username and password.',
        errLoginBad:'Wrong username or password.',
-       errHandoff:'That sign-in link is invalid or has expired. Please sign in.' },
+       errHandoff:'That sign-in link is invalid or has expired. Please sign in.',
+       errLoginExpired:'This sign-in page expired. Please try again.' },
   zh:{ langAria:'语言',
        brandSub:'报价系统', signIn:'登录',
        signInSub:'使用您的个人账号登录以继续。',
@@ -328,7 +336,8 @@ const I18N={
        stays7Days:'此设备约保持登录 7 天。',
        errLoginMissing:'请输入用户名和密码。',
        errLoginBad:'用户名或密码错误。',
-       errHandoff:'登录链接无效或已过期，请重新登录。' },
+       errHandoff:'登录链接无效或已过期，请重新登录。',
+       errLoginExpired:'登录页面已过期，请重试。' },
 };
 function dcLang(){
   try{ const v=localStorage.getItem(DC_LANG_KEY); if(DC_LANGS.indexOf(v)>=0) return v; }catch(e){}
