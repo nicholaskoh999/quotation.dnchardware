@@ -63,7 +63,7 @@ git -C "$QUO_CLONE" cat-file -e "$COMMIT^{commit}" && echo "commit present"
 # 2. The pilot copy: application files only, from that commit, into a NEW directory
 test ! -e "$MOUNT" || { echo "STOP: $MOUNT already exists"; }
 mkdir "$MOUNT"
-git -C "$QUO_CLONE" archive "$COMMIT" index.php api.php companies.php ai_extract.php pricing_history.php \
+git -C "$QUO_CLONE" archive "$COMMIT" index.php api.php companies.php ai_extract.php ai_anthropic.php pricing_history.php \
     auth.php login.php logout.php handoff.php dnc_handoff.php version.php manifest.webmanifest \
     app/Handoff/Contract assets/icons | tar -x -C "$MOUNT"
 
