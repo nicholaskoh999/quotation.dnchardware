@@ -71,7 +71,7 @@ module.exports = async (browser, A) => {
   });
   A.eq(kept, 'auto', '8. an explicit Auto Round is kept through length / markup / finish / qty changes');
 
-  // 4. Add resets the next new Sag Rod to No Round, others to Auto Round
+  // 4. Add keeps the chosen Price Mode for the next entry (SOS keep pricing recipe)
   const added = await p.evaluate(() => {
     setFinishValue('sagrod', 'PL'); onFinishChange('sagrod');
     setFieldValue('sagrod', 'markup', '5'); setFieldValue('sagrod', 'qty', '2'); recalcCurrent();
@@ -81,7 +81,7 @@ module.exports = async (browser, A) => {
   });
   A.eq(added.n, 1, '4. the Sag Rod is added');
   A.eq(added.itMode, 'auto', '4. the added item keeps the Auto Round it was given');
-  A.eq(added.next, 'no_round', '4. the next new Sag Rod starts on No Round again');
+  A.eq(added.next, 'auto', '4. the next entry keeps the Price Mode just used (recipe kept)');
   const lb = await p.evaluate(() => {
     switchType('lbolt');
     setFieldValue('lbolt', 'priceMode', 'no_round'); onPriceModeChange('lbolt');
@@ -96,11 +96,11 @@ module.exports = async (browser, A) => {
     setFieldValue('sagrod', 'material', 'MS'); onMaterialSizeChange('sagrod', false, 'material');
     setFinishValue('sagrod', 'ZP'); onFinishChange('sagrod');
     setFieldValue('sagrod', 'threadLen', '150/150'); onThreadLenChange('sagrod');
-    const had = !!dcRecommendFor('sagrod'); dcRecFill();
-    return { had, c: fv('sagrod', 'costRate'), mode: fv('sagrod', 'priceMode') };
+    const before = fv('sagrod', 'priceMode'); const had = !!dcRecommendFor('sagrod'); dcRecFill();
+    return { before, had, c: fv('sagrod', 'costRate'), mode: fv('sagrod', 'priceMode') };
   });
   A.ok(fill.had && fill.c !== '', '10. Fill in copies the recommendation ' + JSON.stringify(fill));
-  A.eq(fill.mode, 'no_round', '10. and Price Mode stays No Round');
+  A.eq(fill.mode, fill.before, '10. and Price Mode is left as it was');
 
   // 9. History Use with an Auto Round record makes the Sag Rod Auto Round
   const hist = await p.evaluate(rec => {

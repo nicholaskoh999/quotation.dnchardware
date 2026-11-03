@@ -11226,7 +11226,7 @@ function addPlate(){
     showToast(dcT('tItemUpdated')); return;
   }
   quoteItems.push(item);
-  markQuotationDirty(); resetPriceModeAfterAdd('plate'); dcClearCustomDims(); renderQuote(quoteItems.length-1);
+  markQuotationDirty(); dcKeepRecipeAfterAdd('plate'); dcClearCustomDims(); renderQuote(quoteItems.length-1);
   flashPreview();
   showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',sizeStr).replace('{p}',fmt(finalUnitPrice)));
 }
@@ -11478,7 +11478,7 @@ function addWAS(){
   quoteItems.push(item);
   markQuotationDirty();
   resetAccPanel('was');                       // same rule as pushItem: no carry-over
-  resetPriceModeAfterAdd('was');              // …and no manual price carried over either
+  dcKeepRecipeAfterAdd('was');                // …and no manual price carried over either
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);flashPreview();
   showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',materialLabel(anchorMaterial)+' Welding Anchor Set').replace('{p}',fmt(finalUnitPrice)+'/set'));
@@ -11611,8 +11611,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
      keeps it (getPriceModeSaveData above), the next one starts from its own
      calculation rather than from the last one's typed figure. */
   resetAccPanel(type);
-  resetPriceModeAfterAdd(type);
-  dcResetPricingAfterAdd(type);
+  dcKeepRecipeAfterAdd(type);
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);
   showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',sizeStr).replace('{p}',fmt(finalUnitPrice)));
@@ -11644,9 +11643,26 @@ function dcResetPricingAfterAdd(type){
   delete dcFormPa[type];
   if(type===currentType){ recalcCurrent(); dcRenderRec(type); }
 }
+/* SOS keep pricing entry: consecutive rows usually share one pricing recipe,
+   so after an Add the next entry keeps Cost / Add / Markup and Price Mode and
+   recalculates from its own dimensions. Only a typed manual unit price (a
+   decision about ONE item) is dropped; Manual mode falls back to the default. */
+function dcKeepRecipeAfterAdd(type){
+  const modeEl=el(type+'-priceMode');
+  if(modeEl && modeEl.value==='manual') modeEl.value=dcDefaultPriceMode(type);
+  const manEl=el(type+'-manualUnitPrice'); if(manEl) manEl.value='';
+  productEntryTouchedFields.delete(type+'-manualUnitPrice');
+  if(typeof onPriceModeChange==='function') onPriceModeChange(type);
+  delete dcFormPa[type];
+  if(type===currentType){ recalcCurrent(); dcRenderRec(type); }
+}
 function resetAllPriceModes(){
   ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others']
     .forEach(t=>{ if(el(t+'-priceMode')) resetPriceModeAfterAdd(t); });
+}
+function resetAllPricingRecipes(){
+  ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others']
+    .forEach(t=>{ if(el(t+'-costRate')) dcResetPricingAfterAdd(t); });
 }
 function resetAllAccPanels(){
   ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others'].forEach(resetAccPanel);
@@ -11845,6 +11861,7 @@ function startNewQuotation(){
   productEntryTouchedFields.clear();
   resetAllAccPanels();          // New Quotation starts with zero accessories everywhere
   resetAllPriceModes();         // …and with no manual price carried over either
+  resetAllPricingRecipes();     // …and no pricing recipe kept from the last customer's rows
   dcClearCustomDims();
   loadedSavedQuote=false; quoteLocked=false; savedQuoteDirty=false; quoteStatusMode='draft'; savedQuoteSnapshot='';
   editingItemIndex=null; setItemEditMode(null);

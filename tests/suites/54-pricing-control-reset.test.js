@@ -107,7 +107,7 @@ module.exports = async (browser, A) => {
   A.eq(flow.added, 1, 'Add works without any Use step');
   A.eq(flow.src, 'built_in', 'saved with the recommendation as its source');
   A.eq(flow.itRate, '2.80', 'the added item keeps its own Cost Rate');
-  A.ok(zero(flow.next), 'the next new item starts 0 / 0 / 0 — no carry-over');
+  A.eq(JSON.stringify(flow.next), '{"c":"2.80","a":"0.60","m":"0"}', 'the next entry keeps the recipe just used (SOS keep pricing recipe)');
 
   const modes = await p.evaluate(() => {
     const n0 = quoteItems.length;
