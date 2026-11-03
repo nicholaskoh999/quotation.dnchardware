@@ -2752,6 +2752,9 @@ input,select,textarea{
   background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:700;
   letter-spacing:.01em;white-space:nowrap;flex:0 0 auto}
 .wqa-ai-badge[hidden]{display:none}
+/* The AI result needs a person before it is trusted: a backup reader was used,
+   the answer was cut off, or a row is unclear or incomplete. */
+.wqa-ai-badge.is-review{background:var(--amber-light);color:var(--text-2)}
 
 /* Quick Add — common Size / Thread panel */
 .wqa-item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:11px}
@@ -6100,7 +6103,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         <div class="wqa-rv-top">
           <span class="wqa-rv-count" id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
           <!-- Shown only when an AI call actually produced the rows below. -->
-          <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiAssisted" hidden>✨ AI assisted</span>
+          <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiParsed" hidden>✨ AI Parsed</span>
           <span class="wqa-rv-acts" id="wqaRvActs"></span>
         </div>
         <!-- What every item shares, as values that are themselves the editor. -->
@@ -6781,7 +6784,7 @@ const I18N={
     wqaBackToUpload:'← Back to upload', wqaSourceTitle:'Original Content',
     wqaChooseInput:'← Choose Input', wqaChooseHint:'How did the customer send the request?',
     wqaSourceLines:'{n} lines', wqaSourceEdit:'Edit message',
-    wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiAssisted:'✨ AI assisted',
+    wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiParsed:'✨ AI Parsed', aiReview:'⚠ Review Needed',
     notSet:'Not set', none:'None',
     pmAutoRound:'Auto Round', pmNoRound:'No Round', pmManualPrice:'Manual Price',
     sizeTypeRequired:'Size Type is required for {p} — it was not stated in the message, so it is not guessed.',
@@ -7470,7 +7473,7 @@ const I18N={
     wqaBackToUpload:'← 返回上传', wqaSourceTitle:'原始内容',
     wqaChooseInput:'← 选择输入方式', wqaChooseHint:'客户是以什么方式发来的？',
     wqaSourceLines:'{n} 行', wqaSourceEdit:'编辑原文',
-    wqaAddItems:'加入报价', wqaAddNItems:'加入 {n} 个项目到报价', wqaZeroItems:'0 项', aiAssisted:'✨ AI 辅助',
+    wqaAddItems:'加入报价', wqaAddNItems:'加入 {n} 个项目到报价', wqaZeroItems:'0 项', aiParsed:'✨ AI 已识别', aiReview:'⚠ 需要复核',
     notSet:'未设置', none:'无',
     pmAutoRound:'自动进位', pmNoRound:'不进位', pmManualPrice:'手动价格',
     sizeTypeRequired:'{p} 需要选择 Size 规格 — 信息里没有写明，所以不作猜测。',
@@ -19130,7 +19133,7 @@ async function wqaAnalyze(){
       wqaMsg('wqaAiMsg',dcServerError(j),true);
       return;                                          // file stays selected for a retry
     }
-    await wqaAiApply(j.data, undefined, {truncated:!!j.truncated});
+    await wqaAiApply(j.data, undefined, {truncated:!!j.truncated, sources:Math.max(1, sel.length), review:!!j.review, diag:j.meta||null});
   }catch(e){
     if(token!==wqa._aiReq) return;
     wqaMsg('wqaAiMsg',dcT('wqaMsgCannotAnalyze'),true);
@@ -19590,7 +19593,15 @@ async function wqaAiApply(d, msgTarget, meta){
   /* Geometry-classified by the model, then held to what Quick Add can actually
      price. A null product means the document genuinely does not say — the review
      opens and asks, which is safer than assuming Sag Rod. */
-  const norm = wqaNormalizeExtraction(d, {inheritGaps:true});
+  /* Filling a row's silent M / thread / specification from the row above is
+     right inside ONE source — a merged cell, a heading over a list — and wrong
+     across SEPARATE images: the answer is one flat list with no image boundary
+     in it, so a Sag Rod's 100/100 in image 1 became the thread of the studs in
+     image 2. Several images therefore carry nothing; a blank asks in review,
+     a borrowed value would misquote silently. One image or one PDF (whose pages
+     are one document) keeps the carry. */
+  const oneSource = !(meta && meta.sources > 1);
+  const norm = wqaNormalizeExtraction(d, {inheritGaps:oneSource});
   if(!norm.ok){
     const e=norm.error||{};
     if(e.code==='unsupported')     wqaMsg(MT,dcT('wqaMsgUnsupported').replace('{p}',e.word||''),true);
@@ -19606,6 +19617,8 @@ async function wqaAiApply(d, msgTarget, meta){
      because a call that fails or returns nothing usable never reaches this line
      — the badge reflects a result that was USED, not merely a request sent. */
   wqa.aiAssisted = true;
+  wqa.aiReview = !!(meta && meta.review);
+  wqa.aiMeta = (meta && meta.diag) || null;
   /* Held as a key and its value, not as a finished sentence: a warning built
      at extraction time and stored as text is frozen in whatever language the
      screen happened to be in, and this one is on screen for as long as the
@@ -19814,7 +19827,7 @@ async function wqaTextFallback(text){
       return;
     }
     wqa.aiRaw = text;                           // review keeps the original message
-    const applied = await wqaAiApply(j.data, 'wqaParseMsg', {truncated:!!j.truncated});
+    const applied = await wqaAiApply(j.data, 'wqaParseMsg', {truncated:!!j.truncated, review:!!j.review, diag:j.meta||null});
     if(applied) wqaMsg('wqaParseMsg','',false);
   }catch(e){
     wqaMsg('wqaParseMsg', dcT('wqaCannotRead'), true);
@@ -19891,7 +19904,7 @@ function wqaResetState(){
   if(el('wqaPartial')){ el('wqaPartial').hidden=true; el('wqaPartial').innerHTML=''; el('wqaPartial').dataset.n=''; }
   wqaClearNote();
   /* A new Quick Add session is never AI-assisted until it earns it again. */
-  wqa.aiAssisted=false; wqa.aiRaw='';
+  wqa.aiAssisted=false; wqa.aiRaw=''; wqa.aiReview=false; wqa.aiMeta=null;
   if(el('wqaAiBadge')) el('wqaAiBadge').hidden=true;
   wqa.method='paste';
   if(el('wqaFileInput'))   el('wqaFileInput').value='';
@@ -20076,7 +20089,22 @@ dcOnRelabel(()=>{ try{ if(el('wqaStep2')&&!el('wqaStep2').hidden) wqaRenderSourc
    never shows it. */
 function wqaRenderAiBadge(){
   const b=el('wqaAiBadge');
-  if(b) b.hidden = !wqa.aiAssisted;
+  if(!b) return;
+  b.hidden = !wqa.aiAssisted;
+  if(!wqa.aiAssisted) return;
+  /* "AI Parsed" only for a clean read. Anything the reader could not settle —
+     the server's own review flag (backup reader, cut off, no rows), an unclear
+     or incomplete row — says Review Needed. There is no "checked" state: one
+     model read the file. */
+  const live=(wqa.rows||[]).filter(r=>!r.removed);
+  const review=!!wqa.aiReview || !!wqa.truncated ||
+    live.some(r=>(r.aiUncertain||[]).length || wqaRowMissing(r).length);
+  const key=review?'aiReview':'aiParsed';
+  b.dataset.i18n=key; b.textContent=dcT(key);
+  b.classList.toggle('is-review', review);
+  const m=wqa.aiMeta;        // present only for diagnostics users
+  b.title = m ? [m.provider+' · '+m.model, (m.fallback?'fallback: '+m.fallback:'no fallback'),
+                 (m.ms/1000).toFixed(1)+' s', m.in+' in / '+m.out+' out tokens', '$'+Number(m.est_usd).toFixed(4)].join(' · ') : '';
 }
 function wqaBackToPaste(){ wqaBulkSheetClose(); wqaRvReviewClass(false); el('wqaStep2').hidden=true; el('wqaStep1').hidden=false; }
 /* The dialog takes the review's width only while it is showing the review;

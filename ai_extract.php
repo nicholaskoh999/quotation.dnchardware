@@ -42,6 +42,11 @@ if (!defined('AI_EXTRACT_MODEL_PRIMARY')) {
     // behaves identically to one with a full ai_config.php.
     define('AI_EXTRACT_MODEL_PRIMARY', 'gpt-5.6-luna');
 }
+// Image / PDF provider switch: 'sonnet' or 'luna'. Unset or anything else is
+// 'luna', today's behaviour, so a missing or misspelt setting changes nothing.
+// Pasted text is never routed by it.
+if (!defined('AI_IMAGE_PROVIDER')) define('AI_IMAGE_PROVIDER', 'luna');
+require_once __DIR__ . '/ai_anthropic.php';
 
 const AI_MAX_IMAGE_BYTES = 10485760;  // 10 MB
 const AI_MAX_PDF_BYTES   = 20971520;  // 20 MB
@@ -1160,6 +1165,139 @@ function ai_map_error($httpCode, $body, $curlErr, $curlErrNo = 0) {
     return null;
 }
 
+/** The answers the person holding the document sees when no rows came back. */
+function ai_failure($code) {
+    $m = [
+        'ai_refused'        => 'The analysis service declined to read this document. Paste the text manually instead.',
+        'ai_too_long'       => 'This document has more rows than one analysis can return, so the answer was cut off. Split it into two uploads — or crop to part of the table — and try again.',
+        'ai_incomplete'     => 'The analysis stopped before it finished. Try again, or split the document into smaller uploads.',
+        'ai_output_invalid' => 'The analysis came back in a form this app could not read. Try again, or paste the text manually.',
+    ];
+    return ['error' => $code, 'message' => $m[$code] ?? $m['ai_output_invalid']];
+}
+
+// ── provider orchestration ───────────────────────────────────────────────────
+function ai_image_provider() {
+    return AI_IMAGE_PROVIDER === 'sonnet' ? 'sonnet' : 'luna';
+}
+
+/* A Sonnet answer that never arrived is a TECHNICAL failure: Luna then reads the
+   same request once, and the whole result is marked for review. An answer that
+   arrived but is uncertain — unclear fields, no rows, cut off — is never
+   replaced: a second model would paper over a doubt the reviewer must see.
+   A refusal counts as technical: on a fastener drawing it can only be a
+   safeguard false positive, never doubt about the document. */
+const AI_TECHNICAL_FAILURES = ['not_configured', 'preflight_oversize', 'timeout', 'network', 'auth',
+                               'rate', 'upstream', 'request', 'malformed', 'refusal'];
+
+// USD per million tokens, from the providers' price pages on 2026-11-03.
+const AI_PRICES = [
+    'openai'    => ['in' => 0.20, 'cached_in' => 0.02, 'cache_write' => 0.20, 'out' => 1.20],
+    'anthropic' => ['in' => 2.00, 'cached_in' => 0.10, 'cache_write' => 2.50, 'out' => 10.00],
+];
+function ai_est_usd($provider, $u) {
+    $p = AI_PRICES[$provider];
+    $plain = max(0, ($u['in'] ?? 0) - ($u['cached_in'] ?? 0) - ($u['cache_write'] ?? 0));
+    return round(($plain * $p['in'] + ($u['cached_in'] ?? 0) * $p['cached_in']
+                  + ($u['cache_write'] ?? 0) * $p['cache_write'] + ($u['out'] ?? 0) * $p['out']) / 1e6, 6);
+}
+
+/** Luna's answer reduced to the shape ai_anthropic_result() returns. */
+function ai_luna_result($code, $body, $curlErr, $curlErrNo) {
+    $r = ['outcome' => 'ok', 'http' => $code, 'data' => null, 'truncated' => false, 'error' => null,
+          'usage' => ['in' => 0, 'cached_in' => 0, 'cache_write' => 0, 'out' => 0]];
+    if ($e = ai_map_error($code, $body, $curlErr, $curlErrNo)) { $r['outcome'] = $e['error']; $r['error'] = $e; return $r; }
+    $u = is_array($body) ? ($body['usage'] ?? []) : [];
+    $r['usage'] = ['in' => (int)($u['input_tokens'] ?? 0), 'cached_in' => (int)($u['input_tokens_details']['cached_tokens'] ?? 0),
+                   'cache_write' => 0, 'out' => (int)($u['output_tokens'] ?? 0)];
+    /* ── Why it failed matters ──────────────────────────────────────────────
+       Every model-side failure used to arrive as one sentence — "Could not
+       analyze this file" — whether the service had declined to read it, run
+       out of room mid-answer, or returned something that was not JSON. Those
+       need three different things from the person holding the document, so
+       they are now three different answers. */
+    $refusal    = ai_output_refusal($body);
+    $incomplete = ai_incomplete_reason($body);
+    $text       = ai_extract_output_text($body);
+    $r['data']  = $text !== null ? ai_sanitise_extraction($text) : null;
+    /* Cut off mid-answer: keep the rows that arrived whole, and say so. */
+    if ($r['data'] === null && $text !== null && $incomplete !== '' && ($s = ai_salvage_extraction($text)) !== null) {
+        $r['data'] = ai_sanitise_data($s);
+    }
+    if ($r['data'] !== null && $incomplete !== '') $r['truncated'] = true;
+    if ($r['data'] === null) {
+        $code = $refusal !== '' ? 'ai_refused'
+              : ($incomplete === 'max_output_tokens' ? 'ai_too_long' : ($incomplete !== '' ? 'ai_incomplete' : 'ai_output_invalid'));
+        $r['outcome'] = $code; $r['error'] = ai_failure($code);
+    }
+    return $r;
+}
+
+/** One structured log line per provider call: never a key, a header or the customer's content. */
+function ai_log_entry($upload, $provider, $model, $res, $t0, $extra = []) {
+    return array_merge([
+        'kind' => $upload['kind'], 'mime' => $upload['mime'] ?? '', 'size' => $upload['size'] ?? 0,
+        'provider' => $provider, 'model' => $model, 'ms' => (int)round((microtime(true) - $t0) * 1000),
+        'http' => $res['http'] ?? null, 'outcome' => $res['outcome'],
+        'in' => $res['usage']['in'] ?? 0, 'cached_in' => $res['usage']['cached_in'] ?? 0,
+        'cache_write' => $res['usage']['cache_write'] ?? 0, 'out' => $res['usage']['out'] ?? 0,
+        'est_usd' => ai_est_usd($provider, $res['usage'] ?? []),
+        'items' => $res['data'] ? count($res['data']['items']) : 0,
+        'fallback' => false, 'fallback_reason' => null, 'preflight' => 'n/a',
+    ], $extra);
+}
+
+/** Pasted text, or images / PDFs while the switch says Luna: today's single call. */
+function ai_extract_luna($upload, $payload, $deps = []) {
+    $call = $deps['luna'] ?? 'ai_call_openai';
+    $t = microtime(true);
+    list($c, $b, $e, $n) = $call($payload);
+    $r = ai_luna_result($c, $b, $e, $n);
+    return ['result' => $r, 'provider' => 'openai', 'model' => AI_EXTRACT_MODEL_PRIMARY, 'fallback' => null,
+            'review' => $r['truncated'], 'log' => [ai_log_entry($upload, 'openai', AI_EXTRACT_MODEL_PRIMARY, $r, $t)]];
+}
+
+/**
+ * Images and PDFs with Sonnet primary. At most one Sonnet call and at most one
+ * Luna call, never a loop. $deps lets the tests replace both transports and the key.
+ */
+function ai_extract_media($upload, $payload, $deps = []) {
+    $sonnet = $deps['sonnet'] ?? 'ai_call_anthropic';
+    $luna   = $deps['luna'] ?? 'ai_call_openai';
+    $key    = array_key_exists('key', $deps) ? $deps['key'] : ai_anthropic_key();
+    $zero   = ['in' => 0, 'cached_in' => 0, 'cache_write' => 0, 'out' => 0];
+    $pf = ai_anthropic_preflight($upload);
+    $t = microtime(true);
+    if ($key === '')    $res = ['outcome' => 'not_configured', 'http' => null, 'data' => null, 'truncated' => false, 'usage' => $zero];
+    elseif (!$pf['ok']) $res = ['outcome' => 'preflight_oversize', 'http' => null, 'data' => null, 'truncated' => false, 'usage' => $zero];
+    else {
+        list($c, $b, $e, $n) = $sonnet(ai_anthropic_request($payload), $key);
+        $res = ai_anthropic_result($c, $b, $e, $n);
+    }
+    $log = [ai_log_entry($upload, 'anthropic', ai_anthropic_model(), $res, $t, ['preflight' => $pf['ok'] ? 'pass' : 'block'])];
+
+    if (in_array($res['outcome'], AI_TECHNICAL_FAILURES, true)) {
+        $t = microtime(true);
+        list($c, $b, $e, $n) = $luna($payload);
+        $l = ai_luna_result($c, $b, $e, $n);
+        $log[] = ai_log_entry($upload, 'openai', AI_EXTRACT_MODEL_PRIMARY, $l, $t,
+                              ['fallback' => true, 'fallback_reason' => $res['outcome']]);
+        return ['result' => $l, 'provider' => 'openai', 'model' => AI_EXTRACT_MODEL_PRIMARY,
+                'fallback' => $res['outcome'], 'review' => true, 'log' => $log];
+    }
+    if ($res['outcome'] === 'too_long') $res['error'] = ai_failure('ai_too_long');
+    return ['result' => $res, 'provider' => 'anthropic', 'model' => ai_anthropic_model(), 'fallback' => null,
+            'review' => $res['truncated'] || ($res['data'] !== null && !$res['data']['items']), 'log' => $log];
+}
+
+/* Provider, latency, tokens and cost go to the browser only for the usernames
+   listed in ai_config.php; everyone else sees the review state alone. */
+function ai_diagnostics_allowed() {
+    if (!defined('AI_DIAGNOSTICS_USERS') || !is_array(AI_DIAGNOSTICS_USERS)) return false;
+    $u = dc_current_user();
+    return $u !== null && in_array($u['username'], AI_DIAGNOSTICS_USERS, true);
+}
+
 function ai_json($arr, $code = 200) {
     http_response_code($code);
     header('Content-Type: application/json');
@@ -1178,7 +1316,11 @@ if (!defined('AI_EXTRACT_TEST')) {
        the Portal's origin included — can spend OpenAI quota as this user.
        Multipart, so no JSON content-type requirement. */
     dc_require_csrf_api(false);
-    if (OPENAI_API_KEY === '' || OPENAI_API_KEY === 'sk-REPLACE-ME') {
+    $openaiReady = !(OPENAI_API_KEY === '' || OPENAI_API_KEY === 'sk-REPLACE-ME');
+    $sonnetMedia = !isset($_POST['text']) && ai_image_provider() === 'sonnet';
+    /* Text and Luna-read files need the OpenAI key; Sonnet-read files need at
+       least one of the two, because Luna is their technical fallback. */
+    if (!$openaiReady && !($sonnetMedia && ai_anthropic_key() !== '')) {
         ai_json(['ok'=>false,'error'=>'not_configured',
                  'message'=>'AI extraction is not configured on this server yet.'], 503);
     }
@@ -1228,61 +1370,25 @@ if (!defined('AI_EXTRACT_TEST')) {
         ? ai_build_text_payload($upload['text'])
         : ai_build_payload($upload, ai_clean_note($_POST['note'] ?? ''),
                            ai_clean_file_notes($_POST['file_notes'] ?? []));
-    unset($upload['bytes'], $upload['text'], $upload['parts']);    // free the raw input from memory
+    $run = $sonnetMedia ? ai_extract_media($upload, $payload) : ai_extract_luna($upload, $payload);
+    unset($upload['bytes'], $upload['text'], $upload['parts'], $payload);    // free the raw input from memory
+    foreach ($run['log'] as $entry) error_log('[ai_extract] ' . json_encode($entry, JSON_UNESCAPED_SLASHES));
 
-    list($code, $body, $curlErr, $curlErrNo) = ai_call_openai($payload);
-    $ms = (int)round((microtime(true)-$t0)*1000);
-
-    if ($e = ai_map_error($code, $body, $curlErr, $curlErrNo)) {
-        // minimal diagnostics: no file content, no key, no raw upstream body
-        error_log("[ai_extract] fail http=$code err={$e['error']} mime={$upload['mime']} size={$upload['size']} ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
+    $r = $run['result'];
+    if ($r['data'] === null) {
+        $e = $r['error'] ?? ai_failure('ai_output_invalid');
         ai_json(['ok'=>false,'error'=>$e['error'],'message'=>$e['message']], 502);
     }
-
-    /* ── Why it failed matters ──────────────────────────────────────────────
-       Every model-side failure used to arrive as one sentence — "Could not
-       analyze this file" — whether the service had declined to read it, run
-       out of room mid-answer, or returned something that was not JSON. Those
-       need three different things from the person holding the document, so
-       they are now three different answers. */
-    $refusal    = ai_output_refusal($body);
-    $incomplete = ai_incomplete_reason($body);
-    $text       = ai_extract_output_text($body);
-    $data       = $text !== null ? ai_sanitise_extraction($text) : null;
-
-    /* Cut off mid-answer: keep the rows that arrived whole, and say so. */
-    $truncated = false;
-    if ($data === null && $text !== null && $incomplete !== '') {
-        $salvaged = ai_salvage_extraction($text);
-        if ($salvaged !== null) {
-            $data = ai_sanitise_data($salvaged);
-            $truncated = $data !== null;
-        }
-    }
-    if ($data !== null && $incomplete !== '') $truncated = true;
-
-    if ($data === null) {
-        $why = $refusal !== '' ? 'refused' : ($incomplete !== '' ? 'incomplete:'.$incomplete : 'malformed');
-        error_log("[ai_extract] no-data why=$why mime={$upload['mime']} size={$upload['size']} ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
-        if ($refusal !== '') {
-            ai_json(['ok'=>false,'error'=>'ai_refused',
-                     'message'=>'The analysis service declined to read this document. Paste the text manually instead.'], 502);
-        }
-        if ($incomplete === 'max_output_tokens') {
-            ai_json(['ok'=>false,'error'=>'ai_too_long',
-                     'message'=>'This document has more rows than one analysis can return, so the answer was cut off. Split it into two uploads — or crop to part of the table — and try again.'], 502);
-        }
-        if ($incomplete !== '') {
-            ai_json(['ok'=>false,'error'=>'ai_incomplete',
-                     'message'=>'The analysis stopped before it finished. Try again, or split the document into smaller uploads.'], 502);
-        }
-        ai_json(['ok'=>false,'error'=>'ai_output_invalid',
-                 'message'=>'The analysis came back in a form this app could not read. Try again, or paste the text manually.'], 502);
-    }
-
-    error_log('[ai_extract] ok mime='.$upload['mime'].' size='.$upload['size']
-        .' items='.count($data['items']).($truncated?' TRUNCATED':'')." ms=$ms model=".AI_EXTRACT_MODEL_PRIMARY);
     /* truncated says: these rows are right, and there may have been more. The
-       review screen shows it as a warning against the list, never as a row. */
-    ai_json(['ok'=>true,'data'=>$data,'truncated'=>$truncated]);
+       review screen shows it as a warning against the list, never as a row.
+       review says: someone must look before this is trusted — a backup reader
+       was used, the answer was cut off, or no rows came back. */
+    $out = ['ok'=>true, 'data'=>$r['data'], 'truncated'=>$r['truncated'], 'review'=>$run['review']];
+    if (ai_diagnostics_allowed()) {
+        $out['meta'] = ['provider' => $run['provider'], 'model' => $run['model'], 'fallback' => $run['fallback'],
+                        'ms' => (int)round((microtime(true) - $t0) * 1000),
+                        'in' => array_sum(array_column($run['log'], 'in')), 'out' => array_sum(array_column($run['log'], 'out')),
+                        'est_usd' => round(array_sum(array_column($run['log'], 'est_usd')), 6)];
+    }
+    ai_json($out);
 }
