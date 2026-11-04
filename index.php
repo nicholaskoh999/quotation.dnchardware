@@ -2663,6 +2663,8 @@ input,select,textarea{
 .wqa-sel-thumb{width:32px;height:32px;flex:0 0 auto;object-fit:cover;border:1px solid var(--border);border-radius:4px}
 .wqa-sel-name{flex:1 1 140px;min-width:0;font-size:12.5px;font-weight:700;color:var(--text-2);overflow-wrap:anywhere}
 .wqa-sel-size{font-size:11px;font-weight:650;color:var(--text-muted)}
+.wqa-sel-st{display:block;font-size:12px;font-weight:650;color:var(--text-muted)}
+.wqa-sel-st.is-ok{color:#15803d}.wqa-sel-st.is-bad{color:#b45309}
 .wqa-sel-rm{flex:0 0 auto}
 .wqa-sel-count{margin-top:6px;font-size:11.5px;font-weight:700;color:var(--text-muted);text-align:left}
 .wqa-badge{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;background:rgba(127,127,127,.15);color:var(--text-2);border:1px solid var(--border)}
@@ -6805,8 +6807,13 @@ const I18N={
     wqaDropPaste:'or paste screenshot with Ctrl+V',
     wqaSelImages:'Selected images', wqaSelPdf:'Selected PDF', wqaImgCount:'{n} / {max} images selected',
     wqaRemoveFile:'Remove', wqaMaxImages:'Maximum 5 images per analysis.',
-    wqaMixNoPdf:'Images are already selected. Upload either images or one PDF — remove the images first to use a PDF.',
-    wqaMixNoImg:'A PDF is already selected. Upload either one PDF or images — remove the PDF first to add images.',
+    wqaMixNoPdf:'Images are already selected. Upload either images or PDFs — remove the images first to use a PDF.',
+    wqaMixNoImg:'A PDF is already selected. Upload either PDFs or images — remove the PDF first to add images.',
+    wqaMaxPdfs:'Up to {max} PDFs per analysis. Remove one first.', wqaDupPdf:'This PDF is already selected.',
+    wqaSelPdfs:'Selected PDFs — each is read on its own', wqaPdfCount:'{n} / {max} PDFs',
+    wqaPdfReading:'Reading…', wqaPdfDone1:'✓ 1 item', wqaPdfDone:'✓ {n} items', wqaPdfNothing:'No items to quote in this PDF',
+    wqaPdfSomeFailed:'{n} of {m} PDFs could not be read. Analyze again to retry only those (the others are not read twice), or remove them to continue.',
+    wqaFromFile:'PDF {n} · {f}',
     wqaOnePdf:'Only one PDF per analysis. Remove the selected PDF first.',
     wqaNoFile:'No file selected', wqaAnalyzing:'Analyzing document…',
     wqaExtracting:'Extracting product, dimensions and quantities…',
@@ -7502,8 +7509,13 @@ const I18N={
     wqaDropPaste:'或按 Ctrl+V 粘贴截图',
     wqaSelImages:'已选图片', wqaSelPdf:'已选 PDF', wqaImgCount:'已选 {n} / {max} 张图片',
     wqaRemoveFile:'移除', wqaMaxImages:'每次分析最多 5 张图片。',
-    wqaMixNoPdf:'已选择图片。只能上传图片或一个 PDF — 如要使用 PDF，请先移除图片。',
-    wqaMixNoImg:'已选择 PDF。只能上传一个 PDF 或图片 — 如要添加图片，请先移除 PDF。',
+    wqaMixNoPdf:'已选择图片。只能上传图片或 PDF — 如要使用 PDF，请先移除图片。',
+    wqaMixNoImg:'已选择 PDF。只能上传 PDF 或图片 — 如要添加图片，请先移除 PDF。',
+    wqaMaxPdfs:'每次最多分析 {max} 个 PDF。请先移除一个。', wqaDupPdf:'此 PDF 已选择。',
+    wqaSelPdfs:'已选 PDF — 每个文件单独识别', wqaPdfCount:'已选 {n} / {max} 个 PDF',
+    wqaPdfReading:'识别中…', wqaPdfDone1:'✓ 1 项', wqaPdfDone:'✓ {n} 项', wqaPdfNothing:'此 PDF 中没有可报价的项目',
+    wqaPdfSomeFailed:'{m} 个 PDF 中有 {n} 个未能识别。再次分析只会重试这些文件（其余不会重复识别），或移除它们后继续。',
+    wqaFromFile:'PDF {n} · {f}',
     wqaOnePdf:'每次只能分析一个 PDF。请先移除已选的 PDF。',
     wqaNoFile:'未选择文件', wqaAnalyzing:'正在分析文件…',
     wqaExtracting:'正在提取产品、尺寸与数量…',
@@ -16533,6 +16545,9 @@ function wqaRowBadges(r){
   if(r.issues.includes('extra'))                out.push({t:dcT('badgeParseWarning'),k:'warn'});
   (r.aiUncertain||[]).forEach(f=>out.push({t:dcT('badgeCheck').replace('{f}',f),k:'warn',quoted:f}));
   if(wqaIsAsymmetric(r))                        out.push({t:dcT('badgeAsymmetric'),k:'info'});
+  /* Read from one of several PDFs: the row names its file, so a row is always
+     checked against the drawing it came from. */
+  if(r.srcFile) out.push({t:dcT('wqaFromFile').replace('{n}',r.srcIdx||'').replace('{f}',wqaShortName(r.srcFile)),k:'info'});
   /* Where the price came from used to be one more grey pill in a row of them,
      which is where it got lost. It has its own line under the row now — see
      wqaProvenanceHtml — saying the same two things (which record, and whether
@@ -18964,6 +18979,10 @@ function wqaAbandonAi(){
    never both. wqa.aiFile stays the first entry so every "is anything
    selected" check keeps working unchanged. */
 const WQA_AI_MAX_FILES = 5;
+/* R2.2: up to three PDFs in one Quick Add session. Each is sent and read on its
+   own (one request per PDF, the single-PDF path unchanged), then the reviewed
+   rows are merged with their file named on them. */
+const WQA_AI_MAX_PDFS = 3;
 function wqaSyncAiFile(){
   const a=wqa.aiFiles||(wqa.aiFiles=[]);
   wqa.aiFile = a.length ? a[0].file : null;
@@ -19035,7 +19054,9 @@ function wqaAddFiles(list){
     const isImg = /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name);
     let e='';
     if(!isPdf && !isImg)                         e=dcT('errUnsupportedType');
-    else if(isPdf && wqa.aiFiles.length)         e=dcT(wqa.aiIsPdf ? 'wqaOnePdf' : 'wqaMixNoPdf');
+    else if(isPdf && wqa.aiFiles.length && !wqa.aiIsPdf) e=dcT('wqaMixNoPdf');
+    else if(isPdf && wqa.aiFiles.length>=WQA_AI_MAX_PDFS) e=dcT('wqaMaxPdfs').replace('{max}',WQA_AI_MAX_PDFS);
+    else if(isPdf && wqa.aiFiles.some(y=>y.pdf && y.name===String(f.name||'') && y.file.size===f.size)) e=dcT('wqaDupPdf');
     else if(isPdf && f.size>WQA_AI_MAX_PDF)      e=dcT('errPdfTooLarge');
     else if(!isPdf && wqa.aiIsPdf)               e=dcT('wqaMixNoImg');
     else if(!isPdf && wqa.aiFiles.length>=WQA_AI_MAX_FILES) e=dcT('wqaMaxImages');
@@ -19044,7 +19065,7 @@ function wqaAddFiles(list){
     let url=''; if(!isPdf){ try{ url=URL.createObjectURL(f); }catch(x){ url=''; } }
     /* A stable id, so a note stays with ITS file when another is removed. */
     wqa._fileSeq=(wqa._fileSeq||0)+1;
-    wqa.aiFiles.push({file:f, name:String(f.name||''), pdf:isPdf, url, id:wqa._fileSeq, note:'', noteOpen:false});
+    wqa.aiFiles.push({file:f, name:String(f.name||''), pdf:isPdf, url, id:wqa._fileSeq, note:'', noteOpen:false, res:null, err:'', busy:false});
     wqaSyncAiFile(); added++;
   });
   if(added) wqaAbandonAi();           // a different set: any answer in flight is for the old one
@@ -19077,6 +19098,7 @@ function wqaFileNoteToggle(id){
 function wqaFileNoteInput(id,v){
   const x=wqaFileById(id); if(!x) return;
   x.note=String(v||'').slice(0,200);
+  x.res=null; x.err='';               // the model reads this note: a kept answer would be stale
   const b=document.querySelector('[data-fnote-btn="'+id+'"]'); if(b) b.classList.toggle('has-note',!!x.note.trim());
   /* Read back in place — the box keeps its caret. */
   const rd=document.querySelector('[data-fnote-read="'+id+'"]');
@@ -19116,6 +19138,7 @@ document.addEventListener('paste',e=>{
 function wqaNoteInput(){
   const e=el('wqaAiNote');
   wqa.aiNote = e ? String(e.value||'') : '';
+  (wqa.aiFiles||[]).forEach(y=>{ y.res=null; y.err=''; });   // every file is read with it
   const read=el('wqaAiNoteRead');
   if(read){
     /* The same reading a file's own note gets, said of every file. */
@@ -19149,7 +19172,7 @@ function wqaUpdateAiPane(){
       const rows=files.map((x,i)=>`<li class="wqa-sel-row" data-file-id="${x.id}">${x.pdf
           ? '<span class="wqa-pdf-badge">PDF</span>'
           : `<img class="wqa-sel-thumb" src="${escHtml(x.url)}" alt="">`}
-        <span class="wqa-sel-name" title="${escHtml(x.name)}">${x.pdf?'':(i+1)+'. '}${escHtml(x.name)}</span>
+        <span class="wqa-sel-name" title="${escHtml(x.name)}">${(x.pdf&&files.length<2)?'':(i+1)+'. '}${escHtml(x.name)}${x.pdf?wqaPdfStatusHtml(x):''}</span>
         <span class="wqa-sel-size">${escHtml(wqaFmtBytes(x.file.size))}</span>
         <button type="button" class="btn btn-ghost btn-sm wqa-sel-note${String(x.note||'').trim()?' has-note':''}" data-fnote-btn="${x.id}"
           aria-expanded="${x.noteOpen?'true':'false'}" onclick="wqaFileNoteToggle(${x.id})">${x.noteOpen?'−':'+'} ${escHtml(dcT('wqaFileNoteBtn'))}</button>
@@ -19159,9 +19182,11 @@ function wqaUpdateAiPane(){
           <input type="text" class="wqa-note-in" data-fnote="${x.id}" maxlength="200" autocomplete="off" spellcheck="false"
             placeholder="${escHtml(dcT('wqaNotePh'))}" value="${escHtml(x.note||'')}" oninput="wqaFileNoteInput(${x.id},this.value)"></label>`:''}
         ${(x.noteOpen||String(x.note||'').trim())?`<div class="wqa-note-read wqa-sel-noteread" data-fnote-read="${x.id}"${String(x.note||'').trim()?'':' hidden'}>${wqaNoteReadHtml(x.note,'file')}</div>`:''}</li>`).join('');
-      info.innerHTML=`<div class="wqa-sel-head">${escHtml(dcT(wqa.aiIsPdf?'wqaSelPdf':'wqaSelImages'))}</div>`
+      info.innerHTML=`<div class="wqa-sel-head">${escHtml(dcT(wqa.aiIsPdf?(files.length>1?'wqaSelPdfs':'wqaSelPdf'):'wqaSelImages'))}</div>`
         +`<ol class="wqa-sel-list">${rows}</ol>`
-        +(wqa.aiIsPdf?'':`<div class="wqa-sel-count">${escHtml(dcT('wqaImgCount').replace('{n}',files.length).replace('{max}',WQA_AI_MAX_FILES))}</div>`);
+        +(wqa.aiIsPdf
+          ? (files.length>1?`<div class="wqa-sel-count">${escHtml(dcT('wqaPdfCount').replace('{n}',files.length).replace('{max}',WQA_AI_MAX_PDFS))}</div>`:'')
+          : `<div class="wqa-sel-count">${escHtml(dcT('wqaImgCount').replace('{n}',files.length).replace('{max}',WQA_AI_MAX_FILES))}</div>`);
     }
   }
   /* The list above carries the thumbnails; the single large preview is retired. */
@@ -19186,6 +19211,7 @@ async function wqaAnalyze(){
   wqaClearCommonPanels();            // and this file's corrections only
   wqaClearSourceEvidence();          // this file's evidence only, never the last one's
   if(!wqa.aiFile || wqa.aiBusy) return;               // no double-submit
+  if(wqa.aiIsPdf && (wqa.aiFiles||[]).length>1) return wqaAnalyzePdfs();
   const token=(wqa._aiReq=(wqa._aiReq||0)+1);
   wqaSetAiBusy(true);
   wqaMsg('wqaAiMsg','',false);
@@ -19219,6 +19245,104 @@ async function wqaAnalyze(){
   }finally{
     if(token===wqa._aiReq) wqaSetAiBusy(false);
   }
+}
+/* ── Several PDFs (R2.2) ─────────────────────────────────────────────────────
+   Each PDF is its own customer document — WBC, HOTR, WWTP — so each is sent
+   alone through the unchanged single-PDF request and normalised alone: a
+   carry inside one PDF stays inside it, nothing crosses to another file, and
+   two projects that happen to share a size stay two rows. A PDF already read
+   is never sent again; one that failed says so on its own line and the next
+   Analyze retries only it. Review opens when every selected PDF has an answer. */
+function wqaShortName(n){
+  const s=String(n||'').replace(/\.pdf$/i,'');
+  return s.length>34 ? s.slice(0,16)+'…'+s.slice(-16) : s;
+}
+function wqaPdfStatusHtml(x){
+  if(!x || (wqa.aiFiles||[]).length<2 && !x.err) return '';
+  if(x.busy) return `<span class="wqa-sel-st" data-pdf-st="busy">${escHtml(dcT('wqaPdfReading'))}</span>`;
+  if(x.err)  return `<span class="wqa-sel-st is-bad" data-pdf-st="bad">✗ ${escHtml(x.err)}</span>`;
+  if(x.res){ const n=x.res.norm.rows.length;
+    return `<span class="wqa-sel-st is-ok" data-pdf-st="ok">${escHtml(n===1?dcT('wqaPdfDone1'):dcT('wqaPdfDone').replace('{n}',n))}</span>`; }
+  return '';
+}
+async function wqaAnalyzePdfs(){
+  const token=(wqa._aiReq=(wqa._aiReq||0)+1);
+  const files=(wqa.aiFiles||[]).slice();
+  const note=String(wqa.aiNote||'').trim();
+  wqaSetAiBusy(true);
+  wqaMsg('wqaAiMsg','',false);
+  try{
+    for(const x of files){
+      if(x.res) continue;                               // already read: never sent twice
+      x.err=''; x.busy=true; wqaUpdateAiPane();
+      let j=null;
+      try{
+        const fd=new FormData();
+        fd.append('file', x.file, x.name);
+        if(note) fd.append('note', note);
+        const fnote=String(x.note||'').trim();
+        if(fnote) fd.append('file_notes[]', fnote);
+        const res=await fetch('ai_extract.php',{method:'POST',headers:{'X-DC-CSRF':dcCsrf()},body:fd});
+        try{ j=await res.json(); }catch(e){ j=null; }
+      }catch(e){ j=null; }
+      if(token!==wqa._aiReq) return;                    // the selection changed meanwhile
+      x.busy=false;
+      if(!j || !j.ok){ x.err=j ? dcServerError(j) : dcT('wqaMsgCannotAnalyze'); continue; }
+      const norm=wqaNormalizeExtraction(j.data, {inheritGaps:true});   // ONE document, its own carry
+      if(!norm.ok){ x.err=dcT('wqaPdfNothing'); continue; }
+      x.res={data:j.data, norm, truncated:!!j.truncated, review:!!j.review, diag:j.meta||null};
+    }
+    wqaUpdateAiPane();
+    const bad=files.filter(x=>!x.res);
+    if(bad.length){
+      wqaMsg('wqaAiMsg',dcT('wqaPdfSomeFailed').replace('{n}',bad.length).replace('{m}',files.length),true);
+      return;
+    }
+    const m=wqaMergePdfReads(files);
+    await wqaAiApply(m.d, undefined, {truncated:m.truncated, sources:files.length, review:m.review,
+                                      diag:m.diag, norm:m.norm, noAccProposal:m.mixedNotes});
+  }catch(e){
+    if(token!==wqa._aiReq) return;
+    wqaMsg('wqaAiMsg',dcT('wqaMsgCannotAnalyze'),true);
+  }finally{
+    files.forEach(x=>{ x.busy=false; });
+    if(token===wqa._aiReq){ wqaSetAiBusy(false); wqaUpdateAiPane(); }
+  }
+}
+/* The answers of every selected PDF as ONE review: each file's own normalised
+   rows (copied — the kept answer is never edited), tagged with the file; the
+   header only says what every row agrees on. A drawing's accessory wording is
+   proposed to the rows only when every file says the same thing. */
+function wqaMergePdfReads(files){
+  const rows=[], notes=[];
+  let truncated=false, review=false;
+  const diag={provider:'', model:'', fallback:null, ms:0, est_usd:0};
+  files.forEach((x,fi)=>{
+    const n=JSON.parse(JSON.stringify(x.res.norm));
+    n.rows.forEach(r=>{ r.srcFile=x.name; r.srcIdx=fi+1; rows.push(r); });
+    notes.push(String((x.res.data && x.res.data.note) || '').trim());
+    truncated = truncated || x.res.truncated;
+    review = review || x.res.review;
+    const g=x.res.diag||{};
+    if(!diag.model){ diag.provider=g.provider||''; diag.model=g.model||''; }
+    if(g.fallback && !diag.fallback){ diag.fallback=g.fallback; diag.provider=g.provider||diag.provider; diag.model=g.model||diag.model; }
+    diag.ms += Number(g.ms)||0; diag.est_usd += Number(g.est_usd)||0;
+  });
+  const first=files[0].res.norm.common, common={};
+  Object.keys(first).forEach(k=>{
+    const v=first[k];
+    common[k]=files.every(x=>JSON.stringify(x.res.norm.common[k])===JSON.stringify(v)) ? v : (typeof v==='boolean' ? false : '');
+  });
+  WQA_ROW_SPEC.forEach(k=>{ const v=wqaRowsCommonValueOf(rows,k); common[k] = v===WQA_MIXED ? '' : v; });
+  const cp=wqaRowsCommonValueOf(rows,'product');
+  common.product = cp===WQA_MIXED ? '' : cp;
+  common.productMixed = cp===WQA_MIXED;
+  const said=notes.filter(Boolean), distinct=[...new Set(said)];
+  const sameNote = said.length===files.length && distinct.length===1;
+  const note = sameNote ? distinct[0]
+             : files.map((x,i)=>notes[i] ? 'PDF '+(i+1)+': '+notes[i] : '').filter(Boolean).join(' · ');
+  return {d:{note:note||null, items:[]}, norm:{ok:true, common, rows}, truncated, review,
+          diag: diag.model ? diag : null, mixedNotes: !sameNote};
 }
 /* ── L-Bolt dimension references → canonical TO END ────────────────────────
    Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
@@ -19680,7 +19804,9 @@ async function wqaAiApply(d, msgTarget, meta){
      a borrowed value would misquote silently. One image or one PDF (whose pages
      are one document) keeps the carry. */
   const oneSource = !(meta && meta.sources > 1);
-  const norm = wqaNormalizeExtraction(d, {inheritGaps:oneSource});
+  /* Several PDFs arrive already normalised, each as its own document (its own
+     carry, nothing borrowed from another file) — see wqaMergePdfReads. */
+  const norm = (meta && meta.norm) ? meta.norm : wqaNormalizeExtraction(d, {inheritGaps:oneSource});
   if(!norm.ok){
     const e=norm.error||{};
     if(e.code==='unsupported')     wqaMsg(MT,dcT('wqaMsgUnsupported').replace('{p}',e.word||''),true);
@@ -19767,7 +19893,7 @@ async function wqaAiApply(d, msgTarget, meta){
      person confirms it — then it goes through the existing accessory model,
      never as a separate row. A mixed document, a total-count statement or a
      count it cannot read stays the plain mention it always was. */
-  if(!fromText && d.note){
+  if(!fromText && d.note && !(meta && meta.noAccProposal)){
     const a=wqaAccScan(String(d.note));
     const kinds=new Set(norm.rows.map(r=>wqaRowProduct(r)||''));
     if(a && a.found && !(a.total&&a.total.length) && !(a.need&&a.need.length) && kinds.size===1 && !kinds.has('')){

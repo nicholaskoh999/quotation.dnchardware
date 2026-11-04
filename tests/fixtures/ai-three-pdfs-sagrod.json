@@ -1,0 +1,151 @@
+{
+    "HOTR.pdf": {
+        "data": {
+            "product": "SAG_ROD",
+            "material": "S275",
+            "finish": null,
+            "sizeType": null,
+            "threadEnds": 2,
+            "note": "2 Nuts M12 each end",
+            "items": [
+                {
+                    "M": "M12",
+                    "L": 1175,
+                    "W": null,
+                    "TL": "100/100",
+                    "qty": 5,
+                    "Bmid": 975,
+                    "material": null,
+                    "finish": null,
+                    "sizeType": null,
+                    "unclear": null,
+                    "product": "SAG_ROD",
+                    "threadEnds": 2,
+                    "bodyDia": null,
+                    "H": null,
+                    "ID": null,
+                    "S": null,
+                    "R": null,
+                    "Lref": null,
+                    "Wref": null,
+                    "Bbad": false
+                },
+                {
+                    "M": "M12",
+                    "L": 1300,
+                    "W": null,
+                    "TL": "100/100",
+                    "qty": 20,
+                    "Bmid": 1100,
+                    "material": null,
+                    "finish": null,
+                    "sizeType": null,
+                    "unclear": null,
+                    "product": "SAG_ROD",
+                    "threadEnds": 2,
+                    "bodyDia": null,
+                    "H": null,
+                    "ID": null,
+                    "S": null,
+                    "R": null,
+                    "Lref": null,
+                    "Wref": null,
+                    "Bbad": false
+                }
+            ]
+        },
+        "meta": {
+            "provider": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "fallback": null,
+            "ms": 6000,
+            "est_usd": 0.02
+        },
+        "review": false
+    },
+    "WWTP.pdf": {
+        "data": {
+            "product": "SAG_ROD",
+            "material": "S275",
+            "finish": null,
+            "sizeType": null,
+            "threadEnds": 2,
+            "note": "2 Nuts M12 each end",
+            "items": [
+                {
+                    "M": "M12",
+                    "L": 1327,
+                    "W": null,
+                    "TL": "100/100",
+                    "qty": 21,
+                    "Bmid": 1126,
+                    "material": null,
+                    "finish": null,
+                    "sizeType": null,
+                    "unclear": null,
+                    "product": "SAG_ROD",
+                    "threadEnds": 2,
+                    "bodyDia": null,
+                    "H": null,
+                    "ID": null,
+                    "S": null,
+                    "R": null,
+                    "Lref": null,
+                    "Wref": null,
+                    "Bbad": true
+                }
+            ]
+        },
+        "meta": {
+            "provider": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "fallback": null,
+            "ms": 6000,
+            "est_usd": 0.02
+        },
+        "review": false
+    },
+    "WBC.pdf": {
+        "data": {
+            "product": "SAG_ROD",
+            "material": "S275",
+            "finish": null,
+            "sizeType": null,
+            "threadEnds": 2,
+            "note": "2 Nuts M12 each end",
+            "items": [
+                {
+                    "M": "M12",
+                    "L": 1300,
+                    "W": null,
+                    "TL": "100/100",
+                    "qty": 30,
+                    "Bmid": 1100,
+                    "material": null,
+                    "finish": null,
+                    "sizeType": null,
+                    "unclear": null,
+                    "product": "SAG_ROD",
+                    "threadEnds": 2,
+                    "bodyDia": null,
+                    "H": null,
+                    "ID": null,
+                    "S": null,
+                    "R": null,
+                    "Lref": null,
+                    "Wref": null,
+                    "Bbad": false
+                }
+            ]
+        },
+        "meta": {
+            "provider": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "fallback": null,
+            "ms": 6000,
+            "est_usd": 0.02
+        },
+        "review": false
+    },
+    "_note": "R2.2 Session D: real Sonnet (claude-sonnet-5-5) answers for three customer PDFs read ONE AT A TIME through the production path, no Additional Info (2026-11-04). File names generic."
+}
