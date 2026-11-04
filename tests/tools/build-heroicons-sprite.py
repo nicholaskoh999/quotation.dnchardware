@@ -20,7 +20,7 @@ def inner(path):
     body = re.search(r'<svg[^>]*>(.*)</svg>', s, re.S).group(1)
     return re.sub(r'\s+', ' ', body).strip()
 out = ['<!-- HEROICONS-SPRITE v2.2.0 (https://heroicons.com) - MIT License, Copyright (c) Tailwind Labs, Inc.',
-       '     Full text: assets/icons/heroicons/LICENSE. Built by tests/tools/build-heroicons-sprite.py; do not edit by hand. -->',
+       '     Full text: assets/icons/HEROICONS-LICENSE.txt. Built by tests/tools/build-heroicons-sprite.py; do not edit by hand. -->',
        '<svg id="dcHeroSprite" xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">']
 for n in OUTLINE:
     out.append(f'<symbol id="hi-{n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">{inner(os.path.join(pkg,"24","outline",n+".svg"))}</symbol>')

@@ -4911,7 +4911,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 </head>
 <body>
 <!-- HEROICONS-SPRITE v2.2.0 (https://heroicons.com) - MIT License, Copyright (c) Tailwind Labs, Inc.
-     Full text: assets/icons/heroicons/LICENSE. Built by tests/tools/build-heroicons-sprite.py; do not edit by hand. -->
+     Full text: assets/icons/HEROICONS-LICENSE.txt. Built by tests/tools/build-heroicons-sprite.py; do not edit by hand. -->
 <svg id="dcHeroSprite" xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
 <symbol id="hi-x-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></symbol>
 <symbol id="hi-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></symbol>

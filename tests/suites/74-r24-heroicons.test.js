@@ -37,7 +37,7 @@ module.exports = async (browser, A) => {
     A.ok(!/unpkg|jsdelivr|cdnjs|heroicons\.com\/[^"\s]*\.svg/.test(s.replace(/<!-- HEROICONS-SPRITE[^>]*-->/, '')), `${f}: no icon CDN`);
     A.eq((s.match(/class="dnc-ico" viewBox/g) || []).length, 0, `${f}: no old line icons left`);
   }
-  A.ok(/Tailwind Labs/.test(fs.readFileSync(path.join(ROOT, 'assets/icons/heroicons/LICENSE'), 'utf8')), 'the full MIT licence ships in assets/icons/heroicons/LICENSE');
+  A.ok(/Tailwind Labs/.test(fs.readFileSync(path.join(ROOT, 'assets/icons/HEROICONS-LICENSE.txt'), 'utf8')), 'the full MIT licence ships in assets/icons/HEROICONS-LICENSE.txt');
   const ids = s => [...s.matchAll(/<symbol id="(his?-[a-z0-9-]+)"/g)].map(m => m[1]).sort();
   A.eq(ids(fs.readFileSync(path.join(ROOT, 'companies.php'), 'utf8')), ids(fs.readFileSync(path.join(ROOT, 'index.php'), 'utf8')), 'both pages carry the same sprite');
 
