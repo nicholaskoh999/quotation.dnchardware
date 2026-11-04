@@ -136,7 +136,9 @@ module.exports = async (browser, A) => {
   A.eq(st.review, 0, 'one PDF failed: review does not open on a partial set');
   A.includes(st.msg, '1 of 3 PDFs could not be read', 'and says how many');
   A.eq(st.status, ['ok', 'bad', 'ok'], 'each PDF shows its own result (✓ ✗ ✓)');
-  A.includes(st.list, '✗ Could not analyze', 'the failed one says so on its own line (the safe page message, never the raw server text)');
+  /* R2.4: the ✗ glyph is drawn as the Heroicons x-circle (Session E); the words are unchanged. */
+  A.includes(st.list, 'Could not analyze', 'the failed one says so on its own line (the safe page message, never the raw server text)');
+  A.ok(await page.evaluate(() => !!document.querySelector('[data-pdf-st="bad"] use[href="#hi-x-circle"]')), 'with the x-circle icon (R2.4 Heroicons)');
   await page.evaluate(fix => { __calls.length = 0; window.__ans['HOTR.pdf'] = fix['HOTR.pdf']; wqaAnalyze(); }, FIX);
   await page.waitForTimeout(1000);
   A.eq(await page.evaluate(() => __calls.map(c => c.file)), ['HOTR.pdf'], 'Analyze again sends ONLY the failed PDF');
