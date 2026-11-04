@@ -3,7 +3,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <script>
 /* Language boot — same storage key and codes as index.php, so a choice made on
    either page is already in force when the other one paints. */
@@ -1011,6 +1011,15 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   body.cp-sheet-open .mob-pane{animation:none!important;transform:none!important}
   #addCompanyForm input,#addCompanyForm textarea{font-size:16px;min-height:44px}
   #addCompanyForm .btn{min-height:44px}
+/* ═══════════════ R2.3 Session E — one PWA shell geometry on Quotation and Saved ═══════════════
+   The bottom navigation reads --sab (the home-indicator inset). index.php
+   defines it; this page never did, so on an iPhone the Saved navigation had
+   no home-indicator padding and sat ~34px lower than Quotation's — the "slightly
+   different position" the owner saw. Same definition, same viewport-fit=cover
+   as Quotation, and the side insets for landscape. */
+:root{--sab:env(safe-area-inset-bottom,0px)}
+@media (max-width:1023px){
+  .wrap{padding-left:max(18px,env(safe-area-inset-left,0px))!important;padding-right:max(18px,env(safe-area-inset-right,0px))!important}
 }
 </style>
 </head>
@@ -2534,6 +2543,27 @@ function dcShellNew(){ dcShellToggleMenu(false); dcShellIntentGo('new'); }
 function dcShellTool(k){ if(['dp','ds','ref','whatsnew'].indexOf(k)>=0) dcShellIntentGo(k); }
 /* Nothing on this page is a draft, so another module is a plain link. */
 function dcShellLeave(){ return true; }
+
+/* R2.3 Session E — the keyboard, as on Quotation: while an on-screen keyboard
+   covers the page (a text field is focused and the visible area shrank by
+   more than 120px) html.kb-open is set, and the bottom navigation steps aside
+   instead of riding up on top of the keyboard. Presentation only. */
+(function(){
+  const root=document.documentElement, vv=window.visualViewport;
+  const isField=n=>n&&n.matches&&n.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]),select,textarea');
+  let baseH=Math.max(window.innerHeight,vv?vv.height:0);
+  function measure(){
+    const vh=vv?vv.height:window.innerHeight, top=vv?vv.offsetTop:0;
+    if(!root.classList.contains('kb-open')) baseH=Math.max(baseH,window.innerHeight,vh);
+    const open=isField(document.activeElement) && (baseH-vh-top)>120 && window.innerWidth<=900;
+    root.classList.toggle('kb-open',open);
+  }
+  document.addEventListener('focusin',e=>{ if(isField(e.target)) setTimeout(measure,320); });
+  document.addEventListener('focusout',()=>setTimeout(()=>{ if(!isField(document.activeElement)){ root.classList.remove('kb-open'); baseH=Math.max(window.innerHeight,vv?vv.height:0); } },120));
+  if(vv) vv.addEventListener('resize',measure);
+  let lastW=window.innerWidth;
+  window.addEventListener('resize',()=>{ if(window.innerWidth!==lastW){ lastW=window.innerWidth; root.classList.remove('kb-open'); baseH=Math.max(window.innerHeight,vv?vv.height:0); } });
+})();
 
 /* ── Smart Pull-to-Refresh (R2.2) — the same block in index.php and companies.php ──
    The installed Home Screen app has no browser pull-to-refresh, so the page
