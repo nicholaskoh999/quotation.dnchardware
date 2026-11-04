@@ -1011,6 +1011,7 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   body.cp-sheet-open .mob-pane{animation:none!important;transform:none!important}
   #addCompanyForm input,#addCompanyForm textarea{font-size:16px;min-height:44px}
   #addCompanyForm .btn{min-height:44px}
+}   /* R2.4: this brace was lost when R2.3 Sessions D and E were merged (both ended on "}") */
 /* ═══════════════ R2.3 Session E — one PWA shell geometry on Quotation and Saved ═══════════════
    The bottom navigation reads --sab (the home-indicator inset). index.php
    defines it; this page never did, so on an iPhone the Saved navigation had
