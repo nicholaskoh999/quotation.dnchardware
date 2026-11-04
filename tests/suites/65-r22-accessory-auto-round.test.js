@@ -1,4 +1,13 @@
-/* ── R2.2 Session C — Accessories under Auto Round: the owner's case, locked ──
+/* ── Accessories under Auto Round — R2.2 lock, SUPERSEDED by R2.3 ───────────
+   R2.3 OWNER CONTRACT OVERRIDE (2026-11-04): "If Accessories exist and Price
+   Mode is Auto Round, apply the existing Auto Round engine to the combined
+   final price" — Round(Base + Accessories). The R2.2 record below (contract A,
+   RM4.80 + RM2.61 = RM7.41) is kept as history; every assertion now holds the
+   R2.3 figures for the same inputs: raw 4.7741 + 2.61 = 7.3841 → RM7.40, bolt
+   component 7.40 − 2.61 = 4.79. No Round, Manual and no-accessory Auto are
+   unchanged. Original header follows.
+
+   ── R2.2 Session C — Accessories under Auto Round: the owner's case, locked ──
    Owner observation: bolt base RM4.46 → Auto Round RM4.80; with RM2.61 of
    accessories the final is RM7.41. Is that bolt-then-add (A) or should the
    combined figure be rounded (B, RM7.40)?
@@ -43,15 +52,16 @@ const FORM = (mode, acc, manual) => `(() => {
 })()`;
 
 module.exports = async (browser, A) => {
-  A.suite('65 R2.2 Session C: accessories after Auto Round (owner case RM4.80 + RM2.61 = RM7.41)');
+  A.suite('65 accessories under Auto Round (R2.2 case, R2.3 rule: Round(4.7741 + 2.61) = RM7.40)');
   const page = await openApp(browser);
 
   /* ── the form: every mode × accessory mix ── */
   const CASES = [
     ['auto', null, null, 4.80, 0, 4.80, 'no accessories: Auto Round RM4.80'],
-    ['auto', { nut: NUT }, null, 4.80, 1.61, 6.41, 'Nut only: 4.80 + 1.61 = 6.41'],
-    ['auto', { fw: FW }, null, 4.80, 1.00, 5.80, 'FW only: 4.80 + 1.00 = 5.80'],
-    ['auto', { nut: NUT, fw: FW }, null, 4.80, 2.61, 7.41, 'Nut + FW: 4.80 + 2.61 = 7.41 (the owner\'s case; NOT re-rounded to 7.40)'],
+    /* R2.2 (superseded): Nut 6.41 · FW 5.80 · Nut + FW 7.41 */
+    ['auto', { nut: NUT }, null, 4.79, 1.61, 6.40, 'Nut only (R2.3): Round(4.7741 + 1.61 = 6.3841) = 6.40'],
+    ['auto', { fw: FW }, null, 4.80, 1.00, 5.80, 'FW only (R2.3): Round(4.7741 + 1.00 = 5.7741) = 5.80'],
+    ['auto', { nut: NUT, fw: FW }, null, 4.79, 2.61, 7.40, 'Nut + FW (R2.3): Round(4.7741 + 2.61 = 7.3841) = 7.40, bolt component 4.79'],
     ['no_round', null, null, 4.77, 0, 4.77, 'No Round, no accessories: RM4.77'],
     ['no_round', { nut: NUT, fw: FW }, null, 4.77, 2.61, 7.38, 'No Round + Nut + FW: 4.77 + 2.61 = 7.38'],
     ['manual', null, '7.50', 7.50, 0, 7.50, 'Manual RM7.50, no accessories: RM7.50'],
@@ -72,12 +82,12 @@ module.exports = async (browser, A) => {
              total: +it.totalAmount, accTotal: +it.accessoryTotal, wa: buildWAItemsText('-'), model: it.pricingModel };
   });
   A.eq(added.n, 1, 'added: one line');
-  A.eq([added.bolt, added.acc, added.final], [4.80, 2.61, 7.41], 'added: bolt 4.80 · accessories 2.61 · final 7.41');
-  A.eq(added.total, 74.10, 'added: total = 7.41 × 10 = 74.10');
+  A.eq([added.bolt, added.acc, added.final], [4.79, 2.61, 7.40], 'added: bolt 4.79 · accessories 2.61 · final 7.40');
+  A.eq(added.total, 74.00, 'added: total = 7.40 × 10 = 74.00');
   A.eq(added.accTotal, 26.10, 'added: accessory total = 2.61 × 10, counted once');
   A.eq(added.model, 'accessory-inclusive', 'added: accessory-inclusive model');
-  A.includes(added.wa, '7.41', 'WhatsApp: the unit price is 7.41');
-  A.excludes(added.wa, '7.40', 'WhatsApp: never the re-rounded 7.40');
+  A.includes(added.wa, '7.40', 'WhatsApp: the unit price is 7.40');
+  A.excludes(added.wa, '7.41', 'WhatsApp: never the old bolt-then-add 7.41');
   A.excludes(added.wa, '2.61', 'WhatsApp: no separate accessory charge');
   const printed = await page.evaluate(() => {
     window.dispatchEvent(new Event('beforeprint'));
@@ -87,8 +97,8 @@ module.exports = async (browser, A) => {
     return { rows, grand };
   });
   A.eq(printed.rows.length, 1, 'print: one row, no separate accessory row');
-  A.eq(printed.rows[0] && printed.rows[0][4], 'RM 7.41', 'print: Unit Price RM 7.41');
-  A.eq(printed.grand, 'RM 74.10', 'print: total RM 74.10');
+  A.eq(printed.rows[0] && printed.rows[0][4], 'RM 7.40', 'print: Unit Price RM 7.40');
+  A.eq(printed.grand, 'RM 74.00', 'print: total RM 74.00');
 
   /* ── edit and update: no double rounding, no second accessory charge ── */
   const edited = await page.evaluate(() => {
@@ -100,9 +110,9 @@ module.exports = async (browser, A) => {
     const it = quoteItems[0] || {};
     return { inForm, n: quoteItems.length, final: +it.finalUnitPrice, bolt: +it.boltUnitPrice, acc: +it.accessoryUnitPrice };
   });
-  A.eq(edited.inForm, 7.41, 'edit: the reopened form computes 7.41 again');
+  A.eq(edited.inForm, 7.40, 'edit: the reopened form computes 7.40 again (rounded once, not twice)');
   A.eq(edited.n, 1, 'update: still one line');
-  A.eq([edited.bolt, edited.acc, edited.final], [4.80, 2.61, 7.41], 'update: 4.80 + 2.61 = 7.41, unchanged');
+  A.eq([edited.bolt, edited.acc, edited.final], [4.79, 2.61, 7.40], 'update: 4.79 + 2.61 = 7.40, unchanged');
 
   /* ── save → reopen ── */
   let payload = null;
@@ -112,14 +122,15 @@ module.exports = async (browser, A) => {
     total_amount: quoteItems.reduce((s, i) => s + i.totalAmount, 0) }, 'POST'));
   A.ok(payload && payload.items && payload.items.length === 1, 'save: one item sent');
   const sent = payload.items[0];
-  A.eq([+sent.boltUnitPrice, +sent.accessoryUnitPrice, +sent.finalUnitPrice], [4.80, 2.61, 7.41], 'save: the record carries bolt 4.80, accessories 2.61, final 7.41');
+  A.eq([+sent.boltUnitPrice, +sent.accessoryUnitPrice, +sent.finalUnitPrice], [4.79, 2.61, 7.40], 'save: the record carries bolt 4.79, accessories 2.61, final 7.40');
+  A.eq(sent.autoRoundStage, 'final', 'save: the record says it was rounded at the final stage (R2.3)');
   await page.close();
 
   const back = await openApp(browser, { handoff: { id: 7, ref_no: 'DC-TEST-001', customer_name: 'ADVANCE', items: payload.items } });
   const re = await back.evaluate(() => { const it = quoteItems[0] || {};
     return { final: +it.finalUnitPrice, bolt: +it.boltUnitPrice, acc: +it.accessoryUnitPrice, total: +it.totalAmount, wa: buildWAItemsText('-') }; });
-  A.eq([re.bolt, re.acc, re.final, re.total], [4.80, 2.61, 7.41, 74.10], 'reopen: 4.80 / 2.61 / 7.41 / 74.10 exactly as saved');
-  A.includes(re.wa, '7.41', 'reopen: WhatsApp still 7.41');
+  A.eq([re.bolt, re.acc, re.final, re.total], [4.79, 2.61, 7.40, 74.00], 'reopen: 4.79 / 2.61 / 7.40 / 74.00 exactly as saved');
+  A.includes(re.wa, '7.40', 'reopen: WhatsApp still 7.40');
   await back.close();
 
   /* ── Quick Add: typed accessories, then a confirmed proposal ── */
@@ -137,8 +148,8 @@ module.exports = async (browser, A) => {
   }, [SPEC, NUT, FW]);
   A.ok(!qrow.none, `Quick Add: the stud line is read (${JSON.stringify(qrow)})`);
   /* the stud's diameter comes from the table here; the rule is what is held */
-  A.eq(qrow.final, +(qrow.bolt + 2.61).toFixed(2), `Quick Add typed accessories: final = Auto-Rounded bolt + 2.61 (${qrow.bolt} + 2.61 = ${qrow.final}), never re-rounded`);
-  A.ok(Math.abs(qrow.bolt * 10 - Math.round(qrow.bolt * 10)) < 1e-9, `Quick Add: the bolt itself sits on an RM0.10 band (${qrow.bolt})`);
+  A.eq(qrow.final, +(qrow.bolt + 2.61).toFixed(2), `Quick Add typed accessories: final = bolt component + 2.61 (${qrow.bolt} + 2.61 = ${qrow.final})`);
+  A.ok(Math.abs(qrow.final * 10 - Math.round(qrow.final * 10)) < 1e-9, `Quick Add (R2.3): the FINAL sits on an RM0.10 band (${qrow.final}) — rounded once, combined`);
 
   const confirmed = await qa.evaluate(async () => {
     const r = wqa.rows[0];
