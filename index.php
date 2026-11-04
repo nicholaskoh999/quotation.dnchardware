@@ -4888,6 +4888,25 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #step1Card .qi-compact-main > .nm,#step1Card .qi-compact-main > .summary-label:first-child{padding-right:118px}
   #step1Card .sum-chip{font-size:12px}
 }
+
+/* ═══════════════ R2.4 Session D — PWA responsive / final polish ═══════════════
+   Phones: every control a 44px target; a dialog never taller than the screen —
+   it scrolls inside itself with its title and Close pinned, so Close is always
+   in reach. Tablet: one input height. Same controls and handlers. */
+@media (max-width:599px){
+  .rsp-chip,.mob-tab,.cp-sum-line,.cp-break,.acc-sum,.uc-open,.step-pill{min-height:44px!important}
+  .dp-status .dp-edit{min-height:44px;display:inline-flex;align-items:center;padding:0 6px;font-size:12.5px}
+  .modal-close{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .modal-overlay.open{padding-top:12px;padding-bottom:12px}   /* was 5vh: the box is now capped to the screen instead */
+  .modal-overlay.open .modal{max-height:calc(100dvh - 24px);margin-bottom:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .modal-overlay.open .modal > .modal-title,.modal-overlay.open .modal > .modal-header{position:sticky;top:0;z-index:3;background:var(--surface);
+    margin-top:0;padding-top:4px;padding-bottom:6px}
+}
+@media (min-width:600px) and (max-width:1023px){
+  #step1Card .qi-edit .field input,#step1Card .qi-edit .field select,
+  #step2Card .item-form.active .field input:not([type=radio]):not([type=checkbox]),#step2Card .item-form.active .field select{height:42px;min-height:42px}
+}
+#wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
 <body>
