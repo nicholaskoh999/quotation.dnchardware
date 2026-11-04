@@ -5026,6 +5026,18 @@ html[data-lang="zh"] .quote-status-row::before{content:'状态'}
   .main{padding-bottom:calc(var(--bar-h) + var(--sab) + 40px)!important}
   .mobile-bar{padding-bottom:max(8px,var(--sab))}
 }
+
+/* ═══════════════ R2.5 Session G — bottom navigation (#13) ═══════════════
+   One active tab at a time: while Tools or Account is open, that tab is the
+   solid, coloured one and the current page's tab steps back to its outline
+   icon with a faint marker (you are still on that page). Geometry unchanged:
+   same height, 24px icons and centred labels on both pages. */
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"]){color:var(--dnc-ink-3)}
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"]) .dnc-ico.hi-o{display:block}
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"]) .dnc-ico.hi-s{display:none}
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"])::before{opacity:.35}
+/* audit: the Quotation Total split "RM" from its number at 320px */
+.qt-amt,.er-t,#mbTotal{white-space:nowrap}
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>

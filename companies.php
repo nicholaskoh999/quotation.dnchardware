@@ -1227,6 +1227,16 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #rightPanel .rq-card .rq-actions,#companyQuotesList .q-card .quote-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%;margin:0!important}
   #rightPanel .rq-card .rq-actions .btn,#companyQuotesList .q-card .quote-actions .btn{width:100%;justify-content:center;margin:0!important}
 }
+
+/* ═══════════════ R2.5 Session G — bottom navigation (#13) ═══════════════
+   One active tab at a time: while Tools or Account is open, that tab is the
+   solid, coloured one and the current page's tab steps back to its outline
+   icon with a faint marker (you are still on that page). Geometry unchanged:
+   same height, 24px icons and centred labels on both pages. */
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"]){color:var(--dnc-ink-3)}
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"]) .dnc-ico.hi-o{display:block}
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"]) .dnc-ico.hi-s{display:none}
+#rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"])::before{opacity:.35}
 </style>
 </head>
 <body class="rsp-page-plain">
