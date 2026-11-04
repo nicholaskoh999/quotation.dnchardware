@@ -983,6 +983,35 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .dnc-shell,.rsp-sheet,.rsp-scrim,.rsp-nav{transition:none!important}
 }
 
+
+/* ═══════════════ R2.3 Session D — Saved / Companies on the phone (<600px) ═══════════════
+   Search first: the four statistics collapse to one line (expand for the
+   cards); the Recent Quotations heading the tab already names is not repeated;
+   Add Company opens as a focused bottom sheet; cards tighter. Same data,
+   same handlers, desktop untouched. */
+.cp-sum-line{display:none}
+@media (max-width:599px){
+  .page-title{margin-bottom:8px}
+  .page-title h2{font-size:20px}
+  .page-title p{display:none}
+  .mob-tab-bar .mob-tab{min-height:40px;font-size:13.5px;padding:6px 8px}
+  .cp-sum-line{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;margin:0 0 10px;padding:6px 12px;border:1px solid var(--border);
+    border-radius:var(--r-sm);background:var(--surface);color:var(--text-2);font:inherit;font-size:13px;font-weight:700;text-align:left;cursor:pointer}
+  .cp-sum-line:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .cp-sum-line .cp-sum-chev{margin-left:auto;width:8px;height:8px;border-right:2px solid var(--text-muted);border-bottom:2px solid var(--text-muted);transform:rotate(-45deg);transition:transform .15s}
+  .cp-sum-line[aria-expanded="true"] .cp-sum-chev{transform:rotate(45deg)}
+  body:not(.cp-sum-open) #summaryGrid,body:not(.cp-sum-open) .summary-note{display:none!important}
+  #rightPanel .rq-head{display:none}
+  .item-search-tools,.company-tools{padding:10px!important;margin-bottom:10px!important}
+  .item-search-hint{font-size:11.5px;margin-top:6px}
+  #addCompanyForm:not([hidden]){position:fixed;left:0;right:0;bottom:0;z-index:440;margin:0!important;border-radius:16px 16px 0 0;
+    max-height:min(88vh,calc(100dvh - 40px));overflow-y:auto;overscroll-behavior:contain;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 0 0 100vmax rgba(10,12,20,.45),0 -12px 40px rgb(22 26 35 / .22)}
+  /* the pane's entrance animation leaves a transform that would pin a fixed sheet to the pane */
+  body.cp-sheet-open .mob-pane{animation:none!important;transform:none!important}
+  #addCompanyForm input,#addCompanyForm textarea{font-size:16px;min-height:44px}
+  #addCompanyForm .btn{min-height:44px}
+}
 </style>
 </head>
 <body class="rsp-page-plain">
@@ -1101,7 +1130,8 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <button class="mob-tab" id="mobTabCustomers" onclick="switchMobTab('customers')" data-i18n="tabCustomers">🏢 Customers</button>
   </div>
 
-  <!-- Dashboard summary -->
+  <!-- Dashboard summary (phones: one line, the cards on demand) -->
+  <button type="button" class="cp-sum-line" id="cpSumLine" aria-expanded="false" aria-controls="summaryGrid" onclick="cpSumToggle()"><span id="cpSumText"></span><span class="cp-sum-chev" aria-hidden="true"></span></button>
   <div class="summary-grid" id="summaryGrid"></div>
   <div class="summary-note" data-i18n="summaryNote">💡 Quotation total is reference only — actual order quantity may differ.</div>
 
@@ -1278,7 +1308,8 @@ const I18N={
     /* The helper lines and empty states, which are most of what this page
        says before a company is chosen. */
     cpSelectCompany:'ℹ️ Select a company on the left to view all saved quotations for that company.',
-    cpSelectCompanyAbove:'ℹ️ Select a company above to view all saved quotations for that company.',
+    cpSelectCompanyAbove:'ℹ️ Open Customers and choose a company to see all its saved quotations.',
+    cpSumLineM:'{c} companies · {q} saved · {r} in 14 days', cpViewTip:'View — read only, nothing changes', cpLoadTip:'Load into Quotation to edit or reuse',
     cpPastPriceHint:'Looking for a past price instead? Use the item search under Recent Quotations.',
     cpNoItemsMatch:'No past items match “{t}”',
     cpBackRecent:'← Back to Recent Quotations',
@@ -1364,7 +1395,8 @@ const I18N={
     tDuplicated:'📄 已复制为 #{n}', tQuoteNotFound:'找不到报价单 {r}',
     ariaHome:'Der-Cheng 报价系统 — 首页',
     cpSelectCompany:'ℹ️ 请在左侧选择公司，以查看该公司所有已保存的报价单。',
-    cpSelectCompanyAbove:'ℹ️ 请在上方选择公司，以查看该公司所有已保存的报价单。',
+    cpSelectCompanyAbove:'ℹ️ 打开「客户」并选择公司，即可查看该公司所有已保存的报价单。',
+    cpSumLineM:'{c} 家公司 · {q} 份报价 · 14 天内 {r} 份', cpViewTip:'查看 — 只读，不作任何更改', cpLoadTip:'载入报价页以编辑或重用',
     cpPastPriceHint:'想查询历史价格？请使用「最新报价」下方的产品搜索。',
     cpNoItemsMatch:'没有符合「{t}」的历史项目',
     cpBackRecent:'← 返回最新报价',
@@ -1524,7 +1556,7 @@ function renderRecentQuotations(){
 
   if(!recent.length){
     panel.innerHTML = `
-      <div class="card" style="margin-bottom:12px">
+      <div class="card rq-head" style="margin-bottom:12px">
         <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>${dcT('secRecentQuotations')}</div>
       </div>
       <div class="empty-state empty-state-compact">
@@ -1554,15 +1586,15 @@ function renderRecentQuotations(){
         <div class="rq-card-bot">
           <div class="rq-total"><span class="ref-total-label">${esc(dcT('cpReferenceTotal'))}</span> <b>${fmtMoneyCP(q.total_amount)}</b></div>
           <div class="rq-actions">
-            <button class="btn btn-view" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
-            <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
+            <button class="btn btn-view" onclick="viewQuote(${q.id})" title="${esc(dcT('cpViewTip'))}" aria-label="${esc(dcT('cpViewTip'))}">${esc(dcT('cpView'))}</button>
+            <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})" title="${esc(dcT('cpLoadTip'))}" aria-label="${esc(dcT('cpLoadTip'))}">${esc(dcT('cpLoad'))}</button>
           </div>
         </div>
       </div>`;
   }).join('');
 
   panel.innerHTML = `
-    <div class="card" style="margin-bottom:12px">
+    <div class="card rq-head" style="margin-bottom:12px">
       <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>${dcT('secRecentQuotations')}</div>
     </div>
     <div class="q-helper"><span class="cp-where-side">${esc(dcT('cpSelectCompany'))}</span><span class="cp-where-above">${esc(dcT('cpSelectCompanyAbove'))}</span></div>
@@ -1668,6 +1700,13 @@ function renderSummary(){
       <div class="summary-value">${c.value}</div>
       <div class="summary-sub">${c.sub}</div>
     </div>`).join('');
+  const st=document.getElementById('cpSumText');
+  if(st) st.textContent=dcT('cpSumLineM').replace('{c}',totalCompanies).replace('{q}',totalQuotes).replace('{r}',recentQuotes);
+}
+function cpSumToggle(){
+  const open=!document.body.classList.contains('cp-sum-open');
+  document.body.classList.toggle('cp-sum-open',open);
+  const b=document.getElementById('cpSumLine'); if(b) b.setAttribute('aria-expanded',open?'true':'false');
 }
 
 /* ── Search ───────────────────────────────────────────────────────────────
@@ -1927,11 +1966,14 @@ function renderCompanyCards(){
 function toggleAddCompanyForm(){
   const f=document.getElementById('addCompanyForm');
   f.hidden=!f.hidden;
+  document.body.classList.toggle('cp-sheet-open',!f.hidden);
   if(!f.hidden){const n=document.getElementById('c-name');if(n)n.focus();}
 }
 function closeAddCompanyForm(){
   document.getElementById('addCompanyForm').hidden=true;
+  document.body.classList.remove('cp-sheet-open');
 }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const f=document.getElementById('addCompanyForm'); if(f&&!f.hidden&&window.matchMedia('(max-width:599px)').matches) closeAddCompanyForm(); } });
 
 async function addCompany(){
   const name=document.getElementById('c-name').value.trim();
@@ -2014,8 +2056,8 @@ function renderCompanyQuoteCard(q){
           <b>${fmtMoneyCP(q.total_amount)}</b>
         </div>
         <div class="quote-actions">
-          <button class="btn btn-view" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
-          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
+          <button class="btn btn-view" onclick="viewQuote(${q.id})" title="${esc(dcT('cpViewTip'))}" aria-label="${esc(dcT('cpViewTip'))}">${esc(dcT('cpView'))}</button>
+          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})" title="${esc(dcT('cpLoadTip'))}" aria-label="${esc(dcT('cpLoadTip'))}">${esc(dcT('cpLoad'))}</button>
           <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">${esc(dcT('cpDuplicate'))}</button>
           <button class="btn btn-danger" onclick="deleteQuote(${q.id})">${esc(dcT('cpDelete'))}</button>
         </div>
@@ -2073,8 +2115,8 @@ async function selectCompany(id){
         </div>
         ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
         <div class="quote-actions">
-          <button class="btn btn-view" onclick="viewQuote(${q.id})">${esc(dcT('cpView'))}</button>
-          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})">${esc(dcT('cpLoad'))}</button>
+          <button class="btn btn-view" onclick="viewQuote(${q.id})" title="${esc(dcT('cpViewTip'))}" aria-label="${esc(dcT('cpViewTip'))}">${esc(dcT('cpView'))}</button>
+          <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})" title="${esc(dcT('cpLoadTip'))}" aria-label="${esc(dcT('cpLoadTip'))}">${esc(dcT('cpLoad'))}</button>
           <button class="btn btn-ghost" onclick="duplicateQuote(${q.id})">${esc(dcT('cpDuplicate'))}</button>
           <button class="btn btn-danger" onclick="deleteQuote(${q.id})">${esc(dcT('cpDelete'))}</button>
         </div>
@@ -2358,7 +2400,15 @@ window.addEventListener('DOMContentLoaded',()=>{
   openByRefFromUrl();
 });
 /* ── Mobile tab switching ── */
+/* Each tab keeps its own place: coming back to Recent after a look at
+   Customers returns to the card you were on. */
+const cpTabScroll={recent:0,customers:0};
+let cpTabNow='recent';
 function switchMobTab(tab){
+  if(tab!==cpTabNow){ cpTabScroll[cpTabNow]=window.scrollY||0; }
+  const goTo=(tab!==cpTabNow)?(cpTabScroll[tab]||0):null;
+  cpTabNow=tab==='customers'?'customers':'recent';
+  if(goTo!==null) requestAnimationFrame(()=>window.scrollTo({top:goTo,behavior:'instant'}));
   const custPane=document.getElementById('mobPaneCustomers');
   const recentPane=document.getElementById('mobPaneRecent');
   const tabCust=document.getElementById('mobTabCustomers');
