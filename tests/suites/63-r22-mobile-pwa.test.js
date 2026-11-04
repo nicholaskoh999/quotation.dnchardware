@@ -7,7 +7,9 @@
        grey canvas), theme-color is white, and NO top padding is added;
      - the phone top bar stays stuck to the top on Saved as well (it scrolled
        away: overflow-x:hidden on html+body made body a scroll container);
-     - Saved says "Select a company above" where the list is above, not "on the left";
+     - Saved never says "on the left" where there is no left panel. (R2.3 correction:
+       at <=980px Saved is TABBED - Recent / Customers - so the R2.2 wording "above"
+       was wrong too; it now says "Open Customers and choose a company".)
      - the bottom navigation never covers the end of the page.
    iOS standalone itself cannot run here (Chromium, no safe areas): the owner
    smoke on the installed app is the final check.                            */
@@ -123,12 +125,15 @@ module.exports = async function (browser, A) {
     });
     if (lang === 'en') {
       A.excludes(r.text, 'on the left', 'phone Saved EN: no "on the left"');
-      A.includes(r.text, 'Select a company above', 'phone Saved EN: "Select a company above"');
+      /* R2.2 asserted "Select a company above"; superseded by R2.3 (the list is in the Customers tab) */
+      A.includes(r.text, 'Open Customers', 'phone Saved EN: "Open Customers and choose a company" (R2.3)');
     } else {
       A.excludes(r.text, '左侧', 'phone Saved 中文: no 左侧');
-      A.includes(r.text, '上方', 'phone Saved 中文: 上方');
+      A.includes(r.text, '「客户」', 'phone Saved 中文: 打开「客户」 (R2.3)');
     }
-    A.ok(r.listTop < r.helperTop, `phone Saved ${lang}: the company list really is above the hint (${Math.round(r.listTop)} < ${Math.round(r.helperTop)})`);
+    /* R2.2 compared positions while the Customers pane was hidden (top 0) - it proved nothing. R2.3: the list is in the Customers tab. */
+    A.ok(await page.evaluate(() => !!document.querySelector('#mobTabCustomers') && !!document.querySelector('#mobPaneCustomers #companyList')),
+      `phone Saved ${lang}: the company list is in the Customers tab the hint names`);
     await page.close();
   }
 };
