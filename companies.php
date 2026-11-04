@@ -1206,6 +1206,13 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 const DC_LANG_KEY='dc_lang', DC_LANGS=['en','zh'];
 const I18N={
   en:{
+    /* R2.2 Smart Pull-to-Refresh (installed app) */
+    ptrPull:'Pull to refresh', ptrRelease:'Release to refresh', ptrRefreshing:'Refreshing…', ptrDone:'Up to date',
+    ptrFail:'Couldn’t refresh — nothing on this page changed', ptrRetry:'Retry',
+    ptrBlockUnsaved:'Not refreshed — this quotation has unsaved changes', ptrBlockQuickAdd:'Not refreshed — Quick Add is open',
+    ptrBlockAi:'Not refreshed — AI is still reading', ptrBlockOpen:'Not refreshed — close the open window first',
+    ptrBlockInput:'Not refreshed — finish or clear what you are typing', ptrBlockBusy:'Not refreshed — still loading',
+    ptrBlockUnknown:'Not refreshed — the page state could not be checked',
     language:'Language', langAria:'Language', langSwitched:'Language set to English',
     navCalculator:'Calculator', navCalculatorTitle:'Quotation Calculator',
     navCompanies:'Companies', navSignOut:'Sign Out', navWorkspace:'DNC Workspace',
@@ -1290,6 +1297,13 @@ const I18N={
     rspNavQuotation:'Quotation', rspNavSaved:'Saved', rspNavTools:'Tools', rspNavAccount:'Account', rspMainNav:'Main navigation', rspOpenMenu:'Open menu', rspClose:'Close', rspQuickAria:'Quick actions', rspQuickPo:'Internal PO', shellNav:'DNC navigation', shellHome:'DNC Quotation — home', shellBack:'Back to Workspace', shellNewQuotation:'New Quotation', shellModules:'Quotation', shellQuotations:'Quotations', shellIpo:'Internal Purchase Orders', shellQuoTools:'Quotation Tools', shellOtherModules:'Other Modules', shellCompaniesSaved:'Companies & Saved', shellDefaultPrices:'Default Prices', shellDiameterSettings:'Diameter Settings', shellPricingGuide:'Pricing Guide', shellWhatsNew:'What\'s New', shellSystemVersion:'System Version', shellSignOut:'Sign Out', shellAccountMenu:'Account menu', shellPageQuotations:'Quotations', shellPageCompanies:'Companies & Saved', shellCfmLeaveDraft:'Your unsaved quotation draft stays on this device and will be offered when you come back. Go to Internal Purchase Orders?',
   },
   zh:{
+    /* R2.2 下拉刷新（已安装的应用） */
+    ptrPull:'下拉刷新', ptrRelease:'松开即可刷新', ptrRefreshing:'正在刷新…', ptrDone:'已是最新',
+    ptrFail:'刷新失败，本页内容没有改变', ptrRetry:'重试',
+    ptrBlockUnsaved:'未刷新：此报价单有未保存的修改', ptrBlockQuickAdd:'未刷新：快速添加仍在打开',
+    ptrBlockAi:'未刷新：AI 仍在识别', ptrBlockOpen:'未刷新：请先关闭打开的窗口',
+    ptrBlockInput:'未刷新：请先完成或清除正在输入的内容', ptrBlockBusy:'未刷新：仍在加载',
+    ptrBlockUnknown:'未刷新：无法确认页面状态',
     qoRenumbered:'报价单 {r} 的编号已更改：', qoChooseOne:'有 {n} 份报价单符合「{r}」，请选择：',
     language:'语言', langAria:'语言', langSwitched:'已切换为中文',
     navCalculator:'计算器', navCalculatorTitle:'报价计算器',
@@ -1549,6 +1563,14 @@ async function loadAllQuotations(){
   recentQuotesLoading=false;
   recentQuoteIds.clear();
   const res = await api('get_quotations&limit='+RECENT_QUOTES_PAGE_SIZE+'&offset=0');
+  applyRecentQuotations(res);
+}
+/* The first page of Recent Quotations, from a get_quotations answer. */
+function applyRecentQuotations(res){
+  recentQuotesOffset=0;
+  recentQuotesHasMore=true;
+  recentQuotesLoading=false;
+  recentQuoteIds.clear();
   allQuotationsCache = res.data || [];
   allQuotationsCache.forEach(q=>recentQuoteIds.add(String(q.id)));
   recentQuotesOffset = allQuotationsCache.length;
@@ -1993,7 +2015,7 @@ async function selectCompany(id){
   renderCompanyCards(); // re-render to update selected state
 
   const res=await api('get_quotations&company_id='+id+'&limit='+COMPANY_QUOTES_PAGE_SIZE+'&offset=0');
-  if(!res.ok){showToast(dcT('msgFailLoadQuotes'));return}
+  if(!res.ok){showToast(dcT('msgFailLoadQuotes'));return false}
   const quotes=(res.data||[]).sort((a,b)=>new Date(b.quote_date||b.created_at)-new Date(a.quote_date||a.created_at));
   const totalQuotesForCompany = Number.isFinite(Number(res.total)) ? Number(res.total) : quotes.length;
   companyQuotesOffset=quotes.length;
@@ -2446,6 +2468,161 @@ function dcShellTool(k){ if(['dp','ds','ref','whatsnew'].indexOf(k)>=0) dcShellI
 /* Nothing on this page is a draft, so another module is a plain link. */
 function dcShellLeave(){ return true; }
 
+/* ── Smart Pull-to-Refresh (R2.2) — the same block in index.php and companies.php ──
+   The installed Home Screen app has no browser pull-to-refresh, so the page
+   offers its own — and only there (a browser tab keeps the browser's own).
+   It never reloads the app: the page's dcPtrRefresh() fetches fresh data and
+   replaces what is shown ONLY when every request succeeded; on any failure the
+   page is left exactly as it was and Retry is offered.
+   Before anything is fetched the page's dcPtrGuard() is asked; any reason
+   (unsaved quotation, Quick Add open, AI reading, a window open, typing…)
+   blocks it. A guard that is missing or throws blocks too: fail closed.
+   The pull only starts at the very top of the page, from a plain part of the
+   page: never inside a window, sheet, menu, table, scroll box or form field,
+   never sideways, never with two fingers. One refresh at a time.          */
+const dcPtr=(function(){
+  const PULL=64, MAX=112;
+  const S={force:false, busy:false, armed:false, pulling:false, y0:0, x0:0, d:0, el:null, hideT:0, runs:0};
+  function standalone(){
+    try{ if(window.navigator.standalone===true) return true; }catch(e){}
+    try{ return window.matchMedia('(display-mode: standalone)').matches||window.matchMedia('(display-mode: fullscreen)').matches; }catch(e){ return false; }
+  }
+  function enabled(){ return S.force||standalone(); }
+  function atTop(){ const se=document.scrollingElement||document.documentElement; return (window.scrollY||se.scrollTop||0)<=0; }
+  const NO_START='.modal-overlay,.rsp-sheet,.rsp-scrim,.dnc-shell,.rsp-nav,.mobile-bar,#dncMenu,.ac-dropdown,select,input,textarea,[contenteditable],table,.dc-ptr';
+  function plainTarget(t){
+    if(!t||!t.closest) return false;
+    if(t.closest(NO_START)) return false;
+    for(let n=t;n&&n!==document.body&&n!==document.documentElement;n=n.parentElement){
+      const cs=getComputedStyle(n);
+      if(/(auto|scroll)/.test(cs.overflowY)&&n.scrollHeight>n.clientHeight+1) return false;
+      if(/(auto|scroll)/.test(cs.overflowX)&&n.scrollWidth>n.clientWidth+1) return false;
+    }
+    return true;
+  }
+  function anyOverlay(){
+    const r=document.documentElement;
+    if(r.classList.contains('rsp-lock')||r.classList.contains('kb-open')) return true;
+    if(typeof rspCur!=='undefined'&&rspCur) return true;
+    return !!document.querySelector('.modal-overlay.open');
+  }
+  function ui(){
+    if(S.el) return S.el;
+    const st=document.createElement('style');
+    st.textContent='.dc-ptr{position:fixed;left:50%;top:calc(var(--banner-h,0px) + var(--header-h,58px) + 8px);z-index:265;'
+      +'display:flex;align-items:center;gap:8px;max-width:calc(100vw - 32px);padding:7px 14px;border-radius:999px;'
+      +'background:#fff;border:1px solid #e2e4ea;box-shadow:0 6px 20px rgb(22 26 35 / .14);color:#4d5463;'
+      +'font:500 13px/1.25 "IBM Plex Sans",system-ui,sans-serif;transform:translate(-50%,-140%);opacity:0;pointer-events:none;'
+      +'transition:transform .18s ease,opacity .18s ease}'
+      +'.dc-ptr.is-on{opacity:1;transform:translate(-50%,0)}'
+      +'.dc-ptr.is-drag{transition:none}'
+      +'.dc-ptr.is-act{pointer-events:auto}'
+      +'.dc-ptr-ico{width:16px;height:16px;flex:0 0 16px;border-radius:50%;border:2px solid #c7cbe9;border-top-color:#4338ca}'
+      +'.dc-ptr.is-spin .dc-ptr-ico{animation:dcPtrSpin .7s linear infinite}'
+      +'.dc-ptr.is-ok .dc-ptr-ico{border-color:#16a34a}'
+      +'.dc-ptr.is-bad .dc-ptr-ico,.dc-ptr.is-block .dc-ptr-ico{border-color:#d97706}'
+      +'.dc-ptr-msg{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+      +'.dc-ptr-retry{flex:0 0 auto;border:0;background:#eef0fd;color:#4338ca;font:inherit;font-weight:600;padding:4px 10px;border-radius:999px;cursor:pointer}'
+      +'@keyframes dcPtrSpin{to{transform:rotate(360deg)}}'
+      +'@media (prefers-reduced-motion:reduce){.dc-ptr{transition:none}.dc-ptr.is-spin .dc-ptr-ico{animation:none}}';
+    document.head.appendChild(st);
+    const d=document.createElement('div');
+    d.className='dc-ptr'; d.id='dcPtr'; d.setAttribute('role','status'); d.setAttribute('aria-live','polite');
+    d.innerHTML='<span class="dc-ptr-ico" aria-hidden="true"></span><span class="dc-ptr-msg"></span>';
+    document.body.appendChild(d);
+    S.el=d; return d;
+  }
+  function show(kind,msg,opts){
+    const d=ui(); clearTimeout(S.hideT);
+    d.className='dc-ptr is-on'+(kind?' is-'+kind:'')+(opts&&opts.drag?' is-drag':'');
+    d.querySelector('.dc-ptr-msg').textContent=msg;
+    const old=d.querySelector('.dc-ptr-retry'); if(old) old.remove();
+    if(opts&&opts.retry){
+      const b=document.createElement('button'); b.type='button'; b.className='dc-ptr-retry'; b.textContent=dcT('ptrRetry');
+      b.onclick=()=>run(); d.appendChild(b); d.classList.add('is-act');
+    }
+    if(opts&&opts.drag) d.style.transform='translate(-50%,'+Math.round(Math.min(0,(S.d-PULL)))+'px)'; else d.style.transform='';
+    if(opts&&opts.ms) S.hideT=setTimeout(hide,opts.ms);
+  }
+  function hide(){ if(!S.el) return; clearTimeout(S.hideT); S.el.className='dc-ptr'; S.el.style.transform=''; }
+  function guard(){
+    let r;
+    try{
+      if(typeof window.dcPtrGuard!=='function') return 'ptrBlockUnknown';
+      r=window.dcPtrGuard();
+    }catch(e){ return 'ptrBlockUnknown'; }
+    if(typeof r!=='string') return 'ptrBlockUnknown';
+    if(r) return r;
+    return anyOverlay()?'ptrBlockOpen':'';
+  }
+  async function run(){
+    if(S.busy) return 'busy';                       // one refresh at a time
+    const why=guard();
+    if(why){ show('block',dcT(why),{ms:3200}); return why; }
+    S.busy=true; S.runs++;
+    show('spin',dcT('ptrRefreshing'));
+    let ok=false;
+    try{ ok=(typeof window.dcPtrRefresh==='function')&&(await window.dcPtrRefresh())===true; }catch(e){ ok=false; }
+    S.busy=false;
+    if(ok){ show('ok',dcT('ptrDone'),{ms:1400}); return 'ok'; }
+    show('bad',dcT('ptrFail'),{retry:true,ms:9000});
+    return 'fail';
+  }
+  function reset(){ S.armed=false; S.pulling=false; S.d=0; }
+  document.addEventListener('touchstart',e=>{
+    reset();
+    if(!enabled()||S.busy||e.touches.length!==1||!atTop()||anyOverlay()||!plainTarget(e.target)) return;
+    S.armed=true; S.y0=e.touches[0].clientY; S.x0=e.touches[0].clientX;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!S.armed) return;
+    if(e.touches.length!==1){ if(S.pulling) hide(); reset(); return; }
+    const dy=e.touches[0].clientY-S.y0, dx=e.touches[0].clientX-S.x0;
+    if(!S.pulling){
+      if(Math.abs(dx)>10&&Math.abs(dx)>=Math.abs(dy)){ reset(); return; }   // sideways: not ours
+      if(dy<0||!atTop()){ reset(); return; }                                  // scrolling up/away: not ours
+      if(dy<10) return;
+      S.pulling=true;
+    }
+    if(!atTop()){ hide(); reset(); return; }
+    if(e.cancelable) e.preventDefault();
+    S.d=Math.min(MAX,Math.max(0,dy)*0.55);
+    show('',dcT(S.d>=PULL?'ptrRelease':'ptrPull'),{drag:true});
+  },{passive:false});
+  function end(){
+    if(!S.armed) return;
+    const go=S.pulling&&S.d>=PULL;
+    const was=S.pulling; reset();
+    if(go) run(); else if(was) hide();
+  }
+  document.addEventListener('touchend',end,{passive:true});
+  document.addEventListener('touchcancel',()=>{ if(S.pulling) hide(); reset(); },{passive:true});
+  return { run, guard, enabled, plainTarget, state:S, hide };
+})();
+
+/* Saved page: what blocks a pull-to-refresh, and what one refreshes. The
+   companies and the first page of quotations are fetched together and shown
+   only when both arrived; a selected company is then re-read the way a tap
+   on it reads it. On any failure the lists on screen stay as they were. */
+window.dcPtrGuard=function(){
+  if(document.querySelector('.modal-overlay.open')) return 'ptrBlockOpen';
+  if(recentQuotesLoading||companyQuotesLoading) return 'ptrBlockBusy';
+  const typed=[...document.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=button]),textarea')]
+    .some(n=>n.offsetParent!==null&&String(n.value||'').trim()!=='');
+  if(typed) return 'ptrBlockInput';
+  const a=document.activeElement; if(a&&a.matches&&a.matches('input,select,textarea,[contenteditable]')) return 'ptrBlockInput';
+  return '';
+};
+window.dcPtrRefresh=async function(){
+  const r=await Promise.all([api('get_companies'),api('get_quotations&limit='+RECENT_QUOTES_PAGE_SIZE+'&offset=0')]);
+  if(!r.every(x=>x&&x.ok===true)) return false;
+  allCompaniesCache=r[0].data||[];
+  applyRecentQuotations(r[1]);
+  renderSummary();
+  renderCompanyCards();
+  if(selectedCompanyId===null){ renderRecentQuotations(); return true; }
+  return (await selectCompany(selectedCompanyId))!==false;
+};
 </script>
 </body>
 </html>
