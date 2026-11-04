@@ -1044,6 +1044,42 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 .qi-edit-mode-note.show::before{content:''!important;display:inline-block;width:16px;height:16px;margin-right:6px;vertical-align:-3px;background:currentColor;-webkit-mask:var(--hi-pencil) center/contain no-repeat;mask:var(--hi-pencil) center/contain no-repeat}
 .wqa-gx::after{content:''!important;width:10px;height:10px;background:currentColor;-webkit-mask:var(--hi-pencil) center/contain no-repeat;mask:var(--hi-pencil) center/contain no-repeat}
 @media print{ .dc-ic,.hi{display:none!important} }
+
+/* ═══════════════ R2.4 Session C — compact quotation cards on the phone (<600px) ═══════════════
+   Same cards, same data, same handlers. The quotation number leads with the
+   date beside it, then the company, one line of product description, and one
+   row for the Reference Total (labelled as reference, never an order amount)
+   with View and Load. Duplicate and Delete leave the card on the phone and
+   live in the View dialog (Delete still asks); desktop keeps them. */
+#viewModal .vm-more{display:none}
+@media (max-width:599px){
+  .rq-card .rq-card-top,.q-card .q-card-top{padding:10px 12px 6px!important}
+  .rq-card .rq-card-bot,.q-card .q-card-bottom{padding:6px 12px 10px!important;display:flex!important;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border)}
+  .rq-top,.q-top{margin-bottom:2px!important}
+  .rq-top > div,.q-top > div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;row-gap:1px;width:100%;align-items:baseline}
+  .rq-no,.q-no{font-size:15px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rq-date,.q-dates{grid-column:2;grid-row:1;font-size:12px;color:var(--text-muted);white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+  .rq-company{grid-column:1/-1;font-size:13px;font-weight:700;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+  .rq-company .hi,.rq-date .hi{width:14px;height:14px;flex-shrink:0;vertical-align:-2px}
+  .rq-preview{font-size:12.5px;color:var(--text-2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rq-total,.q-card .ref-total{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+  .rq-total br,.q-card .ref-total br{display:none}
+  .rq-total b,.q-card .ref-total b{font-size:15px;white-space:nowrap}
+  .rq-total .ref-total-label,.q-card .ref-total-label{font-size:10.5px}
+  .rq-actions,.q-card .quote-actions{display:flex!important;flex-direction:row!important;gap:6px;margin-left:auto;flex-wrap:nowrap}
+  .rq-actions .btn,.q-card .quote-actions .btn{min-height:44px;padding:0 12px;font-size:13.5px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .q-card .quote-actions .btn-ghost,.q-card .quote-actions .btn-danger{display:none!important}
+  .q-card .q-meta{font-size:12px;gap:4px 10px}
+  .q-card .q-preview .item-line{font-size:12.5px}
+  .q-card .q-remarks{font-size:12px;margin:4px 0 0}
+  #viewModal .vm-more{display:inline-flex}
+  #viewModal .modal-btns{flex-wrap:wrap;gap:8px}
+  #viewModal .modal-btns .btn{min-height:44px}
+  /* a selected company: its four figures as a compact 2 × 2, not four full-width boxes */
+  .sp-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin-top:10px!important}
+  .sp-stat{padding:7px 10px!important;min-width:0}
+  .sp-stat *{overflow-wrap:anywhere}
+}
 </style>
 </head>
 <body class="rsp-page-plain">
@@ -1316,6 +1352,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <div id="viewModalBody"></div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="btn btn-amber" onclick="loadAndGo()">📂 <span data-i18n="loadAndEdit">Load &amp; Edit</span></button>
+      <!-- R2.4: on the phone Duplicate and Delete live here, not on the card -->
+      <button class="btn btn-ghost vm-more" type="button" onclick="cpViewDuplicate()"><span data-i18n="cpDuplicate">📄 Duplicate</span></button>
+      <button class="btn btn-danger vm-more" type="button" onclick="cpViewDelete()"><span data-i18n="cpDelete">🗑️ Delete</span></button>
       <button class="btn btn-ghost" onclick="closeModal('viewModal')" data-i18n="close">Close</button>
     </div>
   </div>
@@ -1662,8 +1701,8 @@ function renderRecentQuotations(){
           <div class="rq-top">
             <div>
               <div class="rq-no">${esc(q.ref_no||'(No Ref)')}</div>
-              <div class="rq-company">🏢 ${esc(q.company_name||'—')}</div>
-              <div class="rq-date">📅 ${fmtDate(q.quote_date||q.created_at)}</div>
+              <div class="rq-company" title="${esc(q.company_name||'')}">${dcIcon('building-office-2')} ${esc(q.company_name||'—')}</div>
+              <div class="rq-date">${dcIcon('calendar-days')} ${fmtDate(q.quote_date||q.created_at)}</div>
             </div>
           </div>
           <div class="rq-preview">${esc(previewText)}</div>
@@ -2129,11 +2168,11 @@ function renderCompanyQuoteCard(q){
           </div>
         </div>
         <div class="q-meta">
-          ${q.prepared_by?`<span>👤 ${esc(q.prepared_by)}</span>`:''}
+          ${q.prepared_by?`<span>${dcIcon('user-circle')} ${esc(q.prepared_by)}</span>`:''}
           <span>${esc(dcT('cpItemCount').replace('{n}',items.length))}</span>
         </div>
         <div class="q-preview">${previewHtml || `<span style="opacity:.6">${esc(dcT('cpNoItems'))}</span>`}</div>
-        ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
+        ${q.remarks ? `<div class="q-remarks">${dcIcon('chat-bubble-left-right')} ${esc(q.remarks)}</div>` : ''}
       </div>
       <div class="q-card-bottom">
         <div class="ref-total">
@@ -2190,7 +2229,7 @@ async function selectCompany(id){
           </div>
         </div>
         <div class="q-meta">
-          ${q.prepared_by?`<span>👤 ${esc(q.prepared_by)}</span>`:''}
+          ${q.prepared_by?`<span>${dcIcon('user-circle')} ${esc(q.prepared_by)}</span>`:''}
           <span>${esc(dcT('cpItemCount').replace('{n}',items.length))}</span>
         </div>
         <div class="q-preview">${previewHtml || `<span style="opacity:.6">${esc(dcT('cpNoItems'))}</span>`}</div>
@@ -2198,7 +2237,7 @@ async function selectCompany(id){
           <span class="ref-total-label">${esc(dcT('cpReferenceTotal'))}</span><br>
           <b>${fmtMoneyCP(q.total_amount)}</b>
         </div>
-        ${q.remarks ? `<div class="q-remarks">💬 ${esc(q.remarks)}</div>` : ''}
+        ${q.remarks ? `<div class="q-remarks">${dcIcon('chat-bubble-left-right')} ${esc(q.remarks)}</div>` : ''}
         <div class="quote-actions">
           <button class="btn btn-view" onclick="viewQuote(${q.id})" title="${esc(dcT('cpViewTip'))}" aria-label="${esc(dcT('cpViewTip'))}">${esc(dcT('cpView'))}</button>
           <button class="btn btn-amber" onclick="loadQuoteToCalc(${q.id})" title="${esc(dcT('cpLoadTip'))}" aria-label="${esc(dcT('cpLoadTip'))}">${esc(dcT('cpLoad'))}</button>
@@ -2369,6 +2408,13 @@ async function duplicateQuote(id){
   else showToast(dcT('msgFailed'));
 }
 
+/* The View dialog's Duplicate / Delete (phone): the same actions on the quotation
+   being viewed — Delete still asks first. */
+async function cpViewDuplicate(){ if(!viewingQuote) return; closeModal('viewModal'); await duplicateQuote(viewingQuote.id); }
+async function cpViewDelete(){ if(!viewingQuote) return; const id=viewingQuote.id; if(!confirm(dcT('cpConfirmDeleteQuote'))) return;
+  closeModal('viewModal'); const res=await api('delete_quotation',{id},'POST');
+  if(res.ok){showToast(dcT('msgDeleted'));await loadAllQuotations();renderSummary();renderCompanyCards();if(selectedCompanyId!==null) selectCompany(selectedCompanyId); else renderRecentQuotations();}
+  else showToast(dcT('msgFailed')); }
 async function deleteQuote(id){
   if(!confirm(dcT('cpConfirmDeleteQuote')))return;
   const res=await api('delete_quotation',{id},'POST');
