@@ -133,10 +133,13 @@ module.exports = async (browser, A) => {
     'and is reconstructed from bolt plus accessories where no line was recorded');
   A.eq(finalRun({ finalUnitPrice: 30.7 }), 30.7,
     'a legacy item\'s single figure already IS the customer price');
-  A.eq((html.match(/dcItemFinalUnit\(/g) || []).length, 4,
-    'all three places that print a unit price on the company screens use it — plus the function itself');
-  A.eq((html.match(/esc\(dcAccNote\(/g) || []).length, 3,
-    'and all three say what of that price is accessories');
+  /* R2.5: the two card renderers share one helper (cpItemLine) and the View dialog
+     has its own line, so two printing places + the function; accessories are named
+     through the translated cpAccIncl (it replaced the English-only dcAccNote). */
+  A.eq((html.match(/dcItemFinalUnit\(/g) || []).length, 3,
+    'both places that print a unit price on the company screens use it (cards share cpItemLine) — plus the function itself');
+  A.eq((html.match(/dcT\('cpAccIncl'\)/g) || []).length, 2,
+    'and both say what of that price is accessories, in the user\'s language');
   A.excludes(html, 'accessories`', 'the note no longer reads as a charge added beside the figure');
   const noteRun = run(modelFn + '\n' + accSplit + '\n' + extract('companies.php', 'dcAccNote'), 'dcAccNote');
   A.includes(noteRun({ pricingModel: 'accessory-inclusive', accessoryUnitPrice: 0.7 }), 'incl.',
