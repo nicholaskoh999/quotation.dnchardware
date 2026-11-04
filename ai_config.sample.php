@@ -31,5 +31,3 @@ define('AI_IMAGE_PROVIDER', 'luna');
 // The ANTHROPIC_API_KEY environment variable wins over this line.
 define('ANTHROPIC_API_KEY', 'sk-ant-REPLACE-ME');
 // define('AI_ANTHROPIC_MODEL', 'claude-sonnet-5-5');   // the measured model; change only after re-validation
-// Usernames that may see provider, latency, tokens and cost on the AI badge.
-define('AI_DIAGNOSTICS_USERS', []);

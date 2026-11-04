@@ -1290,12 +1290,14 @@ function ai_extract_media($upload, $payload, $deps = []) {
             'review' => $res['truncated'] || ($res['data'] !== null && !$res['data']['items']), 'log' => $log];
 }
 
-/* Provider, latency, tokens and cost go to the browser only for the usernames
-   listed in ai_config.php; everyone else sees the review state alone. */
-function ai_diagnostics_allowed() {
-    if (!defined('AI_DIAGNOSTICS_USERS') || !is_array(AI_DIAGNOSTICS_USERS)) return false;
-    $u = dc_current_user();
-    return $u !== null && in_array($u['username'], AI_DIAGNOSTICS_USERS, true);
+/* What every user sees beside the AI badge: which model read the source, whether
+   it was the backup reader, how long it took and what it cost. Only these five
+   facts leave the server — never a key, a token count, a request id or any of
+   the model's own wording. */
+function ai_result_meta($run, $t0) {
+    return ['provider' => $run['provider'], 'model' => $run['model'], 'fallback' => $run['fallback'],
+            'ms' => (int)round((microtime(true) - $t0) * 1000),
+            'est_usd' => round(array_sum(array_column($run['log'], 'est_usd')), 6)];
 }
 
 function ai_json($arr, $code = 200) {
@@ -1384,11 +1386,6 @@ if (!defined('AI_EXTRACT_TEST')) {
        review says: someone must look before this is trusted — a backup reader
        was used, the answer was cut off, or no rows came back. */
     $out = ['ok'=>true, 'data'=>$r['data'], 'truncated'=>$r['truncated'], 'review'=>$run['review']];
-    if (ai_diagnostics_allowed()) {
-        $out['meta'] = ['provider' => $run['provider'], 'model' => $run['model'], 'fallback' => $run['fallback'],
-                        'ms' => (int)round((microtime(true) - $t0) * 1000),
-                        'in' => array_sum(array_column($run['log'], 'in')), 'out' => array_sum(array_column($run['log'], 'out')),
-                        'est_usd' => round(array_sum(array_column($run['log'], 'est_usd')), 6)];
-    }
+    $out['meta'] = ai_result_meta($run, $t0);
     ai_json($out);
 }

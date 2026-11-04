@@ -2755,6 +2755,11 @@ input,select,textarea{
 /* The AI result needs a person before it is trusted: a backup reader was used,
    the answer was cut off, or a row is unclear or incomplete. */
 .wqa-ai-badge.is-review{background:var(--amber-light);color:var(--text-2)}
+/* Which model read the source, how long it took and its estimated cost. */
+.wqa-ai-meta{font-size:11px;font-weight:600;color:var(--text-muted);white-space:nowrap;flex:0 1 auto;
+  min-width:0;overflow:hidden;text-overflow:ellipsis}
+.wqa-ai-meta[hidden]{display:none}
+.wqa-ai-meta.is-fallback{color:var(--text-2)}
 
 /* Quick Add — common Size / Thread panel */
 .wqa-item-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:11px}
@@ -4311,6 +4316,29 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
   #wqaModal .wqa-ip-set .wqa-ip{justify-content:flex-end;padding-right:8px}
   #wqaModal .wqa-ip-tag{display:none}
 }
+/* Accessory proposal: collapsed chip, details on demand. */
+#wqaModal .wqa-accp{margin:2px 0 4px 34px;font-size:12px}
+#wqaModal .wqa-accp-chip{border:1px solid var(--amber,#d97706);background:var(--amber-light);color:var(--text-2);border-radius:99px;
+  padding:1px 10px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
+#wqaModal .wqa-accp-det{margin-top:4px;padding:6px 10px;border:1px dashed var(--border);border-radius:8px;display:grid;gap:3px;color:var(--text-2)}
+#wqaModal .wqa-accp-k{font-weight:700;color:var(--text-muted)}
+#wqaModal .wqa-accp-cost{font-size:11px;color:var(--text-muted)}
+#wqaModal .wqa-accp-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+#wqaModal .wqa-accp-bulk{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
+@media (max-width:640px){ #wqaModal .wqa-accp{margin-left:0} }
+/* Item removed · Undo */
+#wqaModal .wqa-undo{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin:6px 0;padding:5px 10px;border-radius:8px;
+  background:var(--surface2);font-size:12.5px;font-weight:650;color:var(--text-2)}
+#wqaModal .wqa-undo[hidden]{display:none}
+#wqaModal .wqa-undo-more{font-size:11px;font-weight:500;color:var(--text-muted)}
+/* Suggested pricing: its own line under the row, never in the applied columns. */
+#wqaModal .wqa-sug{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:2px 0 4px 34px;padding:4px 10px;
+  border:1px dashed var(--border);border-radius:8px;font-size:12px;color:var(--text-2)}
+#wqaModal .wqa-sug-k{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted)}
+#wqaModal .wqa-sug-v{font-weight:650;font-variant-numeric:tabular-nums;font-style:italic}
+#wqaModal .wqa-sug-src{font-size:11px;color:var(--text-muted)}
+#wqaModal .wqa-sug-use{margin-left:auto}
+@media (max-width:640px){ #wqaModal .wqa-sug{margin-left:0} }
 /* The editor: one horizontal row on desktop, wrapping where width runs out. */
 .wqa-pxe-rec{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin-bottom:8px;font-size:12px;font-weight:650;color:var(--text-2)}
 .wqa-pxe-rk{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted)}
@@ -6104,8 +6132,11 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <span class="wqa-rv-count" id="wqaRowsCount" data-i18n="wqaZeroItems">0 items</span>
           <!-- Shown only when an AI call actually produced the rows below. -->
           <span class="wqa-ai-badge" id="wqaAiBadge" data-i18n="aiParsed" hidden>✨ AI Parsed</span>
+          <span class="wqa-ai-meta" id="wqaAiMeta" hidden></span>
           <span class="wqa-rv-acts" id="wqaRvActs"></span>
         </div>
+        <!-- Item removed · Undo — this Quick Add session only. -->
+        <div class="wqa-undo" id="wqaUndoBar" role="status" aria-live="polite" hidden></div>
         <!-- What every item shares, as values that are themselves the editor. -->
         <div class="wqa-common wqa-rv-shared" id="wqaCommon"></div>
         <!-- Variants of one detected spec: a count and, on request, the exact combinations. -->
@@ -6784,7 +6815,7 @@ const I18N={
     wqaBackToUpload:'← Back to upload', wqaSourceTitle:'Original Content',
     wqaChooseInput:'← Choose Input', wqaChooseHint:'How did the customer send the request?',
     wqaSourceLines:'{n} lines', wqaSourceEdit:'Edit message',
-    wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiParsed:'✨ AI Parsed', aiReview:'⚠ Review Needed',
+    wqaAddItems:'Add Items to Quotation', wqaAddNItems:'Add {n} Items to Quotation', wqaZeroItems:'0 items', aiParsed:'✨ AI Parsed', aiReview:'⚠ Review Needed', aiFallback:'Fallback',
     notSet:'Not set', none:'None',
     pmAutoRound:'Auto Round', pmNoRound:'No Round', pmManualPrice:'Manual Price',
     sizeTypeRequired:'Size Type is required for {p} — it was not stated in the message, so it is not guessed.',
@@ -7053,6 +7084,14 @@ const I18N={
     paApplyToN:'Apply to {n} other items',
     paApplyTo1:'Apply to 1 other item',
     paNotNow:'Not now',
+    accNutShort:'Nut', accFwShort:'FW', wqaAccPropReview:'Review', wqaAccPropFrom:'From the document:', wqaAccPropPer:'Per set (each item):',
+    wqaAccPropFollows:'follows the item', wqaAccPropNoFin:'N/A', wqaAccPropCost:'Accessory prices start at 0 — nothing is added to the price until you price them.',
+    wqaAccPropConfirm:'Confirm accessories', wqaAccPropDismiss:'Not for this item',
+    wqaAccPropBulk:'Accessories detected: “{s}” — proposed on {n} item(s) for review. Nothing is added until confirmed.', wqaAccPropAll:'Confirm for all {n} items',
+    wqaRmOne:'Item removed', wqaRmN:'{n} items removed', wqaUndo:'Undo', wqaRmMore:'{n} earlier removal(s) can also be undone',
+    wqaSugPricing:'Suggested Pricing', wqaSugTip:'Suggested pricing — not used until you click Use This Pricing', wqaAppliedTip:'Applied pricing — used for this item',
+    wqaSugAsk1:'1 other item in this group has its own suggested pricing.', wqaSugAsk:'{n} other items in this group have their own suggested pricing.',
+    wqaSugGo1:'Use Suggested Pricing for 1 item', wqaSugGo:'Use Suggested Pricing for {n} items',
     wqaFuThis:'Applied to this item',
     wqaFuAsk:'Apply this setup to {n} other compatible items?',
     wqaFuAsk1:'Apply this setup to 1 other compatible item?',
@@ -7473,7 +7512,7 @@ const I18N={
     wqaBackToUpload:'← 返回上传', wqaSourceTitle:'原始内容',
     wqaChooseInput:'← 选择输入方式', wqaChooseHint:'客户是以什么方式发来的？',
     wqaSourceLines:'{n} 行', wqaSourceEdit:'编辑原文',
-    wqaAddItems:'加入报价', wqaAddNItems:'加入 {n} 个项目到报价', wqaZeroItems:'0 项', aiParsed:'✨ AI 已识别', aiReview:'⚠ 需要复核',
+    wqaAddItems:'加入报价', wqaAddNItems:'加入 {n} 个项目到报价', wqaZeroItems:'0 项', aiParsed:'✨ AI 已识别', aiReview:'⚠ 需要复核', aiFallback:'备用读取',
     notSet:'未设置', none:'无',
     pmAutoRound:'自动进位', pmNoRound:'不进位', pmManualPrice:'手动价格',
     sizeTypeRequired:'{p} 需要选择 Size 规格 — 信息里没有写明，所以不作猜测。',
@@ -7713,6 +7752,14 @@ const I18N={
     paApplyToN:'应用到其他 {n} 个项目',
     paApplyTo1:'应用到其他 1 个项目',
     paNotNow:'暂不',
+    accNutShort:'螺母', accFwShort:'平垫', wqaAccPropReview:'待复核', wqaAccPropFrom:'文件写的是：', wqaAccPropPer:'每套（每个项目）：',
+    wqaAccPropFollows:'跟随项目', wqaAccPropNoFin:'无', wqaAccPropCost:'配件单价从 0 开始 — 定价之前不会加到价格里。',
+    wqaAccPropConfirm:'确认配件', wqaAccPropDismiss:'此项目不需要',
+    wqaAccPropBulk:'检测到配件：“{s}” — 已为 {n} 个项目建议，待复核。确认之前不会加入。', wqaAccPropAll:'为全部 {n} 个项目确认',
+    wqaRmOne:'已删除项目', wqaRmN:'已删除 {n} 个项目', wqaUndo:'撤销', wqaRmMore:'之前还有 {n} 次删除可撤销',
+    wqaSugPricing:'建议定价', wqaSugTip:'建议定价 — 点击「使用此定价」后才会使用', wqaAppliedTip:'已应用定价 — 本项目正在使用',
+    wqaSugAsk1:'本组还有 1 个项目有自己的建议定价。', wqaSugAsk:'本组还有 {n} 个项目有各自的建议定价。',
+    wqaSugGo1:'为 1 个项目使用建议定价', wqaSugGo:'为 {n} 个项目使用建议定价',
     wqaFuThis:'已应用到此项目',
     wqaFuAsk:'要将此设置应用到其他 {n} 个兼容项目吗？',
     wqaFuAsk1:'要将此设置应用到其他 1 个兼容项目吗？',
@@ -17674,7 +17721,7 @@ function wqaCtxAddThread(ctx,v,productType){
    This feature never invents a custom dimension: customDimensions is a manual
    annotation layer with its own editor, and turning notes into annotations
    would put a J Bolt's H somewhere no calculator can see it. */
-const WQA_NOTE_FIELDS={H:'h', ID:'id', S:'s', W:'w', L:'length', TL:'threadLen'};
+const WQA_NOTE_FIELDS={H:'h', ID:'id', S:'s', W:'w', L:'length', LENGTH:'length', TL:'threadLen'};
 const WQA_NOTE_OTHER=['OD','A','B','C','T','P','R'];
 /* "H should be 530", "ID use 100", "TL change to 75" — the few words a person
    puts between a label and its value. Anything else breaks the match, which is
@@ -17693,6 +17740,18 @@ const WQA_NOTE_RE=(function(){
    than one row. */
 const WQA_NOTE_ALL_RE=/\b(?:all|every|each)(?:\s+(?:rows?|items?|sizes?|of\s+them))?\b/i;
 
+/* The note with its accessory statement taken out, for reading ROD facts.
+   "C/W 4 Nuts & 4 FW" is about the nuts: its "W 4" is not an L Bolt's W, and
+   "Washer (Plain)" says nothing about the rod's finish. The accessory reader
+   (wqaAccScan) owns that wording; whatever it did not take stays. */
+function wqaNoteRodText(text){
+  let s=String(text||'');
+  /* A qualifier written right after an accessory word belongs to it. */
+  s=s.replace(/(\b(?:nuts?|washers?|f\.?\s?w\.?|f\/w)\s*)\(([^)]{0,24})\)/gi,'$1');
+  const a=wqaAccScan(s);
+  if(a && a.found) s=String(a.rest||'');
+  return s.replace(/\bc\s*\/\s*w\b/gi,' ');
+}
 /* One segment's facts. Material, finish and size type are read by the SAME
    function every document goes through, so the note has no second vocabulary. */
 function wqaNoteSegFacts(t){
@@ -17719,7 +17778,7 @@ function wqaNoteSegFacts(t){
 /* The note, cut at the products it names. "L BOLT TL 100" is about the L Bolt
    and must not reach the Anchor Bolt in the same drawing. */
 function wqaNoteFacts(text){
-  const s=String(text||'').trim();
+  const s=wqaNoteRodText(text).trim();
   if(!s) return [];
   const marks=[];
   WQA_PRODUCTS.forEach(p=>(p.aliases||[]).forEach(a=>{
@@ -17778,6 +17837,10 @@ function wqaNoteSummary(text){
    silently dropped — and a note none of them understood says so instead of
    pretending to a structure. */
 const WQA_NOTE_FILLER=/^(?:and|&|\+|all|each|every|per|items?|rows?|sizes?|pcs?|nos?|mm|with|c\/w|cw|the|for|of|to|is|are|be|should|shall|must|use|using|set|change|changed|as|x|qty|=|:|-|\/|\.)$/i;
+/* How a WhatsApp message is written around its facts: greetings, polite words
+   and "please check price … attached drawing". Said by everyone, meaning
+   nothing for the item — so never reported back as Unrecognized. */
+const WQA_NOTE_CHAT=/^(?:hi|hello|hey|dear|good|morning|afternoon|evening|night|noon|boss|bos|sir|madam|mdm|miss|mr|ms\.|bro|brother|sis|encik|tuan|puan|tauke|towkay|team|please|pls|plz|pliz|kindly|thanks?|thank|thx|tq|ty|tks|you|u|can|could|would|may|i|we|me|us|our|my|help|check|chk|quote|quotation|qtn|price|pricing|prices|rate|cost|attached|attach|attachment|see|refer|reference|drawing|drawings|dwg|photo|pic|picture|image|file|pdf|here|below|above|following|this|these|that|need|needs|want|required|urgent|asap|today|tomorrow|soon|regards|rgds|best|cheers|ok|okay|noted|yes|ya|yeah|lah|la|ah|hor|on|in|at|@|a|an|it|send|sent|share|let|know|thanks!|thank-you)$/i;
 function wqaNoteParse(text){
   const s=String(text||'').trim();
   if(!s) return null;
@@ -17796,8 +17859,9 @@ function wqaNoteParse(text){
     if(a.custom) acc.push(a.custom.text+(a.custom.qty!=null?' ×'+a.custom.qty:''));
     a.need.filter(k=>k!=='custom').forEach(k=>acc.push(nm(k)+' ×?'));
     (a.unsure||[]).forEach(x=>unknown.push(x));
-    t=a.rest||'';
   }
+  /* The rod's own words: the accessory statement, its qualifier and "C/W" out. */
+  t=wqaNoteRodText(s);
   const spans=[];
   const take=(re,fn)=>{ const r=new RegExp(re.source,re.flags.indexOf('g')>=0?re.flags:re.flags+'g'); let m;
     while((m=r.exec(t))!==null){ if(fn(m)!==false) spans.push([m.index,m.index+m[0].length]); if(!m[0].length) r.lastIndex++; } };
@@ -17829,7 +17893,7 @@ function wqaNoteParse(text){
   blank();
   /* Material, finish and size type: the values are what the whole note
      yields (what the merge writes); the words are found to place them. */
-  const d=wqaDetectCommon(s);
+  const d=wqaDetectCommon(t);
   const toks=[]; { const re=/[^\s,;]+/g; let m; while((m=re.exec(t))!==null) toks.push({at:m.index,w:m[0],used:false}); }
   [['material',v=>dcT('fieldMaterial')+' '+materialLabel(v)],['finish',v=>dcT('fieldFinish')+' '+v],
    ['sizeType',v=>dcT('fieldSizeType')+' '+(WQA_VAR_ST_LABEL[v]||v)]].forEach(([k,fmt])=>{
@@ -17855,17 +17919,19 @@ function wqaNoteParse(text){
   const flush=()=>{ if(run.length) unknown.push(run.join(' ')); run=[]; };
   toks.forEach(x=>{
     const w=x.w.replace(/^[^\w"'\/.]+|[^\w"'\/.]+$/g,'');
-    if(x.used || !w || WQA_NOTE_FILLER.test(w)){ if(x.used) flush(); return; }
+    if(x.used || !w || WQA_NOTE_FILLER.test(w) || WQA_NOTE_CHAT.test(w.replace(/[.!?]+$/,''))){ if(x.used) flush(); return; }
     run.push(w);
   });
   flush();
   facts.sort((p,q)=>p.at-q.at);
-  return {facts,acc,unknown,low:!facts.length&&!acc.length};
+  /* Only conversation ("Good morning boss, can quote? thanks"): nothing to say back. */
+  return {facts,acc,unknown,low:!facts.length&&!acc.length&&unknown.length>0};
 }
 /* The read-back block under a note. scope: 'file' | 'all'. */
 function wqaNoteReadHtml(text,scope){
   const p=wqaNoteParse(text);
   if(!p) return '';
+  if(!p.facts.length && !p.acc.length && !p.unknown.length) return '';
   if(p.low) return `<div class="wqa-nr wqa-nr-low" data-nr="low">${escHtml(dcT('wqaNoteLow'))}</div>`;
   const line=(cls,lbl,body)=>`<div class="${cls}">${lbl?`<span class="wqa-nr-k">${escHtml(lbl)}</span> `:''}${body}</div>`;
   const out=[`<div class="wqa-nr-h">${escHtml(dcT(scope==='all'?'wqaNoteReadAll':'wqaNoteReadFile'))}</div>`];
@@ -17882,8 +17948,20 @@ function wqaApplyNoteToRow(r,f){
   const prod=wqaProductByType(t)||WQA_NO_PRODUCT;
   const dims=prod.dims||[];
   const done=[];
-  const put=(k,v,label)=>{ r[k]=String(v); r.issues=(r.issues||[]).filter(x=>x!==k);
-                           done.push(label); };
+  /* The note still wins (a person read the drawing and typed it), but a value
+     it REPLACES is kept as evidence and the row goes to Review: "L 1000 in the
+     drawing, 1200 in the note" is a question, not something to overwrite in
+     silence. A blank the note fills, or the same value, is no conflict. */
+  const put=(k,v,label)=>{
+    const was=String(r[k]==null?'':r[k]).trim(), now=String(v);
+    const num=x=>Number(String(x).replace(/^M/i,''));
+    const same = was===now || (was!=='' && isFinite(num(was)) && num(was)===num(now));
+    if(was!=='' && !same){
+      (r.noteWas||(r.noteWas={}))[k]=was;
+      (r.aiUncertain||(r.aiUncertain=[])).push((label+' '+was+' → '+now).slice(0,40));
+    }
+    r[k]=now; r.issues=(r.issues||[]).filter(x=>x!==k);
+    done.push(label); };
   ['h','id','s','w','length'].forEach(k=>{
     if(f[k]!=null && dims.indexOf(k)>=0) put(k,f[k],wqaDimLabel(t,k));
   });
@@ -19618,7 +19696,9 @@ async function wqaAiApply(d, msgTarget, meta){
      — the badge reflects a result that was USED, not merely a request sent. */
   wqa.aiAssisted = true;
   wqa.aiReview = !!(meta && meta.review);
-  wqa.aiMeta = (meta && meta.diag) || null;
+  /* The run's model / fallback / time / cost — its own field. wqa.aiMeta is the
+     customer-label note's ({src, det}) and must never hold anything else. */
+  wqa.aiDiag = (meta && meta.diag) || null;
   /* Held as a key and its value, not as a finished sentence: a warning built
      at extraction time and stored as text is frozen in whatever language the
      screen happened to be in, and this one is on screen for as long as the
@@ -19677,6 +19757,28 @@ async function wqaAiApply(d, msgTarget, meta){
       norm.rows.forEach(r=>{ if(!r.accParsed){ const a=wqaAccFromSpec(spec,r.finish); if(a) r.accParsed=a; } });
       wqa.aiWarnings=wqa.aiWarnings.filter(w=>w.k!=='wqaAccMention');
     } else if(distinct.length>1) wqa.aiWarnings.push({k:'wqaAccScopeAsk'});
+  }
+  /* ── A drawing's accessories: proposed per item, applied only on Confirm ──
+     The model reports the document's accessory wording ("4 Nuts + 4 FW") as
+     d.note and never as rows. When that wording names a count per set, every
+     item of a single-product document is given it as a PROPOSAL (r.accProposed):
+     shown collapsed on the item, marked Review, and costing nothing until a
+     person confirms it — then it goes through the existing accessory model,
+     never as a separate row. A mixed document, a total-count statement or a
+     count it cannot read stays the plain mention it always was. */
+  if(!fromText && d.note){
+    const a=wqaAccScan(String(d.note));
+    const kinds=new Set(norm.rows.map(r=>wqaRowProduct(r)||''));
+    if(a && a.found && !(a.total&&a.total.length) && !(a.need&&a.need.length) && kinds.size===1 && !kinds.has('')){
+      const spec={nut:a.nut,fw:a.fw,finish:a.finish,custom:a.custom,need:[]};
+      let n=0;
+      norm.rows.forEach(r=>{
+        if(r.accParsed) return;
+        const p=wqaAccFromSpec(spec,r.finish); if(!p) return;
+        r.accProposed=p; r.accProposedFrom=String(d.note); n++;
+      });
+      if(n) wqa.aiWarnings=wqa.aiWarnings.filter(w=>w.k!=='wqaAccMention');
+    }
   }
   await wqaEnterReview(norm.common, norm.rows,
                        fromText ? (wqa.aiRaw||'') : ('[uploaded] '+(wqa.aiFile?wqaAiFileNames():'file')),
@@ -19869,7 +19971,7 @@ function wqaResetState(){
   wqa._t=wqa._ta=wqa._tm=null;
   wqa._deferred={};
   /* Row pricing / history surfaces belong to the rows being reset. */
-  wqa.hq=null; wqa.recipeSrc=null; wqa.rcPick=null; wqa.fu=null; wqaHdClose();
+  wqa.hq=null; wqa.recipeSrc=null; wqa.rcPick=null; wqa.fu=null; wqa.sugSrc=null; wqaHdClose();
 
   wqa.raw=''; wqa.rows=[]; wqa.product=null; wqa.common={}; wqa.source='paste';
   /* Group-level state: the heading being edited, the group last worked in,
@@ -19904,8 +20006,11 @@ function wqaResetState(){
   if(el('wqaPartial')){ el('wqaPartial').hidden=true; el('wqaPartial').innerHTML=''; el('wqaPartial').dataset.n=''; }
   wqaClearNote();
   /* A new Quick Add session is never AI-assisted until it earns it again. */
-  wqa.aiAssisted=false; wqa.aiRaw=''; wqa.aiReview=false; wqa.aiMeta=null;
+  wqa.aiAssisted=false; wqa.aiRaw=''; wqa.aiReview=false; wqa.aiMeta=null; wqa.aiDiag=null;
+  wqa.rmUndo=[]; wqa.sugSrc=null;
+  if(el('wqaUndoBar')){ el('wqaUndoBar').hidden=true; el('wqaUndoBar').innerHTML=''; }
   if(el('wqaAiBadge')) el('wqaAiBadge').hidden=true;
+  if(el('wqaAiMeta'))  el('wqaAiMeta').hidden=true;
   wqa.method='paste';
   if(el('wqaFileInput'))   el('wqaFileInput').value='';
   if(el('wqaFileInfo'))    el('wqaFileInfo').textContent=dcT('wqaNoFile');
@@ -19989,6 +20094,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   wqa.common={...common};
   wqa.rows=rows.map(r=>({...r,acc:wqaCloneAcc(r.accParsed),accOpen:false,priceMode:dcDefaultPriceMode(wqaRowProduct(r)),usedHistoryRef:'',manualPrice:'',
                          priceOverride:{},hist:undefined,histFor:'',histOpen:false,removed:false,edited:{}}));
+  wqa.rmUndo=[];                       // these are new rows: nothing earlier can be undone onto them
   wqa.skipped=skipped||[];
   wqa.ix=null; wqa.px=null; wqa.selMode=false; wqaBulkSheetClose();
   wqaRvReviewClass(true);
@@ -20091,20 +20197,40 @@ function wqaRenderAiBadge(){
   const b=el('wqaAiBadge');
   if(!b) return;
   b.hidden = !wqa.aiAssisted;
-  if(!wqa.aiAssisted) return;
+  if(!wqa.aiAssisted){ if(el('wqaAiMeta')) el('wqaAiMeta').hidden=true; return; }
   /* "AI Parsed" only for a clean read. Anything the reader could not settle —
      the server's own review flag (backup reader, cut off, no rows), an unclear
      or incomplete row — says Review Needed. There is no "checked" state: one
      model read the file. */
   const live=(wqa.rows||[]).filter(r=>!r.removed);
   const review=!!wqa.aiReview || !!wqa.truncated ||
-    live.some(r=>(r.aiUncertain||[]).length || wqaRowMissing(r).length);
+    live.some(r=>(r.aiUncertain||[]).length || wqaRowMissing(r).length || !!r.accProposed);
   const key=review?'aiReview':'aiParsed';
   b.dataset.i18n=key; b.textContent=dcT(key);
   b.classList.toggle('is-review', review);
-  const m=wqa.aiMeta;        // present only for diagnostics users
-  b.title = m ? [m.provider+' · '+m.model, (m.fallback?'fallback: '+m.fallback:'no fallback'),
-                 (m.ms/1000).toFixed(1)+' s', m.in+' in / '+m.out+' out tokens', '$'+Number(m.est_usd).toFixed(4)].join(' · ') : '';
+  /* Who read it, for everyone: Sonnet 5.5 or Luna, "Fallback" when the backup
+     reader answered, the time it took and the estimated API cost. */
+  const mEl=el('wqaAiMeta'), parts=wqaAiMetaParts(wqa.aiDiag);
+  b.title = parts.join(' · ');
+  if(mEl){ mEl.hidden=!parts.length; mEl.textContent=parts.join(' · ');
+           mEl.classList.toggle('is-fallback', !!(wqa.aiDiag && wqa.aiDiag.fallback)); }
+}
+/* "claude-sonnet-5-5" → "Sonnet 5.5"; the OpenAI reader is "Luna". A model id
+   this screen does not know is shown as it is rather than renamed. */
+function wqaAiModelLabel(d){
+  const id=String((d&&d.model)||'');
+  const s=id.match(/sonnet-(\d+)-(\d+)/i);
+  if(s) return 'Sonnet '+s[1]+'.'+s[2];
+  if(/luna/i.test(id)) return 'Luna';
+  return id || String((d&&d.provider)||'');
+}
+function wqaAiMetaParts(d){
+  if(!d) return [];
+  const out=[wqaAiModelLabel(d)];
+  if(d.fallback) out.push(dcT('aiFallback'));
+  const ms=Number(d.ms); if(ms>0) out.push((ms/1000).toFixed(1)+' s');
+  const usd=Number(d.est_usd); if(isFinite(usd) && d.est_usd!=null) out.push('≈ $'+usd.toFixed(usd<0.01?4:3));
+  return out.filter(Boolean);
 }
 function wqaBackToPaste(){ wqaBulkSheetClose(); wqaRvReviewClass(false); el('wqaStep2').hidden=true; el('wqaStep1').hidden=false; }
 /* The dialog takes the review's width only while it is showing the review;
@@ -20239,10 +20365,14 @@ function wqaRenderCommon(){
     ? `<div class="wqa-flag">${escHtml(dcT('wqaSkippedLines').replace('{n}',wqa.skipped.length))}</div>` : '';
   /* Geometry-first classification: when the customer's own wording disagrees
      with the detected product, say so — never hide the conflict. */
-  const aiNote=(wqa.aiMeta
+  /* Only when the source gave BOTH labels: a missing one is not a warning, and
+     nothing is invented to fill it. */
+  const lbl=wqa.aiMeta, lblOk=!!(lbl && String(lbl.src||'').trim() && String(lbl.det||'').trim());
+  const aiNote=(lblOk
     ? `<div class="wqa-flag wqa-flag-def">${escHtml(dcT('wqaCustomerLabel').replace('{s}',wqa.aiMeta.src).replace('{d}',wqa.aiMeta.det))}</div>` : '')
     + (wqa.aiWarnings&&wqa.aiWarnings.length
-    ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(wqaWarnText(w))}</div>`).join('') : '');
+    ? wqa.aiWarnings.map(w=>`<div class="wqa-flag">${escHtml(wqaWarnText(w))}</div>`).join('') : '')
+    + wqaAccPropBulkHtml();
   const vProd=wqaVAxisLabel('product'), vMat=wqaVAxisLabel('material'), vFin=wqaVAxisLabel('finish'), vSt=wqaVAxisLabel('sizeType');
   const matOpts=wqaMaterialOptions(shownMat,null,vMat);
   el('wqaCommon').innerHTML=`
@@ -21430,13 +21560,22 @@ function wqaFuHtml(i){
   const fu=(wqa.fu && wqa.fu.i===i) ? wqa.fu : null;
   const picking=!!(wqa.rcPick && wqa.rcPick.src===i);
   const of=(wqa.recipeSrc===i) ? wqaRecipeOffer(i) : null;
-  if(!fu && !of && !picking) return '';
+  const sugN=(wqa.sugSrc===i) ? wqaSugTargets(i).length : 0;
+  if(!fu && !of && !picking && !sugN) return '';
   const ok=fu ? `<div class="wqa-fu-ok" data-fu-ok="${fu.n||0}"><span class="wqa-fu-tick" aria-hidden="true">✓</span>${escHtml(
       fu.n ? dcT(fu.n===1?'wqaFuDone1':'wqaFuDone').replace('{n}',fu.n) : dcT('wqaFuThis'))}${
       fu.skip?`<span class="wqa-fu-sk">${escHtml(fu.skip)}</span>`:''}</div>` : '';
   let ask='';
   if(picking){
     ask=wqaRcPickHtml(wqaRvGroupOf(i));
+  } else if(sugN){
+    ask=`<div class="wqa-fu-ask" data-sug-offer="${i}">
+        <span class="wqa-fu-q">${escHtml(dcT(sugN===1?'wqaSugAsk1':'wqaSugAsk').replace('{n}',sugN))}</span>
+        <span class="wqa-fu-acts">
+          <button type="button" class="btn btn-primary btn-sm" data-sug="apply-all" onclick="event.stopPropagation();wqaSugApplyAll(${i})">${escHtml(dcT(sugN===1?'wqaSugGo1':'wqaSugGo').replace('{n}',sugN))}</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-sug="dismiss" onclick="event.stopPropagation();wqaRecipeDismiss()">${escHtml(dcT('paNotNow'))}</button>
+        </span>
+      </div>`;
   } else if(of){
     const t=wqaFuTargets(of), n=t.length, more=of.ok.length>n;
     const skip=of.skip.length ? dcT('wqaFuSkip').replace('{list}',of.skip.map(x=>
@@ -21476,7 +21615,7 @@ function wqaFuSet(i,n,skip){
 }
 /* Not now: the question goes, nothing else changes; the row stays priced. */
 function wqaRecipeDismiss(){
-  wqa.recipeSrc=null; wqa.rcPick=null;
+  wqa.recipeSrc=null; wqa.rcPick=null; wqa.sugSrc=null;
   if(wqa.fu && !wqa.fu.n) wqa.fu=null;
   wqaRenderRows(true);
 }
@@ -22069,11 +22208,16 @@ function wqaRvIpHtml(r,i){
     return `<span class="wqa-ip-set is-manual"><button type="button" class="wqa-ip-man" data-ip-man="${i}"
       onclick="event.stopPropagation();wqaPxToggle(${i})">${escHtml(dcT('pmManualPrice'))} ▾</button></span>`;
   const sh=wqaIpShown(r);
-  const txt=(k,v)=>{ const s=String(v==null?'':v).trim(); if(s==='') return k==='markup'?'0%':(k==='addCost'?'+':'')+'0.00';
+  /* These columns hold APPLIED pricing only. A suggestion is not drawn here as
+     a figure — it has its own line under the row, with its Use button. */
+  const sug=sh.kind==='rec';
+  const txt=(k,v)=>{ if(sug) return '—';
+    const s=String(v==null?'':v).trim(); if(s==='') return k==='markup'?'0%':(k==='addCost'?'+':'')+'0.00';
     return k==='markup' ? wqaMetaPct(s) : (k==='addCost'?'+':'')+wqaRvNum(s); };
-  const tip=sh.kind==='rec' ? dcT('wqaRecTip')+(r.rec?' · '+dcPaSourceLabel(r.rec.src):'') : dcT('wqaPxEditTip');
+  const tip=sug ? dcT('wqaSugTip')+(r.rec?' · '+dcPaSourceLabel(r.rec.src):'')
+            : (wqaRowAccepted(r) ? dcT('wqaAppliedTip')+' · ' : '')+dcT('wqaPxEditTip');
   return `<span class="wqa-ip-set is-${sh.kind}" data-ip-set="${i}" title="${escHtml(tip)}"
-      onclick="event.stopPropagation();wqaPxToggle(${i})">${sh.kind==='rec'?`<span class="wqa-ip-tag">${escHtml(dcT('wqaRecTag'))}</span>`:''}${
+      onclick="event.stopPropagation();wqaPxToggle(${i})">${
     WQA_IP_FIELDS.map(([k,lbl])=>`<span class="wqa-ip wqa-ip-${k}" data-ip="${k}"><span class="wqa-ip-k">${escHtml(dcT(lbl))}</span><span class="wqa-ip-v">${escHtml(txt(k,sh.vals[k]))}</span></span>`).join('')}</span>`;
 }
 function wqaIpOk(v){
@@ -22244,9 +22388,9 @@ function wqaRvPxEditor(r,i){
       inputmode="decimal" autocomplete="off" spellcheck="false" data-px="${k}" placeholder="0" value="${escHtml(wqaPxVal(r,k))}"
       aria-label="${escHtml(dcT(lbl)+' · '+(i+1))}" onfocus="wqaPxFocus(${i},'${k}',this)"
       oninput="wqaPxInput(${i},'${k}',this)" onchange="wqaPxCommit(${i},'${k}',this)" onkeydown="wqaPxKey(event,${i},'${k}',this)">${unit?`<span class="wqa-pxe-u">${unit}</span>`:''}</span></label>`;
-  const rec=r.rec ? `<div class="wqa-pxe-rec" data-pxe-rec="${i}"><span class="wqa-pxe-rk">${escHtml(dcT('recPricing'))}</span>
+  const rec=r.rec ? `<div class="wqa-pxe-rec" data-pxe-rec="${i}"><span class="wqa-pxe-rk">${escHtml(dcT('wqaSugPricing'))}</span>
       <b>${escHtml(dcRecText(r.rec))}</b><span class="wqa-pxe-rs">${escHtml(dcPaSourceLabel(r.rec.src))}</span>${manual?'':
-      `<button type="button" class="wqa-pxe-fill" data-px-fill="${i}" onclick="event.stopPropagation();wqaPxFill(${i})">${escHtml(dcT('recFill'))}</button>`}</div>` : '';
+      `<button type="button" class="wqa-pxe-fill" data-px-fill="${i}" onclick="event.stopPropagation();wqaPxUseSug(${i})">${escHtml(dcT('wqaPxUse'))}</button>`}</div>` : '';
   return `<div class="wqa-pxe" data-pxe="${i}">
       ${rec}
       <div class="wqa-pxe-row">
@@ -22337,6 +22481,110 @@ function wqaPxFill(i){
   ['costRate','addCost','markup'].forEach(k=>{ r.priceOverride[k]=r.rec[k]; });
   if(r.usedHistoryRef && r.usedHistoryRecipe){ r.usedHistoryRef=''; r.usedHistoryRecipe=false; r.histApplied=[]; }
   wqa.recipeSrc=i; wqa.rcPick=null;
+  wqaRecomputeAll('force');
+}
+/* ── Accessory proposals (from a drawing's accessory wording) ──────────────
+   "4 Nut + 4 FW · Review", collapsed on the item. Confirm writes it into the
+   item's accessories — the SAME object the accessory panel edits and the
+   calculator prices — replacing, never adding to, an accessory of the same kind
+   already there, so nothing is counted twice. Unit prices start at 0: no cost
+   appears until a person prices the accessory. Per set: each item's count is
+   per piece of that item, never the document's total. */
+function wqaAccPropText(a){
+  if(!a) return '';
+  const out=[];
+  if(a.nut&&a.nut.enabled) out.push(a.nut.qty+' '+dcT('accNutShort'));
+  if(a.fw&&a.fw.enabled)   out.push(a.fw.qty+' '+dcT('accFwShort'));
+  if(a.custom&&a.custom.enabled) out.push((a.custom.qty!==''&&a.custom.qty!=null?a.custom.qty+' ':'')+(a.custom.text||''));
+  return out.join(' + ');
+}
+function wqaAccPropHtml(r,i){
+  const a=r&&r.accProposed; if(!a || r.removed || r.added) return '';
+  const open=!!r.accPropOpen;
+  const fin=k=>a[k]&&a[k].enabled ? (a[k].finish||dcT('wqaAccPropNoFin'))+(a[k].finishInherit?' · '+dcT('wqaAccPropFollows'):'') : '';
+  const det=open ? `<div class="wqa-accp-det">
+      <div><span class="wqa-accp-k">${escHtml(dcT('wqaAccPropFrom'))}</span> “${escHtml(r.accProposedFrom||'')}”</div>
+      <div><span class="wqa-accp-k">${escHtml(dcT('wqaAccPropPer'))}</span> ${escHtml(wqaAccShortSummary(a))}</div>
+      ${['nut','fw'].filter(k=>a[k]&&a[k].enabled).map(k=>`<div><span class="wqa-accp-k">${escHtml(dcT(k==='nut'?'accNut':'accFW'))} · ${escHtml(dcT('fieldFinish'))}</span> ${escHtml(fin(k))}</div>`).join('')}
+      <div class="wqa-accp-cost">${escHtml(dcT('wqaAccPropCost'))}</div>
+      <div class="wqa-accp-acts">
+        <button type="button" class="btn btn-primary btn-sm" data-accp="confirm" onclick="event.stopPropagation();wqaAccPropConfirm([${i}])">${escHtml(dcT('wqaAccPropConfirm'))}</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-accp="dismiss" onclick="event.stopPropagation();wqaAccPropDismiss(${i})">${escHtml(dcT('wqaAccPropDismiss'))}</button>
+      </div></div>` : '';
+  return `<div class="wqa-accp${open?' is-open':''}" data-accp-row="${i}" onclick="event.stopPropagation()">
+      <button type="button" class="wqa-accp-chip" data-accp="toggle" aria-expanded="${open?'true':'false'}"
+        onclick="event.stopPropagation();wqaAccPropToggle(${i})">${escHtml(wqaAccPropText(a))} · ${escHtml(dcT('wqaAccPropReview'))} ${open?'▴':'▾'}</button>${det}</div>`;
+}
+function wqaAccPropToggle(i){ const r=wqa.rows[i]; if(!r) return; r.accPropOpen=!r.accPropOpen; wqaRenderRows(true); }
+function wqaAccPropPending(){ return (wqa.rows||[]).filter(r=>r && !r.removed && !r.added && r.accProposed); }
+function wqaAccPropConfirm(list){
+  const rows=(list==='all') ? wqaAccPropPending() : list.map(i=>wqa.rows[i]).filter(r=>r&&r.accProposed);
+  rows.forEach(r=>{
+    const p=wqaCloneAcc(r.accProposed);
+    if(!wqaAccHas(r.acc)) r.acc=p;
+    else ['nut','fw','custom'].forEach(k=>{
+      if(!p[k]||!p[k].enabled) return;
+      const keepPx=(r.acc[k]&&r.acc[k].enabled) ? r.acc[k].unitPrice : 0;
+      r.acc[k]=Object.assign({},p[k],{unitPrice:keepPx||0});
+    });
+    wqaAccSyncFinish(r);
+    wqaMarkEdited(r,'acc');
+    r.accProposed=null; r.accPropOpen=false; r.accConfirmed=true;
+  });
+  wqaRenderCommon();
+  wqaRecomputeAll('force');
+}
+function wqaAccPropDismiss(i){
+  const r=wqa.rows[i]; if(!r) return;
+  r.accProposed=null; r.accPropOpen=false;
+  wqaRenderCommon();
+  wqaRecomputeAll('force');
+}
+function wqaAccPropBulkHtml(){
+  const p=wqaAccPropPending(); if(!p.length) return '';
+  const from=p[0].accProposedFrom||'';
+  return `<div class="wqa-flag wqa-accp-bulk" data-accp-bulk="${p.length}">${escHtml(dcT('wqaAccPropBulk').replace('{s}',from).replace('{n}',p.length))}
+      ${p.length>1?`<button type="button" class="btn btn-outline btn-sm" data-accp="confirm-all" onclick="wqaAccPropConfirm('all')">${escHtml(dcT('wqaAccPropAll').replace('{n}',p.length))}</button>`:''}</div>`;
+}
+/* ── Suggested → Applied ───────────────────────────────────────────────────
+   A suggestion (r.rec: the built-in tables or a Default Price rule) is never a
+   price until a person presses Use This Pricing. Use copies THIS row's own
+   suggestion into its setup; the Price Mode the row already has (Sag Rod No
+   Round, Auto Round) is untouched, so the normal formula prices it. */
+function wqaRvSugHtml(r,i){
+  if(!r || r.removed || r.added || !r.rec || wqaRowHasPricing(r) || (r.priceMode||'auto')==='manual') return '';
+  return `<div class="wqa-sug" data-sug-row="${i}" onclick="event.stopPropagation()">
+      <span class="wqa-sug-k">${escHtml(dcT('wqaSugPricing'))}</span>
+      <span class="wqa-sug-v">${escHtml(wqaRecipeText(r.rec))}</span>
+      <span class="wqa-sug-src">${escHtml(dcPaSourceLabel(r.rec.src))}</span>
+      <button type="button" class="btn btn-outline btn-sm wqa-sug-use" data-sug-use="${i}"
+        onclick="event.stopPropagation();wqaPxUseSug(${i})">${escHtml(dcT('wqaPxUse'))}</button>
+    </div>`;
+}
+/* The other items of this group that still have only a suggestion: unpriced,
+   not Manual Price, not removed or added. Each would take ITS OWN suggestion —
+   never this row's figures, since a Sag Rod's surcharge follows its own TL. */
+function wqaSugTargets(i){
+  const g=wqaRvGroupOf(i); if(!g) return [];
+  return g.idx.filter(j=>j!==i).map(j=>wqa.rows[j]).filter(r=>r && !r.removed && !r.added && r.rec
+    && (r.priceMode||'auto')!=='manual' && !wqaRowHasPricing(r));
+}
+function wqaPxUseSug(i){
+  const r=wqa.rows[i]; if(!r||!r.rec) return;
+  wqaPxFill(i);                         // this row: its own suggestion, now applied
+  wqa.recipeSrc=null; wqa.rcPick=null;
+  wqa.sugSrc = wqaSugTargets(i).length ? i : null;
+  wqaFuSet(i,0);
+  wqaRenderRows(true);
+}
+function wqaSugApplyAll(i){
+  const t=wqaSugTargets(i);
+  t.forEach(r=>{
+    wqaMarkEdited(r,'price');
+    ['costRate','addCost','markup'].forEach(k=>{ r.priceOverride[k]=r.rec[k]; });
+  });
+  wqa.sugSrc=null;
+  wqaFuSet(i,t.length);
   wqaRecomputeAll('force');
 }
 /* Closing the editor (or the panel's Done) changes nothing: the row already
@@ -22557,6 +22805,8 @@ function wqaRvItemHtml(r,i,series){
       ${wqaRvHsCell(r,i)}
       <span class="wqa-it-acts">${wqaRvDelBtn(i)}${wqaRvMoreBtn(r,i)}</span>
     </div>
+    ${(!open && wqa.px!==i)?wqaRvSugHtml(r,i):''}
+    ${wqaAccPropHtml(r,i)}
     ${wqaRvSubHtml(r,i)}
     ${(!series && wqaAccHas(r.acc))?`<div class="wqa-it-gacc">${wqaGaccHtml(i,[i])}</div>`:''}
     ${(!open && wqa.px===i)?wqaRvPxStrip(r,i):''}
@@ -22973,6 +23223,7 @@ function wqaRenderRows(force){
   wqaRvRenderHead();
   wqaApplyFlash();
   wqaUpdateAddButton();
+  wqaRenderUndo();
 }
 /* Read-only nodes only, so a focused input is never touched. */
 function wqaPatchRows(){
@@ -23088,7 +23339,7 @@ function wqaSelRemove(){
   const picked=wqa.rows.filter(r=>!r.removed&&r.sel);
   if(!picked.length) return;
   if(!confirm(dcT('wqaRvRemoveSelAsk').replace('{n}',picked.length))) return;
-  picked.forEach(r=>{ wqaMarkEdited(r,'removed'); r.removed=true; r.sel=false; });
+  wqaRmPush(picked);
   wqa.selMode=false;
   wqa.rows.forEach(r=>{ r.sel=false; });
   wqaRenderRows(true);
@@ -23460,7 +23711,43 @@ function wqaEditSize(i,inp,commit){
 }
 function wqaEditPrice(i,k,v){ wqaMarkEdited(wqa.rows[i],'price'); wqa.rows[i].priceOverride[k]=v;
   clearTimeout(wqa._t); wqa._t=setTimeout(()=>wqaRecomputeAll('patch'),250); }
-function wqaRemoveRow(i){ wqaMarkEdited(wqa.rows[i],'removed'); wqa.rows[i].removed=true; wqaRenderRows(true); }
+/* ── Remove, with Undo ──────────────────────────────────────────────────────
+   A removed row is never thrown away: it keeps its place in wqa.rows with every
+   value it had — dimensions, material and finish, qty, pricing, warnings,
+   accessories — and is only marked removed. Undo clears that mark, so the row
+   comes back exactly where and as it was, with no AI call. Each removal is one
+   entry; Undo takes the latest first. The history lives only as long as this
+   Quick Add session (wqaResetState / a new review clears it). */
+function wqaRmPush(rows){
+  const e={rows:rows.map(r=>({r, had:!!(r.edited&&r.edited.removed), sel:!!r.sel}))};
+  rows.forEach(r=>{ wqaMarkEdited(r,'removed'); r.removed=true; r.sel=false; });
+  (wqa.rmUndo||(wqa.rmUndo=[])).push(e);
+}
+function wqaRemoveRow(i){ const r=wqa.rows[i]; if(!r||r.removed) return; wqaRmPush([r]); wqaRenderRows(true); }
+function wqaUndoRemove(){
+  const e=(wqa.rmUndo||[]).pop(); if(!e) return;
+  e.rows.forEach(x=>{
+    if(wqa.rows.indexOf(x.r)<0) return;          // the review was rebuilt since
+    x.r.removed=false;
+    if(!x.had && x.r.edited) delete x.r.edited.removed;
+  });
+  wqaRecomputeAll('force');
+}
+function wqaRenderUndo(){
+  /* The accessory banner counts live items: a removal or an undo changes it. */
+  const ab=document.querySelector('#wqaCommon .wqa-accp-bulk');
+  if(ab){ const h=wqaAccPropBulkHtml(); if(h) ab.outerHTML=h; else ab.remove(); }
+  const b=el('wqaUndoBar'); if(!b) return;
+  const st=(wqa.rmUndo||[]).filter(e=>e.rows.some(x=>wqa.rows.indexOf(x.r)>=0 && x.r.removed));
+  wqa.rmUndo=st;
+  const last=st[st.length-1];
+  if(!last){ b.hidden=true; b.innerHTML=''; return; }
+  const n=last.rows.length;
+  b.hidden=false;
+  b.innerHTML=`<span class="wqa-undo-t">${escHtml(n===1?dcT('wqaRmOne'):dcT('wqaRmN').replace('{n}',n))}</span>`
+    +`<button type="button" class="btn btn-ghost btn-sm wqa-undo-btn" data-undo="remove" onclick="wqaUndoRemove()">${escHtml(dcT('wqaUndo'))}</button>`
+    +(st.length>1?`<span class="wqa-undo-more">${escHtml(dcT('wqaRmMore').replace('{n}',st.length-1))}</span>`:'');
+}
 /* Reusing a historical price is a DECISION, taken by a person, on one record.
    Nothing copies a price on its own: the row prices itself from its own weight
    and rates until somebody presses this, and a price already typed by hand is
