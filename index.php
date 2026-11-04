@@ -22,7 +22,7 @@
 <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 <?= dc_page_head_meta() /* CSRF token; manifest on quo.dnchardware.com only */ ?>
-<meta name="theme-color" content="#5b7af5">
+<meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -4531,6 +4531,13 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 html.rsp-lock,html.rsp-lock body{overflow:hidden}
 @media (max-width:1023px){
   :root{--header-h:58px}
+  /* R2.2 iOS Home Screen app: iOS (26.1+, WebKit bug 301994) may draw a solid
+     band between the status bar and the page that the page cannot reach (no
+     safe-area inset is reported for it). iOS fills it with the PAGE background,
+     which was the grey canvas, so it read as a blank grey gap above the white
+     top bar. The root background is the top bar's white; body keeps the canvas.
+     No padding is added: where iOS does report an inset, nothing doubles. */
+  html{background:#ffffff}
   .rsp-scrim{display:block}
   .rsp-top{display:flex;align-items:center;gap:6px;position:sticky;top:var(--banner-h,0px);z-index:250;height:58px;
     padding:0 max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px));

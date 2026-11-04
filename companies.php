@@ -20,7 +20,7 @@
 <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 <?= dc_page_head_meta() /* CSRF token; manifest on quo.dnchardware.com only */ ?>
-<meta name="theme-color" content="#5b7af5">
+<meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -163,6 +163,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 
 /* ══════════════ UI v3.1 merge: dashboard, search/filter/sort, cards ══════════════ */
 html,body{max-width:100%;overflow-x:hidden}
+/* R2.2: overflow-x:hidden on BOTH html and body turns body into a scroll
+   container, so the sticky phone top bar (#rspTop) scrolled away with the page.
+   clip keeps the same no-sideways-scroll guard without creating one. */
+@supports (overflow:clip){ html,body{overflow-x:clip} }
 .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 /* Dashboard summary */
@@ -284,6 +288,9 @@ html,body{max-width:100%;overflow-x:hidden}
 .ref-total-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:700}
 .q-remarks{font-size:11px;color:var(--text-muted);margin-bottom:10px;font-style:italic}
 .q-helper{font-size:11px;color:var(--text-muted);background:var(--surface2);border-radius:var(--r-xs);padding:7px 11px;margin-bottom:11px;font-weight:500}
+/* The company list sits beside the quotations above 980px and above them below it. */
+.cp-where-above{display:none}
+@media (max-width:980px){ .cp-where-side{display:none} .cp-where-above{display:inline} }
 
 /* Responsive */
 @media (max-width:980px){
@@ -870,6 +877,14 @@ input,select,textarea{
 html.rsp-lock,html.rsp-lock body{overflow:hidden}
 @media (max-width:1023px){
   :root{--header-h:58px}
+  /* R2.2 iOS Home Screen app: iOS (26.1+, WebKit bug 301994) may draw a solid
+     band between the status bar and the page that the page cannot reach (no
+     safe-area inset is reported for it). iOS fills it with the PAGE background,
+     which was the grey canvas, so it read as a blank grey gap above the white
+     top bar. The root background is the top bar's white; body keeps the canvas.
+     No padding is added: where iOS does report an inset, nothing doubles. */
+  html{background:#ffffff}
+  body{min-height:100vh;min-height:100dvh}
   .rsp-scrim{display:block}
   .rsp-top{display:flex;align-items:center;gap:6px;position:sticky;top:var(--banner-h,0px);z-index:250;height:58px;
     padding:0 max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px));
@@ -1256,6 +1271,7 @@ const I18N={
     /* The helper lines and empty states, which are most of what this page
        says before a company is chosen. */
     cpSelectCompany:'ℹ️ Select a company on the left to view all saved quotations for that company.',
+    cpSelectCompanyAbove:'ℹ️ Select a company above to view all saved quotations for that company.',
     cpPastPriceHint:'Looking for a past price instead? Use the item search under Recent Quotations.',
     cpNoItemsMatch:'No past items match “{t}”',
     cpBackRecent:'← Back to Recent Quotations',
@@ -1334,6 +1350,7 @@ const I18N={
     tDuplicated:'📄 已复制为 #{n}', tQuoteNotFound:'找不到报价单 {r}',
     ariaHome:'Der-Cheng 报价系统 — 首页',
     cpSelectCompany:'ℹ️ 请在左侧选择公司，以查看该公司所有已保存的报价单。',
+    cpSelectCompanyAbove:'ℹ️ 请在上方选择公司，以查看该公司所有已保存的报价单。',
     cpPastPriceHint:'想查询历史价格？请使用「最新报价」下方的产品搜索。',
     cpNoItemsMatch:'没有符合「{t}」的历史项目',
     cpBackRecent:'← 返回最新报价',
@@ -1534,7 +1551,7 @@ function renderRecentQuotations(){
     <div class="card" style="margin-bottom:12px">
       <div class="section-label" style="margin-bottom:0;padding-bottom:0;border-bottom:none"><span class="sl-icon">📋</span>${dcT('secRecentQuotations')}</div>
     </div>
-    <div class="q-helper">${esc(dcT('cpSelectCompany'))}</div>
+    <div class="q-helper"><span class="cp-where-side">${esc(dcT('cpSelectCompany'))}</span><span class="cp-where-above">${esc(dcT('cpSelectCompanyAbove'))}</span></div>
     ${cardsHtml}
     <div id="recentQuotesMoreWrap" style="display:${recentQuotesHasMore?'block':'none'};text-align:center;margin-top:12px">
       <button class="btn btn-ghost" id="recentQuotesMoreBtn" onclick="loadMoreRecentQuotations()">${esc(dcT('msgLoadMore'))}</button>
