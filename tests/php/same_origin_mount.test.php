@@ -172,8 +172,13 @@ foreach (['index.php', 'companies.php'] as $f) {
     $src = file_get_contents("$ROOT/$f");
     ok(strpos($src, "'X-DC-CSRF':dcCsrf()") !== false, "H: $f api() sends X-DC-CSRF on POST");
 }
-eq(substr_count($ai_src = file_get_contents("$ROOT/index.php"), "fetch('ai_extract.php',{method:'POST',headers:{'X-DC-CSRF':dcCsrf()}"), 2,
-   'H: both ai_extract.php calls send the token');
+/* R2.2 added a third call (one request per PDF). The rule is that EVERY call
+   sends the token, so the calls are counted and all of them must carry it. */
+$ai_src = file_get_contents("$ROOT/index.php");
+$aiCalls = substr_count($ai_src, "fetch('ai_extract.php'");
+ok($aiCalls >= 3, "H: ai_extract.php is called from the page ($aiCalls calls: text fallback, upload, one per PDF)");
+eq(substr_count($ai_src, "fetch('ai_extract.php',{method:'POST',headers:{'X-DC-CSRF':dcCsrf()}"), $aiCalls,
+   'H: every ai_extract.php call sends the token');
 
 // ══ I · handoff ═══════════════════════════════════════════════════════════
 ok(strpos($hsrc, 'dc_csrf') === false && strpos(file_get_contents("$ROOT/handoff.php"), 'dc_csrf') === false,
