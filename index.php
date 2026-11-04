@@ -29,7 +29,7 @@
 <meta name="apple-mobile-web-app-title" content="Quotation">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════ DESIGN TOKENS ═══════════════ */
 :root{
@@ -4944,7 +4944,7 @@ html[data-lang="zh"] .quote-status-row::before{content:'状态'}
 .cp-ctx .k{font-weight:800;color:var(--text-2)}
 .cp-ctx .sep{opacity:.5;white-space:pre}
 .uc-open{background:transparent!important;border:1px solid var(--border)!important;color:var(--text-2)!important;box-shadow:none!important;
-  font-size:11.5px!important;font-weight:700!important;padding:3px 9px!important;border-radius:999px!important;min-height:28px}
+  font-size:11.5px!important;font-weight:500!important;padding:3px 9px!important;border-radius:999px!important;min-height:28px}
 .uc-open:hover{border-color:var(--accent)!important;color:var(--accent)!important}
 @media (max-width:599px){
   #step2Card .calc-preview .cp-final{display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center!important;justify-content:space-between!important;text-align:left!important;gap:2px 10px;padding:8px 12px!important}
@@ -5066,6 +5066,39 @@ html[data-lang="zh"] .quote-status-row::before{content:'状态'}
   #unitConvPanel .uc-x{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;margin:-8px -8px -8px 0}
 }
 #unitConvPanel[hidden]{display:none!important}   /* the id rules above must never un-hide a closed converter */
+
+/* ═══════════════ R2.5.2 — one bilingual type system (screen only) ═══════════════
+   Inter for English and numbers, Noto Sans SC for Chinese, system fonts behind
+   them. Inter 400 / 500 / 600 and Noto Sans SC 400 / 500 are loaded, so the many older 700–900
+   declarations now render with the 600 face — the hierarchy stays, the weight
+   is lighter. Roles: body / inputs / labels 400, buttons / navigation / section
+   headings 500, totals and prices 600, figures tabular. Print is untouched
+   (the print sheet keeps Arial / Helvetica). */
+:root{--qf:'Inter','Noto Sans SC',system-ui,-apple-system,'Segoe UI',sans-serif;--dnc-font:var(--qf)}
+.dnc-shell,.dnc-page-head,.rsp-top,.rsp-nav,.rsp-sheet,.rsp-quick{--dnc-font:var(--qf)}   /* the shell declares its font on these */
+@media screen{
+  body{font-family:var(--qf);font-weight:400}
+  input,select,textarea,button{font-family:inherit}
+  input,select,textarea{font-weight:400}
+  .field label,.field > label > span{font-weight:400}
+  .btn,.type-btn .t-name,.type-btn.active .t-name,.finish-pill,.hole-pill,.mob-tab,.rsp-nav-item,.rsp-row,.er-switch button,.step-pill .step-label,.lang-btn,.uc-open{font-weight:500}
+  .card-title,.step-caption,.section-label,.modal-title,.group-label,.dnc-page-title,.uc-head,.vm-head #vmTitle{font-weight:500}
+  .qt-amt,#cpFinal,#mbTotal,.er-t,.vm-amt,.vm-total .money,.ref-total b,.rq-total b,.q-total-hero,.sp-stat-value,.summary-card .sc-value,.summary-card .value{font-weight:600}
+  /* roles that still drew with the 600 face */
+  .step-caption-sub,.acc-empty,.dp-rec-src,.dp-status .dp-rec-src,.q-dates,.q-date,.q-meta span,.sp-phone,.cc-phone-line,.cc-quote-line,.summary-card .summary-sub,.rq-date,.rq-company,
+  .ph-tag,.qlist-hint,.cp-line-note,.uc-msg,.hint,.cp-ctx,.cp-ctx .k,#cpSumText,.sp-sum,.q-remarks,.il-name,.vm-dims,.vm-qp,.vm-acc{font-weight:400}
+  .qo-label,.ptype-m label,.acc-addbar-title,.ph-title,.dp-rec-k,.dp-edit,.calc-preview .cp-item label,.calc-preview .cp-item span:not(#cpFinal),.price-mode-preview span,.price-mode-preview strong,
+  .summary-label,.summary-card .summary-label,.ref-total-label,.sp-stat-label,.vm-meta dt,.vm-count,.step-num,.sum-chip,.quote-status-badge,.q-detail-chip,.company-code,.status-tag,.list-count,.count-pill,
+  .fp-code,.cp-back-btn,.sp-more-btn,.rsp-sheet h2,#quoteEmpty p,.empty-state p,.dp-rec-v,.cc-tag,.cc-status,.has-remarks{font-weight:500}
+  #step2Card .calc-preview .cp-item span:not(#cpFinal){font-weight:500}
+  #step2Card .group-label,#step2Card .group-label span,.ph-mini .ph-title > span:first-child,.step-pill .step-num,.finish-pill .fp-code,.dp-status .dp-rec-k,.dp-status .dp-edit,
+  #quoteCount,.selected-panel .sp-more-btn,.cc-status,.company-card .status,.cp-break span,#cpBreakBtn span,#mbCount{font-weight:500}
+  .q-card .q-dates,.selected-panel .sp-sum span,.q-preview .item-line .il-name{font-weight:400}
+  .q-preview .item-line .il-name{color:var(--text)}
+  .dnc-link{font-size:13.5px;letter-spacing:-.005em}   /* Inter runs wider than Plex: the sidebar labels keep fitting */
+  .money,.qt-amt,#cpFinal,#mbTotal,#quoteTotalAmt,.er-t,.cp-ctx,.il-qp,.vm-qp,.vm-amt,.ref-total b,.rq-total b,.calc-preview span,.price-mode-preview strong,
+  #quoteItemList,.qi-list,.wqa-tok,.uc-res strong,input[type=number],.count-pill,.er-n{font-variant-numeric:tabular-nums}
+}
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
@@ -25594,7 +25627,7 @@ const dcPtr=(function(){
     st.textContent='.dc-ptr{position:fixed;left:50%;top:calc(var(--banner-h,0px) + var(--header-h,58px) + 8px);z-index:265;'
       +'display:flex;align-items:center;gap:8px;max-width:calc(100vw - 32px);padding:7px 14px;border-radius:999px;'
       +'background:#fff;border:1px solid #e2e4ea;box-shadow:0 6px 20px rgb(22 26 35 / .14);color:#4d5463;'
-      +'font:500 13px/1.25 "IBM Plex Sans",system-ui,sans-serif;transform:translate(-50%,-140%);opacity:0;pointer-events:none;'
+      +'font:500 13px/1.25 Inter,"Noto Sans SC",system-ui,sans-serif;transform:translate(-50%,-140%);opacity:0;pointer-events:none;'
       +'transition:transform .18s ease,opacity .18s ease}'
       +'.dc-ptr.is-on{opacity:1;transform:translate(-50%,0)}'
       +'.dc-ptr.is-drag{transition:none}'

@@ -85,7 +85,8 @@ module.exports = async (browser, A) => {
       A.ok(s.modules.concat(s.tools).every(l => l.h === 36), `${lang}: every row 36px`);
       A.ok(!FORBIDDEN.test(s.shellText.replace(/\n/g, ' ')), `${lang}: no old brand, version, Calculator, Version Updates or Sign Out in the shell`);
       A.eq(s.pageHeadVisible && s.pageTitle, zh ? '报价单' : 'Quotations', `${lang}: the page header`);
-      A.ok(/IBM Plex Sans/.test(s.font), `${lang}: the shell's font is IBM Plex Sans`);
+      /* R2.5.2 (owner): one bilingual type system — Inter, then Noto Sans SC — replaces IBM Plex Sans */
+      A.ok(/^"?Inter"?, "?Noto Sans SC/.test(s.font), `${lang}: the shell's font is Inter + Noto Sans SC (${s.font.slice(0, 40)})`);
     }
     await page.evaluate(() => dcSetLang('en'));
     /* the account block and its menu */
