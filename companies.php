@@ -1156,6 +1156,77 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #viewModal .vm-actions .vm-more{display:inline-flex}
   #viewModal .vm-actions .vm-close{display:none}
 }
+
+/* ═══════════════ R2.5 Session C — Saved / Customers ═══════════════
+   #04 an item on a card is a name line (+ finish) and a qty × unit line —
+       words never broken mid-word, "RM" never split; two items, then "+N more".
+   #05 a selected customer: name, contact, "N saved · latest date" first; the
+       four figures and remarks one tap away on the phone — nothing removed.
+   #12 the search examples appear when the search is in use, not permanently.
+   #15 desktop quotation cards: date beside the number, tighter padding, the
+       same actions. #20 KPI 2 × 2 wherever four in a row would squeeze them
+       (600–1199px). #21 tablet portrait lists cards two to a row.          */
+.q-preview .item-line{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline;overflow-wrap:normal}
+.q-preview .item-line .il-name{min-width:0;font-weight:650;color:var(--text)}
+.q-preview .item-line .il-qp{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.q-preview .item-line .il-acc{grid-column:1/-1;font-size:11px;color:var(--text-muted);text-align:right}
+.q-preview .money,.rq-card .money{white-space:nowrap}
+.sp-sum{display:none}
+.sp-more-btn{display:none}
+.item-search-hint{display:none}
+.item-search-tools:focus-within .item-search-hint,.item-search-tools.has-q .item-search-hint{display:block}
+@media (min-width:600px){
+  .q-card .q-card-top{padding:10px 14px 8px}
+  .q-card .q-top > div{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .q-card .q-dates{margin-top:0;white-space:nowrap}
+  .q-card .q-meta{margin-top:2px}
+  .q-card .q-preview{margin-top:6px;padding:6px 10px;line-height:1.5}
+  .q-card .q-remarks{margin-top:4px}
+  .q-card .q-card-bottom{padding:7px 14px 8px}
+  .q-card .quote-actions .btn{min-height:34px;padding:0 12px}
+  .q-card .q-top{margin-bottom:0}
+  .q-card .q-meta{font-size:11.5px}
+  .q-preview .item-line{grid-template-columns:minmax(0,1fr) auto auto}
+  .q-preview .item-line .il-acc{grid-column:auto;font-size:11px;white-space:nowrap}
+  .q-card .ref-total{display:flex;align-items:baseline;gap:8px}
+  .q-card .ref-total br{display:none}
+  .q-card .ref-total b{font-size:15px}
+}
+@media (max-width:599px){
+  .q-preview .item-line{grid-template-columns:minmax(0,1fr);row-gap:0;padding:3px 0}
+  .q-preview .item-line + .item-line{border-top:1px dashed var(--border)}
+  .q-preview .item-line .il-qp,.q-preview .item-line .il-acc{text-align:left}
+  .q-preview .item-line .il-qp{font-size:12px;color:var(--text-muted)}
+  /* #05 */
+  .selected-panel{padding:12px 14px!important}
+  .selected-panel .sp-top{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+  .selected-panel .sp-name{font-size:16.5px!important;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .selected-panel .sp-sum{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12.5px;color:var(--text-2);font-weight:650;margin-top:6px}
+  .selected-panel .sp-sum b{color:var(--text)}
+  .selected-panel .sp-act{display:flex;gap:8px;margin-top:8px}
+  .selected-panel .sp-act > button{flex:1 1 0;min-height:44px;width:auto!important}
+  .selected-panel .sp-more-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--surface);color:var(--text-2);border:1.5px solid var(--border);border-radius:var(--r-sm);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  .selected-panel:not(.sp-open) .sp-stats,.selected-panel:not(.sp-open) .sp-remarks{display:none!important}
+  .selected-panel .sp-remarks{margin-top:8px}
+}
+@media (min-width:600px) and (max-width:1199px){
+  .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin-bottom:10px!important}
+  .summary-grid .summary-card{padding:10px 14px!important;min-height:0!important}
+  .summary-grid .summary-card *{overflow-wrap:anywhere}
+  .summary-grid .summary-card > :last-child{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
+@media (min-width:640px) and (max-width:980px){
+  #rightPanel,#companyQuotesList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px;align-items:start}
+  #rightPanel > *{grid-column:1/-1}
+  #rightPanel > .rq-card,#companyQuotesList > .q-card{grid-column:auto;margin-bottom:10px}
+  #rightPanel .rq-card,#companyQuotesList .q-card{height:calc(100% - 10px);display:flex;flex-direction:column}
+  #rightPanel .rq-card .rq-card-top,#companyQuotesList .q-card .q-card-top{flex:1 1 auto}
+  #rightPanel .rq-card .rq-actions .btn,#companyQuotesList .q-card .quote-actions .btn{min-height:44px}
+  #rightPanel .rq-card .rq-total,#companyQuotesList .q-card .ref-total{flex:1 1 100%}
+  #rightPanel .rq-card .rq-card-bot,#companyQuotesList .q-card .q-card-bottom{row-gap:6px!important}
+  #rightPanel .rq-card .rq-actions,#companyQuotesList .q-card .quote-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%;margin:0!important}
+  #rightPanel .rq-card .rq-actions .btn,#companyQuotesList .q-card .quote-actions .btn{width:100%;justify-content:center;margin:0!important}
+}
 </style>
 </head>
 <body class="rsp-page-plain">
@@ -1527,7 +1598,7 @@ const I18N={
     cpHistMatch:'{n} historical item(s) match “{t}”{more} — newest first:',
     cpBadgeActive:'Active', cpBadgeNoQuotes:'No Quotes', cpBadgeRecent:'Recent',
     cpBadgeRemarks:'Has Remarks',
-    cpMoreItems:'+{n} more item(s)', cpDateLabel:'Date:', cpItemCount:'📦 {n} item(s)',
+    cpMoreItems:'+{n} more item(s)', cpSavedShort:'saved', cpLatestShort:'Latest', cpMoreDetails:'More details', cpLessDetails:'Fewer details', cpDateLabel:'Date:', cpItemCount:'📦 {n} item(s)',
     cpRemarksLabel:'Remarks:', cpPreparedByLabel:'Prepared By:', cpItems1:'1 item', cpItemsN:'{n} items', cpAccIncl:'incl. {a} accessories', cpMoreRemarks:'(+{n} more quote(s) with remarks)',
     cpContact:'Contact', cpRefLabel:'Ref:', cpCustomerLabel:'Customer:',
     cpPhoneLabel:'Phone:', cpTotalLabel:'Total:',
@@ -1611,7 +1682,7 @@ const I18N={
     cpHistMatch:'{n} 项历史记录符合「{t}」{more} — 最新优先：',
     cpBadgeActive:'使用中', cpBadgeNoQuotes:'尚无报价', cpBadgeRecent:'最近',
     cpBadgeRemarks:'有备注',
-    cpMoreItems:'另有 {n} 项产品', cpDateLabel:'日期：', cpItemCount:'📦 {n} 项产品',
+    cpMoreItems:'另有 {n} 项产品', cpSavedShort:'份已保存', cpLatestShort:'最近', cpMoreDetails:'更多资料', cpLessDetails:'收起资料', cpDateLabel:'日期：', cpItemCount:'📦 {n} 项产品',
     cpRemarksLabel:'备注：', cpPreparedByLabel:'出单人：', cpItems1:'1 项产品', cpItemsN:'{n} 项产品', cpAccIncl:'含配件 {a}', cpMoreRemarks:'（另有 {n} 张报价单有备注）',
     cpContact:'联系方式', cpRefLabel:'单号：', cpCustomerLabel:'客户：',
     cpPhoneLabel:'电话：', cpTotalLabel:'合计：',
@@ -1769,7 +1840,7 @@ function renderRecentQuotations(){
   const cardsHtml = recent.map(q=>{
     const items = q.items||[];
     const previewText = items.length
-      ? items.slice(0,1).map(it=>displayItemDesc(it)||it.size||'').join('') + (items.length>1?` +${items.length-1} more`:'')
+      ? items.slice(0,1).map(it=>displayItemDesc(it)||it.size||'').join('') + (items.length>1?` · ${dcT('cpMoreItems').replace('{n}',items.length-1)}`:'')
       : dcT('msgNoItems');
     return `
       <div class="rq-card">
@@ -1993,6 +2064,7 @@ async function cpRunCustomerSearch(term,immediate){
 const itemSearch={busy:false,count:0,term:'',seq:0,timer:null};
 
 function onItemSearchInput(){
+  { const i=document.getElementById('itemSearchInput'), t=i&&i.closest('.item-search-tools'); if(t) t.classList.toggle('has-q',!!(i.value||'').trim()); }
   const term=(document.getElementById('itemSearchInput').value||'').trim();
   clearTimeout(itemSearch.timer);
   if(term!==itemSearch.term){ itemSearch.count=0; itemSearchClear(); }
@@ -2226,12 +2298,20 @@ async function deleteCompany(id,name){
 }
 
 /* ── Quotations ── */
+/* R2.5 #04 — one item on a card: its name (+ finish), then qty × the saved final
+   unit, accessories named as part of it. Figures exactly as stored. */
+function cpItemLine(it){
+  const acc=dcItemAccUnit(it);
+  return `<div class="item-line"><span class="il-name">${esc(displayItemDesc(it)||it.size||'')}${it.finish?` <span class="q-detail-chip chip-${safeClassToken(it.finish)}">${esc(it.finish)}</span>`:''}</span>`
+    +`<span class="il-qp">${parseInt(it.qty,10)||0} × <span class="money">RM ${dcItemFinalUnit(it).toFixed(2)}</span></span>`
+    +(acc>0?`<span class="il-acc">${esc(dcT('cpAccIncl').replace('{a}','RM'+acc.toFixed(2)))}</span>`:'')+`</div>`;
+}
 function renderCompanyQuoteCard(q){
   const items = q.items||[];
   const previewItems = items.slice(0,2);
   const moreCount = items.length - previewItems.length;
   const previewHtml = previewItems.map(it=>`
-    <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${dcItemFinalUnit(it).toFixed(2)}${esc(dcAccNote(it))}</span></div>
+    ${cpItemLine(it)}
   `).join('') + (moreCount>0 ? `<div class="item-more">${esc(dcT('cpMoreItems').replace('{n}',moreCount))}</div>` : '');
 
   return `
@@ -2293,7 +2373,7 @@ async function selectCompany(id){
     const previewItems = items.slice(0,2);
     const moreCount = items.length - previewItems.length;
     const previewHtml = previewItems.map(it=>`
-      <div class="item-line"><span>${esc(displayItemDesc(it)||it.size||'')} <span class="q-detail-chip chip-${safeClassToken(it.finish||'')}">${esc(it.finish||'')}</span></span><span style="flex-shrink:0;margin-left:8px">${parseInt(it.qty,10)||0} × RM${dcItemFinalUnit(it).toFixed(2)}${esc(dcAccNote(it))}</span></div>
+      ${cpItemLine(it)}
     `).join('') + (moreCount>0 ? `<div class="item-more">${esc(dcT('cpMoreItems').replace('{n}',moreCount))}</div>` : '');
 
     return `
@@ -2331,8 +2411,12 @@ async function selectCompany(id){
         <div>
           <div class="sp-name">${esc(c.name)}${c.short_code?` <span class="company-code">${esc(c.short_code)}</span>`:''}</div>
           <div class="sp-phone">${c.phone?esc(c.phone):esc(dcT('cpNoPhone'))}</div>
+          <div class="sp-sum"><span><b>${totalQuotesForCompany}</b> ${esc(dcT('cpSavedShort'))}</span><span>${esc(dcT('cpLatestShort'))} <b>${lastDate?fmtDate(lastDate):'—'}</b></span></div>
         </div>
-        <button class="cp-back-btn" onclick="clearCompanySelection()">${esc(dcT('cpBackRecent'))}</button>
+        <div class="sp-act">
+          <button class="cp-back-btn" onclick="clearCompanySelection()">${esc(dcT('cpBackRecent'))}</button>
+          <button class="sp-more-btn" type="button" aria-expanded="false" onclick="cpToggleSpMore(this)">${esc(dcT('cpMoreDetails'))}</button>
+        </div>
       </div>
       <div class="sp-stats">
         <div class="sp-stat"><div class="sp-stat-label">${esc(dcT('cardSavedQuotations'))}</div><div class="sp-stat-value">${totalQuotesForCompany}</div></div>
@@ -2358,6 +2442,7 @@ async function selectCompany(id){
   if(window.innerWidth<=980) switchMobTab('recent');
 }
 
+function cpToggleSpMore(b){ const p=b.closest('.selected-panel'); const on=!p.classList.contains('sp-open'); p.classList.toggle('sp-open',on); b.setAttribute('aria-expanded',on?'true':'false'); b.textContent=dcT(on?'cpLessDetails':'cpMoreDetails'); }
 async function loadMoreCompanyQuotations(){
   if(!selectedCompanyId || companyQuotesLoading || !companyQuotesHasMore) return;
   companyQuotesLoading=true;
