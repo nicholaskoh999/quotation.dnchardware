@@ -1270,6 +1270,23 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .money,.qt-amt,#cpFinal,#mbTotal,#quoteTotalAmt,.er-t,.cp-ctx,.il-qp,.vm-qp,.vm-amt,.ref-total b,.rq-total b,.calc-preview span,.price-mode-preview strong,
   #quoteItemList,.qi-list,.wqa-tok,.uc-res strong,input[type=number],.count-pill,.er-n{font-variant-numeric:tabular-nums}
 }
+/* ═══════════════ R2.5.3 — desktop weight rebalance (owner desktop smoke) ═══════════════
+   R2.5.2 read too thin on a desktop monitor; the phone was fine. Only the app's
+   own desktop query (≥1024px with a mouse — iPads, even landscape, are coarse
+   pointers and keep R2.5.2): typed values, labels and sidebar links 500;
+   section headings and the active sidebar link 600; buttons stay 500, metadata
+   400, names / numbers / totals 600. No font files added — Noto Sans SC is
+   loaded to 500, so a 600 Chinese heading would be faked bold (smeared);
+   these headings turn that off and Chinese uses the real 500 face while Latin
+   uses Inter's real 600. Screen only; print untouched. */
+@media screen and (min-width:1024px) and (hover:hover) and (pointer:fine){
+  input,select,textarea,.field input,.field select,.field textarea,.qo-input{font-weight:500}
+  .field label,.field > label > span,.qo-label,.calc-preview .cp-item label,.price-mode-preview span,.uc-in label,.uc-res label,.uc-apply label{font-weight:500}
+  .dnc-link{font-weight:500}
+  .dnc-link.is-active{font-weight:600;font-synthesis-weight:none}
+  .card-title,.step-caption,.group-label,#step2Card .group-label,#step2Card .group-label span,.section-label,.modal-title,.dnc-page-title,.uc-head,
+  .acc-addbar-title,.ph-mini .ph-title > span:first-child,.vm-head #vmTitle,.rq-head .section-label{font-weight:600;font-synthesis-weight:none}
+}
 </style>
 </head>
 <body class="rsp-page-plain">
