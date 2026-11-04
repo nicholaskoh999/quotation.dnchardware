@@ -4752,6 +4752,48 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #step2Card .ph-mini{padding:8px 10px}
   #step2Card .ph-mini-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap}
 }
+
+/* ═══════════════ R2.3 Session C — phone quotation workflow (<600px) ═══════════════
+   Presentation only: the same Step 1–4 elements, ids and handlers, laid out
+   for a phone — Quick Open on one row, a one-glance customer summary that
+   keeps the unsaved status, no repeated step sub-captions, a one-line empty
+   list that says what to do, and Save / Print / WhatsApp in two short rows. */
+.qlist-hint{display:none}
+@media (max-width:599px){
+  #stepper{padding-top:6px!important;padding-bottom:6px!important}
+  .qo-card{padding:10px 12px!important}
+  .qo-card .qo-label{font-size:11px;margin-bottom:4px}
+  .qo-card .qo-row{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:8px;align-items:stretch}
+  .qo-card .qo-input{flex:1 1 auto!important;width:auto!important;min-width:0;height:44px!important;min-height:44px}
+  .qo-card .qo-btn{flex:0 0 auto;width:auto!important;height:44px!important;min-height:44px;padding:0 18px}
+  .step-caption-sub{display:none!important}
+  #step1Card .summary-topline{margin-bottom:6px;min-height:0}
+  #step1Card .summary-ava{display:none!important}
+  #step1Card .qi-compact{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:start;text-align:left}
+  #step1Card .qi-compact-main{text-align:left!important;align-items:flex-start!important;min-width:0}
+  #step1Card #qiName{font-size:17px;line-height:1.25;overflow-wrap:anywhere;text-align:left}
+  #step1Card .qi-compact-main .meta,#step1Card .summary-meta{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:4px 6px;justify-content:flex-start!important}
+  #step1Card .quote-status-row{margin-top:4px;justify-content:flex-start!important}
+  #step1Card .qi-action-stack{grid-column:2;grid-row:1;align-self:start;width:auto!important;margin:0!important}
+  #step1Card #qiToggleBtn{width:auto!important;min-height:44px;padding:0 14px;white-space:nowrap}
+  #step2Card > .card-head{min-height:0;margin-bottom:6px}
+  #step2Card .wqa-open-btn{flex-direction:row!important;flex-wrap:wrap;align-items:center!important;gap:2px 10px;min-height:48px;padding:8px 12px;min-width:0;white-space:normal;text-align:left}
+  #step2Card .wqa-open-btn *{white-space:normal;min-width:0}
+  #reviewListPanel{min-height:0!important}
+  #quoteEmpty.empty-state{padding:12px 14px!important;min-height:0!important;text-align:left}
+  #quoteEmpty.empty-state p{margin:0;font-size:14px}
+  #quoteEmpty .qlist-hint{display:block;margin-top:2px;font-size:12.5px;font-weight:500;color:var(--text-muted)}
+  #step4Actions{padding:10px 12px!important}
+  /* the bottom bar already carries the total: here it is one slim line, not a second hero card */
+  #quoteTotalBar{padding:8px 12px!important;min-height:0!important}
+  #quoteTotalBar > div{display:flex;align-items:baseline;justify-content:space-between;gap:10px;width:100%}
+  #quoteTotalBar .qt-amt{font-size:18px!important}
+  #step4Actions .step-caption{margin-top:4px!important}
+  #step4Actions .quote-actions{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.45fr);gap:6px}
+  #step1Card .summary-meta > *{display:inline-flex!important;width:auto!important}
+  #step4Actions .quote-actions #saveQuoteBtn{grid-column:1/-1;min-height:48px}
+  #step4Actions .quote-actions .btn-sm{min-height:44px;padding:0 6px;font-size:13px;white-space:nowrap}
+}
 </style>
 </head>
 <body>
@@ -5748,6 +5790,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="review-lock-label" id="reviewLockLabel" data-i18n="lblLocked">Locked</div>
           <div id="quoteEmpty" class="empty-state">
             <p data-i18n="noItemsYet">No items yet</p>
+            <span class="qlist-hint" data-i18n="qListHintM">Add an item above, or paste / upload with Quick Add.</span>
           </div>
 
           <div id="quoteItemsWrap" style="display:none">
@@ -6765,7 +6808,7 @@ const I18N={
     lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
     lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
     lblHoles:'Holes', lblHoleOption:'Hole Option', lblHoleDia:'Hole Dia.',
-    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'Product Type', cpBreakdown:'Price breakdown',
+    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'Product Type', cpBreakdown:'Price breakdown', qListHintM:'Add an item above, or paste / upload with Quick Add.',
     lblCostRate:'Cost Rate', lblAdditionalCost:'Additional Cost', lblMarkup:'Markup',
     lblUnitPrice:'Unit Price', lblManualUnitPrice:'Manual Unit Price (RM)', lblPriceMode:'Price Mode',
     phEnterLength:'Enter length', phEnterThreadLength:'Enter thread length',
@@ -7481,7 +7524,7 @@ const I18N={
     lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
     lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
     lblHoles:'洞口数量', lblHoleOption:'开洞选择', lblHoleDia:'Hole Dia.',
-    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'产品', cpBreakdown:'价格明细',
+    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'产品', cpBreakdown:'价格明细', qListHintM:'请在上方添加项目，或用快速添加粘贴 / 上传。',
     lblCostRate:'每公斤成本', lblAdditionalCost:'额外加工费', lblMarkup:'Markup',
     lblUnitPrice:'单价', lblManualUnitPrice:'手动单价 (RM)', lblPriceMode:'价格模式',
     phEnterLength:'输入长度', phEnterThreadLength:'输入牙长',
@@ -24924,6 +24967,7 @@ function dcShellRunIntent(handoffLoaded){
   ensureOthersForm();
   document.querySelectorAll('.item-form').forEach(dcPricingExtras);
   dcBuildTypeSelect();
+  requestAnimationFrame(()=>dcPairFields(el('form-'+currentType)));   // after the Price Mode controls exist
   document.querySelectorAll('.acc-panel').forEach(dcAccEnhancePanel);
   dcPlacePhMini(currentType);
   ensurePriceModeControls();
