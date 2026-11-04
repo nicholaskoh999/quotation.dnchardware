@@ -4928,6 +4928,47 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 /* #09 the phone header's two small labels follow the language */
 html[data-lang="zh"] .qi-compact-main .nm::before{content:'客户'}
 html[data-lang="zh"] .quote-status-row::before{content:'状态'}
+
+/* ═══════════════ R2.5 Session D — pricing / workflow ═══════════════
+   #06 under Final Unit Price, in small print, the inputs that produced it —
+       Cost · Add · Accessories · Markup · Price Mode — read from the fields as
+       they are now (empty fields are not shown; nothing is invented; Manual
+       Price shows only what applies). Display only: no calculation changes.
+   #07 phone: Final Unit Price one row (label beside the figure), compact
+       recommendation and history panels, a compact empty list, Step 4 actions
+       in a tidy 2 × 2 under Save.
+   #10 phone: Quick Open is one compact row, visually secondary.
+   #11 Unit Convert: a small outlined control, same label, icon and action. */
+.cp-ctx{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-end;gap:1px 0;white-space:pre-wrap;margin:6px 2px 0;font-size:11.5px;line-height:1.4;color:var(--text-muted);font-weight:600;font-variant-numeric:tabular-nums}
+.cp-ctx[hidden]{display:none!important}
+.cp-ctx .k{font-weight:800;color:var(--text-2)}
+.cp-ctx .sep{opacity:.5;white-space:pre}
+.uc-open{background:transparent!important;border:1px solid var(--border)!important;color:var(--text-2)!important;box-shadow:none!important;
+  font-size:11.5px!important;font-weight:700!important;padding:3px 9px!important;border-radius:999px!important;min-height:28px}
+.uc-open:hover{border-color:var(--accent)!important;color:var(--accent)!important}
+@media (max-width:599px){
+  #step2Card .calc-preview .cp-final{display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center!important;justify-content:space-between!important;text-align:left!important;gap:2px 10px;padding:8px 12px!important}
+  #step2Card .calc-preview .cp-final > label{margin:0}
+  #step2Card .calc-preview .cp-final #cpFinal{font-size:21px!important;line-height:1.15}
+  .cp-ctx{justify-content:flex-start;margin:5px 2px 0}
+  .dp-status{padding:4px 10px!important;gap:2px 8px!important;row-gap:0!important}
+  .ph-mini{padding:8px 10px!important}
+  .ph-mini .ph-mini-head{gap:8px}
+  .ph-mini .ph-tag{display:block;font-size:11px}
+  #quoteEmpty.empty-state{padding:12px 14px!important;min-height:0!important}
+  #quoteEmpty.empty-state p{margin:0 0 2px!important;font-size:14px}
+  /* Step 4 keeps R2.3's one row of secondary actions under Save; the labels now fit it */
+  #step4Actions .quote-actions{grid-template-columns:minmax(0,.8fr) minmax(0,1.15fr) minmax(0,.8fr) minmax(0,1.7fr)!important}
+  #step4Actions .quote-actions .btn:not(#saveQuoteBtn){white-space:nowrap;padding-left:4px!important;padding-right:4px!important;font-size:12.5px!important;letter-spacing:0;min-width:0}
+  @media (max-width:359px){ #step4Actions .quote-actions .btn:not(#saveQuoteBtn){font-size:11.5px!important;padding-left:3px!important;padding-right:3px!important} }
+  #step4Actions .step-caption{margin-top:6px!important}
+  /* #10 Quick Open: a small label over one compact row; Open is a quiet outline button */
+  .qo-card{padding:8px 10px!important}
+  .qo-card .qo-label{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}   /* still the field's label for assistive tech */
+  .qo-card .qo-row{gap:8px}
+  .qo-card .qo-input{min-height:44px!important;height:44px;font-size:16px;background:var(--surface2)}
+  .qo-card .qo-btn{min-height:44px!important;height:44px;padding:0 16px;background:transparent!important;color:var(--accent)!important;border:1.5px solid var(--border)!important;box-shadow:none!important}
+}
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
@@ -5873,7 +5914,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="cp-item cp-acc"><label><span data-i18n="accessories">Accessories</span></label><span id="cpAcc">—</span></div>
           <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Final Unit Price</label><span id="cpFinal">—</span><span id="cpLine" class="cp-line-note" hidden></span></div>
           <div id="cpAccept" class="cp-accept" hidden aria-live="polite"></div>
-        </div></div>
+        </div><div id="cpCtx" class="cp-ctx" hidden></div></div>
         <button type="button" class="cp-break" id="cpBreakBtn" aria-expanded="false" aria-controls="calcPreview priceModePreview" onclick="dcCpBreakToggle()"><span data-i18n="cpBreakdown">Price breakdown</span><span class="acc-chev" aria-hidden="true"></span></button>
         <div class="price-mode-preview" id="priceModePreview">
           <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
@@ -9367,7 +9408,34 @@ function updatePriceModePreview(type){
   }
   if(final) final.textContent=fmt(Number(state.finalUnitPrice)||0);
   dcRenderFormPa(type);
+  dcCpContext(type);
 }
+/* R2.5 #06 — the pricing inputs behind the Final Unit Price, as small print.
+   Read straight from the active form's fields (the same values the calculation
+   just used); an empty field is not shown and nothing is filled in. A suggested
+   price that has not been applied is not an input, so it never appears here.
+   Manual Price: the cost fields do not make the price, so only the mode (and
+   any accessories inside it) are named. Display only. */
+function dcCpContext(type){
+  const n=el('cpCtx'); if(!n) return;
+  type=type||currentType;
+  const f=document.querySelector('#step2Card .item-form.active');
+  if(!f||type!==currentType){ n.hidden=true; n.innerHTML=''; return; }
+  const raw=s=>{ const i=f.querySelector('input[id$="-'+s+'"]'); const v=i?String(i.value).trim():''; return v===''?null:v; };
+  const num=v=>{ try{ const x=evalExpr(String(v)); return isFinite(x)?x:null; }catch(e){ return null; } };
+  const mode=getPriceMode(type), parts=[];
+  if(mode!=='manual'){
+    const r=raw('costRate'); if(r!==null&&num(r)!==null) parts.push([dcT('qiCostRate'),dcRateText(num(r))]);
+    const a=raw('addCost');  if(a!==null&&num(a)!==null) parts.push([dcT('qiAddCost'),dcRateText(num(a))]);
+  }
+  let acc=0; try{ acc=type==='was'?0:accAddon(getAccessories(type)); }catch(e){ acc=0; }
+  if(acc>0) parts.push([dcT('qiAcc'),acc.toFixed(2)]);
+  if(mode!=='manual'){ const m=raw('markup'); parts.push([dcT('qiMarkup'),cleanNum(m!==null?(parseFloat(m)||0):0)+'%']); }
+  parts.push([dcT('lblPriceMode'),getPriceModeLabel(mode)]);
+  n.innerHTML=parts.map(p=>'<span><span class="k">'+escHtml(p[0])+'</span> '+escHtml(p[1])+'</span>').join('<span class="sep" aria-hidden="true"> · </span>');
+  n.hidden=false;
+}
+dcOnRelabel(()=>{ try{ dcCpContext(currentType); }catch(e){} });
 function onPriceModeChange(type){
   const manual=getPriceMode(type)==='manual';
   const field=el(type+'-manualUnitPriceField'),input=el(type+'-manualUnitPrice');
