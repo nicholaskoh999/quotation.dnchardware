@@ -4985,6 +4985,47 @@ html[data-lang="zh"] .quote-status-row::before{content:'状态'}
 @media (min-width:600px){
   .qo-card .qo-row{max-width:560px}   /* a quotation number needs no 1400px field */
 }
+
+/* ═══════════════ R2.5 Session F — tablet adaptive (#17 #18 #19 #22) ═══════════════
+   600–1279px is where Item Entry + Review side by side either squeezed the
+   entry to ~400px (768) or no longer fit (1180 / 1200 scrolled sideways). Here
+   the two panels become one width with a switch: Item Entry | Quotation List
+   (count · total). The switch only shows / hides the existing cards — nothing
+   is moved, cleared or re-rendered; Step links, Quick Add, Load and Edit move
+   the switch for you. ≥1280px keeps the desktop side by side.
+   #18 the product picker follows the wider entry card (its own container
+   query → 4 columns). #19 Customer Details in three rows. #22 the switch and
+   the bottom bar never cover the field being typed in.                      */
+.er-switch{display:none}
+@media (min-width:600px) and (max-width:1279px){
+  .er-switch{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:4px;padding:4px;margin:0;
+    position:sticky;top:calc(var(--banner-h,0px) + var(--header-h,0px) + 8px);z-index:7;
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+  .er-switch button{min-height:44px;border:0;border-radius:calc(var(--r) - 4px);background:transparent;color:var(--text-2);
+    font:inherit;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;padding:0 10px;min-width:0}
+  .er-switch button[aria-selected="true"]{background:var(--accent);color:#fff}
+  .er-switch button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .er-switch .er-n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;
+    background:var(--accent-light);color:var(--accent);font-size:12px}
+  .er-switch button[aria-selected="true"] .er-n{background:rgb(255 255 255 / .22);color:#fff}
+  .er-switch .er-t{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;opacity:.9}
+  .two-col{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+  .two-col:not(.er-review) > #step3Card,.two-col.er-review > #step2Card{display:none!important}
+  .two-col > #step3Card{position:static!important;top:auto!important}
+  /* #22 a field scrolled into view clears the header, the switch and the bar */
+  #step2Card .field input,#step2Card .field select,#step1Card .field input,#step1Card .field select{
+    scroll-margin-top:calc(var(--banner-h,0px) + var(--header-h,0px) + 76px)}
+  /* #19 Customer Details: Customer + Contact / No + Date + Prepared By / Issued By + Remarks */
+  #step1Card .qi-edit.open{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:10px 12px!important}
+  #step1Card .qi-edit > .field{grid-column:span 2!important;min-width:0}
+  #step1Card .qi-edit > .field:first-child{grid-column:span 4!important}
+  #step1Card .qi-edit > .field:has(> #qi-issued-by),#step1Card .qi-edit > .field.qi-rm,#step1Card .qi-edit > .field:has(> #qi-remarks){grid-column:span 3!important}
+}
+@media (min-width:600px) and (max-width:1023px){
+  /* the bottom bar is there: the page ends above it, its safe area included */
+  .main{padding-bottom:calc(var(--bar-h) + var(--sab) + 40px)!important}
+  .mobile-bar{padding-bottom:max(8px,var(--sab))}
+}
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
@@ -5244,7 +5285,12 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       </div>
     </div>
 
-    <div class="two-col">
+    <!-- R2.5 #17: on tablets one panel at a time; this only shows / hides the two cards below -->
+    <div class="er-switch" id="erSwitch" role="tablist" data-i18n-aria="erSwitchAria" aria-label="Item Entry or Quotation List">
+      <button type="button" role="tab" id="erTabEntry" aria-selected="true" aria-controls="step2Card" onclick="dcErShow('entry',true)"><span data-i18n="itemEntry">Item Entry</span></button>
+      <button type="button" role="tab" id="erTabReview" aria-selected="false" aria-controls="step3Card" onclick="dcErShow('review',true)"><span data-i18n="quotationList">Quotation List</span><span class="er-n" id="erCount">0</span><span class="er-t" id="erTotal">RM 0.00</span></button>
+    </div>
+    <div class="two-col" id="erPanels">
       <!-- LEFT: Item Entry -->
       <div class="card" id="step2Card">
         <div class="card-head">
@@ -7041,7 +7087,7 @@ const I18N={
     lblIssuedBy:'Issued By', optNoCompanyHeader:'— No company header —',
     lblRemarks:'Remarks / Notes', phRemarks:'Price subject to change without prior notice',
     /* step 2 — product entry */
-    step2Caption:'Step 2 · Add Items', step2Sub:'Add items', itemEntry:'Item Entry',
+    step2Caption:'Step 2 · Add Items', step2Sub:'Add items', itemEntry:'Item Entry', erSwitchAria:'Item Entry or Quotation List',
     ucConvert:'⇄ Unit Convert', ucTitle:'Unit Converter', ucInput:'Input', ucExact:'Exact', ucRounded:'Rounded', ucCopyExact:'Copy Exact', ucCopyRounded:'Copy Rounded', ucClose:'Close', ucInvalid:'Invalid dimension', ucCopied:'Copied', ucApplyTo:'Apply to', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'To L', ucToW:'To W', ucToT:'To T', ucToH:'To H', ucToS:'To S', ucToID:'To ID', ucToIH:'To IH', ucToOH:'To OH', ucToTL:'To TL',
     productEntry:'Product Entry', dimensionEntry:'Dimension Entry',
     pricingEntry:'Pricing Entry', pricing:'Pricing',
@@ -7757,7 +7803,7 @@ const I18N={
     lblIssuedBy:'出单公司', optNoCompanyHeader:'— 不显示公司抬头 —',
     lblRemarks:'备注', phRemarks:'价格如有变动，恕不另行通知',
     /* step 2 — product entry */
-    step2Caption:'第 2 步 · 添加产品', step2Sub:'添加产品', itemEntry:'产品输入',
+    step2Caption:'第 2 步 · 添加产品', step2Sub:'添加产品', itemEntry:'产品输入', erSwitchAria:'产品输入或报价清单',
     ucConvert:'⇄ 单位换算', ucTitle:'单位换算', ucInput:'输入', ucExact:'精确', ucRounded:'整数', ucCopyExact:'复制精确值', ucCopyRounded:'复制整数值', ucClose:'关闭', ucInvalid:'尺寸格式无效', ucCopied:'已复制', ucApplyTo:'填入', ucUnitAuto:'Auto', ucUnitIn:'INCH', ucUnitFt:'FT', ucUnitMm:'mm', ucToL:'填入 L', ucToW:'填入 W', ucToT:'填入 T', ucToH:'填入 H', ucToS:'填入 S', ucToID:'填入 ID', ucToIH:'填入 IH', ucToOH:'填入 OH', ucToTL:'填入 TL',
     productEntry:'产品资料', dimensionEntry:'尺寸资料',
     pricingEntry:'价格资料', pricing:'价格',
@@ -12333,6 +12379,7 @@ function renderQuote(newIdx){
   el('quoteCount').textContent=count;
   el('mbCount').textContent=count;
   el('mbTotal').textContent=fmt(grand);
+  if(el('erCount')){ el('erCount').textContent=count; el('erTotal').textContent=fmt(grand); }
   const hasItems=count>0;
   el('quoteEmpty').style.display=hasItems?'none':'block';
   el('quoteItemsWrap').style.display=hasItems?'block':'none';
@@ -13130,7 +13177,25 @@ function dcSvRuleRow(tbodyId, id){
 }
 
 /* ── Workflow stepper ── */
+/* R2.5 #17 — the tablet Entry / Review switch. Visibility only. */
+function dcErActive(){ const s=el('erSwitch'); return !!s && getComputedStyle(s).display!=='none'; }
+function dcErShow(which,user){
+  const p=el('erPanels'); if(!p) return;
+  const review=which==='review';
+  p.classList.toggle('er-review',review);
+  const a=el('erTabEntry'), b=el('erTabReview');
+  if(a) a.setAttribute('aria-selected',review?'false':'true');
+  if(b) b.setAttribute('aria-selected',review?'true':'false');
+  if(user&&dcErActive()){ const t=el(review?'step3Card':'step2Card'); const s=el('erSwitch');
+    if(t&&s&&t.getBoundingClientRect().top<s.getBoundingClientRect().bottom) s.scrollIntoView({block:'start'}); }
+}
+document.addEventListener('keydown',e=>{
+  if(!e.target||!e.target.closest||!e.target.closest('#erSwitch')) return;
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return;
+  e.preventDefault(); const rv=e.key==='ArrowRight'; dcErShow(rv?'review':'entry',true); const t=el(rv?'erTabReview':'erTabEntry'); if(t) t.focus();
+});
 function goToStep(n){
+  if(n>=2&&dcErActive()) dcErShow(n>=3?'review':'entry');
   const map={1:'step1Card',2:'step2Card',3:'step3Card',4:'step4Actions'};
   const target=el(map[n]);
   if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
