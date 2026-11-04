@@ -57,7 +57,8 @@ module.exports = async (browser, A) => {
   const o452 = await p.evaluate(() => { setFieldValue('lbolt', 'priceMode', 'auto');
     const f = resolvePriceMode('lbolt', 3.43, 0, accAddon({ nut: { enabled: true, qty: 4, unitPrice: 0.18 }, fw: { enabled: true, qty: 4, unitPrice: 0.10 } }));
     return priceCalcState.lbolt.boltUnitPrice.toFixed(2) + ' + ' + priceCalcState.lbolt.accessoriesCost.toFixed(2) + ' = ' + f.toFixed(2); });
-  A.eq(o452, '3.40 + 1.12 = 4.52', 'O: RM3.40 + 4 × RM0.18 + 4 × RM0.10 = RM4.52, not re-rounded');
+  /* Before R2.3 (a173510 rule, superseded by the R2.3 owner override): 3.40 + 1.12 = 4.52. */
+  A.eq(o452, '3.48 + 1.12 = 4.60', 'O (R2.3): raw 3.43 + 4 × RM0.18 + 4 × RM0.10 = 4.55, rounded once by the band rule → RM4.60');
   await ctx.close();
 
   // ── F — the rod's qty is not the accessory's ─────────────────────────────

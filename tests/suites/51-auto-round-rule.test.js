@@ -1,8 +1,13 @@
 /* ── Auto Round — owner-locked band rules ──────────────────────────────────
    Non-Sag products round in RM0.10 bands: x.x0–x.x3 down, x.x4–x.x9 up.
    Sag Rod stays nearest RM0.05. No Round is currency only, Manual Price is
-   what was typed, and accessories are added AFTER the bolt is rounded — the
-   combined final is never rounded again.                                   */
+   what was typed.
+   ACCESSORIES — R2.3 OWNER CONTRACT OVERRIDE (2026-11-04): with accessories
+   and Auto Round the SAME engine rounds raw bolt + accessories once, at the
+   final stage. This supersedes only the accessory-order assertion locked here
+   in a173510 ("accessories are added AFTER the bolt is rounded — the combined
+   final is never rounded again": 6.40 + 0.65 = 7.05; Sag 4.30 + 0.33 = 4.63).
+   Those historical expectations are kept below as comments.                */
 'use strict';
 const { openApp } = require('../lib/harness');
 
@@ -52,9 +57,10 @@ module.exports = async (browser, A) => {
   A.eq(r.sagNotBand, '6.45', 'Sag Rod does not use the non-Sag band rule (6.44 → 6.45, not 6.50)');
   A.eq(r.noRound.join(','), '6.43,6.43,6.43', 'No Round keeps 6.43 exactly, every family');
   A.eq(r.manual.join(','), '7.20,7.20,7.20', 'Manual Price is the typed price, every family');
-  A.eq(r.accAuto.bolt, '6.40', 'with accessories: the bolt is rounded first (6.43 → 6.40)');
-  A.eq(r.accAuto.final, '7.05', 'then RM0.65 of accessories is added — 7.05 is not re-rounded to 7.10');
-  A.eq(r.accSag.final, '4.63', 'Sag Rod: 4.30 + 0.33 = 4.63, not re-rounded to 4.65');
+  /* a173510 (superseded by R2.3): bolt 6.40, final 7.05; Sag final 4.63. */
+  A.eq(r.accAuto.final, '7.10', 'R2.3: with accessories, 6.43 + 0.65 = 7.08 is rounded ONCE by the band rule → 7.10');
+  A.eq(r.accAuto.bolt, '6.45', 'R2.3: the bolt component is what is left after the accessories (7.10 − 0.65), never rounded on its own');
+  A.eq(r.accSag.final, '4.65', 'R2.3: Sag Rod 4.32 + 0.33 = 4.65 → nearest RM0.05 = 4.65 (same engine, combined input)');
   A.eq(r.accManual.final, '7.20', 'Manual Price with accessories still quotes the typed final');
   A.eq(r.accManual.rounded, '6.40', 'and the Auto Round reference is still recorded beside it');
   A.eq(r.floatSafe.join(','), '10.30,10.10,6.50', 'float noise does not move a band boundary');

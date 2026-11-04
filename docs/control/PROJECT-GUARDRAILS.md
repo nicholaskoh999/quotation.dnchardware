@@ -182,6 +182,29 @@ its accessories every time it were reused. So every saved item carries both ends
 | Auto Round · No Round | the **bolt** is calculated, and the accessories are **added** to reach the customer's price |
 | **Manual Price** | the **customer's** price is typed, so the accessories come **out** of it to leave the bolt component. RM10 typed with RM2 of nuts quotes **RM10**, reports RM2 of accessories, and leaves an RM8 bolt — never RM12 |
 
+#### OWNER CONTRACT OVERRIDE — R2.3 (2026-11-04): Auto Round at the final stage
+
+Supersedes ONE rule only: the rounding ORDER for Auto Round with accessories
+(Stage 0B / `a173510`, "accessories are added after the bolt is rounded — the
+combined final is never rounded again"). Everything else above stands.
+
+| mode | rule from R2.3 |
+|---|---|
+| Auto Round, accessories present | `final = dcAutoRound(rawBolt + accessories)` — the EXISTING engine (Sag Rod nearest RM0.05, others RM0.10 bands), once; `bolt = final − accessories` |
+| Auto Round, no accessories | unchanged: `final = bolt = dcAutoRound(rawBolt)` |
+| No Round | unchanged: `bolt = rawBolt` (currency only), `final = bolt + accessories` |
+| Manual Price | unchanged: typed final; `bolt = final − accessories` |
+
+Owner example (Sag Rod, Auto): raw RM7.8511, accessories RM0.26 → old 7.85 + 0.26 = RM8.11,
+new Round(8.1111) = **RM8.10**. New Sag Rods still start on No Round.
+
+History compatibility: items priced from R2.3 carry `autoRoundStage: 'final'` and
+`autoFinalUnitPrice`. A saved item without them was priced under the earlier rule and
+is reopened, printed and sent exactly as saved; an Update that changes nothing
+price-affecting keeps its saved price (`dcPaKeepSaved`). Only an edit of its pricing
+re-prices it, under the R2.3 rule. Tests: suite 67 (R2.3), suites 51 / 53 / 65
+updated with the superseded expectations kept as comments.
+
 **Customer-facing output carries no separate accessory charge.**
 
 - WhatsApp / copied text: `1. M12 x L 1000 x TL 100/100mm - RM7.76` then plain

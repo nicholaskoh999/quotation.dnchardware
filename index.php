@@ -8778,6 +8778,15 @@ function roundCustom10(v){
   return roundMoney2(((cents-band)<=3 ? band : band+10)/100);
 }
 function roundMoney2(v){return Math.round((Number(v)||0)*100)/100}
+/* THE Auto Round engine — the two owner-locked rules above, in one place:
+   Sag Rod nearest RM0.05, every other family the RM0.10 band rule. */
+function dcAutoRound(type,v){ return type==='sagrod' ? round05(v) : roundCustom10(v); }
+/* R2.3 OWNER CONTRACT OVERRIDE (2026-11-04): with accessories and Auto Round,
+   the engine rounds the COMBINED raw price, bolt + accessories, once at the
+   final stage — Round(Base + Accessories), superseding Round(Base) +
+   Accessories. Items priced this way carry autoRoundStage:'final'; an item
+   without it was priced under the earlier rule and is never re-priced. */
+const DC_AUTO_ROUND_STAGE='final';
 function getPriceMode(type){
   const value=fv(type,'priceMode');
   return ['auto','no_round','manual'].includes(value)?value:'auto';
@@ -8815,17 +8824,31 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
     boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
   }else{
     /* Owner model: Sag Rod rounds to nearest 5 sen; every other family uses
-       the RM0.10 band rule (x.x3 down, x.x4 up).  No Round is currency only. */
-    const auto=type==='sagrod' ? round05(rawUnitPrice) : roundCustom10(rawUnitPrice);
-    boltUnitPrice=roundMoney2(mode==='no_round'?rawUnitPrice:auto);
-    finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
+       the RM0.10 band rule (x.x3 down, x.x4 up).  No Round is currency only.
+       R2.3: with accessories, Auto Round rounds raw bolt + accessories ONCE
+       (the bolt is never rounded first); the bolt component is what is left
+       after the accessories, so final = bolt + accessories still holds. */
+    const raw=Number(rawUnitPrice)||0;
+    if(mode==='no_round'){
+      boltUnitPrice=roundMoney2(raw);
+      finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
+    }else if(accUnit>0){
+      finalUnitPrice=dcAutoRound(type,raw+accUnit);
+      boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
+    }else{
+      boltUnitPrice=dcAutoRound(type,raw);
+      finalUnitPrice=boltUnitPrice;
+    }
   }
   priceCalcState[type]={
     /* The weight is published by updatePreview; an add path that re-resolves
        the price without redrawing the preview must not lose it. */
     weight:Number((priceCalcState[type]||{}).weight)||0,
     priceMode:mode,manualUnitPrice:manualRaw,rawUnitPrice:Number(rawUnitPrice)||0,
-    roundedUnitPrice:Number(type==='sagrod'?round05(rawUnitPrice):roundCustom10(rawUnitPrice))||0,accessoriesCost:accUnit,
+    roundedUnitPrice:Number(dcAutoRound(type,rawUnitPrice))||0,accessoriesCost:accUnit,
+    /* What Auto Round makes of the whole piece — the figure a Manual Price is
+       compared with on the card. */
+    autoFinalUnitPrice:Number(accUnit>0?dcAutoRound(type,(Number(rawUnitPrice)||0)+accUnit):dcAutoRound(type,rawUnitPrice))||0,
     boltUnitPrice:Number(boltUnitPrice)||0,
     finalUnitPrice:Number(finalUnitPrice)||0,
     /* One number under two names: what the customer pays for a piece IS the
@@ -8839,7 +8862,8 @@ function getPriceModeSaveData(type){
   const state=priceCalcState[type]||{};
   return {
     priceMode:getPriceMode(type),manualUnitPrice:fv(type,'manualUnitPrice'),
-    rawUnitPrice:state.rawUnitPrice??0,roundedUnitPrice:state.roundedUnitPrice??0
+    rawUnitPrice:state.rawUnitPrice??0,roundedUnitPrice:state.roundedUnitPrice??0,
+    autoFinalUnitPrice:state.autoFinalUnitPrice??0,autoRoundStage:DC_AUTO_ROUND_STAGE
   };
 }
 /* ── An item's price (owner rule, Pricing Control Reset + owner smoke) ────
@@ -8959,7 +8983,8 @@ function dcPaKeepSaved(item,orig){
   const qty=parseInt(item.qty,10)||0, v=dcItemFinalUnit(orig);
   if(item.pricingModel) Object.assign(item,dcLineMoney(v,item.accessories,qty));
   else { item.finalUnitPrice=v; item.totalAmount=roundMoney2(v*qty); }
-  ['priceMode','manualUnitPrice','rawUnitPrice','roundedUnitPrice','markup'].forEach(k=>{
+  /* the rounding rule the saved price was made under travels with it */
+  ['priceMode','manualUnitPrice','rawUnitPrice','roundedUnitPrice','markup','autoFinalUnitPrice','autoRoundStage'].forEach(k=>{
     if(Object.prototype.hasOwnProperty.call(orig,k)) item[k]=orig[k]; else delete item[k];
   });
   const ofd=orig.formData||{};
@@ -11805,7 +11830,11 @@ function dcItemPricingSummary(item){
     const calculated = item.itemType==='was'
       ? ['anchorCostRate','basePlateCostRate','trianglePlateCostRate'].some(k=>has(fd[k])&&evalExpr(String(fd[k]))>0)
       : rate>0 && (parseFloat(item.weight)||0)>0;
-    if(calculated && isFinite(rounded) && rounded>0) auto=roundMoney2(rounded+accUnit);
+    /* R2.3 items record the whole-piece Auto figure; an earlier item's Auto
+       was its rounded bolt plus accessories, and it is shown as it was. */
+    const autoFinal=Number(item.autoFinalUnitPrice);
+    if(calculated && item.autoRoundStage===DC_AUTO_ROUND_STAGE && isFinite(autoFinal) && autoFinal>0) auto=roundMoney2(autoFinal);
+    else if(calculated && isFinite(rounded) && rounded>0) auto=roundMoney2(rounded+accUnit);
   }
   if(auto!==null) parts.push('<span class="qi-pr-auto">'+escHtml(dcT('qiAuto'))+' '+escHtml(auto.toFixed(2))+'</span>');
   let override=null;
