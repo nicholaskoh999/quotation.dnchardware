@@ -4682,6 +4682,36 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .dnc-shell,.rsp-sheet,.rsp-scrim,.rsp-nav,.mobile-bar{transition:none!important}
 }
 
+
+/* ═══════════════ R2.3 Session A — compact, keyboard-first entry (≥600px) ═══════════════
+   Accessories and Pricing History live at the END of Pricing Entry (.pe-extras),
+   one compact row each; Accessories is collapsed to its summary until opened. */
+.pe-extras{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pe-extras > .acc-panel{margin:0}
+.acc-rows.acc-collapsed .acc-add-btns,.acc-rows.acc-collapsed > .acc-item,.acc-rows.acc-collapsed > hr{display:none!important}
+.acc-sum{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;min-height:36px;padding:0 4px;border:0;background:transparent;
+  font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:8px}
+.acc-sum:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.acc-sum .acc-addbar-title{margin-right:0!important}
+.acc-sum-txt{font-size:12.5px;font-weight:700;color:var(--accent-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-sum-txt:empty{display:none}
+.acc-chev{margin-left:auto;width:8px;height:8px;border-right:2px solid var(--text-muted);border-bottom:2px solid var(--text-muted);transform:rotate(-45deg);transition:transform .15s;flex:0 0 auto}
+.acc-sum[aria-expanded="true"] .acc-chev{transform:rotate(45deg)}
+.acc-rows:has(.acc-enable input:checked) .acc-sum .acc-empty{display:none}
+.acc-rows.acc-collapsed .acc-addbar{flex-wrap:nowrap}
+@media (min-width:600px){
+  #step2Card .type-picker{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px;margin-bottom:10px}
+  #step2Card .type-btn{min-height:36px;padding:6px 22px 6px 10px;font-size:13px;line-height:1.2}
+  #step2Card .type-btn::before{top:50%;margin-top:-6px;right:8px}
+  #step2Card .finish-pill{min-height:36px}
+  #step2Card .item-form.active{gap:8px 12px}
+  #step2Card .item-form.active .field{gap:3px}
+  #step2Card .item-form.active .group-label{margin-top:4px;padding:5px 10px}
+  #step2Card .wqa-open-btn{flex-direction:row;align-items:center;gap:10px;padding:8px 12px;min-height:40px}
+  #step2Card .acc-panel.acc-rows{padding:6px 10px}
+  #step2Card .acc-panel.acc-rows:not(.acc-collapsed){padding:10px}
+  #step2Card .ph-mini{padding:6px 10px}
+}
 </style>
 </head>
 <body>
@@ -9708,10 +9738,28 @@ function onMaterialSizeChange(type,skipDiameterRefill,trigger){
 function dcPlacePhMini(type){
   const mini=el('phMini'); if(!mini) return;
   const form=el('form-'+type);
+  /* R2.3: after the price inputs and the accessories, so entering a price is
+     never interrupted by it and it is still one Tab / tap away. */
+  const box=form && dcPricingExtras(form);
+  if(box){ if(box.lastElementChild!==mini) box.appendChild(mini); return; }
   const lbl=form && form.querySelector(':scope > .group-label[data-i18n="pricingEntry"], :scope > .group-label[data-i18n="pricing"]');
   if(lbl){ if(mini.nextElementSibling!==lbl) form.insertBefore(mini,lbl); return; }
   const home=el('phMiniHome');
   if(home && home.nextElementSibling!==mini) home.after(mini);
+}
+/* R2.3 Session A: every form ends Pricing Entry with one .pe-extras block —
+   the accessories (collapsed to a summary) and then Pricing History — so Tab
+   goes specification → dimensions → Cost Rate / Additional Cost / Markup /
+   Qty / Price Mode before either of them. Moved, never copied: ids, handlers
+   and stored values are untouched. Idempotent. */
+function dcPricingExtras(form){
+  if(!form||!form.classList.contains('item-form')) return null;
+  let box=form.querySelector(':scope > .pe-extras');
+  if(!box){ box=document.createElement('div'); box.className='pe-extras full'; form.appendChild(box); }
+  const type=form.dataset.type;
+  [el(type+'-accToggle'),el(type+'-accPanel')].forEach(n=>{ if(n && n.parentElement!==box){
+    const mini=box.querySelector(':scope > #phMini'); box.insertBefore(n,mini||null); } });
+  return box;
 }
 function switchType(type){
   if(!draftRestoreInProgress&&type!==currentType) productEntryTouchedFields.clear();
@@ -10105,8 +10153,13 @@ function dcAccEnhancePanel(panel){
   const kinds=DC_ACC_KINDS.filter(([k])=>el(type+'-'+k+'Enabled'));
   const bar=document.createElement('div');
   bar.className='acc-addbar';
-  bar.innerHTML='<span class="acc-addbar-title" data-i18n="accessories">'+escHtml(dcT('accessories'))+'</span>'
+  /* R2.3: the title row is ONE button — "Accessories · None ›" or
+     "Accessories · 2 Nut + 1 FW · +RM 2.61 ›" — and the panel stays collapsed
+     to it until opened, so Tab passes the accessories in one stop. */
+  bar.innerHTML='<button type="button" class="acc-sum" aria-expanded="false" aria-controls="'+panel.id+'">'
+    +'<span class="acc-addbar-title" data-i18n="accessories">'+escHtml(dcT('accessories'))+'</span>'
     +'<span class="acc-empty" data-i18n="accNone">'+escHtml(dcT('accNone'))+'</span>'
+    +'<span class="acc-sum-txt" data-i18n-skip></span><span class="acc-chev" aria-hidden="true"></span></button>'
     +'<span class="acc-add-btns">'+kinds.map(([k,,plus])=>
       '<button type="button" class="acc-act acc-add-btn" data-acc="'+k+'" data-i18n="'+plus+'">'+escHtml(dcT(plus))+'</button>').join('')+'</span>';
   panel.insertBefore(bar,panel.firstChild);
@@ -10136,7 +10189,7 @@ function dcAccEnhancePanel(panel){
       hist.addEventListener('click',()=>accHistoryOpen(type,m[1])); head.appendChild(hist);
     }
   });
-  panel.classList.add('acc-rows');
+  panel.classList.add('acc-rows','acc-collapsed');
   const toggle=el(type+'-accToggle');
   if(toggle) toggle.classList.add('acc-rows-on');
 }
@@ -10160,6 +10213,29 @@ document.addEventListener('click',e=>{
     if(first){ try{ first.focus({preventScroll:true}); }catch(_){ first.focus(); } }
   }
 });
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('.acc-sum'); if(!b) return;
+  const panel=b.closest('.acc-panel'); if(!panel) return;
+  dcAccCollapse(panel.id.replace(/-accPanel$/,''), !panel.classList.contains('acc-collapsed'));
+});
+function dcAccCollapse(type,collapsed){
+  const panel=el(type+'-accPanel'); if(!panel||!panel.classList.contains('acc-rows')) return;
+  panel.classList.toggle('acc-collapsed',!!collapsed);
+  const b=panel.querySelector('.acc-sum'); if(b) b.setAttribute('aria-expanded',collapsed?'false':'true');
+}
+/* "2 Nut + 1 FW · +RM 2.61": what is on the item, read from the form itself. */
+function dcAccSummaryText(type){
+  const a=getAccessories(type), out=[];
+  if(a.nut&&a.nut.enabled) out.push((a.nut.qty||0)+' '+dcT('accNutShort'));
+  if(a.fw&&a.fw.enabled) out.push((a.fw.qty||0)+' '+dcT('accFwShort'));
+  if(a.custom&&a.custom.enabled) out.push(String(a.custom.text||dcT('accCustom')).slice(0,24));
+  if(!out.length) return '';
+  return out.join(' + ')+' · +RM '+(accAddon(a)||0).toFixed(2);
+}
+function dcAccSum(type){
+  const panel=el(type+'-accPanel'), t=panel&&panel.querySelector('.acc-sum-txt');
+  if(t) t.textContent=dcAccSummaryText(type);
+}
 function onAccChange(type){
   dcAccEnhancePanel(el(type+'-accPanel'));
   const nutEn=el(type+'-nutEnabled')&&el(type+'-nutEnabled').checked;
@@ -10190,8 +10266,11 @@ function onAccChange(type){
       toggleBtn.classList.remove('has-acc');
     }
   }
+  dcAccSum(type);
   if(type===currentType) refreshAccPreview();
 }
+/* The summary names the accessories in the screen's language. */
+if(typeof dcOnRelabel==='function') dcOnRelabel(()=>document.querySelectorAll('.item-form').forEach(f=>dcAccSum(f.dataset.type)));
 let accHistoryState=null;
 function accHistoryModal(){
   let modal=el('accHistoryModal'); if(modal) return modal;
@@ -10274,6 +10353,7 @@ function resetAccPanel(type){
   ['nutFinish','fwFinish'].forEach(f=>{const e=el(type+'-'+f);if(e)e.selectedIndex=0;});
   onAccChange(type);
   setAccPanelOpen(type,false);
+  dcAccCollapse(type,true);
 }
 function loadAccIntoForm(type,acc){
   if(!acc) return;
@@ -24762,6 +24842,7 @@ function dcShellRunIntent(handoffLoaded){
 (async function init(){
   ensureLBolt45Form();
   ensureOthersForm();
+  document.querySelectorAll('.item-form').forEach(dcPricingExtras);
   document.querySelectorAll('.acc-panel').forEach(dcAccEnhancePanel);
   dcPlacePhMini(currentType);
   ensurePriceModeControls();
