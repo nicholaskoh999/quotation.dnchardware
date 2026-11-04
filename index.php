@@ -4814,34 +4814,109 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 }
 @container entry (min-width:560px){ .type-picker{grid-template-columns:repeat(4,minmax(0,1fr))!important} }
 @container entry (max-width:379px){ .type-picker{grid-template-columns:repeat(2,minmax(0,1fr))!important} }
+:root{--hi-check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5'/%3E%3C/svg%3E");--hi-pencil:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10'/%3E%3C/svg%3E")}
+
+/* ═══════════════ R2.4 Session E — Heroicons (v2.2.0, MIT, self-hosted sprite) ═══════════════
+   One icon language: <svg class="hi"><use href="#hi-NAME"/></svg> from the
+   inline sprite (no CDN, only the icons used). Outline by default; the bottom
+   navigation shows the solid variant for the current / open item. */
+.hi{display:inline-block;width:1.2em;height:1.2em;flex-shrink:0;vertical-align:-.22em;overflow:visible}
+.hi-18{width:18px;height:18px}.hi-20{width:20px;height:20px}.hi-24{width:24px;height:24px}.hi-28{width:28px;height:28px}
+.dc-ic{display:inline-block;width:1.15em;height:1.15em;flex-shrink:0;vertical-align:-.2em;margin-right:.3em}
+.dc-ic.ic-ok{color:#15803d}.dc-ic.ic-warn{color:#b45309}.dc-ic.ic-bad{color:#b91c1c}.dc-ic.ic-info{color:var(--accent-2,#4338ca)}
+.dc-ic.ic-trail{margin-right:0;margin-left:.3em}
+.dnc-ico.hi-s{display:none}
+.rsp-nav-item.is-active .dnc-ico.hi-o,.rsp-nav-item[aria-expanded="true"] .dnc-ico.hi-o{display:none}
+.rsp-nav-item.is-active .dnc-ico.hi-s,.rsp-nav-item[aria-expanded="true"] .dnc-ico.hi-s{display:block}
+.rsp-nav-item .dnc-ico{width:24px!important;height:24px!important}
+.dnc-shell .dnc-link .dnc-ico{width:20px;height:20px}
+.modal-close .hi,.uc-x .hi{width:20px;height:20px;vertical-align:middle}
+/* glyphs drawn by CSS: the same Heroicons, as masks */
+.step-pill.done .step-num::before{content:''!important;display:inline-block;width:14px;height:14px;background:currentColor;-webkit-mask:var(--hi-check) center/contain no-repeat;mask:var(--hi-check) center/contain no-repeat}
+.qi-edit-mode-note.show::before{content:''!important;display:inline-block;width:16px;height:16px;margin-right:6px;vertical-align:-3px;background:currentColor;-webkit-mask:var(--hi-pencil) center/contain no-repeat;mask:var(--hi-pencil) center/contain no-repeat}
+.wqa-gx::after{content:''!important;width:10px;height:10px;background:currentColor;-webkit-mask:var(--hi-pencil) center/contain no-repeat;mask:var(--hi-pencil) center/contain no-repeat}
+@media print{ .dc-ic,.hi{display:none!important} }
 </style>
 </head>
 <body>
+<!-- HEROICONS-SPRITE v2.2.0 (https://heroicons.com) - MIT License, Copyright (c) Tailwind Labs, Inc.
+     Full text: assets/icons/heroicons/LICENSE. Built by tests/tools/build-heroicons-sprite.py; do not edit by hand. -->
+<svg id="dcHeroSprite" xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+<symbol id="hi-x-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></symbol>
+<symbol id="hi-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></symbol>
+<symbol id="hi-document-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></symbol>
+<symbol id="hi-document-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></symbol>
+<symbol id="hi-building-office-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"/></symbol>
+<symbol id="hi-building-office" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></symbol>
+<symbol id="hi-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/> <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></symbol>
+<symbol id="hi-adjustments-horizontal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/></symbol>
+<symbol id="hi-book-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></symbol>
+<symbol id="hi-clipboard-document-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></symbol>
+<symbol id="hi-clipboard-document-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></symbol>
+<symbol id="hi-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"/></symbol>
+<symbol id="hi-information-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></symbol>
+<symbol id="hi-arrow-right-start-on-rectangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></symbol>
+<symbol id="hi-bars-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></symbol>
+<symbol id="hi-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"/></symbol>
+<symbol id="hi-wrench-screwdriver" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z"/></symbol>
+<symbol id="hi-user-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></symbol>
+<symbol id="hi-ellipsis-horizontal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/></symbol>
+<symbol id="hi-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></symbol>
+<symbol id="hi-exclamation-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></symbol>
+<symbol id="hi-x-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></symbol>
+<symbol id="hi-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></symbol>
+<symbol id="hi-chat-bubble-left-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></symbol>
+<symbol id="hi-photo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></symbol>
+<symbol id="hi-magnifying-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></symbol>
+<symbol id="hi-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></symbol>
+<symbol id="hi-document-duplicate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"/></symbol>
+<symbol id="hi-light-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></symbol>
+<symbol id="hi-folder-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></symbol>
+<symbol id="hi-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z"/></symbol>
+<symbol id="hi-pencil-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></symbol>
+<symbol id="hi-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></symbol>
+<symbol id="hi-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/> <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></symbol>
+<symbol id="hi-calendar-days" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></symbol>
+<symbol id="hi-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></symbol>
+<symbol id="hi-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/></symbol>
+<symbol id="hi-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></symbol>
+<symbol id="hi-calculator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V13.5Zm0 2.25h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V18Zm2.498-6.75h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V13.5Zm0 2.25h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V18Zm2.504-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5Zm0 2.25h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V18Zm2.498-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5ZM8.25 6h7.5v2.25h-7.5V6ZM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0 0 12 2.25Z"/></symbol>
+<symbol id="hi-arrows-right-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></symbol>
+<symbol id="hi-puzzle-piece" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.39 48.39 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.96.401v0a.656.656 0 0 0 .658-.663 48.422 48.422 0 0 0-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 0 1-.61-.58v0Z"/></symbol>
+<symbol id="hi-printer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></symbol>
+<symbol id="hi-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></symbol>
+<symbol id="hi-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></symbol>
+<symbol id="his-document-text" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" clip-rule="evenodd"/> <path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z"/></symbol>
+<symbol id="his-bookmark" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clip-rule="evenodd"/></symbol>
+<symbol id="his-wrench-screwdriver" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 6.75a5.25 5.25 0 0 1 6.775-5.025.75.75 0 0 1 .313 1.248l-3.32 3.319c.063.475.276.934.641 1.299.365.365.824.578 1.3.64l3.318-3.319a.75.75 0 0 1 1.248.313 5.25 5.25 0 0 1-5.472 6.756c-1.018-.086-1.87.1-2.309.634L7.344 21.3A3.298 3.298 0 1 1 2.7 16.657l8.684-7.151c.533-.44.72-1.291.634-2.309A5.342 5.342 0 0 1 12 6.75ZM4.117 19.125a.75.75 0 0 1 .75-.75h.008a.75.75 0 0 1 .75.75v.008a.75.75 0 0 1-.75.75h-.008a.75.75 0 0 1-.75-.75v-.008Z" clip-rule="evenodd"/> <path d="m10.076 8.64-2.201-2.2V4.874a.75.75 0 0 0-.364-.643l-3.75-2.25a.75.75 0 0 0-.916.113l-.75.75a.75.75 0 0 0-.113.916l2.25 3.75a.75.75 0 0 0 .643.364h1.564l2.062 2.062 1.575-1.297Z"/> <path fill-rule="evenodd" d="m12.556 17.329 4.183 4.182a3.375 3.375 0 0 0 4.773-4.773l-3.306-3.305a6.803 6.803 0 0 1-1.53.043c-.394-.034-.682-.006-.867.042a.589.589 0 0 0-.167.063l-3.086 3.748Zm3.414-1.36a.75.75 0 0 1 1.06 0l1.875 1.876a.75.75 0 1 1-1.06 1.06L15.97 17.03a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></symbol>
+<symbol id="his-user-circle" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clip-rule="evenodd"/></symbol>
+</svg>
+<!-- /HEROICONS-SPRITE -->
 <!-- ══ DNC shared desktop shell (≥1024px). The same block, byte for byte, in
      index.php and companies.php; only the active item differs. Below 1024px it
      is not shown and the page keeps its own header and off-canvas menu. ══ -->
 <aside class="dnc-shell" id="dncShell" data-i18n-aria="shellNav" aria-label="DNC navigation">
-  <button type="button" class="rsp-close" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  <button type="button" class="rsp-close" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
   <a class="dnc-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
     <img class="dnc-mark" src="assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
   </a>
   <div class="dnc-back-wrap">
-    <a class="dnc-back" id="dncBack" href="https://portal.dnchardware.com"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span data-i18n="shellBack">Back to Workspace</span></a>
+    <a class="dnc-back" id="dncBack" href="https://portal.dnchardware.com"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-arrow-left"/></svg><span data-i18n="shellBack">Back to Workspace</span></a>
   </div>
   <div class="dnc-cta-wrap">
-    <button type="button" class="dnc-cta" id="dncNew" onclick="dcShellNew()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span data-i18n="shellNewQuotation">New Quotation</span></button>
+    <button type="button" class="dnc-cta" id="dncNew" onclick="dcShellNew()"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-document-plus"/></svg><span data-i18n="shellNewQuotation">New Quotation</span></button>
   </div>
   <nav class="dnc-nav">
     <p class="dnc-sec" data-i18n="shellModules">Quotation</p>
-    <a class="dnc-link is-active" aria-current="page" data-shell="quotations" href="index.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg><span data-i18n="shellQuotations">Quotations</span></a>
+    <a class="dnc-link is-active" aria-current="page" data-shell="quotations" href="index.php"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-document-text"/></svg><span data-i18n="shellQuotations">Quotations</span></a>
     <p class="dnc-sec" data-i18n="shellQuoTools">Quotation Tools</p>
-    <a class="dnc-link" data-shell="companies" href="companies.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg><span data-i18n="shellCompaniesSaved">Companies &amp; Saved</span></a>
-    <button type="button" class="dnc-link" data-shell="dp" onclick="dcShellTool('dp')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span data-i18n="shellDefaultPrices">Default Prices</span></button>
-    <button type="button" class="dnc-link" data-shell="ds" onclick="dcShellTool('ds')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="19" r="2"/><circle cx="5" cy="5" r="2"/><path d="M6.48 3.66a10 10 0 0 1 13.86 13.86"/><path d="m6.41 6.41 11.18 11.18"/><path d="M3.66 6.48a10 10 0 0 0 13.86 13.86"/></svg><span data-i18n="shellDiameterSettings">Diameter Settings</span></button>
-    <button type="button" class="dnc-link" data-shell="ref" onclick="dcShellTool('ref')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span data-i18n="shellPricingGuide">Pricing Guide</span></button>
+    <a class="dnc-link" data-shell="companies" href="companies.php"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-building-office-2"/></svg><span data-i18n="shellCompaniesSaved">Companies &amp; Saved</span></a>
+    <button type="button" class="dnc-link" data-shell="dp" onclick="dcShellTool('dp')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-tag"/></svg><span data-i18n="shellDefaultPrices">Default Prices</span></button>
+    <button type="button" class="dnc-link" data-shell="ds" onclick="dcShellTool('ds')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-adjustments-horizontal"/></svg><span data-i18n="shellDiameterSettings">Diameter Settings</span></button>
+    <button type="button" class="dnc-link" data-shell="ref" onclick="dcShellTool('ref')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-book-open"/></svg><span data-i18n="shellPricingGuide">Pricing Guide</span></button>
     <p class="dnc-sec" data-i18n="shellOtherModules">Other Modules</p>
-    <a class="dnc-link" data-shell="ipo" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
+    <a class="dnc-link" data-shell="ipo" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-clipboard-document-check"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
   </nav>
   <div class="dnc-bottom">
     <div class="dnc-lang" role="group" data-i18n-aria="langAria" aria-label="Language">
@@ -4849,10 +4924,10 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
       <button type="button" class="dnc-lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
     </div>
     <div class="dnc-menu" id="dncMenu" role="menu" hidden>
-      <button type="button" class="dnc-mi" role="menuitem" onclick="dcShellToggleMenu(false);dcShellTool('whatsnew')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg><span data-i18n="shellWhatsNew">What's New</span></button>
-      <div class="dnc-mi is-static" role="menuitem" aria-disabled="true"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span data-i18n="shellSystemVersion">System Version</span><span class="dnc-mi-val" id="dncSysVer" data-i18n-skip>…</span></div>
+      <button type="button" class="dnc-mi" role="menuitem" onclick="dcShellToggleMenu(false);dcShellTool('whatsnew')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-sparkles"/></svg><span data-i18n="shellWhatsNew">What's New</span></button>
+      <div class="dnc-mi is-static" role="menuitem" aria-disabled="true"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-information-circle"/></svg><span data-i18n="shellSystemVersion">System Version</span><span class="dnc-mi-val" id="dncSysVer" data-i18n-skip>…</span></div>
       <div class="dnc-mi-sep" role="separator"></div>
-      <a class="dnc-mi" role="menuitem" href="logout.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg><span data-i18n="shellSignOut">Sign Out</span></a>
+      <a class="dnc-mi" role="menuitem" href="logout.php"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-arrow-right-start-on-rectangle"/></svg><span data-i18n="shellSignOut">Sign Out</span></a>
     </div>
     <button type="button" class="dnc-acct" id="dncAcctBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="dncMenu"
             data-i18n-aria="shellAccountMenu" aria-label="Account menu" onclick="dcShellToggleMenu()">
@@ -4869,7 +4944,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
      companies.php. Tablet (600–1023px) opens #dncShell above as a drawer; phones
      (<600px) get the compact top bar, the bottom navigation and the two sheets. ══ -->
 <div class="rsp-top" id="rspTop">
-  <button type="button" class="rsp-burger" id="rspBurger" aria-expanded="false" aria-controls="dncShell" data-i18n-aria="rspOpenMenu" aria-label="Open menu" onclick="rspOpen('drawer')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
+  <button type="button" class="rsp-burger" id="rspBurger" aria-expanded="false" aria-controls="dncShell" data-i18n-aria="rspOpenMenu" aria-label="Open menu" onclick="rspOpen('drawer')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-bars-3"/></svg></button>
   <a class="rsp-brand" href="index.php" data-i18n-aria="shellHome" aria-label="DNC Quotation — home">
     <img class="dnc-mark" src="assets/icons/dnc-logo.svg" alt="" aria-hidden="true">
     <span class="dnc-brand-text"><span class="dnc-brand-sys">DNC</span><span class="dnc-brand-mod">QUOTATION</span></span>
@@ -4877,31 +4952,31 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
   <button type="button" class="rsp-avatar-btn" id="rspAvatarBtn" aria-expanded="false" aria-controls="rspAcct" data-i18n-aria="shellAccountMenu" aria-label="Account menu" onclick="rspOpen('account')"><span class="dnc-avatar" id="rspAvatarTop" aria-hidden="true" data-i18n-skip>·</span></button>
 </div>
 <nav class="rsp-nav" id="rspNav" data-i18n-aria="rspMainNav" aria-label="Main navigation">
-  <button type="button" class="rsp-nav-item is-active" aria-current="page" onclick="rspTop()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg><span data-i18n="rspNavQuotation">Quotation</span></button>
-  <a class="rsp-nav-item" href="companies.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span data-i18n="rspNavSaved">Saved</span></a>
-  <button type="button" class="rsp-nav-item" id="rspNavTools" aria-expanded="false" aria-controls="rspTools" onclick="rspOpen('tools')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg><span data-i18n="rspNavTools">Tools</span></button>
-  <button type="button" class="rsp-nav-item" id="rspNavAccount" aria-expanded="false" aria-controls="rspAcct" onclick="rspOpen('account')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="rspNavAccount">Account</span></button>
+  <button type="button" class="rsp-nav-item is-active" aria-current="page" onclick="rspTop()"><svg class="dnc-ico hi-o" aria-hidden="true" focusable="false"><use href="#hi-document-text"/></svg><svg class="dnc-ico hi-s" aria-hidden="true" focusable="false"><use href="#his-document-text"/></svg><span data-i18n="rspNavQuotation">Quotation</span></button>
+  <a class="rsp-nav-item" href="companies.php"><svg class="dnc-ico hi-o" aria-hidden="true" focusable="false"><use href="#hi-bookmark"/></svg><svg class="dnc-ico hi-s" aria-hidden="true" focusable="false"><use href="#his-bookmark"/></svg><span data-i18n="rspNavSaved">Saved</span></a>
+  <button type="button" class="rsp-nav-item" id="rspNavTools" aria-expanded="false" aria-controls="rspTools" onclick="rspOpen('tools')"><svg class="dnc-ico hi-o" aria-hidden="true" focusable="false"><use href="#hi-wrench-screwdriver"/></svg><svg class="dnc-ico hi-s" aria-hidden="true" focusable="false"><use href="#his-wrench-screwdriver"/></svg><span data-i18n="rspNavTools">Tools</span></button>
+  <button type="button" class="rsp-nav-item" id="rspNavAccount" aria-expanded="false" aria-controls="rspAcct" onclick="rspOpen('account')"><svg class="dnc-ico hi-o" aria-hidden="true" focusable="false"><use href="#hi-user-circle"/></svg><svg class="dnc-ico hi-s" aria-hidden="true" focusable="false"><use href="#his-user-circle"/></svg><span data-i18n="rspNavAccount">Account</span></button>
 </nav>
 <div class="rsp-scrim" id="rspScrim" onclick="rspClose()"></div>
 <div class="rsp-sheet" id="rspMore" role="dialog" aria-modal="true" aria-labelledby="rspMoreTitle" tabindex="-1">
-  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspMoreTitle" data-i18n="rspNavMore">More</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspMoreTitle" data-i18n="rspNavMore">More</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
   <div class="rsp-sheet-body">
-    <a class="rsp-row" id="rspMoreSaved" href="companies.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span data-i18n="rspNavSaved">Saved</span></a>
-    <button type="button" class="rsp-row" id="rspMoreTools" onclick="rspOpen('tools')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg><span data-i18n="rspNavTools">Tools</span></button>
-    <button type="button" class="rsp-row" id="rspMoreAccount" onclick="rspOpen('account')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="rspNavAccount">Account</span></button>
+    <a class="rsp-row" id="rspMoreSaved" href="companies.php"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-bookmark"/></svg><span data-i18n="rspNavSaved">Saved</span></a>
+    <button type="button" class="rsp-row" id="rspMoreTools" onclick="rspOpen('tools')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-wrench-screwdriver"/></svg><span data-i18n="rspNavTools">Tools</span></button>
+    <button type="button" class="rsp-row" id="rspMoreAccount" onclick="rspOpen('account')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-user-circle"/></svg><span data-i18n="rspNavAccount">Account</span></button>
   </div>
 </div>
 <div class="rsp-sheet" id="rspTools" role="dialog" aria-modal="true" aria-labelledby="rspToolsTitle" tabindex="-1">
-  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspToolsTitle" data-i18n="rspNavTools">Tools</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspToolsTitle" data-i18n="rspNavTools">Tools</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
   <div class="rsp-sheet-body">
-    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('dp')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg><span data-i18n="shellDefaultPrices">Default Prices</span></button>
-    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('ds')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="19" cy="19" r="2"/><circle cx="5" cy="5" r="2"/><path d="M6.48 3.66a10 10 0 0 1 13.86 13.86"/><path d="m6.41 6.41 11.18 11.18"/><path d="M3.66 6.48a10 10 0 0 0 13.86 13.86"/></svg><span data-i18n="shellDiameterSettings">Diameter Settings</span></button>
-    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('ref')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span data-i18n="shellPricingGuide">Pricing Guide</span></button>
-    <a class="rsp-row rsp-go" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('dp')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-tag"/></svg><span data-i18n="shellDefaultPrices">Default Prices</span></button>
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('ds')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-adjustments-horizontal"/></svg><span data-i18n="shellDiameterSettings">Diameter Settings</span></button>
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('ref')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-book-open"/></svg><span data-i18n="shellPricingGuide">Pricing Guide</span></button>
+    <a class="rsp-row rsp-go" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-clipboard-document-check"/></svg><span data-i18n="shellIpo">Internal Purchase Orders</span></a>
   </div>
 </div>
 <div class="rsp-sheet" id="rspAcct" role="dialog" aria-modal="true" aria-labelledby="rspAcctTitle" tabindex="-1">
-  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspAcctTitle" data-i18n="rspNavAccount">Account</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="rsp-sheet-head"><h2 class="rsp-sheet-title" id="rspAcctTitle" data-i18n="rspNavAccount">Account</h2><button type="button" class="rsp-x" data-i18n-aria="rspClose" aria-label="Close" onclick="rspClose()"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
   <div class="rsp-sheet-body">
     <div class="rsp-ident" data-i18n-skip><span class="dnc-avatar" id="rspAcctAvatar" aria-hidden="true">·</span><span class="dnc-acct-text"><span class="dnc-acct-name" id="rspAcctName"></span><span class="dnc-acct-user" id="rspAcctUser"></span></span></div>
     <div class="rsp-lang-row"><span class="rsp-lang-lbl" data-i18n="language">Language</span>
@@ -4910,11 +4985,11 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         <button type="button" class="dnc-lang-btn" data-lang-set="zh" aria-pressed="false" onclick="dcSetLang('zh')">中文</button>
       </div></div>
     <div class="rsp-sep" role="separator"></div>
-    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('whatsnew')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg><span data-i18n="shellWhatsNew">What's New</span></button>
-    <div class="rsp-row is-static"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span data-i18n="shellSystemVersion">System Version</span><span class="dnc-mi-val" id="rspSysVer" data-i18n-skip>…</span></div>
-    <a class="rsp-row rsp-go" href="https://portal.dnchardware.com"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg><span data-i18n="shellBack">Back to Workspace</span></a>
+    <button type="button" class="rsp-row rsp-go" onclick="dcShellTool('whatsnew')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-sparkles"/></svg><span data-i18n="shellWhatsNew">What's New</span></button>
+    <div class="rsp-row is-static"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-information-circle"/></svg><span data-i18n="shellSystemVersion">System Version</span><span class="dnc-mi-val" id="rspSysVer" data-i18n-skip>…</span></div>
+    <a class="rsp-row rsp-go" href="https://portal.dnchardware.com"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-arrow-left"/></svg><span data-i18n="shellBack">Back to Workspace</span></a>
     <div class="rsp-sep" role="separator"></div>
-    <a class="rsp-row" href="logout.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg><span data-i18n="shellSignOut">Sign Out</span></a>
+    <a class="rsp-row" href="logout.php"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-arrow-right-start-on-rectangle"/></svg><span data-i18n="shellSignOut">Sign Out</span></a>
   </div>
 </div>
 
@@ -4924,9 +4999,9 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
     <!-- Phone quick actions (<600px): the most-used moves, one row. -->
     <div class="rsp-quick" data-i18n-aria="rspQuickAria" aria-label="Quick actions">
-      <button type="button" class="rsp-chip is-primary" onclick="dcShellNew()"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span data-i18n="shellNewQuotation">New Quotation</span></button>
-      <a class="rsp-chip" href="companies.php"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span data-i18n="rspNavSaved">Saved</span></a>
-      <a class="rsp-chip" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg><span data-i18n="rspQuickPo">Internal PO</span></a>
+      <button type="button" class="rsp-chip is-primary" onclick="dcShellNew()"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-document-plus"/></svg><span data-i18n="shellNewQuotation">New Quotation</span></button>
+      <a class="rsp-chip" href="companies.php"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-bookmark"/></svg><span data-i18n="rspNavSaved">Saved</span></a>
+      <a class="rsp-chip" href="https://po.dnchardware.com/auth/handoff/start" onclick="return dcShellLeave(event,this.href)"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-clipboard-document-check"/></svg><span data-i18n="rspQuickPo">Internal PO</span></a>
     </div>
 
 
@@ -4972,7 +5047,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         <button class="btn btn-danger btn-sm rsp-dup-new" style="font-size:12px;padding:5px 12px;white-space:nowrap" onclick="startNewQuotation()" data-i18n="newQuotation">New Quotation</button>
       </div>
       <div class="qi-compact" onclick="toggleQIEdit()">
-        <div class="summary-ava" aria-hidden="true">👤</div>
+        <div class="summary-ava" aria-hidden="true"><svg class="hi" aria-hidden="true" focusable="false"><use href="#hi-building-office-2"/></svg></div>
         <div class="qi-compact-main">
           <div class="nm" id="qiName">No customer yet</div>
           <div class="meta summary-meta">
@@ -5031,7 +5106,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         </div>
 
         <button type="button" class="btn btn-outline wqa-open-btn" onclick="wqaOpen()">
-          <span class="wqa-open-ico">💬</span> <span data-i18n="wqaOpenTitle">Quick Add</span>
+          <span class="wqa-open-ico"><svg class="hi" aria-hidden="true" focusable="false"><use href="#hi-chat-bubble-left-right"/></svg></span> <span data-i18n="wqaOpenTitle">Quick Add</span>
           <span class="wqa-open-sub"><span data-i18n="wqaOpenSub">Paste customer text or upload image / PDF</span></span>
         </button>
 
@@ -5847,7 +5922,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <button class="btn btn-ghost btn-sm mb-out mb-print" id="mbPrintBtn" type="button" onclick="doPrint()" data-i18n="print">Print</button>
     <button class="btn btn-wa btn-sm mb-out mb-wa" id="mbWaBtn" type="button" onclick="doWhatsApp()">WhatsApp</button>
     <button class="btn btn-save" id="mobileSaveBtn" onclick="openSaveModal()"><span class="mb-sv-short">Save</span><span class="mb-sv-ph">Save Quotation</span></button>
-    <button class="btn btn-ghost btn-sm mb-more" id="mbMoreBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="rspMore" data-i18n-aria="rspMoreAria" aria-label="More actions" onclick="rspOpen('more')"><svg class="dnc-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg></button>
+    <button class="btn btn-ghost btn-sm mb-more" id="mbMoreBtn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="rspMore" data-i18n-aria="rspMoreAria" aria-label="More actions" onclick="rspOpen('more')"><svg class="dnc-ico" aria-hidden="true" focusable="false"><use href="#hi-ellipsis-horizontal"/></svg></button>
   </div>
 </div>
 
@@ -5918,7 +5993,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
 <!-- ═══ UNIT CONVERTER — one inline panel, parked here until a Dimension Entry heading opens it ═══ -->
 <div class="uc-panel" id="unitConvPanel" hidden>
-  <div class="uc-head"><span data-i18n="ucTitle">Unit Converter</span><button type="button" class="uc-x" onclick="closeUnitConverter()" data-i18n-aria="ucClose" aria-label="Close">✕</button></div>
+  <div class="uc-head"><span data-i18n="ucTitle">Unit Converter</span><button type="button" class="uc-x" onclick="closeUnitConverter()" data-i18n-aria="ucClose" aria-label="Close"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
   <div class="uc-in field"><label data-i18n="ucInput">Input</label><div class="uc-inrow"><input type="text" id="ucInput" inputmode="text" autocomplete="off" placeholder="1 1/8&quot;" oninput="updateUnitConverter()"><select id="ucUnit" onchange="updateUnitConverter()"><option value="auto" data-i18n="ucUnitAuto">Auto</option><option value="in" data-i18n="ucUnitIn">INCH</option><option value="ft" data-i18n="ucUnitFt">FT</option><option value="mm" data-i18n="ucUnitMm">mm</option></select></div></div>
   <div class="uc-msg" id="ucMsg" hidden data-i18n="ucInvalid">Invalid dimension</div>
   <div class="uc-row"><div class="uc-res"><label data-i18n="ucExact">Exact</label><strong id="ucExact">—</strong></div><button type="button" class="btn btn-outline btn-sm" id="ucCopyExactBtn" onclick="copyUnitConv('exact')" data-i18n="ucCopyExact" disabled>Copy Exact</button></div>
@@ -5931,7 +6006,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
   <div class="modal version-updates-modal">
     <div class="modal-title version-updates-head">
       <span data-i18n="sideVersionUpdates">Version Updates</span>
-      <button class="modal-close" onclick="closeModal('versionUpdatesModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('versionUpdatesModal')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
     </div>
     <div class="version-updates-list">
       <section class="version-card">
@@ -6168,7 +6243,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       </div>
     </div>
     <div class="modal-title"><span data-i18n="wqaTitle">Quick Add</span>
-      <button class="modal-close" onclick="wqaRequestClose()">✕</button></div>
+      <button class="modal-close" onclick="wqaRequestClose()" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
 
     <!-- STEP 1 — paste text OR upload a photo / PDF -->
     <div id="wqaStep1">
@@ -6184,11 +6259,11 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         <p class="wqa-hint" data-i18n="wqaChooseHint">How did the customer send the request?</p>
         <div class="wqa-choice">
           <button type="button" class="wqa-choice-btn" onclick="wqaSetMethod('paste')">
-            <span class="wqa-choice-ico" aria-hidden="true">💬</span>
+            <span class="wqa-choice-ico" aria-hidden="true"><svg class="hi" aria-hidden="true" focusable="false"><use href="#hi-chat-bubble-left-right"/></svg></span>
             <span class="wqa-choice-lbl" data-i18n="wqaTabPaste">Paste WhatsApp Text</span>
           </button>
           <button type="button" class="wqa-choice-btn" onclick="wqaSetMethod('upload')">
-            <span class="wqa-choice-ico" aria-hidden="true">🖼️</span>
+            <span class="wqa-choice-ico" aria-hidden="true"><svg class="hi" aria-hidden="true" focusable="false"><use href="#hi-photo"/></svg></span>
             <span class="wqa-choice-lbl" data-i18n="wqaTabUpload">Upload Photo / PDF</span>
           </button>
         </div>
@@ -6319,7 +6394,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
 <div class="modal-overlay" id="refModal">
   <div class="modal" style="max-width:720px">
-    <div class="modal-title"><span data-i18n="sidePricingGuide">Pricing Guide</span> <span class="zh" data-i18n="pricingGuideSub">Pricing guide</span> <button class="modal-close" onclick="closeModal('refModal')">✕</button></div>
+    <div class="modal-title"><span data-i18n="sidePricingGuide">Pricing Guide</span> <span class="zh" data-i18n="pricingGuideSub">Pricing guide</span> <button class="modal-close" onclick="closeModal('refModal')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
     <div class="ref-tabs">
       <button class="ref-tab active" onclick="switchRefTab('cost')" data-i18n="lblCostRate">Cost Rate</button>
       <button class="ref-tab" onclick="switchRefTab('addcost')" data-i18n="lblAdditionalCost">Additional Cost</button>
@@ -6396,14 +6471,14 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 </style>
 <div class="modal-overlay" id="historyModal">
   <div class="modal" style="max-width:640px">
-    <div class="modal-title"><span data-i18n="histTitle">Revision History</span> <button class="modal-close" onclick="closeModal('historyModal')">✕</button></div>
+    <div class="modal-title"><span data-i18n="histTitle">Revision History</span> <button class="modal-close" onclick="closeModal('historyModal')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
     <div id="historyBody" class="hist-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="saveModal">
   <div class="modal">
-    <div class="modal-title" id="saveModalTitle"><span data-i18n="saveQuotation">Save Quotation</span> <button class="modal-close" onclick="closeModal('saveModal')">✕</button></div>
+    <div class="modal-title" id="saveModalTitle"><span data-i18n="saveQuotation">Save Quotation</span> <button class="modal-close" onclick="closeModal('saveModal')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
     <div class="modal-grid">
       <div class="field full"><label data-i18n="mCompany">Company</label>
         <select id="sv-company"><option value="" data-i18n="mNoCompanyStandalone">— No company (standalone) —</option></select></div>
@@ -6438,7 +6513,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 <!-- ═══ DEFAULT PRICE SETTINGS MODAL ═══ -->
 <div class="modal-overlay" id="dpModal">
   <div class="modal" style="max-width:800px">
-    <div class="modal-title"><span data-i18n="mDefaultPriceSettings">Default Price Settings</span> <span style="font-size:11px;font-weight:500;color:var(--text-muted)" data-i18n="mSavedToMysql">saved to MySQL</span><button class="modal-close" onclick="closeModal('dpModal')">✕</button></div>
+    <div class="modal-title"><span data-i18n="mDefaultPriceSettings">Default Price Settings</span> <span style="font-size:11px;font-weight:500;color:var(--text-muted)" data-i18n="mSavedToMysql">saved to MySQL</span><button class="modal-close" onclick="closeModal('dpModal')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
 
     <!-- Master Data Tools -->
     <div class="mdt-box">
@@ -6538,7 +6613,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <div class="modal-title">
       <span data-i18n="waTemplateTitle">WhatsApp Message Template</span>
       <span style="display:block;font-size:11.5px;font-weight:600;color:var(--text-muted);margin-top:2px" data-i18n="waTemplateSub">WhatsApp message template</span>
-      <button class="modal-close" onclick="closeModal('waTemplateModal')" style="align-self:flex-start">✕</button>
+      <button class="modal-close" onclick="closeModal('waTemplateModal')" style="align-self:flex-start" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
     </div>
 
     <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
@@ -6569,7 +6644,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
   <div class="modal" style="max-width:760px">
     <div class="modal-title">
       <span data-i18n="sideDiameterSettings">Diameter Settings</span>
-      <button class="modal-close" onclick="closeModal('dsModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('dsModal')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
     </div>
     <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px" data-i18n="mDsHelp">Custom diameter rules take priority over built-in defaults. Leave Size blank to match all sizes of a product+material combination.</p>
 
@@ -6676,7 +6751,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       <div class="ph-drawer-sub" id="phDrawerSub"></div>
       <div class="ph-drawer-legend" data-i18n="phDiffLegend">Differences = history − this item</div>
     </div>
-    <button type="button" class="ph-drawer-x" id="phDrawerClose" onclick="phDrawerClose()" data-i18n-title="phClose" title="Close" aria-label="Close">✕</button>
+    <button type="button" class="ph-drawer-x" id="phDrawerClose" onclick="phDrawerClose()" data-i18n-title="phClose" title="Close" aria-label="Close"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
   </div>
   <div class="ph-confirm" id="phConfirm" role="alertdialog" aria-modal="true" aria-labelledby="phCfTitle" hidden>
     <div class="ph-cf-card">
@@ -6715,7 +6790,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       <div class="ph-drawer-sub" id="wqaHdSub"></div>
       <div class="ph-drawer-legend" data-i18n="phDiffLegend">Differences = history − this item</div>
     </div>
-    <button type="button" class="ph-drawer-x" onclick="wqaHdClose()" data-i18n-title="phClose" data-i18n-aria="phClose" title="Close" aria-label="Close">✕</button>
+    <button type="button" class="ph-drawer-x" onclick="wqaHdClose()" data-i18n-title="phClose" data-i18n-aria="phClose" title="Close" aria-label="Close"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
   </div>
   <div class="ph-drawer-body" id="wqaHdBody"></div>
 </aside>
@@ -8354,7 +8429,7 @@ function dcRenderCustomDims(){
       <input type="text" maxlength="40" value="${escHtml(e.value)}"
              placeholder="${escHtml(dcT('cdimValuePh'))}" oninput="dcEditCustomDim(${i},'value',this.value)">
       <button type="button" class="cdim-del" onclick="dcRemoveCustomDim(${i})"
-              title="${escHtml(dcT('cdimRemove'))}" aria-label="${escHtml(dcT('cdimRemove'))}">✕</button>
+              title="${escHtml(dcT('cdimRemove'))}" aria-label="${escHtml(dcT('cdimRemove'))}"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
     </div>`).join('');
 }
 dcOnRelabel(dcRenderCustomDimsHost);
@@ -9734,7 +9809,7 @@ function renderDSList(){
       <td><span class="dp-badge ${isSystem?'dp-badge-system':'dp-badge-custom'}">${escHtml(dcT(isSystem?'badgeSystemDefault':'badgeCustom'))}</span></td>
       <td style="white-space:nowrap">
         <button class="dp-act" onclick="editDSRule('${r.id}')" title="${escHtml(dcT('btnEdit'))}">✎</button>
-        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDSRule('${r.id}')" title="${escHtml(dcT('btnDelete'))}">✕</button>`}
+        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDSRule('${r.id}')" title="${escHtml(dcT('btnDelete'))}" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>`}
       </td>`;
     tbody.appendChild(tr);
   });
@@ -10443,7 +10518,7 @@ let accHistoryState=null;
 function accHistoryModal(){
   let modal=el('accHistoryModal'); if(modal) return modal;
   modal=document.createElement('div'); modal.id='accHistoryModal'; modal.className='modal-overlay';
-  modal.innerHTML='<div class="modal modal-sm acc-history-modal"><div class="modal-header"><h2 id="accHistoryTitle"></h2><button class="modal-close" type="button" onclick="closeModal(\'accHistoryModal\')">✕</button></div><div class="modal-body acc-history-body" id="accHistoryBody"></div></div>';
+  modal.innerHTML='<div class="modal modal-sm acc-history-modal"><div class="modal-header"><h2 id="accHistoryTitle"></h2><button class="modal-close" type="button" onclick="closeModal(\'accHistoryModal\')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div><div class="modal-body acc-history-body" id="accHistoryBody"></div></div>';
   document.body.appendChild(modal); return modal;
 }
 /* ── Accessory History, shared by the entry form and Quick Add ────────────
@@ -14054,7 +14129,7 @@ async function openSaveModal(){
   el('sv-date').value=qi.date||todayStr();
   el('sv-prepby').value=qi.prepby||'';
   el('sv-remarks').value=qi.remarks||'';
-  el('saveModalTitle').innerHTML = (editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation')) + ' <button class="modal-close" onclick="closeModal(\'saveModal\')">✕</button>';
+  el('saveModalTitle').innerHTML = (editingQuoteId?dcT('updateQuotation'):dcT('saveQuotation')) + ' <button class="modal-close" onclick="closeModal(\'saveModal\')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>';
   const submit=el('saveModalSubmitBtn');
   if(submit) submit.textContent=dcT(editingQuoteId?'btnUpdateQuotation':'btnSaveQuotation');
   openModal('saveModal');
@@ -14523,7 +14598,7 @@ function renderDPList(){
       <td style="white-space:nowrap">
         <button class="dp-act" onclick="editDPRule('${r.id}')" title="${escHtml(dcT('btnEdit'))}">✎</button>
         ${isSystem?'':`<button class="dp-act" onclick="toggleDPRule('${r.id}')" title="${r.active=='1'?'Disable':'Enable'}">${r.active=='1'?'⏸':'▶'}</button>`}
-        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDPRule('${r.id}')" title="${escHtml(dcT('btnDelete'))}">✕</button>`}
+        ${isSystem?'':`<button class="dp-act" style="color:var(--red)" onclick="deleteDPRule('${r.id}')" title="${escHtml(dcT('btnDelete'))}" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>`}
       </td>`;
     tbody.appendChild(tr);
   });
@@ -22524,7 +22599,7 @@ function dcHistIcon(){ return '<svg class="dc-hist-ico" viewBox="0 0 24 24" fill
 function wqaRvDelBtn(i){
   return `<button type="button" class="wqa-rv-act wqa-row-del" title="${escHtml(dcT('btnRemove'))}"
       aria-label="${escHtml(dcT('ariaRemoveItem').replace('{n}',i+1))}"
-      onclick="event.stopPropagation();wqaRemoveRow(${i})">✕</button>`;
+      onclick="event.stopPropagation();wqaRemoveRow(${i})"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>`;
 }
 function wqaRvMoreBtn(r,i){
   const open=wqaRowIsOpen(r);
@@ -22711,7 +22786,7 @@ function wqaRvHqHtml(r,i){
   }).join('');
   const cur=phSpecShort(normalizeSizeValue(r.size),h._cmpDims);
   return `<div class="wqa-hq" role="dialog" aria-label="${escHtml(dcT('wqaHqTitle'))}" onclick="event.stopPropagation()">
-      <div class="wqa-hq-t">${escHtml(dcT('wqaHqTitle'))}${r.hist&&r.hist.records&&r.hist.records.length?`<span class="wqa-hq-cnt">${escHtml(dcT((r.hist.total||r.hist.records.length)===1?'wqaHsOne':'wqaHsN').replace('{n}',r.hist.total||r.hist.records.length))}</span>`:''}<button type="button" class="wqa-hq-x" aria-label="${escHtml(dcT('phClose'))}" onclick="wqaHqToggle(${i})">✕</button></div>
+      <div class="wqa-hq-t">${escHtml(dcT('wqaHqTitle'))}${r.hist&&r.hist.records&&r.hist.records.length?`<span class="wqa-hq-cnt">${escHtml(dcT((r.hist.total||r.hist.records.length)===1?'wqaHsOne':'wqaHsN').replace('{n}',r.hist.total||r.hist.records.length))}</span>`:''}<button type="button" class="wqa-hq-x" aria-label="${escHtml(dcT('phClose'))}" onclick="wqaHqToggle(${i})"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
       ${cur?`<div class="wqa-hq-cur">${escHtml(dcT('wqaHqCurrent'))} <b>${escHtml(cur)}</b></div>`:''}
       ${rows||`<div class="wqa-hq-empty">${escHtml(dcT('phNoneExact'))}</div>`}
       <div class="wqa-hq-foot"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();wqaHdOpen(${i})">${escHtml(dcT('wqaHqFull'))}</button></div>
@@ -23443,7 +23518,7 @@ function wqaGaccHtml(i,idx){
       <button type="button" class="wqa-rv-act wqa-row-del wqa-gacc-hist${open?' is-on':''}" aria-expanded="${open?'true':'false'}" title="${escHtml(dcT('accHistory'))}"
         aria-label="${escHtml(dcT('accHistory'))}" onclick="event.stopPropagation();wqaAccHistToggle(${i},'${k}')">${dcHistIcon()}</button>
       <button type="button" class="wqa-rv-act wqa-row-del wqa-gacc-rm" title="${escHtml(dcT('accRemove'))}" aria-label="${escHtml(dcT('accRemove'))}"
-        onclick="event.stopPropagation();wqaGaccRemove(${i},'${k}')">✕</button>
+        onclick="event.stopPropagation();wqaGaccRemove(${i},'${k}')"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
       <span class="wqa-gacc-own">${own?escHtml(dcT('accRowsOwn').replace('{n}',own)):''}</span>
       ${open?wqaAccHistPanel(i,k):''}
     </div>`;
@@ -23901,7 +23976,7 @@ function wqaRenderBulkSheet(){
   const row=(lbl,ctl)=>`<label class="wqa-bs-f"><span class="wqa-bs-k">${escHtml(lbl)}</span>${ctl}</label>`;
   p.innerHTML=`<div class="wqa-bs-head">
       <span class="wqa-bs-title" id="wqaBsTitle">${escHtml(dcT('wqaBulkEdit'))}</span>
-      <button type="button" class="modal-close wqa-bs-close" aria-label="${escHtml(dcT('close'))}" onclick="wqaBulkSheetClose()">✕</button>
+      <button type="button" class="modal-close wqa-bs-close" aria-label="${escHtml(dcT('close'))}" onclick="wqaBulkSheetClose()"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
     </div>
     <div class="wqa-bs-body">
       <div class="wqa-bs-sec">${escHtml(dcT('wqaBsScope'))}</div>
@@ -25048,6 +25123,62 @@ function dcShellRunIntent(handoffLoaded){
   phAutoSchedule();
 })();
 
+
+/* ── R2.4 Session E — Heroicons (the same block in index.php and companies.php) ──
+   dcIcon(name) gives an icon for HTML the page builds. dcIconize() turns a
+   known emoji / symbol in DISPLAYED text into its Heroicon: the strings, the
+   translations, the stored data, WhatsApp and Print text are not touched —
+   only text nodes on screen, skipping script, style, textarea, options, SVG
+   and print areas. A MutationObserver applies it to whatever is rendered
+   later (toasts, cards, review rows). A button left with no text is given
+   an accessible name. */
+const DC_ICON_EMOJI=[['✅','check-circle','ok'],['⚠️','exclamation-triangle','warn'],['⚠','exclamation-triangle','warn'],['❌','x-circle','bad'],['✗','x-circle','bad'],
+  ['✖️','x-mark',''],['✖','x-mark',''],['✕','x-mark',''],['ℹ️','information-circle','info'],['ℹ','information-circle','info'],['✓','check','ok'],['✨','sparkles','info'],
+  ['💬','chat-bubble-left-right',''],['👤','user-circle',''],['🖼️','photo',''],['🖼','photo',''],['📋','clipboard-document-list',''],['🏢','building-office-2',''],
+  ['🔍','magnifying-glass',''],['🗑️','trash',''],['🗑','trash',''],['📄','document-duplicate',''],['💡','light-bulb','info'],['💾','check',''],['📂','folder-open',''],
+  ['📭','inbox',''],['✏️','pencil-square',''],['✏','pencil-square',''],['✎','pencil-square',''],['📦','cube',''],['👁️','eye',''],['👁','eye',''],['📅','calendar-days',''],
+  ['➕','plus',''],['🧮','calculator',''],['🕘','clock','']];
+const DC_ICON_RE=new RegExp('('+DC_ICON_EMOJI.map(x=>x[0]).sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\uFE0F? ?','g');
+const DC_ICON_SKIP='script,style,textarea,option,title,svg,[data-no-icons],#printSummary,.print-card,.print-only,noscript';
+function dcIcon(name,cls){ return '<svg class="hi'+(cls?' '+cls:'')+'" aria-hidden="true" focusable="false"><use href="#hi-'+name+'"/></svg>'; }
+function dcIconNode(name,tone,trail){
+  const ns='http://www.w3.org/2000/svg', s=document.createElementNS(ns,'svg'), u=document.createElementNS(ns,'use');
+  s.setAttribute('class','dc-ic'+(tone?' ic-'+tone:'')+(trail?' ic-trail':'')); s.setAttribute('aria-hidden','true'); s.setAttribute('focusable','false');
+  u.setAttribute('href','#hi-'+name); s.appendChild(u); return s;
+}
+function dcIconizeText(t){
+  const p=t.parentNode; if(!p||p.nodeType!==1||p.closest(DC_ICON_SKIP)) return;
+  const s=t.nodeValue; DC_ICON_RE.lastIndex=0; if(!DC_ICON_RE.test(s)) return;
+  DC_ICON_RE.lastIndex=0;
+  const frag=document.createDocumentFragment(); let last=0, m;
+  while((m=DC_ICON_RE.exec(s))){
+    if(m.index>last) frag.appendChild(document.createTextNode(s.slice(last,m.index)));
+    const hit=DC_ICON_EMOJI.find(x=>x[0]===m[1]); frag.appendChild(dcIconNode(hit[1],hit[2],m.index>0&&!s.slice(m.index+m[0].length).trim()));
+    last=m.index+m[0].length;
+  }
+  if(last<s.length) frag.appendChild(document.createTextNode(s.slice(last)));
+  p.replaceChild(frag,t);
+  const btn=p.closest('button,[role="button"]');
+  if(btn && !btn.getAttribute('aria-label') && !btn.textContent.trim()) btn.setAttribute('aria-label',btn.getAttribute('title')||dcT('rspClose'));
+}
+function dcIconize(root){
+  if(!root) return;
+  if(root.nodeType===3){ dcIconizeText(root); return; }
+  if(root.nodeType!==1 && root.nodeType!==9 && root.nodeType!==11) return;
+  if(root.nodeType===1 && root.closest(DC_ICON_SKIP)) return;
+  if(root.nodeType===1 && root.tagName==='SELECT'){ [...root.options].forEach(o=>{ const v=o.textContent.replace(DC_ICON_RE,''); if(v!==o.textContent) o.textContent=v; }); return; }
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT), list=[]; let n;
+  while((n=w.nextNode())) if(n.nodeValue && /[ℹ☀-➿\uD83C-\uD83E]/.test(n.nodeValue)) list.push(n);
+  list.forEach(dcIconizeText);
+  if(root.querySelectorAll) root.querySelectorAll('select').forEach(sel=>dcIconize(sel));
+}
+(function(){
+  let q=[], raf=0;
+  const flush=()=>{ raf=0; const l=q; q=[]; l.forEach(x=>{ if(x.isConnected) dcIconize(x); }); };
+  const obs=new MutationObserver(recs=>{ recs.forEach(r=>{ if(r.type==='characterData') q.push(r.target); else r.addedNodes.forEach(x=>q.push(x)); }); if(!raf) raf=requestAnimationFrame(flush); });
+  const start=()=>{ dcIconize(document.body); obs.observe(document.body,{childList:true,subtree:true,characterData:true}); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+})();
 /* ── Keyboard safety (visualViewport) ──────────────────────────────────────────
    Presentation only. Tracks how much of the page an on-screen keyboard covers,
    exposes it as --kb / --vvh, flags html.kb-open so the sticky footer steps aside,
