@@ -4794,6 +4794,26 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #step4Actions .quote-actions #saveQuoteBtn{grid-column:1/-1;min-height:48px}
   #step4Actions .quote-actions .btn-sm{min-height:44px;padding:0 6px;font-size:13px;white-space:nowrap}
 }
+
+/* ═══════════════ R2.4 Session A — one Product Grid (≥600px) ═══════════════
+   Equal columns sized from the card's OWN width (container query): 4 when the
+   card is ≥560px (rows 4 / 4 / 3), 3 when ≥380px (3 / 3 / 3 / 2), else 2 —
+   names wrap only between words. The last row is left-aligned, never
+   stretched; every row as tall
+   as the tallest (grid-auto-rows:1fr), the name centred between equal side
+   paddings so the selection dot never pushes it off-centre. No per-product
+   sizes. Phones keep the Product select (R2.3). */
+@media (min-width:600px){
+  #step2Card{container-type:inline-size;container-name:entry}
+  #step2Card .type-picker{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:8px;align-items:stretch}
+  #step2Card .type-btn{min-height:44px;height:100%;padding:6px 26px;display:flex;align-items:center;justify-content:center;text-align:center;
+    border-radius:var(--r-sm);line-height:1.2;min-width:0}
+  #step2Card .type-btn .t-name{display:block;min-width:0;overflow-wrap:break-word;word-break:normal}
+  #step2Card .type-btn::before{top:50%;right:9px;margin-top:-6px}
+  #step2Card .type-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+}
+@container entry (min-width:560px){ .type-picker{grid-template-columns:repeat(4,minmax(0,1fr))!important} }
+@container entry (max-width:379px){ .type-picker{grid-template-columns:repeat(2,minmax(0,1fr))!important} }
 </style>
 </head>
 <body>
