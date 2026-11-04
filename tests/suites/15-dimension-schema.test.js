@@ -132,7 +132,8 @@ module.exports = async (browser, A) => {
      generic word "Thread" the first finding was about. */
   const DIM = { stud: ['length'], sagrod: ['length', 'threadLen'], anchorbolt: ['length', 'threadLen'],
                 lbolt: ['length', 'w', 'threadLen'], jbolt: ['h', 'id', 's', 'threadLen'] };
-  const SHORT = { length: ['L', 'Length'], threadLen: ['TL', 'Thread Length'] };
+  /* R2.5 #09: 中文 reads the code plus the word — TL 牙长 — still never a bare "Thread" */
+  const SHORT = { length: ['L', 'Length'], threadLen: ['TL', 'Thread Length', 'TL 牙长'] };
   for (const lang of ['en', 'zh']) {
     await page.evaluate(l => dcSetLang(l), lang);
     await page.waitForTimeout(250);

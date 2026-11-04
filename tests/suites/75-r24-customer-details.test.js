@@ -28,7 +28,9 @@ module.exports = async (browser, A) => {
     await page.evaluate(() => toggleQIEdit());
     let g = await geo(page);
     const F = Object.fromEntries(g.f.map(x => [x.id, x]));
-    A.ok(F['qi-refno'].t === F['qi-date'].t && F['qi-date'].l > F['qi-refno'].l, `${w}: Quotation No + Date on one row`);
+    /* R2.5 #01: below 360px the iOS date input does not fit half the screen — Date stacks full width there */
+    if (w < 360) A.ok(F['qi-date'].t > F['qi-refno'].t, `${w}: Quotation No, then Date full width (R2.5 #01)`);
+    else A.ok(F['qi-refno'].t === F['qi-date'].t && F['qi-date'].l > F['qi-refno'].l, `${w}: Quotation No + Date on one row`);
     A.ok(['qi-customer', 'qi-phone', 'qi-prepby', 'qi-issued-by'].every(id => F[id].w > w * 0.7), `${w}: Customer, Contact, Prepared By, Issued By full width`);
     A.ok(['qi-customer', 'qi-phone', 'qi-refno', 'qi-date', 'qi-prepby', 'qi-issued-by'].every(id => F[id].h >= 44), `${w}: inputs ≥44px`);
     A.ok(g.ro && g.dateType === 'date', `${w}: Quotation No stays read-only, Date stays an editable date`);

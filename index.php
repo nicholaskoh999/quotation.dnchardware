@@ -4906,6 +4906,28 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #step1Card .qi-edit .field input,#step1Card .qi-edit .field select,
   #step2Card .item-form.active .field input:not([type=radio]):not([type=checkbox]),#step2Card .item-form.active .field select{height:42px;min-height:42px}
 }
+
+/* ═══════════════ R2.5 Session A — form controls ═══════════════
+   #02 A native select's box is the fixed control height; the 12px touch padding
+   left 17px for 14.5–16px text and iOS cut the label (Size Type "Fullsize",
+   Issued By). Padding is taken off the block axis only, so every select keeps
+   its height, value, events and validation — the control centres its own text.
+   #01 iOS gives a date input an intrinsic width wider than half a phone; it
+   now takes its column (min-width:0, no native minimum) and stacks full width
+   on the narrowest phones. #08 While Customer Details is being edited the
+   Quotation No / Date chips repeat the fields right below them — hidden then.  */
+.field select,.wqa-acc-f select{padding-top:0!important;padding-bottom:0!important;line-height:1.3}
+.field input[type=date]{min-width:0;max-width:100%;display:block;-webkit-appearance:none;appearance:none;text-align:left;line-height:1.3}
+.field input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+.field input[type=date]::-webkit-datetime-edit{padding:0}
+.field:has(> input[type=date]){min-width:0}
+#step1Card:has(.qi-edit.open) .summary-meta{display:none!important}
+@media (max-width:359px){
+  #step1Card .qi-edit > .field:has(> #qi-refno),#step1Card .qi-edit > .field:has(> #qi-date){grid-column:1/-1}
+}
+/* #09 the phone header's two small labels follow the language */
+html[data-lang="zh"] .qi-compact-main .nm::before{content:'客户'}
+html[data-lang="zh"] .quote-status-row::before{content:'状态'}
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
@@ -5253,7 +5275,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="sagrod-costRate" placeholder="0" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="sagrod-markup" placeholder="0" min="0" oninput="calcSagRod()"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="sagrod-markup" placeholder="0" min="0" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="sagrod-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="sagrod-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -5308,7 +5330,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="stud-costRate" placeholder="0" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="stud-markup" placeholder="0" min="0" oninput="calcStud()"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="stud-markup" placeholder="0" min="0" oninput="calcStud()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="stud-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="stud-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -5368,7 +5390,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="anchorbolt-costRate" placeholder="0" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="anchorbolt-markup" placeholder="0" min="0" oninput="calcAnchorBolt()"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="anchorbolt-markup" placeholder="0" min="0" oninput="calcAnchorBolt()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="anchorbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="anchorbolt-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
         </div>
@@ -5424,7 +5446,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="ubolt-costRate" placeholder="0" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="ubolt-markup" placeholder="0" min="0" oninput="calcUBolt('ubolt',true)"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="ubolt-markup" placeholder="0" min="0" oninput="calcUBolt('ubolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="ubolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="ubolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5479,7 +5501,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="squbolt-costRate" placeholder="0" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="squbolt-markup" placeholder="0" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="squbolt-markup" placeholder="0" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="squbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="squbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5534,7 +5556,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="lbolt-costRate" placeholder="0" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="lbolt-markup" placeholder="0" min="0" oninput="calcLBolt('lbolt',true)"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="lbolt-markup" placeholder="0" min="0" oninput="calcLBolt('lbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="lbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="lbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5590,7 +5612,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="jbolt-costRate" placeholder="0" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="jbolt-markup" placeholder="0" min="0" oninput="calcJBolt('jbolt',true)"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="jbolt-markup" placeholder="0" min="0" oninput="calcJBolt('jbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="jbolt-qty" value="1" min="1" step="1"></div>
           <div class="warn-note full" id="jbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
         </div>
@@ -5685,7 +5707,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="group-label full" data-i18n="pricingEntry">Pricing Entry</div>
           <div class="field"><label data-i18n="lblCostRate">Cost Rate</label><input type="text" class="hl" id="plate-costRate" placeholder="4.2" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','costRate');}"></div>
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="plate-addCost" placeholder="0.6" oninput="calcPlate()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('plate','addCost');}"></div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label><input type="number" id="plate-markup" placeholder="15" min="0" oninput="calcPlate()"></div>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="plate-markup" placeholder="15" min="0" oninput="calcPlate()"></div>
           <div class="field"><label data-i18n="lblQty">Qty</label><input type="number" id="plate-qty" value="1" min="1" step="1" oninput="calcPlate()"></div>
           <div class="info-note full" data-i18n="noteHoleCost">Hole drilling / laser / punching cost: include in Additional Cost.</div>
         </div>
@@ -5834,7 +5856,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label>
             <input type="text" class="hl" id="was-addCost" placeholder="0.6" oninput="calcWAS()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('was','addCost');}">
           </div>
-          <div class="field"><label data-i18n="lblMarkup">Markup</label>
+          <div class="field"><label data-i18n="lblMarkupPct">Markup %</label>
             <input type="number" id="was-markup" placeholder="15" min="0" oninput="calcWAS()">
           </div>
           <div class="field"><label data-i18n="lblSetQty">Set Qty</label>
@@ -6975,7 +6997,7 @@ const I18N={
     lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
     lblHoles:'Holes', lblHoleOption:'Hole Option', lblHoleDia:'Hole Dia.',
     lblHoleDiaMm:'Hole Dia. (mm)', qiRemarksNone:'None — tap to add', lblProductType:'Product Type', cpBreakdown:'Price breakdown', qListHintM:'Add an item above, or paste / upload with Quick Add.',
-    lblCostRate:'Cost Rate', lblAdditionalCost:'Additional Cost', lblMarkup:'Markup',
+    lblCostRate:'Cost Rate', lblAdditionalCost:'Additional Cost', lblMarkup:'Markup', lblMarkupPct:'Markup %',
     lblUnitPrice:'Unit Price', lblManualUnitPrice:'Manual Unit Price (RM)', lblPriceMode:'Price Mode',
     phEnterLength:'Enter length', phEnterThreadLength:'Enter thread length',
     pressEnterToAdd:'Press Enter to add',
@@ -7517,7 +7539,7 @@ const I18N={
     lblCutLengthMmOpt:'Cut Length mm (optional)', lblCutHeightMmOpt:'Cut Height mm (optional)',
     lblSetQty:'Set Qty', lblAnchorRate:'Anchor Cost Rate',
     lblBasePlateRate:'Base Plate Cost Rate', lblTriPlateRate:'Triangle Plate Cost Rate (optional when Qty is 0)',
-    lblDiameterMmShort:'Diameter mm',
+    lblDiameterMmShort:'Diameter (mm)',
     noteHoleCost:'Hole drilling / laser / punching cost: include in Additional Cost.',
     wasGuide:'This prices an Anchor Bolt + Base Plate + Triangle Plate welded into one set. Welding, hole drilling and other processing go in Additional Cost. Nut / Flat Washer are chosen under Accessories.',
     warnRateNotSet:'Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.',
@@ -7684,14 +7706,14 @@ const I18N={
     pricingEntry:'价格资料', pricing:'价格',
     /* field labels */
     lblMaterial:'材料', lblFinish:'表面处理', lblSizeType:'Size 规格', lblSize:'螺纹 Size',
-    lblDiameter:'Diameter', lblLength:'Length', lblLengthMm:'Length (mm)',
-    lblLengthMmParen:'Length (mm)', lblTotalLength:'Total Length',
-    lblThreadLength:'Thread Length', lblQty:'数量', lblQTY:'数量', lblQtyPerSet:'每套数量',
-    lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
-    lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
-    lblHoles:'洞口数量', lblHoleOption:'开洞选择', lblHoleDia:'Hole Dia.',
-    lblHoleDiaMm:'Hole Dia. (mm)', qiRemarksNone:'无 — 点按添加', lblProductType:'产品', cpBreakdown:'价格明细', qListHintM:'请在上方添加项目，或用快速添加粘贴 / 上传。',
-    lblCostRate:'每公斤成本', lblAdditionalCost:'额外加工费', lblMarkup:'Markup',
+    lblDiameter:'Ø 直径', lblLength:'长度', lblLengthMm:'长度 (mm)',
+    lblLengthMmParen:'L 长度 (mm)', lblTotalLength:'总长度',
+    lblThreadLength:'TL 牙长', lblQty:'数量', lblQTY:'数量', lblQtyPerSet:'每套数量',
+    lblThickness:'厚度', lblThicknessMm:'厚度 (mm)', lblWidth:'宽度',
+    lblWidthMm:'宽度 (mm)', lblHeight:'高度', lblHeightMm:'高度 (mm)',
+    lblHoles:'洞口数量', lblHoleOption:'开洞选择', lblHoleDia:'孔径',
+    lblHoleDiaMm:'孔径 (mm)', qiRemarksNone:'无 — 点按添加', lblProductType:'产品', cpBreakdown:'价格明细', qListHintM:'请在上方添加项目，或用快速添加粘贴 / 上传。',
+    lblCostRate:'每公斤成本', lblAdditionalCost:'额外加工费', lblMarkup:'Markup', lblMarkupPct:'Markup %',
     lblUnitPrice:'单价', lblManualUnitPrice:'手动单价 (RM)', lblPriceMode:'价格模式',
     phEnterLength:'输入长度', phEnterThreadLength:'输入牙长',
     pressEnterToAdd:'按 Enter 加入报价',
@@ -8186,7 +8208,7 @@ const I18N={
     lblCutLengthMmOpt:'Cut Length (mm, 选填)', lblCutHeightMmOpt:'Cut Height (mm, 选填)',
     lblSetQty:'套数', lblAnchorRate:'Anchor Bolt 每公斤成本',
     lblBasePlateRate:'Base Plate 每公斤成本', lblTriPlateRate:'Triangle Plate 每公斤成本 (数量为 0 时选填)',
-    lblDiameterMmShort:'Diameter (mm)',
+    lblDiameterMmShort:'直径 (mm)',
     noteHoleCost:'开洞加工费请放在额外加工费。',
     wasGuide:'这是 Anchor Bolt + Base Plate + Triangle Plate 焊接成一套的报价。焊接费、开洞费、加工费请放在额外加工费。Nut / Flat Washer 请在配件中选择。',
     warnRateNotSet:'此材料未设定每公斤成本，请手动输入，不可当作 RM0 计算。',
