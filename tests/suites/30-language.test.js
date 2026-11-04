@@ -186,7 +186,10 @@ module.exports = async (browser, A) => {
       await page.waitForTimeout(300);
       await setLang(page, 'zh');
       const zh = await visibleText(page, '#form-' + type);
-      A.includes(zh, 'Length', `中文: ${why} — the dimension labels stay English (approved wording)`);
+      /* R2.5 #09 (owner, 2026-11-04): 中文 dimension labels are the DNC code + the Chinese word —
+         L 长度, W 宽度, T 厚度, H 高度 — so the familiar English code stays on every label. */
+      A.includes(zh, 'L 长度', `中文: ${why} — the dimension labels keep their DNC code (L 长度 …)`);
+      A.ok(!/(^|\n)\s*(Length|Width|Height|Thickness)( \(mm\))?\s*(\n|$)/.test(zh), `中文: ${why} — no English-only L / W / H / T label left`);
       A.excludes(zh, 'Additional Cost', `中文: ${why} — and the pricing labels`);
       await setLang(page, 'en');
       const en = await visibleText(page, '#form-' + type);
