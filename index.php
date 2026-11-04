@@ -5038,6 +5038,34 @@ html[data-lang="zh"] .quote-status-row::before{content:'状态'}
 #rspNav:has(.rsp-nav-item[aria-expanded="true"]) .rsp-nav-item.is-active:not([aria-expanded="true"])::before{opacity:.35}
 /* audit: the Quotation Total split "RM" from its number at 320px */
 .qt-amt,.er-t,#mbTotal{white-space:nowrap}
+
+/* ═══════════════ R2.5.1 — Unit Convert on the phone ═══════════════
+   Root cause: the phone form rules give every .field select width:100%, and the
+   converter's input row is a .field — so the unit select took the whole row,
+   the number field shrank to 24px and the select ran past the panel. Now the
+   number takes ~62%, the unit the rest. The panel is compact (Exact and Integer
+   side by side, each with its Copy under it) and, while the keyboard is up, it
+   is scrolled to sit above the keyboard and its toolbar (dcUcKeepVisible).
+   Same fields, same conversion, same Copy / Fill / Close. */
+#unitConvPanel .uc-inrow{display:flex;gap:8px;min-width:0}
+#unitConvPanel .uc-inrow input{flex:1 1 62%!important;width:auto!important;min-width:0!important}
+#unitConvPanel .uc-inrow select{flex:0 0 34%!important;width:34%!important;min-width:0!important;max-width:150px}
+@media (max-width:599px){
+  #unitConvPanel{padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:0;
+    scroll-margin-top:calc(var(--banner-h,0px) + var(--header-h,58px) + 8px)}
+  #unitConvPanel > .uc-head,#unitConvPanel > .uc-in,#unitConvPanel > .uc-msg,#unitConvPanel > .uc-apply{grid-column:1/-1}
+  #unitConvPanel .uc-head{margin-bottom:4px}
+  #unitConvPanel .uc-in{gap:4px}
+  #unitConvPanel .uc-inrow input,#unitConvPanel .uc-inrow select{height:44px;min-height:44px}
+  #unitConvPanel .uc-row{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin-top:8px;min-width:0}
+  #unitConvPanel .uc-row .btn{width:100%;min-height:44px;padding:0 6px;white-space:nowrap;font-size:13px}
+  #unitConvPanel .uc-res strong{font-size:17px;display:block;line-height:1.2}
+  #unitConvPanel .uc-apply{margin-top:8px}
+  #unitConvPanel .uc-apply label{margin-bottom:4px}
+  #unitConvPanel .uc-btns .btn{min-height:44px}
+  #unitConvPanel .uc-x{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;margin:-8px -8px -8px 0}
+}
+#unitConvPanel[hidden]{display:none!important}   /* the id rules above must never un-hide a closed converter */
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
@@ -12871,6 +12899,25 @@ function toggleUnitConverter(btn){
   renderUcApply();
   setTimeout(()=>{ try{ i.focus(); }catch(e){} },60);
 }
+/* R2.5.1 — on a phone with the keyboard up, keep the whole converter (input,
+   results, Fill buttons) above the keyboard and the iOS toolbar over it: if the
+   panel's bottom is under the visible area, scroll the page up by the shortfall,
+   never so far that the input goes under the header. Scrolling only. */
+function dcUcKeepVisible(){
+  const pn=el('unitConvPanel'), vv=window.visualViewport;
+  if(!pn||pn.hidden||!vv||window.innerWidth>=600) return;
+  const i=el('ucInput'); if(!i||document.activeElement!==i) return;
+  const r=pn.getBoundingClientRect(), bottom=vv.offsetTop+vv.height-12;
+  const head=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h'))||58;
+  const roomUp=r.top-(head+8);
+  if(r.bottom>bottom&&roomUp>0) window.scrollBy({top:Math.min(r.bottom-bottom,roomUp),behavior:'instant'});
+}
+(function(){
+  let t=null; const later=()=>{ clearTimeout(t); t=setTimeout(dcUcKeepVisible,120); };
+  document.addEventListener('focusin',e=>{ if(e.target&&e.target.id==='ucInput'){ later(); setTimeout(dcUcKeepVisible,450); } });
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',later);
+  document.addEventListener('input',e=>{ if(e.target&&e.target.id==='ucInput') later(); });
+})();
 function closeUnitConverter(){
   const pn=el('unitConvPanel'); if(!pn) return;
   pn.hidden=true; document.body.appendChild(pn);
