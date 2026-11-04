@@ -4712,6 +4712,46 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #step2Card .acc-panel.acc-rows:not(.acc-collapsed){padding:10px}
   #step2Card .ph-mini{padding:6px 10px}
 }
+
+/* ═══════════════ R2.3 Session B — product-aware compact phone entry (<600px) ═══════════════
+   Designed against ~402 CSS px (iPhone 16 Pro): one Product select instead of
+   eleven large buttons; every form two columns, a field left on its own spans
+   the row (.pair-solo); long selects and choices full width; the price shows
+   Final Unit Price first and the breakdown on demand. Same fields, same ids. */
+.ptype-m{display:none}
+.cp-break{display:none}
+@media (max-width:599px){
+  #step2Card .type-picker{display:none}
+  .ptype-m{display:flex;flex-direction:column;gap:4px;margin:0 0 10px}
+  .ptype-m label{font-size:12px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
+  .ptype-m select{min-height:44px;font-size:16px;font-weight:700;border:1.5px solid var(--accent-mid);border-radius:var(--r-sm);padding:0 12px;background:var(--surface);color:var(--text)}
+  #step2Card .item-form.active{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 10px}
+  #step2Card .item-form.active .field{gap:3px;min-width:0}
+  #step2Card .item-form.active>.field{grid-column:auto}   /* the v2.1 one-per-row rule gives way to pairs */
+  #step2Card .item-form.active>.full,#step2Card .item-form.active>.field.full{grid-column:1/-1}
+  #step2Card .item-form.active .field label{font-size:11.5px;line-height:1.25;overflow-wrap:anywhere}
+  #step2Card .item-form.active .field.pair-solo,
+  #step2Card .item-form.active .field:has(> select[id$="-material"]),
+  #step2Card .item-form.active .field:has(> input[id$="-productName"]),
+  #step2Card .item-form.active .field:has(> select[id$="-weightMode"]){grid-column:1/-1}
+  #step2Card .item-form.active .field input,#step2Card .item-form.active .field select{min-height:44px;min-width:0;width:100%}
+  #step2Card .finish-pills{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px}
+  #step2Card .finish-pill{min-height:44px}
+  #step2Card .item-form.active .group-label{margin-top:2px;padding:6px 10px}
+  /* price: Final Unit Price first, the rest on demand */
+  #step2Card .calc-preview{grid-template-columns:1fr!important}
+  #step2Card:not(.cp-open) .calc-preview > .cp-item:not(.cp-final),
+  #step2Card:not(.cp-open) #priceModePreview{display:none!important}
+  #step2Card .cp-final{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;padding:10px 14px}
+  #step2Card .cp-final #cpFinal{font-size:24px}
+  #step2Card .cp-final .cp-line-note{flex-basis:100%}
+  .cp-break{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:40px;margin:6px 0 0;border:1px dashed var(--border);
+    border-radius:var(--r-sm);background:transparent;color:var(--accent-2);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .cp-break:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  /* Pricing History: one compact row */
+  #step2Card .ph-mini{padding:8px 10px}
+  #step2Card .ph-mini-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap}
+}
 </style>
 </head>
 <body>
@@ -4934,6 +4974,8 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
         </button>
 
         <div class="group-label full" style="margin-bottom:8px" data-i18n="productEntry">Product Entry</div>
+        <!-- R2.3: phones pick the product from one select (built from the buttons below, same switchType) -->
+        <div class="ptype-m"><label for="typeSelect" data-i18n="lblProductType">Product Type</label><select id="typeSelect" onchange="switchType(this.value)"></select></div>
         <div class="type-picker" id="typePicker">
           <button class="type-btn active" data-type="sagrod" onclick="switchType('sagrod')"><span class="t-name">Sag Rod</span></button>
           <button class="type-btn" data-type="stud" onclick="switchType('stud')"><span class="t-name">Stud</span></button>
@@ -5602,6 +5644,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="cp-item cp-final"><label data-i18n="lblFinalUnitPrice">Final Unit Price</label><span id="cpFinal">—</span><span id="cpLine" class="cp-line-note" hidden></span></div>
           <div id="cpAccept" class="cp-accept" hidden aria-live="polite"></div>
         </div></div>
+        <button type="button" class="cp-break" id="cpBreakBtn" aria-expanded="false" aria-controls="calcPreview priceModePreview" onclick="dcCpBreakToggle()"><span data-i18n="cpBreakdown">Price breakdown</span><span class="acc-chev" aria-hidden="true"></span></button>
         <div class="price-mode-preview" id="priceModePreview">
           <div><span data-i18n="lblRawPrice">Raw Price</span><strong id="pmPreviewRaw">RM 0.00</strong></div>
           <div><span data-i18n="lblPriceMode">Price Mode</span><strong id="pmPreviewMode" data-i18n="pmAutoRound">Auto Round</strong></div>
@@ -6722,7 +6765,7 @@ const I18N={
     lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
     lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
     lblHoles:'Holes', lblHoleOption:'Hole Option', lblHoleDia:'Hole Dia.',
-    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'Product Type',
+    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'Product Type', cpBreakdown:'Price breakdown',
     lblCostRate:'Cost Rate', lblAdditionalCost:'Additional Cost', lblMarkup:'Markup',
     lblUnitPrice:'Unit Price', lblManualUnitPrice:'Manual Unit Price (RM)', lblPriceMode:'Price Mode',
     phEnterLength:'Enter length', phEnterThreadLength:'Enter thread length',
@@ -7438,7 +7481,7 @@ const I18N={
     lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
     lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
     lblHoles:'洞口数量', lblHoleOption:'开洞选择', lblHoleDia:'Hole Dia.',
-    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'产品',
+    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'产品', cpBreakdown:'价格明细',
     lblCostRate:'每公斤成本', lblAdditionalCost:'额外加工费', lblMarkup:'Markup',
     lblUnitPrice:'单价', lblManualUnitPrice:'手动单价 (RM)', lblPriceMode:'价格模式',
     phEnterLength:'输入长度', phEnterThreadLength:'输入牙长',
@@ -9761,12 +9804,49 @@ function dcPricingExtras(form){
     const mini=box.querySelector(':scope > #phMini'); box.insertBefore(n,mini||null); } });
   return box;
 }
+/* ── R2.3 Session B: phone entry helpers ──────────────────────────────────── */
+/* The product names, read from the buttons (their own words, glosses removed). */
+function dcTypeName(btn){
+  const n=btn.querySelector('.t-name'); if(!n) return btn.dataset.type;
+  const c=n.cloneNode(true); c.querySelectorAll('.was-type-zh,[data-i18n^="gloss"],[style]').forEach(x=>x.remove());
+  return c.textContent.replace(/\s+/g,' ').trim();
+}
+function dcBuildTypeSelect(){
+  const s=el('typeSelect'); if(!s) return;
+  s.innerHTML=[...document.querySelectorAll('#typePicker .type-btn')].map(b=>`<option value="${escHtml(b.dataset.type)}">${escHtml(dcTypeName(b))}</option>`).join('');
+  s.value=currentType;
+}
+/* Two to a row: in each run of half-width fields between headings, a field left
+   on its own takes the whole row. Read from what is visible right now, so a
+   field shown or hidden by a choice (Price Mode, Weight Mode, Plate Type) is
+   accounted for. Presentation only. */
+function dcPairFields(form){
+  if(!form) return;
+  const half=n=>n.classList.contains('field') && !n.classList.contains('full') && !n.matches(':has(> select[id$="-material"]),:has(> input[id$="-productName"]),:has(> select[id$="-weightMode"])');
+  let run=[];
+  const flush=()=>{ if(run.length%2) run[run.length-1].classList.add('pair-solo'); run=[]; };
+  [...form.children].forEach(n=>{
+    n.classList.remove('pair-solo');
+    const shown=getComputedStyle(n).display!=='none';
+    if(!shown) return;
+    if(half(n)) run.push(n); else flush();
+  });
+  flush();
+}
+function dcCpBreakToggle(){
+  const c=el('step2Card'), b=el('cpBreakBtn'); if(!c||!b) return;
+  const open=!c.classList.contains('cp-open'); c.classList.toggle('cp-open',open); b.setAttribute('aria-expanded',open?'true':'false');
+}
+document.addEventListener('change',e=>{ const f=e.target.closest&&e.target.closest('.item-form'); if(f) requestAnimationFrame(()=>dcPairFields(f)); });
+if(typeof dcOnRelabel==='function') dcOnRelabel(dcBuildTypeSelect);
 function switchType(type){
   if(!draftRestoreInProgress&&type!==currentType) productEntryTouchedFields.clear();
   currentType=type;
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
   document.querySelectorAll('.item-form').forEach(f=>f.classList.toggle('active',f.dataset.type===type));
+  { const s=el('typeSelect'); if(s && s.value!==type) s.value=type; }
   dcPlacePhMini(type);
+  requestAnimationFrame(()=>dcPairFields(el('form-'+type)));
   syncUBoltDebugVisibility();
   resetPriceHistoryPanel();
   onMaterialSizeChange(type);
@@ -24843,6 +24923,7 @@ function dcShellRunIntent(handoffLoaded){
   ensureLBolt45Form();
   ensureOthersForm();
   document.querySelectorAll('.item-form').forEach(dcPricingExtras);
+  dcBuildTypeSelect();
   document.querySelectorAll('.acc-panel').forEach(dcAccEnhancePanel);
   dcPlacePhMini(currentType);
   ensurePriceModeControls();
