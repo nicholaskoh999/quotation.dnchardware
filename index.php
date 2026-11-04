@@ -4969,6 +4969,22 @@ html[data-lang="zh"] .quote-status-row::before{content:'状态'}
   .qo-card .qo-input{min-height:44px!important;height:44px;font-size:16px;background:var(--surface2)}
   .qo-card .qo-btn{min-height:44px!important;height:44px;padding:0 16px;background:transparent!important;color:var(--accent)!important;border:1.5px solid var(--border)!important;box-shadow:none!important}
 }
+
+/* ═══════════════ R2.5 Session E — desktop workspace (#14) ═══════════════
+   Wide screens used only 1376px of the content area (1440 shell − padding),
+   leaving ~150px empty either side at 1920. From 1600px the Quotation shell
+   grows to 1640px; from 1440px Item Entry takes ~56% and Review ~44% (Review
+   never under 420px). Below 1440 nothing changes. Layout only — same DOM,
+   same Tab order, same Enter-to-Add. */
+@media (min-width:1440px){
+  .two-col{grid-template-columns:minmax(0,1.3fr) minmax(420px,1fr)}
+}
+@media (min-width:1600px){
+  .app-shell{max-width:1640px}
+}
+@media (min-width:600px){
+  .qo-card .qo-row{max-width:560px}   /* a quotation number needs no 1400px field */
+}
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
