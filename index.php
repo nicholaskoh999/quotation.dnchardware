@@ -4338,6 +4338,7 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 #wqaModal .wqa-sug-v{font-weight:650;font-variant-numeric:tabular-nums;font-style:italic}
 #wqaModal .wqa-sug-src{font-size:11px;color:var(--text-muted)}
 #wqaModal .wqa-sug-use{margin-left:auto}
+#wqaModal .wqa-sug-grp{margin:4px 0 6px}
 @media (max-width:640px){ #wqaModal .wqa-sug{margin-left:0} }
 /* The editor: one horizontal row on desktop, wrapping where width runs out. */
 .wqa-pxe-rec{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin-bottom:8px;font-size:12px;font-weight:650;color:var(--text-2)}
@@ -7091,7 +7092,7 @@ const I18N={
     wqaRmOne:'Item removed', wqaRmN:'{n} items removed', wqaUndo:'Undo', wqaRmMore:'{n} earlier removal(s) can also be undone',
     wqaSugPricing:'Suggested Pricing', wqaSugTip:'Suggested pricing — not used until you click Use This Pricing', wqaAppliedTip:'Applied pricing — used for this item',
     wqaSugAsk1:'1 other item in this group has its own suggested pricing.', wqaSugAsk:'{n} other items in this group have their own suggested pricing.',
-    wqaSugGo1:'Use Suggested Pricing for 1 item', wqaSugGo:'Use Suggested Pricing for {n} items',
+    wqaSugGo1:'Use Suggested Pricing for 1 item', wqaSugGo:'Use Suggested Pricing for {n} items', wqaSugUnpricedN:'{n} items not priced yet',
     wqaFuThis:'Applied to this item',
     wqaFuAsk:'Apply this setup to {n} other compatible items?',
     wqaFuAsk1:'Apply this setup to 1 other compatible item?',
@@ -7759,7 +7760,7 @@ const I18N={
     wqaRmOne:'已删除项目', wqaRmN:'已删除 {n} 个项目', wqaUndo:'撤销', wqaRmMore:'之前还有 {n} 次删除可撤销',
     wqaSugPricing:'建议定价', wqaSugTip:'建议定价 — 点击「使用此定价」后才会使用', wqaAppliedTip:'已应用定价 — 本项目正在使用',
     wqaSugAsk1:'本组还有 1 个项目有自己的建议定价。', wqaSugAsk:'本组还有 {n} 个项目有各自的建议定价。',
-    wqaSugGo1:'为 1 个项目使用建议定价', wqaSugGo:'为 {n} 个项目使用建议定价',
+    wqaSugGo1:'为 1 个项目使用建议定价', wqaSugGo:'为 {n} 个项目使用建议定价', wqaSugUnpricedN:'{n} 个项目尚未定价',
     wqaFuThis:'已应用到此项目',
     wqaFuAsk:'要将此设置应用到其他 {n} 个兼容项目吗？',
     wqaFuAsk1:'要将此设置应用到其他 1 个兼容项目吗？',
@@ -22551,8 +22552,48 @@ function wqaAccPropBulkHtml(){
    price until a person presses Use This Pricing. Use copies THIS row's own
    suggestion into its setup; the Price Mode the row already has (Sag Rod No
    Round, Auto Round) is untouched, so the normal formula prices it. */
-function wqaRvSugHtml(r,i){
+/* A group whose unpriced items all carry the SAME suggestion says it once,
+   under its heading, with one button — each row stays one line. Any item whose
+   suggestion differs keeps its own line. */
+function wqaGrpSug(g){
+  if(!g || !g.idx) return null;
+  const rows=g.idx.map(k=>wqa.rows[k]).filter(r=>r && !r.removed && !r.added && r.rec
+    && (r.priceMode||'auto')!=='manual' && !wqaRowHasPricing(r));
+  if(rows.length<2) return null;
+  const a=rows[0].rec;
+  if(!rows.every(r=>dcRecSame(r.rec,a) && r.rec.src===a.src)) return null;
+  return {rows, rec:a};
+}
+function wqaGrpSugHtml(g){
+  /* Not while this group is mid-pricing (an editor, a follow-up question or its
+     success line is open): the line would appear or vanish above the rows a
+     person is working on and move them. */
+  const busy=k=>wqa.px===k || wqa.recipeSrc===k || wqa.sugSrc===k || (wqa.fu && wqa.fu.i===k) || (wqa.rcPick && wqa.rcPick.src===k);
+  if(g && g.idx && g.idx.some(busy)) return '';
+  const s=wqaGrpSug(g); if(!s) return '';
+  const n=s.rows.length;
+  return `<div class="wqa-sug wqa-sug-grp" data-sug-grp="${g.idx[0]}" onclick="event.stopPropagation()">
+      <span class="wqa-sug-k">${escHtml(dcT('wqaSugPricing'))}</span>
+      <span class="wqa-sug-v">${escHtml(wqaRecipeText(s.rec))}</span>
+      <span class="wqa-sug-src">${escHtml(dcPaSourceLabel(s.rec.src))} · ${escHtml(dcT('wqaSugUnpricedN').replace('{n}',n))}</span>
+      <button type="button" class="btn btn-outline btn-sm wqa-sug-use" data-sug-grp-use="${g.idx[0]}"
+        onclick="event.stopPropagation();wqaSugApplyGroup(${g.idx[0]})">${escHtml(dcT('wqaSugGo').replace('{n}',n))}</button>
+    </div>`;
+}
+function wqaSugApplyGroup(first){
+  const s=wqaGrpSug(wqaRvGroupOf(first)); if(!s) return;
+  s.rows.forEach(r=>{
+    wqaMarkEdited(r,'price');
+    ['costRate','addCost','markup'].forEach(k=>{ r.priceOverride[k]=r.rec[k]; });
+  });
+  wqa.sugSrc=null;
+  wqaRecomputeAll('force');
+  showToast(dcT(s.rows.length===1?'wqaFuDone1':'wqaFuDone').replace('{n}',s.rows.length));
+}
+function wqaRvSugHtml(r,i,g){
   if(!r || r.removed || r.added || !r.rec || wqaRowHasPricing(r) || (r.priceMode||'auto')==='manual') return '';
+  const gs=wqaGrpSug(g && g.idx ? g : wqaRvGroupOf(i));
+  if(gs && gs.rows.indexOf(r)>=0) return '';
   return `<div class="wqa-sug" data-sug-row="${i}" onclick="event.stopPropagation()">
       <span class="wqa-sug-k">${escHtml(dcT('wqaSugPricing'))}</span>
       <span class="wqa-sug-v">${escHtml(wqaRecipeText(r.rec))}</span>
@@ -22805,7 +22846,7 @@ function wqaRvItemHtml(r,i,series){
       ${wqaRvHsCell(r,i)}
       <span class="wqa-it-acts">${wqaRvDelBtn(i)}${wqaRvMoreBtn(r,i)}</span>
     </div>
-    ${(!open && wqa.px!==i)?wqaRvSugHtml(r,i):''}
+    ${(!open && wqa.px!==i)?wqaRvSugHtml(r,i,series):''}
     ${wqaAccPropHtml(r,i)}
     ${wqaRvSubHtml(r,i)}
     ${(!series && wqaAccHas(r.acc))?`<div class="wqa-it-gacc">${wqaGaccHtml(i,[i])}</div>`:''}
@@ -23211,7 +23252,7 @@ function wqaRenderRows(force){
     g.idx.forEach(k=>{ const t=wqaRvPxText(wqa.rows[k]); tally[t]=(tally[t]||0)+1; });
     g.px=Object.keys(tally).sort((x,y)=>tally[y]-tally[x])[0]||'';
     g.shared=wqaGrpSharedNotes(g);
-    return `<div class="wqa-ser">${wqaRvSeriesHead(g)}<div class="wqa-ser-rows">${
+    return `<div class="wqa-ser">${wqaRvSeriesHead(g)}${wqaGrpSugHtml(g)}<div class="wqa-ser-rows">${
       g.idx.map(i=>wqaRvItemHtml(wqa.rows[i],i,g)).join('')}</div></div>`;
   }).join('') || `<div class="wqa-rv-empty">${escHtml(dcT('wqaRvEmpty'))}</div>`;
   if(back && !wqa.ix){

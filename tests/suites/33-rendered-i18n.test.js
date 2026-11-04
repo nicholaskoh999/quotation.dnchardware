@@ -325,9 +325,11 @@ module.exports = async (browser, A) => {
     await page.waitForTimeout(320);
     const enFlags = await page.evaluate(() =>
       [...document.querySelectorAll('.wqa-flag')].map(n => n.textContent.trim()).join(' | '));
-    A.includes(enFlags, 'accessories are never added automatically',
+    /* R2.1: a single-product drawing's accessory wording is proposed per item
+       for review (nothing added until confirmed) — the banner says so. */
+    A.includes(enFlags, 'Nothing is added until confirmed',
       'English: the same warning reads in English');
-    A.excludes(enFlags, '配件不会自动加入', 'English: and not also in Chinese');
+    A.excludes(enFlags, '确认之前不会加入', 'English: and not also in Chinese');
     await page.close();
   }
 

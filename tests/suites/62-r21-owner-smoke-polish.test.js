@@ -29,6 +29,9 @@ module.exports = async (browser, A) => {
                      [d, meta, note || '']);
     await W(250);
   };
+  /* Use This Pricing on one item: from its pricing editor. */
+  const useOne = async i => { await p.evaluate(i => { wqa.px = null; wqaPxToggle(i); }, i); await W(150);
+                              await p.click(`[data-px-fill="${i}"]`); await W(300); };
   const paste = async t => { await p.evaluate(async t => { wqaOpen(); el('wqaInput').value = t; await wqaParseAndReview(); }, t); await W(400); };
 
   /* 1 ─ model display */
@@ -65,12 +68,13 @@ module.exports = async (browser, A) => {
     cols: [...document.querySelectorAll('#wqaRows .wqa-ip-set')].map(n => n.innerText.replace(/\s+/g, ' ').trim()),
     price: wqa.rows.map(r => wqaRowPriceText(r)), ov: wqa.rows.map(r => Object.keys(r.priceOverride).length),
     modes: wqa.rows.map(r => r.priceMode) }));
-  A.eq(s.sug, 3, 'each unpriced row shows a Suggested Pricing line');
+  A.eq(s.sug, 1, 'one Suggested Pricing line for the group (all three share it), rows stay one line');
+  A.ok(await p.evaluate(() => /3 items not priced yet/.test(document.querySelector('[data-sug-grp]').innerText)), 'the group line says how many items it covers');
   A.ok(s.cols.every(c => c === '— — —'), 'applied columns show — while only a suggestion exists');
   A.ok(s.price.every(t => t === 'Set price'), 'RM/pc is not a price yet');
   A.ok(s.ov.every(n => n === 0), 'nothing committed by the suggestion');
   A.ok(s.modes.every(m => m === 'no_round'), 'Sag Rod defaults to No Round');
-  await p.click('[data-sug-use="0"]'); await W(300);
+  await useOne(0);
   s = await p.evaluate(() => ({ price: wqa.rows.map(r => wqaRowPriceText(r)), offer: (document.querySelector('[data-sug-offer]') || {}).innerText || '',
     ov0: wqa.rows[0].priceOverride, mode0: wqa.rows[0].priceMode }));
   A.ok(/^RM/.test(s.price[0]) && s.price[1] === 'Set price' && s.price[2] === 'Set price', 'Use This Pricing applies to THIS item only');
@@ -81,18 +85,28 @@ module.exports = async (browser, A) => {
   s = await p.evaluate(() => ({ price: wqa.rows.map(r => wqaRowPriceText(r)), sug: document.querySelectorAll('#wqaRows .wqa-sug').length }));
   A.ok(s.price.every(t => /^RM/.test(t)), 'bulk: all three priced');
   A.eq(s.sug, 0, 'no suggestion line left once applied');
+  /* the group's own button: every unpriced item, each with its own suggestion */
+  await paste(SAG);
+  await p.click('[data-sug-grp-use]'); await W(300);
+  s = await p.evaluate(() => wqa.rows.map(r => wqaRowPriceText(r)));
+  A.ok(s.every(t => /^RM/.test(t)), 'Use Suggested Pricing for 3 items prices the group');
+  /* one item left with a suggestion: it gets its own line */
+  await paste(SAG);
+  await useOne(0); await p.evaluate(() => wqaRecipeDismiss()); await useOne(1); await p.evaluate(() => wqaRecipeDismiss()); await W(200);
+  s = await p.evaluate(() => ({ row: document.querySelectorAll('#wqaRows [data-sug-row]').length, grp: document.querySelectorAll('#wqaRows [data-sug-grp]').length }));
+  A.ok(s.row === 1 && s.grp === 0, 'a single unpriced item shows its own Suggested Pricing line');
   /* Manual Price is never overwritten by a suggestion */
   await paste(SAG);
   await p.evaluate(() => { wqa.rows[1].priceMode = 'manual'; wqa.rows[1].manualPrice = '9.99'; wqaRecomputeAll('force'); });
   await W(250);
-  await p.click('[data-sug-use="0"]'); await W(300);
+  await useOne(0);
   s = await p.evaluate(() => ({ t: wqaSugTargets(0).length, m: wqa.rows[1].manualPrice, offer: (document.querySelector('[data-sug-offer]') || {}).innerText || '' }));
   A.ok(/1 other item/.test(s.offer) && s.m === '9.99', 'a Manual Price item is not offered and keeps its price');
 
   /* 4 ─ remove / undo */
   A.suite('R2.1 · Item removed · Undo');
   await paste(SAG);
-  await p.click('[data-sug-use="0"]'); await W(250);
+  await useOne(0);
   s = await p.evaluate(async () => {
     const snap = r => JSON.stringify([r.size, r.length, r.threadLen, r.threadLen2, r.qty, r.material, r.finish, r.priceOverride, r.priceMode, r.acc, r.issues]);
     const before = wqa.rows.map(snap);
