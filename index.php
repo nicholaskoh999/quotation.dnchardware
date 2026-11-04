@@ -5117,6 +5117,49 @@ html[data-lang="zh"] .quote-status-row::before{content:'状态'}
   .card-title,.step-caption,.group-label,#step2Card .group-label,#step2Card .group-label span,.section-label,.modal-title,.dnc-page-title,.uc-head,
   .acc-addbar-title,.ph-mini .ph-title > span:first-child,.vm-head #vmTitle,.rq-head .section-label{font-weight:600;font-synthesis-weight:none}
 }
+
+/* ═══════════════ R2.5.4 — desktop UI/UX polish (owner desktop smoke) ═══════════════
+   The app's desktop query only (≥1024px with a mouse); phones and iPads keep
+   R2.5.3. Root causes measured at 1440px: helper and meta text at 9–11.5px in
+   faint grey / amber, dimensions in monospace, an empty Quotation List as tall
+   as a loaded one, "Copy + Weight" wrapping alone under Step 4, and Item Entry
+   at 56% of the work area. Sizes and contrast only — no calculation, no data. */
+@media screen and (min-width:1600px) and (hover:hover) and (pointer:fine){
+  /* ≈58 / 42 where Review still has >600px; below 1600 a loaded item's price row needs Review's 485px */
+  .two-col{grid-template-columns:minmax(0,1.45fr) minmax(420px,1fr)}
+}
+@media screen and (min-width:1024px) and (hover:hover) and (pointer:fine){
+  /* headings: one size, readable sub-lines */
+  .step-caption{font-size:11px;letter-spacing:.07em}
+  .step-caption-sub{font-size:12.5px;color:var(--text-2)}
+  #step2Card .group-label,#step2Card .group-label span{font-size:11px;letter-spacing:.07em}
+  /* Quotation List items */
+  #quoteItemList .dc-seg,#quoteItemList .dc-sep{font-family:var(--qf);font-variant-numeric:tabular-nums;font-size:13px;font-weight:500;color:var(--text-2)}
+  #quoteItemList .qi-pr,#quoteItemList .qi-pr-auto,#quoteItemList .qi-pricing .dc-sep{font-size:11.5px;color:#8a6516}
+  #quoteItemList .qi-meta-pill{font-size:12.5px;color:var(--text-2)}
+  #quoteItemList .price-mode-badge{font-size:11px}
+  /* empty Quotation List: a short box instead of a tall one (R2.3 keeps it plain — no hint line on desktop) */
+  #quoteEmpty.empty-state{padding:14px 16px!important;min-height:0!important}
+  #quoteEmpty.empty-state p{margin:0!important;font-size:13.5px}
+  /* pricing helpers: secondary, but legible */
+  .ph-mini{opacity:1}
+  .ph-mini .ph-tag,.ph-empty-msg{font-size:12px;color:var(--text-2)}
+  .dp-status{font-size:12.5px}
+  .dp-status .dp-rec-k,.dp-status .dp-rec-v,.dp-status .dp-rec-src,.dp-status .dp-edit{font-size:12.5px}
+  .price-mode-preview span{font-size:11.5px;color:var(--text-2)}
+  .price-mode-preview strong{font-size:13.5px;font-variant-numeric:tabular-nums}
+  .cp-ctx{font-size:12.5px;color:var(--text-2)}
+  /* Step 4: Save, then the four outputs in one even row */
+  #step4Actions .quote-actions{display:grid!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.1fr) minmax(0,.8fr) minmax(0,1.45fr);gap:8px}
+  #step4Actions .quote-actions #saveQuoteBtn{grid-column:1/-1}
+  #step4Actions .quote-actions .btn:not(#saveQuoteBtn){width:100%;min-height:40px;margin:0;padding:0 4px;font-size:13px;white-space:nowrap;justify-content:center;min-width:0}
+}
+/* R2.5.4 — Step 3's Edit for a locked saved quotation: phones only (desktop / tablet keep Step 1 in view) */
+.review-head-acts{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:0 0 auto}
+#reviewUnlockBtn{display:none}
+@media (max-width:599px){
+  #reviewUnlockBtn:not([hidden]){display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 11px;white-space:nowrap}
+}
 #wqaModal .modal-close{min-width:44px;min-height:44px}
 </style>
 </head>
@@ -6157,7 +6200,12 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             <span class="step-caption-sub" data-i18n="step3Sub">Review & save</span>
             <div class="card-title"><span data-i18n="quotationList">Quotation List</span> <span class="count-pill" id="quoteCount">0</span></div>
           </div>
-          <button class="btn btn-danger btn-sm" id="clearAllBtn" onclick="clearAllItems()" data-i18n="clearAll">Clear All</button>
+          <div class="review-head-acts">
+            <!-- R2.5.4: on the phone a locked saved quotation can be unlocked from here — the same
+                 unlockSavedQuotation() (and its confirmation) as the Step 1 button, nothing else -->
+            <button class="btn btn-unlock-primary btn-sm" type="button" id="reviewUnlockBtn" hidden onclick="unlockSavedQuotation()" data-i18n-aria="editSavedQuotation" aria-label="Edit Saved Quotation"><span data-i18n="editShort">Edit</span></button>
+            <button class="btn btn-danger btn-sm" id="clearAllBtn" onclick="clearAllItems()" data-i18n="clearAll">Clear All</button>
+          </div>
         </div>
 
         <div class="qi-sort-row" id="quoteSortRow" style="display:none">
@@ -7169,7 +7217,7 @@ const I18N={
     step1Caption:'Step 1 · Customer', step1Sub:'Customer details',
     newQuotation:'New Quotation', noCustomerYet:'No customer yet',
     quotationNoDash:'Quotation No. —', dateDash:'Date —', statusNewDraft:'New Draft',
-    editSavedQuotation:'Edit Saved Quotation', editDetails:'Edit Details',
+    editSavedQuotation:'Edit Saved Quotation', editShort:'Edit', editDetails:'Edit Details',
     lockedTitle:'This quotation is locked.', lockedText:'Editing requires unlocking.',
     lblCustomerName:'Customer Name', phCustomerName:'Select or type customer name',
     lblContactPhone:'Contact / Phone', phContactNumber:'Contact number',
@@ -7885,7 +7933,7 @@ const I18N={
     step1Caption:'第 1 步 · 客户', step1Sub:'客户资料',
     newQuotation:'新建报价', noCustomerYet:'尚未选择客户',
     quotationNoDash:'报价单号 —', dateDash:'日期 —', statusNewDraft:'新草稿',
-    editSavedQuotation:'编辑已保存报价', editDetails:'编辑资料',
+    editSavedQuotation:'编辑已保存报价', editShort:'编辑', editDetails:'编辑资料',
     lockedTitle:'这份报价已锁定。', lockedText:'如需修改，请先解锁编辑。',
     lblCustomerName:'客户名称', phCustomerName:'选择或输入客户名称',
     lblContactPhone:'联络电话', phContactNumber:'联络号码',
@@ -9029,6 +9077,8 @@ function updateQuoteLockUI(){
   if(panel) panel.classList.toggle('show',locked);
   const unlockBtn=el('unlockSavedBtn');
   if(unlockBtn) unlockBtn.style.display='none';
+  const reviewUnlock=el('reviewUnlockBtn');
+  if(reviewUnlock) reviewUnlock.hidden=!locked;   /* R2.5.4: shown only while locked (phone only, by CSS) */
   const reviewPanel=el('reviewListPanel');
   if(reviewPanel) reviewPanel.classList.toggle('locked',locked);
   const reviewLabel=el('reviewLockLabel');

@@ -1287,6 +1287,34 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   .card-title,.step-caption,.group-label,#step2Card .group-label,#step2Card .group-label span,.section-label,.modal-title,.dnc-page-title,.uc-head,
   .acc-addbar-title,.ph-mini .ph-title > span:first-child,.vm-head #vmTitle,.rq-head .section-label{font-weight:600;font-synthesis-weight:none}
 }
+/* ═══════════════ R2.5.4 — desktop UI/UX polish (owner desktop smoke) ═══════════════
+   Desktop with a mouse only; phones and iPads keep R2.5.3. The Saved cards,
+   customer rows and figures carried 10.5–11.5px text in light grey and italic;
+   now 12–13px in the readable secondary colour, same compact card. */
+@media screen and (min-width:1024px) and (hover:hover) and (pointer:fine){
+  /* quotation cards (company and recent) */
+  .q-card .q-dates,.q-card .q-meta{font-size:12.5px;color:var(--text-2)}
+  .q-card .q-preview{font-size:13px}
+  .q-preview .item-line .il-name{font-weight:500;color:var(--text)}
+  .q-preview .item-line .il-qp{color:var(--text-2)}
+  .q-preview .item-line .il-acc{font-size:12px;color:var(--text-2)}
+  .q-preview .item-more{font-size:12px;color:var(--text-2);font-style:normal}
+  .q-card .q-remarks{font-size:12px;color:var(--text-2)}
+  .q-card .ref-total-label,.rq-card .ref-total-label{font-size:11px;color:var(--text-2)}
+  .q-card .ref-total b,.rq-total b{color:var(--text)}
+  .q-card .quote-actions .btn,.rq-actions .btn{font-size:12.5px;min-height:34px;padding:0 10px}   /* tighter sides: Reference Total + four actions stay one row at 1280 */
+  .q-card .quote-actions{gap:6px}
+  .rq-card .rq-company{font-size:12.5px}
+  .rq-card .rq-date{font-size:12px;color:var(--text-2)}
+  .rq-card .rq-preview{font-size:13px;color:var(--text-2)}
+  /* customer rows: the full name, readable meta; the row stays as compact as before */
+  .company-card .cc-name{font-size:13.5px;line-height:1.3;min-width:0;overflow-wrap:anywhere}   /* the full name: it is how staff find the customer */
+  .company-card .cc-phone-line,.company-card .cc-quote-line{font-size:12px;color:var(--text-2)}
+  /* figures and helper lines */
+  .summary-card .summary-sub{font-size:12px;color:var(--text-2)}
+  .q-helper{font-size:12px;color:var(--text-2)}
+  .sp-stat-label{font-size:11px}
+}
 </style>
 </head>
 <body class="rsp-page-plain">
