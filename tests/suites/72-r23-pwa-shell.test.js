@@ -15,7 +15,9 @@ const { openApp, openCompanies } = require('../lib/harness');
 
 const geo = page => page.evaluate(() => {
   const nav = document.getElementById('rspNav'); const R = x => { const r = x.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)]; };
-  return { nav: R(nav), items: [...nav.querySelectorAll('.rsp-nav-item')].map(i => [R(i), R(i.querySelector('svg')), R(i.querySelector('span'))]),
+  /* R2.4: each item carries an outline and a solid Heroicon (solid for the current item); the VISIBLE one is measured */
+  const icon = i => [...i.querySelectorAll('svg')].find(s => getComputedStyle(s).display !== 'none');
+  return { nav: R(nav), items: [...nav.querySelectorAll('.rsp-nav-item')].map(i => [R(i), R(icon(i)), R(i.querySelector('span'))]),
            ind: (() => { const s = getComputedStyle(nav.querySelector('.is-active'), '::before'); return [s.top, s.height, s.left, s.backgroundColor]; })(),
            sab: getComputedStyle(document.documentElement).getPropertyValue('--sab').trim(),
            vp: document.querySelector('meta[name="viewport"]').content };
