@@ -4836,6 +4836,58 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
 .qi-edit-mode-note.show::before{content:''!important;display:inline-block;width:16px;height:16px;margin-right:6px;vertical-align:-3px;background:currentColor;-webkit-mask:var(--hi-pencil) center/contain no-repeat;mask:var(--hi-pencil) center/contain no-repeat}
 .wqa-gx::after{content:''!important;width:10px;height:10px;background:currentColor;-webkit-mask:var(--hi-pencil) center/contain no-repeat;mask:var(--hi-pencil) center/contain no-repeat}
 @media print{ .dc-ic,.hi{display:none!important} }
+:root{--hi-cust:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z'/%3E%3C/svg%3E");--hi-phone:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z'/%3E%3C/svg%3E");--hi-doc:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z'/%3E%3C/svg%3E");--hi-cal:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z'/%3E%3C/svg%3E");--hi-user:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'/%3E%3C/svg%3E");--hi-issuer:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21'/%3E%3C/svg%3E");--hi-edit:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10'/%3E%3C/svg%3E");--hi-note:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155'/%3E%3C/svg%3E")}
+
+/* ═══════════════ R2.4 Session B — Customer Details (Step 1) ═══════════════
+   Heroicons on the labels and chips (CSS masks — the words stay the stored /
+   translated text the code writes). Phones: Customer and Contact full width,
+   Quotation No + Date side by side, Prepared By and Issued By full width (the
+   company names do not fit half a phone), Remarks collapsed to an accurate
+   summary, and the header with Edit / Done pinned while editing. Every field,
+   value and handler is the existing one. */
+.qi-ic::before,#step1Card .qi-edit label[data-ic]::before,#qiRefDisp::before,#qiDateDisp::before,#qiToggleBtn::before{
+  content:'';display:inline-block;flex-shrink:0;width:16px;height:16px;margin-right:6px;vertical-align:-3px;background:currentColor;
+  -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+#step1Card .qi-edit label[data-ic="cust"]{--ic:var(--hi-cust)}
+#step1Card .qi-edit label[data-ic="phone"]{--ic:var(--hi-phone)}
+#step1Card .qi-edit label[data-ic="doc"]{--ic:var(--hi-doc)}
+#step1Card .qi-edit label[data-ic="cal"]{--ic:var(--hi-cal)}
+#step1Card .qi-edit label[data-ic="user"]{--ic:var(--hi-user)}
+#step1Card .qi-edit label[data-ic="issuer"]{--ic:var(--hi-issuer)}
+#step1Card .qi-edit label[data-ic="note"]{--ic:var(--hi-note)}
+#step1Card .qi-edit label[data-ic]{display:flex;align-items:center}
+#qiRefDisp::before{--ic:var(--hi-doc);width:14px;height:14px;margin-right:4px}
+#qiDateDisp::before{--ic:var(--hi-cal);width:14px;height:14px;margin-right:4px}
+#qiToggleBtn{display:inline-flex;align-items:center;justify-content:center}
+#qiToggleBtn::before{--ic:var(--hi-edit)}
+.qi-rm-sum{display:none}
+@media (max-width:599px){
+  #step1Card .qi-edit.open{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px;padding:12px 14px 14px!important}
+  #step1Card .qi-edit > .field{grid-column:1/-1;gap:4px;min-width:0}
+  #step1Card .qi-edit > .field:has(> #qi-refno),#step1Card .qi-edit > .field:has(> #qi-date){grid-column:auto}
+  #step1Card .qi-edit .field label{font-size:11.5px}
+  #step1Card .qi-edit input,#step1Card .qi-edit select{min-height:44px;font-size:16px;min-width:0;width:100%}
+  #step1Card .qi-edit .qi-ref-hint{font-size:11px}
+  /* Remarks: one line that says what is there, the box on demand */
+  .qi-rm-sum{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--r-sm);
+    background:var(--surface);color:var(--text-2);font:inherit;font-size:14px;text-align:left;cursor:pointer}
+  .qi-rm-sum:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .qi-rm-sum .qi-rm-k{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto}
+  .qi-rm-sum .qi-rm-v{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+  .qi-rm-sum .qi-rm-v.is-empty{color:var(--text-muted);font-style:italic}
+  .qi-rm-sum .acc-chev{margin-left:auto}
+  .qi-rm-sum[aria-expanded="true"] .acc-chev{transform:rotate(45deg)}
+  .qi-rm:not(.qi-rm-open) > label,.qi-rm:not(.qi-rm-open) > input{display:none}
+  /* Edit / Done stays in view while editing */
+  #step1Card:has(.qi-edit.open) .qi-compact{position:sticky;top:calc(var(--banner-h,0px) + var(--header-h,58px));z-index:6;background:var(--surface);
+    box-shadow:0 6px 10px -8px rgb(22 26 35 / .25)}
+  #step1Card .summary-meta{gap:6px!important}
+  /* the header: name beside Edit / Done, the Quotation No + Date chips on one full-width row */
+  #step1Card .qi-compact{display:block!important;position:relative}
+  #step1Card .qi-action-stack{position:absolute!important;top:4px;right:14px}   /* inside the header's own padding */
+  #step1Card .qi-compact-main > .nm,#step1Card .qi-compact-main > .summary-label:first-child{padding-right:118px}
+  #step1Card .sum-chip{font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -5073,16 +5125,16 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
       </div>
       <div class="qi-edit" id="qiEdit">
         <div class="field full" style="position:relative">
-          <label data-i18n="lblCustomerName">Customer Name</label>
+          <label data-i18n="lblCustomerName" data-ic="cust">Customer Name</label>
           <input type="text" id="qi-customer" data-i18n-ph="phCustomerName" placeholder="Select or type customer name" autocomplete="off"
                  oninput="onCustomerInput()" onkeydown="onCustomerKeydown(event)" onblur="onCustomerBlur()">
           <div class="ac-dropdown" id="acDropdown"></div>
         </div>
-        <div class="field"><label data-i18n="lblContactPhone">Contact / Phone</label><input type="text" id="qi-phone" data-i18n-ph="phContactNumber" placeholder="Contact number" oninput="syncQI()"></div>
-        <div class="field"><label data-i18n="lblQuotationNo">Quotation No.</label><input type="text" id="qi-refno" readonly data-i18n-ph="phAutoGenerated" placeholder="Auto-generated"><span class="qi-ref-hint" id="qiRefHint" hidden></span></div>
-        <div class="field"><label data-i18n="lblDate">Date</label><input type="date" id="qi-date" oninput="syncQI()"></div>
-        <div class="field"><label data-i18n="lblPreparedBy">Prepared By</label><input type="text" id="qi-prepby" data-i18n-ph="phPreparedBy" placeholder="Prepared by" oninput="syncQI()"></div>
-        <div class="field full"><label data-i18n="lblIssuedBy">Issued By</label>
+        <div class="field"><label data-i18n="lblContactPhone" data-ic="phone">Contact / Phone</label><input type="text" id="qi-phone" data-i18n-ph="phContactNumber" placeholder="Contact number" oninput="syncQI()"></div>
+        <div class="field"><label data-i18n="lblQuotationNo" data-ic="doc">Quotation No.</label><input type="text" id="qi-refno" readonly data-i18n-ph="phAutoGenerated" placeholder="Auto-generated"><span class="qi-ref-hint" id="qiRefHint" hidden></span></div>
+        <div class="field"><label data-i18n="lblDate" data-ic="cal">Date</label><input type="date" id="qi-date" oninput="syncQI()"></div>
+        <div class="field"><label data-i18n="lblPreparedBy" data-ic="user">Prepared By</label><input type="text" id="qi-prepby" data-i18n-ph="phPreparedBy" placeholder="Prepared by" oninput="syncQI()"></div>
+        <div class="field full"><label data-i18n="lblIssuedBy" data-ic="issuer">Issued By</label>
           <select id="qi-issued-by" onchange="scheduleDraftAutosave()">
             <option value="" data-i18n="optNoCompanyHeader">— No company header —</option>
             <option value="DER-CHENG FASTENER SDN. BHD.">DER-CHENG FASTENER SDN. BHD.</option>
@@ -5090,7 +5142,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             <option value="EVERTOP HARDWARE TRADING">EVERTOP HARDWARE TRADING</option>
           </select>
         </div>
-        <div class="field full"><label data-i18n="lblRemarks">Remarks / Notes</label><input type="text" id="qi-remarks" data-i18n-ph="phRemarks" placeholder="Price subject to change without prior notice" oninput="syncQI()"></div>
+        <div class="field full"><label data-i18n="lblRemarks" data-ic="note">Remarks / Notes</label><input type="text" id="qi-remarks" data-i18n-ph="phRemarks" placeholder="Price subject to change without prior notice" oninput="syncQI()"></div>
       </div>
     </div>
 
@@ -6903,7 +6955,7 @@ const I18N={
     lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
     lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
     lblHoles:'Holes', lblHoleOption:'Hole Option', lblHoleDia:'Hole Dia.',
-    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'Product Type', cpBreakdown:'Price breakdown', qListHintM:'Add an item above, or paste / upload with Quick Add.',
+    lblHoleDiaMm:'Hole Dia. (mm)', qiRemarksNone:'None — tap to add', lblProductType:'Product Type', cpBreakdown:'Price breakdown', qListHintM:'Add an item above, or paste / upload with Quick Add.',
     lblCostRate:'Cost Rate', lblAdditionalCost:'Additional Cost', lblMarkup:'Markup',
     lblUnitPrice:'Unit Price', lblManualUnitPrice:'Manual Unit Price (RM)', lblPriceMode:'Price Mode',
     phEnterLength:'Enter length', phEnterThreadLength:'Enter thread length',
@@ -7619,7 +7671,7 @@ const I18N={
     lblThickness:'Thickness', lblThicknessMm:'Thickness (mm)', lblWidth:'Width',
     lblWidthMm:'Width (mm)', lblHeight:'Height', lblHeightMm:'Height (mm)',
     lblHoles:'洞口数量', lblHoleOption:'开洞选择', lblHoleDia:'Hole Dia.',
-    lblHoleDiaMm:'Hole Dia. (mm)', lblProductType:'产品', cpBreakdown:'价格明细', qListHintM:'请在上方添加项目，或用快速添加粘贴 / 上传。',
+    lblHoleDiaMm:'Hole Dia. (mm)', qiRemarksNone:'无 — 点按添加', lblProductType:'产品', cpBreakdown:'价格明细', qListHintM:'请在上方添加项目，或用快速添加粘贴 / 上传。',
     lblCostRate:'每公斤成本', lblAdditionalCost:'额外加工费', lblMarkup:'Markup',
     lblUnitPrice:'单价', lblManualUnitPrice:'手动单价 (RM)', lblPriceMode:'价格模式',
     phEnterLength:'输入长度', phEnterThreadLength:'输入牙长',
@@ -12306,6 +12358,7 @@ function startNewQuotation(){
 function toggleQIEdit(){
   const ed=el('qiEdit'); const open=ed.classList.toggle('open');
   el('qiToggleBtn').textContent = open ? dcT('done') : dcT('editDetails');
+  if(typeof dcQiRemarksSum==='function') dcQiRemarksSum();   // values may have been restored without an input event
 }
 function syncQI(){
   if(typeof phAutoSchedule==='function') phAutoSchedule();   // the customer decides which records are "this customer"
@@ -12315,6 +12368,7 @@ function syncQI(){
   el('qiName').textContent = customer || dcT('noCustomerYet');
   el('qiRefDisp').textContent = dcT('lblQuotationNo')+' '+(refno||'—');
   el('qiDateDisp').textContent = dcT('lblDate')+' '+(date||'—');
+  if(typeof dcQiRemarksSum==='function') dcQiRemarksSum();
   refreshWorkflow();
   markQuotationDirty();
   scheduleDraftAutosave();
@@ -25091,6 +25145,7 @@ function dcShellRunIntent(handoffLoaded){
   ensureOthersForm();
   document.querySelectorAll('.item-form').forEach(dcPricingExtras);
   dcBuildTypeSelect();
+  dcQiRemarksInit();
   requestAnimationFrame(()=>dcPairFields(el('form-'+currentType)));   // after the Price Mode controls exist
   document.querySelectorAll('.acc-panel').forEach(dcAccEnhancePanel);
   dcPlacePhMini(currentType);
@@ -25179,6 +25234,24 @@ function dcIconize(root){
   const start=()=>{ dcIconize(document.body); obs.observe(document.body,{childList:true,subtree:true,characterData:true}); };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
 })();
+
+/* R2.4 Session B — Remarks on the phone: a one-line summary of what is there
+   (or that nothing is), the box itself on demand. The input is the same
+   #qi-remarks with its own handlers; collapsing it never clears it. */
+function dcQiRemarksInit(){
+  const inp=el('qi-remarks'); if(!inp) return; const f=inp.closest('.field'); if(!f||f.querySelector('.qi-rm-sum')) return;
+  f.classList.add('qi-rm');
+  const b=document.createElement('button'); b.type='button'; b.className='qi-rm-sum'; b.setAttribute('aria-expanded','false'); b.setAttribute('aria-controls','qi-remarks');
+  b.innerHTML='<span class="qi-rm-k" data-i18n="lblRemarks">'+escHtml(dcT('lblRemarks'))+'</span><span class="qi-rm-v"></span><span class="acc-chev" aria-hidden="true"></span>';
+  f.insertBefore(b,f.firstChild);
+  b.addEventListener('click',()=>{ const open=!f.classList.contains('qi-rm-open'); f.classList.toggle('qi-rm-open',open); b.setAttribute('aria-expanded',open?'true':'false'); if(open){ try{ inp.focus({preventScroll:false}); }catch(e){ inp.focus(); } } });
+  inp.addEventListener('input',dcQiRemarksSum); dcQiRemarksSum();
+}
+function dcQiRemarksSum(){
+  const inp=el('qi-remarks'), v=document.querySelector('.qi-rm-sum .qi-rm-v'); if(!inp||!v) return;
+  const t=String(inp.value||'').trim(); v.textContent=t||dcT('qiRemarksNone'); v.classList.toggle('is-empty',!t);
+}
+if(typeof dcOnRelabel==='function') dcOnRelabel(dcQiRemarksSum);
 /* ── Keyboard safety (visualViewport) ──────────────────────────────────────────
    Presentation only. Tracks how much of the page an on-screen keyboard covers,
    exposes it as --kb / --vvh, flags html.kb-open so the sticky footer steps aside,
