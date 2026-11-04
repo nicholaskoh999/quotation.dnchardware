@@ -1098,6 +1098,64 @@ html.rsp-lock,html.rsp-lock body{overflow:hidden}
   #step1Card .qi-edit .field input,#step1Card .qi-edit .field select,
   #step2Card .item-form.active .field input:not([type=radio]):not([type=checkbox]),#step2Card .item-form.active .field select{height:42px;min-height:42px}
 }
+
+/* ═══════════════ R2.5 Session B — the View dialog (#03 phone, #16 desktop) ═══════════════
+   One structure for every width: a header (title, quotation number, Close), a
+   body that is the ONLY scrolling region (details, then the items), and an
+   action bar that never scrolls away. Read-only: nothing here writes or reprices.
+   Phone — Load & Edit full width, Duplicate / Delete side by side under it,
+   Close at the top. Desktop — one item: a comfortable 640px; several items: a
+   wider dialog with a column per figure. Money never splits from its "RM". */
+#viewModal .vm-box{display:flex;flex-direction:column;padding:0;overflow:hidden;max-width:640px;max-height:calc(100dvh - 48px)}
+#viewModal .vm-box.vm-wide{max-width:min(920px,calc(100vw - 48px))}
+#viewModal .vm-head{position:static;margin:0;padding:12px 12px 10px 20px;border-bottom:1px solid var(--border);flex:0 0 auto;align-items:center;gap:12px;background:var(--surface)}
+#viewModal .vm-head-t{display:flex;flex-direction:column;min-width:0;gap:1px}
+#viewModal #vmTitle{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+#viewModal .vm-ref{font-size:17px;font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#viewModal .vm-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 20px 12px}
+#viewModal .vm-actions{flex:0 0 auto;margin:0!important;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border);background:var(--surface);justify-content:flex-end}
+#viewModal .vm-actions .btn{flex:0 0 auto;min-width:120px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#viewModal .vm-actions .vm-more{display:none}   /* desktop keeps Duplicate / Delete on the card (R2.4) */
+#viewModal .vm-box:focus{outline:none}
+#viewModal .vm-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;background:var(--surface2);border-radius:var(--r-sm);padding:10px 12px;margin:0 0 12px;font-size:13px}
+#viewModal .vm-meta > div{min-width:0;margin:0}
+#viewModal .vm-meta dt{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted)}
+#viewModal .vm-meta dd{margin:1px 0 0;font-weight:650;overflow-wrap:anywhere}
+#viewModal .vm-meta .full{grid-column:1/-1}
+#viewModal .vm-count{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin:0 0 2px}
+#viewModal .vm-items{list-style:none;margin:0;padding:0}
+#viewModal .vm-item{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:2px;padding:9px 0;border-bottom:1px solid var(--border)}
+#viewModal .vm-item:last-child{border-bottom:0}
+#viewModal .vm-name{grid-column:1;font-size:13.5px;font-weight:800;color:var(--text);overflow-wrap:break-word}
+#viewModal .vm-name .q-detail-chip{margin-left:4px;vertical-align:1px}
+#viewModal .vm-dims{grid-column:1/-1;font-size:12.5px;color:var(--text-2);overflow-wrap:anywhere}
+#viewModal .vm-qp{grid-column:1/-1;font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+#viewModal .vm-acc{grid-column:1/-1;font-size:11.5px;color:var(--text-muted)}
+#viewModal .vm-amt{grid-column:2;grid-row:1;font-weight:800;color:var(--green);text-align:right;font-variant-numeric:tabular-nums}
+#viewModal .money{white-space:nowrap}
+#viewModal .vm-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:6px;padding-top:10px;border-top:2px solid var(--border);font-weight:800}
+#viewModal .vm-total .money{font-size:18px;color:var(--green);font-variant-numeric:tabular-nums}
+@media (min-width:600px){
+  #viewModal .vm-wide .vm-item{grid-template-columns:minmax(0,1.15fr) minmax(0,1.35fr) minmax(150px,auto) minmax(104px,auto);align-items:baseline}
+  #viewModal .vm-wide .vm-name{grid-column:1;grid-row:1}
+  #viewModal .vm-wide .vm-dims{grid-column:2;grid-row:1}
+  #viewModal .vm-wide .vm-qp{grid-column:3;grid-row:1;text-align:right}
+  #viewModal .vm-wide .vm-acc{grid-column:3;grid-row:2;text-align:right}
+  #viewModal .vm-wide .vm-amt{grid-column:4;grid-row:1}
+  #viewModal .vm-wide .vm-meta{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #viewModal .vm-wide .vm-meta .full{grid-column:span 2}
+}
+@media (max-width:599px){
+  #viewModal.modal-overlay.open{padding:12px max(10px,env(safe-area-inset-right,0px)) 12px max(10px,env(safe-area-inset-left,0px))}
+  #viewModal .vm-box,#viewModal .vm-box.vm-wide{max-width:none;max-height:calc(100dvh - 24px);overflow:hidden}
+  #viewModal .vm-head{position:static;padding:8px 6px 8px 16px}
+  #viewModal .vm-body{padding:12px 14px 10px}
+  #viewModal .vm-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
+  #viewModal .vm-actions .btn{min-width:0;min-height:44px;width:100%;padding:0 10px}
+  #viewModal .vm-actions .vm-load{grid-column:1/-1}
+  #viewModal .vm-actions .vm-more{display:inline-flex}
+  #viewModal .vm-actions .vm-close{display:none}
+}
 </style>
 </head>
 <body class="rsp-page-plain">
@@ -1362,18 +1420,18 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
 <!-- View Quotation Modal -->
 <div class="modal-overlay" id="viewModal">
-  <div class="modal" style="max-width:600px">
-    <div class="modal-title">
-      📋 <span data-i18n="quotationDetail">Quotation Detail</span>
-      <button class="modal-close" onclick="closeModal('viewModal')" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
+  <div class="modal vm-box" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+    <div class="modal-title vm-head">
+      <div class="vm-head-t"><span id="vmTitle" data-i18n="quotationDetail">Quotation Detail</span><span class="vm-ref" id="vmRef"></span></div>
+      <button class="modal-close" type="button" onclick="cpCloseView()" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button>
     </div>
-    <div id="viewModalBody"></div>
-    <div class="modal-btns" style="margin-top:16px">
-      <button class="btn btn-amber" onclick="loadAndGo()">📂 <span data-i18n="loadAndEdit">Load &amp; Edit</span></button>
+    <div id="viewModalBody" class="vm-body"></div>
+    <div class="modal-btns vm-actions">
+      <button class="btn btn-amber vm-load" type="button" onclick="loadAndGo()">📂 <span data-i18n="loadAndEdit">Load &amp; Edit</span></button>
       <!-- R2.4: on the phone Duplicate and Delete live here, not on the card -->
       <button class="btn btn-ghost vm-more" type="button" onclick="cpViewDuplicate()"><span data-i18n="cpDuplicate">📄 Duplicate</span></button>
       <button class="btn btn-danger vm-more" type="button" onclick="cpViewDelete()"><span data-i18n="cpDelete">🗑️ Delete</span></button>
-      <button class="btn btn-ghost" onclick="closeModal('viewModal')" data-i18n="close">Close</button>
+      <button class="btn btn-ghost vm-close" type="button" onclick="cpCloseView()" data-i18n="close">Close</button>
     </div>
   </div>
 </div>
@@ -1470,7 +1528,7 @@ const I18N={
     cpBadgeActive:'Active', cpBadgeNoQuotes:'No Quotes', cpBadgeRecent:'Recent',
     cpBadgeRemarks:'Has Remarks',
     cpMoreItems:'+{n} more item(s)', cpDateLabel:'Date:', cpItemCount:'📦 {n} item(s)',
-    cpRemarksLabel:'Remarks:', cpMoreRemarks:'(+{n} more quote(s) with remarks)',
+    cpRemarksLabel:'Remarks:', cpPreparedByLabel:'Prepared By:', cpItems1:'1 item', cpItemsN:'{n} items', cpAccIncl:'incl. {a} accessories', cpMoreRemarks:'(+{n} more quote(s) with remarks)',
     cpContact:'Contact', cpRefLabel:'Ref:', cpCustomerLabel:'Customer:',
     cpPhoneLabel:'Phone:', cpTotalLabel:'Total:',
     cpView:'👁️ View', cpLoadMore:'📋 Load More Quotations',
@@ -1554,7 +1612,7 @@ const I18N={
     cpBadgeActive:'使用中', cpBadgeNoQuotes:'尚无报价', cpBadgeRecent:'最近',
     cpBadgeRemarks:'有备注',
     cpMoreItems:'另有 {n} 项产品', cpDateLabel:'日期：', cpItemCount:'📦 {n} 项产品',
-    cpRemarksLabel:'备注：', cpMoreRemarks:'（另有 {n} 张报价单有备注）',
+    cpRemarksLabel:'备注：', cpPreparedByLabel:'出单人：', cpItems1:'1 项产品', cpItemsN:'{n} 项产品', cpAccIncl:'含配件 {a}', cpMoreRemarks:'（另有 {n} 张报价单有备注）',
     cpContact:'联系方式', cpRefLabel:'单号：', cpCustomerLabel:'客户：',
     cpPhoneLabel:'电话：', cpTotalLabel:'合计：',
     cpView:'👁️ 查看', cpLoadMore:'📋 载入更多报价',
@@ -2364,30 +2422,39 @@ async function viewQuote(id){
   const q=res.data;
   viewingQuote=q;
   const items=q.items||[];
-  let rows=items.map(i=>`
-    <div class="q-detail-item">
-      <span>${esc(displayItemDesc(i))} <span class="q-detail-chip chip-${safeClassToken(i.finish)}">${esc(i.finish)}</span></span>
-      <span>${esc(i.size)}</span>
-    </div>
-    <div class="q-detail-item" style="background:var(--surface2);padding:4px 8px;border-radius:var(--r-xs);font-size:12px">
-      <span style="color:var(--text-muted)">${esc(dcT('cpQtyCaps'))} ${parseInt(i.qty,10)||0} × RM ${dcItemFinalUnit(i).toFixed(2)}${esc(dcAccNote(i))}</span>
-      <span style="font-weight:700;color:var(--green)">RM ${parseFloat(i.totalAmount||0).toFixed(2)}</span>
-    </div>
-  `).join('');
+  /* R2.5 #03/#16 — the saved figures exactly as stored (unit = the same final
+     unit the cards and index.php show; line = the saved totalAmount); "RM" and
+     its number never split. Read-only. */
+  const money=v=>`<span class="money">RM ${v}</span>`;
+  const lbl=k=>esc(String(dcT(k)).replace(/[:：]\s*$/,''));
+  let rows=items.map(i=>{ const acc=dcItemAccUnit(i);
+    return `<li class="vm-item">
+      <div class="vm-name">${esc(displayItemDesc(i)||'')}${i.finish?` <span class="q-detail-chip chip-${safeClassToken(i.finish)}">${esc(i.finish)}</span>`:''}</div>
+      <div class="vm-amt">${money(parseFloat(i.totalAmount||0).toFixed(2))}</div>
+      ${i.size?`<div class="vm-dims">${esc(i.size)}</div>`:''}
+      <div class="vm-qp">${esc(dcT('cpQtyCaps'))} ${parseInt(i.qty,10)||0} × ${money(dcItemFinalUnit(i).toFixed(2))}</div>
+      ${acc>0?`<div class="vm-acc">${esc(dcT('cpAccIncl').replace('{a}','RM'+acc.toFixed(2)))}</div>`:''}
+    </li>`; }).join('');
+  const meta=[[q.customer_name,'cpCustomerLabel',esc(q.customer_name),'full'],[q.quote_date,'cpDateLabel',fmtDate(q.quote_date),''],
+    [q.customer_phone,'cpPhoneLabel',esc(q.customer_phone),''],[q.prepared_by,'cpPreparedByLabel',esc(q.prepared_by),''],
+    [q.remarks,'cpRemarksLabel',esc(q.remarks),'full']].filter(m=>m[0])
+    .map(m=>`<div class="${m[3]}"><dt>${lbl(m[1])}</dt><dd>${m[2]}</dd></div>`).join('');
+  document.getElementById('vmRef').textContent=q.ref_no||'';
+  document.querySelector('#viewModal .vm-box').classList.toggle('vm-wide',items.length>1);
   document.getElementById('viewModalBody').innerHTML=`
-    <div style="background:var(--surface2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:14px;font-size:13px">
-      ${q.ref_no?`<div><strong>${esc(dcT('cpRefLabel'))}</strong> ${esc(q.ref_no)}</div>`:''}
-      ${q.customer_name?`<div><strong>${esc(dcT('cpCustomerLabel'))}</strong> ${esc(q.customer_name)}</div>`:''}
-      ${q.customer_phone?`<div><strong>${esc(dcT('cpPhoneLabel'))}</strong> ${esc(q.customer_phone)}</div>`:''}
-      ${q.quote_date?`<div><strong>${esc(dcT('cpDateLabel'))}</strong> ${fmtDate(q.quote_date)}</div>`:''}
-      ${q.prepared_by?`<div><strong>By:</strong> ${esc(q.prepared_by)}</div>`:''}
-      ${q.remarks?`<div><strong>${esc(dcT('cpRemarksLabel'))}</strong> ${esc(q.remarks)}</div>`:''}
-    </div>
-    <div>${rows}</div>
-    <div style="text-align:right;margin-top:12px;font-size:18px;font-weight:800;color:var(--green)">${esc(dcT('cpTotalLabel'))} RM ${parseFloat(q.total_amount||0).toFixed(2)}</div>
+    ${meta?`<dl class="vm-meta">${meta}</dl>`:''}
+    <div class="vm-count"><span>${esc(items.length===1?dcT('cpItems1'):dcT('cpItemsN').replace('{n}',items.length))}</span></div>
+    <ul class="vm-items">${rows}</ul>
+    <div class="vm-total"><span>${lbl('cpTotalLabel')}</span>${money(Number(q.total_amount||0).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2}))}</div>
   `;
+  document.getElementById('viewModalBody').scrollTop=0;
+  cpViewReturn=document.activeElement;
   openModal('viewModal');
+  const box=document.querySelector('#viewModal .vm-box'); try{ box.focus({preventScroll:true}); }catch(e){}   /* Tab reaches Close first */
 }
+let cpViewReturn=null;
+function cpCloseView(){ closeModal('viewModal'); const r=cpViewReturn; cpViewReturn=null; if(r&&r.isConnected&&typeof r.focus==='function') try{ r.focus({preventScroll:true}); }catch(e){} }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const m=document.getElementById('viewModal'); if(m&&m.classList.contains('open')){ e.preventDefault(); cpCloseView(); } } });
 
 function loadAndGo(){
   if(!viewingQuote)return;
