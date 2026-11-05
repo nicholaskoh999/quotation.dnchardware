@@ -585,19 +585,48 @@ items — one per document row, in document order:
        the document draws no dimension lines for it at all (a table, a text
        line). Never choose END just because it is the common case or because of
        the label.
-       A CENTRE LINE is drawn as a chain line (long dash, short dash) running
-       along the middle of the rod. Where the L line's extension line stops level
-       with the chain line of the bent leg — its middle, not its outer face — Lref
-       is "CENTER", even when the outline of the bend is drawn round it.
-       Where the short-leg dimension runs from the leg's free end to the OUTER
-       face of the shank, Wref is "END".
+       EACH REFERENCE IS DECIDED ON ITS OWN. Lref is read from the L line's own
+       extension line and Wref from the W line's own extension line: two separate
+       readings. Never give one the other's value, never set both from one look
+       at the drawing, and never carry a reference from L to W because they sit
+       on the same bolt. A drawing measuring L to the bent leg's centre line and
+       W over the outside of the shank is ordinary.
+       CENTER needs evidence that THIS line ends on a centre line: a chain line
+       (long dash, short dash) along the middle of that leg at the line's end, a
+       "C/L", "CL" or centre-line mark there, or a stated "to centre".
+         L: the L line's extension line stopping level with the chain line of the
+            bent leg — its middle, not its outer face — is CENTER, even when the
+            outline of the bend is drawn round it.
+         W: the W line's end on the shank is CENTER only when that end itself is
+            marked to the shank's centre line. An end that merely lines up with
+            ANOTHER dimension taken from the bolt's centre (an edge distance,
+            Eg, a spacing, a pitch) says nothing about W. An end inside the rod's
+            thickness, where outer face and centre cannot be told apart, is not
+            CENTER.
+       A short leg given as the leg's own length — "B", "BENT LENGTH", "LEG",
+       "LEG LENGTH", "HOOK LENGTH", a B column — with no centre-line mark at its
+       shank end is measured over the outside of the shank: Wref "END".
+       A value the source calls overall, outside or O/A is already TO END:
+       report it as printed with "END" and never as CENTER or TOP, so no
+       correction is ever applied to it twice.
+       Where a W line is drawn to the shank, is not a leg-length callout, and its
+       end genuinely cannot be told, Wref is "UNCLEAR" — a person decides.
+       Deciding Wref says nothing about Lref, and the reverse. Read the L line
+       first, on its own: follow its lower extension line to where it stops on
+       the bent leg, and only then turn to the W line.
+       Worked example (illustration only, not these values): an upright L bolt
+       whose overall "L" and embedment lines both stop on a horizontal line drawn
+       through the middle of the bent leg, and whose short leg is dimensioned "B"
+       from the leg's free end to the shank, M10 x L300 x B40 ->
+         {"M":"M10","L":300,"W":40,"Lref":"CENTER","Wref":"END"}
+       L and W stay as printed; our code turns L 300 into the outside length.
        A TABLE TAKES ITS REFERENCE FROM THE DRAWING THAT DEFINES IT. A table of
        L-bolt sizes is usually accompanied by the drawing its columns refer to —
        a thumbnail beside the table, a sketch on the same sheet, or a separate
        image of the same type ("TYPE-A", the same letters L, B, C, d). The
        table's L and W columns are the dimensions THAT drawing defines, so every
-       row the drawing defines carries the Lref and Wref read off the drawing's
-       extension lines. Report the table's numbers exactly as printed and the
+       row the drawing defines carries the Lref read off that drawing's L line
+       and, separately, the Wref read off its W line, each by the rules above. Report the table's numbers exactly as printed and the
        references from the drawing; never add the conversion yourself, and never
        report a value that already includes it as if it did not.
        A canonical sheet shows the SAME bolt as D x L x C x T: D the diameter, T
@@ -1168,7 +1197,7 @@ function ai_sanitise_data($d) {
             'Lref'     => in_array($it['Lref'] ?? null, ['TOP','CENTER','END','UNCLEAR'], true) ? $it['Lref'] : null,
             'Wref'     => in_array($it['Wref'] ?? null, ['TOP','CENTER','END','UNCLEAR'], true) ? $it['Wref'] : null,
             // Anchor plate size: evidence shown to staff, never a quotation field.
-            'plate'    => $num($it['plate'] ?? null),
+            'plate'    => (($pl = $num($it['plate'] ?? null)) !== null && $pl >= 1) ? $pl : null,
         ];
         /* A + B + C = L, checked HERE rather than trusting the model to have
            checked it. Only a flag: the printed numbers are never rewritten. */
