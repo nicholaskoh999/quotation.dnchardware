@@ -7331,6 +7331,7 @@ const I18N={
     wqaGradeSeen:'{g} stated — a strength class, not a material',
     wqaHeightFromL:'drawing L {v} read as overall height H',
     wqaRadiusSeen:'bend radius R {v} — not an inside diameter',
+    wqaPlateSeen:'anchor plate {v}mm — from the source, not priced',
     wqaFinishDropped:'{v} stated — {m} is quoted without a finish',
     wqaPartialTitle:'Partial extraction',
     wqaPartialBody:'The analysis stopped before the end of the document. Only {n} item(s) were recovered — they are correct, but the source may contain more. Check them against the original, and re-analyse or add the rest separately before this quotation goes out.',
@@ -8040,6 +8041,7 @@ const I18N={
     wqaGradeSeen:'文件注明 {g} —— 属强度等级，并非材质',
     wqaHeightFromL:'图纸 L {v} 视为总高 H',
     wqaRadiusSeen:'弯曲半径 R {v} —— 并非内径',
+    wqaPlateSeen:'锚板 {v}mm —— 来自来源，不计价',
     wqaFinishDropped:'文件注明 {v} —— {m} 报价不含表面处理',
     wqaPartialTitle:'部分提取',
     wqaPartialBody:'分析在文件结束前中断。仅提取到 {n} 个项目 —— 这些是正确的，但原件可能还有更多。请与原件核对，报价发出前请重新分析或另行补上其余项目。',
@@ -16915,7 +16917,7 @@ function wqaEditErrors(){
 function wqaEditSnapshot(){
   return JSON.stringify(wqa.rows.map(r=>({
     size:r.size, qty:r.qty, threadLen:r.threadLen, threadLen2:r.threadLen2,
-    length:r.length, w:r.w, h:r.h, id:r.id, s:r.s, radius:r.radius, bodyDia:r.bodyDia,
+    length:r.length, w:r.w, h:r.h, id:r.id, s:r.s, radius:r.radius, plate:r.plate, bodyDia:r.bodyDia,
     diaMm:r.diaMm, diaManual:!!r.diaManual, threadRef:r.threadRef,
     material:r.material, finish:r.finish, sizeType:r.sizeType, product:r.product,
     stDefaulted:!!r.stDefaulted, stWhy:r.stWhy,
@@ -17291,6 +17293,8 @@ function wqaRowBadges(r){
   /* A bend radius is not an inside diameter. Shown as the fact it is so
      nobody has to ask why the ID is still empty. */
   if(r.radius) out.push({t:dcT('wqaRadiusSeen').replace('{v}',String(r.radius)),k:'info'});
+  /* The anchor plate the source specifies, kept as a fact for staff. */
+  if(r.plate) out.push({t:dcT('wqaPlateSeen').replace('{v}',String(r.plate)),k:'info'});
   /* Read, and then ruled out by a rule of ours rather than missed. */
   if(r.finishSeen) out.push({t:dcT('wqaFinishDropped').replace('{v}',r.finishSeen)
                                                      .replace('{m}',String(r.material||'')),k:'info'});
@@ -20394,6 +20398,9 @@ function wqaNormalizeExtraction(d, opts){
                /* Evidence only, and never a quotation field: a bend radius is
                   not an inside diameter and not a return height. */
                radius:(it.R==null||it.R==='')?'':String(it.R),
+               /* Evidence only: an anchor plate belongs to the assembly, not the
+                  rod. Never W, never an item, never priced. */
+               plate:(it.plate==null||it.plate==='')?'':String(it.plate),
                /* Read from the customer, priced from by nothing: the schema has
                   no pitch and no thread-series field, and inventing one from
                   these would be worse than showing them as what they are. */

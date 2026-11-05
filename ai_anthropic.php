@@ -59,7 +59,7 @@ function ai_anthropic_key() {
      - every other field keeps its production nullable declaration verbatim. */
 const AI_ANTHROPIC_OPTIONAL = [
     'doc'  => ['threadEnds', 'note'],
-    'item' => ['threadEnds', 'Lref', 'Wref', 'Bmid', 'bodyDia', 'R', 'sizeType'],
+    'item' => ['threadEnds', 'Lref', 'Wref', 'Bmid', 'bodyDia', 'R', 'plate', 'sizeType'],
 ];
 
 function ai_anthropic_non_null($prop) {

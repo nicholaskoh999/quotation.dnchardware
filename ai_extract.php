@@ -265,9 +265,13 @@ function ai_output_schema() {
                         // be told; null when the document shows none at all.
                         'Lref'     => ['type'=>['string','null'], 'enum'=>['TOP','CENTER','END','UNCLEAR',null]],
                         'Wref'     => ['type'=>['string','null'], 'enum'=>['TOP','CENTER','END','UNCLEAR',null]],
+                        // Anchor / embedment plate size where the source states
+                        // one (a square plate's side). Evidence only, like R:
+                        // never W, never an item, never priced.
+                        'plate'    => ['type'=>['number','null']],
                     ],
                     'required'=>['M','L','W','TL','qty','Bmid','material','finish','sizeType','unclear',
-                                 'product','threadEnds','bodyDia','H','ID','S','R','Lref','Wref'],
+                                 'product','threadEnds','bodyDia','H','ID','S','R','Lref','Wref','plate'],
                 ],
             ],
         ],
@@ -330,7 +334,20 @@ dimensions. Put them in the item's OWN fields and nowhere else:
                            leave L null. ID is the inside diameter / inside
                            width of the hook, S the bend or return height.
 A bend radius (R25, "bend radius 25") goes in R and nowhere else: it is not ID,
-not S, not W, not H, and not a quotation dimension.
+not S, not W, not H, and not a quotation dimension. A radius stated as a formula
+("R=2d") with no number gives R null on the drawing; a table column of radii gives
+each row its own R.
+
+ANCHOR PLATES, NUTS AND WASHERS ARE NOT THE ROD
+A cast-in rod often carries a nut-and-plate anchor at its embedded end: a flat
+plate (often square, labelled W, "anchor plate", "plate size"), its thickness (t),
+a tack weld and a nut. These are parts of the assembly, not dimensions of the
+rod. The plate's size goes in "plate" — the side of a square plate, as printed —
+and nowhere else: never W, never L, never a separate item, and never a quantity.
+Its thickness and any S / F / t letters belonging to the plate stay out of every
+field. A straight rod threaded top and bottom with such a plate is classified by
+the rod (two threaded ends: SAG_ROD) — the plate does not change the product.
+plate is null on every row the source gives no plate size for.
 Where a drawing is headed "Anchor Bolt" but shows a 90-degree bend, it is an
 L_BOLT — the bend is geometry and the heading is only wording.
 Never fill W, ID, S or H because the product has that field: a number whose role
@@ -343,11 +360,18 @@ degrees and comes back up beside itself. On the sheet that shows as:
   - a short return leg drawn PARALLEL to the shank and dimensioned as a height
     — S, "bend high", "hook height", "return height", "leg"
   - the curve dimensioned by its inside width (ID, "inside dia", "I.D.",
-    "inner width") or by its RADIUS ("R25", "bend radius 25")
-  - a thread callout or thread hatching at the TOP end only
+    "inner width")
 Any ONE of those is enough to classify it. The heading is not: "ANCHOR BOLT",
-"FOUNDATION BOLT", "HOOK BOLT", "J TYPE" and plain "BOLT" all sit over J Bolts
-routinely, and the geometry outranks every one of them.
+"FOUNDATION BOLT", "HOOK BOLT", "J TYPE" and plain "BOLT" sit over J Bolts AND
+over L Bolts routinely, and the geometry outranks every one of them. A heading
+saying "J TYPE" over a rod whose short leg leaves at a right angle and runs AWAY
+from the shank is an L_BOLT.
+A BEND RADIUS IS NOT J-BOLT EVIDENCE. Every bent bolt has one: an L Bolt's
+90-degree corner is drawn and tabled with a radius ("R=2d", "BENT RADIUS 24")
+exactly as a J Bolt's curve is. A radius, a "bent radius" column or a "bent
+length" column says only that the rod is bent — the DIRECTION of the short leg
+decides which product it is, and nothing else does. Thread at the top end only
+is common to both and decides nothing.
 The difference from an L Bolt is the direction of the short leg: an L Bolt's
 leg leaves the shank at a right angle and goes away from it, a J Bolt's turns
 back and runs alongside it.
@@ -561,6 +585,21 @@ items — one per document row, in document order:
        the document draws no dimension lines for it at all (a table, a text
        line). Never choose END just because it is the common case or because of
        the label.
+       A CENTRE LINE is drawn as a chain line (long dash, short dash) running
+       along the middle of the rod. Where the L line's extension line stops level
+       with the chain line of the bent leg — its middle, not its outer face — Lref
+       is "CENTER", even when the outline of the bend is drawn round it.
+       Where the short-leg dimension runs from the leg's free end to the OUTER
+       face of the shank, Wref is "END".
+       A TABLE TAKES ITS REFERENCE FROM THE DRAWING THAT DEFINES IT. A table of
+       L-bolt sizes is usually accompanied by the drawing its columns refer to —
+       a thumbnail beside the table, a sketch on the same sheet, or a separate
+       image of the same type ("TYPE-A", the same letters L, B, C, d). The
+       table's L and W columns are the dimensions THAT drawing defines, so every
+       row the drawing defines carries the Lref and Wref read off the drawing's
+       extension lines. Report the table's numbers exactly as printed and the
+       references from the drawing; never add the conversion yourself, and never
+       report a value that already includes it as if it did not.
        A canonical sheet shows the SAME bolt as D x L x C x T: D the diameter, T
        the thread, L the long leg and C the short leg, both measured to the far
        outer end. That is the convention our own system stores; a customer
@@ -1128,6 +1167,8 @@ function ai_sanitise_data($d) {
             // L-bolt dimension references, passed through as evidence only.
             'Lref'     => in_array($it['Lref'] ?? null, ['TOP','CENTER','END','UNCLEAR'], true) ? $it['Lref'] : null,
             'Wref'     => in_array($it['Wref'] ?? null, ['TOP','CENTER','END','UNCLEAR'], true) ? $it['Wref'] : null,
+            // Anchor plate size: evidence shown to staff, never a quotation field.
+            'plate'    => $num($it['plate'] ?? null),
         ];
         /* A + B + C = L, checked HERE rather than trusting the model to have
            checked it. Only a flag: the printed numbers are never rewritten. */
