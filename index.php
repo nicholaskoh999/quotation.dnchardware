@@ -7269,6 +7269,9 @@ const I18N={
     fieldCostRate:'Cost Rate', fieldAdditionalCost:'Additional Cost',
     fieldSizeType:'Size Type', fieldThread:'Thread', fieldPrice:'Price',
     fieldValidSize:'Valid Size', wqaUnknownSize:'Size not in Diameter Settings — no weight is calculated',
+    wqaUnknownSizeNeedDia:'not in Diameter Settings — enter the actual Ø to weigh and price it',
+    wqaUnknownSizeManual:'not in Diameter Settings — weighed on the Ø entered ({d}mm)',
+    wqaPxNotPriced:'Not priced yet — needs {f}',
     wqaUndersizeWord:'undersize',
     wqaNoDia:'no diameter in Diameter Settings — no weight, so no price',
     fieldMaterial:'Material', fieldFinish:'Finish',
@@ -7982,6 +7985,9 @@ const I18N={
     fieldCostRate:'每公斤成本', fieldAdditionalCost:'额外加工费',
     fieldSizeType:'Size 规格', fieldThread:'Thread Length', fieldPrice:'价格',
     fieldValidSize:'有效螺纹 Size', wqaUnknownSize:'此螺纹 Size 不在直径设定中 — 不计算重量',
+    wqaUnknownSizeNeedDia:'不在直径设定中 — 请输入实际 Ø 以计算重量和价格',
+    wqaUnknownSizeManual:'不在直径设定中 — 按输入的 Ø（{d}mm）计算重量',
+    wqaPxNotPriced:'尚未计价 — 需要 {f}',
     wqaUndersizeWord:'小牙',
     wqaNoDia:'直径设定中没有对应直径 — 不计算重量，也不出价',
     fieldMaterial:'材料', fieldFinish:'表面处理',
@@ -16922,7 +16928,7 @@ function wqaEditFields(r){
 function wqaEditCellError(r,f){
   const raw=String(wqaEditCellValue(r,f)==null?'':wqaEditCellValue(r,f)).trim();
   if(raw==='') return '';                       // missing is allowed out
-  if(f.kind==='size') return isKnownSize(raw)?'':dcT('errBadSize');
+  if(f.kind==='size') return wqaSizeWeighable(r,raw)?'':dcT('errBadSize');
   if(f.kind==='thread') return /^[\d.]+(\s*\/\s*[\d.]+)?$/.test(raw)?'':dcT('errBadNumber');
   const n=Number(raw);
   if(!isFinite(n)) return dcT('errBadNumber');
@@ -17309,8 +17315,12 @@ function wqaRowBadges(r){
   missing.forEach(m=>out.push({t:dcT('needs').replace('{f}',
     dcT('field'+m.replace(/\s/g,''),m)),k:'req', cell:FIELD_CELL[m]||''}));
   if(r.unsupported)                             out.push({t:r.unsupported+' — '+dcT('wqaNotPriced'),k:'warn'});
-  if(String(r.size).trim() && !isKnownSize(r.size))
-    out.push({t:String(r.size)+': '+dcT('wqaUnknownSize'),k:'warn',w:1});
+  if(String(r.size).trim() && !isKnownSize(r.size)){
+    if(wqaSizeWeighable(r))
+      out.push({t:String(r.size)+': '+dcT('wqaUnknownSizeManual').replace('{d}',String(wqaManualDia(r))),k:'info'});
+    else
+      out.push({t:String(r.size)+': '+dcT(wqaMetricNominal(r.size)?'wqaUnknownSizeNeedDia':'wqaUnknownSize'),k:'warn',w:1});
+  }
   else if(r.noDia && wqaRowSpec(r,'sizeType'))
     out.push({t:String(r.size)+(wqaRowSpec(r,'sizeType')==='UNDERSIZE'?' '+dcT('wqaUndersizeWord'):'')
                 +': '+dcT('wqaNoDia'),k:'warn',w:1});
@@ -22157,6 +22167,17 @@ function wqaSizeTypeOpen(r){
   const prod=wqaProductByType(t)||WQA_NO_PRODUCT;
   return !!(prod.needSizeType && dcProductHasSizeType(t) && !wqaRowSpec(r,'sizeType'));
 }
+/* R3 FAST Loop #1: a metric size the diameter tables do not hold (M56, M64)
+   is still a size — what it lacks is a bar. Once a PERSON has typed the actual
+   diameter, the row is weighed on that bar exactly as any manual Ø is. Only a
+   well-formed metric nominal qualifies, so a misread "M2O" is still refused, and
+   nothing is written to Diameter Settings. */
+function wqaManualDia(r){ return (r && r.diaManual) ? parseFloat(String(r.diaMm||'').trim()) : NaN; }
+function wqaMetricNominal(s){ return /^M\d{1,3}(?:\.\d+)?$/i.test(String(s||'').trim()); }
+function wqaSizeWeighable(r, size){
+  const s=size===undefined ? r.size : size;
+  return isKnownSize(s) || (wqaMetricNominal(s) && wqaManualDia(r) > 0);
+}
 function wqaRowMissing(r){
   /* THIS row's product decides what this row needs: an Anchor Bolt wants one
      thread value, a Sag Rod a pair, a Stud none at all. A document showing
@@ -22170,7 +22191,7 @@ function wqaRowMissing(r){
   /* Read, kept, shown — and not accepted. A size we do not recognise may be a
      typo on the customer's order or a misread digit on a photograph; either way
      it has no diameter, so it has no weight, so it must not reach a price. */
-  else if(!isKnownSize(r.size))miss.push('Valid Size');
+  else if(!wqaSizeWeighable(r))miss.push('Valid Size');
   /* Read, recognised — and no diameter AS ASKED FOR. There is no undersize M24,
      so an undersized M24 rod cannot be weighed and must not be priced. Skipped
      while the size type itself is still an open question, because THAT is the
@@ -22684,7 +22705,7 @@ async function wqaRecomputeAll(mode){
     /* No recognised size, no diameter, no weight — and therefore no price. The
        calculator is not even asked: a weight of zero with an Additional Cost on
        top still produces a number, and a number is what a person would trust. */
-    if(!isKnownSize(r.size)){
+    if(!wqaSizeWeighable(r)){
       r.calc=null;
       /* noDia stays false on purpose: the row must ask for a valid SIZE, which
          is the actual problem, rather than for a diameter nobody could supply
@@ -23551,11 +23572,17 @@ function wqaSugApplyAll(i){
 }
 /* Closing the editor (or the panel's Done) changes nothing: the row already
    holds what was typed. */
-function wqaPxDone(i,from){
+async function wqaPxDone(i,from){
   const r=wqa.rows[i]; if(!r) return;
   clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
   if(from==='strip'){ wqa.px=null; } else { r.open=false; }
-  wqaRecomputeAll('force');
+  await wqaRecomputeAll('force');
+  /* Done is never silent: a row that still has no price says what it is
+     waiting for. Nothing typed is cleared — the values stay on the row. */
+  if(!r.removed && !(r.calc && r.calc.finalUnitPrice!=null)){
+    const miss=wqaRowMissing(r).map(m=>dcT('field'+m.replace(/\s/g,''),m));
+    if(miss.length) showToast(dcT('wqaPxNotPriced').replace('{f}',miss.join(', ')));
+  }
 }
 /* The editor under the row, and the way on to the item's full panel. */
 function wqaRvPxStrip(r,i){
