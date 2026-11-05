@@ -12674,6 +12674,42 @@ function toggleQIEdit(){
   const ed=el('qiEdit'); const open=ed.classList.toggle('open');
   el('qiToggleBtn').textContent = open ? dcT('done') : dcT('editDetails');
   if(typeof dcQiRemarksSum==='function') dcQiRemarksSum();   // values may have been restored without an input event
+  if(open) dcQiFocusCustomer();
+}
+/* R3 FAST Task 2: opening Customer Details puts the caret in Customer Name.
+   Only on a person's own open (toggleQIEdit is the one entry point), never while
+   collapsed, never on a locked quotation, and never over a field somebody is
+   already typing in elsewhere. The value is untouched: no clear, no select-all —
+   the caret goes to the end. Focus is taken without the browser's own scroll,
+   then the field is brought into view only if it is actually hidden (the sticky
+   header / compact bar on phones), on the next frame once the grid has laid out.
+   Mobile browsers that refuse programmatic focus outside a gesture simply ignore
+   it; nothing else depends on it. */
+function dcQiFocusCustomer(){
+  const inp=el('qi-customer'), ed=el('qiEdit');
+  if(!inp || !ed || !ed.classList.contains('open') || inp.disabled || inp.readOnly) return;
+  const act=document.activeElement;
+  if(act && act!==document.body && act!==inp && !ed.contains(act) && act.id!=='qiToggleBtn'
+     && act.matches && act.matches('input,textarea,select,[contenteditable="true"]')) return;
+  try{ inp.focus({preventScroll:true}); }catch(e){ inp.focus(); }
+  if(document.activeElement!==inp) return;
+  try{ const n=inp.value.length; inp.setSelectionRange(n,n); }catch(e){}
+  const reveal=()=>{
+    if(document.activeElement!==inp || !ed.classList.contains('open')) return;
+    const r=inp.getBoundingClientRect();
+    const hdr=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h'))||58;
+    const cb=document.querySelector('#step1Card .qi-compact');
+    const top=Math.max(hdr, cb ? cb.getBoundingClientRect().bottom : 0);
+    const vv=window.visualViewport, vh=vv?(vv.offsetTop+vv.height):window.innerHeight;
+    if(r.top<top+4 || r.bottom>vh-8) inp.scrollIntoView({block:'center',behavior:'smooth'});
+  };
+  requestAnimationFrame(reveal);
+  /* A phone keyboard arrives after the focus and shrinks the visual viewport:
+     check once more when it does, then stop listening. */
+  const vv=window.visualViewport;
+  if(vv){ const once=()=>{ vv.removeEventListener('resize',once); reveal(); };
+          vv.addEventListener('resize',once);
+          inp.addEventListener('blur',()=>vv.removeEventListener('resize',once),{once:true}); }
 }
 function syncQI(){
   if(typeof phAutoSchedule==='function') phAutoSchedule();   // the customer decides which records are "this customer"
