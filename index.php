@@ -4401,7 +4401,14 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 .wqa-pxe-ok{font-size:11px;font-weight:750;color:var(--text-muted);user-select:none;-webkit-user-select:none}
 .wqa-pxe-ov{display:inline-flex;align-items:center;gap:4px;height:34px}
 .wqa-pxe-out.is-set b{color:var(--green)}
-.wqa-pxe-out.is-none b,.wqa-pxe-out.is-pending b{font-size:13px;font-weight:750;color:var(--text-muted)}
+.wqa-pxe-out.is-review b{color:var(--amber-ink,var(--text))}
+.wqa-pxe-out.is-none b,.wqa-pxe-out.is-cannot b{font-size:13px;font-weight:750;color:var(--text-muted)}
+.wqa-pxe-tag{font-style:normal;font-size:10.5px;font-weight:800;border-radius:var(--pill-r);padding:1px 7px;margin-left:4px;white-space:nowrap}
+.wqa-pxe-tag[hidden]{display:none}
+.wqa-pxe-out.is-set .wqa-pxe-tag{background:var(--green-light,rgba(22,163,74,.12));color:var(--green)}
+.wqa-pxe-out.is-review .wqa-pxe-tag{background:var(--amber-light);color:var(--amber-ink,var(--text))}
+.wqa-fig-price.is-pa-review .wqa-fin{color:var(--amber-ink,var(--text));font-weight:750}
+.wqa-fig-price.is-pa-cannot .wqa-fin{font-size:12px;font-weight:700;color:var(--text-muted)}
 .wqa-pxe-why{margin-top:6px;padding:5px 8px;border-radius:var(--r-xs);background:var(--amber-light);color:var(--amber-ink,var(--text));
   font-size:12px;font-weight:650;line-height:1.35}
 .wqa-pxe-why[hidden]{display:none}
@@ -7297,9 +7304,13 @@ const I18N={
     wqaUnknownSizeNeedDia:'not in Diameter Settings — enter the actual Ø to weigh and price it',
     wqaUnknownSizeManual:'not in Diameter Settings — weighed on the Ø entered ({d}mm)',
     wqaPxNotPriced:'Not priced yet — needs {f}',
-    wqaPxPendingCalc:'Calculated {p}/pc —',
-    wqaPxWaits:'price is set once {f} is filled in.',
-    wqaPxWaitsOnly:'Price is set once {f} is filled in.',
+    wqaCcFinal:'Final Unit Price', wqaCcCalc:'Calculated Price', wqaCcCannot:'Cannot Calculate', wqaCcShort:'Cannot calc',
+    wqaCcReady:'Ready', wqaCcReview:'Review Needed', wqaCcReviewNeeded:'Confirm {f} before adding.',
+    wqaCcNeedDia:'Enter actual Ø to calculate weight.', wqaCcBadSize:'Enter a valid size to calculate weight.',
+    wqaCcNeedSizeType:'Choose Size Type (it sets the diameter), or enter actual Ø.',
+    wqaCcDiaMaterial:'The diameter for this size depends on Material — choose Material, or enter actual Ø.',
+    wqaCcNeeds:'Enter {f}.', wqaCcNoWeight:'Weight cannot be calculated for this specification.',
+    wqaCcNeedRate:'Enter Cost Rate.', wqaCcNeedManual:'Enter the Manual Price.',
     wqaUndersizeWord:'undersize',
     wqaNoDia:'no diameter in Diameter Settings — no weight, so no price',
     fieldMaterial:'Material', fieldFinish:'Finish',
@@ -8016,9 +8027,13 @@ const I18N={
     wqaUnknownSizeNeedDia:'不在直径设定中 — 请输入实际 Ø 以计算重量和价格',
     wqaUnknownSizeManual:'不在直径设定中 — 按输入的 Ø（{d}mm）计算重量',
     wqaPxNotPriced:'尚未计价 — 需要 {f}',
-    wqaPxPendingCalc:'已计算 {p}/pc —',
-    wqaPxWaits:'填写 {f} 后即设定价格。',
-    wqaPxWaitsOnly:'填写 {f} 后即设定价格。',
+    wqaCcFinal:'最终单价', wqaCcCalc:'计算价格', wqaCcCannot:'无法计算', wqaCcShort:'无法计算',
+    wqaCcReady:'可添加', wqaCcReview:'待确认', wqaCcReviewNeeded:'添加前请确认 {f}。',
+    wqaCcNeedDia:'请输入实际 Ø 以计算重量。', wqaCcBadSize:'请输入有效的螺纹 Size 以计算重量。',
+    wqaCcNeedSizeType:'请选择规格类型（决定直径），或输入实际 Ø。',
+    wqaCcDiaMaterial:'此螺纹 Size 的直径取决于材质 — 请选择材质，或输入实际 Ø。',
+    wqaCcNeeds:'请输入 {f}。', wqaCcNoWeight:'此规格无法计算重量。',
+    wqaCcNeedRate:'请输入成本。', wqaCcNeedManual:'请输入手动价格。',
     wqaUndersizeWord:'小牙',
     wqaNoDia:'直径设定中没有对应直径 — 不计算重量，也不出价',
     fieldMaterial:'材料', fieldFinish:'表面处理',
@@ -17185,7 +17200,7 @@ function wqaCompactCells(r,cols){
           : cell('wqa-c-dim wqa-c-'+c.k, wqaRowDimCell(r,c.k)||'—')).join('')
       + wqaEditCellHtml(r,i,at('qty'),'wqa-c-qty')
       + `<span class="wqa-c wqa-c-w wqa-uw">${escHtml(wqaFmtWeight(calc.weight))}</span>`
-      + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span>`;
+      + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaListPriceText(r))}</span>`;
   }
   /* Not editing: the value itself is the way in. Clicking one opens the same
      edit state with that exact cell focused. */
@@ -17196,7 +17211,7 @@ function wqaCompactCells(r,cols){
         escHtml(wqaRowDimCell(r,c.k)||'—')}</span>`).join('')
     + `<span class="wqa-c wqa-c-qty wqa-c-tap"${tap('qty')}>${escHtml(r.qty||'—')}</span>`
     + `<span class="wqa-c wqa-c-w wqa-uw">${escHtml(wqaFmtWeight(calc.weight))}</span>`
-    + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaFmtPrice(wqaShownPrice(r)))}</span>`;
+    + `<span class="wqa-c wqa-c-price wqa-fin">${escHtml(wqaListPriceText(r))}</span>`;
 }
 /* The column widths live in CSS, one set per breakpoint. The only thing that
    cannot be written there is how MANY dimension columns this list has — CSS
@@ -22475,35 +22490,80 @@ function wqaRowPa(r){
 function wqaRowAccepted(r){ return wqaRowPa(r).state==='accepted'; }
 /* History hands its provenance over through paPending; nothing waits on it. */
 function wqaRowPaSettle(r){ r.paPending=null; }
-function wqaPaCls(r){ return wqaRowAccepted(r)?'is-pa-ok':'is-pa-none'; }
-/* RM/pc on the row: the price once the row has one, otherwise the way in. */
-function wqaRowPriceText(r){ return wqaRowAccepted(r) ? wqaFmtPrice(wqaShownPrice(r)) : dcT('wqaPxSet'); }
-/* R3 FAST Loop #2: the pricing editor's result, and — when there is no price —
-   why. It reads the SAME predicates the row and Add use (wqaRowAccepted,
-   wqaRowSetupOk, wqaRowMissing); nothing here prices or accepts anything. A
-   price the calculator has worked out but the row may not take yet (Material
-   or Size Type still open) is said as "calculated, waiting for …", never shown
-   as the row's price. */
-function wqaPxMissText(r){
-  return wqaRowMissing(r).map(m=>dcT('field'+m.replace(/\s/g,''),m)).join(', ');
+function wqaPaCls(r){ const s=wqaRowCalcState(r).state;
+  return s==='ready'?'is-pa-ok':(s==='review'?'is-pa-review':(s==='cannot'?'is-pa-cannot':'is-pa-none')); }
+/* == R3 FAST Loop #3 — calculation state, kept apart from quotation readiness ==
+   ONE calculator (wqaRecomputeAll -> the product form -> r.calc) and ONE
+   committed price (wqaRowAccepted, which Add, the counters and the recipe
+   offer already read). This layer only CLASSIFIES the row; it prices nothing,
+   stores nothing and is never read by Add:
+
+     ready    wqaRowAccepted — Final Unit Price, the only price Add commits
+     review   the calculator has a price from inputs that do not depend on
+              anything still open; only quotation-approval fields are missing
+              (Material, Size Type where the bar is already known, Qty).
+              Shown as Calculated Price · Review Needed. Add stays blocked by
+              the unchanged wqaRowBlocked.
+     cannot   a calculation input is missing, or the answer would rest on an
+              unconfirmed assumption — said exactly, no figure shown
+     unset    nobody has priced the row yet: "Set price", as before
+
+   Size Type with no typed Ø never reaches "review": without it there is no
+   diameter (autoFillDiameter), so there is no weight. Material only reaches a
+   calculation through a material-specific Diameter Settings rule; where one
+   matches and no Ø was typed, the bar would be an assumption, so "cannot". */
+const WQA_REVIEW_ONLY=['Material','Size Type','Qty'];
+function wqaDiaNeedsMaterial(r){
+  if(!r || wqaRowSpec(r,'material') || wqaManualDia(r)>0) return false;
+  const t=wqaRowProduct(r); if(!t) return false;
+  const st=wqaRowSpec(r,'sizeType')||'', size=String(normalizeSizeValue(r.size)||'').toUpperCase();
+  const noST=DS_TYPES_NO_SIZETYPE.includes(t);
+  return loadDSRules().some(d=>d.type===t && d.material && (noST||!d.sizeType||d.sizeType===st)
+                               && (!d.size || d.size.toUpperCase()===size));
 }
+function wqaFieldsText(list){ return list.map(m=>dcT('field'+m.replace(/\s/g,''),m)).join(', '); }
+function wqaRowCalcState(r){
+  if(!r || r.removed) return {state:'unset'};
+  if(wqaRowAccepted(r)) return {state:'ready', price:roundMoney2(wqaShownPrice(r))};
+  if(!wqaRowHasPricing(r)) return {state:'unset'};
+  const miss=wqaRowMissing(r);
+  const review=miss.filter(m=>WQA_REVIEW_ONLY.indexOf(m)>=0);
+  const calcMiss=miss.filter(m=>WQA_REVIEW_ONLY.indexOf(m)<0);
+  const c=r.calc, raw=c ? Number(c.finalUnitPrice)||0 : 0;
+  const cannot=why=>({state:'cannot', why});
+  if(r.productConflict) return cannot(dcT('wqaNeedsAttention'));
+  if(calcMiss.indexOf('Valid Size')>=0)
+    return cannot(dcT(wqaMetricNominal(r.size)?'wqaCcNeedDia':'wqaCcBadSize'));
+  if(calcMiss.indexOf('Diameter')>=0) return cannot(dcT('wqaCcNeedDia'));
+  if(!c && wqaSizeTypeOpen(r)) return cannot(dcT('wqaCcNeedSizeType'));
+  if(wqaDiaNeedsMaterial(r)) return cannot(dcT('wqaCcDiaMaterial'));
+  if(calcMiss.length) return cannot(dcT('wqaCcNeeds').replace('{f}',wqaFieldsText(calcMiss)));
+  if(!c) return cannot(dcT('wqaCcNoWeight'));
+  if(!wqaRowSetupOk(r)) return cannot(dcT((r.priceMode||'auto')==='manual'?'wqaCcNeedManual':'wqaCcNeedRate'));
+  if(!(raw>0)) return cannot(dcT('wqaCcNoWeight'));
+  return {state:'review', price:roundMoney2(raw), review};
+}
+/* RM/pc on the row: the final price, a calculated one under review, or the way in. */
+function wqaRowPriceText(r){
+  const s=wqaRowCalcState(r);
+  if(s.state==='ready' || s.state==='review') return wqaFmtPrice(s.price);
+  if(s.state==='cannot') return dcT('wqaCcShort');
+  return dcT('wqaPxSet');
+}
+/* The price columns of the compact list: a reviewed figure is shown there too,
+   beside the row's own Review Needed badge — never counted as priced. */
+function wqaListPriceText(r){
+  const s=wqaRowCalcState(r);
+  return wqaFmtPrice(s.state==='review' ? s.price : wqaShownPrice(r));
+}
+/* The pricing editor's result line and, when it is not final, why. */
 function wqaPxStatus(r){
-  const st=wqaPxStatusRaw(r);
-  /* The reason waits until the person has worked the editor (typed a value or
-     pressed Done): an untouched row is simply "Set price", not a warning. */
-  if(!r.pxAsked) st.why='';
-  return st;
-}
-function wqaPxStatusRaw(r){
-  if(wqaRowAccepted(r)) return {cls:'is-set', v:wqaFmtPrice(wqaShownPrice(r)), why:''};
-  const miss=wqaPxMissText(r);
-  if(!r.calc) return {cls:'is-none', v:dcT('wqaPxSet'), why: miss ? dcT('wqaPxWaitsOnly').replace('{f}',miss) : ''};
-  if(!wqaRowSetupOk(r))
-    return {cls:'is-none', v:dcT('wqaPxSet'), why:dcT((r.priceMode||'auto')==='manual'?'wqaPxNeedManual':'wqaPxNeedRate')};
-  const raw=Number(r.calc.finalUnitPrice)||0;
-  const why=(raw>0 ? dcT('wqaPxPendingCalc').replace('{p}',wqaFmtPrice(raw))+' ' : '')
-          + (miss ? dcT(raw>0?'wqaPxWaits':'wqaPxWaitsOnly').replace('{f}',miss) : dcT('wqaNeedsAttention'));
-  return {cls:'is-pending', v:dcT('wqaPxSet'), why};
+  const s=wqaRowCalcState(r);
+  if(s.state==='ready')  return {cls:'is-set', lbl:dcT('wqaCcFinal'), v:wqaFmtPrice(s.price), tag:dcT('wqaCcReady'), why:''};
+  if(s.state==='review') return {cls:'is-review', lbl:dcT('wqaCcCalc'), v:wqaFmtPrice(s.price), tag:dcT('wqaCcReview'),
+                                 why:dcT('wqaCcReviewNeeded').replace('{f}',wqaFieldsText(s.review.length?s.review:wqaRowMissing(r)))};
+  if(s.state==='cannot') return {cls:'is-cannot', lbl:dcT('wqaCcCannot'), v:'—', tag:'', why:s.why};
+  return {cls:'is-none', lbl:dcT('wqaCcFinal'), v:dcT('wqaPxSet'), tag:'', why:''};
 }
 /* The pricing basis a recipe can safely cross: metric and inch sizes are not
    priced from the same basis, so a recipe typed for one is not the other's. */
@@ -23416,7 +23476,7 @@ function wqaRvPxEditor(r,i){
         <label class="wqa-pxe-f wqa-pxe-mode"><span class="wqa-pxe-k">${escHtml(dcT('lblPriceMode'))}</span><select data-px="priceMode" onchange="wqaPxMode(${i},this.value)">${
           WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')}</select></label>
         ${manual?f('manualPrice','lblManualUnitPrice',''):''}
-        <span class="wqa-pxe-out ${st.cls}" aria-live="polite"><span class="wqa-pxe-ok">${escHtml(dcT('lblFinalUnitPrice'))}</span><span class="wqa-pxe-ov"><b class="wqa-pxd-v">${escHtml(st.v)}</b><small>${escHtml(dcT('rvPerPc'))}</small></span></span>
+        <span class="wqa-pxe-out ${st.cls}" aria-live="polite"><span class="wqa-pxe-ok">${escHtml(st.lbl)}</span><span class="wqa-pxe-ov"><b class="wqa-pxd-v">${escHtml(st.v)}</b><small>${escHtml(dcT('rvPerPc'))}</small><em class="wqa-pxe-tag"${st.tag?'':' hidden'}>${escHtml(st.tag)}</em></span></span>
       </div>
       <div class="wqa-pxe-why" data-pxe-why="${i}"${st.why?'':' hidden'}>${escHtml(st.why)}</div>
       ${wqaFuHtml(i)}
@@ -23433,7 +23493,6 @@ function wqaPxFocus(i,k,inp){
 /* One value onto the row. Blank is 0 for a rate and no figure for Manual. */
 function wqaPxWrite(r,k,v){
   wqaMarkEdited(r,'price');
-  r.pxAsked=true;
   if(wqa.fu && wqa.rows[wqa.fu.i]===r) wqa.fu=null;
   if(k==='manualPrice'){ r.manualPrice=v; r.usedHistoryRef=''; return; }
   if(v==='') delete r.priceOverride[k]; else r.priceOverride[k]=v;
@@ -23653,13 +23712,15 @@ async function wqaPxDone(i,from){
   const r=wqa.rows[i]; if(!r) return;
   clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
   if(from==='strip'){ wqa.px=null; } else { r.open=false; }
-  r.pxAsked=true;
   await wqaRecomputeAll('force');
-  /* Done is never silent: a row that still has no price says what it is
-     waiting for. Nothing typed is cleared — the values stay on the row. */
-  if(!r.removed && !wqaRowAccepted(r)){
+  /* Done always answers: Final Unit Price, Calculated Price · Review Needed,
+     or Cannot Calculate with its reason. Nothing typed is cleared, and nothing
+     here adds, approves or stores a price. */
+  if(!r.removed){
     const st=wqaPxStatus(r);
-    showToast(st.why || dcT('wqaPxNotPriced').replace('{f}',wqaPxMissText(r)||dcT('wqaColPricing')));
+    const msg = st.cls==='is-none' ? dcT('wqaCcNeedRate')
+              : st.lbl+(st.v&&st.v!=='—'?' '+st.v+'/pc':'')+(st.why?' — '+st.why:(st.tag?' — '+st.tag:''));
+    showToast(msg);
   }
 }
 /* The editor under the row, and the way on to the item's full panel. */
@@ -24304,10 +24365,12 @@ function wqaPatchRows(){
     const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaRowPriceText(r);
     { const st=wqaPxStatus(r);
       card.querySelectorAll('.wqa-pxd-v').forEach(n=>{ n.textContent=st.v; });
-      card.querySelectorAll('.wqa-pxe-out').forEach(n=>{ n.classList.remove('is-set','is-none','is-pending'); n.classList.add(st.cls); });
+      card.querySelectorAll('.wqa-pxe-ok').forEach(n=>{ n.textContent=st.lbl; });
+      card.querySelectorAll('.wqa-pxe-tag').forEach(n=>{ n.textContent=st.tag; n.hidden=!st.tag; });
+      card.querySelectorAll('.wqa-pxe-out').forEach(n=>{ n.classList.remove('is-set','is-none','is-review','is-cannot'); n.classList.add(st.cls); });
       card.querySelectorAll('.wqa-pxe-why').forEach(n=>{ n.textContent=st.why; n.hidden=!st.why; }); }
     const fig=card.querySelector('.wqa-fig-price');
-    if(fig){ fig.classList.remove('is-pa-none','is-pa-ok'); fig.classList.add(wqaPaCls(r)); }
+    if(fig){ fig.classList.remove('is-pa-none','is-pa-ok','is-pa-review','is-pa-cannot'); fig.classList.add(wqaPaCls(r)); }
     const tw=card.querySelector('.wqa-tw'); if(tw) tw.textContent=wqaFmtTotalWeight(calc.weight,r.qty);
     const ad=card.querySelector('.wqa-actual-dia'); if(ad) ad.textContent=wqaDiaText(r);
     card.querySelectorAll('.wqa-uw[data-tw]').forEach(n=>{ const t=wqaFmtTotalWeight(calc.weight,r.qty); n.dataset.tw=t; n.title=dcT('lblTotalWeight')+' '+t; });
