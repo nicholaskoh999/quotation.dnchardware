@@ -4409,6 +4409,31 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 .wqa-pxe-out.is-review .wqa-pxe-tag{background:var(--amber-light);color:var(--amber-ink,var(--text))}
 .wqa-fig-price.is-pa-review .wqa-fin{color:var(--amber-ink,var(--text));font-weight:750}
 .wqa-fig-price.is-pa-cannot .wqa-fin{font-size:12px;font-weight:700;color:var(--text-muted)}
+/* R3 FAST Loop #4 — the status words under the row price (Ready / Calculated ·
+   Review Needed), and an open item panel whose Remove / Done row stays on screen
+   while any part of the panel is visible in the Quick Add list. */
+.wqa-fin-st{display:block;grid-column:1 / -1;width:0;min-width:100%;font-style:normal;font-size:10px;font-weight:750;line-height:1.2;
+  white-space:normal;text-align:right;color:var(--text-muted);letter-spacing:.01em}
+.wqa-fin-st[hidden]{display:none}
+.wqa-fig-price.is-pa-ok .wqa-fin-st{color:var(--green)}
+.wqa-fig-price.is-pa-review .wqa-fin-st{color:var(--amber-ink,var(--text))}
+/* The status line takes the price's own width and wraps inside it, so the
+   price never grows into Qty or Weight beside it. */
+.wqa-fig-price:has(> .wqa-fin-st:not([hidden])){display:inline-grid;grid-template-columns:auto auto;column-gap:3px;align-items:baseline;row-gap:1px}
+/* .wqa-ser clips its rounded corners with overflow:hidden, which made IT the
+   sticky container (one that never scrolls). clip draws the same corners
+   without becoming a scroll container, so the foot sticks to .wqa-scroll. */
+@supports (overflow:clip){ .wqa-scroll .wqa-ser{overflow:clip} }
+/* Desktop table layout: the Price track is fixed (it lines up with the header),
+   so with a status line the number stands alone on the first line and the
+   status sits under it (the column header already reads PRICE; the editor and
+   the Done message keep "/pc"). Tablet and phone keep their unit inline. */
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  #wqaModal .wqa-it-main .wqa-fig-price:has(> .wqa-fin-st:not([hidden])){grid-template-columns:auto}
+  #wqaModal .wqa-it-main .wqa-fig-price:has(> .wqa-fin-st:not([hidden])) > small{display:none}
+}
+.wqa-scroll .wqa-rv-detail > .wqa-dt-foot{position:sticky;bottom:0;z-index:2;margin-top:12px;padding:8px 0;
+  background:var(--surface2);border-top:1px solid var(--border);box-shadow:0 -6px 8px -8px rgba(0,0,0,.18)}
 .wqa-pxe-why{margin-top:6px;padding:5px 8px;border-radius:var(--r-xs);background:var(--amber-light);color:var(--amber-ink,var(--text));
   font-size:12px;font-weight:650;line-height:1.35}
 .wqa-pxe-why[hidden]{display:none}
@@ -7305,7 +7330,7 @@ const I18N={
     wqaUnknownSizeManual:'not in Diameter Settings — weighed on the Ø entered ({d}mm)',
     wqaPxNotPriced:'Not priced yet — needs {f}',
     wqaCcFinal:'Final Unit Price', wqaCcCalc:'Calculated Price', wqaCcCannot:'Cannot Calculate', wqaCcShort:'Cannot calc',
-    wqaCcReady:'Ready', wqaCcReview:'Review Needed', wqaCcReviewNeeded:'Confirm {f} before adding.',
+    wqaCcReady:'Ready', wqaCcReview:'Review Needed', wqaCcCalcShort:'Calculated · Review', wqaCcReviewNeeded:'Confirm {f} before adding.',
     wqaCcNeedDia:'Enter actual Ø to calculate weight.', wqaCcBadSize:'Enter a valid size to calculate weight.',
     wqaCcNeedSizeType:'Choose Size Type (it sets the diameter), or enter actual Ø.',
     wqaCcDiaMaterial:'The diameter for this size depends on Material — choose Material, or enter actual Ø.',
@@ -8028,7 +8053,7 @@ const I18N={
     wqaUnknownSizeManual:'不在直径设定中 — 按输入的 Ø（{d}mm）计算重量',
     wqaPxNotPriced:'尚未计价 — 需要 {f}',
     wqaCcFinal:'最终单价', wqaCcCalc:'计算价格', wqaCcCannot:'无法计算', wqaCcShort:'无法计算',
-    wqaCcReady:'可添加', wqaCcReview:'待确认', wqaCcReviewNeeded:'添加前请确认 {f}。',
+    wqaCcReady:'可添加', wqaCcReview:'待确认', wqaCcCalcShort:'计算 · 待确认', wqaCcReviewNeeded:'添加前请确认 {f}。',
     wqaCcNeedDia:'请输入实际 Ø 以计算重量。', wqaCcBadSize:'请输入有效的螺纹 Size 以计算重量。',
     wqaCcNeedSizeType:'请选择规格类型（决定直径），或输入实际 Ø。',
     wqaCcDiaMaterial:'此螺纹 Size 的直径取决于材质 — 请选择材质，或输入实际 Ø。',
@@ -16761,6 +16786,23 @@ function wqaToggleRow(i){
   if(want) wqa.rows.forEach(o=>{ if(o!==r) o.open=false; });
   r.open=want;
   wqaRenderRows(true);
+  if(want) wqaRevealRow(i);
+}
+/* R3 FAST Loop #4: an item panel opened near the bottom of the Quick Add list
+   ran past the scroll area's bottom edge, so its Pricing section and Done sat
+   just above the footer, out of sight. Opening one now scrolls the list — the
+   .wqa-scroll container only, never the page — by just enough to show the
+   panel's end, and never further than its top. Nothing moves when the panel
+   already fits. Synchronous: it runs right after the render that opened it. */
+function wqaRevealRow(i){
+  try{
+    const card=el('wqaRows')&&el('wqaRows').querySelector('[data-wqa-row="'+i+'"]');
+    const sc=card&&card.closest('.wqa-scroll'); if(!sc) return;
+    const cr=card.getBoundingClientRect(), sr=sc.getBoundingClientRect();
+    const below=cr.bottom-sr.bottom+8, room=cr.top-sr.top-8;
+    const d=Math.min(below,room);
+    if(d>0) sc.scrollTop+=d;
+  }catch(e){}
 }
 function wqaCloseAllDetails(){
   let any=false;
@@ -22550,6 +22592,13 @@ function wqaRowPriceText(r){
   if(s.state==='cannot') return dcT('wqaCcShort');
   return dcT('wqaPxSet');
 }
+/* The few words under a row's price that say what the figure IS: Ready, or
+   Calculated · Review Needed. Empty for Set price and Cannot calc, whose own
+   text already says it. The colour repeats this; it never carries it alone. */
+function wqaRowPriceStatus(r){
+  const s=wqaRowCalcState(r).state;
+  return s==='ready' ? dcT('wqaCcReady') : (s==='review' ? dcT('wqaCcCalcShort') : '');
+}
 /* The price columns of the compact list: a reviewed figure is shown there too,
    beside the row's own Review Needed badge — never counted as priced. */
 function wqaListPriceText(r){
@@ -23007,7 +23056,7 @@ function wqaIxOpen(i,f){
   /* A phone opens the item first: its values are edited in the item's own
      panel, where each one has room for a finger and a keyboard. */
   if(wqaRvMobile() || r.open || f==='dia' || (WQA_RV_KEY_FIELDS.indexOf(f)>=0 && wqaRvInSeries(i))){
-    if(!r.open){ wqa.rows.forEach(o=>{ if(o!==r) o.open=false; }); r.open=true; wqa.ix=null; wqa.px=null; wqaRenderRows(true); }
+    if(!r.open){ wqa.rows.forEach(o=>{ if(o!==r) o.open=false; }); r.open=true; wqa.ix=null; wqa.px=null; wqaRenderRows(true); wqaRevealRow(i); }
     wqaRvFocus(i,'[data-ef="'+f+'"]');
     return;
   }
@@ -23925,7 +23974,7 @@ function wqaRvItemHtml(r,i,series){
       <div class="wqa-it-fig">
         <span class="wqa-fig wqa-fig-qty">${wqaRvTok(r,i,'qty')}</span>
         <button type="button" class="wqa-fig wqa-fig-price ${wqaPaCls(r)}" onclick="event.stopPropagation();wqaPxToggle(${i})"
-          aria-expanded="${wqa.px===i?'true':'false'}" title="${escHtml(dcT('wqaPxEditTip'))}"><span class="wqa-fin">${escHtml(wqaRowPriceText(r))}</span><small>${escHtml(dcT('rvPerPc'))}</small></button>
+          aria-expanded="${wqa.px===i?'true':'false'}" title="${escHtml(dcT('wqaPxEditTip'))}"><span class="wqa-fin">${escHtml(wqaRowPriceText(r))}</span><small>${escHtml(dcT('rvPerPc'))}</small><em class="wqa-fin-st"${wqaRowPriceStatus(r)?'':' hidden'}>${escHtml(wqaRowPriceStatus(r))}</em></button>
         <span class="wqa-fig wqa-fig-w"><span class="wqa-uw wqa-uw-full" data-tw="${escHtml(wqaFmtTotalWeight(calc.weight,r.qty))}"
           title="${escHtml(dcT('lblTotalWeight')+' '+wqaFmtTotalWeight(calc.weight,r.qty))}">${escHtml(wqaFmtWeight(calc.weight))}</span></span>
       </div>
@@ -24363,6 +24412,8 @@ function wqaPatchRows(){
     card.classList.toggle('wqa-row-block',wqaRowMissing(r).length>0);
     card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight(calc.weight); });
     const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaRowPriceText(r);
+    { const pst=wqaRowPriceStatus(r);
+      card.querySelectorAll('.wqa-fin-st').forEach(n=>{ n.textContent=pst; n.hidden=!pst; }); }
     { const st=wqaPxStatus(r);
       card.querySelectorAll('.wqa-pxd-v').forEach(n=>{ n.textContent=st.v; });
       card.querySelectorAll('.wqa-pxe-ok').forEach(n=>{ n.textContent=st.lbl; });
