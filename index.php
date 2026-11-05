@@ -4389,6 +4389,31 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 .wqa-px .wqa-px-foot{gap:8px}
 .wqa-px .wqa-px-hist{margin-right:auto;display:inline-flex;align-items:center;gap:5px}
 .wqa-px .wqa-px-hist .dc-hist-ico{width:14px;height:14px}
+/* R3 FAST Loop #2 — pricing editor layout. The suggestion is a labelled,
+   separate box (reference only); the result reads like the other fields
+   (label over value) instead of a bold heading; a row with no price says why
+   right under the boxes. Desktop keeps one compact line. */
+.wqa-pxe-rec{padding:6px 10px;border:1px dashed var(--border);border-radius:var(--r-xs);background:var(--surface);gap:4px 10px}
+.wqa-pxe-rvs{display:inline-flex;flex-wrap:wrap;gap:2px 12px}
+.wqa-pxe-rv{white-space:nowrap}
+.wqa-pxe-rv i{font-style:normal;font-size:10.5px;font-weight:750;color:var(--text-muted);margin-right:2px}
+.wqa-pxe-out{display:flex;flex-direction:column;gap:3px;height:auto!important;min-height:0!important;line-height:normal!important;white-space:nowrap}
+.wqa-pxe-ok{font-size:11px;font-weight:750;color:var(--text-muted);user-select:none;-webkit-user-select:none}
+.wqa-pxe-ov{display:inline-flex;align-items:center;gap:4px;height:34px}
+.wqa-pxe-out.is-set b{color:var(--green)}
+.wqa-pxe-out.is-none b,.wqa-pxe-out.is-pending b{font-size:13px;font-weight:750;color:var(--text-muted)}
+.wqa-pxe-why{margin-top:6px;padding:5px 8px;border-radius:var(--r-xs);background:var(--amber-light);color:var(--amber-ink,var(--text));
+  font-size:12px;font-weight:650;line-height:1.35}
+.wqa-pxe-why[hidden]{display:none}
+@media (min-width:600px) and (max-width:1023px), (min-width:600px) and (pointer:coarse){
+  .wqa-pxe-ov{height:44px}
+}
+@media (max-width:599px){
+  .wqa-pxe-rec{flex-direction:column;align-items:flex-start}
+  .wqa-pxe-out{grid-column:1 / -1;flex-direction:row;align-items:center;justify-content:space-between;
+    padding:0 2px;border-top:1px dashed var(--border);padding-top:6px}
+  .wqa-pxe-ov{height:36px}
+}
 /* Owner smoke: the follow-up after a pricing action, inside the editor. */
 .wqa-fu{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
 .wqa-it > .wqa-fu{margin:0 10px 8px 54px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface)}
@@ -7272,6 +7297,9 @@ const I18N={
     wqaUnknownSizeNeedDia:'not in Diameter Settings — enter the actual Ø to weigh and price it',
     wqaUnknownSizeManual:'not in Diameter Settings — weighed on the Ø entered ({d}mm)',
     wqaPxNotPriced:'Not priced yet — needs {f}',
+    wqaPxPendingCalc:'Calculated {p}/pc —',
+    wqaPxWaits:'price is set once {f} is filled in.',
+    wqaPxWaitsOnly:'Price is set once {f} is filled in.',
     wqaUndersizeWord:'undersize',
     wqaNoDia:'no diameter in Diameter Settings — no weight, so no price',
     fieldMaterial:'Material', fieldFinish:'Finish',
@@ -7988,6 +8016,9 @@ const I18N={
     wqaUnknownSizeNeedDia:'不在直径设定中 — 请输入实际 Ø 以计算重量和价格',
     wqaUnknownSizeManual:'不在直径设定中 — 按输入的 Ø（{d}mm）计算重量',
     wqaPxNotPriced:'尚未计价 — 需要 {f}',
+    wqaPxPendingCalc:'已计算 {p}/pc —',
+    wqaPxWaits:'填写 {f} 后即设定价格。',
+    wqaPxWaitsOnly:'填写 {f} 后即设定价格。',
     wqaUndersizeWord:'小牙',
     wqaNoDia:'直径设定中没有对应直径 — 不计算重量，也不出价',
     fieldMaterial:'材料', fieldFinish:'表面处理',
@@ -22134,7 +22165,13 @@ function wqaClearManualDia(r){
 }
 function wqaEditRowSpec(i,k,v){
   const r=wqa.rows[i]; if(!r) return;
-  if(k==='sizeType'||k==='material'||k==='product') wqaClearManualDia(r);
+  /* R3 FAST Loop #2: the override is dropped so the TABLE can answer for the
+     new specification. A size the tables do not hold (M56, M64) has no table to
+     answer — dropping the person's measured Ø there only erased the weight, so
+     choosing Material or Size Type after typing it left the row unpriceable.
+     For such a size the typed bar stays; a product change still clears it, and
+     every listed size behaves exactly as before. */
+  if(k==='product' || ((k==='sizeType'||k==='material') && isKnownSize(r.size))) wqaClearManualDia(r);
   if(k==='finish'   && wqaNoFinish(wqaRowSpec(r,'material'))) return;
   if(k==='sizeType' && !dcProductHasSizeType(wqaRowProduct(r))) return;
   /* Choosing a size type by hand also answers "this one is ours". */
@@ -22441,6 +22478,33 @@ function wqaRowPaSettle(r){ r.paPending=null; }
 function wqaPaCls(r){ return wqaRowAccepted(r)?'is-pa-ok':'is-pa-none'; }
 /* RM/pc on the row: the price once the row has one, otherwise the way in. */
 function wqaRowPriceText(r){ return wqaRowAccepted(r) ? wqaFmtPrice(wqaShownPrice(r)) : dcT('wqaPxSet'); }
+/* R3 FAST Loop #2: the pricing editor's result, and — when there is no price —
+   why. It reads the SAME predicates the row and Add use (wqaRowAccepted,
+   wqaRowSetupOk, wqaRowMissing); nothing here prices or accepts anything. A
+   price the calculator has worked out but the row may not take yet (Material
+   or Size Type still open) is said as "calculated, waiting for …", never shown
+   as the row's price. */
+function wqaPxMissText(r){
+  return wqaRowMissing(r).map(m=>dcT('field'+m.replace(/\s/g,''),m)).join(', ');
+}
+function wqaPxStatus(r){
+  const st=wqaPxStatusRaw(r);
+  /* The reason waits until the person has worked the editor (typed a value or
+     pressed Done): an untouched row is simply "Set price", not a warning. */
+  if(!r.pxAsked) st.why='';
+  return st;
+}
+function wqaPxStatusRaw(r){
+  if(wqaRowAccepted(r)) return {cls:'is-set', v:wqaFmtPrice(wqaShownPrice(r)), why:''};
+  const miss=wqaPxMissText(r);
+  if(!r.calc) return {cls:'is-none', v:dcT('wqaPxSet'), why: miss ? dcT('wqaPxWaitsOnly').replace('{f}',miss) : ''};
+  if(!wqaRowSetupOk(r))
+    return {cls:'is-none', v:dcT('wqaPxSet'), why:dcT((r.priceMode||'auto')==='manual'?'wqaPxNeedManual':'wqaPxNeedRate')};
+  const raw=Number(r.calc.finalUnitPrice)||0;
+  const why=(raw>0 ? dcT('wqaPxPendingCalc').replace('{p}',wqaFmtPrice(raw))+' ' : '')
+          + (miss ? dcT(raw>0?'wqaPxWaits':'wqaPxWaitsOnly').replace('{f}',miss) : dcT('wqaNeedsAttention'));
+  return {cls:'is-pending', v:dcT('wqaPxSet'), why};
+}
 /* The pricing basis a recipe can safely cross: metric and inch sizes are not
    priced from the same basis, so a recipe typed for one is not the other's. */
 function wqaSizeBasis(r){ return wqaInchKey(r&&r.size) ? 'inch' : 'metric'; }
@@ -23317,7 +23381,13 @@ function wqaPxToggle(i){
      onto the editor's captions as it opens under the pointer. */
   try{ const s=window.getSelection&&window.getSelection(); if(s&&s.rangeCount) s.removeAllRanges(); }catch(e){}
   wqaRenderRows(true);
-  if(wqa.px===i) wqaRvFocus(i,wqaPxFocusSel(r));
+  if(wqa.px===i){
+    wqaRvFocus(i,wqaPxFocusSel(r));
+    /* R3 FAST Loop #2: on a short screen the focus alone left History / More /
+       Done under the modal footer. Bring the editor's own foot into view too. */
+    try{ const ft=el('wqaRows').querySelector('[data-px-row="'+i+'"] .wqa-px-foot');
+         if(ft && ft.scrollIntoView) ft.scrollIntoView({block:'nearest'}); }catch(e){}
+  }
 }
 function wqaPxFocusSel(r){ return '[data-px="'+((r.priceMode||'auto')==='manual'?'manualPrice':'costRate')+'"]'; }
 function wqaPxVal(r,k){
@@ -23331,8 +23401,13 @@ function wqaRvPxEditor(r,i){
       inputmode="decimal" autocomplete="off" spellcheck="false" data-px="${k}" placeholder="0" value="${escHtml(wqaPxVal(r,k))}"
       aria-label="${escHtml(dcT(lbl)+' · '+(i+1))}" onfocus="wqaPxFocus(${i},'${k}',this)"
       oninput="wqaPxInput(${i},'${k}',this)" onchange="wqaPxCommit(${i},'${k}',this)" onkeydown="wqaPxKey(event,${i},'${k}',this)">${unit?`<span class="wqa-pxe-u">${unit}</span>`:''}</span></label>`;
+  const rn=v=>{ const x=Number(v); return isFinite(x)?x.toFixed(2):String(v==null?'':v); };
+  const recVals=r.rec ? `<span class="wqa-pxe-rv"><i>${escHtml(dcT('wqaColCost'))}</i> <b>${escHtml(rn(r.rec.costRate))}</b></span>`
+      + `<span class="wqa-pxe-rv"><i>${escHtml(dcT('wqaColAdd'))}</i> <b>${escHtml(rn(r.rec.addCost))}</b></span>`
+      + `<span class="wqa-pxe-rv"><i>${escHtml(dcT('wqaColMarkup'))}</i> <b>${escHtml(String(Number(r.rec.markup)||0))}%</b></span>` : '';
+  const st=wqaPxStatus(r);
   const rec=r.rec ? `<div class="wqa-pxe-rec" data-pxe-rec="${i}"><span class="wqa-pxe-rk">${escHtml(dcT('wqaSugPricing'))}</span>
-      <b>${escHtml(dcRecText(r.rec))}</b><span class="wqa-pxe-rs">${escHtml(dcPaSourceLabel(r.rec.src))}</span>${manual?'':
+      <span class="wqa-pxe-rvs" title="${escHtml(dcRecText(r.rec))}">${recVals}</span><span class="wqa-pxe-rs">${escHtml(dcPaSourceLabel(r.rec.src))}</span>${manual?'':
       `<button type="button" class="wqa-pxe-fill" data-px-fill="${i}" onclick="event.stopPropagation();wqaPxUseSug(${i})">${escHtml(dcT('wqaPxUse'))}</button>`}</div>` : '';
   return `<div class="wqa-pxe" data-pxe="${i}">
       ${rec}
@@ -23341,8 +23416,9 @@ function wqaRvPxEditor(r,i){
         <label class="wqa-pxe-f wqa-pxe-mode"><span class="wqa-pxe-k">${escHtml(dcT('lblPriceMode'))}</span><select data-px="priceMode" onchange="wqaPxMode(${i},this.value)">${
           WQA_PRICE_MODES.map(m=>`<option value="${m.v}"${(r.priceMode||'auto')===m.v?' selected':''}>${escHtml(dcT(m.k))}</option>`).join('')}</select></label>
         ${manual?f('manualPrice','lblManualUnitPrice',''):''}
-        <span class="wqa-pxe-out" aria-live="polite"><span class="wqa-pxe-arr" aria-hidden="true">→</span><b class="wqa-pxd-v">${escHtml(wqaRowPriceText(r))}</b><small>${escHtml(dcT('rvPerPc'))}</small></span>
+        <span class="wqa-pxe-out ${st.cls}" aria-live="polite"><span class="wqa-pxe-ok">${escHtml(dcT('lblFinalUnitPrice'))}</span><span class="wqa-pxe-ov"><b class="wqa-pxd-v">${escHtml(st.v)}</b><small>${escHtml(dcT('rvPerPc'))}</small></span></span>
       </div>
+      <div class="wqa-pxe-why" data-pxe-why="${i}"${st.why?'':' hidden'}>${escHtml(st.why)}</div>
       ${wqaFuHtml(i)}
     </div>`;
 }
@@ -23357,6 +23433,7 @@ function wqaPxFocus(i,k,inp){
 /* One value onto the row. Blank is 0 for a rate and no figure for Manual. */
 function wqaPxWrite(r,k,v){
   wqaMarkEdited(r,'price');
+  r.pxAsked=true;
   if(wqa.fu && wqa.rows[wqa.fu.i]===r) wqa.fu=null;
   if(k==='manualPrice'){ r.manualPrice=v; r.usedHistoryRef=''; return; }
   if(v==='') delete r.priceOverride[k]; else r.priceOverride[k]=v;
@@ -23576,12 +23653,13 @@ async function wqaPxDone(i,from){
   const r=wqa.rows[i]; if(!r) return;
   clearTimeout(wqa._t); wqa._t=null; clearTimeout(wqa._tm); wqa._tm=null;
   if(from==='strip'){ wqa.px=null; } else { r.open=false; }
+  r.pxAsked=true;
   await wqaRecomputeAll('force');
   /* Done is never silent: a row that still has no price says what it is
      waiting for. Nothing typed is cleared — the values stay on the row. */
-  if(!r.removed && !(r.calc && r.calc.finalUnitPrice!=null)){
-    const miss=wqaRowMissing(r).map(m=>dcT('field'+m.replace(/\s/g,''),m));
-    if(miss.length) showToast(dcT('wqaPxNotPriced').replace('{f}',miss.join(', ')));
+  if(!r.removed && !wqaRowAccepted(r)){
+    const st=wqaPxStatus(r);
+    showToast(st.why || dcT('wqaPxNotPriced').replace('{f}',wqaPxMissText(r)||dcT('wqaColPricing')));
   }
 }
 /* The editor under the row, and the way on to the item's full panel. */
@@ -24224,7 +24302,10 @@ function wqaPatchRows(){
     card.classList.toggle('wqa-row-block',wqaRowMissing(r).length>0);
     card.querySelectorAll('.wqa-uw,.wqa-uw-full').forEach(n=>{ n.textContent=wqaFmtWeight(calc.weight); });
     const fin=card.querySelector('.wqa-fin'); if(fin) fin.textContent=wqaRowPriceText(r);
-    card.querySelectorAll('.wqa-pxd-v').forEach(n=>{ n.textContent=wqaRowPriceText(r); });
+    { const st=wqaPxStatus(r);
+      card.querySelectorAll('.wqa-pxd-v').forEach(n=>{ n.textContent=st.v; });
+      card.querySelectorAll('.wqa-pxe-out').forEach(n=>{ n.classList.remove('is-set','is-none','is-pending'); n.classList.add(st.cls); });
+      card.querySelectorAll('.wqa-pxe-why').forEach(n=>{ n.textContent=st.why; n.hidden=!st.why; }); }
     const fig=card.querySelector('.wqa-fig-price');
     if(fig){ fig.classList.remove('is-pa-none','is-pa-ok'); fig.classList.add(wqaPaCls(r)); }
     const tw=card.querySelector('.wqa-tw'); if(tw) tw.textContent=wqaFmtTotalWeight(calc.weight,r.qty);
