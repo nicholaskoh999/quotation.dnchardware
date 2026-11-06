@@ -7825,6 +7825,7 @@ const I18N={
     tEnterTriRate:'⚠️ Enter Triangle Plate Cost Rate',
     tRateManualOnly:'Enter Cost Rate (RM/kg) to calculate the price.',
     tLen0IdIh:'Total Length is 0 — check Diameter, ID, IH',
+    tUbNeedIdIh:'U-Bolt needs {f} to calculate Total Length — enter it, or type the Total Length',
     tLen0OhW:'Total Length is 0 — check OH, W, Diameter',
     tLen0LW:'Total Length is 0 — check L, W, Diameter',
     tLen0HIdS:'Total Length is 0 — check H, ID, S, Diameter',
@@ -8516,6 +8517,7 @@ const I18N={
     tEnterTriRate:'⚠️ 请输入 Triangle Plate 每公斤成本',
     tRateManualOnly:'请输入每公斤成本（RM/kg）以计算价格',
     tLen0IdIh:'Total Length 为 0 — 请检查 Diameter、ID、IH',
+    tUbNeedIdIh:'U-Bolt 需要 {f} 才能计算 Total Length — 请输入，或手动输入 Total Length',
     tLen0OhW:'Total Length 为 0 — 请检查 OH、W、Diameter',
     tLen0LW:'Total Length 为 0 — 请检查 L、W、Diameter',
     tLen0HIdS:'Total Length 为 0 — 请检查 H、ID、S、Diameter',
@@ -11400,6 +11402,9 @@ let uboltPresetVals={};   // field -> value last written by a preset; dropped wh
   const sel=document.getElementById('ubolt-pipeSize'); if(!sel) return;
   UBOLT_PIPE_PRESETS.forEach(r=>{ const o=document.createElement('option'); o.value=String(r[0]); o.textContent=r[1]+'" / DN'+r[0]; sel.appendChild(o); });
   UBOLT_PRESET_FIELDS.forEach(([f])=>{ const i=document.getElementById('ubolt-'+f); if(i) i.addEventListener('input',()=>{ delete uboltPresetVals[f]; renderUBoltPresetTags(); }); });
+  /* R3 FAST Loop #6: a Total Length typed into the box is the person's, not the formula's. */
+  const len=document.getElementById('ubolt-length');
+  if(len) len.addEventListener('input',()=>{ len.dataset.src=String(len.value).trim()?'manual':''; });
 })();
 function renderUBoltPresetTags(){
   let any=false;
@@ -11439,7 +11444,18 @@ function calcUBolt(type,skipAuto){
   if(type==='ubolt') updateUBoltTLHelper();
   const d=fn(type,'diameter'), id=fn(type,'id'), ih=fn(type,'ih');
   const tlEl=el(type+'-length');
-  if(!skipAuto && (d>0||id>0||ih>0)){ const auto=Math.ceil((d+id)*1.57+(2*ih)-id); if(tlEl) tlEl.value=auto>0?auto:''; }
+  /* R3 FAST Loop #6: the formula needs all three of Diameter, ID and IH. It
+     used to run on ANY one of them, so the M12 default diameter alone wrote a
+     19 mm "Total Length" that weighed, priced and added as if it were a U-Bolt.
+     Now the box is written only from complete geometry (marked auto), and an
+     auto value whose geometry has become incomplete is cleared rather than
+     left standing. A Total Length typed by a person (or loaded from a saved
+     item) is not the formula's and is never cleared here — the unchanged rule
+     still recalculates it once all three are entered. */
+  if(!skipAuto && tlEl){
+    if(d>0 && id>0 && ih>0){ const auto=Math.ceil((d+id)*1.57+(2*ih)-id); tlEl.value=auto>0?auto:''; tlEl.dataset.src=auto>0?'auto':''; }
+    else if(tlEl.dataset.src==='auto'){ tlEl.value=''; tlEl.dataset.src=''; }
+  }
   /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
      millimetres — so the preview has to weigh the same thing. It read the box
      raw, and a hand-typed 800.5 previewed 0.7107 kg while the item committed
@@ -11462,9 +11478,14 @@ function addUBolt(){
   if(!size){showToast(dcT('tEnterSize'));return}
   if(!d){showToast(dcT('tEnterDiameter'));return}
   const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
+  if((id&&parseFloat(id)<0)||(ih&&parseFloat(ih)<0)){showToast(dcT('tIdIhNeg'));return}
+  /* Incomplete geometry is named, not priced: without ID and IH the formula
+     has nothing to give, and only a Total Length a person typed (or a saved
+     item's own) stands in for it. */
+  const ubMiss=[!(parseFloat(id)>0)?'ID':'',!(parseFloat(ih)>0)?'IH':''].filter(Boolean);
+  if(ubMiss.length && (!totalLen || tlField.dataset.src==='auto')){showToast(dcT('tUbNeedIdIh').replace('{f}',ubMiss.join(' / ')));return}
   if(!totalLen){showToast(dcT('tLen0IdIh'));return}
   if(!validateDims({'Diameter':d,'Total Length':totalLen})) return;
-  if((id&&parseFloat(id)<0)||(ih&&parseFloat(ih)<0)){showToast(dcT('tIdIhNeg'));return}
   const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
   if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
   if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
@@ -11769,6 +11790,12 @@ function fillItemFormFromItemInner(item){
     showToast(dcT('tOldNoRate'));
   }
   recalcCurrent(true);          // the saved Total Length is the answer, not a default
+  /* Which kind of answer the saved Total Length is decides whether a later
+     change to ID / IH may clear it: the formula's own result (from whatever
+     geometry was saved, the old diameter-only figure included) is 'auto';
+     anything else was typed and is kept. Nothing is recalculated here. */
+  if(type==='ubolt'){ const u=el('ubolt-length'); if(u){ const v=Math.ceil(parseFloat(u.value)||0), d=fn(type,'diameter'), id=fn(type,'id'), ih=fn(type,'ih');
+    u.dataset.src = !v ? '' : (v===Math.ceil((d+id)*1.57+(2*ih)-id) ? 'auto' : 'saved'); } }
 }
 function setItemEditMode(index){
   editingItemIndex=Number.isInteger(index)?index:null;
