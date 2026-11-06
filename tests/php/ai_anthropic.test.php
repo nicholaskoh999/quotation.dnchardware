@@ -120,11 +120,15 @@ eq(ai_image_provider(), 'luna', 'unset switch: Luna, today\'s behaviour');
 $payload = ai_build_payload(upload_image('photo'), '', []);
 function run_case($sonnetAnswer, $opts = []) {
     global $payload;
-    $calls = ['sonnet' => 0, 'luna' => 0];
+    $calls = ['sonnet' => 0, 'luna' => 0, 'check' => 0];
     $deps = [
         'key' => $opts['key'] ?? 'sk-ant-test',
         'sonnet' => function ($req, $key) use (&$calls, $sonnetAnswer) { $calls['sonnet']++; return $sonnetAnswer; },
         'luna' => function ($p) use (&$calls) { $calls['luna']++; return [200, luna([item(['L' => 300])]), '', 0]; },
+        /* Loop #7: the second reading (coverage + L Bolt references) always goes out
+           beside the extraction; it is not a retry and is counted on its own. */
+        'refcheck' => function ($req, $key, $timeout = 60) use (&$calls) { $calls['check']++;
+            return [200, ['stop_reason' => 'end_turn', 'content' => [['type' => 'text', 'text' => '{"items":[]}']], 'usage' => []], '', 0]; },
     ];
     $run = ai_extract_media($opts['upload'] ?? upload_image('photo'), $payload, $deps);
     return [$run, $calls];
@@ -145,7 +149,7 @@ $TECH = [
 foreach ($TECH as $name => [$answer, $opts, $reason, $sonnetCalls]) {
     [$run, $calls] = run_case($answer, $opts);
     eq([$run['provider'], $run['fallback'], $run['review']], ['openai', $reason, true], "$name: one Luna fallback, reason $reason, Review Needed");
-    eq($calls, ['sonnet' => $sonnetCalls, 'luna' => 1], "$name: Sonnet $sonnetCalls call(s), Luna exactly once — no loop");
+    eq($calls, ['sonnet' => $sonnetCalls, 'luna' => 1, 'check' => $sonnetCalls], "$name: Sonnet $sonnetCalls extraction call(s) (+ the same number of checks), Luna exactly once — no loop");
     $l = end($run['log']);
     eq([$l['provider'], $l['fallback'], $l['fallback_reason']], ['openai', true, $reason], "$name: the log names the fallback and why");
 }

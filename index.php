@@ -2085,6 +2085,8 @@ input,select,textarea{
 .wqa-partial-title{display:block;font-size:12.5px;font-weight:800;letter-spacing:.08em;
   text-transform:uppercase;color:var(--amber);margin-bottom:5px}
 .wqa-partial-body{margin:0;font-size:12.5px;font-weight:600;line-height:1.55;color:var(--text-2)}
+.wqa-partial-body + .wqa-partial-body{margin-top:6px}
+.wqa-cov-list{font-weight:800;color:var(--text);overflow-wrap:anywhere}
 .wqa-partial-ack{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding-top:9px;
   border-top:1px solid var(--amber-mid);font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer}
 .wqa-partial-ack input{width:16px;height:16px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--amber);cursor:pointer}
@@ -7471,7 +7473,10 @@ const I18N={
     wqaFileNoteLbl:'Additional info for this file',
     wqaNoteHelp:'Applies to all uploaded files',
     wqaFileNotesCheck:'Per-file notes were given to the AI for their own file only — check each row against its file.',
-    wqaRefMissing:'The drawing check also saw L Bolt {v} — not in this list. Some rows may be missing: compare with the drawing before adding.',
+    wqaCovTitle:'Possibly incomplete',
+    wqaCovBody:'A second reading of the source listed {m} item(s) that are not in this list of {n}. They have NOT been added. Compare with the drawing, then re-analyse or add the missing items yourself:',
+    wqaCovAck:'I have checked the drawing. These {n} item(s) are the ones to add.',
+    wqaCovUncertain:'Completeness could not be double-checked this time. Compare the number of items with the drawing before adding.',
     wqaNoteReadFile:'Will be applied to this file:',
     wqaNoteReadAll:'Will be applied to all uploaded files:',
     wqaNoteUnrec:'Unrecognized:',
@@ -8197,7 +8202,10 @@ const I18N={
     wqaFileNoteLbl:'此文件补充资料',
     wqaNoteHelp:'适用于所有上传文件',
     wqaFileNotesCheck:'各文件的补充资料只用于该文件 — 请逐项对照其文件确认。',
-    wqaRefMissing:'图纸复核还看到 L Bolt {v}，但不在此列表中。可能有遗漏的项目：添加前请对照图纸。',
+    wqaCovTitle:'可能不完整',
+    wqaCovBody:'第二次读取原件时列出了 {m} 个项目，但不在这 {n} 个项目的列表中。系统没有自动加入它们。请对照图纸，重新分析或自行补上遗漏的项目：',
+    wqaCovAck:'我已核对图纸，确认要加入这 {n} 个项目。',
+    wqaCovUncertain:'这次未能复核项目是否齐全。添加前请对照图纸核对项目数量。',
     wqaNoteReadFile:'将应用于此文件：',
     wqaNoteReadAll:'将应用于所有上传文件：',
     wqaNoteUnrec:'无法识别：',
@@ -15559,7 +15567,7 @@ const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPr
            view:'compact',rows:[],busy:false,
            /* The extraction stopped early, and whether somebody has said out
               loud that they checked the source anyway. */
-           truncated:false,truncAck:false};
+           truncated:false,truncAck:false,covMissing:[]};
 /* Both common sections start COLLAPSED at every width, so the parsed items are
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
@@ -17612,20 +17620,32 @@ function wqaBadgeHtml(r,only,skip){
    but that a list of 12 from a document of 30 looks exactly like a list of 12
    from a document of 12. Redrawn only when the count changes, so a click on the
    checkbox is not answered by rewriting the checkbox under the pointer. */
+/* R3 FAST Loop #7: the same banner, and the same tick, for the other way a
+   list comes back short — the second reading listed items that no row stands
+   for (wqa.covMissing). They are named, never added: the person compares with
+   the drawing. The key now includes the language and the names, so a switch
+   redraws it. */
+function wqaNeedsSourceAck(){ return !!((wqa.truncated || (wqa.covMissing||[]).length) && !wqa.truncAck); }
 function wqaRenderPartial(){
   const box=el('wqaPartial'); if(!box) return;
-  if(!wqa.truncated){ box.hidden=true; box.innerHTML=''; box.dataset.n=''; return; }
+  const miss=wqa.covMissing||[];
+  if(!wqa.truncated && !miss.length){ box.hidden=true; box.innerHTML=''; box.dataset.n=''; return; }
   const n=wqa.rows.filter(r=>!r.removed).length;
   box.hidden=false;
-  if(box.dataset.n===String(n)){
+  const key=[n,dcLang(),wqa.truncated?1:0,miss.join('|')].join('#');
+  if(box.dataset.n===key){
     const cb=box.querySelector('input'); if(cb) cb.checked=!!wqa.truncAck;
     return;
   }
-  box.dataset.n=String(n);
-  box.innerHTML=`<span class="wqa-partial-title">${escHtml(dcT('wqaPartialTitle'))}</span>
-    <p class="wqa-partial-body">${escHtml(dcT('wqaPartialBody').replace('{n}',n))}</p>
+  box.dataset.n=key;
+  const body=[];
+  if(miss.length) body.push(`<p class="wqa-partial-body">${escHtml(dcT('wqaCovBody').replace('{m}',miss.length).replace('{n}',n))}</p>
+    <p class="wqa-partial-body wqa-cov-list" data-i18n-skip>${escHtml(miss.join(' · '))}</p>`);
+  if(wqa.truncated) body.push(`<p class="wqa-partial-body">${escHtml(dcT('wqaPartialBody').replace('{n}',n))}</p>`);
+  box.innerHTML=`<span class="wqa-partial-title">${escHtml(dcT(miss.length?'wqaCovTitle':'wqaPartialTitle'))}</span>
+    ${body.join('')}
     <label class="wqa-partial-ack"><input type="checkbox" id="wqaPartialAckBox"${wqa.truncAck?' checked':''}
-      onchange="wqaAckPartial(this.checked)"><span>${escHtml(dcT('wqaPartialAck').replace('{n}',n))}</span></label>`;
+      onchange="wqaAckPartial(this.checked)"><span>${escHtml(dcT(miss.length?'wqaCovAck':'wqaPartialAck').replace('{n}',n))}</span></label>`;
 }
 /* Deliberate, and revocable: unticking it disables Add again. */
 function wqaAckPartial(on){ wqa.truncAck=!!on; wqaUpdateAddButton(); }
@@ -17636,7 +17656,7 @@ function wqaUpdateAddButton(){
   wqaRenderPartial();
   /* A known-incomplete extraction is not a successful one. The rows stay, the
      screen says why, and Add waits for an explicit acknowledgement. */
-  const needAck = !!(wqa.truncated && !wqa.truncAck);
+  const needAck = wqaNeedsSourceAck();
   { const sc=wqaSpecCount(live);
     el('wqaRowsCount').textContent= sc===1 ? dcT('wqaRvDetectedOne') : dcT('wqaRvDetected').replace('{n}',sc); }
   wqaRenderVarBar();
@@ -19899,7 +19919,7 @@ function wqaWarnText(w){
   return w.v===undefined ? dcT(w.k) : dcT(w.k).replace('{n}',w.v).replace('{v}',w.v);
 }
 function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null;
-  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; }
+  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null; }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
 /* ── The entry forms are borrowed, not taken ───────────────────────────────
@@ -20339,8 +20359,8 @@ async function wqaAnalyzePdfs(){
    header only says what every row agrees on. A drawing's accessory wording is
    proposed to the rows only when every file says the same thing. */
 function wqaMergePdfReads(files){
-  const rows=[], notes=[];
-  let truncated=false, review=false;
+  const rows=[], notes=[], covMiss=[];
+  let truncated=false, review=false, covUnsure=false;
   const diag={provider:'', model:'', fallback:null, ms:0, est_usd:0};
   files.forEach((x,fi)=>{
     const n=JSON.parse(JSON.stringify(x.res.norm));
@@ -20348,6 +20368,9 @@ function wqaMergePdfReads(files){
     notes.push(String((x.res.data && x.res.data.note) || '').trim());
     truncated = truncated || x.res.truncated;
     review = review || x.res.review;
+    { const cv=x.res.data && x.res.data.coverage;
+      if(cv && cv.state==='partial') (cv.missing||[]).forEach(m=>covMiss.push('PDF '+(fi+1)+': '+m));
+      if(cv && cv.state==='uncertain') covUnsure=true; }
     const g=x.res.diag||{};
     if(!diag.model){ diag.provider=g.provider||''; diag.model=g.model||''; }
     if(g.fallback && !diag.fallback){ diag.fallback=g.fallback; diag.provider=g.provider||diag.provider; diag.model=g.model||diag.model; }
@@ -20366,7 +20389,8 @@ function wqaMergePdfReads(files){
   const sameNote = said.length===files.length && distinct.length===1;
   const note = sameNote ? distinct[0]
              : files.map((x,i)=>notes[i] ? 'PDF '+(i+1)+': '+notes[i] : '').filter(Boolean).join(' · ');
-  return {d:{note:note||null, items:[]}, norm:{ok:true, common, rows}, truncated, review,
+  const coverage = covMiss.length ? {state:'partial', missing:covMiss} : (covUnsure ? {state:'uncertain', missing:[]} : null);
+  return {d:{note:note||null, items:[], coverage}, norm:{ok:true, common, rows}, truncated, review,
           diag: diag.model ? diag : null, mixedNotes: !sameNote};
 }
 /* ── L-Bolt dimension references → canonical TO END ────────────────────────
@@ -20879,12 +20903,15 @@ async function wqaAiApply(d, msgTarget, meta){
      review is. The note itself is the customer's wording and is never
      translated. */
   wqa.aiWarnings = d.note ? [{k:'wqaAccMention',v:d.note}] : [];
-  /* R3 FAST Loop #6: the reference check saw L Bolts that no row stands for —
-     the list may be short. Said above the rows, and the read is Review Needed. */
-  if(Array.isArray(d.refMissing) && d.refMissing.length){
-    wqa.aiWarnings.unshift({k:'wqaRefMissing',v:d.refMissing.join(', ')});
-    wqa.aiReview = true;
-  }
+  /* R3 FAST Loop #7: completeness from the second reading (ai_refcheck_apply).
+     partial   items it listed that no row stands for: named in the banner, Add
+               waits for the same tick a cut-off answer needs
+     uncertain it did not answer: said, Review Needed, not blocked
+     complete / absent (pasted text): nothing to say */
+  { const cv=d.coverage||null;
+    wqa._covPending=(cv && cv.state==='partial' && Array.isArray(cv.missing) && cv.missing.length) ? cv.missing.slice(0,30).map(String) : null;
+    if(wqa._covPending) wqa.aiReview=true;
+    if(cv && cv.state==='uncertain'){ wqa.aiWarnings.unshift({k:'wqaCovUncertain'}); wqa.aiReview=true; } }
   /* The answer stopped before the document did. The rows that arrived are
      whole — the one the cut landed in was discarded rather than half-read —
      but the list may be short, and a short list looks exactly like a complete
@@ -21182,7 +21209,7 @@ function wqaResetState(){
      error all belong to the session and go with it. */
   wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
-  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false;
+  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null;
   if(el('wqaPartial')){ el('wqaPartial').hidden=true; el('wqaPartial').innerHTML=''; el('wqaPartial').dataset.n=''; }
   wqaClearNote();
   /* A new Quick Add session is never AI-assisted until it earns it again. */
@@ -21260,6 +21287,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
   /* Belongs to THESE rows: a second analysis that completed clears the warning
      the first one raised, and a plain parse never inherits it. */
   wqa.truncated=!!wqa._truncPending; wqa._truncPending=false; wqa.truncAck=false;
+  wqa.covMissing=Array.isArray(wqa._covPending)?wqa._covPending:[]; wqa._covPending=null;
   /* Text unless the caller says otherwise, and the file is captured HERE, from
      the file that produced these very rows — so replacing image A with image B
      replaces what Review names, and a PDF followed by an image leaves no PDF
@@ -25700,7 +25728,7 @@ async function wqaAddAll(){
   if(!live.length) return;
   /* The button is disabled for this, but the function is also reachable from a
      keyboard shortcut and from a stale click, so the rule lives here too. */
-  if(wqa.truncated && !wqa.truncAck){ wqaRenderPartial(); return; }
+  if(wqaNeedsSourceAck()){ wqaRenderPartial(); return; }
   /* Quick Add ADDS. Someone who pressed Edit on item 3 and then went to read a
      customer's message left editingItemIndex pointing at item 3, and the first
      row committed through the real add path took the edit branch of pushItem

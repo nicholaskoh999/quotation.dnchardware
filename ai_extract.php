@@ -1246,60 +1246,83 @@ function ai_failure($code) {
     return ['error' => $code, 'message' => $m[$code] ?? $m['ai_output_invalid']];
 }
 
-// ── L Bolt dimension-reference check (R3 FAST Loop #6) ──────────────────────
-/* Where an L Bolt's L and W lines END decides the quotation length: to the
-   bent leg's centre line adds d/2, to its outer face adds nothing. One reading
-   of that is a single sample — measured on the Owner's own drawing, 1 run in 3
-   read the same centre-line L lines as END and the lengths came out short with
-   nothing on screen to say so.
+// ── Second reading: quotation coverage + L Bolt references (R3 FAST Loop #6/#7) ──
+/* ONE short Sonnet request that sees the same images, is never shown the main
+   answer, and reports two things the main reading has been measured getting
+   wrong on the Owner's own drawing:
 
-   So a drawing-derived L Bolt is read a SECOND time, independently: a short
-   request that sees the same images, is never shown the first answer, and is
-   asked only what each extension line touches, in its own words. The two
-   readings are compared here, per row and per dimension, and the row carries
-   the outcome as evidence:
+   1. COVERAGE — which items the customer asks to have quoted. The main reading
+      twice returned ONE row of ten (raw response checked in Loop #7: the model
+      itself answered with one item, end_turn, nothing truncated or dropped by
+      our parser). A short list looks exactly like a complete one, so the
+      check's own list is compared with the rows by size and length:
+        coverage.state  complete   every checked item has a row
+                        partial    checked items with no row — named in
+                                   coverage.missing; Quick Add holds Add behind
+                                   the same "I have checked the source" tick a
+                                   cut-off answer uses
+                        uncertain  the check did not answer: said, not blocked
+      The check is evidence only: its items never become rows, dimensions or
+      prices, and rows it does not list are never removed.
 
-     Lchk / Wchk   agree      both readings give the same reference
-                   conflict   they differ               -> a person chooses
-                   unclear    the first reading said UNCLEAR
-                   unmatched  the check did not report this bolt
-                   failed     the check did not run or did not answer
-     Lalt / Walt   the check's own reference (TOP / CENTER / END / UNCLEAR / null)
+   2. L BOLT REFERENCES — where each L and W extension line ends, compared per
+      row and per dimension with the main reading:
+        Lchk / Wchk   agree | conflict | unclear | unmatched | failed
+        Lalt / Walt   the check's own reference (TOP / CENTER / END / UNCLEAR / null)
+      Only "agree" lets a conversion go through on its own; everything else
+      holds the value back for a one-click confirmation in Quick Add.
 
-   Only "agree" lets the conversion go through on its own; everything else
-   holds the value back for a one-click confirmation in Quick Add. Nothing here
-   rewrites L, W or the first reading: they reach the client as printed. */
-const AI_REFCHECK_ENDS = ['CENTRE_LINE', 'FAR_FACE', 'NEAR_FACE', 'CANNOT_TELL', 'NOT_DRAWN'];
+   Nothing here rewrites L, W or the main reading: they reach the client as printed. */
+const AI_REFCHECK_ENDS = ['CENTRE_LINE', 'FAR_FACE', 'NEAR_FACE', 'CANNOT_TELL', 'NOT_DRAWN', 'N_A'];
 const AI_REFCHECK_MAP  = ['CENTRE_LINE' => 'CENTER', 'FAR_FACE' => 'END', 'NEAR_FACE' => 'TOP',
                           'CANNOT_TELL' => 'UNCLEAR', 'NOT_DRAWN' => null];
-const AI_REFCHECK_TIMEOUT = 45;
-const AI_REFCHECK_MAX_TOKENS = 2000;
+const AI_REFCHECK_KINDS = ['L_BOLT', 'J_BOLT', 'SAG_ROD', 'STUD', 'ANCHOR_BOLT', 'U_BOLT', 'PLATE', 'OTHER'];
+const AI_REFCHECK_TIMEOUT = 60;
+/* Sonnet 5.5 thinks by default and its thinking counts against max_tokens:
+   2000 left room for four L bolts, not for a thirty-row schedule. */
+const AI_REFCHECK_MAX_TOKENS = 12000;
 
 function ai_refcheck_schema() {
     $end = ['type' => 'string', 'enum' => AI_REFCHECK_ENDS];
     return [
         'type' => 'object', 'additionalProperties' => false,
-        'properties' => ['bolts' => ['type' => 'array', 'items' => [
+        'properties' => ['items' => ['type' => 'array', 'items' => [
             'type' => 'object', 'additionalProperties' => false,
-            'properties' => ['M' => ['type' => 'string'], 'L' => ['type' => 'number'], 'W' => ['type' => 'number'],
-                             'Lend' => $end, 'Wend' => $end],
-            'required' => ['M', 'L', 'W', 'Lend', 'Wend'],
+            'properties' => ['kind' => ['type' => 'string', 'enum' => AI_REFCHECK_KINDS],
+                             'M' => ['type' => 'string'], 'L' => ['type' => 'number'], 'W' => ['type' => 'number'],
+                             'qty' => ['type' => 'integer'], 'Lend' => $end, 'Wend' => $end],
+            'required' => ['kind', 'M', 'L', 'W', 'qty', 'Lend', 'Wend'],
         ]]],
-        'required' => ['bolts'],
+        'required' => ['items'],
     ];
 }
 
 function ai_refcheck_instructions() {
     return <<<'TXT'
-You check ONE thing on fastener drawings: where the dimension lines of each L-shaped bolt end. Nothing else is asked and nothing else is reported.
+You check a customer's fastener drawings, tables or lists for two things. Nothing else is asked and nothing else is reported.
+
+PART 1 — WHICH ITEMS THE CUSTOMER ASKS TO HAVE QUOTED
+
+List every item the customer is asking us to quote:
+  each row of a quantity table, schedule or bill of materials is one item;
+  each item written with its own quantity is one item.
+A drawing that only shows what a table's rows look like adds no items of its own: a drawing and the table that refers to it are the same items, listed once.
+Parts drawn only for context — nuts, washers, base plates, grout, concrete, sleeves, an anchor plate given as a dimension of a bolt — are not items, unless the document lists them as their own line with a quantity.
+Count what is there. Do not merge two rows that differ in any value, do not split one row into several, and do not add items the document does not ask for.
+
+For each item:
+  kind  L_BOLT (long straight leg with a short leg bent at a right angle), J_BOLT (hooked end), SAG_ROD (straight rod threaded at both ends), STUD, ANCHOR_BOLT (straight rod threaded at one end), U_BOLT, PLATE, OTHER
+  M     the size as printed, e.g. "M12"; "" when the item has none
+  L     the item's length as printed, in mm — a J bolt's overall height — 0 when none is given
+  W     an L bolt's short leg as printed, in mm; 0 for every other item
+  qty   the quantity as printed; 0 when none is given
+
+PART 2 — WHERE L-BOLT DIMENSION LINES END (L_BOLT items only; every other item: Lend and Wend are N_A)
 
 An L bolt has a long straight leg (the SHANK, threaded at its free end) and a short BENT LEG at a right angle. The drawing may be upright, on its side or rotated.
   L is the dimension along the shank, from its threaded end to the bent leg.
   W is the dimension along the bent leg, from its free end to the shank.
-
-Report every L-bolt size the document gives — each row of an L-bolt table is one size, and a table's L and W columns are the dimensions of the drawing that defines them (a sketch beside the table, the same sheet, or another image of the same type). For each size:
-  M  the size as printed, e.g. "M12"
-  L  and W exactly as printed, in mm — 0 when the document gives none
+Each row of an L-bolt table is one size, and a table's L and W columns are the dimensions of the drawing that defines them (a sketch beside the table, the same sheet, or another image of the same type).
   Lend  what the L line's extension line touches at the BENT-LEG end
   Wend  what the W line's extension line touches at the SHANK end
 
@@ -1316,7 +1339,6 @@ Rules:
   A short leg given as its own length — B, LEG, LEG LENGTH, BENT LENGTH, a B column — with no centre-line mark at its shank end is FAR_FACE.
   A W end that merely lines up with ANOTHER dimension taken from the bolt's centre (an edge distance, a spacing) says nothing: it is CENTRE_LINE only when that end itself is marked to the centre line.
   A W extension line that meets the shank WITHIN its drawn thickness (the shank is two thin lines close together, and the line's end cannot be told apart from either face or the middle) is not CENTRE_LINE; for a B / leg-length dimension it is FAR_FACE.
-  Report only L-shaped bolts. A straight rod, a stud, a J or U bolt and a plate are not reported. No L bolt at all: an empty list.
 TXT;
 }
 
@@ -1325,8 +1347,8 @@ function ai_refcheck_request($upload) {
     $parts = ($upload['kind'] ?? '') === 'images' ? $upload['parts'] : [$upload];
     $n = count($parts);
     $content = [['type' => 'text', 'text' => $n > 1
-        ? "Check the L-bolt dimension lines in these $n images. They belong to one customer request."
-        : 'Check the L-bolt dimension lines in this document.']];
+        ? "Check these $n images. They belong to one customer request."
+        : 'Check this document.']];
     foreach ($parts as $i => $p) {
         if ($n > 1) $content[] = ['type' => 'text', 'text' => 'Image ' . ($i + 1) . " of $n:"];
         $src = ['type' => 'base64', 'media_type' => $p['mime'], 'data' => base64_encode($p['bytes'])];
@@ -1341,7 +1363,7 @@ function ai_refcheck_request($upload) {
     ];
 }
 
-/** Does this extraction hold an L Bolt dimension worth a second look? */
+/** Does this extraction hold an L Bolt dimension? (marks the rows a single reading leaves unverified) */
 function ai_refcheck_needed($data) {
     foreach (($data['items'] ?? []) as $it) {
         $p = $it['product'] ?? null;
@@ -1351,40 +1373,57 @@ function ai_refcheck_needed($data) {
     return false;
 }
 
-/** The check's answer, validated: a list of bolts, or null when it is not one. */
+/**
+ * The check's answer, validated: ['items' => every listed item, 'bolts' => the L-bolt
+ * readings], or null when it is not one (an error, a refusal, a cut-off answer).
+ */
 function ai_refcheck_parse($code, $body, $curlErr, $curlErrNo) {
     if ($curlErr !== '' || $curlErrNo || $code !== 200 || !is_array($body) || ($body['stop_reason'] ?? '') !== 'end_turn') return null;
     $text = '';
     foreach (($body['content'] ?? []) as $b) if (($b['type'] ?? '') === 'text') $text .= $b['text'];
     $d = json_decode($text, true);
-    if (!is_array($d) || !isset($d['bolts']) || !is_array($d['bolts'])) return null;
-    $out = [];
-    foreach (array_slice($d['bolts'], 0, AI_MAX_ITEMS) as $b) {
+    if (!is_array($d) || !isset($d['items']) || !is_array($d['items'])) return null;
+    $num = fn($v) => (is_int($v) || is_float($v)) && $v > 0 && $v < 1000000 ? $v : null;
+    $items = []; $bolts = [];
+    foreach (array_slice($d['items'], 0, AI_MAX_ITEMS) as $b) {
         if (!is_array($b) || !is_string($b['M'] ?? null)) continue;
+        if (!in_array($b['kind'] ?? null, AI_REFCHECK_KINDS, true)) continue;
         if (!in_array($b['Lend'] ?? null, AI_REFCHECK_ENDS, true) || !in_array($b['Wend'] ?? null, AI_REFCHECK_ENDS, true)) continue;
-        $num = fn($v) => (is_int($v) || is_float($v)) && $v > 0 && $v < 1000000 ? $v : null;
-        $out[] = ['M' => strtoupper(preg_replace('/\s+/', '', $b['M'])), 'L' => $num($b['L'] ?? null), 'W' => $num($b['W'] ?? null),
-                  'Lref' => AI_REFCHECK_MAP[$b['Lend']], 'Wref' => AI_REFCHECK_MAP[$b['Wend']]];
+        $row = ['kind' => $b['kind'], 'M' => strtoupper(preg_replace('/\s+/', '', $b['M'])), 'L' => $num($b['L'] ?? null),
+                'W' => $num($b['W'] ?? null), 'qty' => (is_int($b['qty'] ?? null) && $b['qty'] > 0) ? $b['qty'] : null];
+        $items[] = $row;
+        if ($b['Lend'] !== 'N_A' && $b['Wend'] !== 'N_A') {
+            $bolts[] = $row + ['Lref' => AI_REFCHECK_MAP[$b['Lend']], 'Wref' => AI_REFCHECK_MAP[$b['Wend']]];
+        }
     }
-    return $out;
+    return ['items' => $items, 'bolts' => $bolts];
+}
+
+/** "M30 L250" — how a checked item is named to staff. */
+function ai_refcheck_label($c) {
+    $l = trim(($c['M'] ?? '') . (($c['L'] ?? null) !== null ? ' L' . $c['L'] : ''));
+    if ($l === '') $l = str_replace('_', ' ', $c['kind'] ?? 'item');
+    return $l;
 }
 
 /**
- * Compare the two readings and write the outcome onto each L Bolt row.
- * $bolts === null: the check did not answer, so every L Bolt dimension is
- * "failed" — unverified, and confirmed by a person rather than trusted.
+ * Compare the two readings and write the outcome onto the extraction.
+ * $check === null: the check did not answer — every L Bolt dimension is "failed"
+ * (unverified, confirmed by a person) and coverage is "uncertain".
  */
-function ai_refcheck_apply($data, $bolts) {
+function ai_refcheck_apply($data, $check) {
     if (!is_array($data) || !isset($data['items'])) return $data;
+    $bolts = $check === null ? null : ($check['bolts'] ?? []);
     $eff  = fn($r) => $r === null ? 'END' : $r;            // no reference drawn = as printed = to the end
     $same = fn($a, $b) => $a !== null && $b !== null && abs($a - $b) < 0.5;
+    $normM = fn($m) => strtoupper(preg_replace('/\s+/', '', (string)$m));
     foreach ($data['items'] as &$it) {
         $p = $it['product'] ?? null;
         if ($p === null) $p = $data['product'] ?? null;
         if ($p !== 'L_BOLT') continue;
         $match = null;
         if ($bolts !== null) {
-            $m = strtoupper(preg_replace('/\s+/', '', (string)($it['M'] ?? '')));
+            $m = $normM($it['M'] ?? '');
             $c = array_values(array_filter($bolts, fn($b) => $m !== '' && $b['M'] === $m));
             if (count($c) > 1) {
                 $byL = array_values(array_filter($c, fn($b) => $same($b['L'], $it['L'] ?? null)));
@@ -1411,40 +1450,93 @@ function ai_refcheck_apply($data, $bolts) {
         }
     }
     unset($it);
-    /* The other direction: L bolts the check saw that no extracted row stands
-       for. Measured on the Owner's drawing: the extraction twice returned ONE
-       row of ten while the check saw all four L bolts. Only a count and the
-       sizes leave here; the review says the list may be short. */
-    if ($bolts !== null) {
-        $rowKeys = [];
-        foreach ($data['items'] as $it) {
-            $p = $it['product'] ?? null; if ($p === null) $p = $data['product'] ?? null;
-            if ($p === 'L_BOLT') $rowKeys[] = [strtoupper(preg_replace('/\s+/', '', (string)($it['M'] ?? ''))), $it['L'] ?? null];
+
+    /* Coverage: every item the check listed should have a row. One row stands
+       for one checked item (a repeated size is counted, not collapsed). Size
+       and length decide; the product word does not, so a row the two readers
+       name differently still covers it. A row the check did not list is left
+       alone — the check is never a reason to remove anything. */
+    if ($check === null) {
+        $data['coverage'] = ['state' => 'uncertain', 'checked' => null, 'read' => count($data['items']), 'missing' => []];
+    } else {
+        $pool = [];
+        foreach ($data['items'] as $i => $it) {
+            $len = $it['L'] ?? null; if ($len === null) $len = $it['H'] ?? null;
+            $pool[$i] = ['M' => $normM($it['M'] ?? ''), 'L' => $len];
         }
-        $miss = [];
-        foreach ($bolts as $b) {
-            $hit = false;
-            foreach ($rowKeys as $k) if ($k[0] === $b['M'] && ($b['L'] === null || $k[1] === null || $same($b['L'], $k[1]))) { $hit = true; break; }
-            if (!$hit) $miss[] = $b['M'] . ($b['L'] !== null ? ' L' . $b['L'] : '');
+        $missing = [];
+        foreach ($check['items'] as $c) {
+            $hit = null;
+            foreach ($pool as $i => $r) {                  // size and length first
+                if ($r['M'] === $c['M'] && $same($r['L'], $c['L'])) { $hit = $i; break; }
+            }
+            if ($hit === null) foreach ($pool as $i => $r) {   // one side gives no length: size alone
+                if ($r['M'] === $c['M'] && ($r['L'] === null || $c['L'] === null)) { $hit = $i; break; }
+            }
+            if ($hit === null) $missing[] = ai_refcheck_label($c);
+            else unset($pool[$hit]);
         }
-        if ($miss) $data['refMissing'] = array_slice($miss, 0, 20);
+        $data['coverage'] = ['state' => $missing ? 'partial' : 'complete', 'checked' => count($check['items']),
+                             'read' => count($data['items']), 'missing' => array_slice($missing, 0, 30)];
     }
     return $data;
 }
 
-/** Run the check after a Sonnet extraction that holds L Bolt rows. Returns [data, logEntry|null]. */
-function ai_refcheck_run($upload, $data, $key, $call) {
-    if (!ai_refcheck_needed($data)) return [$data, null];
-    $t = microtime(true);
-    list($c, $b, $e, $n) = $call(ai_refcheck_request($upload), $key, AI_REFCHECK_TIMEOUT);
-    $bolts = ai_refcheck_parse($c, $b, $e, $n);
-    $u = is_array($b) ? ($b['usage'] ?? []) : [];
-    $res = ['http' => $c, 'outcome' => $bolts === null ? 'refcheck_failed' : 'ok', 'data' => null,
+/** The check's answer as a log line (never the customer's content). */
+function ai_refcheck_log($upload, $code, $body, $check, $t, $ms = null) {
+    $u = is_array($body) ? ($body['usage'] ?? []) : [];
+    $res = ['http' => $code, 'outcome' => $check === null ? 'refcheck_failed' : 'ok', 'data' => null,
             'usage' => ['in' => (int)($u['input_tokens'] ?? 0) + (int)($u['cache_read_input_tokens'] ?? 0) + (int)($u['cache_creation_input_tokens'] ?? 0),
                         'cached_in' => (int)($u['cache_read_input_tokens'] ?? 0), 'cache_write' => (int)($u['cache_creation_input_tokens'] ?? 0),
                         'out' => (int)($u['output_tokens'] ?? 0)]];
-    $log = ai_log_entry($upload, 'anthropic', ai_anthropic_model(), $res, $t, ['stage' => 'refcheck', 'items' => $bolts === null ? 0 : count($bolts)]);
-    return [ai_refcheck_apply($data, $bolts), $log];
+    $e = ai_log_entry($upload, 'anthropic', ai_anthropic_model(), $res, $t,
+                      ['stage' => 'refcheck', 'items' => $check === null ? 0 : count($check['items']),
+                       'stop' => is_array($body) ? ($body['stop_reason'] ?? null) : null]);
+    if ($ms !== null) $e['ms'] = $ms;
+    return $e;
+}
+
+/**
+ * The extraction and the check, sent AT THE SAME TIME (the check does not need
+ * the extraction's answer), so it adds no waiting. Same headers, body and
+ * per-request timeout as ai_call_anthropic. Returns one
+ * [httpCode, decodedBody|null, curlErr, curlErrNo, ms] per request, in order.
+ */
+function ai_call_anthropic_multi($requests, $key, $timeouts) {
+    $mh = curl_multi_init(); $hs = [];
+    foreach ($requests as $i => $req) {
+        $ch = curl_init(ai_anthropic_url());
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($req),
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json', 'x-api-key: ' . $key, 'anthropic-version: ' . AI_ANTHROPIC_VERSION],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => $timeouts[$i] ?? 120,
+            CURLOPT_CONNECTTIMEOUT => 15,
+        ]);
+        curl_multi_add_handle($mh, $ch); $hs[$i] = $ch;
+    }
+    $errNo = [];
+    do {
+        $st = curl_multi_exec($mh, $running);
+        while ($info = curl_multi_info_read($mh)) {
+            foreach ($hs as $i => $ch) if ($ch === $info['handle']) $errNo[$i] = (int)$info['result'];
+        }
+        /* select() can return -1 at once on some builds: wait a moment instead of spinning. */
+        if ($running && $st === CURLM_OK && curl_multi_select($mh, 1.0) === -1) usleep(20000);
+    } while ($running && $st === CURLM_OK);
+    $out = [];
+    foreach ($hs as $i => $ch) {
+        $raw  = curl_multi_getcontent($ch);
+        $no   = $errNo[$i] ?? curl_errno($ch);
+        $err  = $no ? (curl_error($ch) ?: curl_strerror($no)) : '';
+        $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $ms   = (int)round(curl_getinfo($ch, CURLINFO_TOTAL_TIME) * 1000);
+        curl_multi_remove_handle($mh, $ch); curl_close($ch);
+        $out[$i] = [$code, is_string($raw) && $raw !== '' ? json_decode($raw, true) : null, $err, $no, $ms];
+    }
+    curl_multi_close($mh);
+    return $out;
 }
 
 // ── provider orchestration ───────────────────────────────────────────────────
@@ -1524,30 +1616,46 @@ function ai_extract_luna($upload, $payload, $deps = []) {
     $t = microtime(true);
     list($c, $b, $e, $n) = $call($payload);
     $r = ai_luna_result($c, $b, $e, $n);
-    /* A drawing read once has unverified L Bolt references (pasted text has none drawn). */
-    if (($upload['kind'] ?? '') !== 'text' && $r['data'] !== null && ai_refcheck_needed($r['data'])) $r['data'] = ai_refcheck_apply($r['data'], null);
+    /* A drawing read once: its L Bolt references are unverified and its
+       completeness was not double-checked (pasted text is neither). */
+    if (($upload['kind'] ?? '') !== 'text' && $r['data'] !== null) $r['data'] = ai_refcheck_apply($r['data'], null);
     return ['result' => $r, 'provider' => 'openai', 'model' => AI_EXTRACT_MODEL_PRIMARY, 'fallback' => null,
             'review' => $r['truncated'], 'log' => [ai_log_entry($upload, 'openai', AI_EXTRACT_MODEL_PRIMARY, $r, $t)]];
 }
 
 /**
- * Images and PDFs with Sonnet primary. At most one Sonnet call and at most one
- * Luna call, never a loop. $deps lets the tests replace both transports and the key.
+ * Images and PDFs with Sonnet primary: the extraction and the second reading
+ * (coverage + L Bolt references) go out together, then at most one Luna call if
+ * the extraction technically failed — never a loop. $deps lets the tests replace
+ * the transports and the key; with an injected 'sonnet' the two Sonnet requests
+ * run one after the other through it ('refcheck' overrides the second).
  */
 function ai_extract_media($upload, $payload, $deps = []) {
-    $sonnet = $deps['sonnet'] ?? 'ai_call_anthropic';
     $luna   = $deps['luna'] ?? 'ai_call_openai';
     $key    = array_key_exists('key', $deps) ? $deps['key'] : ai_anthropic_key();
     $zero   = ['in' => 0, 'cached_in' => 0, 'cache_write' => 0, 'out' => 0];
     $pf = ai_anthropic_preflight($upload);
     $t = microtime(true);
+    $check = null; $checkLog = null;
     if ($key === '')    $res = ['outcome' => 'not_configured', 'http' => null, 'data' => null, 'truncated' => false, 'usage' => $zero];
     elseif (!$pf['ok']) $res = ['outcome' => 'preflight_oversize', 'http' => null, 'data' => null, 'truncated' => false, 'usage' => $zero];
     else {
-        list($c, $b, $e, $n) = $sonnet(ai_anthropic_request($payload), $key);
+        $main = ai_anthropic_request($payload); $chkReq = ai_refcheck_request($upload);
+        if (isset($deps['sonnet'])) {
+            list($c, $b, $e, $n) = $deps['sonnet']($main, $key);
+            $tc = microtime(true);
+            list($cc, $cb, $ce, $cn) = ($deps['refcheck'] ?? $deps['sonnet'])($chkReq, $key, AI_REFCHECK_TIMEOUT);
+            $cms = null;
+        } else {
+            list($r0, $r1) = ai_call_anthropic_multi([$main, $chkReq], $key, [120, AI_REFCHECK_TIMEOUT]);
+            list($c, $b, $e, $n) = $r0; list($cc, $cb, $ce, $cn, $cms) = $r1; $tc = $t;
+        }
         $res = ai_anthropic_result($c, $b, $e, $n);
+        $check = ai_refcheck_parse($cc, $cb, $ce, $cn);
+        $checkLog = ai_refcheck_log($upload, $cc, $cb, $check, $tc, $cms);
     }
     $log = [ai_log_entry($upload, 'anthropic', ai_anthropic_model(), $res, $t, ['preflight' => $pf['ok'] ? 'pass' : 'block'])];
+    if ($checkLog) $log[] = $checkLog;
 
     if (in_array($res['outcome'], AI_TECHNICAL_FAILURES, true)) {
         $t = microtime(true);
@@ -1555,21 +1663,17 @@ function ai_extract_media($upload, $payload, $deps = []) {
         $l = ai_luna_result($c, $b, $e, $n);
         $log[] = ai_log_entry($upload, 'openai', AI_EXTRACT_MODEL_PRIMARY, $l, $t,
                               ['fallback' => true, 'fallback_reason' => $res['outcome']]);
-        /* The backup reader gives one reading and no check: its L Bolt
-           references are unverified and a person confirms them. */
-        if ($l['data'] !== null && ai_refcheck_needed($l['data'])) $l['data'] = ai_refcheck_apply($l['data'], null);
+        /* The backup reader's rows are compared with the same second reading
+           when it answered; when it did not, they are unverified and uncertain. */
+        if ($l['data'] !== null) $l['data'] = ai_refcheck_apply($l['data'], $check);
         return ['result' => $l, 'provider' => 'openai', 'model' => AI_EXTRACT_MODEL_PRIMARY,
                 'fallback' => $res['outcome'], 'review' => true, 'log' => $log];
     }
     if ($res['outcome'] === 'too_long') $res['error'] = ai_failure('ai_too_long');
-    /* An answer with L Bolt rows is read a second time for its dimension
-       references only — see ai_refcheck_run. */
-    if ($res['data'] !== null && $key !== '') {
-        list($res['data'], $cl) = ai_refcheck_run($upload, $res['data'], $key, $deps['refcheck'] ?? $sonnet);
-        if ($cl) $log[] = $cl;
-    }
+    if ($res['data'] !== null) $res['data'] = ai_refcheck_apply($res['data'], $check);
+    $cov = $res['data']['coverage']['state'] ?? 'complete';
     return ['result' => $res, 'provider' => 'anthropic', 'model' => ai_anthropic_model(), 'fallback' => null,
-            'review' => $res['truncated'] || ($res['data'] !== null && !$res['data']['items']), 'log' => $log];
+            'review' => $res['truncated'] || ($res['data'] !== null && !$res['data']['items']) || $cov !== 'complete', 'log' => $log];
 }
 
 /* What every user sees beside the AI badge: which model read the source, whether
