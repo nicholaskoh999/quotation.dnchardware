@@ -4439,6 +4439,26 @@ button.wqa-ser-n:hover{border-color:var(--accent-mid);background:var(--accent-li
 /* The status line takes the price's own width and wraps inside it, so the
    price never grows into Qty or Weight beside it. */
 .wqa-fig-price:has(> .wqa-fin-st:not([hidden])){display:inline-grid;grid-template-columns:auto auto;column-gap:3px;align-items:baseline;row-gap:1px}
+/* R3 FAST Loop #6 — large prices. Measured: "RM1405.21 ✓" needs ~104px and "Qty 1000" ~66px,
+   but the 1024-1279 desktop tracks gave them 92px and 54px, and white-space:nowrap pushed
+   each into the other. The tracks are re-divided within the SAME fixed total (spec keeps
+   its width, the header shares the variable so columns still line up): Qty and Price get
+   what they need from Cost / Add / Markup / History, which hold short values. The wide
+   desktop gives Qty room for five digits out of the flexible spec column. */
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  #wqaModal{--wqa-ipc:30px minmax(0,1fr) 72px 108px 92px 62px 62px 62px 82px 72px}
+}
+@media (min-width:1024px) and (max-width:1279px) and (hover:hover) and (pointer:fine){
+  #wqaModal{--wqa-ipc:28px minmax(0,1fr) 66px 106px 86px 48px 48px 60px 62px 72px}
+}
+/* The notes under a specification (Unequal Thread, "not in Diameter Settings — weighed on
+   the Ø entered") were one nowrap line that ran out of the spec cell under Qty, the price
+   and its Ready / Review words, and off the card on a phone. They wrap inside the cell. */
+#wqaModal .wqa-it-note{white-space:normal;flex-wrap:wrap;row-gap:2px;min-width:0;max-width:100%}
+#wqaModal .wqa-it-note .wqa-pill{white-space:normal;overflow-wrap:anywhere;max-width:100%;min-width:0}
+/* Below the wide desktop the notes start their own line, so the "·" that joins them to
+   the dimensions would be left standing alone. */
+@media (max-width:1279px), (pointer:coarse){ #wqaModal .wqa-it-note > .wqa-tok-x{display:none} }
 /* .wqa-ser clips its rounded corners with overflow:hidden, which made IT the
    sticky container (one that never scrolls). clip draws the same corners
    without becoming a scroll container, so the foot sticks to .wqa-scroll. */
