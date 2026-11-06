@@ -1820,8 +1820,14 @@ function dcRelabel(){
    re-scan for any data-i18n emitted by those renderers. Every renderer reads
    from the existing cache — no API call, no stored value altered. */
 dcOnRelabel(()=>{
-  try{ if(typeof renderCompanies==='function') renderCompanies(); }catch(e){}
-  try{ if(typeof renderRecentQuotes==='function') renderRecentQuotes(); }catch(e){}
+  /* R3 FAST language hotfix: these were renderCompanies / renderRecentQuotes,
+     names that never existed, so the typeof guards skipped both and the
+     company cards and Recent Quotations kept the previous language. The
+     company cards read the live search box and sort select, so filter, sort
+     and the selected-card highlight are kept. Recent Quotations is only shown
+     when no company is selected (same rule as loadCompanies). */
+  try{ if(typeof renderCompanyCards==='function') renderCompanyCards(); }catch(e){}
+  try{ if(selectedCompanyId===null && typeof renderRecentQuotations==='function') renderRecentQuotations(); }catch(e){}
   try{ if(typeof renderSummary==='function') renderSummary(); }catch(e){}
   /* The detail panel is built inside selectCompany, so re-selecting the same
      company is what re-labels it. That is the same read-only fetch clicking
