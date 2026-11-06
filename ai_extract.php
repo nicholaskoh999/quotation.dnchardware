@@ -1246,6 +1246,207 @@ function ai_failure($code) {
     return ['error' => $code, 'message' => $m[$code] ?? $m['ai_output_invalid']];
 }
 
+// ── L Bolt dimension-reference check (R3 FAST Loop #6) ──────────────────────
+/* Where an L Bolt's L and W lines END decides the quotation length: to the
+   bent leg's centre line adds d/2, to its outer face adds nothing. One reading
+   of that is a single sample — measured on the Owner's own drawing, 1 run in 3
+   read the same centre-line L lines as END and the lengths came out short with
+   nothing on screen to say so.
+
+   So a drawing-derived L Bolt is read a SECOND time, independently: a short
+   request that sees the same images, is never shown the first answer, and is
+   asked only what each extension line touches, in its own words. The two
+   readings are compared here, per row and per dimension, and the row carries
+   the outcome as evidence:
+
+     Lchk / Wchk   agree      both readings give the same reference
+                   conflict   they differ               -> a person chooses
+                   unclear    the first reading said UNCLEAR
+                   unmatched  the check did not report this bolt
+                   failed     the check did not run or did not answer
+     Lalt / Walt   the check's own reference (TOP / CENTER / END / UNCLEAR / null)
+
+   Only "agree" lets the conversion go through on its own; everything else
+   holds the value back for a one-click confirmation in Quick Add. Nothing here
+   rewrites L, W or the first reading: they reach the client as printed. */
+const AI_REFCHECK_ENDS = ['CENTRE_LINE', 'FAR_FACE', 'NEAR_FACE', 'CANNOT_TELL', 'NOT_DRAWN'];
+const AI_REFCHECK_MAP  = ['CENTRE_LINE' => 'CENTER', 'FAR_FACE' => 'END', 'NEAR_FACE' => 'TOP',
+                          'CANNOT_TELL' => 'UNCLEAR', 'NOT_DRAWN' => null];
+const AI_REFCHECK_TIMEOUT = 45;
+const AI_REFCHECK_MAX_TOKENS = 2000;
+
+function ai_refcheck_schema() {
+    $end = ['type' => 'string', 'enum' => AI_REFCHECK_ENDS];
+    return [
+        'type' => 'object', 'additionalProperties' => false,
+        'properties' => ['bolts' => ['type' => 'array', 'items' => [
+            'type' => 'object', 'additionalProperties' => false,
+            'properties' => ['M' => ['type' => 'string'], 'L' => ['type' => 'number'], 'W' => ['type' => 'number'],
+                             'Lend' => $end, 'Wend' => $end],
+            'required' => ['M', 'L', 'W', 'Lend', 'Wend'],
+        ]]],
+        'required' => ['bolts'],
+    ];
+}
+
+function ai_refcheck_instructions() {
+    return <<<'TXT'
+You check ONE thing on fastener drawings: where the dimension lines of each L-shaped bolt end. Nothing else is asked and nothing else is reported.
+
+An L bolt has a long straight leg (the SHANK, threaded at its free end) and a short BENT LEG at a right angle. The drawing may be upright, on its side or rotated.
+  L is the dimension along the shank, from its threaded end to the bent leg.
+  W is the dimension along the bent leg, from its free end to the shank.
+
+Report every L-bolt size the document gives — each row of an L-bolt table is one size, and a table's L and W columns are the dimensions of the drawing that defines them (a sketch beside the table, the same sheet, or another image of the same type). For each size:
+  M  the size as printed, e.g. "M12"
+  L  and W exactly as printed, in mm — 0 when the document gives none
+  Lend  what the L line's extension line touches at the BENT-LEG end
+  Wend  what the W line's extension line touches at the SHANK end
+
+Each of Lend and Wend is one of:
+  CENTRE_LINE  the extension line stops level with a chain line (long dash, short dash) or a centre-line mark (CL, C/L) running along the MIDDLE of that leg, or the document says "to centre". It is CENTRE_LINE even when the outline of the bend is drawn around it.
+  FAR_FACE     it stops at the outside face of that leg, the face farthest from where the line starts: the full outside extent. A value called overall, outside or O/A is FAR_FACE.
+  NEAR_FACE    it stops at the inside face of that leg, the face nearest to where the line starts.
+  CANNOT_TELL  a line is drawn to that leg but where it stops cannot be told.
+  NOT_DRAWN    no dimension line is drawn for it (a table or text with no drawing defining the column).
+
+Rules:
+  Follow the line itself to its end. The letter, the product name, the bolt's purpose and what is usual say nothing about where a line ends.
+  Decide Lend and Wend separately, each from its own extension line. Never give one the other's answer.
+  A short leg given as its own length — B, LEG, LEG LENGTH, BENT LENGTH, a B column — with no centre-line mark at its shank end is FAR_FACE.
+  A W end that merely lines up with ANOTHER dimension taken from the bolt's centre (an edge distance, a spacing) says nothing: it is CENTRE_LINE only when that end itself is marked to the centre line.
+  A W extension line that meets the shank WITHIN its drawn thickness (the shank is two thin lines close together, and the line's end cannot be told apart from either face or the middle) is not CENTRE_LINE; for a B / leg-length dimension it is FAR_FACE.
+  Report only L-shaped bolts. A straight rod, a stud, a J or U bolt and a plate are not reported. No L bolt at all: an empty list.
+TXT;
+}
+
+/** The images / PDF of the upload as Messages content, labelled as the extraction labels them. */
+function ai_refcheck_request($upload) {
+    $parts = ($upload['kind'] ?? '') === 'images' ? $upload['parts'] : [$upload];
+    $n = count($parts);
+    $content = [['type' => 'text', 'text' => $n > 1
+        ? "Check the L-bolt dimension lines in these $n images. They belong to one customer request."
+        : 'Check the L-bolt dimension lines in this document.']];
+    foreach ($parts as $i => $p) {
+        if ($n > 1) $content[] = ['type' => 'text', 'text' => 'Image ' . ($i + 1) . " of $n:"];
+        $src = ['type' => 'base64', 'media_type' => $p['mime'], 'data' => base64_encode($p['bytes'])];
+        $content[] = ($p['kind'] ?? '') === 'pdf' ? ['type' => 'document', 'source' => $src] : ['type' => 'image', 'source' => $src];
+    }
+    return [
+        'model'      => ai_anthropic_model(),
+        'max_tokens' => AI_REFCHECK_MAX_TOKENS,
+        'system'     => [['type' => 'text', 'text' => ai_refcheck_instructions(), 'cache_control' => ['type' => 'ephemeral']]],
+        'messages'   => [['role' => 'user', 'content' => $content]],
+        'output_config' => ['format' => ['type' => 'json_schema', 'schema' => ai_refcheck_schema()]],
+    ];
+}
+
+/** Does this extraction hold an L Bolt dimension worth a second look? */
+function ai_refcheck_needed($data) {
+    foreach (($data['items'] ?? []) as $it) {
+        $p = $it['product'] ?? null;
+        if ($p === null) $p = $data['product'] ?? null;
+        if ($p === 'L_BOLT' && (($it['L'] ?? null) !== null || ($it['W'] ?? null) !== null)) return true;
+    }
+    return false;
+}
+
+/** The check's answer, validated: a list of bolts, or null when it is not one. */
+function ai_refcheck_parse($code, $body, $curlErr, $curlErrNo) {
+    if ($curlErr !== '' || $curlErrNo || $code !== 200 || !is_array($body) || ($body['stop_reason'] ?? '') !== 'end_turn') return null;
+    $text = '';
+    foreach (($body['content'] ?? []) as $b) if (($b['type'] ?? '') === 'text') $text .= $b['text'];
+    $d = json_decode($text, true);
+    if (!is_array($d) || !isset($d['bolts']) || !is_array($d['bolts'])) return null;
+    $out = [];
+    foreach (array_slice($d['bolts'], 0, AI_MAX_ITEMS) as $b) {
+        if (!is_array($b) || !is_string($b['M'] ?? null)) continue;
+        if (!in_array($b['Lend'] ?? null, AI_REFCHECK_ENDS, true) || !in_array($b['Wend'] ?? null, AI_REFCHECK_ENDS, true)) continue;
+        $num = fn($v) => (is_int($v) || is_float($v)) && $v > 0 && $v < 1000000 ? $v : null;
+        $out[] = ['M' => strtoupper(preg_replace('/\s+/', '', $b['M'])), 'L' => $num($b['L'] ?? null), 'W' => $num($b['W'] ?? null),
+                  'Lref' => AI_REFCHECK_MAP[$b['Lend']], 'Wref' => AI_REFCHECK_MAP[$b['Wend']]];
+    }
+    return $out;
+}
+
+/**
+ * Compare the two readings and write the outcome onto each L Bolt row.
+ * $bolts === null: the check did not answer, so every L Bolt dimension is
+ * "failed" — unverified, and confirmed by a person rather than trusted.
+ */
+function ai_refcheck_apply($data, $bolts) {
+    if (!is_array($data) || !isset($data['items'])) return $data;
+    $eff  = fn($r) => $r === null ? 'END' : $r;            // no reference drawn = as printed = to the end
+    $same = fn($a, $b) => $a !== null && $b !== null && abs($a - $b) < 0.5;
+    foreach ($data['items'] as &$it) {
+        $p = $it['product'] ?? null;
+        if ($p === null) $p = $data['product'] ?? null;
+        if ($p !== 'L_BOLT') continue;
+        $match = null;
+        if ($bolts !== null) {
+            $m = strtoupper(preg_replace('/\s+/', '', (string)($it['M'] ?? '')));
+            $c = array_values(array_filter($bolts, fn($b) => $m !== '' && $b['M'] === $m));
+            if (count($c) > 1) {
+                $byL = array_values(array_filter($c, fn($b) => $same($b['L'], $it['L'] ?? null)));
+                if ($byL) $c = $byL;
+                if (count($c) > 1) {
+                    $byW = array_values(array_filter($c, fn($b) => $same($b['W'], $it['W'] ?? null)));
+                    if ($byW) $c = $byW;
+                }
+                /* Still more than one and they disagree: no single answer to compare with. */
+                if (count($c) > 1 && count(array_unique(array_map(fn($b) => ($b['Lref'] ?? '-') . '|' . ($b['Wref'] ?? '-'), $c))) > 1) $c = [];
+            }
+            $match = $c[0] ?? null;
+        }
+        foreach (['L', 'W'] as $k) {
+            if (($it[$k] ?? null) === null) continue;      // nothing printed, nothing to check
+            $first = $it[$k . 'ref'] ?? null;
+            if ($bolts === null)      { $it[$k . 'chk'] = 'failed';    $it[$k . 'alt'] = null; continue; }
+            if ($match === null)      { $it[$k . 'chk'] = 'unmatched'; $it[$k . 'alt'] = null; continue; }
+            $alt = $match[$k . 'ref'];
+            $it[$k . 'alt'] = $alt;
+            if ($first === 'UNCLEAR')                       $it[$k . 'chk'] = 'unclear';
+            elseif ($alt !== 'UNCLEAR' && $eff($first) === $eff($alt)) $it[$k . 'chk'] = 'agree';
+            else                                            $it[$k . 'chk'] = 'conflict';
+        }
+    }
+    unset($it);
+    /* The other direction: L bolts the check saw that no extracted row stands
+       for. Measured on the Owner's drawing: the extraction twice returned ONE
+       row of ten while the check saw all four L bolts. Only a count and the
+       sizes leave here; the review says the list may be short. */
+    if ($bolts !== null) {
+        $rowKeys = [];
+        foreach ($data['items'] as $it) {
+            $p = $it['product'] ?? null; if ($p === null) $p = $data['product'] ?? null;
+            if ($p === 'L_BOLT') $rowKeys[] = [strtoupper(preg_replace('/\s+/', '', (string)($it['M'] ?? ''))), $it['L'] ?? null];
+        }
+        $miss = [];
+        foreach ($bolts as $b) {
+            $hit = false;
+            foreach ($rowKeys as $k) if ($k[0] === $b['M'] && ($b['L'] === null || $k[1] === null || $same($b['L'], $k[1]))) { $hit = true; break; }
+            if (!$hit) $miss[] = $b['M'] . ($b['L'] !== null ? ' L' . $b['L'] : '');
+        }
+        if ($miss) $data['refMissing'] = array_slice($miss, 0, 20);
+    }
+    return $data;
+}
+
+/** Run the check after a Sonnet extraction that holds L Bolt rows. Returns [data, logEntry|null]. */
+function ai_refcheck_run($upload, $data, $key, $call) {
+    if (!ai_refcheck_needed($data)) return [$data, null];
+    $t = microtime(true);
+    list($c, $b, $e, $n) = $call(ai_refcheck_request($upload), $key, AI_REFCHECK_TIMEOUT);
+    $bolts = ai_refcheck_parse($c, $b, $e, $n);
+    $u = is_array($b) ? ($b['usage'] ?? []) : [];
+    $res = ['http' => $c, 'outcome' => $bolts === null ? 'refcheck_failed' : 'ok', 'data' => null,
+            'usage' => ['in' => (int)($u['input_tokens'] ?? 0) + (int)($u['cache_read_input_tokens'] ?? 0) + (int)($u['cache_creation_input_tokens'] ?? 0),
+                        'cached_in' => (int)($u['cache_read_input_tokens'] ?? 0), 'cache_write' => (int)($u['cache_creation_input_tokens'] ?? 0),
+                        'out' => (int)($u['output_tokens'] ?? 0)]];
+    $log = ai_log_entry($upload, 'anthropic', ai_anthropic_model(), $res, $t, ['stage' => 'refcheck', 'items' => $bolts === null ? 0 : count($bolts)]);
+    return [ai_refcheck_apply($data, $bolts), $log];
+}
+
 // ── provider orchestration ───────────────────────────────────────────────────
 function ai_image_provider() {
     return AI_IMAGE_PROVIDER === 'sonnet' ? 'sonnet' : 'luna';
@@ -1323,6 +1524,8 @@ function ai_extract_luna($upload, $payload, $deps = []) {
     $t = microtime(true);
     list($c, $b, $e, $n) = $call($payload);
     $r = ai_luna_result($c, $b, $e, $n);
+    /* A drawing read once has unverified L Bolt references (pasted text has none drawn). */
+    if (($upload['kind'] ?? '') !== 'text' && $r['data'] !== null && ai_refcheck_needed($r['data'])) $r['data'] = ai_refcheck_apply($r['data'], null);
     return ['result' => $r, 'provider' => 'openai', 'model' => AI_EXTRACT_MODEL_PRIMARY, 'fallback' => null,
             'review' => $r['truncated'], 'log' => [ai_log_entry($upload, 'openai', AI_EXTRACT_MODEL_PRIMARY, $r, $t)]];
 }
@@ -1352,10 +1555,19 @@ function ai_extract_media($upload, $payload, $deps = []) {
         $l = ai_luna_result($c, $b, $e, $n);
         $log[] = ai_log_entry($upload, 'openai', AI_EXTRACT_MODEL_PRIMARY, $l, $t,
                               ['fallback' => true, 'fallback_reason' => $res['outcome']]);
+        /* The backup reader gives one reading and no check: its L Bolt
+           references are unverified and a person confirms them. */
+        if ($l['data'] !== null && ai_refcheck_needed($l['data'])) $l['data'] = ai_refcheck_apply($l['data'], null);
         return ['result' => $l, 'provider' => 'openai', 'model' => AI_EXTRACT_MODEL_PRIMARY,
                 'fallback' => $res['outcome'], 'review' => true, 'log' => $log];
     }
     if ($res['outcome'] === 'too_long') $res['error'] = ai_failure('ai_too_long');
+    /* An answer with L Bolt rows is read a second time for its dimension
+       references only — see ai_refcheck_run. */
+    if ($res['data'] !== null && $key !== '') {
+        list($res['data'], $cl) = ai_refcheck_run($upload, $res['data'], $key, $deps['refcheck'] ?? $sonnet);
+        if ($cl) $log[] = $cl;
+    }
     return ['result' => $res, 'provider' => 'anthropic', 'model' => ai_anthropic_model(), 'fallback' => null,
             'review' => $res['truncated'] || ($res['data'] !== null && !$res['data']['items']), 'log' => $log];
 }

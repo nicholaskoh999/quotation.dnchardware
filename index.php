@@ -2456,6 +2456,14 @@ input,select,textarea{
 .wqa-pill-attn{background:var(--amber-light);border-color:var(--amber);color:var(--amber);font-weight:800}
 .wqa-pill-req{background:transparent;border-color:var(--amber-mid);color:var(--amber);font-weight:700}
 .wqa-pill-warn{background:var(--amber-light);border-color:var(--amber-mid);color:var(--amber)}
+/* R3 FAST Loop #6: an L Bolt dimension reference waiting for a person */
+.wqa-refq{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;flex-basis:100%;min-width:0;margin:2px 0;padding:6px 8px;border:1px solid var(--amber-mid);border-radius:8px;background:var(--amber-light);color:var(--text);font-size:12px;line-height:1.35}
+.wqa-refq-t{color:var(--amber);font-weight:600;min-width:0;overflow-wrap:anywhere}
+.wqa-refq-bs{display:flex;flex-wrap:wrap;gap:6px}
+.wqa-refq-b{font:inherit;font-size:12px;padding:4px 9px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap}
+.wqa-refq-b.is-read{border-color:var(--amber-mid);font-weight:600}
+.wqa-refq-b:hover,.wqa-refq-b:focus-visible{border-color:var(--accent,var(--amber));outline:none}
+.wqa-refq-all{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-2);cursor:pointer}
 .wqa-pill-info{background:var(--accent-light);color:var(--accent-2)}
 /* ── The actions ───────────────────────────────────────────────────────────
    ONE grid cell holding all three, with a guaranteed width. Their number is
@@ -7367,6 +7375,10 @@ const I18N={
     wqaKeepEditing:'Keep Editing', wqaDiscard:'Discard',
     wqaTabPaste:'Paste WhatsApp Text', wqaTabUpload:'Upload Photo / PDF',
     wqaSourceFile:'Source', wqaImage:'Image', wqaBodyDia:'Body Dia', wqaRefTop:'TO TOP', wqaRefCenter:'TO CENTER', wqaRefEnd:'TO END', wqaRefUnclear:'reference unclear',
+    wqaRefChecked:'read twice, agreed', wqaRefConfirmed:'confirmed', wqaRefAskShort:'confirm reference',
+    wqaRefAskTitle:'Confirm {d} reference', wqaRefWhyConflict:'the drawing was read two ways ({a})',
+    wqaRefWhyUnclear:'where the line ends is not clear', wqaRefWhyUnverified:'not double-checked',
+    wqaRefAll:'Apply to all {n} rows with this question',
     wqaNotPriced:'not priced in Quick Add', wqaNoCalcDia:'missing calculation diameter',
     wqaAddRefused:'the calculator refused this row', fieldQty:'Qty',
     wqaRadius:'Radius', wqaEvidenceOnly:'from the drawing — not a quotation field',
@@ -7439,6 +7451,7 @@ const I18N={
     wqaFileNoteLbl:'Additional info for this file',
     wqaNoteHelp:'Applies to all uploaded files',
     wqaFileNotesCheck:'Per-file notes were given to the AI for their own file only — check each row against its file.',
+    wqaRefMissing:'The drawing check also saw L Bolt {v} — not in this list. Some rows may be missing: compare with the drawing before adding.',
     wqaNoteReadFile:'Will be applied to this file:',
     wqaNoteReadAll:'Will be applied to all uploaded files:',
     wqaNoteUnrec:'Unrecognized:',
@@ -8090,6 +8103,10 @@ const I18N={
     wqaKeepEditing:'继续编辑', wqaDiscard:'放弃',
     wqaTabPaste:'粘贴 WhatsApp 消息', wqaTabUpload:'上传照片 / PDF',
     wqaSourceFile:'来源文件', wqaImage:'图片', wqaBodyDia:'实际杆径', wqaRefTop:'量至顶', wqaRefCenter:'量至中心', wqaRefEnd:'量至末端', wqaRefUnclear:'基准不明',
+    wqaRefChecked:'两次读取一致', wqaRefConfirmed:'已确认', wqaRefAskShort:'待确认基准',
+    wqaRefAskTitle:'请确认 {d} 的量取基准', wqaRefWhyConflict:'图纸两次读取结果不同（{a}）',
+    wqaRefWhyUnclear:'尺寸线终点不清楚', wqaRefWhyUnverified:'未经复核',
+    wqaRefAll:'套用至全部 {n} 行同样问题',
     wqaNotPriced:'AI 智能识别暂不支持计价', wqaNoCalcDia:'缺少计算用 Diameter',
     wqaAddRefused:'计算器拒绝了此项目', fieldQty:'数量',
     wqaRadius:'半径', wqaEvidenceOnly:'来自图纸 — 非报价字段',
@@ -8159,6 +8176,7 @@ const I18N={
     wqaFileNoteLbl:'此文件补充资料',
     wqaNoteHelp:'适用于所有上传文件',
     wqaFileNotesCheck:'各文件的补充资料只用于该文件 — 请逐项对照其文件确认。',
+    wqaRefMissing:'图纸复核还看到 L Bolt {v}，但不在此列表中。可能有遗漏的项目：添加前请对照图纸。',
     wqaNoteReadFile:'将应用于此文件：',
     wqaNoteReadAll:'将应用于所有上传文件：',
     wqaNoteUnrec:'无法识别：',
@@ -16863,10 +16881,63 @@ function wqaEditThread(i,v){
 function wqaDimNormText(r){
   return (r.dimNorm||[]).map(n=>{
     const refTxt=x=>dcT('wqaRef'+String(x).charAt(0)+String(x).slice(1).toLowerCase());
+    /* How the reference was settled, said after it: read twice and agreed,
+       or chosen by a person. A value still waiting says so instead. */
+    const how=n.confirmed?' · '+dcT('wqaRefConfirmed'):(n.checked?' · '+dcT('wqaRefChecked'):'');
+    if(n.ask) return n.k+' '+n.source_value+' ('+dcT('wqaRefAskShort')+')';
     if(!n.resolved) return n.k+' '+n.source_value+' ('+dcT('wqaRefUnclear')+')';
-    if(n.converted) return n.k+' '+n.source_value+' ('+refTxt(n.source_reference)+') \u2192 '+n.normalized_value+' ('+refTxt('END')+')';
-    return n.k+' '+n.source_value+' ('+refTxt('END')+')';
+    if(n.converted) return n.k+' '+n.source_value+' ('+refTxt(n.source_reference)+') \u2192 '+n.normalized_value+' ('+refTxt('END')+')'+how;
+    return n.k+' '+n.source_value+' ('+refTxt('END')+')'+how;
   }).join(' · ');
+}
+/* ── R3 FAST Loop #6: confirm an L Bolt dimension reference ────────────────
+   A drawing-derived L or W whose two readings did not agree (or could not be
+   compared) arrives blank with r.refAsk[k] = {dim, src, dia, reads, why}. The
+   row is then short of L / W through the ordinary required-field rules — so it
+   cannot be priced or added — and shows the printed value with one button per
+   reference, each with the length it gives. A person typing the value, or a
+   note giving it, answers the question just as well: the ask is open only
+   while the box is empty. */
+const WQA_REF_ORDER=['CENTER','END','TOP'];
+function wqaRefOpen(r,k){ return !!(r && !r.removed && !r.added && r.refAsk && r.refAsk[k] && String(r[k]==null?'':r[k]).trim()===''); }
+function wqaRefSig(a){ return a.dim+'|'+a.why+'|'+a.reads.slice().sort().join(','); }
+function wqaRefPeers(r,k){
+  const sig=wqaRefSig(r.refAsk[k]);
+  return wqa.rows.filter(o=>wqaRefOpen(o,k) && wqaRefSig(o.refAsk[k])===sig);
+}
+function wqaRefChoices(a){
+  return a.reads.concat(WQA_REF_ORDER.filter(x=>a.reads.indexOf(x)<0)).map(ref=>({ref,
+    v:normalizeBentDimension(a.src,ref,a.dia).normalized_value, read:a.reads.indexOf(ref)>=0}));
+}
+function wqaRefAskHtml(r,i){
+  return ['length','w'].filter(k=>wqaRefOpen(r,k)).map(k=>{
+    const a=r.refAsk[k], peers=wqaRefPeers(r,k).length;
+    const refTxt=x=>dcT('wqaRef'+x.charAt(0)+x.slice(1).toLowerCase());
+    const why=a.why==='conflict' ? dcT('wqaRefWhyConflict').replace('{a}',a.reads.map(refTxt).join(' / '))
+            : a.why==='unclear' ? dcT('wqaRefWhyUnclear') : dcT('wqaRefWhyUnverified');
+    const btns=wqaRefChoices(a).map(c=>`<button type="button" class="wqa-refq-b${c.read?' is-read':''}" data-ref="${c.ref}"
+        onclick="event.stopPropagation();wqaRefChoose(${i},'${k}','${c.ref}')"><b>${escHtml(a.dim)} ${escHtml(wqaMmShow(c.v))}</b> ${escHtml(refTxt(c.ref))}</button>`).join('');
+    const all=peers>1 ? `<label class="wqa-refq-all" onclick="event.stopPropagation()"><input type="checkbox"${wqa.refAll===false?'':' checked'}
+        onchange="wqa.refAll=this.checked"> ${escHtml(dcT('wqaRefAll').replace('{n}',peers))}</label>` : '';
+    return `<div class="wqa-refq" data-refq="${k}" role="group" aria-label="${escHtml(dcT('wqaRefAskTitle').replace('{d}',a.dim))}">`
+      +`<span class="wqa-refq-t">${escHtml(dcT('wqaRefAskTitle').replace('{d}',a.dim))} <b>${escHtml(a.dim)} ${escHtml(wqaMmShow(a.src))}</b> · ${escHtml(why)}</span>`
+      +`<span class="wqa-refq-bs">${btns}</span>${all}</div>`;
+  }).join('');
+}
+function wqaRefChoose(i,k,ref){
+  const r=wqa.rows[i]; if(!wqaRefOpen(r,k) || WQA_REF_ORDER.indexOf(ref)<0) return;
+  const targets=(wqa.refAll===false) ? [r] : wqaRefPeers(r,k);
+  if(targets.indexOf(r)<0) targets.unshift(r);
+  targets.forEach(o=>{
+    const a=o.refAsk[k], n=normalizeBentDimension(a.src,ref,a.dia);
+    if(!n.resolved) return;
+    o[k]=String(n.normalized_value);
+    o.dimNorm=(o.dimNorm||[]).filter(x=>x.k!==a.dim).concat([Object.assign({k:a.dim},n,{confirmed:true})]);
+    o.issues=(o.issues||[]).filter(x=>x!==k);
+    delete o.refAsk[k];
+  });
+  wqaRecomputeAll('force');
+  wqaRenderRows(true);
 }
 function wqaRowSpecText(r){
   if(!(wqaIsMixed('material')||wqaIsMixed('finish')||wqaIsMixed('product')||r.bodyDia||(r.dimNorm&&r.dimNorm.length))) return '';
@@ -17385,6 +17456,7 @@ function wqaSizeTypeWhy(r){
 function wqaRowBadges(r){
   const out=[];
   if(r.productConflict) out.push({t:dcT('wqaConflictBadge'),k:'req'});
+  ['length','w'].forEach(k=>{ if(wqaRefOpen(r,k)) out.push({t:dcT('wqaRefAskTitle').replace('{d}',r.refAsk[k].dim),k:'req'}); });
   /* A size type the customer never stated, applied by our own rule, changes
      the diameter and therefore the weight and the price by about 22% at M12.
      It was recorded as ours (stDefaulted) and shown as if the document had
@@ -20638,10 +20710,29 @@ function wqaNormalizeExtraction(d, opts){
        the value is held back as evidence and the row asks for it. */
     if(rowProd==='lbolt'){
       const dm=/^M\s*(\d+(?:\.\d+)?)/i.exec(String(row.size||'')), dia=dm?Number(dm[1]):0;
+      /* R3 FAST Loop #6: a drawing's references are read twice (ai_refcheck_run).
+         Only two readings that agree convert on their own; a conflict, an
+         unclear first reading, a bolt the check did not report or a check that
+         never answered holds the value back as evidence, and the row asks a
+         person to choose the reference (wqaRefChoose). No check field at all
+         (pasted text) keeps the earlier behaviour exactly. */
+      const chk={L:it.Lchk,W:it.Wchk}, alt={L:it.Lalt,W:it.Walt};
       const norm=[['length','L',it.Lref],['w','W',it.Wref]].map(([k,lab,ref])=>{
-        if(row[k]===''||ref==null||ref==='') return null;
+        if(row[k]==='') return null;
+        const c=chk[lab];
+        if((c==='conflict'||c==='unclear'||c==='unmatched'||c==='failed') && dia>0){
+          const eff=x=>{ const u=String(x==null?'':x).toUpperCase(); return u===''?'END':u; };
+          const reads=[...new Set([ref,(c==='conflict'||c==='unclear')?alt[lab]:undefined]
+            .filter(x=>x!==undefined).map(eff).filter(x=>x==='TOP'||x==='CENTER'||x==='END'))];
+          const src=Number(row[k]);
+          (row.refAsk||(row.refAsk={}))[k]={dim:lab, src, dia, reads, why:c};
+          row[k]='';
+          return {k:lab, source_value:src, source_reference:ref==null?null:String(ref).toUpperCase(),
+                  normalized_value:src, normalized_reference:'END', converted:false, resolved:false, ask:true};
+        }
+        if(ref==null||ref==='') return null;
         const n=normalizeBentDimension(row[k],ref,dia);
-        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); }
+        if(n.resolved){ if(n.converted) row[k]=String(n.normalized_value); if(c==='agree') n.checked=true; }
         else { row[k]=''; row.aiUncertain.push((lab+' '+n.source_value+': '+(String(ref).toUpperCase()==='UNCLEAR'?'reference unclear':'needs diameter')).slice(0,40)); }
         return Object.assign({k:lab},n);
       }).filter(Boolean);
@@ -20737,6 +20828,12 @@ async function wqaAiApply(d, msgTarget, meta){
      review is. The note itself is the customer's wording and is never
      translated. */
   wqa.aiWarnings = d.note ? [{k:'wqaAccMention',v:d.note}] : [];
+  /* R3 FAST Loop #6: the reference check saw L Bolts that no row stands for —
+     the list may be short. Said above the rows, and the read is Review Needed. */
+  if(Array.isArray(d.refMissing) && d.refMissing.length){
+    wqa.aiWarnings.unshift({k:'wqaRefMissing',v:d.refMissing.join(', ')});
+    wqa.aiReview = true;
+  }
   /* The answer stopped before the document did. The rows that arrived are
      whole — the one the cut landed in was discarded rather than half-read —
      but the list may be short, and a short list looks exactly like a complete
@@ -23459,6 +23556,9 @@ function wqaRvSubHtml(r,i){
   /* A typed bar is already said where it is read — Ø in the spec line (or on
      the group heading), marked as typed — so the row does not repeat it. */
   const badges=wqaBadgeHtml(r,'rest');
+  /* An L Bolt reference waiting for a person: its own block, with the choices. */
+  const refq=wqaRefAskHtml(r,i);
+  if(refq) bits.push(refq);
   /* Pricing was taken but the item still asks for something else. */
   if(r.pxApplied && (wqaRowMissing(r).length || !(parseFloat(r.calc&&r.calc.finalUnitPrice)>0))) bits.push(`<span class="wqa-rv-chip wqa-px-ok">${escHtml(dcT('wqaPxApplied'))}</span>`);
   return `<div class="wqa-it-sub"${(bits.length||badges)?'':' hidden'}>${bits.join('')}<span class="wqa-sum-badges">${badges}</span></div>`;
