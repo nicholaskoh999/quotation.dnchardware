@@ -459,6 +459,17 @@ input,select,textarea{font-family:inherit}
   background:var(--red-light); border:1px solid var(--red-mid); color:var(--red);
   border-radius:var(--r-xs); padding:8px 11px; font-size:12px; font-weight:600; margin-top:10px;
 }
+/* R3 FAST Loop #5: "Enter Cost Rate (RM/kg)" is a missing-input reminder, not
+   a failure. Neutral surface + info mark; the red .warn-note above is untouched. */
+.warn-note.rate-hint{
+  position:relative; background:var(--surface2); border-color:var(--border); color:var(--text-2);
+  font-weight:500; line-height:1.4; padding:7px 10px 7px 31px;
+}
+.warn-note.rate-hint::before{
+  content:"i"; position:absolute; left:10px; top:8px; width:14px; height:14px; box-sizing:border-box;
+  border:1.5px solid var(--text-muted); border-radius:50%; color:var(--text-muted);
+  font-size:9.5px; font-weight:800; line-height:11px; text-align:center;
+}
 
 /* Quotation info compact bar */
 .qi-compact{
@@ -5742,7 +5753,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="ubolt-addCost" placeholder="0" oninput="calcUBolt('ubolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('ubolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="ubolt-markup" placeholder="0" min="0" oninput="calcUBolt('ubolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="ubolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="ubolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note rate-hint full" id="ubolt-warn" data-i18n="tRateManualOnly">Enter Cost Rate (RM/kg) to calculate the price.</div>
         </div>
 
         <!-- SQ U-BOLT -->
@@ -5797,7 +5808,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="squbolt-addCost" placeholder="0" oninput="calcSQUBolt('squbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('squbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="squbolt-markup" placeholder="0" min="0" oninput="calcSQUBolt('squbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="squbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="squbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note rate-hint full" id="squbolt-warn" data-i18n="tRateManualOnly">Enter Cost Rate (RM/kg) to calculate the price.</div>
         </div>
 
         <!-- L BOLT -->
@@ -5852,7 +5863,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="lbolt-addCost" placeholder="0" oninput="calcLBolt('lbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('lbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="lbolt-markup" placeholder="0" min="0" oninput="calcLBolt('lbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="lbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="lbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note rate-hint full" id="lbolt-warn" data-i18n="tRateManualOnly">Enter Cost Rate (RM/kg) to calculate the price.</div>
         </div>
 
         <!-- J BOLT -->
@@ -5908,7 +5919,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="jbolt-addCost" placeholder="0" oninput="calcJBolt('jbolt',true)" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('jbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="jbolt-markup" placeholder="0" min="0" oninput="calcJBolt('jbolt',true)"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="jbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="jbolt-warn" data-i18n="tRateManualOnly">Cost Rate must be entered manually for this product type.</div>
+          <div class="warn-note rate-hint full" id="jbolt-warn" data-i18n="tRateManualOnly">Enter Cost Rate (RM/kg) to calculate the price.</div>
         </div>
 
         <!-- ══ PLATE FORM ══ -->
@@ -7799,7 +7810,7 @@ const I18N={
     tEnterAnchorRate:'⚠️ Enter Anchor Cost Rate',
     tEnterPlateRate:'⚠️ Enter Base Plate Cost Rate',
     tEnterTriRate:'⚠️ Enter Triangle Plate Cost Rate',
-    tRateManualOnly:'Cost Rate must be entered manually for this product type.',
+    tRateManualOnly:'Enter Cost Rate (RM/kg) to calculate the price.',
     tLen0IdIh:'Total Length is 0 — check Diameter, ID, IH',
     tLen0OhW:'Total Length is 0 — check OH, W, Diameter',
     tLen0LW:'Total Length is 0 — check L, W, Diameter',
@@ -8485,7 +8496,7 @@ const I18N={
     tEnterAnchorRate:'⚠️ 请输入 Anchor Bolt 每公斤成本',
     tEnterPlateRate:'⚠️ 请输入 Base Plate 每公斤成本',
     tEnterTriRate:'⚠️ 请输入 Triangle Plate 每公斤成本',
-    tRateManualOnly:'此产品类型的每公斤成本必须手动输入。',
+    tRateManualOnly:'请输入每公斤成本（RM/kg）以计算价格',
     tLen0IdIh:'Total Length 为 0 — 请检查 Diameter、ID、IH',
     tLen0OhW:'Total Length 为 0 — 请检查 OH、W、Diameter',
     tLen0LW:'Total Length 为 0 — 请检查 L、W、Diameter',
@@ -9676,6 +9687,7 @@ function syncCostRateWarning(type){
     && ['S45C','S45C_HARDEN_G8_8','SS304','SS316','4340','4140_HARDEN_G10_9','4140_PLAIN','Y_BAR'].includes(fv(type,'material'));
   const show=(alwaysManual||materialManual)&&!fv(type,'costRate').trim();
   warning.textContent=dcT('tRateManualOnly');
+  warning.classList.add('rate-hint');
   warning.style.display=show?'block':'none';
 }
 function updatePriceModePreview(type){
