@@ -5590,7 +5590,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="sagrod-addCost" placeholder="0" oninput="calcSagRod()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('sagrod','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="sagrod-markup" placeholder="0" min="0" oninput="calcSagRod()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="sagrod-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="sagrod-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
+          <div class="warn-note rate-hint full" id="sagrod-warn" style="display:none" data-i18n="tRateManualOnly">Enter Cost Rate (RM/kg) to calculate the price.</div>
         </div>
 
         <!-- STUD -->
@@ -5645,7 +5645,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="stud-addCost" placeholder="0" oninput="calcStud()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('stud','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="stud-markup" placeholder="0" min="0" oninput="calcStud()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="stud-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="stud-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
+          <div class="warn-note rate-hint full" id="stud-warn" style="display:none" data-i18n="tRateManualOnly">Enter Cost Rate (RM/kg) to calculate the price.</div>
         </div>
 
         <!-- ANCHOR BOLT -->
@@ -5705,7 +5705,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <div class="field"><label data-i18n="lblAdditionalCost">Additional Cost</label><input type="text" class="hl" id="anchorbolt-addCost" placeholder="0" oninput="calcAnchorBolt()" onkeydown="if(event.key==='Enter'){event.preventDefault();evalRateField('anchorbolt','addCost');}"></div>
           <div class="field"><label data-i18n="lblMarkupPct">Markup %</label><input type="number" id="anchorbolt-markup" placeholder="0" min="0" oninput="calcAnchorBolt()"></div>
           <div class="field"><label data-i18n="lblQTY">QTY</label><input type="number" id="anchorbolt-qty" value="1" min="1" step="1"></div>
-          <div class="warn-note full" id="anchorbolt-warn" style="display:none" data-i18n="warnRateNotSet">Rate not set for this material. Enter Cost Rate manually. Do not calculate as RM0.</div>
+          <div class="warn-note rate-hint full" id="anchorbolt-warn" style="display:none" data-i18n="tRateManualOnly">Enter Cost Rate (RM/kg) to calculate the price.</div>
         </div>
 
         <!-- U-BOLT -->
@@ -9706,6 +9706,10 @@ function syncCostRateWarning(type){
   const materialManual=['sagrod','stud','anchorbolt'].includes(type)
     && ['S45C','S45C_HARDEN_G8_8','SS304','SS316','4340','4140_HARDEN_G10_9','4140_PLAIN','Y_BAR'].includes(fv(type,'material'));
   const show=(alwaysManual||materialManual)&&!fv(type,'costRate').trim();
+  /* The language switch rewrites every [data-i18n] node from its key, so the
+     key has to be this sentence's — it was the retired warnRateNotSet on Sag
+     Rod / Stud / Anchor Bolt, and a switch brought the old text back. */
+  warning.dataset.i18n='tRateManualOnly';
   warning.textContent=dcT('tRateManualOnly');
   warning.classList.add('rate-hint');
   warning.style.display=show?'block':'none';

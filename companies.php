@@ -2091,11 +2091,29 @@ function cpSumToggle(){
    other meant. Both debounce at 450ms and both act at once on Enter.        */
 const CP_SEARCH_DEBOUNCE = 450;   // ms after the last keystroke
 
-function cpSearchClear(){ const b=document.getElementById('cpSearchResult'); b.innerHTML=''; b.hidden=true; }
-function itemSearchClear(){ const b=document.getElementById('itemSearchResult'); b.innerHTML=''; b.hidden=true; }
+function cpSearchClear(){ const b=document.getElementById('cpSearchResult'); b.innerHTML=''; b.hidden=true; cpSearch.view=null; }
+function itemSearchClear(){ const b=document.getElementById('itemSearchResult'); b.innerHTML=''; b.hidden=true; itemSearch.view=null; }
+/* R3 FAST Loop #6: each search pane remembers what it is SHOWING (busy, no
+   match, or the hits it was given), so a language switch redraws that same
+   panel from the data already on screen — no new request, the query box, the
+   selected company and the sort untouched. A reply that arrives after the
+   switch is drawn by the renderers below in the language current at that
+   moment, and the existing seq check still drops any reply a newer search
+   has overtaken. */
+function cpSearchRelabel(){
+  const v=cpSearch.view, b=document.getElementById('cpSearchResult');
+  if(!v || !b || b.hidden) return;
+  if(v.k==='busy') cpBusyPanel(); else if(v.k==='none') cpNotFoundPanel(v.term); else renderCpSearchHits(v.hits,v.term);
+}
+function itemSearchRelabel(){
+  const v=itemSearch.view, b=document.getElementById('itemSearchResult');
+  if(!v || !b || b.hidden) return;
+  if(v.k==='busy') itemBusyPanel(); else if(v.k==='none') itemEmptyPanel(v.term); else renderCpItemHits(v.items,v.term,v.meta);
+}
+dcOnRelabel(()=>{ try{ cpSearchRelabel(); }catch(e){} try{ itemSearchRelabel(); }catch(e){} });
 
 /* ── LEFT: customer / quotation-number search ── */
-const cpSearch={busy:false,term:'',seq:0,timer:null};
+const cpSearch={busy:false,term:'',seq:0,timer:null,view:null};
 
 function onCpSearchInput(){
   const term=(document.getElementById('searchInput').value||'').trim();
@@ -2125,14 +2143,14 @@ function cpSearchSubmit(){
 function cpBusyPanel(){
   const b=document.getElementById('cpSearchResult');
   b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span>'+esc(dcT('msgLookingUp'))+'</span></div>';
-  b.hidden=false;
+  b.hidden=false; cpSearch.view={k:'busy'};
 }
 function cpNotFoundPanel(term){
   const b=document.getElementById('cpSearchResult');
   b.innerHTML='<div class="cp-empty"><div class="cp-empty-icon"><svg class="hi" aria-hidden="true" focusable="false"><use href="#hi-magnifying-glass"/></svg></div>'
     +'<p class="cp-empty-main">'+esc(dcT('cpNoQuotationMatch').replace('{t}',term))+'</p>'
     +'<p class="cp-empty-sub">'+esc(dcT('cpPastPriceHint'))+'</p></div>';
-  b.hidden=false;
+  b.hidden=false; cpSearch.view={k:'none',term};
 }
 
 async function cpRunCustomerSearch(term,immediate){
@@ -2155,7 +2173,7 @@ async function cpRunCustomerSearch(term,immediate){
 }
 
 /* ── RIGHT: historical item search ── */
-const itemSearch={busy:false,count:0,term:'',seq:0,timer:null};
+const itemSearch={busy:false,count:0,term:'',seq:0,timer:null,view:null};
 
 function onItemSearchInput(){
   { const i=document.getElementById('itemSearchInput'), t=i&&i.closest('.item-search-tools'); if(t) t.classList.toggle('has-q',!!(i.value||'').trim()); }
@@ -2176,14 +2194,14 @@ function itemSearchSubmit(){
 function itemBusyPanel(){
   const b=document.getElementById('itemSearchResult');
   b.innerHTML='<div class="cp-hit-msg cp-hit-busy"><span>'+esc(dcT('msgSearchingHistory'))+'</span></div>';
-  b.hidden=false;
+  b.hidden=false; itemSearch.view={k:'busy'};
 }
 function itemEmptyPanel(term){
   const b=document.getElementById('itemSearchResult');
   b.innerHTML='<div class="cp-empty"><div class="cp-empty-icon"><svg class="hi" aria-hidden="true" focusable="false"><use href="#hi-magnifying-glass"/></svg></div>'
     +'<p class="cp-empty-main">'+esc(dcT('cpNoItemsMatch').replace('{t}',term))+'</p>'
     +'<p class="cp-empty-sub"><span>'+esc(dcT('msgTryFewer'))+'</span></p></div>';
-  b.hidden=false;
+  b.hidden=false; itemSearch.view={k:'none',term};
 }
 async function itemRunSearch(term){
   const seq=++itemSearch.seq;
@@ -2221,7 +2239,7 @@ function renderCpSearchHits(hits,term){
     : esc(dcT('qoChooseOne').replace('{n}',hits.length).replace('{r}',term));
   const b=document.getElementById('cpSearchResult');
   b.innerHTML=`<div class="cp-hit-msg">${head}</div><div class="cp-hit-list">${rows}</div>`;
-  b.hidden=false;
+  b.hidden=false; cpSearch.view={k:'hits',hits,term};
 }
 
 /* Historical item results — what was quoted before, and for how much.
@@ -2249,7 +2267,7 @@ function renderCpItemHits(hits,term,meta){
   const b=document.getElementById('itemSearchResult');
   b.innerHTML=`<div class="cp-hit-msg">${esc(dcT('cpHistMatch').replace('{n}',hits.length).replace('{t}',term).replace('{more}',more))}</div>
                <div class="ih-list">${rows}</div>`;
-  b.hidden=false;
+  b.hidden=false; itemSearch.view={k:'hits',items:hits,term,meta};
 }
 
 function filteredCompaniesCP(){
