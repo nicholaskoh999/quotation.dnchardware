@@ -4,6 +4,7 @@
 ai_config.php
 db.php
 dnc_config.php
+service_config.php
 
 # ── Production runtime output ────────────────────────────────────────────────
 error_log
