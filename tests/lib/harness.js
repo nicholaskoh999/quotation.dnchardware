@@ -16,6 +16,8 @@ const path = require('path');
 
 const ROOT      = path.resolve(__dirname, '..', '..');
 const INDEX_PHP = path.join(ROOT, 'index.php');
+const PARSER_CORE_FILE = 'quo-parser-core.js';
+const PARSER_CORE_JS   = path.join(ROOT, PARSER_CORE_FILE);
 const ORIGIN    = 'http://quotation.test';
 
 let chromium;
@@ -116,6 +118,14 @@ async function openApp(browser, opts = {}) {
     }
     if (new URL(url).pathname === pagePath) {
       return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
+    }
+    /* The shared parser core is a real file beside index.php, loaded by a
+       relative <script src>. It is served verbatim, from wherever the page
+       sits ('/' or the '/quo/' Portal mount), so the suites run the shipped
+       file and not a copy. */
+    if (new URL(url).pathname.endsWith('/' + PARSER_CORE_FILE)) {
+      return route.fulfill({ status: 200, contentType: 'application/javascript; charset=utf-8',
+                             body: fs.readFileSync(PARSER_CORE_JS, 'utf8') });
     }
     /* icons, manifest, anything else the page reaches for */
     return route.fulfill({ status: 200, contentType: 'text/plain', body: '' });
