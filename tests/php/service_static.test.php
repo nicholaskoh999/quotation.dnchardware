@@ -289,11 +289,14 @@ $BASE = 'ca5f0a5692adc8614017ec8054f9bd9fbe337d20';
 $git = function ($args) use ($ROOT) { $o = []; $rc = 1; @exec('git -C ' . escapeshellarg($ROOT) . ' ' . $args . ' 2>&1', $o, $rc); return [$rc, implode("\n", $o)]; };
 [$rc, ] = $git("cat-file -e $BASE^{commit}");
 if ($rc === 0) {
-    [$rc2, $changed] = $git("diff --name-only $BASE -- index.php api.php auth.php login.php logout.php handoff.php dnc_handoff.php companies.php pricing_history.php ai_extract.php ai_anthropic.php version.php app tests/run.js .gitignore");
+    [$rc2, $changed] = $git("diff --name-only $BASE -- index.php api.php auth.php login.php logout.php handoff.php dnc_handoff.php companies.php pricing_history.php ai_extract.php ai_anthropic.php version.php app tests/run.js");
     eq([$rc2, $changed], [0, ''], 'D: index.php, api.php, auth.php, login.php, handoff.php, dnc_handoff.php, companies.php, pricing and parsing files are unchanged since ca5f0a5');
 } else {
     ok(true, 'D: (base commit not available here — unchanged-files check not applicable)');
 }
+
+/* The real config holds the service secret: it must never be committable in this public repository. */
+ok((bool)preg_match('/^service_config.phps*$/m', (string)file_get_contents("$ROOT/.gitignore")), 'D: .gitignore lists service_config.php beside the other server-only secrets');
 
 // ══ E · the deploy allow-list ══════════════════════════════════════════════
 $yml = file_get_contents("$ROOT/.cpanel.yml");
