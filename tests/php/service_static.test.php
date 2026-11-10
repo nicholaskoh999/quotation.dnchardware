@@ -11,8 +11,9 @@
  *   C  the request envelope
  *   D  static: service.php and its own includes never require api.php or
  *      auth.php, never touch a session, a cookie or a CORS header, and hold
- *      exactly two data-changing statements — the nonce INSERT and the
- *      contact-link INSERT
+ *      exactly three data-changing statements — the nonce INSERT, the
+ *      contact-link INSERT and the bounded nonce-prune DELETE — and the
+ *      core guard in front of every writing handler
  *   E  the deploy allow-list: the new files ship, the real config never does
  *   F  including the files does nothing (no output, no session, no header)
  *
@@ -243,11 +244,43 @@ preg_match_all('/\b(INSERT\s+(?:IGNORE\s+)?INTO|REPLACE\s+INTO|UPDATE\s+[`A-Za-z
                $allCode, $w, PREG_SET_ORDER);
 $writes = array_map(fn ($x) => strtoupper(preg_replace('/\s+/', ' ', $x[1])) . ' ' . trim($x[2], '`.'), $w);
 sort($writes);
-eq($writes, ['INSERT INTO DC_SERVICE_NONCE_TABLE', 'INSERT INTO company_whatsapp_contacts'],
-   'D: exactly two write statements exist: the nonce INSERT and the contact-link INSERT');
-eq(DC_SERVICE_NONCE_TABLE, 'service_request_nonces', 'D: …and the nonce INSERT targets service_request_nonces');
-ok(preg_match('/\b(UPDATE|DELETE|REPLACE|TRUNCATE|DROP|ALTER)\b/', preg_replace('/ON UPDATE|updated_at/i', '', $allCode)) === 0,
-   'D: the words UPDATE, DELETE, REPLACE, TRUNCATE, DROP and ALTER do not appear in code at all');
+/* Owner-approved (QQ R1 Loop #6): exactly ONE DELETE, the bounded nonce prune. It is
+   listed here by name; any other DELETE, or a second one, fails these checks. */
+eq($writes, ['DELETE FROM DC_SERVICE_NONCE_TABLE', 'INSERT INTO DC_SERVICE_NONCE_TABLE', 'INSERT INTO company_whatsapp_contacts'],
+   'D: exactly three write statements exist: the nonce INSERT, the contact-link INSERT and the bounded nonce-prune DELETE');
+eq(DC_SERVICE_NONCE_TABLE, 'service_request_nonces', 'D: …and both nonce statements target service_request_nonces');
+ok(preg_match('/\b(UPDATE|REPLACE|TRUNCATE|DROP|ALTER)\b/', preg_replace('/ON UPDATE|updated_at/i', '', $allCode)) === 0,
+   'D: the words UPDATE, REPLACE, TRUNCATE, DROP and ALTER do not appear in code at all');
+preg_match_all('/\bDELETE\b/', $allCode, $del);
+eq(count($del[0]), 1, 'D: the word DELETE appears exactly once in code');
+ok(strpos($code['service_auth.php'], "'DELETE FROM ' . DC_SERVICE_NONCE_TABLE . ' WHERE received_at < FROM_UNIXTIME(?) ORDER BY received_at LIMIT ?'") !== false,
+   'D: …and it is the prune: nonce table only, rows older than a bound cutoff, oldest first, bounded LIMIT');
+preg_match('/function dc_service_prune_nonces\(.*?\n\}/s', $code['service_auth.php'], $pf);
+ok(strpos($pf[0] ?? '', 'DELETE') !== false && strpos($pf[0] ?? '', 'max(DC_SERVICE_NONCE_KEEP_FLOOR') !== false && strpos($pf[0] ?? '', 'min(DC_SERVICE_NONCE_PRUNE_BATCH_MAX') !== false,
+   'D: the DELETE lives in dc_service_prune_nonces(), which clamps keep to the floor and batch to the maximum');
+eq(DC_SERVICE_NONCE_KEEP_FLOOR, 2 * DC_SERVICE_WINDOW + DC_SERVICE_NONCE_SKEW + 60, 'D: keep floor = 2 × window + skew + margin');
+ok(DC_SERVICE_NONCE_KEEP_FLOOR >= 240 && DC_SERVICE_NONCE_KEEP_DEFAULT >= DC_SERVICE_NONCE_KEEP_FLOOR, 'D: floor ≥ 240 s, and the default (600 s) is above it');
+foreach ([null, 0, 1, 60, 239, '30', -5, 'abc'] as $k) {
+    ok(dc_service_nonce_policy(['QQ_SERVICE_NONCE_KEEP_SECONDS' => $k])['keep'] >= DC_SERVICE_NONCE_KEEP_FLOOR, 'D: keep ' . var_export($k, true) . ' cannot go below the floor');
+}
+eq(dc_service_nonce_policy([]), ['keep' => 600, 'every' => 50, 'batch' => 500], 'D: nonce housekeeping defaults');
+eq(dc_service_nonce_policy(['QQ_SERVICE_NONCE_PRUNE_BATCH' => 999999])['batch'], 5000, 'D: batch is capped at 5000');
+eq(dc_service_nonce_policy(['QQ_SERVICE_NONCE_PRUNE_EVERY' => -1])['every'], 0, 'D: a negative frequency means never');
+$sp = code_only("$ROOT/service.php");
+$a = strpos($sp, 'dc_service_consume_nonce('); $b = strpos($sp, 'dc_service_maybe_prune_nonces(');
+ok($a !== false && $b !== false && $b > $a && strpos(substr($sp, $a, $b - $a), '$replay !== null') !== false,
+   'D: service.php prunes only AFTER its own nonce was stored and every nonce refusal has returned');
+
+/* Core gate: a handler holds a write statement ⇔ it calls the guard first ⇔ it is listed as gated. */
+foreach (dc_service_handlers() as $a => $fn) {
+    preg_match('/function ' . $fn . '\(.*?\n\}/s', $code['service_actions.php'], $hb);
+    $hasWrite = preg_match('/\b(INSERT|DELETE)\b/', $hb[0] ?? '') === 1;
+    $guardFirst = preg_match('/^function ' . $fn . '\([^{]*\{\s*\$gate = dc_service_require_accepted_core\(/', $hb[0] ?? '') === 1;
+    eq([$guardFirst, in_array($a, DC_SERVICE_CORE_GATED_ACTIONS, true)], [$hasWrite, $hasWrite],
+       "D: $a — holds a write ⇔ calls dc_service_require_accepted_core() first ⇔ listed in DC_SERVICE_CORE_GATED_ACTIONS");
+}
+eq(DC_SERVICE_CORE_GATED_ACTIONS, ['contacts.link'], 'D: contacts.link is the one core-gated action today');
+ok(preg_match('/HTTP_X_QQ_(PARSER|PRICING)/', $allCode) === 0, 'D: core claims are never read from a request header');
 ok(preg_match('/\bmulti_query\s*\(/', $allCode) === 0, 'D: no multi-statement query');
 /* companies and quotations are only ever read. */
 preg_match_all('/\b(?:INTO|UPDATE|FROM|JOIN)\s+([a-z_]+)\b/', $allCode, $t);

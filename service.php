@@ -23,8 +23,11 @@
  *   4  timestamp within ±60 s
  *   5  nonce stored — the PRIMARY KEY refuses a replay
  *   6  action on the allow-list
- *   7  body envelope + acting user re-read from the canonical users table
- *   8  only now the action's own query runs
+ *   5b occasionally: prune old nonces (bounded; a failure is swallowed)
+ *   7  body envelope + acting user re-read from the canonical users table;
+ *      core verdict computed from the signed body's client.cores
+ *   8  only now the action's own query runs (write actions first call
+ *      dc_service_require_accepted_core())
  *
  * ERROR CONTAINMENT, as handoff.php does it: display_errors off, everything
  * printed is buffered and DISCARDED, and a shutdown function replaces an
@@ -37,6 +40,7 @@
 ob_start();
 $GLOBALS['DC_SERVICE_SENT'] = false;
 $GLOBALS['DC_SERVICE_RID']  = null;
+$GLOBALS['DC_SERVICE_CORE'] = null;
 
 /** The only bytes a service request ever sends. */
 function dc_service_send($status, array $payload) {
@@ -48,6 +52,8 @@ function dc_service_send($status, array $payload) {
         header('Cache-Control: no-store');
         header('X-Content-Type-Options: nosniff');
     }
+    /* The core verdict, once the signed body has been read (check 7 onward). */
+    if (isset($GLOBALS['DC_SERVICE_CORE']) && is_array($GLOBALS['DC_SERVICE_CORE'])) $payload['core'] = $GLOBALS['DC_SERVICE_CORE'];
     $payload['meta'] = ['requestId' => $GLOBALS['DC_SERVICE_RID'], 'serverTime' => gmdate('Y-m-d\TH:i:s\Z')];
     $GLOBALS['DC_SERVICE_SENT'] = true;
     echo json_encode($payload);
@@ -63,7 +69,7 @@ function dc_service_refuse($code, array $extra = []) {
     [$status, $message] = $table[$code] ?? $known['quo_unavailable'];
     if (!isset($table[$code])) $code = 'quo_unavailable';
     $error = ['code' => $code, 'message' => $message];
-    foreach (['field', 'reason'] as $k) {
+    foreach (['field', 'reason'] as $k) {   // fixed words only
         if (isset($extra[$k]) && is_string($extra[$k]) && preg_match('/^[A-Za-z_]{1,40}$/D', $extra[$k]) === 1) $error[$k] = $extra[$k];
     }
     dc_service_send($status, ['ok' => false, 'error' => $error]);
@@ -76,6 +82,7 @@ register_shutdown_function(function () {
        underneath (db.php's die(), a fatal error). Generic failure only. */
     error_log('[service] request.failed reason=internal_error');
     $GLOBALS['DC_SERVICE_RID'] = null;
+    $GLOBALS['DC_SERVICE_CORE'] = null;
     dc_service_send(503, ['ok' => false, 'error' => ['code' => 'quo_unavailable', 'message' => 'Service temporarily unavailable']]);
 });
 
@@ -153,6 +160,9 @@ try {
         dc_service_log('request.refused', ['reason' => $replay, 'errno' => (int)$db->errno]);
         dc_service_refuse('quo_unavailable');
     }
+    /* Housekeeping, only now that this request's nonce is stored. Bounded,
+       occasional, and unable to fail the request (docs/SERVICE-API.md §6.1). */
+    dc_service_maybe_prune_nonces($db, $now, $settings['nonce']);
 
     // ── 6 · allow-list ───────────────────────────────────────────────────────
     if (!in_array($action, DC_SERVICE_ACTIONS, true)) {
@@ -177,6 +187,11 @@ try {
         dc_service_refuse('actor_refused');
     }
 
+    /* Core verdict from the SIGNED body's client.cores. Reported on every
+       answer from here on; enforced only by the write actions' guard. */
+    $claims = dc_service_core_claims($body);
+    $GLOBALS['DC_SERVICE_CORE'] = dc_service_core_evaluate($claims, dc_service_server_cores(), $settings['core_allow']);
+
     // ── 8 · the action ───────────────────────────────────────────────────────
     require_once __DIR__ . '/service_actions.php';
     /* Same pins as api.php: Malaysia time for PHP and for this MySQL session,
@@ -185,7 +200,8 @@ try {
     @$db->query("SET time_zone = '+08:00'");
 
     $handler = dc_service_handlers()[$action];
-    $result = $handler($db, $req['params'], ['sub' => $req['sub'], 'username' => $req['username']]);
+    $result = $handler($db, $req['params'], ['sub' => $req['sub'], 'username' => $req['username']],
+                       ['claims' => $claims, 'core_allow' => $settings['core_allow']]);
     if (isset($result['error'])) dc_service_refuse((string)$result['error'], $result);
     dc_service_log('request.ok', ['action' => $action, 'actor' => $req['sub']]);
     dc_service_send(200, ['ok' => true, 'data' => $result['data']]);
@@ -193,6 +209,7 @@ try {
     /* The class name only: a message can carry a DSN, a path or SQL. */
     error_log('[service] request.failed reason=exception type=' . preg_replace('/[^A-Za-z0-9_\\\\]/', '', get_class($e)));
     $GLOBALS['DC_SERVICE_RID'] = null;
+    $GLOBALS['DC_SERVICE_CORE'] = null;
     if (empty($GLOBALS['DC_SERVICE_SENT'])) {
         dc_service_send(503, ['ok' => false, 'error' => ['code' => 'quo_unavailable', 'message' => 'Service temporarily unavailable']]);
     }

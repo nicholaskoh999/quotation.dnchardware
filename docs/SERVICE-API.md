@@ -1,7 +1,9 @@
 # QUO service API (`service.php`)
 
 Status: built in QQ R1 Loop #5 on branch `round/quo-qq-r1-loop5-service-read`
-(base: production `ca5f0a5`). **Not deployed. Not enabled anywhere.**
+(base: production `ca5f0a5`); core-version gate and nonce housekeeping added
+in Loop #6 (`round/quo-qq-r1-loop6-save-foundation`). **Not deployed. Not
+enabled anywhere.**
 
 Every name, phone number, id and key in this document is invented.
 
@@ -27,6 +29,7 @@ The browser door, the QUO login, `index.php`, `api.php`, `auth.php`,
 | `service_auth.php` | Config, signing, nonce and acting-user functions. Functions only. |
 | `service_actions.php` | The five handlers. Functions only. |
 | `service_config.sample.php` | Sample for the server-only `service_config.php`. |
+| `quo-parser-core.js`, `quo-pricing-core.js` | Not part of the service, but **read** by it (never run) for the core gate, §3.7. Already deployed for `index.php`. |
 | `migrations/2026-11-10-create-service-request-nonces.sql` (+ `.rollback.sql`) | Replay table. |
 | `migrations/2026-11-10-create-company-whatsapp-contacts.sql` (+ `.rollback.sql`) | Contact links. |
 
@@ -61,7 +64,16 @@ unless a file named `service_config.php` exists **on the server**, beside
 Also disabled when the secret equals `DNC_HANDOFF_SECRET` or
 `DNC_HANDOFF_SECRET_PREVIOUS` (one key must never do two jobs).
 
-These four settings are read from the **file only**. Environment variables
+Optional keys (same file; absent = the default):
+
+| Key | Default | Meaning |
+|---|---|---|
+| `QQ_SERVICE_ACCEPTED_CORES` | empty | Older parser / pricing cores, or exact pairs, accepted in addition to the deployed ones. §3.7. |
+| `QQ_SERVICE_NONCE_KEEP_SECONDS` | `600` | Age after which a nonce row may be pruned. Never below **240** (lower values are raised to it), at most 86 400. §6.1. |
+| `QQ_SERVICE_NONCE_PRUNE_EVERY` | `50` | About one accepted request in this many prunes. `0` = never. At most 10 000. |
+| `QQ_SERVICE_NONCE_PRUNE_BATCH` | `500` | Most rows one prune deletes. 1 to 5 000. |
+
+These settings are read from the **file only**. Environment variables
 cannot enable the service.
 
 `service_config.php` is never in Git and is on the deploy's `PROTECTED` list
@@ -144,7 +156,25 @@ Body envelope (every action):
 - `requestId` — optional. Echoed in `meta.requestId` only when it matches
   `^[A-Za-z0-9_.:-]{1,64}$`; otherwise `meta.requestId` is `null`.
 - `params` — a JSON object (may be `{}` or omitted). Per action, section 4.
-- Any other top-level key (for example `client`) is ignored.
+- `client` — optional; see below. Any other top-level key is ignored.
+
+Optional core claims (§3.7), inside the signed body:
+
+```json
+"client": {
+  "cores": {
+    "parser":  { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" },
+    "pricing": { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" }
+  }
+}
+```
+
+`version` — 1 to 4 dot-separated integers (echoed back, not used to decide).
+`contract` — JSON integer >= 1. `sha256` — SHA-256 of the core file's exact
+bytes, 64 lower-case hex. No `client`, `client: {}` or `cores: null` means
+**no claim**. The QQ backend copies these from the extension's
+`X-QQ-Parser-Core` / `X-QQ-Pricing-Core` headers. QUO reads them **only from
+the signed body**; a header or query parameter of that name is ignored.
 
 The acting user is identified **only** by the body. Because the body hash is
 part of the signing string, the actor is covered by the signature.
@@ -226,11 +256,15 @@ Each failure stops the request. Nothing later runs.
 | 6 | Action on the allow-list | 404 `unknown_action` |
 | 7 | Body envelope valid | 400 `invalid_body` |
 | 7 | Acting user re-read from the canonical users table | 403 `actor_refused`; 503 `actor_check_unavailable` |
+| 7 | Core verdict computed from `client.cores` (§3.7). Never a refusal here. | — |
+| 8 | Write actions only (`contacts.link`): the core guard, before anything else | 412 `core_not_accepted` |
 | 8 | The action's own query | per action |
 
 Notes:
 
 - Nothing is written to the database before the signature and timestamp pass.
+- Right after check 5 stores the nonce, the service occasionally prunes old
+  nonce rows (§6.1). That can never fail the request.
 - A nonce is consumed by any request that reaches check 5, including one then
   refused at 6, 7 or 8. **Always use a fresh nonce, also for a retry.**
 - The acting-user rule is QUO's own per-request rule for Portal users
@@ -247,8 +281,16 @@ Always JSON, `Content-Type: application/json; charset=utf-8`,
 Success:
 
 ```json
-{ "ok": true, "data": { … }, "meta": { "requestId": "req_EXAMPLE0001", "serverTime": "2026-11-10T03:00:00Z" } }
+{ "ok": true, "data": { … },
+  "core": { "accepted": true, "parser": { "status": "current", "version": "1.0.0" },
+            "pricing": { "status": "current", "version": "1.0.0" }, "reason": "accepted" },
+  "meta": { "requestId": "req_EXAMPLE0001", "serverTime": "2026-11-10T03:00:00Z" } }
 ```
+
+`core` (§3.7) is on **every answer once check 7 has passed**: every success,
+and every refusal from check 8 (validation, not found, conflict,
+`core_not_accepted`, an action's `quo_unavailable`). Refusals at checks 1–7
+carry no `core`: the body was not yet trusted.
 
 Error:
 
@@ -259,7 +301,7 @@ Error:
 
 `error.code` is stable; `error.message` is a fixed English sentence per code.
 `error.field` (with `validation_failed` and `not_found`) and `error.reason`
-(with `contact_conflict`) are fixed words from the code, never request
+(with `contact_conflict` and `core_not_accepted`) are fixed words from the code, never request
 content. `meta.requestId` is `null` on every refusal before check 7.
 
 ### 3.6 All error codes
@@ -281,7 +323,82 @@ content. `meta.requestId` is `null` on every refusal before check 7.
 | `validation_failed` | 422 | A parameter is wrong; see `error.field`. |
 | `not_found` | 404 | `contacts.link`: the company does not exist. |
 | `contact_conflict` | 409 | `contacts.link`: see `error.reason`. |
+| `core_not_accepted` | 412 | A write action (`contacts.link`) while `core.accepted` is not `true`. `error.reason` = `core.reason`. Nothing was read or written. |
 | `quo_unavailable` | 503 | QUO database or a needed table is unavailable, or an internal failure. Retry later. |
+
+### 3.7 Core-version gate
+
+The service vouches for the parser and pricing cores the client parsed and
+priced with. **This server's own cores** are the files deployed beside
+`service.php`: `quo-parser-core.js` and `quo-pricing-core.js`. For each it
+computes the SHA-256 of the file's exact bytes and reads the contract number
+from the file's `const QUO_PARSER_CORE_CONTRACT = <n>;` /
+`const QUO_PRICING_CORE_CONTRACT = <n>;` line (a text match that must occur
+exactly once; the JavaScript is never run). Once per request.
+
+A server core is **unknown** when its file is missing, empty or unreadable,
+when the constant is absent or appears twice, or when it names a contract
+this service does not support (today: parser 1, pricing 1). An unknown server
+core makes the verdict `accepted: false` (`server_core_unknown`) whatever the
+operator has listed.
+
+Per core, `status`:
+
+| status | meaning |
+|---|---|
+| `current` | the claim equals this server's deployed core (hash; contract = supported). |
+| `listed` | an older core the operator listed under `QQ_SERVICE_ACCEPTED_CORES` `parser` / `pricing` (hash and contract equal; contract must be the supported one). |
+| `unknown_hash` | supported contract, hash neither current nor listed. |
+| `contract_mismatch` | the claimed contract is not the supported one. |
+| `server_unknown` | this server's own file is unknown (above). |
+| `missing` | the other core was claimed, this one was not. |
+| `absent` / `malformed` | no claim at all / the claim did not parse. |
+
+`version` is echoed beside `status` when that core was claimed.
+
+`accepted` and `reason` (checked in this order):
+
+| accepted | reason | when |
+|---|---|---|
+| `null` | `no_claim` | the body has no core claim. **Not verified — never treat as true.** |
+| `false` | `claim_malformed` | `client`, `cores` or a claim has the wrong shape. |
+| `false` | `server_core_unknown` | either server core is unknown. |
+| `false` | `claim_incomplete` | only one core was claimed. |
+| `true` | `accepted` | both cores are `current` or `listed`. |
+| `true` | `pair_listed` | not both acceptable on their own, but this exact parser + pricing pair (hashes and contracts) is listed under `pairs`. |
+| `false` | `contract_mismatch` | a contract differs and the pair is not listed. |
+| `false` | `mixed_versions` | one core acceptable, the other not, and the pair is not listed. |
+| `false` | `not_accepted` | neither core acceptable. |
+
+**Read-only actions** (`ping`, `diameter_settings.get`, `companies.search`,
+`contacts.lookup`) report `core` and are **never blocked** by it.
+
+**Write actions** call the one guard, `dc_service_require_accepted_core()`
+in `service_auth.php`, before any validation or query; only `accepted: true`
+passes (`null` does not). Today that is `contacts.link`: it is not a quotation
+write, but a stale client could otherwise link a chat to a company from a
+wrong parse. Every future write action — a quotation save included — must
+call it first; `tests/php/service_static.test.php` fails if a handler holding
+an `INSERT` / `DELETE` does not, or is not listed in
+`DC_SERVICE_CORE_GATED_ACTIONS`.
+
+Operator list (`service_config.php`), **empty by default**:
+
+```php
+'QQ_SERVICE_ACCEPTED_CORES' => [
+    'parser'  => [ ['sha256' => '<64 hex>', 'contract' => 1, 'reason' => 'QQ 0.2.0 still in use', 'date' => '2026-11-11'] ],
+    'pricing' => [],
+    'pairs'   => [ ['parser'  => ['sha256' => '<64 hex>', 'contract' => 1],
+                    'pricing' => ['sha256' => '<64 hex>', 'contract' => 1],
+                    'reason'  => 'pilot build', 'date' => '2026-11-11'] ],
+],
+```
+
+Every entry needs `sha256`, `contract` (integer), a non-empty `reason` and a
+`date` (`YYYY-MM-DD`); an entry missing any of them is ignored. Removing an
+entry refuses that core again on the next request. Deploying new core files
+changes "current" at once: list the previous hashes first if older
+extensions must keep linking during a rollout.
 
 ---
 
@@ -292,6 +409,8 @@ Only `params` and `data` are shown. The envelope and `meta` are as in section 3.
 ### 4.1 `ping`
 
 Proves signing, clock, nonce store and acting-user check. Reads no business table.
+Like every answer after check 7 it carries `core` (§3.7); this is how the QQ
+backend learns `coreAccepted`.
 
 `params`: `{}`
 
@@ -405,7 +524,11 @@ Three result shapes:
 
 Errors: `validation_failed` (`field`: `chatKind`, `waPhone` or `waChatId`), `quo_unavailable`.
 
-### 4.5 `contacts.link` — the only write
+### 4.5 `contacts.link` — the only write (core-gated)
+
+Refused with 412 `core_not_accepted` (nothing read, nothing written) unless
+`core.accepted` is `true` (§3.7). A request without a core claim is refused.
+
 
 `params`:
 
@@ -436,12 +559,14 @@ Errors: `validation_failed` (`field`: `chatKind`, `waPhone` or `waChatId`), `quo
 | `chatKind` is `group`, or `waChatId` ends in `@g.us` | 422 `validation_failed`, `field: "chatKind"`. |
 | `chatKind` is `unknown` or missing | 422 `validation_failed`, `field: "chatKind"`. |
 | Company does not exist | 404 `not_found`, `field: "companyId"`. |
+| Core claim not accepted, or none sent | 412 `core_not_accepted`, `reason` = `core.reason`. Checked first. |
 
 `companies` is only read. No column of it, in particular `companies.phone`,
 is ever written.
 
-Errors: `validation_failed` (`field`: `companyId`, `chatKind`, `waPhone`,
-`waChatId`, `displayName`), `not_found`, `contact_conflict`, `quo_unavailable`.
+Errors: `core_not_accepted`, `validation_failed` (`field`: `companyId`,
+`chatKind`, `waPhone`, `waChatId`, `displayName`), `not_found`,
+`contact_conflict`, `quo_unavailable`.
 
 ---
 
@@ -499,13 +624,40 @@ CREATE TABLE company_whatsapp_contacts (
   join `companies`.
 - `linked_by_user_id` is a canonical DNC `users.id` (bigint) from another
   database.
-- `service.php` holds exactly two data-changing statements: the nonce
-  `INSERT` and the contact-link `INSERT`. It has no `UPDATE` and no `DELETE`.
-  A test enforces this.
-- **Nonce rows are not pruned by the service.** One small row per accepted
-  request. Remove old rows by hand when wanted (statement in the nonce
-  migration, section 5). Open decision: allow one pruning `DELETE` in a later
-  round.
+- `service.php` holds exactly three data-changing statements: the nonce
+  `INSERT`, the contact-link `INSERT` and the bounded nonce-prune `DELETE`
+  (§6.1, Owner-approved in Loop #6). It has no `UPDATE`. A test enforces the
+  exact list.
+
+### 6.1 Nonce housekeeping
+
+cPanel shared hosting has no worker or scheduler here, so the service prunes
+opportunistically:
+
+- **When:** only after the current request's own nonce is stored (check 5),
+  on about one request in `QQ_SERVICE_NONCE_PRUNE_EVERY` (default 50, drawn
+  with `random_int`; `0` = never). A random draw needs no marker: a marker
+  file would need a writable path the service otherwise never writes to (and
+  that the host may share or clean), a marker row would need a migration.
+  Expected cost: one indexed `DELETE` per 50 requests.
+- **What:** `DELETE FROM service_request_nonces WHERE received_at < FROM_UNIXTIME(now − keep) ORDER BY received_at LIMIT batch`
+  — oldest first, on `idx_srn_received`, at most `batch` (default 500) rows.
+  At one prune per 50 requests the table drains far faster than it fills.
+- **Never a recent nonce:** a nonce stored at server time *t* can only be
+  replayed by a request whose timestamp is within ±60 s of a later server
+  time *and* within ±60 s of *t*, so nothing after *t* + 120 s can replay it.
+  `keep` defaults to 600 s and is clamped to at least
+  `DC_SERVICE_NONCE_KEEP_FLOOR` = 2 × 60 s window + 60 s skew + 60 s margin =
+  **240 s**; the file cannot set it lower. `received_at` and the cutoff both
+  come from PHP's clock.
+- **Failure:** a failed `DELETE` (or any exception) is logged as
+  `[service] nonce.prune_failed errno=<n>` and swallowed. The request goes on
+  normally; the nonce already stored stays stored, so replay protection is
+  unaffected. A prune that removed rows logs `[service] nonce.pruned rows=<n>`.
+- **Concurrency:** the `PRIMARY KEY` still decides replays. A concurrent prune
+  holding InnoDB range locks can at most make a nonce `INSERT` wait; if that
+  wait failed, the request is refused with 503 (fail closed), never accepted
+  twice.
 
 ---
 
@@ -520,7 +672,11 @@ CREATE TABLE company_whatsapp_contacts (
   company or a setting, and cannot reach `api.php`. Response: switch off
   (section 2), rotate.
 - **Replay.** HTTPS, ±60 s window, single-use nonce enforced by a primary key,
-  action and body hash inside the signature.
+  action and body hash inside the signature. Pruning never removes a nonce
+  younger than 240 s (§6.1).
+- **Stale clients.** Core claims travel inside the signed body; a write needs
+  an accepted core pair (§3.7). This protects against stale clients, not
+  against a stolen key: whoever holds the secret can claim any hashes.
 - **Tampering.** Changing the action, timestamp, nonce or one byte of the body
   (including the acting user) invalidates the signature.
 - **Browsers.** No session, no cookie, no CORS; requests with `Origin`,
@@ -552,8 +708,26 @@ php tests/php/service_static.test.php
 
 No database. Disabled-by-default matrix, the signing vector of 3.3, envelope
 and identity rules, the static guarantees (include graph, no session, exactly
-two write statements, same Diameter Settings SQL and mapping as `api.php`),
-the deploy allow-list.
+three write statements, the prune's shape and floor, the core guard in front
+of every writing handler, same Diameter Settings SQL and mapping as
+`api.php`), the deploy allow-list.
+
+```
+php tests/php/service_core_gate.test.php
+```
+
+The core gate (§3.7). Part 1 needs no database; part 2 (over HTTP) runs with
+the same `DC_SERVICE_TEST_DB_*` variables as below and is skipped without
+them.
+
+```
+DC_SERVICE_TEST_DB_HOST=127.0.0.1 DC_SERVICE_TEST_DB_PORT=<port> \
+DC_SERVICE_TEST_DB_USER=root DC_SERVICE_TEST_DB_PASS= \
+php tests/php/service_nonce_cleanup.test.php
+```
+
+Nonce housekeeping (§6.1) against real MySQL and over HTTP. Skipped (exit 0,
+`SKIP`) without a database.
 
 ```
 DC_SERVICE_TEST_DB_HOST=127.0.0.1 DC_SERVICE_TEST_DB_PORT=<port> \

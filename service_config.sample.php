@@ -32,4 +32,40 @@ return [
 
     // The old key, only during a rotation; empty otherwise.
     'QQ_SERVICE_SECRET_PREVIOUS' => '',
+
+    // ── Core-version gate (docs/SERVICE-API.md 3.7) ─────────────────────────
+    // The service always accepts the parser + pricing cores DEPLOYED BESIDE
+    // IT (quo-parser-core.js, quo-pricing-core.js: SHA-256 of the file bytes,
+    // contract read from the file). Nothing else is accepted unless listed
+    // here. EMPTY BY DEFAULT. Every entry needs sha256 (64 lower-case hex),
+    // contract (integer), reason (text) and date (YYYY-MM-DD); an entry
+    // missing any of them is ignored.
+    //   parser / pricing  an older core accepted on its own; its contract must
+    //                     equal the one this service supports.
+    //   pairs             one exact parser + pricing combination, accepted as
+    //                     a whole even if mixed or on another contract.
+    // Remove an entry and that core is refused again on the next request.
+    // Example (FAKE hashes):
+    //   'parser' => [
+    //       ['sha256' => '<64 hex>', 'contract' => 1, 'reason' => 'QQ 0.2.0 still in use during rollout', 'date' => '2026-11-11'],
+    //   ],
+    //   'pairs' => [
+    //       ['parser'  => ['sha256' => '<64 hex>', 'contract' => 1],
+    //        'pricing' => ['sha256' => '<64 hex>', 'contract' => 1],
+    //        'reason'  => 'pilot build', 'date' => '2026-11-11'],
+    //   ],
+    'QQ_SERVICE_ACCEPTED_CORES'  => [
+        'parser'  => [],
+        'pricing' => [],
+        'pairs'   => [],
+    ],
+
+    // ── Nonce housekeeping (docs/SERVICE-API.md 6.1) ────────────────────────
+    // On about one accepted request in QQ_SERVICE_NONCE_PRUNE_EVERY (0 = never)
+    // the service deletes at most QQ_SERVICE_NONCE_PRUNE_BATCH nonce rows older
+    // than QQ_SERVICE_NONCE_KEEP_SECONDS. KEEP cannot go below 240 seconds
+    // (2 × the 60 s window + 60 s skew + 60 s margin) whatever is set here.
+    'QQ_SERVICE_NONCE_KEEP_SECONDS' => 600,
+    'QQ_SERVICE_NONCE_PRUNE_EVERY'  => 50,
+    'QQ_SERVICE_NONCE_PRUNE_BATCH'  => 500,
 ];

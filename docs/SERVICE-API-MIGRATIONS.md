@@ -83,9 +83,29 @@ Neither rollback touches `companies` or any other existing table.
 
 ## 5. Housekeeping
 
-`service.php` never deletes nonce rows. They may be removed by hand at any
-time (rows older than a few minutes have no function):
+Since QQ R1 Loop #6 (Owner-approved), `service.php` prunes nonce rows itself:
+on about one accepted request in `QQ_SERVICE_NONCE_PRUNE_EVERY` (default 50)
+it runs one bounded statement
+
+```sql
+DELETE FROM service_request_nonces WHERE received_at < FROM_UNIXTIME(<now − keep>) ORDER BY received_at LIMIT <batch>;
+```
+
+with `keep` = `QQ_SERVICE_NONCE_KEEP_SECONDS` (default 600, never below 240)
+and `batch` = `QQ_SERVICE_NONCE_PRUNE_BATCH` (default 500, at most 5000). It
+uses the existing `idx_srn_received` index. **No migration, cron job or worker
+is needed**, and nothing in sections 1–4 changes. Details and the safety
+argument: `docs/SERVICE-API.md` §6.1.
+
+To switch it off, set `QQ_SERVICE_NONCE_PRUNE_EVERY => 0`. Rows may still be
+removed by hand at any time (anything older than a few minutes has no
+function):
 
 ```sql
 DELETE FROM service_request_nonces WHERE received_at < NOW() - INTERVAL 1 DAY;
 ```
+
+Note: the comment block at the top of
+`migrations/2026-11-10-create-service-request-nonces.sql` still says the
+service never deletes from the table. That text predates Loop #6; the
+migration's SQL is unchanged and still correct.

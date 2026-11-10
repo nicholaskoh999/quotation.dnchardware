@@ -267,7 +267,8 @@ $DIAM_BEFORE      = [$snapshot('diameter_settings'), $checksum('diameter_setting
 // ══ sandbox ════════════════════════════════════════════════════════════════
 @mkdir("$SB/app/Handoff/Contract", 0777, true);
 $SHIPPED = ['service.php', 'service_auth.php', 'service_actions.php', 'dnc_handoff.php', 'auth.php',
-            'app/Handoff/Contract/HandoffToken.php', 'app/Handoff/Contract/InvalidHandoffToken.php'];
+            'app/Handoff/Contract/HandoffToken.php', 'app/Handoff/Contract/InvalidHandoffToken.php',
+            'quo-parser-core.js', 'quo-pricing-core.js'];
 foreach ($SHIPPED as $f) copy("$ROOT/$f", "$SB/$f");
 $same = true; foreach ($SHIPPED as $f) $same = $same && sha1_file("$SB/$f") === sha1_file("$ROOT/$f");
 ok($same, 'sandbox: serves byte-identical copies of the shipped files');
@@ -330,14 +331,27 @@ function sign(string $key, string $action, string $ts, string $nonce, string $bo
     $string = "qqs1\nPOST\n$action\n$ts\n$nonce\n" . hash('sha256', $body);
     return rtrim(strtr(base64_encode(hash_hmac('sha256', $string, $key, true)), '+/', '-_'), '=');
 }
+/* The client's core claim for a core served beside service.php, computed here
+   independently: SHA-256 of the file bytes, contract from the file's constant. */
+function core_claim(string $file, string $const): array {
+    global $SB;
+    $src = (string)file_get_contents("$SB/$file");
+    preg_match('/const ' . $const . ' = (\d+);/', $src, $m);
+    return ['version' => '1.0.0', 'contract' => (int)($m[1] ?? 0), 'sha256' => hash('sha256', $src)];
+}
 /**
  * One signed call. $o overrides: actor, body (raw), key, keyId, ts, nonce,
- * signAction, signBody, sig, method, headers (extra / null to drop), requestId.
+ * signAction, signBody, sig, method, headers (extra / null to drop), requestId,
+ * cores (the client.cores claims; null = send none). By default the request
+ * claims the served cores, i.e. it comes from an up-to-date client.
  */
 function call(string $action, array $params = [], array $o = []) {
     global $KEY, $KEYID, $SIGS;
     $actor = $o['actor'] ?? ['sub' => 7, 'username' => 'exampleuser'];
     $envelope = ['actor' => $actor, 'requestId' => $o['requestId'] ?? ('req_' . bin2hex(random_bytes(6))), 'params' => (object)$params];
+    $cores = array_key_exists('cores', $o) ? $o['cores']
+           : ['parser' => core_claim('quo-parser-core.js', 'QUO_PARSER_CORE_CONTRACT'), 'pricing' => core_claim('quo-pricing-core.js', 'QUO_PRICING_CORE_CONTRACT')];
+    if ($cores !== null) $envelope['client'] = ['cores' => $cores];
     $body  = $o['body'] ?? json_encode($envelope);
     $ts    = (string)($o['ts'] ?? time());
     $nonce = $o['nonce'] ?? bin2hex(random_bytes(16));
@@ -394,6 +408,9 @@ ok(preg_match('/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/', (string)($d['serverTime'] ?
 eq($r['json']['meta']['requestId'] ?? null, 'req_PING0001', 'B: meta.requestId echoes the plain request id');
 eq($r['h']['content-type'][0] ?? null, 'application/json; charset=utf-8', 'B: Content-Type application/json');
 eq($r['h']['cache-control'][0] ?? null, 'no-store', 'B: Cache-Control no-store');
+eq($r['json']['core'] ?? null, ['accepted' => true, 'parser' => ['status' => 'current', 'version' => '1.0.0'], 'pricing' => ['status' => 'current', 'version' => '1.0.0'], 'reason' => 'accepted'],
+   'B: the answer carries the core verdict: the served cores are accepted');
+eq(array_keys($r['json'] ?? []), ['ok', 'data', 'core', 'meta'], 'B: envelope keys ok, data, core, meta');
 eq($nonces(), 1, 'B: exactly one nonce row was written');
 eq(one($q, "SELECT key_id FROM service_request_nonces WHERE nonce='{$r['nonce']}'"), $KEYID, 'B: …this request\'s, with its key id');
 

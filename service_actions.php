@@ -9,6 +9,11 @@
  *     ['error' => code, 'field' => ?, 'reason' => ?]      a refusal
  * It never prints, never exits and never returns driver or SQL text.
  *
+ * The 4th argument, $ctx, carries the signed body's core claims and the
+ * operator's accepted-core list. EVERY handler that writes must call
+ * dc_service_require_accepted_core() before anything else (a static test
+ * enforces it); read-only handlers do not.
+ *
  * WRITES. Exactly one statement in this file changes data: the INSERT into
  * company_whatsapp_contacts in dc_service_contacts_link(). Nothing here
  * creates, edits or deletes a quotation, a company or a setting, and no
@@ -28,7 +33,7 @@ function dc_service_iso_utc($unix) {
 // ── ping ─────────────────────────────────────────────────────────────────────
 
 /** Proves the signature, clock, nonce store and actor check. No business table. */
-function dc_service_ping($db, array $params, array $actor) {
+function dc_service_ping($db, array $params, array $actor, array $ctx = []) {
     $now = time();
     return ['data' => [
         'service'        => DC_SERVICE_NAME,
@@ -74,7 +79,7 @@ function dc_service_diameter_version(array $rows) {
     return 'ds1-' . substr(hash('sha256', (string)json_encode($rows)), 0, 16);
 }
 
-function dc_service_diameter_settings_get($db, array $params, array $actor) {
+function dc_service_diameter_settings_get($db, array $params, array $actor, array $ctx = []) {
     $rows = dc_service_diameter_rows($db);
     if ($rows === null) {
         dc_service_log('action.failed', ['action' => 'diameter_settings.get', 'reason' => 'read_failed', 'errno' => (int)$db->errno]);
@@ -101,7 +106,7 @@ function dc_service_like_escape($s) {
  * tie-breaker so a truncated list is stable. Phone and address are never
  * selected.
  */
-function dc_service_companies_search($db, array $params, array $actor) {
+function dc_service_companies_search($db, array $params, array $actor, array $ctx = []) {
     $q = $params['q'] ?? null;
     if (!is_string($q)) return ['error' => 'validation_failed', 'field' => 'q'];
     $q = trim($q);
@@ -197,7 +202,7 @@ function dc_service_identity(array $params) {
  * only: it does not fill a missing identifier and does not touch
  * last_matched_at.
  */
-function dc_service_contacts_lookup($db, array $params, array $actor) {
+function dc_service_contacts_lookup($db, array $params, array $actor, array $ctx = []) {
     $idn = dc_service_identity($params);
     if (isset($idn['error'])) return $idn;
     if ($idn['group'] || ($idn['phone'] === null && $idn['chat'] === null)) {
@@ -238,7 +243,7 @@ function dc_service_contacts_lookup($db, array $params, array $actor) {
     return ['data' => ['status' => 'ambiguous', 'candidates' => $list]];
 }
 
-// ── contacts.link (the only write) ───────────────────────────────────────────
+// ── contacts.link (the only write; core-gated) ───────────────────────────────────────────
 
 /** @return array|null|false  company row; null when absent; false on a read error */
 function dc_service_company_row($db, $id) {
@@ -290,7 +295,13 @@ function dc_service_contact_verdict(array $rows, $phone, $chat) {
  * to be an individual, a request with neither a phone nor a chat id (a
  * display name alone identifies nobody), an unknown company.
  */
-function dc_service_contacts_link($db, array $params, array $actor) {
+function dc_service_contacts_link($db, array $params, array $actor, array $ctx = []) {
+    /* A write: refused unless the caller's parser + pricing cores are accepted
+       (a stale client could otherwise link from a wrong parse). First, before
+       any validation or read. */
+    $gate = dc_service_require_accepted_core($ctx['claims'] ?? null, $ctx['core_allow'] ?? []);
+    if ($gate !== null) return $gate;
+
     $companyId = $params['companyId'] ?? null;
     if (!is_int($companyId) || $companyId <= 0 || $companyId > 2147483647) return ['error' => 'validation_failed', 'field' => 'companyId'];
 
