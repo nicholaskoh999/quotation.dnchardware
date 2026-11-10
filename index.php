@@ -7231,6 +7231,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 <div class="toast" id="toast"></div>
 
 <script src="quo-parser-core.js?v=3d85a9f98bca"></script>
+<script src="quo-pricing-core.js?v=c73870824521"></script>
 <script>
 /* ══════════════════════════════════════════════════════
    PRODUCTION — MySQL production data through api.php.
@@ -9279,7 +9280,6 @@ const ITEM_TYPES={sagrod:'SAG ROD',stud:'STUD',anchorbolt:'ANCHOR BOLT',ubolt:'U
 
 /* ── helpers ── */
 function el(id){return document.getElementById(id)}
-function dcSizeTypeFor(product,sizeType){ return dcProductHasSizeType(product) ? String(sizeType||'') : ''; }
 
 function fv(type,field){const e=el(type+'-'+field);return e?e.value:''}
 function fn(type,field){return parseFloat(fv(type,field))||0}
@@ -9347,21 +9347,6 @@ function updateFinishAvailability(type){
   }
   setFinishPills(type,getFinish(type));
 }
-function evalExpr(raw){
-  if(!raw||!raw.trim())return 0;
-  let t=String(raw).trim();
-  /* A thousands separator is a way of writing a number, not an operator:
-     1,200 is twelve hundred. */
-  if(/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(t)) t=t.replace(/,/g,'');
-  if(/^[\d\s.+\-*/]+$/.test(t)){ try{return parseFloat(Function('"use strict";return('+t+')')())||0}catch(e){} }
-  /* Otherwise it is a number only if the WHOLE of it is one. parseFloat used to
-     stop at the first character it did not like, so "1,200" became 1 and "2,80"
-     became 2 — a rate a hundredth of what was typed, past every guard, on the
-     quotation. Reading half of what somebody wrote is worse than reading none
-     of it: 0 here is what validateRateEntry reports as "not a valid number". */
-  const n=Number(t);
-  return isFinite(n) ? n : 0;
-}
 function evalRateField(type,field){
   const input=el(type+'-'+field), raw=input?input.value.trim():'';
   if(/^[\d\s.+\-*/]+$/.test(raw)){
@@ -9387,18 +9372,11 @@ function validateQtyEntry(type){
 function validateRateEntry(type,field,label){
   const raw=(fv(type,field)||'').trim();
   if(raw==='') return 0;
-  const v=evalExpr(raw);
-  if(v<0){ showToast(dcT('tNotNegative').replace('{f}',label)); return null; }
-  if(v===0 && !/^[0\s.+\-*/,]*$/.test(raw)){ showToast(dcT('tNotANumber').replace('{f}',label)); return null; }
-  return v;
-}
-/* Does this text read as a number at all? Shared by the rate guard above and by
-   the manual-price guard, so an entry one of them refuses is not silently
-   accepted as zero by the other. */
-function isReadableAmount(raw){
-  const t=String(raw||'').trim();
-  if(t==='') return false;
-  return !(evalExpr(t)===0 && !/^[0\s.+\-*/,]*$/.test(t));
+  /* The two refusals themselves live in quo-pricing-core.js (dcRateEntryProblem). */
+  const problem=dcRateEntryProblem(raw);
+  if(problem==='negative'){ showToast(dcT('tNotNegative').replace('{f}',label)); return null; }
+  if(problem==='unreadable'){ showToast(dcT('tNotANumber').replace('{f}',label)); return null; }
+  return evalExpr(raw);
 }
 /* Required dimensions must be positive numbers (blocks negatives that the old
    truthy checks let through). */
@@ -9416,94 +9394,19 @@ function validateFinalItem(qty,finalUnitPrice,totalAmount){
   if(!isFinite(totalAmount)||totalAmount<0){ showToast(dcT('tLineNeg')); return false; }
   return true;
 }
-function round05(v){
-  return roundMoney2(Math.round((Number(v)||0)*20)/20);
-}
-/* Non-Sag Auto Round (owner-locked): RM0.10 bands. Inside each 10-sen band
-   x.x0–x.x3 rounds down to the band, x.x4–x.x9 rounds up to the next band.
-   Worked in whole cents so 10.04 cannot become 10.0399… on the way. */
-function roundCustom10(v){
-  const cents=Math.round((Number(v)||0)*100), band=Math.floor(cents/10)*10;
-  return roundMoney2(((cents-band)<=3 ? band : band+10)/100);
-}
-function roundMoney2(v){return Math.round((Number(v)||0)*100)/100}
-/* THE Auto Round engine — the two owner-locked rules above, in one place:
-   Sag Rod nearest RM0.05, every other family the RM0.10 band rule. */
-function dcAutoRound(type,v){ return type==='sagrod' ? round05(v) : roundCustom10(v); }
-/* R2.3 OWNER CONTRACT OVERRIDE (2026-11-04): with accessories and Auto Round,
-   the engine rounds the COMBINED raw price, bolt + accessories, once at the
-   final stage — Round(Base + Accessories), superseding Round(Base) +
-   Accessories. Items priced this way carry autoRoundStage:'final'; an item
-   without it was priced under the earlier rule and is never re-priced. */
-const DC_AUTO_ROUND_STAGE='final';
 function getPriceMode(type){
   const value=fv(type,'priceMode');
   return ['auto','no_round','manual'].includes(value)?value:'auto';
 }
-/* The Price Mode a genuinely NEW item starts on. Owner rule (2026-10-29):
-   a new Sag Rod starts on No Round so L1070 and L1072 keep their own prices
-   instead of collapsing to one RM0.05 step; every other product starts on
-   Auto Round. Creation-time only — restore, History, Apply-setup and the
-   legacy 'auto' fallbacks never consult it. */
-function dcDefaultPriceMode(type){ return type==='sagrod'?'no_round':'auto'; }
 function getPriceModeKey(mode){return mode==='manual'?'pmManualPrice':mode==='no_round'?'pmNoRound':'pmAutoRound'}
 function getPriceModeLabel(mode){return dcT(getPriceModeKey(mode))}
 function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost=0){
-  const mode=getPriceMode(type);
-  const manualRaw=fv(type,'manualUnitPrice').trim();
-  const manualUnitPrice=evalExpr(manualRaw);
-  const accUnit=roundMoney2(Number(accessoriesCost)||0);
-  /* ── Where the accessory charge lands, per price mode ────────────────────
-     The Final Unit Price is what the customer pays for one piece, accessories
-     included, in every mode. What differs is which end is known:
-
-       Auto Round / No Round   the BOLT is calculated, and the accessories are
-                               added to reach the customer's price.
-       Manual Price            the CUSTOMER'S price is typed — that is what a
-                               person means when they write RM10 on a quotation
-                               — so the accessories come OUT of it to leave the
-                               bolt component. Typing RM10 with RM2 of nuts
-                               quotes RM10, not RM12.
-
-     Both ends are recorded either way, because Previous Price compares bolts
-     against bolts and staff still need to see what the RM2.00 was.           */
-  let boltUnitPrice,finalUnitPrice;
-  if(mode==='manual'){
-    finalUnitPrice=roundMoney2(manualUnitPrice);
-    boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
-  }else{
-    /* Owner model: Sag Rod rounds to nearest 5 sen; every other family uses
-       the RM0.10 band rule (x.x3 down, x.x4 up).  No Round is currency only.
-       R2.3: with accessories, Auto Round rounds raw bolt + accessories ONCE
-       (the bolt is never rounded first); the bolt component is what is left
-       after the accessories, so final = bolt + accessories still holds. */
-    const raw=Number(rawUnitPrice)||0;
-    if(mode==='no_round'){
-      boltUnitPrice=roundMoney2(raw);
-      finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
-    }else if(accUnit>0){
-      finalUnitPrice=dcAutoRound(type,raw+accUnit);
-      boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
-    }else{
-      boltUnitPrice=dcAutoRound(type,raw);
-      finalUnitPrice=boltUnitPrice;
-    }
-  }
-  priceCalcState[type]={
-    /* The weight is published by updatePreview; an add path that re-resolves
-       the price without redrawing the preview must not lose it. */
-    weight:Number((priceCalcState[type]||{}).weight)||0,
-    priceMode:mode,manualUnitPrice:manualRaw,rawUnitPrice:Number(rawUnitPrice)||0,
-    roundedUnitPrice:Number(dcAutoRound(type,rawUnitPrice))||0,accessoriesCost:accUnit,
-    /* What Auto Round makes of the whole piece — the figure a Manual Price is
-       compared with on the card. */
-    autoFinalUnitPrice:Number(accUnit>0?dcAutoRound(type,(Number(rawUnitPrice)||0)+accUnit):dcAutoRound(type,rawUnitPrice))||0,
-    boltUnitPrice:Number(boltUnitPrice)||0,
-    finalUnitPrice:Number(finalUnitPrice)||0,
-    /* One number under two names: what the customer pays for a piece IS the
-       line's unit price now. Kept so nothing that reads the old name breaks. */
-    lineUnitPrice:Number(finalUnitPrice)||0
-  };
+  /* The arithmetic is dcResolvePrice in quo-pricing-core.js; this reads the
+     form and stores the answer. The weight is published by updatePreview; an
+     add path that re-resolves the price without redrawing the preview must
+     not lose it, so the one already held is handed back in. */
+  priceCalcState[type]=dcResolvePrice(type,getPriceMode(type),fv(type,'manualUnitPrice').trim(),
+    rawUnitPrice,accessoriesCost,(priceCalcState[type]||{}).weight);
   updatePriceModePreview(type);
   return priceCalcState[type].finalUnitPrice;
 }
@@ -9826,13 +9729,6 @@ function buildDesc(type){
   const sizeType=fv(type,'sizeType');
   return mat+' '+sizeType+' '+ITEM_TYPES[type];
 }
-/* What this item will actually be weighed on. A Diameter Settings rule the
-   user configured outranks the built-in table, always. */
-function dcEffectiveDiameter(type,material,sizeType,size){
-  const custom=findDSRule(type,material,sizeType,size);
-  if(custom!==null) return custom;
-  return dcBuiltInDiameter(type,material,sizeType,size);
-}
 /* An UNANSWERED size type is not a fullsize one. dcBuiltInDiameter reads
    anything that is not the literal string UNDERSIZE as fullsize, which is the
    right reading of an ANSWER and the wrong reading of a SILENCE: a half inch
@@ -9886,18 +9782,6 @@ dcOnRelabel(()=>{
       e.textContent=dcT('mShowingNofM').replace('{n}',e.dataset.shown).replace('{m}',e.dataset.total);
   });
 });
-function findDSRule(type,material,sizeType,size){
-  const rules=loadDSRules();
-  const noST=DS_TYPES_NO_SIZETYPE.includes(type);
-  const rule=rules.find(r=>{
-    if(r.type!==type) return false;
-    if(r.material && r.material!==material) return false;
-    if(!noST && r.sizeType && r.sizeType!==sizeType) return false;
-    if(r.size && r.size.toUpperCase()!==size.toUpperCase()) return false;
-    return true;
-  });
-  return rule ? parseFloat(rule.diameter) : null;
-}
 
 const DS_TYPE_LABELS={sagrod:'Sag Rod',stud:'Stud',anchorbolt:'Anchor Bolt',ubolt:'U-Bolt',squbolt:'SQ U-Bolt',lbolt:'L Bolt',lbolt45:'L Bolt 45DEG',jbolt:'J Bolt'};
 
@@ -10350,9 +10234,9 @@ function calcSagRod(){
   const diameter=fn('sagrod','diameter'), length=fn('sagrod','length');
   const costRate=evalExpr(fv('sagrod','costRate')), addCost=evalExpr(fv('sagrod','addCost'));
   const markup=fn('sagrod','markup');
-  const weight=diameter*diameter*length*0.0000061654;
-  const base=weight*costRate+addCost;
-  const raw=base*(1+markup/100);
+  const weight=dcBarWeight(diameter,length);
+  const base=dcBasePrice(weight,costRate,addCost);
+  const raw=dcRawPrice(base,markup);
   const rounded=round05(raw);
   const final=resolvePriceMode('sagrod',raw,rounded,accAddon(getAccessories('sagrod')));
   updatePreview(weight,base,final);
@@ -10536,14 +10420,6 @@ function dcLineMoney(finalUnitPrice,acc,qty){
           accessoryTotal:roundMoney2(accUnit*n),
           totalAmount:roundMoney2(final*n),
           pricingModel:DC_PRICING_MODEL};
-}
-function accAddon(acc){
-  if(!acc) return 0;
-  let addon=0;
-  if(acc.nut&&acc.nut.enabled) addon+=(acc.nut.qty||0)*(acc.nut.unitPrice||0);
-  if(acc.fw&&acc.fw.enabled) addon+=(acc.fw.qty||0)*(acc.fw.unitPrice||0);
-  if(acc.custom&&acc.custom.enabled) addon+=(acc.custom.unitPrice||0);
-  return addon;
 }
 function accCWLines(acc){
   if(!acc) return [];
@@ -10849,9 +10725,9 @@ function addSagRod(){
   if(costRate===null||addCost===null) return;
   const markup=fn('sagrod','markup'), qty=validateQtyEntry('sagrod');
   if(qty===null) return;
-  const weight=diameter*diameter*length*0.0000061654;
-  const base=weight*costRate+addCost;
-  const raw=base*(1+markup/100);
+  const weight=dcBarWeight(diameter,length);
+  const base=dcBasePrice(weight,costRate,addCost);
+  const raw=dcRawPrice(base,markup);
   const rounded=round05(raw);
   const sizeLabel=formatSizeLabel(size,diameter,fv('sagrod','sizeType'))+' x L '+cleanNum(length)+(threadLen?' x TL '+withMm(threadLen):'');
   const acc=getAccessories('sagrod');
@@ -10973,9 +10849,9 @@ function onStudSizeCommit(){
 function calcStud(){
   const diameter=fn('stud','diameter'), length=fn('stud','l');
   const costRate=evalExpr(fv('stud','costRate')), addCost=evalExpr(fv('stud','addCost')), markup=fn('stud','markup');
-  const weight=diameter*diameter*length*0.0000061654;
-  const base=weight*costRate+addCost;
-  const raw=base*(1+markup/100), final=resolvePriceMode('stud',raw,round05(raw),accAddon(getAccessories('stud')));
+  const weight=dcBarWeight(diameter,length);
+  const base=dcBasePrice(weight,costRate,addCost);
+  const raw=dcRawPrice(base,markup), final=resolvePriceMode('stud',raw,round05(raw),accAddon(getAccessories('stud')));
   updatePreview(weight,base,final);
 }
 function addStud(){
@@ -11000,9 +10876,9 @@ function addStud(){
   if(costRate===null||addCost===null) return;
   const markup=fn('stud','markup'), qty=validateQtyEntry('stud');
   if(qty===null) return;
-  const weight=diameter*diameter*length*0.0000061654;
-  const base=weight*costRate+addCost;
-  const raw=base*(1+markup/100);
+  const weight=dcBarWeight(diameter,length);
+  const base=dcBasePrice(weight,costRate,addCost);
+  const raw=dcRawPrice(base,markup);
   /* Every other product's label goes through the size formatter; this one
      concatenated the raw size, so a half-inch stud printed as "1/2 x L 300mm"
      with no unit on the size — next to "M20 x L 300mm" on the same sheet. */
@@ -11020,9 +10896,9 @@ function addStud(){
 function calcAnchorBolt(){
   const diameter=fn('anchorbolt','diameter'), length=fn('anchorbolt','l');
   const costRate=evalExpr(fv('anchorbolt','costRate')), addCost=evalExpr(fv('anchorbolt','addCost')), markup=fn('anchorbolt','markup');
-  const weight=diameter*diameter*length*0.0000061654;
-  const base=weight*costRate+addCost;
-  const raw=base*(1+markup/100), final=resolvePriceMode('anchorbolt',raw,round05(raw),accAddon(getAccessories('anchorbolt')));
+  const weight=dcBarWeight(diameter,length);
+  const base=dcBasePrice(weight,costRate,addCost);
+  const raw=dcRawPrice(base,markup), final=resolvePriceMode('anchorbolt',raw,round05(raw),accAddon(getAccessories('anchorbolt')));
   updatePreview(weight,base,final);
 }
 function addAnchorBolt(){
@@ -11048,9 +10924,9 @@ function addAnchorBolt(){
   if(costRate===null||addCost===null) return;
   const markup=fn('anchorbolt','markup'), qty=validateQtyEntry('anchorbolt');
   if(qty===null) return;
-  const weight=diameter*diameter*length*0.0000061654;
-  const base=weight*costRate+addCost;
-  const raw=base*(1+markup/100);
+  const weight=dcBarWeight(diameter,length);
+  const base=dcBasePrice(weight,costRate,addCost);
+  const raw=dcRawPrice(base,markup);
   const sizeLabel=formatSizeLabel(size,diameter,fv('anchorbolt','sizeType'))+' x L '+cleanNum(length)+(threadLen?' x TL '+withMm(threadLen):'');
   const acc=getAccessories('anchorbolt');
   const final=resolvePriceMode('anchorbolt',raw,round05(raw),accAddon(acc));
@@ -11096,10 +10972,10 @@ function getSavedUBoltDebug(item){
   if(!fd) return null;
   const diameter=parseFloat(fd.diameter??fd.dimensions?.diameter)||0,id=parseFloat(fd.id??fd.dimensions?.id)||0,ih=parseFloat(fd.ih??fd.dimensions?.ih)||0;
   const storedLength=parseFloat(fd.length)||parseFloat(fd.totalLength)||parseFloat(fd.dimensions?.totalLength)||0;
-  const totalLength=storedLength?Math.ceil(storedLength):Math.ceil((diameter+id)*1.57+(2*ih)-id);
+  const totalLength=storedLength?Math.ceil(storedLength):dcUBoltTotalLength(diameter,id,ih);
   const costRate=evalExpr(String(fd.costRate??'')),addCost=evalExpr(String(fd.addCost??'')),markup=parseFloat(fd.markup)||0;
-  const weight=diameter*diameter*totalLength*0.0000061654;
-  const base=weight*costRate+addCost,beforeRound=base*(1+markup/100),afterRound=roundCustom10(beforeRound);
+  const weight=dcBarWeight(diameter,totalLength);
+  const base=dcBasePrice(weight,costRate,addCost),beforeRound=dcRawPrice(base,markup),afterRound=roundCustom10(beforeRound);
   const mode=fd.priceMode||item.priceMode||'auto';
   const accessoryCost=accAddon(fd.accessories||item.accessories||{});
   const recalculatedUnit=mode==='manual'
@@ -11182,7 +11058,7 @@ function calcUBolt(type,skipAuto){
      item) is not the formula's and is never cleared here — the unchanged rule
      still recalculates it once all three are entered. */
   if(!skipAuto && tlEl){
-    if(d>0 && id>0 && ih>0){ const auto=Math.ceil((d+id)*1.57+(2*ih)-id); tlEl.value=auto>0?auto:''; tlEl.dataset.src=auto>0?'auto':''; }
+    if(d>0 && id>0 && ih>0){ const auto=dcUBoltTotalLength(d,id,ih); tlEl.value=auto>0?auto:''; tlEl.dataset.src=auto>0?'auto':''; }
     else if(tlEl.dataset.src==='auto'){ tlEl.value=''; tlEl.dataset.src=''; }
   }
   /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
@@ -11192,9 +11068,9 @@ function calcUBolt(type,skipAuto){
      the number that reached the quotation. */
   const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
-  const weight=d*d*tl*0.0000061654;
-  const base=weight*costRate+addCost;
-  const beforeRound=base*(1+markup/100);
+  const weight=dcBarWeight(d,tl);
+  const base=dcBasePrice(weight,costRate,addCost);
+  const beforeRound=dcRawPrice(base,markup);
   const rounded=roundCustom10(beforeRound);
   const final=resolvePriceMode(type,beforeRound,rounded,accAddon(getAccessories(type)));
   updatePreview(weight,base,final);
@@ -11223,7 +11099,7 @@ function addUBolt(){
   if(costRate===null||addCost===null) return;
   const markup=fn(type,'markup'), qty=validateQtyEntry(type);
   if(qty===null) return;
-  const weight=d*d*totalLen*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), rounded=roundCustom10(raw);
+  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
   const acc=getAccessories(type);
   const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
   const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
@@ -11236,7 +11112,7 @@ function addUBolt(){
 function calcSQUBolt(type,skipAuto){
   const d=fn(type,'diameter'), oh=fn(type,'oh'), w=fn(type,'w');
   const tlEl=el(type+'-length');
-  if(!skipAuto && (d>0||oh>0||w>0)){ const auto=Math.ceil(((w/2+oh)-d*1.5)*2); if(tlEl) tlEl.value=auto>0?auto:''; }
+  if(!skipAuto && (d>0||oh>0||w>0)){ const auto=dcSQUBoltTotalLength(d,oh,w); if(tlEl) tlEl.value=auto>0?auto:''; }
   /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
      millimetres — so the preview has to weigh the same thing. It read the box
      raw, and a hand-typed 800.5 previewed 0.7107 kg while the item committed
@@ -11244,7 +11120,7 @@ function calcSQUBolt(type,skipAuto){
      the number that reached the quotation. */
   const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
-  const weight=d*d*tl*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
+  const weight=dcBarWeight(d,tl), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
   updatePreview(weight,base,final);
 }
 function addSQUBolt(){
@@ -11265,7 +11141,7 @@ function addSQUBolt(){
   if(costRate===null||addCost===null) return;
   const markup=fn(type,'markup'), qty=validateQtyEntry(type);
   if(qty===null) return;
-  const weight=d*d*totalLen*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), rounded=roundCustom10(raw);
+  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
   const acc=getAccessories(type);
   const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
   const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
@@ -11278,7 +11154,7 @@ function addSQUBolt(){
 function calcLBolt(type,skipAuto){
   const d=fn(type,'diameter'), l=fn(type,'l'), w=fn(type,'w');
   const tlEl=el(type+'-length');
-  if(type!=='lbolt45' && !skipAuto && (l>0||w>0||d>0)){ const auto=Math.ceil(l+w-d*1.5); if(tlEl) tlEl.value=auto>0?auto:''; }
+  if(type!=='lbolt45' && !skipAuto && (l>0||w>0||d>0)){ const auto=dcLBoltTotalLength(d,l,w); if(tlEl) tlEl.value=auto>0?auto:''; }
   /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
      millimetres — so the preview has to weigh the same thing. It read the box
      raw, and a hand-typed 800.5 previewed 0.7107 kg while the item committed
@@ -11286,7 +11162,7 @@ function calcLBolt(type,skipAuto){
      the number that reached the quotation. */
   const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
-  const weight=d*d*tl*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
+  const weight=dcBarWeight(d,tl), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
   updatePreview(weight,base,final);
 }
 function addLBolt(type='lbolt'){
@@ -11306,7 +11182,7 @@ function addLBolt(type='lbolt'){
   if(costRate===null||addCost===null) return;
   const markup=fn(type,'markup'), qty=validateQtyEntry(type);
   if(qty===null) return;
-  const weight=d*d*totalLen*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), rounded=roundCustom10(raw);
+  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
   const acc=getAccessories(type);
   const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
   const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
@@ -11320,8 +11196,7 @@ function calcJBolt(type,skipAuto){
   const d=fn(type,'diameter'), h=fn(type,'h'), id=fn(type,'id'), s=fn(type,'s');
   const tlEl=el(type+'-length');
   if(!skipAuto && (d>0||h>0||id>0||s>0)){
-    const upper=h-s, lower=(d+id)*1.57+(s-d)+(s-d)-id;
-    const auto=Math.ceil(upper+lower);
+    const auto=dcJBoltTotalLength(d,h,id,s);
     if(tlEl) tlEl.value=auto>0?auto:'';
   }
   /* The add path weighs Math.ceil(Total Length) — bar is bought in whole
@@ -11331,7 +11206,7 @@ function calcJBolt(type,skipAuto){
      the number that reached the quotation. */
   const tl=Math.ceil(parseFloat(tlEl?tlEl.value:0)||0);
   const costRate=evalExpr(fv(type,'costRate')), addCost=evalExpr(fv(type,'addCost')), markup=fn(type,'markup');
-  const weight=d*d*tl*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
+  const weight=dcBarWeight(d,tl), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), final=resolvePriceMode(type,raw,roundCustom10(raw),accAddon(getAccessories(type)));
   updatePreview(weight,base,final);
 }
 function addJBolt(){
@@ -11352,7 +11227,7 @@ function addJBolt(){
   if(costRate===null||addCost===null) return;
   const markup=fn(type,'markup'), qty=validateQtyEntry(type);
   if(qty===null) return;
-  const weight=d*d*totalLen*0.0000061654, base=weight*costRate+addCost, raw=base*(1+markup/100), rounded=roundCustom10(raw);
+  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
   const acc=getAccessories(type);
   const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
   const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
@@ -11524,7 +11399,7 @@ function fillItemFormFromItemInner(item){
      geometry was saved, the old diameter-only figure included) is 'auto';
      anything else was typed and is kept. Nothing is recalculated here. */
   if(type==='ubolt'){ const u=el('ubolt-length'); if(u){ const v=Math.ceil(parseFloat(u.value)||0), d=fn(type,'diameter'), id=fn(type,'id'), ih=fn(type,'ih');
-    u.dataset.src = !v ? '' : (v===Math.ceil((d+id)*1.57+(2*ih)-id) ? 'auto' : 'saved'); } }
+    u.dataset.src = !v ? '' : (v===dcUBoltTotalLength(d,id,ih) ? 'auto' : 'saved'); } }
 }
 function setItemEditMode(index){
   editingItemIndex=Number.isInteger(index)?index:null;
@@ -15842,43 +15717,6 @@ function wqaApplyPriceToAll(){
   showToast(wqaAppliedToast('wqaToastPriceApplied','wqaToastPriceAppliedSel',targets.length)
     +(droppedLast?' · '+dcT('wqaToastLastPriceOff').replace('{n}',droppedLast):''));
 }
-/* The rows' side of applying pricing: every writer (the common panel, Bulk
-   Adjust, a group heading) goes through here, so a blank field is "leave it"
-   everywhere and a reused record is superseded by the same rule everywhere.
-   Returns how many rows let go of a reused record. */
-function wqaApplyPriceTo(targets,c,modeSet){
-  let droppedLast=0;
-  targets.forEach(r=>{
-    wqaMarkEdited(r,'price');
-    const histMode=r.priceMode||'auto';
-    if(c.costRate!=='') r.priceOverride.costRate=c.costRate;
-    if(c.addCost!=='')  r.priceOverride.addCost=c.addCost;
-    if(c.markup!=='')   r.priceOverride.markup=c.markup;
-    /* The rates are applied only where the panel states one; the price mode
-       was applied unconditionally, so opening this panel to put a cost rate on
-       the list silently took row 3 off the Manual Price of RM 50 somebody had
-       set for it and re-priced it from the formula. It follows the same rule
-       as the fields beside it: stated, or left alone. */
-    if(modeSet) r.priceMode=c.priceMode||'auto';
-    /* A row priced from a historical record keeps that provenance until this
-       panel actually SUPERSEDES it — which it does by stating any component of
-       the pricing, or by moving the row to a different mode. A reused recipe
-       leaves the row on Auto Round, so "not manual" is no longer the test:
-       it would have quietly dropped the reference off every recipe row this
-       panel merely passed over. */
-    const supersedes=(c.costRate!=='')||(c.addCost!=='')||(c.markup!=='')
-                   ||(modeSet && (c.priceMode||'auto')!==histMode);
-    if(r.usedHistoryRef && supersedes){
-      r.usedHistoryRef=''; r.usedHistoryRecipe=false; r.manualPrice='';
-      /* Only what the record put there and this write did not just state:
-         deleting every key wiped the values written three lines above. */
-      (r.histApplied||[]).forEach(k=>{ if(c[k]===''||c[k]===undefined) delete r.priceOverride[k]; });
-      r.histApplied=[];
-      droppedLast++;
-    }
-  });
-  return droppedLast;
-}
 /* Separate, manual-only, and never triggered by the button above. */
 function wqaApplyManualPriceToAll(){
   const c=wqa.commonPrice||wqaEmptyPrice();
@@ -16786,14 +16624,6 @@ function wqaRenderListHead(){
     + '<span class="wqa-h wqa-h-act">'+escHtml(dcT('lblActions'))+'</span>';
 }
 function wqaFmtPrice(v){ const n=Number(v)||0; return n>0 ? 'RM'+n.toFixed(2) : 'RM—'; }
-/* A price worked out from a material nobody chose is not this item's price, and
-   a number on screen reads as an answer. So the money waits for the material.
-   The weight beside it does not: it comes from diameter and length alone and is
-   true whatever the rod is made of. */
-function wqaShownPrice(r){
-  if(wqaRowProduct(r) && !wqaRowSpec(r,'material')) return 0;
-  return (r.calc||{}).finalUnitPrice;
-}
 /* ── The size type a row will be priced on ──────────────────────────────────
    Read from wqaRowSpec — the SAME expression the Bulk Edit selector and the
    expanded editor read — so the badge, the meta line and the two selectors
@@ -19422,23 +19252,6 @@ function wqaRowSuggestSource(r,t){
   if(r.rec && dcRecSame(r.rec,c)) return r.rec.src;
   return 'manual_recipe';
 }
-/* A setup that can price: a Cost Rate above zero, or a stated Manual Price. */
-function wqaRowSetupOk(r){
-  if(!r||!r.calc) return false;
-  if((r.priceMode||'auto')==='manual'){
-    const m=String(r.manualPrice||'').trim();
-    return !!m && isReadableAmount(m) && evalExpr(m)>0;
-  }
-  return Number(evalExpr(String(r.calc.costRate||'').trim()||'0'))>0;
-}
-function wqaRowPriceable(r){
-  return !!r && !r.removed && !r.added && !wqaRowBlocked(r) && !!r.calc && Number(wqaShownPrice(r))>0;
-}
-function wqaRowPa(r){
-  if(!wqaRowPriceable(r) || !wqaRowSetupOk(r)) return {state:'none'};
-  return {state:'accepted',v:roundMoney2(r.calc.finalUnitPrice),src:r.calc.src||'manual_recipe',ref:r.usedHistoryRef||''};
-}
-function wqaRowAccepted(r){ return wqaRowPa(r).state==='accepted'; }
 /* History hands its provenance over through paPending; nothing waits on it. */
 function wqaRowPaSettle(r){ r.paPending=null; }
 function wqaPaCls(r){ const s=wqaRowCalcState(r).state;
@@ -21741,7 +21554,6 @@ function fmtDateShort(d){
 /* What a person has corrected on this row, so nothing later throws it away
    without knowing it is there. Field names, not values: the values are on the
    row itself. */
-function wqaMarkEdited(r,k){ if(r){ (r.edited||(r.edited={}))[k]=true; } }
 function wqaEdit(i,k,v){
   wqaMarkEdited(wqa.rows[i],k);
   /* A size typed by hand is normalised as it is typed — 22, m22, M 22 and 22mm

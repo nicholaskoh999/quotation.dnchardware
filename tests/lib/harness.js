@@ -16,8 +16,8 @@ const path = require('path');
 
 const ROOT      = path.resolve(__dirname, '..', '..');
 const INDEX_PHP = path.join(ROOT, 'index.php');
-const PARSER_CORE_FILE = 'quo-parser-core.js';
-const PARSER_CORE_JS   = path.join(ROOT, PARSER_CORE_FILE);
+/* The shared cores: real files beside index.php, loaded by <script src>. */
+const CORE_FILES = ['quo-parser-core.js', 'quo-pricing-core.js'];
 const ORIGIN    = 'http://quotation.test';
 
 let chromium;
@@ -119,13 +119,14 @@ async function openApp(browser, opts = {}) {
     if (new URL(url).pathname === pagePath) {
       return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
     }
-    /* The shared parser core is a real file beside index.php, loaded by a
+    /* A shared core is a real file beside index.php, loaded by a
        relative <script src>. It is served verbatim, from wherever the page
        sits ('/' or the '/quo/' Portal mount), so the suites run the shipped
        file and not a copy. */
-    if (new URL(url).pathname.endsWith('/' + PARSER_CORE_FILE)) {
+    const coreFile = CORE_FILES.find(f => new URL(url).pathname.endsWith('/' + f));
+    if (coreFile) {
       return route.fulfill({ status: 200, contentType: 'application/javascript; charset=utf-8',
-                             body: fs.readFileSync(PARSER_CORE_JS, 'utf8') });
+                             body: fs.readFileSync(path.join(ROOT, coreFile), 'utf8') });
     }
     /* icons, manifest, anything else the page reaches for */
     return route.fulfill({ status: 200, contentType: 'text/plain', body: '' });

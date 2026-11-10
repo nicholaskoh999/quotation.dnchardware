@@ -1,0 +1,2793 @@
+[
+ {
+  "id": "unpriced/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs"
+ },
+ {
+  "id": "unpriced/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs"
+ },
+ {
+  "id": "unpriced/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs"
+ },
+ {
+  "id": "unpriced/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs"
+ },
+ {
+  "id": "unpriced/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs"
+ },
+ {
+  "id": "unpriced/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs"
+ },
+ {
+  "id": "unpriced/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7"
+ },
+ {
+  "id": "unpriced/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs"
+ },
+ {
+  "id": "unpriced/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs"
+ },
+ {
+  "id": "unpriced/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs"
+ },
+ {
+  "id": "unpriced/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500"
+ },
+ {
+  "id": "unpriced/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS"
+ },
+ {
+  "id": "unpriced/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS"
+ },
+ {
+  "id": "unpriced/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS"
+ },
+ {
+  "id": "unpriced/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs"
+ },
+ {
+  "id": "unpriced/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs"
+ },
+ {
+  "id": "unpriced/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs"
+ },
+ {
+  "id": "unpriced/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs"
+ },
+ {
+  "id": "unpriced/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40"
+ },
+ {
+  "id": "unpriced/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24"
+ },
+ {
+  "id": "unpriced/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets"
+ },
+ {
+  "id": "basic/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_ms_hdg",
+  "text": "MS SAG ROD UNDERSIZE HDG M16 TL100/100\n1200 - 4pcs\n1305 - 6pcs\n2750 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_4140",
+  "text": "G8.8 SAG ROD FULLSIZE PLAIN M16 TL100/100\n1200 - 10pcs\n1800 - 4pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_tl_mixed",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 TL100/100 - 4pcs\n1500 - 12pcs\n1800 TL50/110 - 2pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_m10",
+  "text": "MS SAG ROD UNDERSIZE ZP M10 TL50/50\n600 - 12\n2400 - 7",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_m24_full",
+  "text": "MS SAG ROD FULLSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_inch",
+  "text": "ms sag rod undersize 1/2\" tl 3\"/3\" zp\n4ft - 10pcs\n6ft - 20pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/lbolt_ms",
+  "text": "MS L BOLT UNDERSIZE ZP M16 X 450 X 80 TL75 - 20 PCS\nMS L BOLT UNDERSIZE ZP M12 X 300 X 60 TL50 - 8 PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/jbolt_missing",
+  "text": "MS J-BOLT HDG M16 x 450 TL75 - 12 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/stud_ht",
+  "text": "GRADE 10.9 STUD M20 X 300 - 8 pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/anchor_4140",
+  "text": "4140 ANCHOR BOLT FULLSIZE PLAIN M30 X 1200 TL150 QTY 24",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "basic/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "flat/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  }
+ },
+ {
+  "id": "decimals/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets",
+  "price": {
+   "costRate": "3.875",
+   "addCost": "0.65",
+   "markup": "12.5"
+  }
+ },
+ {
+  "id": "auto/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "no_round/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "no_round"
+  }
+ },
+ {
+  "id": "manual/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets",
+  "price": {
+   "mode": "manual",
+   "manual": "12.35"
+  }
+ },
+ {
+  "id": "manual_with_rates/anchor_acc",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG M20 X 500 TL100 c/w 2 nuts 1 washer - 50 sets",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "manual",
+   "manual": "9.9"
+  }
+ },
+ {
+  "id": "bad-rate_text/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "abc",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_negative/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "-3",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_blank/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_zero/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "0",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_blank/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_negative/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "-1",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_thousands/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "1,200",
+   "addCost": "0",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-rate_comma_decimal/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "2,80",
+   "addCost": "0.60",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-markup_negative/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "-10"
+  }
+ },
+ {
+  "id": "bad-manual_blank/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "mode": "manual",
+   "manual": ""
+  }
+ },
+ {
+  "id": "bad-manual_zero/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "0"
+  }
+ },
+ {
+  "id": "bad-manual_negative/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "-5"
+  }
+ },
+ {
+  "id": "bad-rate_text/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "abc",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_negative/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "-3",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_blank/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_zero/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "0",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_blank/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_negative/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "-1",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_thousands/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "1,200",
+   "addCost": "0",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-rate_comma_decimal/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "2,80",
+   "addCost": "0.60",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-markup_negative/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "-10"
+  }
+ },
+ {
+  "id": "bad-manual_blank/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "mode": "manual",
+   "manual": ""
+  }
+ },
+ {
+  "id": "bad-manual_zero/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "mode": "manual",
+   "manual": "0"
+  }
+ },
+ {
+  "id": "bad-manual_negative/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "mode": "manual",
+   "manual": "-5"
+  }
+ },
+ {
+  "id": "bad-rate_text/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "abc",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_negative/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "-3",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_blank/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_zero/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "0",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_blank/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.80",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_negative/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "-1",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_thousands/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "1,200",
+   "addCost": "0",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-rate_comma_decimal/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "2,80",
+   "addCost": "0.60",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-markup_negative/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "-10"
+  }
+ },
+ {
+  "id": "bad-manual_blank/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "mode": "manual",
+   "manual": ""
+  }
+ },
+ {
+  "id": "bad-manual_zero/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "0"
+  }
+ },
+ {
+  "id": "bad-manual_negative/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "-5"
+  }
+ },
+ {
+  "id": "bad-rate_text/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "abc",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_negative/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "-3",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_blank/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_zero/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "0",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_blank/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_negative/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "-1",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_thousands/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "1,200",
+   "addCost": "0",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-rate_comma_decimal/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "2,80",
+   "addCost": "0.60",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-markup_negative/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "-10"
+  }
+ },
+ {
+  "id": "bad-manual_blank/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "mode": "manual",
+   "manual": ""
+  }
+ },
+ {
+  "id": "bad-manual_zero/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "0"
+  }
+ },
+ {
+  "id": "bad-manual_negative/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "price": {
+   "mode": "manual",
+   "manual": "-5"
+  }
+ },
+ {
+  "id": "bad-rate_text/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "abc",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_negative/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "-3",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_blank/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_zero/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "0",
+   "addCost": "0.60",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_blank/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.80",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-add_negative/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "-1",
+   "markup": "10"
+  }
+ },
+ {
+  "id": "bad-rate_thousands/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "1,200",
+   "addCost": "0",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-rate_comma_decimal/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "2,80",
+   "addCost": "0.60",
+   "markup": "0"
+  }
+ },
+ {
+  "id": "bad-markup_negative/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "-10"
+  }
+ },
+ {
+  "id": "bad-manual_blank/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "mode": "manual",
+   "manual": ""
+  }
+ },
+ {
+  "id": "bad-manual_zero/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "mode": "manual",
+   "manual": "0"
+  }
+ },
+ {
+  "id": "bad-manual_negative/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "mode": "manual",
+   "manual": "-5"
+  }
+ },
+ {
+  "id": "tl70+basic/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "tl": "70",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "tl70-100+basic/sag_no_tl",
+  "text": "MS SAG ROD UNDERSIZE ZP\nM12\n940 - 43pcs\n970 - 91pcs\n1050 TL70/100 - 8pcs",
+  "tl": "70/100",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "tl70+basic/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "tl": "70",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "tl70-100+basic/lbolt_no_tl",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 154PCS\nM20 L1000 W100 TL150 234PCS",
+  "tl": "70/100",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "tl70+basic/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "tl": "70",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "tl70-100+basic/sag_bare",
+  "text": "SAG ROD\nM12 x 1000\nM12 x 1500",
+  "tl": "70/100",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "ds+basic/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "ds+auto/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "ds+basic/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "ds+auto/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "ds+basic/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "ds+auto/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "ds+basic/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "ds+auto/stud",
+  "text": "MS STUD M16 X 250 - 4pcs\nMS STUD M20 X 300 - 8pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "ds+basic/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "ds+auto/jbolt",
+  "text": "J BOLT MS UNDERSIZE ZP M12 H300 ID50 S60 TL60 - 100pcs\nJ BOLT MS UNDERSIZE ZP M16 H450 ID60 S80 TL75 - 30pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "ds+basic/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  }
+ },
+ {
+  "id": "ds+auto/sag_ms_pl",
+  "text": "M/S SAGROD FULLSIZE (PL)\nM16 X TL75/75\n800 - 5pcs\n905 - 6 pcs",
+  "ds": [
+   {
+    "id": "901",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.9",
+    "is_active": 1
+   },
+   {
+    "id": "902",
+    "product_type": "sagrod",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M24",
+    "diameter": "21.5",
+    "is_active": 1
+   },
+   {
+    "id": "903",
+    "product_type": "lbolt",
+    "material": "4140",
+    "size_type": "FULLSIZE",
+    "size": "M20",
+    "diameter": "19.6",
+    "is_active": 1
+   },
+   {
+    "id": "904",
+    "product_type": "stud",
+    "material": "MS",
+    "size_type": "",
+    "size": "M16",
+    "diameter": "14.2",
+    "is_active": 1
+   },
+   {
+    "id": "905",
+    "product_type": "jbolt",
+    "material": "MS",
+    "size_type": "UNDERSIZE",
+    "size": "M12",
+    "diameter": "10.4",
+    "is_active": 1
+   }
+  ],
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15",
+   "mode": "auto"
+  }
+ },
+ {
+  "id": "bulk+row1/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  },
+  "rows": {
+   "1": {
+    "costRate": "4.50",
+    "mode": "auto"
+   }
+  }
+ },
+ {
+  "id": "bulk+row0-manual/lbolt",
+  "text": "G8.8 L-BOLT FULLSIZE PLAIN\nM20 L600 W100 TL100 154PCS\nM20 L1000 W100 TL100 234PCS",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  },
+  "rows": {
+   "0": {
+    "mode": "manual",
+    "manual": "25.5"
+   }
+  }
+ },
+ {
+  "id": "bulk+row2-markup/anchor",
+  "text": "MS ANCHOR BOLT FULLSIZE HDG\nM16 x 400 TL80 - 20\nM20 x 500 TL100 - 30\nM24 x 600 TL120 - 40",
+  "price": {
+   "costRate": "4.2",
+   "addCost": "1",
+   "markup": ""
+  },
+  "rows": {
+   "2": {
+    "markup": "20"
+   }
+  }
+ },
+ {
+  "id": "dia10.7+basic/sag_ms_zp",
+  "text": "MS SAG ROD UNDERSIZE ZP M12 TL70/70\n1200 - 40pcs\n1500 - 12pcs\n1072 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  },
+  "dia": {
+   "0": "10.7"
+  }
+ },
+ {
+  "id": "dia22+basic/sag_m24_under",
+  "text": "MS SAG ROD UNDERSIZE ZP M24 TL100/100\n2000 - 3pcs",
+  "price": {
+   "costRate": "3.80",
+   "addCost": "0.60",
+   "markup": "15"
+  },
+  "dia": {
+   "0": "22"
+  }
+ }
+]
