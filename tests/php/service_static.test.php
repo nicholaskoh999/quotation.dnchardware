@@ -296,7 +296,7 @@ if ($rc === 0) {
 }
 
 /* The real config holds the service secret: it must never be committable in this public repository. */
-ok((bool)preg_match('/^service_config.phps*$/m', (string)file_get_contents("$ROOT/.gitignore")), 'D: .gitignore lists service_config.php beside the other server-only secrets');
+ok((bool)preg_match('/^service_config\.php\r?$/m', (string)file_get_contents("$ROOT/.gitignore")), 'D: .gitignore lists service_config.php beside the other server-only secrets');
 
 // ══ E · the deploy allow-list ══════════════════════════════════════════════
 $yml = file_get_contents("$ROOT/.cpanel.yml");
