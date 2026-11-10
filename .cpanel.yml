@@ -56,8 +56,8 @@ deployment:
   tasks:
     # ── Target and file lists ────────────────────────────────────────────────
     - 'export DEPLOYPATH=/home5/dnchardw/quo.dnchardware.com/'
-    - 'export APPFILES="index.php api.php companies.php ai_extract.php ai_anthropic.php pricing_history.php auth.php login.php logout.php manifest.webmanifest ai_config.sample.php db.sample.php handoff.php dnc_handoff.php dnc_config.sample.php app/Handoff/Contract/HandoffToken.php app/Handoff/Contract/InvalidHandoffToken.php version.php"'
-    - 'export PROTECTED="ai_config.php db.php dnc_config.php error_log php.ini .htaccess"'
+    - 'export APPFILES="index.php api.php companies.php ai_extract.php ai_anthropic.php pricing_history.php auth.php login.php logout.php manifest.webmanifest ai_config.sample.php db.sample.php handoff.php dnc_handoff.php dnc_config.sample.php app/Handoff/Contract/HandoffToken.php app/Handoff/Contract/InvalidHandoffToken.php service.php service_auth.php service_actions.php service_config.sample.php version.php"'
+    - 'export PROTECTED="ai_config.php db.php dnc_config.php service_config.php error_log php.ini .htaccess"'
     - 'export STAMPDIR=/home5/dnchardw/quotation-deploy/'
 
     # ── Phase 1: preflight. Abort before touching anything. ──────────────────
