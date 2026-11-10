@@ -284,15 +284,19 @@ ok(!empty($apiSql[1]) && ($apiSql[1] ?? 'a') === ($svcSql[1] ?? 'b'), 'D: diamet
 $squash = fn ($s) => preg_replace('/\s+/', '', (string)$s);
 ok(!empty($apiMap[1]) && $squash($apiMap[1] ?? 'a') === $squash($svcMap[1] ?? 'b'), 'D: …and api.php\'s exact row mapping');
 
-/* The files this round was told not to touch are byte-identical to production ca5f0a5. */
+/* Login, session and handoff code is byte-identical to production ca5f0a5. index.php
+   (loads the shared cores) and api.php (save functions moved to an include) change
+   in the QQ release candidate and are covered by their own parity suites.
+   The commit is checked WITHOUT the ^{commit} suffix: on Windows exec() runs
+   through cmd.exe, which eats the caret, and the check used to skip silently. */
 $BASE = 'ca5f0a5692adc8614017ec8054f9bd9fbe337d20';
 $git = function ($args) use ($ROOT) { $o = []; $rc = 1; @exec('git -C ' . escapeshellarg($ROOT) . ' ' . $args . ' 2>&1', $o, $rc); return [$rc, implode("\n", $o)]; };
-[$rc, ] = $git("cat-file -e $BASE^{commit}");
+[$rc, ] = $git("cat-file -e $BASE");
 if ($rc === 0) {
-    [$rc2, $changed] = $git("diff --name-only $BASE -- index.php api.php auth.php login.php logout.php handoff.php dnc_handoff.php companies.php pricing_history.php ai_extract.php ai_anthropic.php version.php app tests/run.js");
-    eq([$rc2, $changed], [0, ''], 'D: index.php, api.php, auth.php, login.php, handoff.php, dnc_handoff.php, companies.php, pricing and parsing files are unchanged since ca5f0a5');
+    [$rc2, $changed] = $git("diff --name-only $BASE -- auth.php login.php logout.php handoff.php dnc_handoff.php companies.php pricing_history.php ai_extract.php ai_anthropic.php version.php app tests/run.js");
+    eq([$rc2, $changed], [0, ''], 'D: auth.php, login.php, logout.php, handoff.php, dnc_handoff.php, companies.php, pricing history, AI and version files are unchanged since ca5f0a5');
 } else {
-    ok(true, 'D: (base commit not available here — unchanged-files check not applicable)');
+    ok(getenv('DC_ALLOW_NO_BASE') === '1', 'D: base commit ca5f0a5 must be present for the unchanged-files check (set DC_ALLOW_NO_BASE=1 only in a shallow clone)');
 }
 
 /* The real config holds the service secret: it must never be committable in this public repository. */
