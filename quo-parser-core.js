@@ -493,7 +493,7 @@ const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPr
            view:'compact',rows:[],busy:false,
            /* The extraction stopped early, and whether somebody has said out
               loud that they checked the source anyway. */
-           truncated:false,truncAck:false,covMissing:[]};
+           truncated:false,truncAck:false,covMissing:[],covKind:''};
 
 /* Accessory shape is the EXISTING one used by getAccessories() /
    loadAccIntoForm() / accAddon(). Nothing here re-prices anything: the row is
@@ -1056,6 +1056,10 @@ const WQA_TL_DIM_RE={
   after:new RegExp('(?:'+WQA_TL_WORDS+')\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?','i'),
   before:new RegExp('(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?\\s*(?:'+WQA_TL_WORDS+')\\b','i'),
 };
+/* R3 FAST SOS: "214t" — the thread written as a suffix letter, the same way
+   "210w" writes the short leg. Only the suffix form, number and letter joined,
+   so a lone "t" elsewhere on a line is never read as a thread. */
+const WQA_TL_SUFFIX_RE=/(\d+(?:\.\d+)?)t\b/i;
 function wqaDimLabelled(s,key){
   const re = key==='TL' ? WQA_TL_DIM_RE : WQA_DIM_RE[key];
   if(!re) return null;
@@ -1065,7 +1069,7 @@ function wqaDimLabelled(s,key){
     const v=m[g];
     return (v!=null && Number(v)>0) ? {v:String(Number(v)), at:m.index, len:m[0].length} : null;
   };
-  return hit(re.after,1) || hit(re.before,1);
+  return hit(re.after,1) || hit(re.before,1) || (key==='TL' ? hit(WQA_TL_SUFFIX_RE,1) : null);
 }
 /* Every labelled dimension THIS product owns, taken out of the line so what is
    left is positional. Longest/most specific keys first: ID before S before H,
@@ -1361,6 +1365,24 @@ function wqaExtractFields(rawLine,opts){
         f.size = isFrac ? key : key+'"';
         s=s.slice(hm[0].length);
       }
+    }
+  }
+  /* ── R3 FAST SOS: a metric size written without its M ──────────────────────
+     "42 x 964 x 210w x 214t" under an L Bolt heading is M42, L964, W210,
+     TL214 — the bent-bolt grammar is [SIZE] x [L] x [W] (x [TL]) and the size
+     leads the run. With no M the 42 used to become the L, the 964 was lost,
+     and the NEXT row (also size-less) was folded into this one as a
+     "continuation": a nine-line enquiry came back as one item.
+
+     Read only where nothing else can be meant: an L or J Bolt line, a whole
+     number at the head of an x-run that the diameter table holds, at least two
+     more numbers after it, and the next of them longer than the diameter. */
+  if(!f.size && f.hadX && /^(?:lbolt|jbolt)$/.test((opts&&opts.product)||'')){
+    const hm=/^\s*(\d+)\s*x\s/i.exec(s);
+    if(hm && wqaIsNominal(hm[1])){
+      const rest=s.slice(hm[0].length);
+      const vals=(rest.match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+      if(vals.length>=2 && vals[0]>Number(hm[1])){ f.size='M'+String(Number(hm[1])); s=rest; }
     }
   }
   /* Two-side thread "50/110mm": BOTH ends are kept. The calculator's threadLen
@@ -2160,6 +2182,9 @@ function wqaParseText(text,forceProduct){
      earlier and taking that section's last row with it. */
   let secFrom=0;
   const lastItem=()=>items.length>secFrom ? items[items.length-1] : null;
+  /* R3 FAST SOS — completeness of a pasted list. Which lines became a row of
+     their own, and which were read as more of the row above. See wqaTextOmitted. */
+  const itemLines=[], contLines=new Set();
 
   /* R12 is drawing notation for an undersized rod's nominal diameter, so it is
      read as a size only where the message actually shows that context: an
@@ -2270,8 +2295,16 @@ function wqaParseText(text,forceProduct){
        and took its first measurement with it as that row's bolt size. */
     const contProd=(e.d&&e.d.product)||ctx.product||common.product||'';
     const prevItem=lastItem();
-    if(prevItem && !f.size && f.dims && Object.keys(f.dims).length &&
+    /* R3 FAST SOS: "every number bound to a label" is now actually checked —
+       a line that still carries loose numbers, or that states a dimension the
+       row above already has with a DIFFERENT value, is a row of its own. Folding
+       it in kept only the empty slots and silently dropped everything else,
+       which is how "39 x 1683 x 195w x 183t" vanished into the row above. */
+    const contClash=!!(prevItem && f.dims && Object.entries(f.dims).some(([k,v])=>
+      prevItem[k]!=null && prevItem[k]!=='' && String(prevItem[k])!==String(v)));
+    if(prevItem && !f.size && f.dims && Object.keys(f.dims).length && !(f.nums||[]).length && !contClash &&
        (contProd==='lbolt'||contProd==='jbolt') && prevItem.product===contProd){
+      contLines.add(i);
       Object.entries(f.dims).forEach(([k,v])=>{
         if(prevItem[k]==null || prevItem[k]===''){ prevItem[k]=v; prevItem.conf[k]=WQA_CONF.DETECTED; }
       });
@@ -2500,6 +2533,7 @@ function wqaParseText(text,forceProduct){
     /* The row's own accessories win, per kind, over the heading's. */
     const accRow=(e.accSpec||ctx.acc) ? {...(ctx.acc||{}),
       ...Object.fromEntries(Object.entries(e.accSpec||{}).filter(([k,v])=>v!==null&&v!==''))} : null;
+    itemLines.push(i);
     items.push({...r.item, raw:e.src||e.t, specResolved:true, accSpec:accRow,
                 materialValue:pick('material'), finishValue:pick('finish'),
                 sizeTypeValue:stPick,
@@ -2590,7 +2624,35 @@ function wqaParseText(text,forceProduct){
      from this line downwards is shared by every source. */
   const norm=wqaNormalizeExtraction({product:common.product,threadEnds,items},{wording:text});
   norm.rows.forEach((r,k)=>{ const a=items[k]&&wqaAccFromSpec(items[k].accSpec,r.finish); if(a) r.accParsed=a; });
-  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread, accUnsure};
+  const omitted=wqaTextOmitted(entries,itemLines,contLines,items.length===norm.rows.length && itemLines.length===items.length);
+  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread, accUnsure, omitted};
+}
+/* ── R3 FAST SOS: did every specification line become a row? ───────────────
+   A pasted list is checked against itself, line by line, independent of the
+   photo / PDF second reading. A SPECIFICATION LINE is one that writes a
+   dimension run: an x between numbers and at least three values (a size
+   counts as one). A heading ("4140 full size L bolt pl"), a remark, a lone
+   thread or a quantity line is never one, so none of them is ever reported
+   missing. Each such line must have become a row of its own, or have been
+   read as a labelled continuation of the row above it; any line that did
+   neither is returned, in the customer's own words, so Review can name it.
+   Nothing is added for it, and nothing is guessed from it. Repeated lines are
+   counted per line, so two identical rows must produce two rows.
+   When the normaliser did not keep one row per item, row-to-line accounting
+   is no longer exact and nothing is claimed. */
+function wqaTextOmitted(entries,itemLines,contLines,exact){
+  if(!exact) return [];
+  const made=new Set(itemLines), out=[];
+  entries.forEach((e,i)=>{
+    if(!e || e.blank || e.section || e.sizeList || e.accOnly || !e.f) return;
+    if(made.has(i) || contLines.has(i)) return;
+    const f=e.f;
+    if(!f.hadX) return;
+    const vals=(f.nums||[]).length + Object.keys(f.dims||{}).length + (f.size?1:0)
+             + (f.threadLen!==null?1:0) + (f.threadLen2!==null?1:0);
+    if(vals>=3) out.push(String(e.src||e.t).trim());
+  });
+  return out.slice(0,30);
 }
 /* ── L-Bolt dimension references → canonical TO END ────────────────────────
    Customers dimension L (shank) and W (short leg) TO the top of the bent bar, TO its
@@ -3311,7 +3373,7 @@ function wqaRowHasPricing(r){
    HOST INTERFACE — the only part of this file that did not come from index.php.
    ════════════════════════════════════════════════════════════════════════════ */
 /* Bump on every change to this file. MAJOR when a caller would have to change. */
-const QUO_PARSER_CORE_VERSION = '1.0.0';
+const QUO_PARSER_CORE_VERSION = '1.1.0';
 /* The shape of the interface below. Changes only when a name is removed or its
    meaning changes; a consumer built against another number must refuse to run. */
 const QUO_PARSER_CORE_CONTRACT = 1;

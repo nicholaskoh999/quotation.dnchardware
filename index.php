@@ -7230,7 +7230,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
 <div class="toast" id="toast"></div>
 
-<script src="quo-parser-core.js?v=3d85a9f98bca"></script>
+<script src="quo-parser-core.js?v=3a211274d1b3"></script>
 <script src="quo-pricing-core.js?v=c73870824521"></script>
 <script src="quo-quote-core.js?v=10692b21e36d"></script>
 <script>
@@ -7480,6 +7480,8 @@ const I18N={
     wqaCovBody:'A second reading of the source listed {m} item(s) that are not in this list of {n}. They have NOT been added. Compare with the drawing, then re-analyse or add the missing items yourself:',
     wqaCovAck:'I have checked the drawing. These {n} item(s) are the ones to add.',
     wqaCovUncertain:'Completeness could not be double-checked this time. Compare the number of items with the drawing before adding.',
+    wqaCovTextBody:'{m} line(s) of the pasted message look like item specifications but did not become an item in this list of {n}. They have NOT been added. Check them against the message, then correct the text and parse again, or add them yourself:',
+    wqaCovTextAck:'I have checked the message. These {n} item(s) are the ones to add.',
     wqaNoteReadFile:'Will be applied to this file:',
     wqaNoteReadAll:'Will be applied to all uploaded files:',
     wqaNoteUnrec:'Unrecognized:',
@@ -8209,6 +8211,8 @@ const I18N={
     wqaCovBody:'第二次读取原件时列出了 {m} 个项目，但不在这 {n} 个项目的列表中。系统没有自动加入它们。请对照图纸，重新分析或自行补上遗漏的项目：',
     wqaCovAck:'我已核对图纸，确认要加入这 {n} 个项目。',
     wqaCovUncertain:'这次未能复核项目是否齐全。添加前请对照图纸核对项目数量。',
+    wqaCovTextBody:'粘贴的信息中有 {m} 行看起来是产品规格，但没有成为这 {n} 个项目中的任何一项。系统没有自动加入它们。请对照原文核对，修改文字后重新解析，或自行补上：',
+    wqaCovTextAck:'我已核对原文，确认要加入这 {n} 个项目。',
     wqaNoteReadFile:'将应用于此文件：',
     wqaNoteReadAll:'将应用于所有上传文件：',
     wqaNoteUnrec:'无法识别：',
@@ -16241,20 +16245,22 @@ function wqaRenderPartial(){
   if(!wqa.truncated && !miss.length){ box.hidden=true; box.innerHTML=''; box.dataset.n=''; return; }
   const n=wqa.rows.filter(r=>!r.removed).length;
   box.hidden=false;
-  const key=[n,dcLang(),wqa.truncated?1:0,miss.join('|')].join('#');
+  const key=[n,dcLang(),wqa.truncated?1:0,wqa.covKind||'',miss.join('|')].join('#');
   if(box.dataset.n===key){
     const cb=box.querySelector('input'); if(cb) cb.checked=!!wqa.truncAck;
     return;
   }
   box.dataset.n=key;
   const body=[];
-  if(miss.length) body.push(`<p class="wqa-partial-body">${escHtml(dcT('wqaCovBody').replace('{m}',miss.length).replace('{n}',n))}</p>
+  /* R3 FAST SOS: a pasted list names its own unread lines (wqa.covKind 'text'). */
+  const txt=wqa.covKind==='text';
+  if(miss.length) body.push(`<p class="wqa-partial-body">${escHtml(dcT(txt?'wqaCovTextBody':'wqaCovBody').replace('{m}',miss.length).replace('{n}',n))}</p>
     <p class="wqa-partial-body wqa-cov-list" data-i18n-skip>${escHtml(miss.join(' · '))}</p>`);
   if(wqa.truncated) body.push(`<p class="wqa-partial-body">${escHtml(dcT('wqaPartialBody').replace('{n}',n))}</p>`);
   box.innerHTML=`<span class="wqa-partial-title">${escHtml(dcT(miss.length?'wqaCovTitle':'wqaPartialTitle'))}</span>
     ${body.join('')}
     <label class="wqa-partial-ack"><input type="checkbox" id="wqaPartialAckBox"${wqa.truncAck?' checked':''}
-      onchange="wqaAckPartial(this.checked)"><span>${escHtml(dcT(miss.length?'wqaCovAck':'wqaPartialAck').replace('{n}',n))}</span></label>`;
+      onchange="wqaAckPartial(this.checked)"><span>${escHtml(dcT(miss.length?(txt?'wqaCovTextAck':'wqaCovAck'):'wqaPartialAck').replace('{n}',n))}</span></label>`;
 }
 /* Deliberate, and revocable: unticking it disables Add again. */
 function wqaAckPartial(on){ wqa.truncAck=!!on; wqaUpdateAddButton(); }
@@ -16646,6 +16652,32 @@ const WQA_ACC_LEAD_RE=/(?:\bc\s*\/\s*w|\bc\.w\.?|\bcomplete\s+with|\bcomes?\s+wi
 const WQA_ACC_PART_RE=/(?<![\w.\/])(\d{1,3})\s*(?:nos?\.?|pcs?\.?|x)?\s*((?:[a-z0-9]+\s+){0,2}?)(nuts?|washers?|f\s*\/\s*w|fw)\b/ig;
 const WQA_ACC_JOIN_RE=/^\s*(?:&|and|\+|,|\/|;)?\s*$/i;
 
+/* The same specification-line rule, for rows that did not come from the parser
+   (the AI text fallback), where there is no line-to-row record. Each spec line
+   must be matched by its OWN row — same size when both state one, and the
+   row's length (an L Bolt's L, a J Bolt's H) written on that line. A row
+   matches one line only, so repeated lines need repeated rows. */
+function wqaTextCoverage(text,rows){
+  const prod=(wqaDetectCommon(text)||{}).product||'';
+  const pool=(rows||[]).map(r=>({M:String(r.M||r.size||'').toUpperCase().replace(/\s+/g,''),
+    L:Number(r.L!=null&&r.L!==''?r.L:(r.H!=null&&r.H!==''?r.H:(r.length||NaN))), used:false}));
+  const out=[];
+  String(text||'').split(/\r?\n/).forEach(raw=>{
+    const t=raw.trim(); if(!t) return;
+    let f; try{ f=wqaExtractFields(t,{product:prod}); }catch(e){ return; }
+    if(!f || !f.hadX) return;
+    const vals=(f.nums||[]).length + Object.keys(f.dims||{}).length + (f.size?1:0)
+             + (f.threadLen!==null?1:0) + (f.threadLen2!==null?1:0);
+    if(vals<3) return;
+    const nums=(wqaNorm(t).match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+    const fm=String(f.size||'').toUpperCase();
+    const hit=pool.find(r=>!r.used && isFinite(r.L) && r.L>0 && nums.indexOf(r.L)>=0
+                           && (!fm || !r.M || r.M===fm));
+    if(hit) hit.used=true; else out.push(t);
+  });
+  return out.slice(0,30);
+}
+
 /* Everything the LAST source told us that is not a row: the accessory wording
    it mentioned, and the customer-label-vs-geometry note. It belongs to that
    source and to nothing else, so every fresh Parse and every fresh Analyze
@@ -16660,7 +16692,8 @@ function wqaWarnText(w){
   return w.v===undefined ? dcT(w.k) : dcT(w.k).replace('{n}',w.v).replace('{v}',w.v);
 }
 function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null;
-  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null; }
+  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null;
+  wqa.covKind=''; wqa._covKindPending=''; }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
 /* ── The entry forms are borrowed, not taken ───────────────────────────────
@@ -17299,6 +17332,14 @@ async function wqaTextFallback(text){
       return;
     }
     wqa.aiRaw = text;                           // review keeps the original message
+    /* R3 FAST SOS: the server's second reading covers photos and PDFs only, so a
+       pasted message is checked here, line by line, against the rows the AI
+       returned. Lines it cannot account for are named; nothing is added. */
+    { const cv=j.data.coverage;
+      if(!(cv && cv.state==='partial')){
+        const miss=wqaTextCoverage(text, Array.isArray(j.data.items)?j.data.items:[]);
+        if(miss.length){ j.data.coverage={state:'partial', missing:miss}; wqa._covKindPending='text'; }
+      } }
     const applied = await wqaAiApply(j.data, 'wqaParseMsg', {truncated:!!j.truncated, review:!!j.review, diag:j.meta||null});
     if(applied) wqaMsg('wqaParseMsg','',false);
   }catch(e){
@@ -17373,6 +17414,7 @@ function wqaResetState(){
   wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
   wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null;
+  wqa.covKind=''; wqa._covKindPending='';
   if(el('wqaPartial')){ el('wqaPartial').hidden=true; el('wqaPartial').innerHTML=''; el('wqaPartial').dataset.n=''; }
   wqaClearNote();
   /* A new Quick Add session is never AI-assisted until it earns it again. */
@@ -17451,6 +17493,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
      the first one raised, and a plain parse never inherits it. */
   wqa.truncated=!!wqa._truncPending; wqa._truncPending=false; wqa.truncAck=false;
   wqa.covMissing=Array.isArray(wqa._covPending)?wqa._covPending:[]; wqa._covPending=null;
+  wqa.covKind=wqa.covMissing.length ? (wqa._covKindPending||'') : ''; wqa._covKindPending='';
   /* Text unless the caller says otherwise, and the file is captured HERE, from
      the file that produced these very rows — so replacing image A with image B
      replaces what Review names, and a PDF followed by an image leaves no PDF
@@ -17664,6 +17707,9 @@ async function wqaParseAndReview(){
     if(parsed.accUnsure && parsed.accUnsure.length)
       wqa.aiWarnings=[{k:'wqaAccUnsure',v:parsed.accUnsure.join(', ')}];
     /* Parser understood it. No AI call, no badge, no cost. */
+    /* R3 FAST SOS: but a specification line that became no row is named, and
+       Add waits for the same "I have checked" tick a short AI list needs. */
+    if(parsed.omitted && parsed.omitted.length){ wqa._covPending=parsed.omitted.slice(); wqa._covKindPending='text'; }
     await wqaEnterReview(parsed.common, parsed.rows, text, parsed.skipped);
     return;
   }

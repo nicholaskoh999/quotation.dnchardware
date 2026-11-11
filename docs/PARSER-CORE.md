@@ -50,9 +50,17 @@ file changes; `tests/core/parser-core.test.js` fails if it does not match.
 
 The end of the file is the only part that is new:
 
-- `QUO_PARSER_CORE_VERSION` (`1.0.0`) and `QUO_PARSER_CORE_CONTRACT` (`1`).
+- `QUO_PARSER_CORE_VERSION` (`1.1.0`) and `QUO_PARSER_CORE_CONTRACT` (`1`).
 - `quoParserCoreSetDiameterRules(rules)` — for a host that cannot assign `dsRulesCache` directly.
 - `module.exports = { … }`, guarded by `typeof module`, so the browser ignores it and Node can `require` the file.
+
+## Changes since the move
+
+- **1.1.0** — production fix 34ab583 (R3 FAST SOS, multi-line pasted L Bolt enquiry keeps every row) merged into this
+  branch. Its parser edits were applied here with the identical text: `WQA_TL_SUFFIX_RE` (new), `wqaDimLabelled`,
+  `wqaExtractFields`, `wqaParseText` (now also returns `omitted`), `wqaTextOmitted` (new) and the `covKind` field of
+  `wqa`. `wqaTextCoverage` (AI text fallback check) is not reached by the parser and stays in `index.php`; it calls
+  core functions. Contract unchanged (1).
 
 ## Deployment
 
