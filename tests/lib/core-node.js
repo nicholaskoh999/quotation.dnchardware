@@ -1,10 +1,11 @@
 /* ── The shared cores, loaded without a browser ────────────────────────────
-   quo-parser-core.js and quo-pricing-core.js are classic scripts that share
-   one global scope on the page. This loads them the same way — one after the
-   other into ONE context that holds nothing but the language — and returns
-   everything the two files export, plus the context itself.
+   quo-parser-core.js, quo-pricing-core.js and quo-quote-core.js are classic
+   scripts that share one global scope on the page. This loads them the same
+   way — one after the other, in page order, into ONE context that holds
+   nothing but the language — and returns everything the files export, plus
+   the context itself.
 
-   No document, no window, no network: if either file reaches for one, the
+   No document, no window, no network: if any file reaches for one, the
    load (or the first call) throws, which is the point.                      */
 'use strict';
 const fs   = require('fs');
@@ -12,7 +13,7 @@ const path = require('path');
 const vm   = require('vm');
 
 const ROOT  = path.resolve(__dirname, '..', '..');
-const FILES = ['quo-parser-core.js', 'quo-pricing-core.js'];
+const FILES = ['quo-parser-core.js', 'quo-pricing-core.js', 'quo-quote-core.js'];
 
 function loadCores(root) {
   const base = root || ROOT;

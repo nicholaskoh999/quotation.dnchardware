@@ -7232,6 +7232,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
 <script src="quo-parser-core.js?v=3d85a9f98bca"></script>
 <script src="quo-pricing-core.js?v=c73870824521"></script>
+<script src="quo-quote-core.js?v=10692b21e36d"></script>
 <script>
 /* ══════════════════════════════════════════════════════
    PRODUCTION — MySQL production data through api.php.
@@ -8778,15 +8779,6 @@ let quoteItems=[];
    One shared editor serves every product type, so the twelve entry forms and
    their captureItemFormData lists are untouched by this feature. */
 let dcCustomDims=[];
-/* Trimmed; a row the user opened and never filled in is not an entry. This is
-   also the deep copy — every item leaves here with its own array and its own
-   objects, so editing item 2 can never reach item 1. */
-function dcNormalizeCustomDims(list){
-  if(!Array.isArray(list)) return [];
-  return list.map(e=>({label:String((e&&e.label)!=null?e.label:'').trim(),
-                       value:String((e&&e.value)!=null?e.value:'').trim()}))
-             .filter(e=>e.label!=='' || e.value!=='');
-}
 function dcReadCustomDims(){ return dcNormalizeCustomDims(dcCustomDims); }
 function dcSetCustomDims(list){
   dcCustomDims=dcNormalizeCustomDims(list);
@@ -8907,13 +8899,8 @@ function dcRenderCustomDims(){
     </div>`).join('');
 }
 dcOnRelabel(dcRenderCustomDimsHost);
-/* Read-only views: "H2 530 · A 120", in the order staff entered them. */
-function dcCustomDimsText(list){
-  return dcNormalizeCustomDims(list).map(e=>[e.label,e.value].filter(Boolean).join(' ')).join(' · ');
-}
 function dcCustomDimsLine(item){
-  const t=dcCustomDimsText(item&&item.customDimensions);
-  return t ? dcT('cdimPrefix')+' '+t : '';
+  return quoCustomDimsLine(item,dcT('cdimPrefix'));
 }
 /* The print sheet is an English customer document — its headings are not
    translated either, so its label is not read from the UI language. */
@@ -9276,7 +9263,6 @@ const RATES_4140={
 };
 const ZP_SURCHARGE=1.50, HDG_SURCHARGE=3.20, HDG_THREAD_BRUSHING=1.00;
 
-const ITEM_TYPES={sagrod:'SAG ROD',stud:'STUD',anchorbolt:'ANCHOR BOLT',ubolt:'U BOLT',squbolt:'SQ U BOLT',lbolt:'L BOLT',lbolt45:'L BOLT 45DEG',jbolt:'J BOLT',plate:'PLATE',was:'WELDING ANCHOR SET',others:'OTHERS / SPECIAL BOLT'};
 
 /* ── helpers ── */
 function el(id){return document.getElementById(id)}
@@ -9284,16 +9270,8 @@ function el(id){return document.getElementById(id)}
 function fv(type,field){const e=el(type+'-'+field);return e?e.value:''}
 function fn(type,field){return parseFloat(fv(type,field))||0}
 function fmt(v){return 'RM '+v.toFixed(2)}
-function cleanNum(v){const n=parseFloat(v);if(isNaN(n))return v;return Number.isInteger(n)?String(n):String(parseFloat(n.toFixed(2)))}
-function withMm(v){return String(v).trim()?String(v).trim()+'mm':''}
 function escHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function safeClassToken(s){return String(s??'').replace(/[^a-zA-Z0-9_-]/g,'')}
-function isMaterialOptionText(text){
-  const value=String(text||'').trim().toUpperCase();
-  if(!value) return false;
-  const labels=['MS','S45C','S45C + HARDEN = G8.8','4140 QT','4140 QT + HARDEN = G10.9','4140','4340 QT','SS304','SS316','Y BAR'];
-  return labels.some(label=>label.toUpperCase()===value);
-}
 function displayItemDesc(item){
   const desc=String(item&&item.desc?item.desc:'');
   if(desc.includes('4140_HARDEN_G10_9')) return desc.replace(/4140_HARDEN_G10_9/g,'4140 QT + HARDEN = G10.9');
@@ -9418,17 +9396,6 @@ function getPriceModeSaveData(type){
     autoFinalUnitPrice:state.autoFinalUnitPrice??0,autoRoundStage:DC_AUTO_ROUND_STAGE
   };
 }
-/* ── An item's price (owner rule, Pricing Control Reset + owner smoke) ────
-   A new item starts at Cost 0 / Add 0 / Markup 0 — no price. What a person
-   types (Cost Rate, Additional Cost, Markup, Price Mode, Manual Price) IS the
-   pricing: once there is a valid setup, the calculated RM/pc is the item's
-   price immediately, with no separate confirmation. Recommendations are
-   never written into the boxes by themselves.
-
-   A SAVED item opened for edit keeps its saved price while nothing
-   price-affecting moves (dcPaKeepSaved) — the full fingerprint of the form
-   and the price itself (dcFormPaSig). Qty is never part of it.            */
-const DC_PRICE_SOURCES=['built_in','default_rule','manual_recipe','history_recipe','history_manual','manual','legacy_saved'];
 let dcFormPa={};        // type -> {v,src,ref,sig,saved,orig} for the entry form
 let dcPaGrant=null;     // Quick Add: the priced row being committed right now
 function dcFormPaSig(type){
@@ -9499,11 +9466,6 @@ function dcFormPaFromSaved(type,item){
   dcRenderFormPa(type);
 }
 function dcPaDropSaved(){ Object.keys(dcFormPa).forEach(t=>{ if(dcFormPa[t]&&dcFormPa[t].saved) delete dcFormPa[t]; }); }
-function dcPaMeta(src,ref,v){
-  const m={state:'accepted',value:roundMoney2(v),source:DC_PRICE_SOURCES.indexOf(src)>=0?src:'built_in',at:new Date().toISOString()};
-  if(ref) m.historyRef=String(ref);
-  return m;
-}
 /* The gate every commit passes: Add Item, Update Item, and each Quick Add row.
    Returns null (and says why) when no pricing has been used, or
    {meta, keep} — keep is the saved item whose price stands unchanged. The
@@ -9524,26 +9486,6 @@ function dcPaCommit(type,final){
     return same(st.v) ? {meta:Object.assign({},meta,{value:final})} : {meta, keep:st.orig};
   }
   return {meta:dcPaMeta(st.src,st.ref,final)};
-}
-/* Update Item with nothing price-affecting changed, on an item whose saved
-   price today's calculation would not reproduce (an older rate, an older
-   rounding rule, no recipe at all): the saved price and the recipe it was
-   saved with stand. Only what is not price — qty, notes — moves. */
-const DC_PA_KEEP_FD=['costRate','addCost','markup','priceMode','manualUnitPrice','rawUnitPrice','roundedUnitPrice',
-  'anchorCostRate','basePlateCostRate','trianglePlateCostRate'];
-function dcPaKeepSaved(item,orig){
-  const qty=parseInt(item.qty,10)||0, v=dcItemFinalUnit(orig);
-  if(item.pricingModel) Object.assign(item,dcLineMoney(v,item.accessories,qty));
-  else { item.finalUnitPrice=v; item.totalAmount=roundMoney2(v*qty); }
-  /* the rounding rule the saved price was made under travels with it */
-  ['priceMode','manualUnitPrice','rawUnitPrice','roundedUnitPrice','markup','autoFinalUnitPrice','autoRoundStage'].forEach(k=>{
-    if(Object.prototype.hasOwnProperty.call(orig,k)) item[k]=orig[k]; else delete item[k];
-  });
-  const ofd=orig.formData||{};
-  if(item.formData) DC_PA_KEEP_FD.forEach(k=>{
-    if(Object.prototype.hasOwnProperty.call(ofd,k)) item.formData[k]=ofd[k]; else delete item.formData[k];
-  });
-  return item;
 }
 /* Under the entry form's Final Unit Price: nothing to confirm. The one thing
    worth saying is a saved item whose saved price stands while today's
@@ -9679,55 +9621,8 @@ function dcThreadRefHint(size){ return dcT(dcThreadRefHintKey(size)); }
    shorter waits for the box to be committed (blur, Enter, or moving away) and
    is normalised then. */
 const WQA_SIZE_SETTLED_RE=/^\s*(?:m\s*\d+(?:\.\d+)?|\d{2,}(?:\.\d+)?)\s*(?:mm)?\s*$/i;
-function getNominalDiameter(size){
-  if(DIA_FULLSIZE[size]!==undefined) return DIA_FULLSIZE[size];
-  const m=(size||'').match(/^M(\d+(?:\.\d+)?)$/i);
-  if(m) return parseFloat(m[1]);
-  return null;
-}
-/* What the CUSTOMER reads. An inch size is written with its mark — 1/2", 7/8"
-   — for the same reason a length is written 1000mm: without the unit the
-   number is ambiguous, and 1/2 next to M20 on the same quotation invites the
-   reader to supply the wrong one. The canonical size the app looks diameters,
-   Diameter Settings rules and previous prices up by is untouched: this is the
-   unit on the label, exactly as withMm() is the unit on a length. */
-function sizeDisplay(size){
-  const s=String(size||'').trim();
-  return /^\d+(?:-\d+)?\/\d+$/.test(s) ? s+'"' : s;
-}
-/* The size box shows what the customer will read: 1-1/8", 3/8", 1" — the inch
-   mark on, never twice. What it SAYS is still the canonical size: every reader
-   of the box goes through normalizeSizeValue, which takes the mark off a
-   fraction again, so diameters, Diameter Settings, default prices and previous
-   prices are looked up exactly as before. Anything that is not an inch size
-   (M12, free text) is left as it is. */
-function dcSizeBoxText(value){
-  const n=normalizeSizeValue(value);
-  return (/^\d+(?:-\d+)?\/\d+$/.test(n) || /^\d+"$/.test(n)) ? sizeDisplay(n) : value;
-}
-/* A saved size LABEL ("3/8 x ID 274 x IH 320 x TL 75mm", "Ø28.6-1-1/8 x L 1000")
-   written before inch sizes carried their mark: the size token at its start
-   gets the mark at render time, so an old quotation reads like a new one. Only
-   that token, only a fraction, never a second mark; the stored item is untouched. */
-function dcSizeLabelDisplay(label){
-  return String(label==null?'':label).replace(/^(\s*(?:Ø[\d.]+-)?)(\d+-\d+\/\d+|\d+\/\d+)(?=\s+x\s|\s*$|\n)/,'$1$2"');
-}
-function formatSizeLabel(size,diameter,sizeType){
-  const shown=sizeDisplay(size);
-  const d=parseFloat(diameter);
-  if(!size||!d) return shown;
-  if((sizeType||'FULLSIZE')==='UNDERSIZE') return shown;
-  const bar=cleanNum(Math.round(d*10)/10);
-  const nominal=getNominalDiameter(size);
-  if(nominal===null) return 'Ø'+bar+'-'+shown;
-  return Math.abs(d-nominal)>0.2 ? 'Ø'+bar+'-'+shown : shown;
-}
 function buildDesc(type){
-  const mat=materialLabel(fv(type,'material'));
-  if(type==='others') return [mat,fv(type,'sizeType'),fv(type,'productName').trim()].filter(Boolean).join(' ');
-  if(type==='stud') return mat+' '+ITEM_TYPES[type];
-  const sizeType=fv(type,'sizeType');
-  return mat+' '+sizeType+' '+ITEM_TYPES[type];
+  return quoItemDesc(type,fv(type,'material'),fv(type,'sizeType'),fv(type,'productName'));
 }
 /* An UNANSWERED size type is not a fullsize one. dcBuiltInDiameter reads
    anything that is not the literal string UNDERSIZE as fullsize, which is the
@@ -10260,64 +10155,6 @@ function getAccessories(type){
     custom:{enabled:customEnabled,text:customText,unitPrice:customPrice}
   };
 }
-/* ── The accessories are part of what the customer pays ─────────────────────
-   ONE price reaches the customer, and everything bolted to the item is inside
-   it. A rod at RM5.76 with two nuts at RM2.00 is quoted at RM7.76 — not at
-   RM5.76 with a second charge beside it — because RM7.76 is the number the
-   customer says back to us, the number on the printed row, and the number the
-   line total is made of.
-
-   The breakdown is NOT thrown away, it stops being a customer-facing charge.
-   Every item saved from here carries its bolt component and its accessory
-   component separately, so Previous Price can still compare a bolt against a
-   bolt and staff can still see what the RM2.00 was for.
-
-   THREE VINTAGES read back, and each is read as it was written:
-
-     accessory-inclusive   finalUnitPrice IS the customer's price; the bolt
-                           component is beside it.
-     bolt-separate         finalUnitPrice was the BOLT and lineUnitPrice was
-                           the customer's line. Migrated on load, so the
-                           customer total does not move and re-saving cannot
-                           charge the accessories a second time.
-     legacy (no model)     one figure with the charge already inside it — which
-                           is what this rule now asks for, so it is already
-                           right. No separation is invented for it. */
-const DC_PRICING_MODEL='accessory-inclusive';
-const DC_PRICING_MODEL_SEPARATE='bolt-separate';
-function dcItemIsInclusive(item){ return !!item && item.pricingModel===DC_PRICING_MODEL; }
-function dcItemIsSeparated(item){ return !!item && item.pricingModel===DC_PRICING_MODEL_SEPARATE; }
-/* The accessory total carried inside the parent item's price, per piece. Zero
-   for a legacy item — not because it had none, but because what it had cannot
-   be told apart from the figure it was folded into. */
-function dcItemAccUnit(item){
-  return (dcItemIsInclusive(item)||dcItemIsSeparated(item)) ? (Number(item.accessoryUnitPrice)||0) : 0;
-}
-/* What the customer is charged for one piece, whatever vintage the item is. */
-function dcItemFinalUnit(item){
-  if(!item) return 0;
-  if(dcItemIsSeparated(item)){
-    /* Its finalUnitPrice was the bolt; its LINE was the customer's price. */
-    const line=Number(item.lineUnitPrice);
-    return isFinite(line)&&line>0 ? roundMoney2(line)
-         : roundMoney2((Number(item.finalUnitPrice)||0)+(Number(item.accessoryUnitPrice)||0));
-  }
-  return roundMoney2(Number(item.finalUnitPrice)||0);
-}
-/* The internal bolt/base component — never shown as the customer's unit price,
-   and the figure Previous Price compares and reuses. */
-function dcItemBoltUnit(item){
-  if(!item) return 0;
-  if(dcItemIsSeparated(item)) return roundMoney2(Number(item.finalUnitPrice)||0);
-  if(dcItemIsInclusive(item)){
-    const bolt=Number(item.boltUnitPrice);
-    return isFinite(bolt) ? roundMoney2(bolt)
-         : roundMoney2((Number(item.finalUnitPrice)||0)-(Number(item.accessoryUnitPrice)||0));
-  }
-  /* Legacy: the one figure it has. Its accessory share is not separable, which
-     is exactly what dcItemAccUnit already reports by returning zero. */
-  return roundMoney2(Number(item.finalUnitPrice)||0);
-}
 /* How many manual prices the last load had to fold up. Reset by whoever is
    about to migrate a list, read by them once afterwards. */
 let dcFoldedManualCount=0;
@@ -10401,58 +10238,6 @@ function dcMigrateItemPricing(item){
     dcFoldedManualCount++;
   }
   return out;
-}
-/* One place where a line's money is settled, so the entry form, Quick Add and
-   the plate path cannot come to disagree about what a line costs. It is handed
-   the CUSTOMER-FACING unit price — resolvePriceMode has already applied the
-   price mode's rule, including the manual one — and separates the bolt back
-   out of it for the record. */
-function dcLineMoney(finalUnitPrice,acc,qty){
-  const accUnit=roundMoney2(accAddon(acc));
-  const final=roundMoney2(Number(finalUnitPrice)||0);
-  const bolt=roundMoney2(final-accUnit);
-  const n=parseInt(qty,10)||0;
-  return {boltUnitPrice:bolt, accessoryUnitPrice:accUnit,
-          finalUnitPrice:final,
-          /* Kept, and kept equal: older code and older records read the line
-             price from here, and under this rule the two are one number. */
-          lineUnitPrice:final,
-          accessoryTotal:roundMoney2(accUnit*n),
-          totalAmount:roundMoney2(final*n),
-          pricingModel:DC_PRICING_MODEL};
-}
-function accCWLines(acc){
-  if(!acc) return [];
-  const lines=[], parts=[];
-  if(acc.nut&&acc.nut.enabled) parts.push(`${acc.nut.qty||2}nut`);
-  if(acc.fw&&acc.fw.enabled) parts.push(`${acc.fw.qty||1}fw`);
-  if(parts.length) lines.push('cw '+parts.join(' & '));
-  const customText=(acc.custom&&acc.custom.text?String(acc.custom.text).trim():'');
-  if(acc.custom&&acc.custom.enabled&&customText&&!isMaterialOptionText(customText)) lines.push('cw '+customText);
-  return lines;
-}
-function accCWLabel(acc){
-  return accCWLines(acc).join('\n');
-}
-function wasCWLabel(acc){
-  if(!acc) return '';
-  const parts=[];
-  if(acc.nut&&acc.nut.enabled) parts.push(`${acc.nut.qty||2}nut`);
-  if(acc.fw&&acc.fw.enabled) parts.push(`${acc.fw.qty||1}fw`);
-  let line=parts.length?'cw '+parts.join(' & '):'';
-  const custom=(acc.custom&&acc.custom.enabled&&acc.custom.text?String(acc.custom.text).trim():'');
-  if(custom&&!isMaterialOptionText(custom)) line+=(line?' + ':'cw ')+custom;
-  return line;
-}
-function wasDisplayData(item){
-  const raw=String(item&&item.size||'');
-  const rawLines=raw.split('\n');
-  const abLine=String(item?.wasData?.abLine||item?.dimensionPreview||rawLines[0]||'').trim();
-  let compLines=String(item?.wasData?.compLines||rawLines.slice(1).join('\n')||'');
-  const fd=item?.formData||{};
-  const tpQty=fd.trianglePlateQtyPerSet??fd.tpQty;
-  if(Number(tpQty)===0) compLines=compLines.split('\n').filter(line=>!line.includes('Triangle Plate:')).join('\n');
-  return {abLine,compLines,size:[abLine,compLines].filter(Boolean).join('\n')};
 }
 function setAccPanelOpen(type,open){
   const panel=el(type+'-accPanel'), btn=el(type+'-accToggle');
@@ -10704,37 +10489,9 @@ function loadAccIntoForm(type,acc){
 
 function addSagRod(){
   const wasEditing=editingItemIndex!==null;
-  const size=normalizeSizeValue(fv('sagrod','size'));
-  const diameter=fn('sagrod','diameter'), length=fn('sagrod','length');
-  const threadLen=fv('sagrod','threadLen').trim();
-  if(!size){showToast(dcT('tEnterSize'));return}
-  if(!diameter){showToast(dcT('tEnterDiameter'));return}
-  if(!length){showToast(dcT('tEnterLength'));return}
-  if(!validateDims({'Diameter':diameter,'Length':length})) return;
-  /* A rate and a surcharge are not interchangeable. This guard read
-     `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
-     filled went straight through: base = weight x 0 + addCost, and a 0.27 kg
-     rod was quoted at RM 2.88 with no material cost in it at all — the
-     Additional Cost standing on its own, which is exactly the shape this
-     quotation must never produce. Every bent-product add path already
-     required the rate on its own; these three now do too. */
-  const costRateVal=fv('sagrod','costRate').trim();
-  if(dcRateRequired('sagrod') && !costRateVal){showToast(dcT('tRateBlankDot'));return}
-  if(!validatePriceMode('sagrod')) return;
-  const costRate=validateRateEntry('sagrod','costRate','Cost Rate'), addCost=validateRateEntry('sagrod','addCost','Additional Cost');
-  if(costRate===null||addCost===null) return;
-  const markup=fn('sagrod','markup'), qty=validateQtyEntry('sagrod');
-  if(qty===null) return;
-  const weight=dcBarWeight(diameter,length);
-  const base=dcBasePrice(weight,costRate,addCost);
-  const raw=dcRawPrice(base,markup);
-  const rounded=round05(raw);
-  const sizeLabel=formatSizeLabel(size,diameter,fv('sagrod','sizeType'))+' x L '+cleanNum(length)+(threadLen?' x TL '+withMm(threadLen):'');
-  const acc=getAccessories('sagrod');
-  const final=resolvePriceMode('sagrod',raw,rounded,accAddon(acc));
   const modeBefore=(el('sagrod-priceMode')||{}).value;
-  if(!pushItem('sagrod',sizeLabel,fv('sagrod','material'),qty,final,final*qty,markup,size,fv('sagrod','sizeType'),acc,weight)) return;
-  if(!wasEditing) dcRepeatEntryCarry('sagrod',acc,modeBefore);
+  const item=dcAddFromForm('sagrod'); if(!item) return;
+  if(!wasEditing) dcRepeatEntryCarry('sagrod',item.accessories,modeBefore);
   el('sagrod-length').value=''; calcSagRod();
   flashPreview();
   if(!wasEditing) showToast(dcT('tSagRodAdded'));
@@ -10856,36 +10613,7 @@ function calcStud(){
 }
 function addStud(){
   const wasEditing=editingItemIndex!==null;
-  const size=normalizeSizeValue(fv('stud','size'));
-  const diameter=fn('stud','diameter'), length=fn('stud','l');
-  if(!size){showToast(dcT('tEnterSize'));return}
-  if(!diameter){showToast(dcT('tEnterDiameter'));return}
-  if(!length){showToast(dcT('tEnterL'));return}
-  if(!validateDims({'Diameter':diameter,'L':length})) return;
-  /* A rate and a surcharge are not interchangeable. This guard read
-     `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
-     filled went straight through: base = weight x 0 + addCost, and a 0.27 kg
-     rod was quoted at RM 2.88 with no material cost in it at all — the
-     Additional Cost standing on its own, which is exactly the shape this
-     quotation must never produce. Every bent-product add path already
-     required the rate on its own; these three now do too. */
-  const costRateVal=fv('stud','costRate').trim();
-  if(dcRateRequired('stud') && !costRateVal){showToast(dcT('tRateBlankDot'));return}
-  if(!validatePriceMode('stud')) return;
-  const costRate=validateRateEntry('stud','costRate','Cost Rate'), addCost=validateRateEntry('stud','addCost','Additional Cost');
-  if(costRate===null||addCost===null) return;
-  const markup=fn('stud','markup'), qty=validateQtyEntry('stud');
-  if(qty===null) return;
-  const weight=dcBarWeight(diameter,length);
-  const base=dcBasePrice(weight,costRate,addCost);
-  const raw=dcRawPrice(base,markup);
-  /* Every other product's label goes through the size formatter; this one
-     concatenated the raw size, so a half-inch stud printed as "1/2 x L 300mm"
-     with no unit on the size — next to "M20 x L 300mm" on the same sheet. */
-  const sizeLabel=sizeDisplay(size)+' x L '+cleanNum(length)+'mm';
-  const acc=getAccessories('stud');
-  const final=resolvePriceMode('stud',raw,round05(raw),accAddon(acc));
-  if(!pushItem('stud',sizeLabel,fv('stud','material'),qty,final,final*qty,markup,size,'',acc,weight)) return;
+  if(!dcAddFromForm('stud')) return;
   el('stud-l').value=''; calcStud();
   flashPreview();
   if(!wasEditing) showToast(dcT('tStudAdded'));
@@ -10903,34 +10631,7 @@ function calcAnchorBolt(){
 }
 function addAnchorBolt(){
   const wasEditing=editingItemIndex!==null;
-  const size=normalizeSizeValue(fv('anchorbolt','size'));
-  const diameter=fn('anchorbolt','diameter'), length=fn('anchorbolt','l');
-  const threadLen=fv('anchorbolt','threadLen').trim();
-  if(!size){showToast(dcT('tEnterSize'));return}
-  if(!diameter){showToast(dcT('tEnterDiameter'));return}
-  if(!length){showToast(dcT('tEnterL'));return}
-  if(!validateDims({'Diameter':diameter,'L':length})) return;
-  /* A rate and a surcharge are not interchangeable. This guard read
-     `!costRate && !addCost`, so a blank Cost Rate with an Additional Cost
-     filled went straight through: base = weight x 0 + addCost, and a 0.27 kg
-     rod was quoted at RM 2.88 with no material cost in it at all — the
-     Additional Cost standing on its own, which is exactly the shape this
-     quotation must never produce. Every bent-product add path already
-     required the rate on its own; these three now do too. */
-  const costRateVal=fv('anchorbolt','costRate').trim();
-  if(dcRateRequired('anchorbolt') && !costRateVal){showToast(dcT('tRateBlankDot'));return}
-  if(!validatePriceMode('anchorbolt')) return;
-  const costRate=validateRateEntry('anchorbolt','costRate','Cost Rate'), addCost=validateRateEntry('anchorbolt','addCost','Additional Cost');
-  if(costRate===null||addCost===null) return;
-  const markup=fn('anchorbolt','markup'), qty=validateQtyEntry('anchorbolt');
-  if(qty===null) return;
-  const weight=dcBarWeight(diameter,length);
-  const base=dcBasePrice(weight,costRate,addCost);
-  const raw=dcRawPrice(base,markup);
-  const sizeLabel=formatSizeLabel(size,diameter,fv('anchorbolt','sizeType'))+' x L '+cleanNum(length)+(threadLen?' x TL '+withMm(threadLen):'');
-  const acc=getAccessories('anchorbolt');
-  const final=resolvePriceMode('anchorbolt',raw,round05(raw),accAddon(acc));
-  if(!pushItem('anchorbolt',sizeLabel,fv('anchorbolt','material'),qty,final,final*qty,markup,size,fv('anchorbolt','sizeType'),acc,weight)) return;
+  if(!dcAddFromForm('anchorbolt')) return;
   el('anchorbolt-l').value=''; calcAnchorBolt();
   flashPreview();
   if(!wasEditing) showToast(dcT('tAnchorAdded'));
@@ -11077,34 +10778,7 @@ function calcUBolt(type,skipAuto){
   if(type==='ubolt') updateUBoltDebug({diameter:d,id,ih,threadLen:fv(type,'threadLen').trim(),totalLength:tl,weight,costRate,addCost,markup,base,beforeRound,afterRound:rounded});
 }
 function addUBolt(){
-  const type='ubolt';
-  const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
-  const id=fv(type,'id'), ih=fv(type,'ih'), tl=fv(type,'threadLen');
-  if(!size){showToast(dcT('tEnterSize'));return}
-  if(!d){showToast(dcT('tEnterDiameter'));return}
-  const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if((id&&parseFloat(id)<0)||(ih&&parseFloat(ih)<0)){showToast(dcT('tIdIhNeg'));return}
-  /* Incomplete geometry is named, not priced: without ID and IH the formula
-     has nothing to give, and only a Total Length a person typed (or a saved
-     item's own) stands in for it. */
-  const ubMiss=[!(parseFloat(id)>0)?'ID':'',!(parseFloat(ih)>0)?'IH':''].filter(Boolean);
-  if(ubMiss.length && (!totalLen || tlField.dataset.src==='auto')){showToast(dcT('tUbNeedIdIh').replace('{f}',ubMiss.join(' / ')));return}
-  if(!totalLen){showToast(dcT('tLen0IdIh'));return}
-  if(!validateDims({'Diameter':d,'Total Length':totalLen})) return;
-  const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
-  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
-  if(!validatePriceMode(type)) return;
-  const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
-  if(costRate===null||addCost===null) return;
-  const markup=fn(type,'markup'), qty=validateQtyEntry(type);
-  if(qty===null) return;
-  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
-  const acc=getAccessories(type);
-  const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
-  const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
-  const dimStr=sizeLabel+(id?' x ID '+cleanNum(id):'')+(ih?' x IH '+cleanNum(ih):'')+(tl?' x TL '+withMm(tl):'');
-  if(!pushItem(type,dimStr,fv(type,'material'),qty,final,total,markup,size,fv(type,'sizeType'),acc,weight)) return;
+  if(!dcAddFromForm('ubolt')) return;
   flashPreview();
 }
 
@@ -11124,29 +10798,7 @@ function calcSQUBolt(type,skipAuto){
   updatePreview(weight,base,final);
 }
 function addSQUBolt(){
-  const type='squbolt';
-  const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
-  const oh=fv(type,'oh'), w=fv(type,'w'), tl=fv(type,'threadLen');
-  if(!size){showToast(dcT('tEnterSize'));return}
-  if(!d){showToast(dcT('tEnterDiameter'));return}
-  if(!oh||!w){showToast(dcT('tEnterOHW'));return}
-  const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if(!totalLen){showToast(dcT('tLen0OhW'));return}
-  if(!validateDims({'Diameter':d,'OH':oh,'W':w,'Total Length':totalLen})) return;
-  const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
-  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
-  if(!validatePriceMode(type)) return;
-  const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
-  if(costRate===null||addCost===null) return;
-  const markup=fn(type,'markup'), qty=validateQtyEntry(type);
-  if(qty===null) return;
-  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
-  const acc=getAccessories(type);
-  const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
-  const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
-  const dimStr=sizeLabel+' x OH '+cleanNum(oh)+' x W '+cleanNum(w)+(tl?' x TL '+withMm(tl):'');
-  if(!pushItem(type,dimStr,fv(type,'material'),qty,final,total,markup,size,fv(type,'sizeType'),acc,weight)) return;
+  if(!dcAddFromForm('squbolt')) return;
   flashPreview();
 }
 
@@ -11166,28 +10818,7 @@ function calcLBolt(type,skipAuto){
   updatePreview(weight,base,final);
 }
 function addLBolt(type='lbolt'){
-  const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
-  const l=fv(type,'l'), w=fv(type,'w'), tl=fv(type,'threadLen');
-  if(!size){showToast(dcT('tEnterSize'));return}
-  if(!l||!w){showToast(dcT('tEnterLW'));return}
-  if(!d){showToast(dcT('tEnterDiameter'));return}
-  const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
-  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
-  if(!validatePriceMode(type)) return;
-  const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if(!totalLen){showToast(dcT('tLen0LW'));return}
-  if(!validateDims({'Diameter':d,'L':l,'W':w,'Total Length':totalLen})) return;
-  const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
-  if(costRate===null||addCost===null) return;
-  const markup=fn(type,'markup'), qty=validateQtyEntry(type);
-  if(qty===null) return;
-  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
-  const acc=getAccessories(type);
-  const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
-  const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
-  const dimStr=sizeLabel+' x L '+cleanNum(l)+' x W '+cleanNum(w)+(tl?' x TL '+withMm(tl):'')+(type==='lbolt45'?' 45deg':'');
-  if(!pushItem(type,dimStr,fv(type,'material'),qty,final,total,markup,size,fv(type,'sizeType'),acc,weight)) return;
+  if(!dcAddFromForm(type)) return;
   flashPreview();
 }
 
@@ -11210,29 +10841,7 @@ function calcJBolt(type,skipAuto){
   updatePreview(weight,base,final);
 }
 function addJBolt(){
-  const type='jbolt';
-  const size=normalizeSizeValue(fv(type,'size')), d=fn(type,'diameter');
-  const h=fv(type,'h'), id=fv(type,'id'), s=fv(type,'s'), tl=fv(type,'threadLen');
-  if(!size){showToast(dcT('tEnterSize'));return}
-  if(!d){showToast(dcT('tEnterDiameter'));return}
-  if(!h||!id||!s){showToast(dcT('tEnterHIDS'));return}
-  const costRateRaw=fv(type,'costRate').trim(), addCostRaw=fv(type,'addCost').trim();
-  if(dcRateRequired(type) && !costRateRaw){showToast(dcT('tRateBlank'));return}
-  if(dcRateRequired(type) && !addCostRaw){showToast(dcT('tAddCostBlank'));return}
-  if(!validatePriceMode(type)) return;
-  const tlField=el(type+'-length'), totalLen=Math.ceil(parseFloat(tlField.value)||0);
-  if(!totalLen){showToast(dcT('tLen0HIdS'));return}
-  if(!validateDims({'Diameter':d,'H':h,'ID':id,'S':s,'Total Length':totalLen})) return;
-  const costRate=validateRateEntry(type,'costRate','Cost Rate'), addCost=validateRateEntry(type,'addCost','Additional Cost');
-  if(costRate===null||addCost===null) return;
-  const markup=fn(type,'markup'), qty=validateQtyEntry(type);
-  if(qty===null) return;
-  const weight=dcBarWeight(d,totalLen), base=dcBasePrice(weight,costRate,addCost), raw=dcRawPrice(base,markup), rounded=roundCustom10(raw);
-  const acc=getAccessories(type);
-  const final=resolvePriceMode(type,raw,rounded,accAddon(acc)), total=final*qty;
-  const sizeLabel=formatSizeLabel(size,d,fv(type,'sizeType'));
-  const dimStr=sizeLabel+' x H '+cleanNum(h)+' x ID '+cleanNum(id)+' x S '+cleanNum(s)+(tl?' x TL '+withMm(tl):'');
-  if(!pushItem(type,dimStr,fv(type,'material'),qty,final,total,markup,size,fv(type,'sizeType'),acc,weight)) return;
+  if(!dcAddFromForm('jbolt')) return;
   flashPreview();
 }
 
@@ -11248,33 +10857,12 @@ function setFinishValue(type,finish){
   setFinishPills(type,value);
   updateFinishAvailability(type);
 }
-function dcCanonicalFormSize(v){ return String(v==null?'':v).replace(/^(\s*\d+(?:-\d+)?\/\d+)\s*"\s*$/,'$1'); }
+/* The rules are quoItemFormData in quo-quote-core.js; this reads the boxes the
+   form has, as text, and hands them over. */
 function captureItemFormData(type){
-  const fields=['material','sizeType','size','diameter','length','threadLen','l','id','ih','oh','w','h','s','productName','dimensionText','weightMode','unitWeight','costRate','addCost','markup','qty','priceMode','manualUnitPrice',
-    'plateType','t','hd','nh',
-    'tri-l','tri-h','tri-cl','tri-ch','tri-t'];
-  const data={itemType:type,productType:ITEM_TYPES[type]||type,finish:getFinish(type),accessories:getAccessories(type)};
-  fields.forEach(field=>{
-    const input=el(type+'-'+field);
-    if(input) data[field]=field==='size' ? dcCanonicalFormSize(input.value) : input.value;
-  });
-  const totalLengthEl=el(type+'-length');
-  if(totalLengthEl) data.totalLength=totalLengthEl.value;
-  data.dimensions={
-    diameter:fv(type,'diameter'),
-    length:fv(type,'length'),
-    l:fv(type,'l'),
-    id:fv(type,'id'),
-    ih:fv(type,'ih'),
-    oh:fv(type,'oh'),
-    w:fv(type,'w'),
-    h:fv(type,'h'),
-    s:fv(type,'s'),
-    threadLen:fv(type,'threadLen'),
-    totalLength:totalLengthEl ? totalLengthEl.value : ''
-  };
-  Object.assign(data,getPriceModeSaveData(type));
-  return data;
+  const fields={};
+  QUO_FORM_CAPTURE_FIELDS.forEach(field=>{ const input=el(type+'-'+field); if(input) fields[field]=input.value; });
+  return quoItemFormData(type,fields,getFinish(type),getAccessories(type),getPriceModeSaveData(type));
 }
 function parseSizeLabelForEdit(item){
   const raw=String(item.cleanSize||item.sizeCode||'').trim();
@@ -12095,6 +11683,58 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   const priceData=getPriceModeSaveData(type);
   const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),threadRef:dcReadItemThreadRef(),formData:captureItemFormData(type),...priceData,...money,priceAcceptance:pa.meta};
   if(pa.keep){ dcPaKeepSaved(item,pa.keep); finalUnitPrice=item.finalUnitPrice; }
+  return dcPlaceItem(type,item);
+}
+/* ── Add to Quotation, through quo-quote-core.js ─────────────────────────────
+   The eight bolt products (Sag Rod, Stud, Anchor Bolt, U Bolt, SQ U Bolt,
+   L Bolt, L Bolt 45DEG, J Bolt) build their item with quoBuildItem: the form
+   is read into plain data here, the rules live in the core, and a refusal
+   comes back as a code that is said here in the person's language. Others,
+   Plate and the Welding Anchor Set keep their own add paths. */
+const DC_BUILD_REFUSAL_KEYS={size_missing:'tEnterSize',diameter_missing:'tEnterDiameter',length_missing:'tEnterLength',l_missing:'tEnterL',
+  lw_missing:'tEnterLW',hids_missing:'tEnterHIDS',ohw_missing:'tEnterOHW',id_ih_negative:'tIdIhNeg',ubolt_geometry_incomplete:'tUbNeedIdIh',
+  dim_not_positive:'tMustBePositive',add_cost_blank:'tAddCostBlank',manual_price_invalid:'tEnterManualPrice',
+  rate_negative:'tNotNegative',rate_unreadable:'tNotANumber',qty_not_whole:'tQtyWhole',qty_min:'tQtyMin1',qty_too_large:'tQtyTooLarge',
+  locked:'tClickEditFirst',final_qty_invalid:'tQtyWholeMin',unit_negative:'tUnitNeg',line_negative:'tLineNeg'};
+const DC_TOTAL_LENGTH_KEYS={ubolt:'tLen0IdIh',squbolt:'tLen0OhW',lbolt:'tLen0LW',lbolt45:'tLen0LW',jbolt:'tLen0HIdS'};
+function dcBuildRefusalText(type,code,field){
+  let k=DC_BUILD_REFUSAL_KEYS[code];
+  if(code==='rate_blank') k=QUO_RATE_ONLY_PRODUCTS.includes(type)?'tRateBlankDot':'tRateBlank';
+  if(code==='total_length_missing') k=DC_TOTAL_LENGTH_KEYS[type];
+  if(!k) return '';
+  const text=dcT(k);
+  return ['dim_not_positive','rate_negative','rate_unreadable','ubolt_geometry_incomplete'].includes(code) ? text.replace('{f}',field) : text;
+}
+/* The entry form, as quoBuildItem's input. Everything that is page state
+   (the edit in progress, the lock, the price acceptance, the preview) is
+   handed in; the price resolution is published back exactly as
+   resolvePriceMode publishes it. */
+function dcReadItemForm(type){
+  const fields={};
+  QUO_ITEM_FORM_FIELDS[type].forEach(f=>{ const e=el(type+'-'+f); if(e) fields[f]=e.value; });
+  const len=el(type+'-length');
+  return {type,fields,finish:getFinish(type),accessories:getAccessories(type),
+    totalLengthSrc:len?len.dataset.src:undefined,
+    customDimensions:dcCustomDims,threadRef:dcReadItemThreadRef(),
+    rateRequired:dcRateRequired(type),locked:!!(loadedSavedQuote && quoteLocked),
+    stateWeight:(priceCalcState[type]||{}).weight,
+    acceptance:dcPaCommit,
+    hooks:{priceResolved:st=>{ priceCalcState[type]=st; updatePriceModePreview(type); }}};
+}
+/* Returns the item placed in the quotation, or null (the reason is on screen). */
+function dcAddFromForm(type){
+  const res=quoBuildItem(dcReadItemForm(type));
+  if(!res.ok){
+    /* dcPaCommit has already said why it refused. */
+    if(!res.reported) [res].concat(res.more||[]).forEach(p=>{ const m=dcBuildRefusalText(type,p.code,p.field); if(m) showToast(m); });
+    return null;
+  }
+  return dcPlaceItem(type,res.item) ? res.item : null;
+}
+/* A built item goes into the quotation: replacing the item being edited
+   (keeping its identity) or appended. */
+function dcPlaceItem(type,item){
+  const sizeStr=item.size, finalUnitPrice=item.finalUnitPrice;
   delete dcFormPa[type];
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
     const updatedIndex=editingItemIndex;
@@ -12463,27 +12103,6 @@ function syncQI(){
   scheduleDraftAutosave();
 }
 function fv0(id){const e=el(id);return e?e.value:''}
-/* ── Customer-facing reference ─────────────────────────────────────────────
-   The quotation's identity is its number, always: Q-2026-1349 is what is saved,
-   searched, opened and recorded in history. What a CUSTOMER reads also has to
-   say which version it is, because most quotations go out as a WhatsApp
-   message and the next message for the same quotation must be told apart from
-   the last. So every customer-facing output (print, PDF, Copy, WhatsApp) uses
-
-       quotationDisplayRef(number, revision)
-         revision 0  → Q-2026-1349          (never "-R0")
-         revision 2  → Q-2026-1349-R2
-
-   and nothing else builds the suffix. The revision is the server's: the
-   quotation_revisions history, read back through get_quotation_history. Its
-   first row is the create (the original, revision 0), so the customer-facing
-   revision is the latest revision_no minus one — or every recorded row, for a
-   quotation saved before history existed, whose first row is an update. */
-function quotationDisplayRef(number,revision){
-  const n=String(number==null?'':number).trim();
-  const r=parseInt(revision,10)||0;
-  return n && r>0 ? n+'-R'+r : n;
-}
 let dcQuoteRevision=0, dcQuoteRevisionFor=null;
 function dcCustomerRevision(revisions){
   const rows=(revisions||[]).filter(r=>r&&Number(r.revision_no)>0);
@@ -12516,10 +12135,7 @@ dcOnRelabel(dcRenderRefHint);
    for a revised quotation; anywhere else the placeholder simply carries the
    suffix. Revision 0 output is exactly what it was. */
 function dcFillRefPlaceholders(tpl,refno){
-  const rev=dcCurrentRevision(), ref=quotationDisplayRef(refno,rev);
-  let out=String(tpl);
-  if(rev>0) out=out.replace(/^([ \t]*)\{(quotationNo|no)\}[ \t]*$/gm,(m,ind)=>ind+dcT('docRevisedQuotation')+'\n'+ind+ref);
-  return out.replace(/{quotationNo}/g,ref).replace(/{no}/g,ref);
+  return quoFillRefPlaceholders(tpl,refno,dcCurrentRevision(),dcT('docRevisedQuotation'));
 }
 function getQI(){
   return {customer:fv0('qi-customer'),phone:fv0('qi-phone'),refno:fv0('qi-refno'),date:fv0('qi-date'),
@@ -13173,15 +12789,7 @@ function refreshWorkflow(){
 }
 
 /* ── WhatsApp / print ── */
-/* ── WhatsApp Message Template ── */
-const WA_DEFAULT_TPL=`Hi {customer},\nQuotation {quotationNo} is ready.\nDate: {date}\n\nItems:\n{items}\n\nTotal: RM{total}\n\nPrepared by: {preparedBy}\nThank you.`;
 
-function sanitizeWATemplate(template){
-  return String(template||'')
-    .replace(/^[^\r\n]*\{validUntil\}[^\r\n]*(?:\r?\n|$)/gmi,'')
-    .replace(/{validUntil}/gi,'')
-    .replace(/\n{3,}/g,'\n\n');
-}
 function getWATemplate(){ return sanitizeWATemplate(waTemplateCache || WA_DEFAULT_TPL); }
 async function loadWATemplate(){
   try{
@@ -13190,133 +12798,14 @@ async function loadWATemplate(){
     else waTemplateCache=WA_DEFAULT_TPL;
   }catch(e){ waTemplateCache=WA_DEFAULT_TPL; }
 }
-function fmtWAUnitPrice(value){
-  return 'RM'+(parseFloat(value)||0).toFixed(2);
-}
-function getWAGroupTitle(item){
-  const itemType=item.itemType||'';
-  if(itemType==='plate'){
-    const plateType=item.plateType||item.formData?.plateType||'ms_plate';
-    const desc=plateType==='triangle_plate'?'TRIANGLE PLATE':'MS PLATE';
-    const finish=(item.finish||'').trim();
-    return finish?`${desc} (${finish})`:desc;
-  }
-  if(itemType==='was'){
-    const finish=(item.finish||'').trim();
-    /* Title follows the selected Anchor Bolt material. WAS items saved before
-       this change stored material:'MS', so they still read "MS WELDING ANCHOR SET". */
-    const title=materialLabel(item.material||'MS')+' WELDING ANCHOR SET';
-    return finish?`${title} (${finish})`:title;
-  }
-  const material=materialLabel(item.material).trim();
-  const product=(item.productType||ITEM_TYPES[itemType]||'').trim();
-  const sizeType=itemType==='stud' ? '' : (item.sizeType||'').trim();
-  const finish=(item.finish||'').trim();
-  let title=[material,sizeType,product].filter(Boolean).join(' ');
-  if(!title) title=(item.desc||'Item').replace(/\s+\([^)]*\)\s*$/,'').trim();
-  return finish ? `${title} (${finish})` : title;
-}
+/* The text itself is quoWAItemsText in quo-quote-core.js. The custom-dimension
+   prefix is the UI language's, as it always was. */
 function buildWAItemsText(emptyText='-', mergeIdentical=true, includeUnitWeight=false){
-  if(!quoteItems.length) return emptyText;
-  const groups=[];
-  const groupIndex=new Map();
-  quoteItems.forEach((item,itemIndex)=>{
-    const title=getWAGroupTitle(item);
-    /* Copy mode (mergeIdentical=false) keeps the quotation's global order: a
-       new heading block starts whenever the title differs from the PREVIOUS
-       item's, so the same heading may legitimately repeat. */
-    const lastGroup=groups[groups.length-1];
-    const needNew=mergeIdentical ? !groupIndex.has(title) : !(lastGroup && lastGroup.title===title);
-    if(needNew){
-      groupIndex.set(title,groups.length);
-      groups.push({title,rows:[],seen:new Map(),cwLabels:[]});
-    }
-    const group=mergeIdentical ? groups[groupIndex.get(title)] : groups[groups.length-1];
-    // WAS: use abLine as size key; component lines appended after price line
-    const wasItem=item.itemType==='was';
-    const wasDisplay=wasItem?wasDisplayData(item):null;
-    const size=wasItem?wasDisplay.abLine:dcSizeLabelDisplay((item.size||'').trim());
-    /* ONE price reaches the customer, and the accessories are inside it. The
-       message quotes M12 x L 1000 x TL 100/100mm at RM7.76 and then says
-       "cw 2nut" — a description of what is included, with no second RM figure
-       to add up, query or be charged twice for. */
-    const price=fmtWAUnitPrice(wasItem?item.finalUnitPrice:dcItemFinalUnit(item));
-    const cw=wasItem?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
-    const wasComp=wasItem?wasDisplay.compLines:'';
-    /* Two items are the same LINE only when everything the line shows is the
-       same. The custom dimensions are part of what the line shows — the print
-       sheet gives them a line of their own — so leaving them out of the key
-       made an M20 x L1000 annotated "H2 530" a duplicate of the identical rod
-       annotated "H2 700", and the second one vanished from the customer's
-       message while the total still counted it. */
-    const custom=dcCustomDimsLine(item)||'';
-    const key=size+'|'+wasComp+'|'+price+'|'+cw+'|'+custom;
-    /* ── The number the customer quotes back at us ─────────────────────────
-       The message groups by material and finish, so its rows come out in a
-       different order from the screen and the print sheet, which number by
-       position in the quotation. A customer saying "increase item 2" and the
-       member of staff looking at item 2 were talking about different products.
-
-       So a row carries the quotation item's OWN number, not its position in
-       the message. Where two identical items merge into one line — same size,
-       same price, same accessories, same annotation, so there is nothing to
-       tell them apart on the page — the line carries BOTH numbers rather than
-       silently dropping one: "1, 4." is traceable, and a gap in the numbering
-       is not. */
-    if(mergeIdentical && group.seen.has(key)){
-      const existing=group.rows[group.seen.get(key)];
-      if(existing) existing.nos.push(itemIndex+1);
-      return;
-    }
-    group.seen.set(key,group.rows.length);
-    /* Copy + Weight only: the stored PER-PIECE weight (item.weight — the same value the
-       list card multiplies by qty for its item total). Never qty-multiplied; omitted when
-       there is no calculated weight rather than shown as a fake 0.000kg/pc. */
-    const uw=(includeUnitWeight&&!wasItem&&parseFloat(item.weight)>0)?(parseFloat(item.weight).toFixed(3)+'kg/pc'):'';
-    group.rows.push({size,price,cw,wasComp,wasItem,custom,uw,nos:[itemIndex+1]});
-    group.cwLabels.push(cw);
-  });
-  return groups.map(group=>{
-    const cwSet=new Set(group.cwLabels.filter(Boolean));
-    const allRowsHaveSameCw=group.rows.length>0 && group.rows.every(row=>row.cw) && cwSet.size===1;
-    const rows=group.rows.map(row=>{
-      const no=row.nos.join(', ');
-      if(row.wasItem){
-        const compPart=row.wasComp?'\n'+row.wasComp:'';
-        const cwPart=row.cw?'\n   '+row.cw:'';
-        return `${no}) ${row.size}${compPart}${cwPart}\n   - ${row.price}/set`;
-      }
-      const line=`${no}) ${row.size}${row.uw?' - '+row.uw:''} - ${row.price}`;
-      /* The print sheet carries the annotation on its own line; without it here
-         two rods that differ only by it read as the same rod written twice. */
-      const customPart=row.custom?'\n   '+row.custom:'';
-      const cwPart=(!allRowsHaveSameCw&&row.cw)?'\n'+row.cw:'';
-      return line+customPart+cwPart;
-    }).join('\n');
-    // Determine if all items in group share same c/w
-    const hasWAS=group.rows.some(row=>row.wasItem);
-    const cwSuffix=allRowsHaveSameCw&&!hasWAS ? '\n'+[...cwSet][0] : '';
-    if(false){
-      // All same — append once after group
-      cwSuffix='\n'+[...cwSet][0];
-    } else if(false){
-      // Different — append per row
-      return `${group.title}\n${rows}${cwSuffix}`;
-    }
-    return `${group.title}\n${rows}${cwSuffix}`;
-  }).join('\n\n');
+  return quoWAItemsText(quoteItems,{emptyText,mergeIdentical,includeUnitWeight,customPrefix:dcT('cdimPrefix')});
 }
 function buildQuoteText(includeUnitWeight=false){
-  const qi=getQI();
-  const grand=quoteItems.reduce((s,i)=>s+i.totalAmount,0);
-  const itemLines=buildWAItemsText('-', false, includeUnitWeight);   // copy: one line per original item, never merged
-  const tpl=getWATemplate();
-  return dcFillRefPlaceholders(tpl, qi.refno||'-')
-    .replace(/{customer}/g, qi.customer||'-')
-    .replace(/{date}/g, qi.date||'-')
-    .replace(/{total}/g, grand.toFixed(2))
-    .replace(/{items}/g, itemLines||'-')
-    .replace(/{preparedBy}/g, qi.prepby||'-');
+  return quoQuoteText({items:quoteItems,header:getQI(),template:waTemplateCache,revision:dcCurrentRevision(),
+    includeUnitWeight,labels:{customPrefix:dcT('cdimPrefix'),revisedQuotation:dcT('docRevisedQuotation')}});
 }
 async function copyTextToClipboard(text){
   if(!text) return false;
@@ -15565,16 +15054,6 @@ function wqaApplyFixToAll(){
     : dcT('wqaToastFixNoChange'))
     + (dropped?' · '+dcT('wqaToastPrevPriceOff').replace('{n}',dropped):''));
 }
-/* What the entry form is handed: the same object, with a Custom's own count
-   written into its wording ("4 Spring Washer") — the form has one Custom line
-   and one per-item charge, and nothing about how it is priced changes. */
-function wqaAccForForm(a){
-  if(!a) return a;
-  const c=wqaCloneAcc(a);
-  const q=parseFloat(c.custom&&c.custom.qty);
-  if(c.custom && c.custom.enabled && q>0 && !/^\s*\d/.test(c.custom.text||'')) c.custom.text=q+' '+String(c.custom.text||'').trim();
-  return c;
-}
 /* Main finish → accessory finish, for accessories still following it. A
    finish a person set (or the message named) is the accessory's own and is
    never touched by a change to the rod. */
@@ -15594,9 +15073,6 @@ function wqaAccSummary(a){
   if(a.custom.enabled) out.push((parseFloat(a.custom.qty)>0?a.custom.qty+' ':'')+(String(a.custom.text||'').trim()||'Custom')+money(a.custom.unitPrice));
   return out.join('  ·  ');
 }
-/* Deep clone — Apply to All is a ONE-TIME COPY. Every row must own its object
-   so editing one item can never reach into another. */
-function wqaCloneAcc(a){ return a?JSON.parse(JSON.stringify(a)):null; }
 
 /* One editor markup used by both the common panel and each row; `h` builds the
    handler expression so the two share markup without sharing state. */

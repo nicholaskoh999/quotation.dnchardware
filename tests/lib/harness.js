@@ -17,7 +17,7 @@ const path = require('path');
 const ROOT      = path.resolve(__dirname, '..', '..');
 const INDEX_PHP = path.join(ROOT, 'index.php');
 /* The shared cores: real files beside index.php, loaded by <script src>. */
-const CORE_FILES = ['quo-parser-core.js', 'quo-pricing-core.js'];
+const CORE_FILES = ['quo-parser-core.js', 'quo-pricing-core.js', 'quo-quote-core.js'];
 const ORIGIN    = 'http://quotation.test';
 
 let chromium;
