@@ -340,6 +340,7 @@ refusal is about. `meta.requestId` is `null` on every refusal before check 7.
 | `core_not_accepted` | 412 | A write action (`contacts.link`, `quotations.create`) while `core.accepted` is not `true`. `error.reason` = `core.reason`. Nothing was read or written. |
 | `create_disabled` | 403 | `quotations.create` while `QQ_SERVICE_CREATE_ENABLED` is not `'true'`. |
 | `settings_changed` | 409 | `quotations.create`: the `settingsVersion` sent is not the current `diameter_settings.get` version. Nothing written. |
+| `default_prices_changed` | 409 | `quotations.create`: the `defaultPricesVersion` sent is not the current `default_prices.get` version. Nothing written. |
 | `totals_mismatch` | 422 | `quotations.create`: `claimedTotal` ≠ the server's sum of the items' `totalAmount`. Nothing written. |
 | `key_reused_with_different_payload` | 409 | `quotations.create`: this user's key already created a different quotation. Nothing written. |
 | `in_progress` | 409 | `quotations.create`: the numbering lock was not free within 10 s. Retry with the **same** key. |
@@ -390,7 +391,7 @@ Per core (`parser`, `pricing`, `quote`), `status`:
 Loop #6 per-core (`parser`, `pricing`) and `pairs` listings are **no longer
 read**: a two-core listing cannot vouch for a third core.
 
-**Read-only actions** (`ping`, `diameter_settings.get`, `companies.search`,
+**Read-only actions** (`ping`, `diameter_settings.get`, `default_prices.get`, `companies.search`,
 `contacts.lookup`, `whatsapp_template.get`, `quotations.lookup_by_key`) report
 `core` and are **never blocked** by it.
 
@@ -440,7 +441,7 @@ backend learns `coreAccepted`.
 
 ```json
 { "service": "quo-service", "contract": 1, "scheme": "qqs1",
-  "actions": ["ping", "diameter_settings.get", "companies.search", "contacts.lookup", "contacts.link",
+  "actions": ["ping", "diameter_settings.get", "default_prices.get", "companies.search", "contacts.lookup", "contacts.link",
               "whatsapp_template.get", "quotations.create", "quotations.lookup_by_key"],
   "serverTime": "2026-11-10T03:00:00Z", "serverTimeUnix": 1794279600, "createEnabled": false }
 ```
@@ -474,6 +475,35 @@ Errors: only those of section 3.4.
   returns to its old value if the rows return to their old content. No
   `updated_at` column is used (none is verified to exist).
 - An empty table gives `rules: []`, `ruleCount: 0`.
+
+Errors: `quo_unavailable` (table missing or unreadable).
+
+### 4.2.1 `default_prices.get` — read only (QQ R1 Loop #7)
+
+`params`: `{}`
+
+```json
+{ "rules": [
+    { "id": 1, "type": "stud", "product_type": "stud", "material": "MS",
+      "sizeType": "", "size_type": "", "size": "M16", "finish": "HDG",
+      "costRate": 7.25, "cost_rate": 7.25, "addCost": 0, "additional_cost": 0,
+      "markup": 0, "active": "1", "is_active": 1 }
+  ],
+  "version": "dp1-4b1d0c2e9a7f3e51",
+  "ruleCount": 1,
+  "fetchedAt": "2026-11-11T03:00:00Z" }
+```
+
+- `rules` is exactly the `data` array of `api.php?action=get_default_prices`
+  (what QUO's page loads into `dpRulesCache`): same SQL (every row, active or
+  not, ordered by `product_type, material, size_type, size, finish`), same row
+  mapping, keys, types and order. A test runs both against the same table and
+  requires byte-identical JSON.
+- Hand `rules` unchanged to `quoRecommend({..., dpRules: rules})`
+  (quo-quote-core.js), as the page hands its `dpRulesCache`.
+- `version` = `dp1-` + first 16 hex of SHA-256 over the JSON encoding of
+  `rules`; a content hash, like `ds1-`. Send it as `defaultPricesVersion` with
+  `quotations.create`.
 
 Errors: `quo_unavailable` (table missing or unreadable).
 
@@ -644,7 +674,8 @@ missing).
 ### 4.8 `quotations.create` — create only (Loop #7; core-gated; switch)
 
 Order: core guard (412) → `QQ_SERVICE_CREATE_ENABLED` (403
-`create_disabled`) → parameters → Diameter Settings version → company →
+`create_disabled`) → parameters → Diameter Settings version → Default Price
+rules version (when sent) → company →
 contact → totals → the store's own validation → acting user's display name →
 `dc_store_create_quotation()` → read-back after commit.
 
@@ -657,6 +688,7 @@ contact → totals → the store's own validation → acting user's display name
   "items": [ { …an item exactly as quo-quote-core.js quoBuildItem() returns it… } ],
   "claimedTotal": 88.4,
   "settingsVersion": "ds1-9f2c4e6a8b0d1f3a",
+  "defaultPricesVersion": "dp1-4b1d0c2e9a7f3e51",
   "parse": { "omittedCount": 0, "acknowledged": false },
   "waContactId": 55, "quoteDate": "2026-11-11", "extVersion": "0.3.0" }
 ```
@@ -668,6 +700,7 @@ contact → totals → the store's own validation → acting user's display name
 | `items` | Required. 1–100 items, JSON encoding ≤ 256 KiB. Each item: below. |
 | `claimedTotal` | Required. JSON number. Must equal the server's sum (§ totals). |
 | `settingsVersion` | Required. Must equal the current `diameter_settings.get` `version`, else 409 `settings_changed` (re-read the rules, re-price, new key). |
+| `defaultPricesVersion` | Required when any item's `priceMode` is not `manual` (else `validation_failed`, `field: defaultPricesVersion`, `reason: required`); optional otherwise. Format `dp1-<16 hex>`. When sent, it must equal the current `default_prices.get` `version`, else 409 `default_prices_changed` (re-read the rules, recompute the sources, new key). |
 | `parse` | Required. `omittedCount` (integer ≥ 0: how many lines QUO's parser reported as `omitted`) and `acknowledged` (boolean). `omittedCount > 0` without `acknowledged: true` → `validation_failed`, `field: parse`, `reason: omitted_not_acknowledged`. |
 | `waContactId` | Optional. An **active** `company_whatsapp_contacts.id` of **this** company, else `validation_failed` (`waContactId`). Recorded on the request row. |
 | `quoteDate` | Optional `YYYY-MM-DD`. Absent: the store's server-side default (today, Malaysia time). |
@@ -687,8 +720,9 @@ anchorbolt ubolt squbolt lbolt lbolt45 jbolt` (what `quoBuildItem` builds);
 non-empty `desc` (≤ 500); integer `qty` 1–1 000 000; numeric `finalUnitPrice`
 and `totalAmount` with `totalAmount = round(finalUnitPrice × qty, 2)` (±0.005);
 `pricingModel: "accessory-inclusive"`; `priceAcceptance` `{state: "accepted",
-value = finalUnitPrice, source: "manual"}` with no `historyRef`, and
-`priceMode: "manual"` (§4.8.1). No `item_uid`, `id`, `revision`,
+value = finalUnitPrice, source}` with no `historyRef`, where `priceMode:
+"manual"` ⇔ `source: "manual"` and `priceMode` `auto` / `no_round` ⇒ `source`
+one of `manual_recipe`, `built_in`, `default_rule` (§4.8.1). No `item_uid`, `id`, `revision`,
 `revision_no`, `created_by`, `createdBy`. Then the store's own
 `validate_quotation_payload()` runs. A refusal names the item: `field:
 "items"`, `index: <0-based>`, `reason`: `item_not_object`,
@@ -748,42 +782,50 @@ existing link, relative to QUO's base URL. Known gap: the parameter is lost if
 the person must sign in first.
 
 Errors: `core_not_accepted`, `create_disabled`, `validation_failed`,
-`settings_changed`, `not_found`, `totals_mismatch`,
+`settings_changed`, `default_prices_changed`, `not_found`, `totals_mismatch`,
 `key_reused_with_different_payload`, `in_progress`, `actor_refused`,
 `actor_check_unavailable`, `quo_unavailable`.
 
 #### 4.8.1 Price source
 
-QUO records `priceAcceptance.source` from `DC_PRICE_SOURCES`. On the page:
+QUO records `priceAcceptance.source` from `DC_PRICE_SOURCES`. Since QQ R1
+Loop #7 (official save) the rule is ONE shared function, `quoPriceSource()` in
+`quo-quote-core.js`, over ONE shared recommendation, `quoRecommend()` (same
+file; built-in rate tables + system and custom Default Price rules). QUO's
+page calls them through thin adapters — entry form `dcSuggestSource(type)`,
+Quick Add `wqaRowSuggestSource(r)`, `dcRecommendFor(type)` — proven equal to
+the pre-extraction page for 2 314 scenarios (`tests/core/recommend-core.test.js`)
+and in the page (browser parity suite):
 
-- Entry form, `dcSuggestSource(type)`: `manual` when the Price Mode is Manual;
-  otherwise `dcRecommendFor(type)`'s `src` (`default_rule` or `built_in`) when
-  the typed Cost Rate / Additional Cost / Markup equal the recommendation
-  (`dcRecSame`), else `manual_recipe`. A History Use records `history_recipe`.
-- Quick Add, `wqaRowSuggestSource(r)`: Manual → `manual` (or `history_manual`
-  when the manual price came from history); history applied →
-  `history_recipe`; equal to `r.rec` → its `src`; else `manual_recipe`.
-- `dcRecommendFor` reads `RATES`, `RATES_4140` (`get4140Rates`),
-  `getAddCostFromTL`, `getSystemDPRules` + the Default Price rules
-  (`get_default_prices`) through `findDPMatch` — **all defined in `index.php`,
-  none in a shared core** (proved by `price-source.test.js`).
+- Manual Price → `manual` (Quick Add: `history_manual` when the manual price
+  came from history), the recommendation not consulted;
+- a history recipe applied (Quick Add) → `history_recipe`;
+- the typed Cost Rate / Additional Cost / Markup equal the recommendation
+  (blank reads as 0) → its `src`: `default_rule` (a custom Default Price rule)
+  or `built_in`;
+- anything else → `manual_recipe`.
 
-Decision: **(c), narrowed.** QQ never auto-applies recommendations and has no
-history, so for an auto-priced item the true source is `manual_recipe` unless
-the typed numbers happen to equal a recommendation — which neither QQ nor this
-service can compute without copying page-only tables and logic (option (a)
-would duplicate them in PHP; option (b) needs them moved into a shared core,
-which is an `index.php` change outside this round). The one case whose source
-is exact without that data is **Manual Price**: both functions answer `manual`
-before any recommendation is consulted. So this action accepts exactly
-`priceMode: "manual"` + `source: "manual"` (no `historyRef`) and refuses every
-other item with `price_source_unsupported`. QQ's Save is therefore available
-for Manual Price items only until the recommendation inputs live in a shared
-core. `quoBuildItem(..., acceptance: {source: 'manual'})` records the same
-`{state, value, source}` as the page's `dcPaCommit` → `dcPaMeta('manual', '',
-final)`, and the editor reopens such an item with `source: 'manual'` kept
-(`dcFormPaFromSaved`). Proven without a browser; an in-page capture with the
-browser harness is prepared but **not run** (see the Loop #7 report).
+**Trust model.** The server is PHP and cannot run the JS. QQ computes the
+source in the client with the shared core (`quoPriceSource({priceMode, setup,
+rec: quoRecommend({..., dpRules: default_prices.get rules})})`), exactly as QUO's
+page does; the server checks what it can:
+
+- the **inputs' versions**: `settingsVersion` (Diameter Settings) always, and
+  `defaultPricesVersion` (Default Price rules) whenever an item is not Manual
+  Price — so a source can only have been computed against the rules in force;
+- the **form** of the answer: `priceMode: "manual"` ⇔ `source: "manual"`;
+  `auto` / `no_round` ⇒ `manual_recipe`, `built_in` or `default_rule`;
+- **no history**: `history_recipe`, `history_manual` and `legacy_saved` (and
+  any `historyRef`) are refused with `price_source_unsupported` — QQ has no
+  price history, and `legacy_saved` only ever describes a reopened old item.
+
+Whether `built_in` versus `manual_recipe` is the right answer for the typed
+numbers is the client's computation, trusted as the prices themselves are
+today (the server does not re-price either). The core gate (§3.5) pins the
+exact quote-core SHA-256 that computes it. `quoBuildItem(..., acceptance:
+{source})` records `{state, value, source}` exactly as the page's `dcPaCommit` →
+`dcPaMeta(source, '', final)`, and the editor reopens such an item with its
+source kept (`dcFormPaFromSaved`; `tests/php/quotation_create/price-source.test.js`).
 
 **Completeness hold.** QUO's Quick Add keeps Add disabled while
 `wqaParseText(...).omitted` is non-empty until the person ticks "I have
@@ -899,7 +941,7 @@ opportunistically:
 - **Public repository.** Security rests on the secret and the checks, not on
   hidden code. No real secret, customer or phone number is in Git; tests
   generate a random key per run and use invented data.
-- **Secret leak.** Whoever holds the secret can call the eight actions as any
+- **Secret leak.** Whoever holds the secret can call the nine actions as any
   active user: read Diameter Settings, company names and short codes, the
   WhatsApp template, read and add contact links, and — **while
   `QQ_SERVICE_CREATE_ENABLED` is on** — create quotations (Manual Price items
@@ -977,7 +1019,9 @@ migrations forward / again / rollback / forward; template parity with
 `api.php`; create happy path, read-back, actor on the revision, replay, same
 key other payload, four truly parallel same-key requests (four servers), two
 keys → consecutive numbers, stale settings, core mismatch, unknown company,
-client `refNo` / `item_uid`, totals mismatch, price source, omitted lines, lock
+client `refNo` / `item_uid`, totals mismatch, price source, `default_prices.get` parity with
+`api.php` and its version, typed recipes (`built_in`, `default_rule`,
+`manual_recipe`) with `defaultPricesVersion` required / stale / current, omitted lines, lock
 timeout, a failure before commit, disabled user, `lookup_by_key`. Items are
 built by `quo-quote-core.js` (needs `node`). The second command proves the
 price-source rule (§4.8.1) from QUO's own page functions, without a browser.

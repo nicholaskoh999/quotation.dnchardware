@@ -7232,7 +7232,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
 <script src="quo-parser-core.js?v=3a211274d1b3"></script>
 <script src="quo-pricing-core.js?v=c73870824521"></script>
-<script src="quo-quote-core.js?v=10692b21e36d"></script>
+<script src="quo-quote-core.js?v=eceb55d6804a"></script>
 <script>
 /* ══════════════════════════════════════════════════════
    PRODUCTION — MySQL production data through api.php.
@@ -9253,19 +9253,8 @@ function confirmDiscardUnsavedChanges(){
   return confirm(dcT('cfmDiscardChanges'));
 }
 
-/* ── Rate tables (unchanged from production) ── */
-const RATES={PL:{costRate:2.80},ZP:{costRate:4.20},HDG:{costRate:6.00}};
-/* RATES, and only rates. It used to carry a `dia` as well, which the settings
-   screen published as a system default and the calculator never used — two
-   answers to "what bar is this cut from" with no way for staff to tell which
-   was in force. The diameter lives in Diameter Settings; if the business wants
-   an undersize 4140 M12 weighed on 10.7mm, that is a rule they add there and
-   it will be used, because a configured rule outranks the built-in table. */
-const RATES_4140={
-  '4140 FULLSIZE SAG ROD':{ 'M12':{plRate:8.50,addCostPL:2.50}, 'M16':{plRate:6.50,addCostPL:3.50} },
-  '4140 UNDERSIZE SAG ROD':{ 'M12':{plRate:9.50,addCostPL:2.00}, 'M16':{plRate:8.00,addCostPL:2.50} }
-};
-const ZP_SURCHARGE=1.50, HDG_SURCHARGE=3.20, HDG_THREAD_BRUSHING=1.00;
+/* ── Rate tables: RATES, RATES_4140 and the surcharges live in quo-quote-core.js
+   (recommended pricing). ── */
 
 
 /* ── helpers ── */
@@ -9421,12 +9410,9 @@ function dcFormRecipeSig(type){
 }
 /* Where a setup came from, in the order a person would explain it. */
 function dcSuggestSource(type){
-  if(getPriceMode(type)==='manual') return 'manual';
-  /* The recommendation, taken as it stands, keeps its own name; anything
-     else in the boxes is the person's own pricing setup. */
-  const rec=dcRecommendFor(type);
-  if(rec && dcRecSame(rec,{costRate:fv(type,'costRate'),addCost:fv(type,'addCost'),markup:fv(type,'markup')})) return rec.src;
-  return 'manual_recipe';
+  const priceMode=getPriceMode(type);
+  return quoPriceSource({priceMode, setup:{costRate:fv(type,'costRate'),addCost:fv(type,'addCost'),markup:fv(type,'markup')},
+    rec:priceMode==='manual' ? null : dcRecommendFor(type)});
 }
 function dcPaSourceLabel(src){ return dcT('paSrc_'+(DC_PRICE_SOURCES.indexOf(src)>=0?src:'built_in')); }
 /* Can this form's price be used at all? A weight of zero with a surcharge
@@ -9802,29 +9788,6 @@ function renderDSList(){
   });
 }
 
-function get4140Rates(desc,size,finish){
-  const table=RATES_4140[desc]; if(!table) return null;
-  /* Containment made M120 resolve to M12's rate and M12's diameter. A key is a
-     SIZE, so it has to match one — a whole token, not a prefix of one. */
-  const up=size.toUpperCase();
-  const key=Object.keys(table).find(k=>new RegExp('(^|[^A-Z0-9])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^A-Z0-9]|$)').test(up));
-  if(!key) return null;
-  const row=table[key];
-  const surcharge=(finish==='ZP'?ZP_SURCHARGE:finish==='HDG'?HDG_SURCHARGE:0);
-  const addCost=row.addCostPL+(finish==='HDG'?HDG_THREAD_BRUSHING:0);
-  return {costRate:row.plRate+surcharge, addCost};
-}
-function getAddCostFromTL(s){
-  if(!s||!s.trim())return 0;
-  const parts=s.split('/').map(v=>parseFloat(v.trim())).filter(n=>!isNaN(n));
-  if(!parts.length)return 0;
-  const max=Math.max(...parts);
-  if(max>=30&&max<=120)return 0.60;
-  /* 121 as a lower bound left 120.5 falling through to 0.00 — an interval
-     hole, not a rule. The bands meet instead of nearly meeting. */
-  if(max>120&&max<=200)return 1.00;
-  return 0;
-}
 /* ── Phase 1 fix: manual Cost Rate / Additional Cost protection ──
    productEntryTouchedFields records every field the user typed in (input/change
    events; programmatic .value writes do not fire events, so they never mark a
@@ -13963,21 +13926,7 @@ function checkHandoff(){
 
 const ITEM_TYPE_LABELS={sagrod:'Sag Rod',stud:'Stud',anchorbolt:'Anchor Bolt',ubolt:'U-Bolt',squbolt:'SQ U-Bolt',lbolt:'L Bolt',lbolt45:'L Bolt 45DEG',jbolt:'J Bolt'};
 
-function normalizeDPRule(r){
-  return {
-    id:String(r.id||''),
-    type:r.type||r.product_type||'sagrod',
-    material:r.material||'MS',
-    sizeType:r.sizeType!==undefined ? (r.sizeType||'') : (r.size_type||''),
-    size:(r.size||'').toUpperCase(),
-    finish:r.finish||'',
-    costRate:parseFloat(r.costRate!==undefined?r.costRate:r.cost_rate)||0,
-    addCost:parseFloat(r.addCost!==undefined?r.addCost:r.additional_cost)||0,
-    markup:parseFloat(r.markup)||0,
-    active:String(r.active!==undefined?r.active:(r.is_active!==undefined?r.is_active:1)),
-    source:r.source||'custom'
-  };
-}
+/* normalizeDPRule is in quo-quote-core.js. */
 function loadDPRules(){ return dpRulesCache; }
 async function refreshDPRules(){
   const res=await api('get_default_prices');
@@ -13986,40 +13935,8 @@ async function refreshDPRules(){
 }
 function saveDPRules(rules){ dpRulesCache=rules.map(normalizeDPRule); }
 
-function dpKey(r){
-  const type=r.type||'';
-  const noST=type==='stud';
-  return [type,r.material||'',noST?'':(r.sizeType||''),(r.size||'').toUpperCase(),r.finish||''].join('|');
-}
-function makeSystemDPRule(type,material,sizeType,size,finish,costRate,addCost,markup=0){
-  return normalizeDPRule({id:'sys-dp:'+[type,material,sizeType,size,finish||'NA'].join(':'),type,material,sizeType,size,finish,costRate,addCost,markup,active:'1',source:'system'});
-}
-function getSystemDPRules(){
-  const rows=[];
-  const addSagRodMS=(sizeType,size)=>{
-    Object.entries(RATES).forEach(([finish,row])=>{
-      rows.push(makeSystemDPRule('sagrod','MS',sizeType,size,finish,row.costRate,finish==='HDG'?1.60:0,0));
-    });
-  };
-  Object.keys(DIA_FULLSIZE).forEach(size=>addSagRodMS('FULLSIZE',size));
-  Object.keys(DIA_UNDERSIZE).forEach(size=>addSagRodMS('UNDERSIZE',size));
-  Object.keys(DIA_UNDERSIZE_INCH).forEach(size=>addSagRodMS('UNDERSIZE',size));
-  Object.entries(RATES_4140).forEach(([desc,sizes])=>{
-    const sizeType=desc.includes('UNDERSIZE')?'UNDERSIZE':'FULLSIZE';
-    Object.entries(sizes).forEach(([size,row])=>{
-      rows.push(makeSystemDPRule('sagrod','4140',sizeType,size,'PL',row.plRate,row.addCostPL,0));
-      rows.push(makeSystemDPRule('sagrod','4140',sizeType,size,'ZP',row.plRate+ZP_SURCHARGE,row.addCostPL,0));
-      rows.push(makeSystemDPRule('sagrod','4140',sizeType,size,'HDG',row.plRate+HDG_SURCHARGE,row.addCostPL+HDG_THREAD_BRUSHING,0));
-    });
-  });
-  return rows;
-}
-function getDPDisplayRules(){
-  const merged=new Map();
-  getSystemDPRules().forEach(r=>merged.set(dpKey(r),r));
-  loadDPRules().forEach(r=>merged.set(dpKey(r),normalizeDPRule({...r,source:'custom'})));
-  return Array.from(merged.values());
-}
+/* dpKey, makeSystemDPRule and getSystemDPRules are in quo-quote-core.js. */
+function getDPDisplayRules(){ return quoDPDisplayRules(loadDPRules()); }
 function normalizedRuleFinish(r){ return (r.finish||'') ? r.finish : 'NA'; }
 function setDPSourceMode(mode){ const e=el('dpFilterSource'); if(e)e.value=mode; syncDPModeButtons(); renderDPList(); }
 function syncDPModeButtons(){
@@ -14028,24 +13945,7 @@ function syncDPModeButtons(){
 }
 
 /* ── Matching ── */
-function findDPMatch(type,material,sizeType,size,finish){
-  const rules=getDPDisplayRules().filter(r=>r.active=='1');
-  const isSS=material==='SS304'||material==='SS316';
-  const skipSizeType=type==='stud';
-  return rules.find(r=>{
-    if(r.type!==type) return false;
-    if(r.material!==material) return false;
-    if(!skipSizeType && r.sizeType!==sizeType) return false;
-    const rSize=(r.size||'').toUpperCase().trim();
-    const cSize=(size||'').toUpperCase().trim();
-    if(rSize && rSize!==cSize) return false;
-    if(!isSS){
-      const rFinish=(r.finish||'');
-      if(rFinish && rFinish!==finish) return false;
-    }
-    return true;
-  })||null;
-}
+function findDPMatch(type,material,sizeType,size,finish){ return quoFindDPMatch(loadDPRules(),type,material,sizeType,size,finish); }
 
 /* Provenance of rates the rules once wrote. Since the Pricing Control Reset
    the rules write nothing (dcRecommendFor), so this stays empty; the draft
@@ -14071,30 +13971,10 @@ function dpIdentityKey(type){
    form holds that row. */
 function dcRecommendFor(type){
   if(!type || type==='others' || !el(type+'-costRate')) return null;
-  const material=fv(type,'material');
-  const sizeType=type==='stud' ? '' : fv(type,'sizeType');
-  const size=normalizeSizeValue(fv(type,'size'));
-  const finish=getFinish(type);
-  const out=(c,a,m,src)=>({costRate:(Number(c)||0).toFixed(2), addCost:(Number(a)||0).toFixed(2), markup:String(Number(m)||0), src});
-  const match=findDPMatch(type,material,sizeType,size,finish);
-  if(match && match.source==='custom') return out(match.costRate,match.addCost,match.markup,'default_rule');
-  if(type==='sagrod'){
-    if(material==='MS' && RATES[finish])
-      return out(RATES[finish].costRate, finish==='HDG' ? 1.60 : getAddCostFromTL(fv(type,'threadLen')), 0, 'built_in');
-    if(material==='4140'){
-      const r=get4140Rates(buildDesc(type),size,finish);
-      if(r) return out(r.costRate,r.addCost,0,'built_in');
-    }
-  }
-  if(match) return out(match.costRate,match.addCost,match.markup,'built_in');
-  return null;
+  return quoRecommend({type, material:fv(type,'material'), sizeType:fv(type,'sizeType'), size:fv(type,'size'),
+    finish:getFinish(type), threadLen:fv(type,'threadLen'), productName:fv(type,'productName'), dpRules:loadDPRules()});
 }
-/* Same pricing setup? Blank reads as 0, the way the calculator reads it. */
-function dcRecSame(a,b){
-  if(!a||!b) return false;
-  const n=v=>Number(String(v==null?'':v).trim()||0);
-  return ['costRate','addCost','markup'].every(k=>Math.abs(n(a[k])-n(b[k]))<0.00001);
-}
+/* dcRecSame is in quo-quote-core.js. */
 /* "4.20 · +1.00 · 0%" — the pricing setup, never a final RM figure. */
 function dcRecText(rec){
   if(!rec) return '';
@@ -18768,11 +18648,8 @@ function wqaReadFormPricing(t){
    a Manual Price) its calculated RM/pc is its price. A recommendation
    (r.rec) is never written into the setup by itself. */
 function wqaRowSuggestSource(r,t){
-  if((r.priceMode||'auto')==='manual') return (r.usedHistoryRef&&!r.usedHistoryRecipe)?'history_manual':'manual';
-  if((r.histApplied||[]).length) return 'history_recipe';
-  const c=r.calc||{};
-  if(r.rec && dcRecSame(r.rec,c)) return r.rec.src;
-  return 'manual_recipe';
+  return quoPriceSource({priceMode:r.priceMode, setup:r.calc||{}, rec:r.rec,
+    history:{usedHistoryRef:r.usedHistoryRef, usedHistoryRecipe:r.usedHistoryRecipe, histApplied:r.histApplied}});
 }
 /* History hands its provenance over through paPending; nothing waits on it. */
 function wqaRowPaSettle(r){ r.paPending=null; }

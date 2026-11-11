@@ -843,9 +843,204 @@ function quoQuoteText(q){
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
+   RECOMMENDED PRICING AND PRICE SOURCE (QQ R1 Loop #7, docs/PRICING-CORE.md
+   "Recommendation and price source")
+
+   The built-in rate tables, the system and custom Default Price rules, the
+   recommendation the editor and Quick Add show (quoRecommend, formerly the
+   body of dcRecommendFor) and the price source an accepted price records
+   (quoPriceSource, formerly dcSuggestSource / wqaRowSuggestSource).
+
+   Between this banner and the QUOTE-FREE RECOMMENDATION banner: moved out of
+   index.php without editing a character. It lives in this file, not in
+   quo-pricing-core.js, because the 4140 table is keyed by the item
+   description, which only quoItemDesc (this file) builds; the pricing core
+   loads before this file and must not reach forward into it.
+   ════════════════════════════════════════════════════════════════════════════ */
+/* ── Rate tables (unchanged from production) ── */
+const RATES={PL:{costRate:2.80},ZP:{costRate:4.20},HDG:{costRate:6.00}};
+/* RATES, and only rates. It used to carry a `dia` as well, which the settings
+   screen published as a system default and the calculator never used — two
+   answers to "what bar is this cut from" with no way for staff to tell which
+   was in force. The diameter lives in Diameter Settings; if the business wants
+   an undersize 4140 M12 weighed on 10.7mm, that is a rule they add there and
+   it will be used, because a configured rule outranks the built-in table. */
+const RATES_4140={
+  '4140 FULLSIZE SAG ROD':{ 'M12':{plRate:8.50,addCostPL:2.50}, 'M16':{plRate:6.50,addCostPL:3.50} },
+  '4140 UNDERSIZE SAG ROD':{ 'M12':{plRate:9.50,addCostPL:2.00}, 'M16':{plRate:8.00,addCostPL:2.50} }
+};
+const ZP_SURCHARGE=1.50, HDG_SURCHARGE=3.20, HDG_THREAD_BRUSHING=1.00;
+function get4140Rates(desc,size,finish){
+  const table=RATES_4140[desc]; if(!table) return null;
+  /* Containment made M120 resolve to M12's rate and M12's diameter. A key is a
+     SIZE, so it has to match one — a whole token, not a prefix of one. */
+  const up=size.toUpperCase();
+  const key=Object.keys(table).find(k=>new RegExp('(^|[^A-Z0-9])'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^A-Z0-9]|$)').test(up));
+  if(!key) return null;
+  const row=table[key];
+  const surcharge=(finish==='ZP'?ZP_SURCHARGE:finish==='HDG'?HDG_SURCHARGE:0);
+  const addCost=row.addCostPL+(finish==='HDG'?HDG_THREAD_BRUSHING:0);
+  return {costRate:row.plRate+surcharge, addCost};
+}
+function getAddCostFromTL(s){
+  if(!s||!s.trim())return 0;
+  const parts=s.split('/').map(v=>parseFloat(v.trim())).filter(n=>!isNaN(n));
+  if(!parts.length)return 0;
+  const max=Math.max(...parts);
+  if(max>=30&&max<=120)return 0.60;
+  /* 121 as a lower bound left 120.5 falling through to 0.00 — an interval
+     hole, not a rule. The bands meet instead of nearly meeting. */
+  if(max>120&&max<=200)return 1.00;
+  return 0;
+}
+function normalizeDPRule(r){
+  return {
+    id:String(r.id||''),
+    type:r.type||r.product_type||'sagrod',
+    material:r.material||'MS',
+    sizeType:r.sizeType!==undefined ? (r.sizeType||'') : (r.size_type||''),
+    size:(r.size||'').toUpperCase(),
+    finish:r.finish||'',
+    costRate:parseFloat(r.costRate!==undefined?r.costRate:r.cost_rate)||0,
+    addCost:parseFloat(r.addCost!==undefined?r.addCost:r.additional_cost)||0,
+    markup:parseFloat(r.markup)||0,
+    active:String(r.active!==undefined?r.active:(r.is_active!==undefined?r.is_active:1)),
+    source:r.source||'custom'
+  };
+}
+function dpKey(r){
+  const type=r.type||'';
+  const noST=type==='stud';
+  return [type,r.material||'',noST?'':(r.sizeType||''),(r.size||'').toUpperCase(),r.finish||''].join('|');
+}
+function makeSystemDPRule(type,material,sizeType,size,finish,costRate,addCost,markup=0){
+  return normalizeDPRule({id:'sys-dp:'+[type,material,sizeType,size,finish||'NA'].join(':'),type,material,sizeType,size,finish,costRate,addCost,markup,active:'1',source:'system'});
+}
+function getSystemDPRules(){
+  const rows=[];
+  const addSagRodMS=(sizeType,size)=>{
+    Object.entries(RATES).forEach(([finish,row])=>{
+      rows.push(makeSystemDPRule('sagrod','MS',sizeType,size,finish,row.costRate,finish==='HDG'?1.60:0,0));
+    });
+  };
+  Object.keys(DIA_FULLSIZE).forEach(size=>addSagRodMS('FULLSIZE',size));
+  Object.keys(DIA_UNDERSIZE).forEach(size=>addSagRodMS('UNDERSIZE',size));
+  Object.keys(DIA_UNDERSIZE_INCH).forEach(size=>addSagRodMS('UNDERSIZE',size));
+  Object.entries(RATES_4140).forEach(([desc,sizes])=>{
+    const sizeType=desc.includes('UNDERSIZE')?'UNDERSIZE':'FULLSIZE';
+    Object.entries(sizes).forEach(([size,row])=>{
+      rows.push(makeSystemDPRule('sagrod','4140',sizeType,size,'PL',row.plRate,row.addCostPL,0));
+      rows.push(makeSystemDPRule('sagrod','4140',sizeType,size,'ZP',row.plRate+ZP_SURCHARGE,row.addCostPL,0));
+      rows.push(makeSystemDPRule('sagrod','4140',sizeType,size,'HDG',row.plRate+HDG_SURCHARGE,row.addCostPL+HDG_THREAD_BRUSHING,0));
+    });
+  });
+  return rows;
+}
+/* Same pricing setup? Blank reads as 0, the way the calculator reads it. */
+function dcRecSame(a,b){
+  if(!a||!b) return false;
+  const n=v=>Number(String(v==null?'':v).trim()||0);
+  return ['costRate','addCost','markup'].every(k=>Math.abs(n(a[k])-n(b[k]))<0.00001);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   QUOTE-FREE RECOMMENDATION — no form, no page cache
+   The Default Price rules are server data (api.php?action=get_default_prices,
+   or the service's default_prices.get): every function below takes them as an
+   argument, the rows as the server sends them. index.php passes its
+   dpRulesCache (loadDPRules()).
+   ════════════════════════════════════════════════════════════════════════════ */
+/* getDPDisplayRules with the custom rules handed in. */
+function quoDPDisplayRules(customRules){
+  const merged=new Map();
+  getSystemDPRules().forEach(r=>merged.set(dpKey(r),r));
+  (customRules||[]).forEach(r=>merged.set(dpKey(r),normalizeDPRule({...r,source:'custom'})));
+  return Array.from(merged.values());
+}
+/* findDPMatch with the custom rules handed in. */
+function quoFindDPMatch(customRules,type,material,sizeType,size,finish){
+  const rules=quoDPDisplayRules(customRules).filter(r=>r.active=='1');
+  const isSS=material==='SS304'||material==='SS316';
+  const skipSizeType=type==='stud';
+  return rules.find(r=>{
+    if(r.type!==type) return false;
+    if(r.material!==material) return false;
+    if(!skipSizeType && r.sizeType!==sizeType) return false;
+    const rSize=(r.size||'').toUpperCase().trim();
+    const cSize=(size||'').toUpperCase().trim();
+    if(rSize && rSize!==cSize) return false;
+    if(!isSS){
+      const rFinish=(r.finish||'');
+      if(rFinish && rFinish!==finish) return false;
+    }
+    return true;
+  })||null;
+}
+/* ── Recommended pricing (Pricing Control Reset) ────────────────────────────
+   Owner rule: the system never decides an item's active pricing. A new item
+   starts at Cost 0 / Add 0 / Markup 0; the built-in tables and the Default
+   Price rules are REFERENCE only — shown as a recommendation, written into
+   nothing.
+
+   Order: a Default Price rule staff saved (custom) is the most specific
+   answer and leads; then the built-in MS Sag Rod rates with the thread-length
+   band (HDG: its fixed 1.60), then the 4140 table. Returns
+   {costRate, addCost, markup, src} as strings, or null when nothing knows the
+   item.
+
+   o: {type, material, sizeType, size, finish, threadLen, productName, dpRules}
+      the values as the product form holds them (text); finish is the checked
+      finish ('' for none/NA). dpRules: the Default Price rows from the server.
+   index.php's dcRecommendFor reads the form and calls this. */
+function quoRecommend(o){
+  o=o||{};
+  const s=v=>v==null?'':String(v);
+  const type=s(o.type);
+  if(!type || type==='others') return null;
+  const material=s(o.material);
+  const sizeType=type==='stud' ? '' : s(o.sizeType);
+  const size=normalizeSizeValue(s(o.size));
+  const finish=s(o.finish);
+  const out=(c,a,m,src)=>({costRate:(Number(c)||0).toFixed(2), addCost:(Number(a)||0).toFixed(2), markup:String(Number(m)||0), src});
+  const match=quoFindDPMatch(o.dpRules,type,material,sizeType,size,finish);
+  if(match && match.source==='custom') return out(match.costRate,match.addCost,match.markup,'default_rule');
+  if(type==='sagrod'){
+    if(material==='MS' && RATES[finish])
+      return out(RATES[finish].costRate, finish==='HDG' ? 1.60 : getAddCostFromTL(s(o.threadLen)), 0, 'built_in');
+    if(material==='4140'){
+      const r=get4140Rates(quoItemDesc(type,material,s(o.sizeType),s(o.productName)),size,finish);
+      if(r) return out(r.costRate,r.addCost,0,'built_in');
+    }
+  }
+  if(match) return out(match.costRate,match.addCost,match.markup,'built_in');
+  return null;
+}
+/* Where a pricing setup came from, in the order a person would explain it —
+   the source an accepted price records (DC_PRICE_SOURCES).
+
+   o: {priceMode, setup:{costRate,addCost,markup}, rec, history}
+      rec: quoRecommend's answer for the item (or null);
+      history: {usedHistoryRef, usedHistoryRecipe, histApplied} — Quick Add's
+      price-history provenance. The editor form has none; neither has QQ.
+
+   Manual Price is 'manual' (or 'history_manual' when the price came from
+   history) without consulting the recommendation. A recommendation taken as
+   it stands keeps its own name (built_in / default_rule); anything else is
+   the person's own setup (manual_recipe). Blank reads as 0. */
+function quoPriceSource(o){
+  o=o||{};
+  const h=o.history||{};
+  if((o.priceMode||'auto')==='manual') return (h.usedHistoryRef&&!h.usedHistoryRecipe)?'history_manual':'manual';
+  if((h.histApplied||[]).length) return 'history_recipe';
+  const rec=o.rec;
+  if(rec && dcRecSame(rec,o.setup||{})) return rec.src;
+  return 'manual_recipe';
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    VERSION
    ════════════════════════════════════════════════════════════════════════════ */
-const QUO_QUOTE_CORE_VERSION='1.0.0';
+const QUO_QUOTE_CORE_VERSION='1.1.0';
 const QUO_QUOTE_CORE_CONTRACT=1;
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -857,6 +1052,17 @@ if (typeof module !== 'undefined' && module.exports) {
     quoItemInputFromRow: quoItemInputFromRow,
     quoItemFormData: quoItemFormData,
     quoItemDesc: quoItemDesc,
+    quoRecommend: quoRecommend,
+    quoPriceSource: quoPriceSource,
+    quoDPDisplayRules: quoDPDisplayRules,
+    quoFindDPMatch: quoFindDPMatch,
+    dcRecSame: dcRecSame,
+    normalizeDPRule: normalizeDPRule,
+    getSystemDPRules: getSystemDPRules,
+    get4140Rates: get4140Rates,
+    getAddCostFromTL: getAddCostFromTL,
+    RATES: RATES,
+    RATES_4140: RATES_4140,
     quoNoAccessories: quoNoAccessories,
     quoWAItemsText: quoWAItemsText,
     quoQuoteText: quoQuoteText,

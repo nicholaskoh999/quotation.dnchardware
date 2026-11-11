@@ -40,6 +40,7 @@ const DC_SERVICE_NONCE_TABLE   = 'service_request_nonces';
 const DC_SERVICE_ACTIONS = [
     'ping',
     'diameter_settings.get',
+    'default_prices.get',
     'companies.search',
     'contacts.lookup',
     'contacts.link',
@@ -70,6 +71,7 @@ const DC_SERVICE_ERRORS = [
     // quotations.create (docs/SERVICE-API.md 4.8)
     'create_disabled'         => [403, 'Quotation create is not enabled'],
     'settings_changed'        => [409, 'Diameter Settings have changed; reload them and price again'],
+    'default_prices_changed'  => [409, 'Default Price rules have changed; reload them and price again'],
     'totals_mismatch'         => [422, 'Quotation total does not match its items'],
     'key_reused_with_different_payload' => [409, 'Idempotency key was already used for a different quotation'],
     'in_progress'             => [409, 'Another save is in progress; retry with the same key'],

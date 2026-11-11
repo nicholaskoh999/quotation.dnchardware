@@ -86,6 +86,10 @@ $q->query("CREATE TABLE quotations (id INT NOT NULL AUTO_INCREMENT, company_id I
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY uq_quotations_ref (ref_no)) ENGINE=InnoDB");
 $q->query("CREATE TABLE diameter_settings (id int NOT NULL AUTO_INCREMENT, product_type varchar(50) NOT NULL, material varchar(50) NOT NULL, size_type varchar(50) DEFAULT NULL,
            size varchar(50) NOT NULL, diameter decimal(10,3) NOT NULL, is_active tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (id)) ENGINE=InnoDB");
+/* RECONSTRUCTED from api.php (save_default_price / get_default_prices) — no CREATE TABLE for default_prices is in the repository. */
+$q->query("CREATE TABLE default_prices (id int NOT NULL AUTO_INCREMENT, product_type varchar(50) NOT NULL, material varchar(50) NOT NULL, size_type varchar(50) DEFAULT NULL,
+           size varchar(50) NOT NULL, finish varchar(20) DEFAULT NULL, cost_rate decimal(10,2) NOT NULL DEFAULT 0, additional_cost decimal(10,2) NOT NULL DEFAULT 0,
+           markup decimal(6,2) NOT NULL DEFAULT 0, is_active tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (id)) ENGINE=InnoDB");
 $section = function ($file, $name = 'SECTION 2') use ($ROOT) {
     preg_match('/-- >>> ' . $name . ' BEGIN\s*(.*?)\s*-- <<< ' . $name . ' END/s', (string)file_get_contents("$ROOT/migrations/$file"), $m); return $m[1] ?? '';
 };
@@ -110,6 +114,8 @@ foreach ($MIGS as $m => $t) { eq(run_script($q, $section("$m.sql")), [0, ''], "M
 $q->query("INSERT INTO companies (id, name, short_code, phone, address) VALUES (901, 'Example Trading Sdn Bhd', 'EXT', '+60000000091', '1 Fake Street'),
            (902, 'Example Steel Works', NULL, NULL, NULL)");
 $q->query("INSERT INTO diameter_settings (id, product_type, material, size_type, size, diameter, is_active) VALUES (3, 'sagrod', 'MS', 'UNDERSIZE', 'M12', 10.900, 1), (4, 'stud', 'MS', NULL, 'M16', 16.000, 1)");
+$q->query("INSERT INTO default_prices (id, product_type, material, size_type, size, finish, cost_rate, additional_cost, markup, is_active) VALUES
+           (1, 'stud', 'MS', NULL, 'M16', 'HDG', 7.25, 0, 0, 1), (2, 'ubolt', 'MS', 'FULLSIZE', 'M12', NULL, 3.30, 0.50, 10, 0)");
 $q->query("INSERT INTO company_whatsapp_contacts (company_id, wa_phone, source) VALUES (901, '60000000001', 'qq'), (902, '60000000002', 'qq')");
 $root->query("CREATE TABLE {$UDB}.users (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, name VARCHAR(255) NOT NULL, username VARCHAR(20) NOT NULL, role VARCHAR(16) NOT NULL DEFAULT 'member',
     password VARCHAR(255) NOT NULL, must_change_password TINYINT(1) NOT NULL DEFAULT 0, is_active TINYINT(1) NOT NULL DEFAULT 1, is_legacy_placeholder TINYINT(1) NOT NULL DEFAULT 0,
@@ -324,9 +330,59 @@ $r = call('quotations.create', $req(['items' => $bad]));
 eq([$r['status'], $r['json']['error']['field'] ?? null, $r['json']['error']['index'] ?? null, $r['json']['error']['reason'] ?? null], [422, 'items', 1, 'item_uid_not_allowed'], 'C: a client-sent item_uid → 422 REFUSED, index 1');
 $r = call('quotations.create', $req(['claimedTotal' => $TOTAL + 1]));
 eq([$r['status'], code_of($r)], [422, 'totals_mismatch'], 'C: claimed total ≠ the server\'s sum of the items → 422 totals_mismatch');
-$auto = $ITEMS; $auto[0]['priceMode'] = 'auto'; $auto[0]['priceAcceptance']['source'] = 'manual_recipe';
-$r = call('quotations.create', $req(['items' => $auto]));
-eq([$r['status'], $r['json']['error']['index'] ?? null, $r['json']['error']['reason'] ?? null], [422, 0, 'price_source_unsupported'], 'C: an auto-priced item (source QQ cannot know) → refused');
+
+/* ── default_prices.get: api.php's own block, run against the same table ── */
+preg_match('/\} elseif \(\$action === \'get_default_prices\'\) \{(.*?)\n\} elseif/s', file_get_contents("$ROOT/api.php"), $dpb);
+ok(!empty($dpb[1]) && strpos($dpb[1], 'echo json_encode') !== false, 'D: api.php get_default_prices block lifted');
+$dpApi = function () use ($dpb, $q) { $db = $q; ob_start(); eval($dpb[1]); return ob_get_clean(); };
+$dpJson = $dpApi();
+$dpRowsJson = substr($dpJson, strlen('{"ok":true,"data":'), -1);
+$r = call('default_prices.get');
+$dd = $r['json']['data'] ?? [];
+eq([$r['status'], array_keys($dd)], [200, ['rules', 'version', 'ruleCount', 'fetchedAt']], 'D: default_prices.get → 200, data keys');
+ok(($dd['rules'] ?? null) === json_decode($dpJson, true)['data'] && strpos($r['body'], '"rules":' . $dpRowsJson . ',') !== false,
+   'D: rules IDENTICAL to api.php get_default_prices (rows, keys, types, order; the inactive row included, as the page receives it), byte for byte');
+eq($dd['version'] ?? null, 'dp1-' . substr(hash('sha256', $dpRowsJson), 0, 16), 'D: version = "dp1-" + 16 hex of SHA-256 over the rows JSON');
+eq([$dd['ruleCount'] ?? null, call('default_prices.get', [], ['cores' => null])['status']], [2, 200], 'D: ruleCount; a read answers without a core claim');
+$dpVersion = fn () => call('default_prices.get')['json']['data']['version'] ?? null;
+
+/* ── typed recipes: the source QUO's shared functions compute ── */
+putenv('DP_RULES=' . json_encode($dd['rules'] ?? []));
+$RECIPE = json_decode((string)shell_exec('node ' . escapeshellarg("$ROOT/tests/php/quotation_create/build-items.js") . ' recipe'), true);
+putenv('DP_RULES');
+eq(array_map(fn ($i) => [$i['priceMode'] ?? null, $i['priceAcceptance']['source'] ?? null], (array)$RECIPE),
+   [['auto', 'built_in'], ['no_round', 'default_rule'], ['auto', 'manual_recipe']], 'R: recipe items built by quo-quote-core.js with quoPriceSource(quoRecommend(...))');
+$RTOTAL = round(array_sum(array_column((array)$RECIPE, 'totalAmount')), 2);
+$s0 = $state();
+$r = call('quotations.create', $req(['items' => $RECIPE, 'claimedTotal' => $RTOTAL]));
+eq([$r['status'], $r['json']['error']['field'] ?? null, $r['json']['error']['reason'] ?? null], [422, 'defaultPricesVersion', 'required'],
+   'R: a non-Manual item without defaultPricesVersion → refused');
+eq($state(), $s0, 'R: …nothing written');
+$r = call('quotations.create', $req(['items' => $RECIPE, 'claimedTotal' => $RTOTAL, 'defaultPricesVersion' => 'dp1-0123456789abcdef']));
+eq([$r['status'], code_of($r)], [409, 'default_prices_changed'], 'R: a defaultPricesVersion that is not the current one → 409 default_prices_changed');
+eq($state(), $s0, 'R: …nothing written');
+$stale = $req(['items' => $RECIPE, 'claimedTotal' => $RTOTAL, 'defaultPricesVersion' => $dpVersion()]);
+$q->query('UPDATE default_prices SET cost_rate = 7.30 WHERE id = 1');
+$r = call('quotations.create', $stale);
+eq([$r['status'], code_of($r)], [409, 'default_prices_changed'], 'R: Default Price rules changed after pricing → 409 default_prices_changed');
+eq($state(), $s0, 'R: …nothing written');
+$q->query('UPDATE default_prices SET cost_rate = 7.25 WHERE id = 1');
+$r = call('quotations.create', $stale);
+eq($r['status'], 200, 'R: rules put back (content hash) → the same request is CREATED');
+eq(array_map(fn ($i) => $i['priceAcceptance']['source'] ?? null, $r['json']['data']['items'] ?? []), ['built_in', 'default_rule', 'manual_recipe'],
+   'R: stored sources are exactly the ones the shared core computed');
+eq(array_map(fn ($i) => [$i['finalUnitPrice'], $i['totalAmount'], $i['priceMode']], $r['json']['data']['items'] ?? []),
+   array_map(fn ($i) => [$i['finalUnitPrice'], $i['totalAmount'], $i['priceMode']], (array)$RECIPE), 'R: …and the prices as built');
+$r = call('quotations.create', $req(['defaultPricesVersion' => $dpVersion()]));
+eq($r['status'], 200, 'R: Manual items with a (current) defaultPricesVersion → created');
+foreach (['history_recipe', 'history_manual', 'legacy_saved'] as $src) {
+    $h = $RECIPE; $h[0]['priceAcceptance']['source'] = $src;
+    $r = call('quotations.create', $req(['items' => $h, 'claimedTotal' => $RTOTAL, 'defaultPricesVersion' => $dpVersion()]));
+    eq([$r['status'], $r['json']['error']['index'] ?? null, $r['json']['error']['reason'] ?? null], [422, 0, 'price_source_unsupported'], "R: source $src → refused (QQ has no history)");
+}
+$h = $RECIPE; $h[0]['priceAcceptance']['source'] = 'manual';
+$r = call('quotations.create', $req(['items' => $h, 'claimedTotal' => $RTOTAL, 'defaultPricesVersion' => $dpVersion()]));
+eq([$r['status'], $r['json']['error']['reason'] ?? null], [422, 'price_source_unsupported'], 'R: source manual on an auto-priced item → refused');
 $r = call('quotations.create', $req(['parse' => ['omittedCount' => 1, 'acknowledged' => false]]));
 eq([$r['status'], $r['json']['error']['field'] ?? null, $r['json']['error']['reason'] ?? null], [422, 'parse', 'omitted_not_acknowledged'], 'C: parser omitted lines not acknowledged → refused');
 $r = call('quotations.create', $req(['parse' => ['omittedCount' => 1, 'acknowledged' => true]]));

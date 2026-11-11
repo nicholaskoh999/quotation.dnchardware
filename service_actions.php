@@ -96,6 +96,54 @@ function dc_service_diameter_settings_get($db, array $params, array $actor, arra
     ]];
 }
 
+// ── default_prices.get ───────────────────────────────────────────────────────
+
+/**
+ * The Default Price rules QUO's own page receives (api.php get_default_prices:
+ * every row, active or not; the page filters on `active` when it matches).
+ * The query and the row mapping are api.php's, character for character;
+ * tests/php/service_api.test.php runs api.php's block and this function
+ * against the same table and requires identical output. QQ hands these rows
+ * to quoRecommend() in quo-quote-core.js, as the page hands its dpRulesCache.
+ *
+ * @return list<array>|null  null when the table cannot be read
+ */
+function dc_service_default_price_rows($db) {
+    $res = $db->query("SELECT * FROM default_prices ORDER BY product_type, material, size_type, size, finish");
+    if (!$res) return null;
+    $rows = [];
+    while ($r = $res->fetch_assoc()) {
+        $rows[] = [
+            'id'=>(int)$r['id'],'type'=>$r['product_type'],'product_type'=>$r['product_type'],
+            'material'=>$r['material'],'sizeType'=>$r['size_type'] ?? '','size_type'=>$r['size_type'] ?? '',
+            'size'=>$r['size'],'finish'=>$r['finish'] ?? '',
+            'costRate'=>(float)$r['cost_rate'],'cost_rate'=>(float)$r['cost_rate'],
+            'addCost'=>(float)$r['additional_cost'],'additional_cost'=>(float)$r['additional_cost'],
+            'markup'=>(float)$r['markup'],'active'=>(string)$r['is_active'],'is_active'=>(int)$r['is_active']
+        ];
+    }
+    return $rows;
+}
+
+/** "dp1-" + the first 16 hex of SHA-256 over json_encode($rows), as dc_service_diameter_version. */
+function dc_service_default_prices_version(array $rows) {
+    return 'dp1-' . substr(hash('sha256', (string)json_encode($rows)), 0, 16);
+}
+
+function dc_service_default_prices_get($db, array $params, array $actor, array $ctx = []) {
+    $rows = dc_service_default_price_rows($db);
+    if ($rows === null) {
+        dc_service_log('action.failed', ['action' => 'default_prices.get', 'reason' => 'read_failed', 'errno' => (int)$db->errno]);
+        return ['error' => 'quo_unavailable'];
+    }
+    return ['data' => [
+        'rules'     => $rows,
+        'version'   => dc_service_default_prices_version($rows),
+        'ruleCount' => count($rows),
+        'fetchedAt' => dc_service_iso_utc(time()),
+    ]];
+}
+
 // ── companies.search ─────────────────────────────────────────────────────────
 
 /** Makes %, _ and the escape character itself literal inside a LIKE pattern. */
@@ -365,6 +413,7 @@ function dc_service_handlers() {
     return [
         'ping'                  => 'dc_service_ping',
         'diameter_settings.get' => 'dc_service_diameter_settings_get',
+        'default_prices.get'    => 'dc_service_default_prices_get',
         'companies.search'      => 'dc_service_companies_search',
         'contacts.lookup'       => 'dc_service_contacts_lookup',
         'contacts.link'         => 'dc_service_contacts_link',

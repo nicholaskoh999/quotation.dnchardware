@@ -42,8 +42,17 @@ function dc_db_fail($label, $handle = null) {
 /** The product types QQ builds with quo-quote-core.js (QUO_ITEM_FORM_FIELDS). */
 const DC_SERVICE_CREATE_ITEM_TYPES = ['sagrod', 'stud', 'anchorbolt', 'ubolt', 'squbolt', 'lbolt', 'lbolt45', 'jbolt'];
 /** Every key quotations.create accepts. Anything else (refNo, ref_no, item uids, revision, createdBy, …) is REFUSED. */
-const DC_SERVICE_CREATE_PARAMS = ['idempotencyKey', 'companyId', 'items', 'claimedTotal', 'settingsVersion', 'parse',
-                                  'waContactId', 'quoteDate', 'extVersion'];
+const DC_SERVICE_CREATE_PARAMS = ['idempotencyKey', 'companyId', 'items', 'claimedTotal', 'settingsVersion', 'defaultPricesVersion',
+                                  'parse', 'waContactId', 'quoteDate', 'extVersion'];
+/** Price modes an item may carry (index.php getPriceMode). */
+const DC_SERVICE_CREATE_PRICE_MODES = ['auto', 'no_round', 'manual'];
+/**
+ * The price sources this door accepts for a priceMode other than 'manual':
+ * what quoPriceSource() (quo-quote-core.js) answers for a host WITHOUT price
+ * history. history_recipe / history_manual need QUO's price history and
+ * legacy_saved is only ever a reopened old item, so QQ can never compute them.
+ */
+const DC_SERVICE_CREATE_RECIPE_SOURCES = ['manual_recipe', 'built_in', 'default_rule'];
 
 // ── whatsapp_template.get ────────────────────────────────────────────────────
 
@@ -87,14 +96,19 @@ function dc_service_is_num($v) { return (is_int($v) || is_float($v)) && is_finit
  * One item as QUO's quote core builds it, checked for what this door accepts.
  * Returns null or [reason]. See docs/SERVICE-API.md §4.8 "Items".
  *
- * PRICE SOURCE (docs/SERVICE-API.md §4.8.1). QUO's editor names a price
- * source from page-only data (RATES, RATES_4140, the system Default Price
- * rules, findDPMatch — all in index.php, none in a shared core). The one case
- * whose source is independent of that data is Manual Price: dcSuggestSource()
- * and wqaRowSuggestSource() both answer 'manual' first, before any
- * recommendation is consulted (QQ has no price history). So this door accepts
- * exactly that: priceMode 'manual' with priceAcceptance.source 'manual'.
- * Everything else is refused as price_source_unsupported.
+ * PRICE SOURCE (docs/SERVICE-API.md §4.8.1). The source is computed by the
+ * client with QUO's own shared function, quoPriceSource(quoRecommend(...))
+ * in quo-quote-core.js — the function QUO's editor and Quick Add call. This
+ * server cannot run it (PHP); it checks what it can:
+ *   - priceMode 'manual'  ⇔ source 'manual' (quoPriceSource answers 'manual'
+ *     for Manual Price before consulting anything, and never otherwise);
+ *   - any other priceMode → manual_recipe, built_in or default_rule;
+ *   - no history source, no legacy_saved, no historyRef (QQ has no history);
+ *   - the inputs' versions: settingsVersion (Diameter Settings) and, for a
+ *     non-Manual item, defaultPricesVersion (Default Price rules) must be the
+ *     ones in force now (dc_service_quotations_create).
+ * Whether built_in vs manual_recipe is the RIGHT answer for the typed numbers
+ * is the client's computation, trusted as the prices themselves are today.
  */
 function dc_service_create_item_error($it) {
     if (!is_array($it) || ($it !== [] && array_is_list($it))) return 'item_not_object';
@@ -113,9 +127,10 @@ function dc_service_create_item_error($it) {
     $pa = $it['priceAcceptance'] ?? null;
     if (!is_array($pa) || ($pa['state'] ?? null) !== 'accepted') return 'price_not_accepted';
     if (!dc_service_is_num($pa['value'] ?? null) || abs((float)$pa['value'] - (float)$p) > 0.005) return 'price_not_accepted';
-    if (($it['priceMode'] ?? null) !== 'manual' || ($pa['source'] ?? null) !== 'manual' || array_key_exists('historyRef', $pa)) {
-        return 'price_source_unsupported';
-    }
+    $mode = $it['priceMode'] ?? null;
+    $src = $pa['source'] ?? null;
+    if (!in_array($mode, DC_SERVICE_CREATE_PRICE_MODES, true) || array_key_exists('historyRef', $pa)) return 'price_source_unsupported';
+    if ($mode === 'manual' ? $src !== 'manual' : !in_array($src, DC_SERVICE_CREATE_RECIPE_SOURCES, true)) return 'price_source_unsupported';
     return null;
 }
 
@@ -131,6 +146,8 @@ function dc_service_create_params_error(array $p) {
     $cid = $p['companyId'] ?? null;
     if (!is_int($cid) || $cid <= 0 || $cid > 2147483647) return $bad('companyId');
     if (!is_string($p['settingsVersion'] ?? null) || preg_match('/^ds1-[0-9a-f]{16}$/D', $p['settingsVersion']) !== 1) return $bad('settingsVersion');
+    if (array_key_exists('defaultPricesVersion', $p)
+        && (!is_string($p['defaultPricesVersion']) || preg_match('/^dp1-[0-9a-f]{16}$/D', $p['defaultPricesVersion']) !== 1)) return $bad('defaultPricesVersion');
     if (!dc_service_is_num($p['claimedTotal'] ?? null) || $p['claimedTotal'] < 0) return $bad('claimedTotal');
     /* Completeness hold (production 34ab583): QUO's Quick Add keeps Add
        disabled while its parser reports omitted lines, until the person ticks
@@ -157,6 +174,11 @@ function dc_service_create_params_error(array $p) {
         $why = dc_service_create_item_error($it);
         if ($why !== null) return ['error' => 'validation_failed', 'field' => 'items', 'index' => $i, 'reason' => $why];
     }
+    /* A recommendation-based source was computed against the Default Price
+       rules: the client must say which ones. */
+    if (!array_key_exists('defaultPricesVersion', $p)) {
+        foreach ($items as $it) if ($it['priceMode'] !== 'manual') return $bad('defaultPricesVersion', 'required');
+    }
     return null;
 }
 
@@ -178,6 +200,13 @@ function dc_service_quotations_create($db, array $params, array $actor, array $c
     $rows = dc_service_diameter_rows($db);
     if ($rows === null) return dc_service_q_fail('quotations.create', 'settings_read_failed', $db);
     if (!hash_equals(dc_service_diameter_version($rows), $params['settingsVersion'])) return ['error' => 'settings_changed'];
+
+    /* …and so must the Default Price rules the price sources were computed with. */
+    if (array_key_exists('defaultPricesVersion', $params)) {
+        $dp = dc_service_default_price_rows($db);
+        if ($dp === null) return dc_service_q_fail('quotations.create', 'default_prices_read_failed', $db);
+        if (!hash_equals(dc_service_default_prices_version($dp), $params['defaultPricesVersion'])) return ['error' => 'default_prices_changed'];
+    }
 
     /* The customer as QUO's editor stores it when a company is chosen
        (index.php: qi-customer = companies.name, qi-phone = companies.phone || ''),

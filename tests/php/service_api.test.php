@@ -409,7 +409,7 @@ $d = $r['json']['data'] ?? [];
 eq(array_keys($d), ['service', 'contract', 'scheme', 'actions', 'serverTime', 'serverTimeUnix', 'createEnabled'], 'B: ping data keys');
 eq($d['createEnabled'] ?? null, false, 'B: quotation create is OFF unless QQ_SERVICE_CREATE_ENABLED says so');
 eq([$d['service'] ?? null, $d['contract'] ?? null, $d['scheme'] ?? null], ['quo-service', 1, 'qqs1'], 'B: service, contract version, scheme');
-eq($d['actions'] ?? null, ['ping', 'diameter_settings.get', 'companies.search', 'contacts.lookup', 'contacts.link', 'whatsapp_template.get', 'quotations.create', 'quotations.lookup_by_key'], 'B: the allow-list is reported');
+eq($d['actions'] ?? null, ['ping', 'diameter_settings.get', 'default_prices.get', 'companies.search', 'contacts.lookup', 'contacts.link', 'whatsapp_template.get', 'quotations.create', 'quotations.lookup_by_key'], 'B: the allow-list is reported');
 ok(is_int($d['serverTimeUnix'] ?? null) && abs($d['serverTimeUnix'] - $t0) <= 5, 'B: server time (Unix seconds)');
 ok(preg_match('/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/', (string)($d['serverTime'] ?? '')) === 1, 'B: server time (ISO 8601 UTC)');
 eq($r['json']['meta']['requestId'] ?? null, 'req_PING0001', 'B: meta.requestId echoes the plain request id');

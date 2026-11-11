@@ -23,4 +23,32 @@ const items = [
   build('stud',   { material: 'MS', size: 'M16', diameter: '16', l: '300', costRate: '', addCost: '', markup: '',
                     qty: '24', priceMode: 'manual', manualUnitPrice: '2.15' }),
 ];
-process.stdout.write(JSON.stringify(items));
+/* `node build-items.js recipe` (QQ R1 Loop #7, official save): items priced
+   from a typed Cost Rate / Add Cost / Markup, each with the source QUO's own
+   shared functions name — quoPriceSource({priceMode, setup, rec:
+   quoRecommend(...)}) — against the Default Price rules in the environment
+   variable DP_RULES (the rows default_prices.get returns; JSON). */
+function buildRecipe(type, fields, finish, rules) {
+  const rec = api.quoRecommend({ type, material: fields.material, sizeType: fields.sizeType, size: fields.size, finish,
+                                 threadLen: fields.threadLen, dpRules: rules });
+  const source = api.quoPriceSource({ priceMode: fields.priceMode, setup: { costRate: fields.costRate, addCost: fields.addCost, markup: fields.markup }, rec });
+  const res = api.quoBuildItem({ type, fields, finish, accessories: api.quoNoAccessories(), acceptance: { source, at: '2026-11-11T02:00:00.000Z' } });
+  if (!res.ok) throw new Error(type + ': ' + res.code + ' ' + res.field);
+  return res.item;
+}
+if (process.argv[2] === 'recipe') {
+  const rules = JSON.parse(process.env.DP_RULES || '[]');
+  process.stdout.write(JSON.stringify([
+    /* = the built-in MS Sag Rod recommendation (ZP 4.20, TL band 30–120 → +0.60) → built_in */
+    buildRecipe('sagrod', { material: 'MS', sizeType: 'UNDERSIZE', size: 'M12', diameter: '10.9', length: '1000', threadLen: '70/70',
+                            costRate: '4.20', addCost: '0.60', markup: '0', qty: '10', priceMode: 'auto', manualUnitPrice: '' }, 'ZP', rules),
+    /* = the custom Default Price rule for Stud MS M16 HDG → default_rule */
+    buildRecipe('stud', { material: 'MS', size: 'M16', diameter: '16', l: '300', costRate: '7.25', addCost: '0', markup: '0',
+                          qty: '24', priceMode: 'no_round', manualUnitPrice: '' }, 'HDG', rules),
+    /* a person's own numbers → manual_recipe */
+    buildRecipe('sagrod', { material: 'MS', sizeType: 'UNDERSIZE', size: 'M12', diameter: '10.9', length: '1000', threadLen: '70/70',
+                            costRate: '4.50', addCost: '0.60', markup: '0', qty: '5', priceMode: 'auto', manualUnitPrice: '' }, 'ZP', rules),
+  ]));
+} else {
+  process.stdout.write(JSON.stringify(items));
+}

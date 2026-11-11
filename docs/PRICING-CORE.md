@@ -26,7 +26,7 @@ The review screen prices a row by writing it into the product form, running that
 
 It covers the five products Quick Add reads from text: Sag Rod, Stud, Anchor Bolt, L Bolt, J Bolt.
 
-Not included, because they are not arithmetic: the recommended rates (built-in rate tables, Default Price rules) and the price-source label (`calc.src`).
+Not included, because they are not arithmetic: the recommended rates (built-in rate tables, Default Price rules) and the price-source label (`calc.src`). Since QQ R1 Loop #7 those are shared too, in `quo-quote-core.js` (`quoRecommend`, `quoPriceSource`; see `QUOTE-CORE.md`, "Recommendation and price source"): their closure needs `quoItemDesc`, which lives there, and this file loads first. This file is unchanged by that move.
 
 ## Custom Diameter Settings
 

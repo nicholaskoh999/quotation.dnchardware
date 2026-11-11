@@ -290,9 +290,9 @@ ok(preg_match('/\bmulti_query\s*\(/', $allCode) === 0, 'D: no multi-statement qu
 /* companies and quotations are only ever read. */
 preg_match_all('/\b(?:INTO|UPDATE|FROM|JOIN)\s+([a-z_]+)\b/', $allCode, $t);
 $tables = array_values(array_unique($t[1])); sort($tables);
-eq($tables, ['companies', 'company_whatsapp_contacts', 'diameter_settings', 'quotation_create_requests', 'quotation_revisions', 'quotations', 'whatsapp_templates'],
+eq($tables, ['companies', 'company_whatsapp_contacts', 'default_prices', 'diameter_settings', 'quotation_create_requests', 'quotation_revisions', 'quotations', 'whatsapp_templates'],
    'D: the only tables named in SQL (besides the nonce table constant)');
-ok(preg_match('/INTO\s+(companies|quotations|diameter_settings)\b/i', $allCode) === 0, 'D: nothing is inserted into companies, quotations or diameter_settings');
+ok(preg_match('/(?:INTO|UPDATE)\s+(companies|quotations|diameter_settings|default_prices)\b/i', $allCode) === 0, 'D: nothing is inserted into or updated in companies, quotations, diameter_settings or default_prices');
 $noCreate = implode("\n", array_diff_key($code, ['service_quotations.php' => 1]));
 ok(preg_match('/\bphone\b/', preg_replace('/wa_phone|\$phone|\'phone\'|waPhone|idx_cwc_phone/', '', $noCreate)) === 0,
    'D: outside the create, companies.phone is never selected or written (the column name does not occur)');
@@ -302,8 +302,8 @@ ok(count($ph[0]) === 2 && strpos($code['service_quotations.php'], 'SELECT id, na
    'D: the create reads companies.phone once, only into customer_phone (as the editor stores it); the read-back never selects it');
 ok(strpos($allCode, 'c.*') === false && preg_match('/SELECT\s+\*\s+FROM\s+companies/i', $allCode) === 0, 'D: no SELECT * on companies');
 
-/* The allow-list is exactly eight actions and each has a handler. */
-eq(DC_SERVICE_ACTIONS, ['ping', 'diameter_settings.get', 'companies.search', 'contacts.lookup', 'contacts.link',
+/* The allow-list is exactly nine actions and each has a handler. */
+eq(DC_SERVICE_ACTIONS, ['ping', 'diameter_settings.get', 'default_prices.get', 'companies.search', 'contacts.lookup', 'contacts.link',
                         'whatsapp_template.get', 'quotations.create', 'quotations.lookup_by_key'], 'D: the allow-list');
 require_once "$ROOT/service_quotations.php";
 eq(array_keys(dc_service_handlers()), DC_SERVICE_ACTIONS, 'D: one handler per allowed action, nothing more');
@@ -328,6 +328,18 @@ preg_match('/\$rows\[\] = \[(.*?)\];/s', $svcBlk[1] ?? '', $svcMap);
 ok(!empty($apiSql[1]) && ($apiSql[1] ?? 'a') === ($svcSql[1] ?? 'b'), 'D: diameter_settings.get runs api.php\'s exact SQL');
 $squash = fn ($s) => preg_replace('/\s+/', '', (string)$s);
 ok(!empty($apiMap[1]) && $squash($apiMap[1] ?? 'a') === $squash($svcMap[1] ?? 'b'), 'D: …and api.php\'s exact row mapping');
+
+/* The Default Price query and row mapping are api.php's get_default_prices', character for character. */
+ok(preg_match('/\} elseif \(\$action === \'get_default_prices\'\) \{(.*?)\n\} elseif/s', $api, $dblk) === 1, 'D: api.php get_default_prices block found');
+preg_match('/"(SELECT \* FROM default_prices[^"]*)"/', $dblk[1] ?? '', $dApiSql);
+preg_match('/\$rows\[\] = \[(.*?)\];/s', $dblk[1] ?? '', $dApiMap);
+preg_match('/function dc_service_default_price_rows\(\$db\) \{(.*?)\n\}/s', $act, $dSvc);
+preg_match('/"(SELECT \* FROM default_prices[^"]*)"/', $dSvc[1] ?? '', $dSvcSql);
+preg_match('/\$rows\[\] = \[(.*?)\];/s', $dSvc[1] ?? '', $dSvcMap);
+ok(!empty($dApiSql[1]) && ($dApiSql[1] ?? 'a') === ($dSvcSql[1] ?? 'b'), 'D: default_prices.get runs api.php\'s exact SQL');
+ok(!empty($dApiMap[1]) && $squash($dApiMap[1] ?? 'a') === $squash($dSvcMap[1] ?? 'b'), 'D: …and api.php\'s exact row mapping');
+eq(dc_service_default_prices_version([]), 'dp1-' . substr(hash('sha256', '[]'), 0, 16), 'D: default prices version = dp1- + 16 hex of SHA-256 over the rows JSON');
+eq(DC_SERVICE_ERRORS['default_prices_changed'][0] ?? null, 409, 'D: default_prices_changed is a 409');
 
 /* Login, session and handoff code is byte-identical to production ca5f0a5. index.php
    (loads the shared cores) and api.php (save functions moved to an include) change

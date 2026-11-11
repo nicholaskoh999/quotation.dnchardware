@@ -105,9 +105,27 @@
     eq($iv([], ['priceAcceptance']), ['items', 1, 'price_not_accepted'], 'V: no priceAcceptance → refused (never stored as a legacy item)');
     eq($iv([], [], ['state' => 'pending']), ['items', 1, 'price_not_accepted'], 'V: not accepted → refused');
     eq($iv([], [], ['value' => 3.6]), ['items', 1, 'price_not_accepted'], 'V: accepted at another price → refused');
-    foreach (['built_in', 'default_rule', 'manual_recipe', 'history_recipe', 'history_manual', 'legacy_saved'] as $src) {
-        eq($iv([], [], ['source' => $src]), ['items', 1, 'price_source_unsupported'], "V: price source $src → refused (QQ cannot know it exactly)");
+    /* Price source (docs/SERVICE-API.md §4.8.1): Manual Price ⇔ 'manual'; any other mode → a recipe source
+       quoPriceSource() can answer without price history; the Default Price rules' version is then required. */
+    foreach (['built_in', 'default_rule', 'manual_recipe', 'history_recipe', 'history_manual', 'legacy_saved', 'bogus'] as $src) {
+        eq($iv([], [], ['source' => $src]), ['items', 1, 'price_source_unsupported'], "V: Manual Price with source $src → refused");
     }
-    eq($iv(['priceMode' => 'auto']), ['items', 1, 'price_source_unsupported'], 'V: source manual but priceMode auto → refused');
+    $DPV = ['defaultPricesVersion' => 'dp1-0123456789abcdef'];
+    $ivr = function (array $over, $pa = null, array $extra = []) use ($e, $item) {
+        $it = array_merge($item, $over); if ($pa !== null) $it['priceAcceptance'] = array_merge($item['priceAcceptance'], $pa);
+        $r = $e(array_merge(['items' => [$item, $it]], $extra));
+        return $r === null ? null : [$r['field'] ?? null, $r['index'] ?? null, $r['reason'] ?? null];
+    };
+    foreach (['auto', 'no_round'] as $mode) foreach (['built_in', 'default_rule', 'manual_recipe'] as $src) {
+        eq($ivr(['priceMode' => $mode], ['source' => $src], $DPV), null, "V: priceMode $mode with source $src (+ defaultPricesVersion) → accepted");
+    }
+    foreach (['history_recipe', 'history_manual', 'legacy_saved', 'manual', 'bogus'] as $src) {
+        eq($ivr(['priceMode' => 'auto'], ['source' => $src], $DPV), ['items', 1, 'price_source_unsupported'], "V: priceMode auto with source $src → refused");
+    }
+    eq($ivr(['priceMode' => 'auto'], ['source' => 'built_in']), ['defaultPricesVersion', null, 'required'], 'V: a non-Manual item without defaultPricesVersion → refused');
+    eq($ivr(['priceMode' => 'Auto'], ['source' => 'built_in'], $DPV), ['items', 1, 'price_source_unsupported'], 'V: an unknown priceMode → refused');
+    eq($ivr([], null, ['defaultPricesVersion' => 'ds1-0123456789abcdef']), ['defaultPricesVersion', null, 'invalid'], 'V: a malformed defaultPricesVersion → refused');
+    eq($ivr([], null, $DPV), null, 'V: Manual items may send a defaultPricesVersion too');
     eq($iv([], [], ['historyRef' => 'q:1']), ['items', 1, 'price_source_unsupported'], 'V: a history reference → refused');
+    eq($ivr(['priceMode' => 'auto'], ['source' => 'built_in', 'historyRef' => 'q:1'], $DPV), ['items', 1, 'price_source_unsupported'], 'V: …also on a recipe item');
 }
