@@ -1,4 +1,11 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── Suggested / Accepted price — the server's half of the rule ───────────────
  *
@@ -15,7 +22,7 @@
 $asserts = 0; $failures = [];
 function ok($cond, $msg) { global $asserts, $failures; $asserts++; if (!$cond) $failures[] = $msg; }
 
-$API = file_get_contents(dirname(__DIR__, 2) . '/api.php');
+$API = dc_split_src(dirname(__DIR__, 2));
 function lift($src, $name) {
     $at = strpos($src, "function {$name}(");
     if ($at === false) return null;

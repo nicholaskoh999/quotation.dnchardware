@@ -1,4 +1,11 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── Reading history — derived when asked, stored nowhere ────────────────────
  *
@@ -34,7 +41,7 @@ function eq($actual, $expected, $msg) {
 }
 
 $ROOT = dirname(__DIR__, 2);
-$API  = file_get_contents($ROOT . '/api.php');
+$API  = dc_split_src($ROOT);
 $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revisions.sql');
 
 // ══ 0 · the read path, in the shipped source ═══════════════════════════════
@@ -126,11 +133,11 @@ $db->query($m2[1]);
 $SB = sys_get_temp_dir() . '/dc-hist-sb-' . getmypid();
 @mkdir($SB, 0777, true);
 register_shutdown_function(function () use ($SB) {
-    foreach (['api.php', 'pricing_history.php', 'auth.php', 'db.php',
+    foreach (['api.php', 'quotation_store.php', 'pricing_history.php', 'auth.php', 'db.php',
               'server-out.log', 'server-err.log'] as $f) @unlink($SB . '/' . $f);
     @rmdir($SB);
 });
-copy($ROOT . '/api.php', $SB . '/api.php');
+copy($ROOT . '/api.php', $SB . '/api.php'); copy($ROOT . '/quotation_store.php', $SB . '/quotation_store.php');
 copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
 file_put_contents($SB . '/auth.php',
     "<?php function dc_require_api_login(){} function dc_require_csrf_api(\$json){} /* gate: same_origin_mount.test.php */\n"

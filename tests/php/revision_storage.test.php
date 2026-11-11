@@ -1,4 +1,11 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── Revision storage — the shape history will live in ───────────────────────
  *
@@ -544,7 +551,7 @@ $drop($A);
        is replaced by the contract that now holds — which is stricter, because
        "none" is easy and "exactly one INSERT and never an UPDATE or DELETE" is
        the thing that actually keeps this table append-only. */
-    $code = $phpCode($ROOT . '/api.php');
+    $code = $phpCode(dc_split_file($ROOT));
     eq(substr_count($code, 'INSERT INTO quotation_revisions'), 1,
        '7: api.php writes revisions through exactly ONE INSERT');
     eq(preg_match_all('/(UPDATE|DELETE\s+FROM|TRUNCATE\s+(TABLE\s+)?)\s*quotation_revisions/i', $code), 0,

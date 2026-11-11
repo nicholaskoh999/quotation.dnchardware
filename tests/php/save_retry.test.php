@@ -1,4 +1,15 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    /* The create path is dc_store_create_quotation() in quotation_store.php; save_quotation calls it. */
+    function dc_store_create_src($src) { $i = strpos($src, 'function dc_store_create_quotation('); if ($i === false) return '';
+        $j = strpos($src, "
+function ", $i + 1); return $j === false ? substr($src, $i) : substr($src, $i, $j - $i); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── save_quotation: one retry, for one error number ────────────────────────
  *
@@ -28,7 +39,7 @@ function eq($actual, $expected, $msg) {
 }
 
 /* ── the shipped function, lifted out of api.php by brace matching ───────── */
-$src = file_get_contents(__DIR__ . '/../../api.php');
+$src = dc_split_src(dirname(__DIR__, 2));
 $at  = strpos($src, 'function dc_save_quotation_insert');
 ok($at !== false, 'dc_save_quotation_insert is present in the shipped api.php');
 if ($at === false) { echo "  cannot continue\n"; exit(1); }
@@ -122,6 +133,8 @@ foreach ([2006 => 'server has gone away', 1146 => 'table does not exist',
 {
     $save = substr($src, strpos($src, "elseif (\$action === 'save_quotation')"));
     $save = substr($save, 0, strpos($save, "elseif (\$action === 'update_quotation')"));
+    ok(strpos($save, 'dc_store_create_quotation(') !== false, '5: save_quotation creates through dc_store_create_quotation');
+    $save = dc_store_create_src($src);
     ok(strpos($save, 'dc_save_quotation_insert($stmt, $ref_no,') !== false,
         '5: save_quotation commits through the retry, by reference');
     ok(strpos($save, 'next_free_ref_no($db)') !== false,

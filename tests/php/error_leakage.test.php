@@ -1,4 +1,11 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── A database failure says what failed, never how ────────────────────────
  *
@@ -37,7 +44,7 @@ function eq($actual, $expected, $msg) {
 }
 
 $ROOT = realpath(__DIR__ . '/../..');
-$src  = file_get_contents($ROOT . '/api.php');
+$src  = dc_split_src($ROOT);
 
 /* Comment-blanked copy: api.php's prose legitimately talks about $db->error. */
 $code = $src;
@@ -131,7 +138,7 @@ CHILD;
         $log = tempnam(sys_get_temp_dir(), 'dcellog');
         file_put_contents($log, '');
         $cmd = escapeshellarg(PHP_BINARY) . ' -d error_reporting=E_ALL -d display_errors=stderr '
-             . escapeshellarg($tmp) . ' ' . escapeshellarg($ROOT . '/api.php') . ' '
+             . escapeshellarg($tmp) . ' ' . escapeshellarg(dc_split_file($ROOT)) . ' '
              . escapeshellarg($case) . ' ' . escapeshellarg($log) . ' 2>&1';
         $out = (string)shell_exec($cmd);
         $j = json_decode(trim($out), true);
@@ -160,7 +167,7 @@ CHILD;
         $tmp = tempnam(sys_get_temp_dir(), 'dcel') . '.php';
         file_put_contents($tmp, "<?php\n" . $child);
         $out = (string)shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($tmp) . ' '
-             . escapeshellarg($ROOT . '/api.php') . ' query ' . escapeshellarg($log) . ' 2>&1');
+             . escapeshellarg(dc_split_file($ROOT)) . ' query ' . escapeshellarg($log) . ' 2>&1');
         $j = json_decode(trim($out), true);
         $refs[] = $j['error'] ?? '';
         @unlink($log); @unlink($tmp);
@@ -171,7 +178,7 @@ CHILD;
 // ══ 2 · the shipped api.php, run for real against a scripted fake driver ═════
 $SB = sys_get_temp_dir() . '/dc-leak-sb-' . getmypid();
 @mkdir($SB, 0777, true);
-copy($ROOT . '/api.php', $SB . '/api.php');
+copy($ROOT . '/api.php', $SB . '/api.php'); copy($ROOT . '/quotation_store.php', $SB . '/quotation_store.php');
 copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
 ok(sha1_file($SB . '/api.php') === sha1_file($ROOT . '/api.php'),
    '2: the sandbox runs a byte-identical copy of the shipped api.php');
@@ -363,7 +370,7 @@ foreach ($sites as [$label, $action, $scenario, $payload, $q, $want]) {
 proc_terminate($srv);
 foreach ($srvPipes as $sp) if (is_resource($sp)) fclose($sp);
 proc_close($srv); $srv = null;
-foreach (['api.php', 'pricing_history.php', 'auth.php', 'db.php', 'php-error.log'] as $f) @unlink($SB . '/' . $f);
+foreach (['api.php', 'quotation_store.php', 'pricing_history.php', 'auth.php', 'db.php', 'php-error.log'] as $f) @unlink($SB . '/' . $f);
 @rmdir($SB);
 
 // ══ 3 · the source: no driver text is built into a response ══════════════════

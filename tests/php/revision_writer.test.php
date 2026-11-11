@@ -1,4 +1,15 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    /* The create path is dc_store_create_quotation() in quotation_store.php; save_quotation calls it. */
+    function dc_store_create_src($src) { $i = strpos($src, 'function dc_store_create_quotation('); if ($i === false) return '';
+        $j = strpos($src, "
+function ", $i + 1); return $j === false ? substr($src, $i) : substr($src, $i, $j - $i); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── The revision writer — a mutation and its history commit together ────────
  *
@@ -27,7 +38,7 @@ function eq($actual, $expected, $msg) {
 }
 
 $ROOT = dirname(__DIR__, 2);
-$API  = file_get_contents($ROOT . '/api.php');
+$API  = dc_split_src($ROOT);
 $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revisions.sql');
 
 // ══ 0 · append-only, and the one INSERT that makes it true ═════════════════
@@ -49,7 +60,11 @@ $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revis
     foreach ([['save_quotation', 'update_quotation', 'CREATE'],
               ['update_quotation', 'delete_quotation', 'UPDATE']] as [$a, $b, $label]) {
         $h = $seg("\$action === '{$a}'", "\$action === '{$b}'");
-        $w = strpos($h, 'dc_write_revision(');
+        if ($label === 'CREATE') {
+            ok(strpos($h, 'dc_store_create_quotation(') !== false, '0: save_quotation creates through dc_store_create_quotation');
+            $h = dc_store_create_src($API);
+        }
+        $w = strpos($h, $label === 'CREATE' ? 'dc_write_revision_as(' : 'dc_write_revision(');
         $c = strrpos($h, 'dc_txn_commit(');
         ok($w !== false, "0: {$label} writes a revision");
         ok($w < $c, "0: {$label} writes it BEFORE the commit — they land together or not at all");
@@ -57,7 +72,7 @@ $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revis
     $del = $seg("\$action === 'delete_quotation'", "\$action === 'get_price_history'");
     ok(strpos($del, 'dc_write_revision(') === false,
        '0: delete_quotation writes no revision — that is the Baseline / Delete Policy round');
-    ok(strpos($API, "dc_write_revision(\$db, \$new_id, 'create')") !== false, '0: the create event is named');
+    ok(strpos($API, "dc_write_revision_as(\$db, \$new_id, 'create', \$actor)") !== false, '0: the create event is named');
     ok(strpos($API, "dc_write_revision(\$db, \$id, 'update')") !== false, '0: and the update event');
     /* prepared_by is a document field. The actor must come from the session. */
     ok(strpos($API, 'dc_current_user()') !== false, '0: the actor comes from dc_current_user()');
@@ -127,12 +142,12 @@ $schema();
 $SB = sys_get_temp_dir() . '/dc-revwr-sb-' . getmypid();
 @mkdir($SB, 0777, true);
 $cleanupSandbox = function () use ($SB) {
-    foreach (['api.php', 'pricing_history.php', 'auth.php', 'db.php'] as $f) @unlink($SB . '/' . $f);
+    foreach (['api.php', 'quotation_store.php', 'pricing_history.php', 'auth.php', 'db.php'] as $f) @unlink($SB . '/' . $f);
     @rmdir($SB);
 };
 register_shutdown_function($cleanupSandbox);
 
-copy($ROOT . '/api.php', $SB . '/api.php');
+copy($ROOT . '/api.php', $SB . '/api.php'); copy($ROOT . '/quotation_store.php', $SB . '/quotation_store.php');
 copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
 /* A stub auth.php that answers dc_current_user() with a real actor, so what the
    writer records can be checked against something known. Same shape the
@@ -448,11 +463,10 @@ $id1 = null; $uid1 = null;
     /* And the property the round asked about, proven structurally too: the
        revision write happens ONCE, after the retry has settled, not once per
        attempt. There is no loop between them and exactly one call site. */
-    $createSeg = substr($API, strpos($API, "\$action === 'save_quotation'"),
-                        strpos($API, "\$action === 'update_quotation'") - strpos($API, "\$action === 'save_quotation'"));
-    eq(substr_count($createSeg, 'dc_write_revision('), 1,
+    $createSeg = dc_store_create_src($API);
+    eq(substr_count($createSeg, 'dc_write_revision_as('), 1,
        '8: the create path calls the writer exactly once, whatever the INSERT did internally');
-    ok(strpos($createSeg, 'dc_save_quotation_insert(') < strpos($createSeg, 'dc_write_revision('),
+    ok(strpos($createSeg, 'dc_save_quotation_insert(') < strpos($createSeg, 'dc_write_revision_as('),
        '8: and only after the retrying INSERT has returned');
     ok(preg_match('/for\s*\(|while\s*\(/', $createSeg) === 0,
        '8: with no loop around either of them');

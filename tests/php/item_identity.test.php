@@ -1,4 +1,15 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    /* The create path is dc_store_create_quotation() in quotation_store.php; save_quotation calls it. */
+    function dc_store_create_src($src) { $i = strpos($src, 'function dc_store_create_quotation('); if ($i === false) return '';
+        $j = strpos($src, "
+function ", $i + 1); return $j === false ? substr($src, $i) : substr($src, $i, $j - $i); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── Item identity — a UID the server owns, and a reconciliation that guesses
  *    nothing ──────────────────────────────────────────────────────────────────
@@ -33,7 +44,7 @@ function eq($actual, $expected, $msg) {
 }
 
 $ROOT = dirname(__DIR__, 2);
-$API  = file_get_contents($ROOT . '/api.php');
+$API  = dc_split_src($ROOT);
 $IDX  = file_get_contents($ROOT . '/index.php');
 
 /* ── lift a named function out of the shipped source ─────────────────────── */
@@ -259,8 +270,10 @@ $persisted = json_encode([
 
 // ══ 5 · api.php is actually wired to it ═════════════════════════════════════
 {
-    $save = substr($API, strpos($API, "\$action === 'save_quotation'"),
+    $saveBranch = substr($API, strpos($API, "\$action === 'save_quotation'"),
                    strpos($API, "\$action === 'update_quotation'") - strpos($API, "\$action === 'save_quotation'"));
+    ok(strpos($saveBranch, 'dc_store_create_quotation(') !== false, '5: save_quotation creates through dc_store_create_quotation');
+    $save = dc_store_create_src($API);
     ok(strpos($save, 'dc_assign_item_uids(') !== false, '5: save_quotation mints identity for every item');
     ok(preg_match('/json_encode\(\$itemsArr\)/', $save) === 1, '5: and persists the array it minted into');
     ok(strpos($save, "'items'=>\$itemsArr") !== false,

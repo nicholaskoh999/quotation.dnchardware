@@ -1,4 +1,11 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── PHP 8.1+ mysqli exception compatibility ────────────────────────────────
  *
@@ -31,7 +38,7 @@ function eq($actual, $expected, $msg) {
                                    . "\n      actual:   " . var_export($actual, true));
 }
 
-$src = file_get_contents(__DIR__ . '/../../api.php');
+$src = dc_split_src(dirname(__DIR__, 2));
 
 /* A comment-blanked copy of the same bytes: every comment becomes an equal run
    of spaces, so offsets still line up with $src while prose can no longer
@@ -190,7 +197,7 @@ echo 'REACHED_END_WITHOUT_FAILING';
 CHILD;
     $tmp = tempnam(sys_get_temp_dir(), 'dcmc') . '.php';
     file_put_contents($tmp, "<?php\n" . $child);
-    $api = __DIR__ . '/../../api.php';
+    $api = dc_split_file(dirname(__DIR__, 2));
     /* The client is told the label and a reference id; the driver text goes
        to error_log only (dc_db_fail). Pinned both ways: the new message is
        there, and the driver text is not. */

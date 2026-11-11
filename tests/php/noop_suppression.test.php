@@ -1,4 +1,15 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    /* The create path is dc_store_create_quotation() in quotation_store.php; save_quotation calls it. */
+    function dc_store_create_src($src) { $i = strpos($src, 'function dc_store_create_quotation('); if ($i === false) return '';
+        $j = strpos($src, "
+function ", $i + 1); return $j === false ? substr($src, $i) : substr($src, $i, $j - $i); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── No-op suppression — an update that changes nothing records nothing ──────
  *
@@ -32,7 +43,7 @@ function eq($actual, $expected, $msg) {
 }
 
 $ROOT = dirname(__DIR__, 2);
-$API  = file_get_contents($ROOT . '/api.php');
+$API  = dc_split_src($ROOT);
 $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revisions.sql');
 
 // ══ 0 · the shape of the change, in the shipped source ═════════════════════
@@ -41,7 +52,9 @@ $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revis
         $i = strpos($API, $a); $j = strpos($API, $b);
         return substr($API, $i, $j - $i);
     };
-    $create = $seg("\$action === 'save_quotation'", "\$action === 'update_quotation'");
+    ok(strpos($seg("\$action === 'save_quotation'", "\$action === 'update_quotation'"), 'dc_store_create_quotation(') !== false,
+       '0: save_quotation creates through dc_store_create_quotation');
+    $create = dc_store_create_src($API);
     $update = $seg("\$action === 'update_quotation'", "\$action === 'delete_quotation'");
     ok($create !== '' && $update !== '', '0: both handlers were located in the shipped file');
 
@@ -62,7 +75,7 @@ $MIG  = file_get_contents($ROOT . '/migrations/2026-08-28-create-quotation-revis
     };
     eq(substr_count($bare($update), 'dc_write_revision('), 1,
        '0: the update path still calls the writer exactly once, guarded');
-    eq(substr_count($bare($create), 'dc_write_revision('), 1,
+    eq(substr_count($bare($create), 'dc_write_revision_as('), 1,
        '0: and the create path still calls it exactly once, unguarded');
 
     /* PERSISTED BEFORE vs PERSISTED AFTER, never the browser payload. */
@@ -159,12 +172,12 @@ $schema();
 $SB = sys_get_temp_dir() . '/dc-noop-sb-' . getmypid();
 @mkdir($SB, 0777, true);
 register_shutdown_function(function () use ($SB) {
-    foreach (['api.php', 'pricing_history.php', 'auth.php', 'db.php',
+    foreach (['api.php', 'quotation_store.php', 'pricing_history.php', 'auth.php', 'db.php',
               'server-out.log', 'server-err.log'] as $f) @unlink($SB . '/' . $f);
     @rmdir($SB);
 });
 
-copy($ROOT . '/api.php', $SB . '/api.php');
+copy($ROOT . '/api.php', $SB . '/api.php'); copy($ROOT . '/quotation_store.php', $SB . '/quotation_store.php');
 copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
 file_put_contents($SB . '/auth.php',
     "<?php function dc_require_api_login(){} function dc_require_csrf_api(\$json){} /* gate: same_origin_mount.test.php */\n"

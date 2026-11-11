@@ -1,4 +1,15 @@
 <?php
+/* api.php's persistence code lives in quotation_store.php (docs/QUOTATION-STORE.md): source checks read both files. */
+if (!function_exists('dc_split_src')) {
+    function dc_split_src($root) { return file_get_contents($root . '/api.php') . "
+" . file_get_contents($root . '/quotation_store.php'); }
+    /* The create path is dc_store_create_quotation() in quotation_store.php; save_quotation calls it. */
+    function dc_store_create_src($src) { $i = strpos($src, 'function dc_store_create_quotation('); if ($i === false) return '';
+        $j = strpos($src, "
+function ", $i + 1); return $j === false ? substr($src, $i) : substr($src, $i, $j - $i); }
+    function dc_split_file($root) { static $f = []; if (!isset($f[$root])) { $f[$root] = tempnam(sys_get_temp_dir(), 'dcsplit');
+        file_put_contents($f[$root], dc_split_src($root)); $p = $f[$root]; register_shutdown_function(function () use ($p) { @unlink($p); }); } return $f[$root]; }
+}
 /**
  * ── Read before write — one transaction around a quotation mutation ─────────
  *
@@ -41,7 +52,7 @@ function eq($actual, $expected, $msg) {
 }
 
 $ROOT = dirname(__DIR__, 2);
-$API  = file_get_contents($ROOT . '/api.php');
+$API  = dc_split_src($ROOT);
 
 /* ── lift a named function out of the shipped source ─────────────────────── */
 function lift($src, $name) {
@@ -77,7 +88,9 @@ $seg = function ($from, $to) use ($API) {
     $i = strpos($API, $from); $j = strpos($API, $to);
     return ($i === false || $j === false) ? '' : substr($API, $i, $j - $i);
 };
-$create = $seg("\$action === 'save_quotation'", "\$action === 'update_quotation'");
+ok(strpos($seg("\$action === 'save_quotation'", "\$action === 'update_quotation'"), 'dc_store_create_quotation(') !== false,
+   '1: save_quotation creates through dc_store_create_quotation');
+$create = dc_store_create_src($API);
 $update = $seg("\$action === 'update_quotation'", "\$action === 'delete_quotation'");
 $delete = $seg("\$action === 'delete_quotation'", "\$action === 'get_price_history'");
 ok($create !== '' && $update !== '', '1: both handlers were located in the shipped file');
@@ -138,7 +151,7 @@ ok($create !== '' && $update !== '', '1: both handlers were located in the shipp
     eq(preg_match_all('/(UPDATE|DELETE\s+FROM)\s+quotation_revisions/i', $code), 0,
        '1: and never an UPDATE or DELETE — append-only, enforced by the code');
     foreach ([[$create, 'CREATE'], [$update, 'UPDATE']] as [$h, $lbl]) {
-        $w = strpos($h, 'dc_write_revision(');
+        $w = strpos($h, $lbl === 'CREATE' ? 'dc_write_revision_as(' : 'dc_write_revision(');
         ok($w !== false, "1: the {$lbl} path writes one");
         ok($w < strrpos($h, 'dc_txn_commit('),
            "1: INSIDE this transaction — before the {$lbl} commit, so they land together or not at all");
@@ -258,7 +271,7 @@ $makeSchema();
 // ── the sandbox: the SHIPPED api.php, run for real ─────────────────────────
 $SB = sys_get_temp_dir() . '/dc-txn-sb-' . getmypid();
 @mkdir($SB, 0777, true);
-copy($ROOT . '/api.php', $SB . '/api.php');
+copy($ROOT . '/api.php', $SB . '/api.php'); copy($ROOT . '/quotation_store.php', $SB . '/quotation_store.php');
 copy($ROOT . '/pricing_history.php', $SB . '/pricing_history.php');
 file_put_contents($SB . '/auth.php',
     "<?php function dc_require_api_login(){} function dc_require_csrf_api(\$json){} /* gate: same_origin_mount.test.php */\n"
@@ -490,7 +503,7 @@ $id1 = null;
 
 
 // ── clean up ─────────────────────────────────────────────────────────────────
-foreach (['api.php', 'pricing_history.php', 'auth.php', 'db.php'] as $f) @unlink($SB . '/' . $f);
+foreach (['api.php', 'quotation_store.php', 'pricing_history.php', 'auth.php', 'db.php'] as $f) @unlink($SB . '/' . $f);
 @rmdir($SB);
 $db->select_db('mysql');
 ok($db->query("DROP DATABASE {$DBN}") === true, '8: the throwaway database was dropped');
