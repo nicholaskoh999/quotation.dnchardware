@@ -4,10 +4,15 @@ QQ R1 Loop #6 (save foundation). Resolves blocker B3 of
 `dnc-quick-quote/docs/backend/r1-loop4-backend-foundation-plan.md` (§5.5: move the
 save functions into an include; Owner approved).
 
-**Nothing new is reachable.** `service.php` does not include the store, no action
-creates a quotation through it, and the browser never sends an idempotency key.
-The only behaviour change in production is that `api.php` now loads its
-persistence functions from a second file.
+**Loop #6:** nothing new was reachable; the only production change was that
+`api.php` loads its persistence functions from a second file.
+
+**Loop #7:** `service_quotations.php` (service action `quotations.create`, behind
+`QQ_SERVICE_CREATE_ENABLED`, default off) is the second caller. It calls
+`dc_store_create_quotation()` once, always with an idempotency key, and reaches
+no update-path function (docs/SERVICE-API.md §4.8; call-graph test in
+`tests/php/service_static_create.inc.php`). This file is unchanged by Loop #7;
+the browser still never sends a key.
 
 ## 1. What moved
 

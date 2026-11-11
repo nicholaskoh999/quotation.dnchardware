@@ -43,6 +43,9 @@ const DC_SERVICE_ACTIONS = [
     'companies.search',
     'contacts.lookup',
     'contacts.link',
+    'whatsapp_template.get',
+    'quotations.create',
+    'quotations.lookup_by_key',
 ];
 
 /** code => [HTTP status, fixed message]. The only errors this door can send. */
@@ -64,6 +67,12 @@ const DC_SERVICE_ERRORS = [
     'contact_conflict'        => [409, 'Contact conflicts with an existing link'],
     'quo_unavailable'         => [503, 'Service temporarily unavailable'],
     'core_not_accepted'       => [412, 'Client core version is not accepted'],
+    // quotations.create (docs/SERVICE-API.md 4.8)
+    'create_disabled'         => [403, 'Quotation create is not enabled'],
+    'settings_changed'        => [409, 'Diameter Settings have changed; reload them and price again'],
+    'totals_mismatch'         => [422, 'Quotation total does not match its items'],
+    'key_reused_with_different_payload' => [409, 'Idempotency key was already used for a different quotation'],
+    'in_progress'             => [409, 'Another save is in progress; retry with the same key'],
 ];
 
 // ── Nonce housekeeping (docs/SERVICE-API.md §6.1) ───────────────────────────
@@ -92,9 +101,15 @@ const DC_SERVICE_NONCE_PRUNE_BATCH_MAX = 5000;
 const DC_SERVICE_CORES = [
     'parser'  => ['quo-parser-core.js',  'QUO_PARSER_CORE_CONTRACT',  1],
     'pricing' => ['quo-pricing-core.js', 'QUO_PRICING_CORE_CONTRACT', 1],
+    'quote'   => ['quo-quote-core.js',   'QUO_QUOTE_CORE_CONTRACT',   1],
 ];
-/** Actions that change data and therefore require an accepted core pair. */
-const DC_SERVICE_CORE_GATED_ACTIONS = ['contacts.link'];
+/** Actions that change data and therefore require all three cores accepted. */
+const DC_SERVICE_CORE_GATED_ACTIONS = ['contacts.link', 'quotations.create'];
+
+// ── quotations.create limits (docs/SERVICE-API.md §4.8) ─────────────────────
+const DC_SERVICE_CREATE_MAX_ITEMS      = 100;
+/** Largest JSON encoding of the items list accepted for one create, in bytes. */
+const DC_SERVICE_CREATE_MAX_ITEMS_JSON = 262144;
 
 // ── Configuration: the server-only file, and nothing else ────────────────────
 
@@ -170,6 +185,7 @@ function dc_service_settings(?array $config = null) {
     }
     return ['key_id' => $keyId, 'keys' => $keys,
             'core_allow' => dc_service_core_allow_list($c['QQ_SERVICE_ACCEPTED_CORES'] ?? []),
+            'create_enabled' => dc_service_create_enabled($c),
             'nonce'      => dc_service_nonce_policy($c)];
 }
 
@@ -195,16 +211,18 @@ function dc_service_nonce_policy(array $c) {
 }
 
 /**
- * The operator's list of additionally accepted (older) cores, from
- * QQ_SERVICE_ACCEPTED_CORES. Every entry needs a 64-hex sha256, a positive
- * integer contract, a non-empty reason and a YYYY-MM-DD date; an entry that
- * lacks one is ignored (never "accepted by default"). Empty by default.
+ * The operator's list of additionally accepted (older) core COMBINATIONS, from
+ * QQ_SERVICE_ACCEPTED_CORES['combinations']. An older core is accepted ONLY as
+ * part of an exact listed parser + pricing + quote combination (hash and
+ * contract of all three). Every entry also needs a non-empty reason and a
+ * YYYY-MM-DD date; an entry that lacks one is ignored (never "accepted by
+ * default"). Empty by default. The Loop #6 keys `parser`, `pricing` and
+ * `pairs` are no longer read: a two-core listing cannot vouch for three.
  *
- * @return array{parser:list<array{sha256:string,contract:int}>, pricing:list<array{sha256:string,contract:int}>,
- *               pairs:list<array{parser:array{sha256:string,contract:int}, pricing:array{sha256:string,contract:int}}>}
+ * @return array{combinations:list<array>}
  */
 function dc_service_core_allow_list($raw) {
-    $out = ['parser' => [], 'pricing' => [], 'pairs' => []];
+    $out = ['combinations' => []];
     if (!is_array($raw)) return $out;
     $documented = function ($e) {
         return is_array($e)
@@ -218,17 +236,23 @@ function dc_service_core_allow_list($raw) {
         if (!is_int($contract) || $contract < 1) return null;
         return ['sha256' => $sha, 'contract' => $contract];
     };
-    foreach (['parser', 'pricing'] as $core) {
-        foreach ((is_array($raw[$core] ?? null) ? $raw[$core] : []) as $e) {
-            $h = $hash($e);
-            if ($h !== null && $documented($e)) $out[$core][] = $h;
+    foreach ((is_array($raw['combinations'] ?? null) ? $raw['combinations'] : []) as $e) {
+        if (!$documented($e)) continue;
+        $c = [];
+        foreach (array_keys(DC_SERVICE_CORES) as $core) {
+            $h = $hash($e[$core] ?? null);
+            if ($h === null) { $c = null; break; }
+            $c[$core] = $h;
         }
-    }
-    foreach ((is_array($raw['pairs'] ?? null) ? $raw['pairs'] : []) as $e) {
-        $p = $hash($e['parser'] ?? null); $q = $hash($e['pricing'] ?? null);
-        if ($p !== null && $q !== null && $documented($e)) $out['pairs'][] = ['parser' => $p, 'pricing' => $q];
+        if ($c !== null) $out['combinations'][] = $c;
     }
     return $out;
+}
+
+/** QQ_SERVICE_CREATE_ENABLED: quotations.create is refused unless this is an explicit true. Default false. */
+function dc_service_create_enabled(array $c) {
+    $v = $c['QQ_SERVICE_CREATE_ENABLED'] ?? false;
+    return $v === true || (is_string($v) && in_array(strtolower(trim($v)), ['true', '1', 'on', 'yes'], true));
 }
 
 // ── Core-version gate ────────────────────────────────────────────────────────
@@ -241,7 +265,7 @@ function dc_service_core_allow_list($raw) {
  * than once, or names a contract this service does not support.
  * Computed once per request per directory.
  *
- * @return array{parser:?array{sha256:string,contract:int}, pricing:?array{sha256:string,contract:int}}
+ * @return array{parser:?array, pricing:?array, quote:?array}
  */
 function dc_service_server_cores($dir = null) {
     static $cache = [];
@@ -262,11 +286,11 @@ function dc_service_server_cores($dir = null) {
 
 /**
  * The client's core claims, read from the SIGNED body only:
- *   {"client":{"cores":{"parser":{"version","contract","sha256"},"pricing":{…}}}}
+ *   {"client":{"cores":{"parser":{version,contract,sha256},"pricing":{…},"quote":{…}}}}
  * Headers, the query string and anything outside client.cores are never read.
  *
  * @return null|false|array  null = no claim; false = malformed;
- *                           else ['parser' => claim|null, 'pricing' => claim|null]
+ *                           else ['parser' => claim|null, 'pricing' => claim|null, 'quote' => claim|null]
  */
 function dc_service_core_claims($raw) {
     $d = is_string($raw) ? json_decode($raw, true, 32) : null;
@@ -277,7 +301,7 @@ function dc_service_core_claims($raw) {
     $cores = $client['cores'];
     if (!is_array($cores) || ($cores !== [] && array_is_list($cores))) return false;
     $out = [];
-    foreach (['parser', 'pricing'] as $core) {
+    foreach (array_keys(DC_SERVICE_CORES) as $core) {
         $c = $cores[$core] ?? null;
         if ($c === null) { $out[$core] = null; continue; }
         if (!is_array($c)) return false;
@@ -287,7 +311,7 @@ function dc_service_core_claims($raw) {
         if (!is_string($s) || preg_match('/^[0-9a-f]{64}$/D', $s) !== 1) return false;
         $out[$core] = ['version' => $v, 'contract' => $k, 'sha256' => $s];
     }
-    if ($out['parser'] === null && $out['pricing'] === null) return null;
+    if (count(array_filter($out)) === 0) return null;
     return $out;
 }
 
@@ -295,68 +319,56 @@ function dc_service_core_claims($raw) {
  * The verdict on a claim. Pure: the server cores and the operator list are
  * passed in.
  *
- *   accepted  true   both cores are this server's own, or each is an
- *                    operator-listed older core (same contract), or the exact
- *                    pair is operator-listed;
+ *   accepted  true   all three cores are this server's own (current), or the
+ *                    exact three-core combination is operator-listed;
  *             false  anything else, including a server core that is unknown;
  *             null   the client sent no claim at all.
- *   parser/pricing.status  current | listed | unknown_hash | contract_mismatch |
- *                          server_unknown | missing | absent | malformed
- *   reason  accepted | pair_listed | no_claim | claim_malformed | claim_incomplete |
+ *   <core>.status    current | unknown_hash | contract_mismatch | server_unknown | missing | absent | malformed
+ *   reason  accepted | combination_listed | no_claim | claim_malformed | claim_incomplete |
  *           server_core_unknown | contract_mismatch | mixed_versions | not_accepted
  */
 function dc_service_core_evaluate($claims, array $server, array $allow) {
-    $allow += ['parser' => [], 'pricing' => [], 'pairs' => []];
-    if ($claims === null) {
-        return ['accepted' => null, 'parser' => ['status' => 'absent'], 'pricing' => ['status' => 'absent'], 'reason' => 'no_claim'];
+    $allow += ['combinations' => []];
+    $names = array_keys(DC_SERVICE_CORES);
+    if ($claims === null || $claims === false) {
+        $st = $claims === null ? 'absent' : 'malformed';
+        $r = ['accepted' => $claims === null ? null : false];
+        foreach ($names as $core) $r[$core] = ['status' => $st];
+        return $r + ['reason' => $claims === null ? 'no_claim' : 'claim_malformed'];
     }
-    if ($claims === false) {
-        return ['accepted' => false, 'parser' => ['status' => 'malformed'], 'pricing' => ['status' => 'malformed'], 'reason' => 'claim_malformed'];
-    }
-    $status = []; $ok = [];
-    foreach (['parser', 'pricing'] as $core) {
+    $status = []; $current = [];
+    foreach ($names as $core) {
         $claim = $claims[$core] ?? null;
         $mine = $server[$core] ?? null;
-        $supported = DC_SERVICE_CORES[$core][2];
         if ($mine === null)              $s = 'server_unknown';
         elseif ($claim === null)         $s = 'missing';
-        elseif ($claim['contract'] !== $supported) $s = 'contract_mismatch';
+        elseif ($claim['contract'] !== DC_SERVICE_CORES[$core][2]) $s = 'contract_mismatch';
         elseif (hash_equals($mine['sha256'], $claim['sha256'])) $s = 'current';
-        else {
-            $s = 'unknown_hash';
-            foreach ($allow[$core] as $e) {
-                if ($e['contract'] === $claim['contract'] && hash_equals($e['sha256'], $claim['sha256'])) { $s = 'listed'; break; }
-            }
-        }
+        else $s = 'unknown_hash';
         $status[$core] = ['status' => $s];
         if ($claim !== null) $status[$core]['version'] = $claim['version'];
-        $ok[$core] = $s === 'current' || $s === 'listed';
+        $current[$core] = $s === 'current';
     }
-    $result = ['accepted' => false, 'parser' => $status['parser'], 'pricing' => $status['pricing']];
+    $result = ['accepted' => false] + $status;
+    $has = fn ($s) => in_array($s, array_column($status, 'status'), true);
 
     /* A core this server cannot read is never vouched for, listed or not. */
-    if ($status['parser']['status'] === 'server_unknown' || $status['pricing']['status'] === 'server_unknown') {
-        return $result + ['reason' => 'server_core_unknown'];
-    }
-    if ($status['parser']['status'] === 'missing' || $status['pricing']['status'] === 'missing') {
-        return $result + ['reason' => 'claim_incomplete'];
-    }
-    if ($ok['parser'] && $ok['pricing']) {
+    if ($has('server_unknown')) return $result + ['reason' => 'server_core_unknown'];
+    if ($has('missing'))        return $result + ['reason' => 'claim_incomplete'];
+    if (!in_array(false, $current, true)) {
         $result['accepted'] = true;
         return $result + ['reason' => 'accepted'];
     }
-    foreach ($allow['pairs'] as $pair) {
+    foreach ($allow['combinations'] as $combo) {
         $match = true;
-        foreach (['parser', 'pricing'] as $core) {
-            $match = $match && $pair[$core]['contract'] === $claims[$core]['contract']
-                            && hash_equals($pair[$core]['sha256'], $claims[$core]['sha256']);
+        foreach ($names as $core) {
+            $match = $match && $combo[$core]['contract'] === $claims[$core]['contract']
+                            && hash_equals($combo[$core]['sha256'], $claims[$core]['sha256']);
         }
-        if ($match) { $result['accepted'] = true; return $result + ['reason' => 'pair_listed']; }
+        if ($match) { $result['accepted'] = true; return $result + ['reason' => 'combination_listed']; }
     }
-    if ($status['parser']['status'] === 'contract_mismatch' || $status['pricing']['status'] === 'contract_mismatch') {
-        return $result + ['reason' => 'contract_mismatch'];
-    }
-    return $result + ['reason' => ($ok['parser'] || $ok['pricing']) ? 'mixed_versions' : 'not_accepted'];
+    if ($has('contract_mismatch')) return $result + ['reason' => 'contract_mismatch'];
+    return $result + ['reason' => in_array(true, $current, true) ? 'mixed_versions' : 'not_accepted'];
 }
 
 /**

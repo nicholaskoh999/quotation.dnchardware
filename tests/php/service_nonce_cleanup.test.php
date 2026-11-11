@@ -172,7 +172,7 @@ $root->query("CREATE USER '{$RO_USER}'@'%' IDENTIFIED BY '{$RO_PASS}'");
 $root->query("GRANT SELECT ON {$UDB}.users TO '{$RO_USER}'@'%'");
 @mkdir("$SB/app/Handoff/Contract", 0777, true);
 foreach (['service.php', 'service_auth.php', 'service_actions.php', 'dnc_handoff.php', 'auth.php', 'quo-parser-core.js', 'quo-pricing-core.js',
-          'app/Handoff/Contract/HandoffToken.php', 'app/Handoff/Contract/InvalidHandoffToken.php'] as $f) copy("$ROOT/$f", "$SB/$f");
+          'app/Handoff/Contract/HandoffToken.php', 'app/Handoff/Contract/InvalidHandoffToken.php', 'service_quotations.php', 'quotation_store.php'] as $f) copy("$ROOT/$f", "$SB/$f");
 file_put_contents("$SB/db.php", "<?php function getDB(){ \$d = new mysqli(" . var_export($H, true) . ',' . var_export($U, true) . ',' . var_export($W, true) . ','
     . var_export($QDB, true) . ",{$P}); if (\$d->connect_error) { die('x'); } \$d->set_charset('utf8mb4'); return \$d; }\n");
 file_put_contents("$SB/dnc_config.php", '<?php return ' . var_export(['DNC_HANDOFF_ENABLED' => 'false', 'DNC_HANDOFF_SECRET' => 'base64:' . base64_encode(random_bytes(32)),

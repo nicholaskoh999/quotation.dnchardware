@@ -34,31 +34,31 @@ return [
     'QQ_SERVICE_SECRET_PREVIOUS' => '',
 
     // ── Core-version gate (docs/SERVICE-API.md 3.7) ─────────────────────────
-    // The service always accepts the parser + pricing cores DEPLOYED BESIDE
-    // IT (quo-parser-core.js, quo-pricing-core.js: SHA-256 of the file bytes,
-    // contract read from the file). Nothing else is accepted unless listed
-    // here. EMPTY BY DEFAULT. Every entry needs sha256 (64 lower-case hex),
-    // contract (integer), reason (text) and date (YYYY-MM-DD); an entry
-    // missing any of them is ignored.
-    //   parser / pricing  an older core accepted on its own; its contract must
-    //                     equal the one this service supports.
-    //   pairs             one exact parser + pricing combination, accepted as
-    //                     a whole even if mixed or on another contract.
-    // Remove an entry and that core is refused again on the next request.
+    // The service accepts the parser + pricing + quote cores DEPLOYED BESIDE
+    // IT (quo-parser-core.js, quo-pricing-core.js, quo-quote-core.js: SHA-256
+    // of the file bytes, contract read from the file), all three together.
+    // An older core is accepted ONLY as part of an exact three-core
+    // combination listed here. EMPTY BY DEFAULT. Every entry needs parser,
+    // pricing and quote (each sha256 = 64 lower-case hex, contract = integer),
+    // a reason (text) and a date (YYYY-MM-DD); an entry missing any of them is
+    // ignored. The Loop #6 keys parser / pricing / pairs are no longer read.
+    // Remove an entry and that combination is refused on the next request.
     // Example (FAKE hashes):
-    //   'parser' => [
-    //       ['sha256' => '<64 hex>', 'contract' => 1, 'reason' => 'QQ 0.2.0 still in use during rollout', 'date' => '2026-11-11'],
-    //   ],
-    //   'pairs' => [
+    //   'combinations' => [
     //       ['parser'  => ['sha256' => '<64 hex>', 'contract' => 1],
     //        'pricing' => ['sha256' => '<64 hex>', 'contract' => 1],
-    //        'reason'  => 'pilot build', 'date' => '2026-11-11'],
+    //        'quote'   => ['sha256' => '<64 hex>', 'contract' => 1],
+    //        'reason'  => 'QQ 0.2.0 still in use during rollout', 'date' => '2026-11-11'],
     //   ],
     'QQ_SERVICE_ACCEPTED_CORES'  => [
-        'parser'  => [],
-        'pricing' => [],
-        'pairs'   => [],
+        'combinations' => [],
     ],
+
+    // ── Quotation create (docs/SERVICE-API.md 4.8) ──────────────────────────
+    // quotations.create answers 403 create_disabled unless this is 'true'.
+    // Ships OFF; it can be switched off again at any time without touching the
+    // rest of the service. Requires migrations/2026-11-11-create-quotation-create-requests.sql.
+    'QQ_SERVICE_CREATE_ENABLED'  => 'false',
 
     // ── Nonce housekeeping (docs/SERVICE-API.md 6.1) ────────────────────────
     // On about one accepted request in QQ_SERVICE_NONCE_PRUNE_EVERY (0 = never)

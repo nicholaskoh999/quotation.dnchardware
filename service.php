@@ -69,6 +69,8 @@ function dc_service_refuse($code, array $extra = []) {
     [$status, $message] = $table[$code] ?? $known['quo_unavailable'];
     if (!isset($table[$code])) $code = 'quo_unavailable';
     $error = ['code' => $code, 'message' => $message];
+    /* The 0-based item a refusal is about (quotations.create). A number only. */
+    if (isset($extra['index']) && is_int($extra['index']) && $extra['index'] >= 0 && $extra['index'] < 10000) $error['index'] = $extra['index'];
     foreach (['field', 'reason'] as $k) {   // fixed words only
         if (isset($extra[$k]) && is_string($extra[$k]) && preg_match('/^[A-Za-z_]{1,40}$/D', $extra[$k]) === 1) $error[$k] = $extra[$k];
     }
@@ -194,6 +196,7 @@ try {
 
     // ── 8 · the action ───────────────────────────────────────────────────────
     require_once __DIR__ . '/service_actions.php';
+    require_once __DIR__ . '/service_quotations.php';
     /* Same pins as api.php: Malaysia time for PHP and for this MySQL session,
        so a DATETIME default written here reads like every other QUO row. */
     date_default_timezone_set('Asia/Kuala_Lumpur');
@@ -201,7 +204,7 @@ try {
 
     $handler = dc_service_handlers()[$action];
     $result = $handler($db, $req['params'], ['sub' => $req['sub'], 'username' => $req['username']],
-                       ['claims' => $claims, 'core_allow' => $settings['core_allow']]);
+                       ['claims' => $claims, 'core_allow' => $settings['core_allow'], 'create_enabled' => $settings['create_enabled']]);
     if (isset($result['error'])) dc_service_refuse((string)$result['error'], $result);
     dc_service_log('request.ok', ['action' => $action, 'actor' => $req['sub']]);
     dc_service_send(200, ['ok' => true, 'data' => $result['data']]);

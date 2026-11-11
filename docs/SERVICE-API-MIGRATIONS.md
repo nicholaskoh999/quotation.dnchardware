@@ -109,3 +109,15 @@ Note: the comment block at the top of
 `migrations/2026-11-10-create-service-request-nonces.sql` still says the
 service never deletes from the table. That text predates Loop #6; the
 migration's SQL is unchanged and still correct.
+
+## 6. Loop #7: the third migration
+
+`quotations.create` (SERVICE-API.md §4.8) also needs
+`migrations/2026-11-11-create-quotation-create-requests.sql` (runbook:
+docs/QUOTATION-STORE.md §5) and the existing `quotation_revisions` table. Order:
+backup → the two 2026-11-10 migrations → the 2026-11-11 migration → deploy →
+enable the service → only then, with Owner approval, `QQ_SERVICE_CREATE_ENABLED`
+= `'true'`. With the request table absent a create fails closed (503) and
+rolls back; reads are unaffected. `tests/php/service_quotation_create.test.php`
+runs all three forward, again, rollback and forward on MySQL 8.4. **MySQL 8.0
+(the production engine) has not been verified for any of the three.**

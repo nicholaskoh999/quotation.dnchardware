@@ -220,6 +220,12 @@ if (!is_string($prodApi) || strlen($prodApi) < 10000) {
             ok(stripos($c, $needle) === false, "C: {$f} does not name {$needle}");
         }
     }
+    /* Loop #7: the ONE service exposure is service_quotations.php (quotations.create),
+       which calls the create path once, always with an idempotency key. */
+    $SQ = preg_replace(['~/\*.*?\*/~s', '~//[^\n]*~'], '', (string)@file_get_contents("$ROOT/service_quotations.php"));
+    eq(substr_count($SQ, 'dc_store_create_quotation('), 1, 'C: service_quotations.php calls the create path in one place');
+    ok(strpos($SQ, 'dc_store_create_quotation($db, $payload, $storeActor, $idem)') !== false, 'C: …always WITH an idempotency key');
+    ok(preg_match('/\b(dc_lock_quotation_for_update|dc_reconcile_item_uids|dc_write_revision)\s*\(/', $SQ) === 0, 'C: …and never an update-path function');
     eq(substr_count($API, 'dc_store_create_quotation('), 1, 'C: api.php calls the create path in one place');
     ok(strpos($API, 'dc_store_create_quotation($db, $input, dc_current_user(), null)') !== false,
        'C: …from save_quotation, with NO idempotency key');

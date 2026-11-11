@@ -15,8 +15,9 @@
  * enforces it); read-only handlers do not.
  *
  * WRITES. Exactly one statement in this file changes data: the INSERT into
- * company_whatsapp_contacts in dc_service_contacts_link(). Nothing here
- * creates, edits or deletes a quotation, a company or a setting, and no
+ * company_whatsapp_contacts in dc_service_contacts_link(). Quotation creation
+ * lives in service_quotations.php and goes through the shared quotation store only.
+ * Nothing here edits or deletes a quotation, a company or a setting, and no
  * statement names `companies` except to read it.
  */
 
@@ -42,6 +43,8 @@ function dc_service_ping($db, array $params, array $actor, array $ctx = []) {
         'actions'        => DC_SERVICE_ACTIONS,
         'serverTime'     => dc_service_iso_utc($now),
         'serverTimeUnix' => $now,
+        // quotations.create is switched on (QQ_SERVICE_CREATE_ENABLED). Not a verdict on the core.
+        'createEnabled'  => ($ctx['create_enabled'] ?? false) === true,
     ]];
 }
 
@@ -365,5 +368,8 @@ function dc_service_handlers() {
         'companies.search'      => 'dc_service_companies_search',
         'contacts.lookup'       => 'dc_service_contacts_lookup',
         'contacts.link'         => 'dc_service_contacts_link',
+        'whatsapp_template.get' => 'dc_service_whatsapp_template_get',
+        'quotations.create'     => 'dc_service_quotations_create',
+        'quotations.lookup_by_key' => 'dc_service_quotations_lookup_by_key',
     ];
 }

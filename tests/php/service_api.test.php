@@ -266,7 +266,7 @@ $DIAM_BEFORE      = [$snapshot('diameter_settings'), $checksum('diameter_setting
 
 // ══ sandbox ════════════════════════════════════════════════════════════════
 @mkdir("$SB/app/Handoff/Contract", 0777, true);
-$SHIPPED = ['service.php', 'service_auth.php', 'service_actions.php', 'dnc_handoff.php', 'auth.php',
+$SHIPPED = ['service.php', 'service_auth.php', 'service_actions.php', 'service_quotations.php', 'quotation_store.php', 'quo-quote-core.js', 'dnc_handoff.php', 'auth.php',
             'app/Handoff/Contract/HandoffToken.php', 'app/Handoff/Contract/InvalidHandoffToken.php',
             'quo-parser-core.js', 'quo-pricing-core.js'];
 foreach ($SHIPPED as $f) copy("$ROOT/$f", "$SB/$f");
@@ -336,8 +336,14 @@ function sign(string $key, string $action, string $ts, string $nonce, string $bo
 function core_claim(string $file, string $const): array {
     global $SB;
     $src = (string)file_get_contents("$SB/$file");
-    preg_match('/const ' . $const . ' = (\d+);/', $src, $m);
-    return ['version' => '1.0.0', 'contract' => (int)($m[1] ?? 0), 'sha256' => hash('sha256', $src)];
+    preg_match('/const ' . $const . '\s*=\s*(\d+);/', $src, $m);
+    return ['version' => core_version($file), 'contract' => (int)($m[1] ?? 0), 'sha256' => hash('sha256', $src)];
+}
+/** The version the core file declares (QUO_*_CORE_VERSION), read from the file, never a literal. */
+function core_version(string $file): string {
+    global $ROOT;
+    preg_match("/const QUO_[A-Z]+_CORE_VERSION\s*=\s*'([0-9.]+)'/", (string)file_get_contents("$ROOT/$file"), $m);
+    return $m[1] ?? '0';
 }
 /**
  * One signed call. $o overrides: actor, body (raw), key, keyId, ts, nonce,
@@ -350,7 +356,7 @@ function call(string $action, array $params = [], array $o = []) {
     $actor = $o['actor'] ?? ['sub' => 7, 'username' => 'exampleuser'];
     $envelope = ['actor' => $actor, 'requestId' => $o['requestId'] ?? ('req_' . bin2hex(random_bytes(6))), 'params' => (object)$params];
     $cores = array_key_exists('cores', $o) ? $o['cores']
-           : ['parser' => core_claim('quo-parser-core.js', 'QUO_PARSER_CORE_CONTRACT'), 'pricing' => core_claim('quo-pricing-core.js', 'QUO_PRICING_CORE_CONTRACT')];
+           : ['parser' => core_claim('quo-parser-core.js', 'QUO_PARSER_CORE_CONTRACT'), 'pricing' => core_claim('quo-pricing-core.js', 'QUO_PRICING_CORE_CONTRACT'), 'quote' => core_claim('quo-quote-core.js', 'QUO_QUOTE_CORE_CONTRACT')];
     if ($cores !== null) $envelope['client'] = ['cores' => $cores];
     $body  = $o['body'] ?? json_encode($envelope);
     $ts    = (string)($o['ts'] ?? time());
@@ -400,15 +406,16 @@ $t0 = time();
 $r = call('ping', [], ['requestId' => 'req_PING0001']);
 eq([$r['status'], $r['json']['ok'] ?? null], [200, true], 'B: enabled + valid signature → ping 200 ok');
 $d = $r['json']['data'] ?? [];
-eq(array_keys($d), ['service', 'contract', 'scheme', 'actions', 'serverTime', 'serverTimeUnix'], 'B: ping data keys');
+eq(array_keys($d), ['service', 'contract', 'scheme', 'actions', 'serverTime', 'serverTimeUnix', 'createEnabled'], 'B: ping data keys');
+eq($d['createEnabled'] ?? null, false, 'B: quotation create is OFF unless QQ_SERVICE_CREATE_ENABLED says so');
 eq([$d['service'] ?? null, $d['contract'] ?? null, $d['scheme'] ?? null], ['quo-service', 1, 'qqs1'], 'B: service, contract version, scheme');
-eq($d['actions'] ?? null, ['ping', 'diameter_settings.get', 'companies.search', 'contacts.lookup', 'contacts.link'], 'B: the allow-list is reported');
+eq($d['actions'] ?? null, ['ping', 'diameter_settings.get', 'companies.search', 'contacts.lookup', 'contacts.link', 'whatsapp_template.get', 'quotations.create', 'quotations.lookup_by_key'], 'B: the allow-list is reported');
 ok(is_int($d['serverTimeUnix'] ?? null) && abs($d['serverTimeUnix'] - $t0) <= 5, 'B: server time (Unix seconds)');
 ok(preg_match('/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/', (string)($d['serverTime'] ?? '')) === 1, 'B: server time (ISO 8601 UTC)');
 eq($r['json']['meta']['requestId'] ?? null, 'req_PING0001', 'B: meta.requestId echoes the plain request id');
 eq($r['h']['content-type'][0] ?? null, 'application/json; charset=utf-8', 'B: Content-Type application/json');
 eq($r['h']['cache-control'][0] ?? null, 'no-store', 'B: Cache-Control no-store');
-eq($r['json']['core'] ?? null, ['accepted' => true, 'parser' => ['status' => 'current', 'version' => '1.0.0'], 'pricing' => ['status' => 'current', 'version' => '1.0.0'], 'reason' => 'accepted'],
+eq($r['json']['core'] ?? null, ['accepted' => true, 'parser' => ['status' => 'current', 'version' => core_version('quo-parser-core.js')], 'pricing' => ['status' => 'current', 'version' => core_version('quo-pricing-core.js')], 'quote' => ['status' => 'current', 'version' => core_version('quo-quote-core.js')], 'reason' => 'accepted'],
    'B: the answer carries the core verdict: the served cores are accepted');
 eq(array_keys($r['json'] ?? []), ['ok', 'data', 'core', 'meta'], 'B: envelope keys ok, data, core, meta');
 eq($nonces(), 1, 'B: exactly one nonce row was written');
@@ -492,7 +499,9 @@ eq(call('ping')['status'], 200, 'F: and works again once it is back');
 preg_match('/const DC_MUTATING_ACTIONS = \[(.*?)\];/s', file_get_contents("$ROOT/api.php"), $mm);
 preg_match_all("/'([a-z_]+)'/", $mm[1] ?? '', $mut);
 ok(count($mut[1]) >= 16, 'G: every mutating action name read from api.php (' . count($mut[1]) . ')');
-$notOffered = array_merge($mut[1], ['quotations.create', 'quotations.update', 'quotations.delete', 'quotations_create', 'get_quotations', 'get_quotation',
+/* quotations.create is offered since Loop #7 (create-only, behind QQ_SERVICE_CREATE_ENABLED,
+   tested in service_quotation_create.test.php); update and delete never are. */
+$notOffered = array_merge($mut[1], ['quotations.update', 'quotations.delete', 'quotations_create', 'get_quotations', 'get_quotation',
     'get_companies', 'get_next_ref', 'get_diameter_settings', 'get_default_prices', 'get_whatsapp_template', 'export_diameter_settings',
     'companies.create', 'companies.update', 'companies.delete', 'contacts.unlink', 'contacts.delete', 'diameter_settings.save',
     'diameter_settings.get.', 'ping.', 'unknown', 'x']);

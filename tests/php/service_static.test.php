@@ -194,7 +194,7 @@ eq(dc_service_identity(['chatKind' => 'individual', 'waChatId' => '0000000000000
 eq(dc_service_like_escape('50%_a|b'), '50|%|_a||b', 'C: LIKE wildcards and the escape character are escaped');
 
 // ══ D · static: what the service files contain ═════════════════════════════
-$OWN = ['service.php', 'service_auth.php', 'service_actions.php'];
+$OWN = ['service.php', 'service_auth.php', 'service_actions.php', 'service_quotations.php'];
 /** Source with comments and inline HTML removed, so prose cannot satisfy or trip a check. */
 function code_only($path) {
     $out = '';
@@ -216,12 +216,16 @@ sort($requires);
 eq($requires, [
     "service.php → __DIR__ . '/service_actions.php'",
     "service.php → __DIR__ . '/service_auth.php'",
+    "service.php → __DIR__ . '/service_quotations.php'",
     "service_auth.php → \$path",
     "service_auth.php → __DIR__ . '/dnc_handoff.php'",
-], 'D: the complete include graph of the service files — api.php and auth.php are not in it');
+    "service_quotations.php → __DIR__ . '/quotation_store.php'",
+], 'D: the complete include graph of the service files — api.php and auth.php are not in it; the store only through service_quotations.php');
 foreach ($code as $f => $c) {
     ok(preg_match('/[\'"\/]api\.php/', $c) === 0, "D: $f never names api.php");
-    ok(preg_match('/[\'"\/](auth|login|logout|handoff|index|companies|pricing_history|ai_extract)\.php/', $c) === 0, "D: $f never names auth.php, login.php or another page");
+    /* The one page name allowed: companies.php?openId=<id> in the create answer (QUO's existing "open saved quotation" link). */
+    $c2 = $f === 'service_quotations.php' ? str_replace("'companies.php?openId='", '', $c) : $c;
+    ok(preg_match('/[\'"\/](auth|login|logout|handoff|index|companies|pricing_history|ai_extract)\.php/', $c2) === 0, "D: $f never names auth.php, login.php or another page");
 }
 /* dnc_handoff.php is included for the canonical-user functions, and it loads
    auth.php. Both only DEFINE things; these are the session-touching names
@@ -273,34 +277,42 @@ ok($a !== false && $b !== false && $b > $a && strpos(substr($sp, $a, $b - $a), '
 
 /* Core gate: a handler holds a write statement ⇔ it calls the guard first ⇔ it is listed as gated. */
 foreach (dc_service_handlers() as $a => $fn) {
-    preg_match('/function ' . $fn . '\(.*?\n\}/s', $code['service_actions.php'], $hb);
-    $hasWrite = preg_match('/\b(INSERT|DELETE)\b/', $hb[0] ?? '') === 1;
+    preg_match('/function ' . $fn . '\(.*?\n\}/s', $allCode, $hb);
+    ok(!empty($hb[0]), "D: handler body for $a found");
+    $hasWrite = preg_match('/\b(INSERT|DELETE)\b|dc_store_create_quotation\(/', $hb[0] ?? '') === 1;
     $guardFirst = preg_match('/^function ' . $fn . '\([^{]*\{\s*\$gate = dc_service_require_accepted_core\(/', $hb[0] ?? '') === 1;
     eq([$guardFirst, in_array($a, DC_SERVICE_CORE_GATED_ACTIONS, true)], [$hasWrite, $hasWrite],
        "D: $a — holds a write ⇔ calls dc_service_require_accepted_core() first ⇔ listed in DC_SERVICE_CORE_GATED_ACTIONS");
 }
-eq(DC_SERVICE_CORE_GATED_ACTIONS, ['contacts.link'], 'D: contacts.link is the one core-gated action today');
-ok(preg_match('/HTTP_X_QQ_(PARSER|PRICING)/', $allCode) === 0, 'D: core claims are never read from a request header');
+eq(DC_SERVICE_CORE_GATED_ACTIONS, ['contacts.link', 'quotations.create'], 'D: contacts.link and quotations.create are the core-gated actions');
+ok(preg_match('/HTTP_X_QQ_(PARSER|PRICING|QUOTE)/', $allCode) === 0, 'D: core claims are never read from a request header');
 ok(preg_match('/\bmulti_query\s*\(/', $allCode) === 0, 'D: no multi-statement query');
 /* companies and quotations are only ever read. */
 preg_match_all('/\b(?:INTO|UPDATE|FROM|JOIN)\s+([a-z_]+)\b/', $allCode, $t);
 $tables = array_values(array_unique($t[1])); sort($tables);
-eq($tables, ['companies', 'company_whatsapp_contacts', 'diameter_settings', 'quotations'],
+eq($tables, ['companies', 'company_whatsapp_contacts', 'diameter_settings', 'quotation_create_requests', 'quotation_revisions', 'quotations', 'whatsapp_templates'],
    'D: the only tables named in SQL (besides the nonce table constant)');
 ok(preg_match('/INTO\s+(companies|quotations|diameter_settings)\b/i', $allCode) === 0, 'D: nothing is inserted into companies, quotations or diameter_settings');
-ok(preg_match('/\bphone\b/', preg_replace('/wa_phone|\$phone|\'phone\'|waPhone|idx_cwc_phone/', '', $allCode)) === 0,
-   'D: companies.phone is never selected or written (the column name does not occur)');
+$noCreate = implode("\n", array_diff_key($code, ['service_quotations.php' => 1]));
+ok(preg_match('/\bphone\b/', preg_replace('/wa_phone|\$phone|\'phone\'|waPhone|idx_cwc_phone/', '', $noCreate)) === 0,
+   'D: outside the create, companies.phone is never selected or written (the column name does not occur)');
+preg_match_all('/\bphone\b/', $code['service_quotations.php'], $ph);
+ok(count($ph[0]) === 2 && strpos($code['service_quotations.php'], 'SELECT id, name, phone FROM companies WHERE id = ? LIMIT 1') !== false
+   && strpos($code['service_quotations.php'], "'customer_phone' => (string)(\$company['phone'] ?? '')") !== false,
+   'D: the create reads companies.phone once, only into customer_phone (as the editor stores it); the read-back never selects it');
 ok(strpos($allCode, 'c.*') === false && preg_match('/SELECT\s+\*\s+FROM\s+companies/i', $allCode) === 0, 'D: no SELECT * on companies');
 
-/* The allow-list is exactly five actions and each has a handler. */
-eq(DC_SERVICE_ACTIONS, ['ping', 'diameter_settings.get', 'companies.search', 'contacts.lookup', 'contacts.link'], 'D: the allow-list');
+/* The allow-list is exactly eight actions and each has a handler. */
+eq(DC_SERVICE_ACTIONS, ['ping', 'diameter_settings.get', 'companies.search', 'contacts.lookup', 'contacts.link',
+                        'whatsapp_template.get', 'quotations.create', 'quotations.lookup_by_key'], 'D: the allow-list');
+require_once "$ROOT/service_quotations.php";
 eq(array_keys(dc_service_handlers()), DC_SERVICE_ACTIONS, 'D: one handler per allowed action, nothing more');
 foreach (dc_service_handlers() as $a => $fn) ok(function_exists($fn), "D: handler for $a exists");
 preg_match('/const DC_MUTATING_ACTIONS = \[(.*?)\];/s', file_get_contents("$ROOT/api.php"), $mm);
 preg_match_all("/'([a-z_]+)'/", $mm[1] ?? '', $mut);
 ok(count($mut[1]) >= 16, 'D: api.php\'s mutating actions were read (' . count($mut[1]) . ')');
 eq(array_values(array_intersect($mut[1], DC_SERVICE_ACTIONS)), [], 'D: no api.php mutating action is on the service allow-list');
-foreach (['quotations.create', 'quotations.update', 'quotations.delete', 'companies.create', 'companies.update', 'companies.delete', 'contacts.unlink'] as $a) {
+foreach (['quotations.update', 'quotations.delete', 'companies.create', 'companies.update', 'companies.delete', 'contacts.unlink'] as $a) {
     ok(!in_array($a, DC_SERVICE_ACTIONS, true), "D: $a is not offered");
 }
 
@@ -340,7 +352,7 @@ $yml = file_get_contents("$ROOT/.cpanel.yml");
 preg_match('/export APPFILES="([^"]+)"/', $yml, $m1);
 preg_match('/export PROTECTED="([^"]+)"/', $yml, $m2);
 $appfiles = preg_split('/\s+/', trim($m1[1] ?? '')); $protected = preg_split('/\s+/', trim($m2[1] ?? ''));
-foreach (['service.php', 'service_auth.php', 'service_actions.php', 'service_config.sample.php'] as $f) {
+foreach (['service.php', 'service_auth.php', 'service_actions.php', 'service_quotations.php', 'service_config.sample.php', 'quotation_store.php', 'quo-quote-core.js'] as $f) {
     ok(in_array($f, $appfiles, true), "E: $f is deployed (APPFILES)");
     ok(is_file("$ROOT/$f"), "E: …and exists in the checkout");
 }
@@ -364,6 +376,8 @@ foreach (array_merge($OWN, ['service_config.sample.php', 'docs/SERVICE-API.md', 
     preg_match_all('/base64:[A-Za-z0-9+\/=]{20,}/', $txt, $keys);
     eq(array_values(array_unique(array_diff($keys[0], [$FAKE]))), [], "E: $f holds no key other than the documented fake one");
 }
+
+require __DIR__ . '/service_static_create.inc.php';
 
 eq($LOG, [], 'no log line was written by any pure function above');
 

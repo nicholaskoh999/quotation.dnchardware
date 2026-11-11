@@ -2,8 +2,10 @@
 
 Status: built in QQ R1 Loop #5 on branch `round/quo-qq-r1-loop5-service-read`
 (base: production `ca5f0a5`); core-version gate and nonce housekeeping added
-in Loop #6 (`round/quo-qq-r1-loop6-save-foundation`). **Not deployed. Not
-enabled anywhere.**
+in Loop #6 (`round/quo-qq-r1-loop6-save-foundation`); three-core gate,
+`whatsapp_template.get`, `quotations.create` and `quotations.lookup_by_key`
+added in Loop #7 (`round/quo-qq-r1-loop7-official-save`). **Not deployed.
+Not enabled anywhere.**
 
 Every name, phone number, id and key in this document is invented.
 
@@ -16,7 +18,10 @@ A narrow, server-to-server entry point for the DNC Quick Quote (QQ) backend:
 - read the Diameter Settings exactly as QUO's own page receives them;
 - search companies by name or short code;
 - look up which companies a WhatsApp identity is linked to;
-- link one company to one WhatsApp identity (the only write).
+- link one company to one WhatsApp identity;
+- read the saved WhatsApp quotation template;
+- create a quotation (create only, idempotent, behind its own switch) and
+  look up what an idempotency key produced.
 
 It is a separate door from the browser door (`api.php` + login session).
 The browser door, the QUO login, `index.php`, `api.php`, `auth.php`,
@@ -27,9 +32,12 @@ The browser door, the QUO login, `index.php`, `api.php`, `auth.php`,
 |---|---|
 | `service.php` | The only entry point. Runs the checks in order, then one action. |
 | `service_auth.php` | Config, signing, nonce and acting-user functions. Functions only. |
-| `service_actions.php` | The five handlers. Functions only. |
+| `service_actions.php` | The read and contact-link handlers. Functions only. |
+| `service_quotations.php` | `whatsapp_template.get`, `quotations.create`, `quotations.lookup_by_key`. Functions only; includes `quotation_store.php` and creates through `dc_store_create_quotation()` only. |
+| `quotation_store.php` | QUO's one create path (validation, numbering lock, allocator, transaction, revision), shared with `api.php`'s `save_quotation`. Unchanged in Loop #7. |
 | `service_config.sample.php` | Sample for the server-only `service_config.php`. |
-| `quo-parser-core.js`, `quo-pricing-core.js` | Not part of the service, but **read** by it (never run) for the core gate, §3.7. Already deployed for `index.php`. |
+| `quo-parser-core.js`, `quo-pricing-core.js`, `quo-quote-core.js` | Not part of the service, but **read** by it (never run) for the core gate, §3.7. Already deployed for `index.php`. |
+| `migrations/2026-11-11-create-quotation-create-requests.sql` (+ `.rollback.sql`) | Idempotency rows for `quotations.create` (docs/QUOTATION-STORE.md §4). |
 | `migrations/2026-11-10-create-service-request-nonces.sql` (+ `.rollback.sql`) | Replay table. |
 | `migrations/2026-11-10-create-company-whatsapp-contacts.sql` (+ `.rollback.sql`) | Contact links. |
 
@@ -68,7 +76,8 @@ Optional keys (same file; absent = the default):
 
 | Key | Default | Meaning |
 |---|---|---|
-| `QQ_SERVICE_ACCEPTED_CORES` | empty | Older parser / pricing cores, or exact pairs, accepted in addition to the deployed ones. §3.7. |
+| `QQ_SERVICE_ACCEPTED_CORES` | empty | `combinations`: exact older parser + pricing + quote sets accepted in addition to the deployed cores. §3.7. |
+| `QQ_SERVICE_CREATE_ENABLED` | `'false'` | `quotations.create` answers 403 `create_disabled` unless this is `'true'`. §4.8. |
 | `QQ_SERVICE_NONCE_KEEP_SECONDS` | `600` | Age after which a nonce row may be pruned. Never below **240** (lower values are raised to it), at most 86 400. §6.1. |
 | `QQ_SERVICE_NONCE_PRUNE_EVERY` | `50` | About one accepted request in this many prunes. `0` = never. At most 10 000. |
 | `QQ_SERVICE_NONCE_PRUNE_BATCH` | `500` | Most rows one prune deletes. 1 to 5 000. |
@@ -163,8 +172,9 @@ Optional core claims (§3.7), inside the signed body:
 ```json
 "client": {
   "cores": {
-    "parser":  { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" },
-    "pricing": { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" }
+    "parser":  { "version": "1.1.0", "contract": 1, "sha256": "<64 lower-case hex>" },
+    "pricing": { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" },
+    "quote":   { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" }
   }
 }
 ```
@@ -173,8 +183,10 @@ Optional core claims (§3.7), inside the signed body:
 `contract` — JSON integer >= 1. `sha256` — SHA-256 of the core file's exact
 bytes, 64 lower-case hex. No `client`, `client: {}` or `cores: null` means
 **no claim**. The QQ backend copies these from the extension's
-`X-QQ-Parser-Core` / `X-QQ-Pricing-Core` headers. QUO reads them **only from
-the signed body**; a header or query parameter of that name is ignored.
+`X-QQ-Parser-Core` / `X-QQ-Pricing-Core` / `X-QQ-Quote-Core` headers. QUO
+reads them **only from the signed body**; a header or query parameter of that
+name is ignored. The versions shown are examples: `version` is echoed, never
+used to decide.
 
 The acting user is identified **only** by the body. Because the body hash is
 part of the signing string, the actor is covered by the signature.
@@ -257,7 +269,7 @@ Each failure stops the request. Nothing later runs.
 | 7 | Body envelope valid | 400 `invalid_body` |
 | 7 | Acting user re-read from the canonical users table | 403 `actor_refused`; 503 `actor_check_unavailable` |
 | 7 | Core verdict computed from `client.cores` (§3.7). Never a refusal here. | — |
-| 8 | Write actions only (`contacts.link`): the core guard, before anything else | 412 `core_not_accepted` |
+| 8 | Write actions only (`contacts.link`, `quotations.create`): the core guard, before anything else | 412 `core_not_accepted` |
 | 8 | The action's own query | per action |
 
 Notes:
@@ -282,8 +294,9 @@ Success:
 
 ```json
 { "ok": true, "data": { … },
-  "core": { "accepted": true, "parser": { "status": "current", "version": "1.0.0" },
-            "pricing": { "status": "current", "version": "1.0.0" }, "reason": "accepted" },
+  "core": { "accepted": true, "parser": { "status": "current", "version": "1.1.0" },
+            "pricing": { "status": "current", "version": "1.0.0" },
+            "quote": { "status": "current", "version": "1.0.0" }, "reason": "accepted" },
   "meta": { "requestId": "req_EXAMPLE0001", "serverTime": "2026-11-10T03:00:00Z" } }
 ```
 
@@ -301,8 +314,9 @@ Error:
 
 `error.code` is stable; `error.message` is a fixed English sentence per code.
 `error.field` (with `validation_failed` and `not_found`) and `error.reason`
-(with `contact_conflict` and `core_not_accepted`) are fixed words from the code, never request
-content. `meta.requestId` is `null` on every refusal before check 7.
+(with `contact_conflict`, `core_not_accepted` and `validation_failed`) are fixed words from the code, never request
+content. `error.index` (a 0-based integer) names the item a `quotations.create`
+refusal is about. `meta.requestId` is `null` on every refusal before check 7.
 
 ### 3.6 All error codes
 
@@ -323,38 +337,40 @@ content. `meta.requestId` is `null` on every refusal before check 7.
 | `validation_failed` | 422 | A parameter is wrong; see `error.field`. |
 | `not_found` | 404 | `contacts.link`: the company does not exist. |
 | `contact_conflict` | 409 | `contacts.link`: see `error.reason`. |
-| `core_not_accepted` | 412 | A write action (`contacts.link`) while `core.accepted` is not `true`. `error.reason` = `core.reason`. Nothing was read or written. |
+| `core_not_accepted` | 412 | A write action (`contacts.link`, `quotations.create`) while `core.accepted` is not `true`. `error.reason` = `core.reason`. Nothing was read or written. |
+| `create_disabled` | 403 | `quotations.create` while `QQ_SERVICE_CREATE_ENABLED` is not `'true'`. |
+| `settings_changed` | 409 | `quotations.create`: the `settingsVersion` sent is not the current `diameter_settings.get` version. Nothing written. |
+| `totals_mismatch` | 422 | `quotations.create`: `claimedTotal` ≠ the server's sum of the items' `totalAmount`. Nothing written. |
+| `key_reused_with_different_payload` | 409 | `quotations.create`: this user's key already created a different quotation. Nothing written. |
+| `in_progress` | 409 | `quotations.create`: the numbering lock was not free within 10 s. Retry with the **same** key. |
 | `quo_unavailable` | 503 | QUO database or a needed table is unavailable, or an internal failure. Retry later. |
 
-### 3.7 Core-version gate
+### 3.7 Core-version gate (three cores)
 
-The service vouches for the parser and pricing cores the client parsed and
-priced with. **This server's own cores** are the files deployed beside
-`service.php`: `quo-parser-core.js` and `quo-pricing-core.js`. For each it
-computes the SHA-256 of the file's exact bytes and reads the contract number
-from the file's `const QUO_PARSER_CORE_CONTRACT = <n>;` /
-`const QUO_PRICING_CORE_CONTRACT = <n>;` line (a text match that must occur
+The service vouches for the parser, pricing **and quote** cores the client
+parsed, priced and built items with. **This server's own cores** are the files
+deployed beside `service.php`: `quo-parser-core.js`, `quo-pricing-core.js` and
+`quo-quote-core.js`. For each it computes the SHA-256 of the file's exact
+bytes and reads the contract number from the file's
+`const QUO_<CORE>_CORE_CONTRACT = <n>;` line (a text match that must occur
 exactly once; the JavaScript is never run). Once per request.
 
 A server core is **unknown** when its file is missing, empty or unreadable,
-when the constant is absent or appears twice, or when it names a contract
-this service does not support (today: parser 1, pricing 1). An unknown server
-core makes the verdict `accepted: false` (`server_core_unknown`) whatever the
+when the constant is absent or appears twice, or when it names a contract this
+service does not support (today: 1 for all three). An unknown server core
+makes the verdict `accepted: false` (`server_core_unknown`) whatever the
 operator has listed.
 
-Per core, `status`:
+Per core (`parser`, `pricing`, `quote`), `status`:
 
 | status | meaning |
 |---|---|
 | `current` | the claim equals this server's deployed core (hash; contract = supported). |
-| `listed` | an older core the operator listed under `QQ_SERVICE_ACCEPTED_CORES` `parser` / `pricing` (hash and contract equal; contract must be the supported one). |
-| `unknown_hash` | supported contract, hash neither current nor listed. |
+| `unknown_hash` | supported contract, hash is not the deployed one. |
 | `contract_mismatch` | the claimed contract is not the supported one. |
 | `server_unknown` | this server's own file is unknown (above). |
-| `missing` | the other core was claimed, this one was not. |
+| `missing` | another core was claimed, this one was not (e.g. a Loop #6 client that claims two). |
 | `absent` / `malformed` | no claim at all / the claim did not parse. |
-
-`version` is echoed beside `status` when that core was claimed.
 
 `accepted` and `reason` (checked in this order):
 
@@ -362,44 +378,52 @@ Per core, `status`:
 |---|---|---|
 | `null` | `no_claim` | the body has no core claim. **Not verified — never treat as true.** |
 | `false` | `claim_malformed` | `client`, `cores` or a claim has the wrong shape. |
-| `false` | `server_core_unknown` | either server core is unknown. |
-| `false` | `claim_incomplete` | only one core was claimed. |
-| `true` | `accepted` | both cores are `current` or `listed`. |
-| `true` | `pair_listed` | not both acceptable on their own, but this exact parser + pricing pair (hashes and contracts) is listed under `pairs`. |
-| `false` | `contract_mismatch` | a contract differs and the pair is not listed. |
-| `false` | `mixed_versions` | one core acceptable, the other not, and the pair is not listed. |
-| `false` | `not_accepted` | neither core acceptable. |
+| `false` | `server_core_unknown` | any server core is unknown. |
+| `false` | `claim_incomplete` | not all three cores were claimed. |
+| `true` | `accepted` | all three are `current`. |
+| `true` | `combination_listed` | this exact parser + pricing + quote set (all hashes and contracts) is listed under `combinations`. |
+| `false` | `contract_mismatch` | a contract differs and the set is not listed. |
+| `false` | `mixed_versions` | some cores current, others not, set not listed. |
+| `false` | `not_accepted` | none current, set not listed. |
+
+**An older core is accepted only as part of an exact listed combination.** The
+Loop #6 per-core (`parser`, `pricing`) and `pairs` listings are **no longer
+read**: a two-core listing cannot vouch for a third core.
 
 **Read-only actions** (`ping`, `diameter_settings.get`, `companies.search`,
-`contacts.lookup`) report `core` and are **never blocked** by it.
+`contacts.lookup`, `whatsapp_template.get`, `quotations.lookup_by_key`) report
+`core` and are **never blocked** by it.
 
-**Write actions** call the one guard, `dc_service_require_accepted_core()`
-in `service_auth.php`, before any validation or query; only `accepted: true`
-passes (`null` does not). Today that is `contacts.link`: it is not a quotation
-write, but a stale client could otherwise link a chat to a company from a
-wrong parse. Every future write action — a quotation save included — must
-call it first; `tests/php/service_static.test.php` fails if a handler holding
-an `INSERT` / `DELETE` does not, or is not listed in
-`DC_SERVICE_CORE_GATED_ACTIONS`.
+**Write actions** (`contacts.link`, `quotations.create` =
+`DC_SERVICE_CORE_GATED_ACTIONS`) call the one guard,
+`dc_service_require_accepted_core()`, before any validation or query; only
+`accepted: true` passes. `tests/php/service_static.test.php` fails if a handler
+that writes (an `INSERT` / `DELETE`, or a call into the store's create) does
+not call it first or is not listed.
 
 Operator list (`service_config.php`), **empty by default**:
 
 ```php
 'QQ_SERVICE_ACCEPTED_CORES' => [
-    'parser'  => [ ['sha256' => '<64 hex>', 'contract' => 1, 'reason' => 'QQ 0.2.0 still in use', 'date' => '2026-11-11'] ],
-    'pricing' => [],
-    'pairs'   => [ ['parser'  => ['sha256' => '<64 hex>', 'contract' => 1],
-                    'pricing' => ['sha256' => '<64 hex>', 'contract' => 1],
-                    'reason'  => 'pilot build', 'date' => '2026-11-11'] ],
+    'combinations' => [
+        ['parser'  => ['sha256' => '<64 hex>', 'contract' => 1],
+         'pricing' => ['sha256' => '<64 hex>', 'contract' => 1],
+         'quote'   => ['sha256' => '<64 hex>', 'contract' => 1],
+         'reason'  => 'QQ 0.2.0 still in use during rollout', 'date' => '2026-11-11'],
+    ],
 ],
 ```
 
-Every entry needs `sha256`, `contract` (integer), a non-empty `reason` and a
-`date` (`YYYY-MM-DD`); an entry missing any of them is ignored. Removing an
-entry refuses that core again on the next request. Deploying new core files
-changes "current" at once: list the previous hashes first if older
-extensions must keep linking during a rollout.
+Every entry needs all three cores (`sha256`, integer `contract`), a non-empty
+`reason` and a `date`; an entry missing any of them is ignored. Removing an
+entry refuses that set again on the next request. Deploying a new core file
+changes "current" at once: list the previous full set first if older
+extensions must keep working during a rollout.
 
+**Consequence for Loop #6 clients:** an extension that sends only
+`X-QQ-Parser-Core` / `X-QQ-Pricing-Core` now gets `claim_incomplete`, so
+`contacts.link` is refused until it also sends `X-QQ-Quote-Core`. Reads are
+unaffected.
 ---
 
 ## 4. Actions
@@ -416,9 +440,12 @@ backend learns `coreAccepted`.
 
 ```json
 { "service": "quo-service", "contract": 1, "scheme": "qqs1",
-  "actions": ["ping", "diameter_settings.get", "companies.search", "contacts.lookup", "contacts.link"],
-  "serverTime": "2026-11-10T03:00:00Z", "serverTimeUnix": 1794279600 }
+  "actions": ["ping", "diameter_settings.get", "companies.search", "contacts.lookup", "contacts.link",
+              "whatsapp_template.get", "quotations.create", "quotations.lookup_by_key"],
+  "serverTime": "2026-11-10T03:00:00Z", "serverTimeUnix": 1794279600, "createEnabled": false }
 ```
+
+`createEnabled` is `QQ_SERVICE_CREATE_ENABLED` (§4.8); it says nothing about the core verdict.
 
 Errors: only those of section 3.4.
 
@@ -568,13 +595,213 @@ Errors: `core_not_accepted`, `validation_failed` (`field`: `companyId`,
 `chatKind`, `waPhone`, `waChatId`, `displayName`), `not_found`,
 `contact_conflict`, `quo_unavailable`.
 
+### 4.6 `whatsapp_template.get` — read only (Loop #7)
+
+`params`: `{}`
+
+```json
+{ "template": "Dear {customer},\n…", "isDefault": false, "version": "wt1-3c1f0d9e2a7b4c55" }
+```
+
+- Runs `api.php`'s `get_whatsapp_template` query character for character
+  (`SELECT * FROM whatsapp_templates WHERE is_default=1 ORDER BY id ASC LIMIT 1`;
+  a static test compares the two strings).
+- `template` = that row's `template_body`, byte for byte. It is `""` (and
+  `isDefault: true`) when the table is missing, there is no default row, or the
+  saved body is empty: in each of those cases QUO's page uses `WA_DEFAULT_TPL`
+  (`index.php` `loadWATemplate` / `getWATemplate`), and so does the shared
+  formatter (`quoQuoteText` with an empty `template`).
+- **Known difference, line endings only:** with no row, `api.php` answers a
+  hard-coded body that, after `sanitizeWATemplate`, has the same words as
+  `WA_DEFAULT_TPL` — but `api.php` is committed with CRLF line endings, so that
+  body carries `\r\n` where `WA_DEFAULT_TPL` has `\n`. The test pins both
+  facts. Only the no-row case is affected.
+- `version` = `wt1-` + first 16 hex of SHA-256 over `template`.
+- Never stored by the QQ backend.
+
+Errors: `quo_unavailable`.
+
+### 4.7 `quotations.lookup_by_key` — read only (Loop #7)
+
+`params`: `{ "idempotencyKey": "<lowercase UUID v4>" }`
+
+```json
+{ "found": false }
+```
+```json
+{ "found": true, …the same read-back as quotations.create (§4.8), without "replayed"… }
+```
+
+Scoped to the acting user (`quotation_create_requests.actor_user_id =
+actor.sub`): another user's key is `found: false`. Writes nothing; answers
+"did my lost create commit?" so a client can show the result without creating
+anything. `found: false` means **nothing was committed for that key** (the
+request row, the quotation and its revision commit together or not at all).
+
+Errors: `validation_failed` (`idempotencyKey`), `quo_unavailable` (table
+missing).
+
+### 4.8 `quotations.create` — create only (Loop #7; core-gated; switch)
+
+Order: core guard (412) → `QQ_SERVICE_CREATE_ENABLED` (403
+`create_disabled`) → parameters → Diameter Settings version → company →
+contact → totals → the store's own validation → acting user's display name →
+`dc_store_create_quotation()` → read-back after commit.
+
+`params` — **exactly these keys; any other key is refused** (`validation_failed`,
+`field` = the key, `reason: "not_allowed"`):
+
+```json
+{ "idempotencyKey": "3f2b8c1e-9a4d-4e6f-8b2a-1c3d5e7f9a0b",
+  "companyId": 901,
+  "items": [ { …an item exactly as quo-quote-core.js quoBuildItem() returns it… } ],
+  "claimedTotal": 88.4,
+  "settingsVersion": "ds1-9f2c4e6a8b0d1f3a",
+  "parse": { "omittedCount": 0, "acknowledged": false },
+  "waContactId": 55, "quoteDate": "2026-11-11", "extVersion": "0.3.0" }
+```
+
+| Key | Rule |
+|---|---|
+| `idempotencyKey` | Required. Lowercase UUID v4. **In the signed body**, so the HMAC covers it. Scoped per acting user. |
+| `companyId` | Required. JSON integer, an existing `companies.id` (else 404 `not_found`, `field: companyId`). |
+| `items` | Required. 1–100 items, JSON encoding ≤ 256 KiB. Each item: below. |
+| `claimedTotal` | Required. JSON number. Must equal the server's sum (§ totals). |
+| `settingsVersion` | Required. Must equal the current `diameter_settings.get` `version`, else 409 `settings_changed` (re-read the rules, re-price, new key). |
+| `parse` | Required. `omittedCount` (integer ≥ 0: how many lines QUO's parser reported as `omitted`) and `acknowledged` (boolean). `omittedCount > 0` without `acknowledged: true` → `validation_failed`, `field: parse`, `reason: omitted_not_acknowledged`. |
+| `waContactId` | Optional. An **active** `company_whatsapp_contacts.id` of **this** company, else `validation_failed` (`waContactId`). Recorded on the request row. |
+| `quoteDate` | Optional `YYYY-MM-DD`. Absent: the store's server-side default (today, Malaysia time). |
+| `extVersion` | Optional, recorded on the request row. |
+
+**Never accepted from the client, and refused if sent:** a quotation number
+(`refNo`, `ref_no` — QUO allocates it), `item_uid` on an item (QUO mints it),
+revision data, creator or `prepared_by` fields, `customer_name` /
+`customer_phone`, `total_amount`. The customer fields are taken from QUO's
+`companies` row exactly as QUO's editor stores them when a company is chosen
+(`customer_name = companies.name`, `customer_phone = companies.phone` or
+`''`); `prepared_by`, `remarks` and `valid_until` are empty, as on a new
+editor quotation where nobody typed them.
+
+**Items.** Each must be a JSON object with: `itemType` one of `sagrod stud
+anchorbolt ubolt squbolt lbolt lbolt45 jbolt` (what `quoBuildItem` builds);
+non-empty `desc` (≤ 500); integer `qty` 1–1 000 000; numeric `finalUnitPrice`
+and `totalAmount` with `totalAmount = round(finalUnitPrice × qty, 2)` (±0.005);
+`pricingModel: "accessory-inclusive"`; `priceAcceptance` `{state: "accepted",
+value = finalUnitPrice, source: "manual"}` with no `historyRef`, and
+`priceMode: "manual"` (§4.8.1). No `item_uid`, `id`, `revision`,
+`revision_no`, `created_by`, `createdBy`. Then the store's own
+`validate_quotation_payload()` runs. A refusal names the item: `field:
+"items"`, `index: <0-based>`, `reason`: `item_not_object`,
+`item_uid_not_allowed`, `field_not_allowed`, `item_type_unsupported`,
+`desc_invalid`, `qty_invalid`, `price_invalid`, `line_total_invalid`,
+`line_total_mismatch`, `pricing_model_unsupported`, `price_not_accepted`,
+`price_source_unsupported`, `store_rule`.
+
+**Totals.** The server sums `totalAmount` over the items it will persist (as
+the editor computes `total_amount`), rounds to 2 places, stores that, and
+refuses 422 `totals_mismatch` when `claimedTotal` differs by more than 0.005.
+
+**Persistence.** One call to `dc_store_create_quotation($db, $payload,
+$actor, $idempotency)`: the existing validation, `DC_REF_LOCK`, the READ
+COMMITTED transaction, `next_free_ref_no()` and its one 1062 retry, the
+`create` revision, the request row — one transaction (docs/QUOTATION-STORE.md).
+No number allocator, lock or save logic of its own. The actor is recorded as
+QUO records a Portal (DNC) browser session: `actor_user_id` NULL,
+`actor_username` = the canonical username, `actor_display_name` = the
+canonical name; the idempotency scope is `actor.sub`.
+
+**Idempotency.** Same user + key + payload → the same quotation,
+`replayed: true`, nothing written. Same user + key, other payload → 409
+`key_reused_with_different_payload`. Lock not free in 10 s → 409
+`in_progress` (retry with the same key). A database failure before COMMIT →
+503 `quo_unavailable`; nothing of the quotation, its revision or the request
+row survives, so a retry with the same key creates it once. The hashed payload
+includes the customer fields read from `companies`: if a company is renamed
+between a lost response and its retry, the retry is refused as
+`key_reused_with_different_payload` (never duplicated); `lookup_by_key` still
+finds the first one.
+
+Response — **read back from the persisted rows after COMMIT**:
+
+```json
+{ "quotationId": 1601, "refNo": "Q-2026-0457", "quoteDate": "2026-11-11",
+  "customer": { "companyId": 901, "name": "Example Trading Sdn Bhd" },
+  "items": [ { …as stored, with "item_uid": "itm_…", "finalUnitPrice", "priceAcceptance"… } ],
+  "totalAmount": "88.40",
+  "createdAt": "2026-11-11 10:00:00",
+  "revision": { "no": 1, "event": "create", "actorUserId": null, "actorUsername": "exampleuser",
+                "actorDisplayName": "Example User", "createdAt": "2026-11-11 10:00:00" },
+  "request": { "idempotencyKey": "3f2b…", "createdAt": "2026-11-11 10:00:00", "waContactId": 55 },
+  "open": { "path": "companies.php?openId=1601" },
+  "replayed": false }
+```
+
+`totalAmount` is the stored `DECIMAL(12,2)` as a string. The company phone and
+address are never returned. Timestamps are QUO's stored Malaysia time.
+
+**Open in QUO.** QUO has no deep link into the editor. What exists today:
+`companies.php?openId=<id>` (`openByRefFromUrl()` in `companies.php`) opens the
+saved quotation's **Quotation Detail** view; its **Load** button
+(`loadQuoteToCalc` → `get_quotation` → `sessionStorage.loadQuote` →
+`index.php` `checkHandoff()`) opens it in the editor. `open.path` is that
+existing link, relative to QUO's base URL. Known gap: the parameter is lost if
+the person must sign in first.
+
+Errors: `core_not_accepted`, `create_disabled`, `validation_failed`,
+`settings_changed`, `not_found`, `totals_mismatch`,
+`key_reused_with_different_payload`, `in_progress`, `actor_refused`,
+`actor_check_unavailable`, `quo_unavailable`.
+
+#### 4.8.1 Price source
+
+QUO records `priceAcceptance.source` from `DC_PRICE_SOURCES`. On the page:
+
+- Entry form, `dcSuggestSource(type)`: `manual` when the Price Mode is Manual;
+  otherwise `dcRecommendFor(type)`'s `src` (`default_rule` or `built_in`) when
+  the typed Cost Rate / Additional Cost / Markup equal the recommendation
+  (`dcRecSame`), else `manual_recipe`. A History Use records `history_recipe`.
+- Quick Add, `wqaRowSuggestSource(r)`: Manual → `manual` (or `history_manual`
+  when the manual price came from history); history applied →
+  `history_recipe`; equal to `r.rec` → its `src`; else `manual_recipe`.
+- `dcRecommendFor` reads `RATES`, `RATES_4140` (`get4140Rates`),
+  `getAddCostFromTL`, `getSystemDPRules` + the Default Price rules
+  (`get_default_prices`) through `findDPMatch` — **all defined in `index.php`,
+  none in a shared core** (proved by `price-source.test.js`).
+
+Decision: **(c), narrowed.** QQ never auto-applies recommendations and has no
+history, so for an auto-priced item the true source is `manual_recipe` unless
+the typed numbers happen to equal a recommendation — which neither QQ nor this
+service can compute without copying page-only tables and logic (option (a)
+would duplicate them in PHP; option (b) needs them moved into a shared core,
+which is an `index.php` change outside this round). The one case whose source
+is exact without that data is **Manual Price**: both functions answer `manual`
+before any recommendation is consulted. So this action accepts exactly
+`priceMode: "manual"` + `source: "manual"` (no `historyRef`) and refuses every
+other item with `price_source_unsupported`. QQ's Save is therefore available
+for Manual Price items only until the recommendation inputs live in a shared
+core. `quoBuildItem(..., acceptance: {source: 'manual'})` records the same
+`{state, value, source}` as the page's `dcPaCommit` → `dcPaMeta('manual', '',
+final)`, and the editor reopens such an item with `source: 'manual'` kept
+(`dcFormPaFromSaved`). Proven without a browser; an in-page capture with the
+browser harness is prepared but **not run** (see the Loop #7 report).
+
+**Completeness hold.** QUO's Quick Add keeps Add disabled while
+`wqaParseText(...).omitted` is non-empty until the person ticks "I have
+checked the message" (production 34ab583). This service never receives the
+inquiry text, so it cannot detect omitted lines itself; it requires the client
+to **declare** them (`parse.omittedCount`) and the acknowledgement, inside the
+signed body, and refuses an unacknowledged declaration. A client that lies is
+not detected here: the real check belongs in the extension.
+
 ---
 
 ## 5. Deliberately not offered
 
-- `quotations.create`, and any quotation read, update or delete.
+- Any quotation update or delete; any quotation read other than the
+  read-back of a quotation this user's key created (`quotations.lookup_by_key`).
 - Company create, edit or delete.
 - Any settings write (Diameter Settings, default prices, WhatsApp template), imports, exports.
+- A client-chosen quotation number, item identity, revision or creator.
 - Unlinking or deactivating a contact; editing a contact; filling in a missing identifier.
 - Price history, AI extraction, next reference number.
 - Any GET endpoint, any browser use, CORS.
@@ -624,10 +851,16 @@ CREATE TABLE company_whatsapp_contacts (
   join `companies`.
 - `linked_by_user_id` is a canonical DNC `users.id` (bigint) from another
   database.
-- `service.php` holds exactly three data-changing statements: the nonce
+- The service files hold exactly three data-changing statements: the nonce
   `INSERT`, the contact-link `INSERT` and the bounded nonce-prune `DELETE`
-  (§6.1, Owner-approved in Loop #6). It has no `UPDATE`. A test enforces the
-  exact list.
+  (§6.1, Owner-approved in Loop #6). They have no `UPDATE`. A test enforces
+  the exact list. `quotations.create` writes only through
+  `dc_store_create_quotation()`; the statements reachable from the service in
+  `quotation_store.php` are exactly `INSERT INTO quotations`,
+  `INSERT INTO quotation_revisions`, `INSERT INTO quotation_create_requests`
+  and `UPDATE quotation_create_requests` (linking the request row to its
+  quotation). No update or delete of a quotation is reachable (call-graph test,
+  `tests/php/service_static_create.inc.php`).
 
 ### 6.1 Nonce housekeeping
 
@@ -666,11 +899,13 @@ opportunistically:
 - **Public repository.** Security rests on the secret and the checks, not on
   hidden code. No real secret, customer or phone number is in Git; tests
   generate a random key per run and use invented data.
-- **Secret leak.** Whoever holds the secret can call the five actions as any
-  active user: read Diameter Settings, company names and short codes, read
-  and add contact links. They cannot create, change or delete a quotation, a
-  company or a setting, and cannot reach `api.php`. Response: switch off
-  (section 2), rotate.
+- **Secret leak.** Whoever holds the secret can call the eight actions as any
+  active user: read Diameter Settings, company names and short codes, the
+  WhatsApp template, read and add contact links, and — **while
+  `QQ_SERVICE_CREATE_ENABLED` is on** — create quotations (Manual Price items
+  only, §4.8.1). They cannot change or delete a quotation, a company or a
+  setting, and cannot reach `api.php`. Response: switch create off, switch the
+  service off (section 2), rotate.
 - **Replay.** HTTPS, ±60 s window, single-use nonce enforced by a primary key,
   action and body hash inside the signature. Pruning never removes a nonce
   younger than 240 s (§6.1).
@@ -695,8 +930,9 @@ opportunistically:
   numbers and chat ids travel in the POST body.
 - **Crypto.** `hash_hmac('sha256')`, `hash_equals`, `random_bytes` only. The
   `sodium` extension is not needed.
-- **Not implemented:** rate limiting and IP allow-listing. The caller is one
-  trusted backend; consider both before production.
+- **Not implemented here:** rate limiting and IP allow-listing. The caller is
+  one trusted backend, which rate-limits creates per user (10/min); consider
+  both here before production.
 
 ---
 
@@ -728,6 +964,23 @@ php tests/php/service_nonce_cleanup.test.php
 
 Nonce housekeeping (§6.1) against real MySQL and over HTTP. Skipped (exit 0,
 `SKIP`) without a database.
+
+```
+DC_SERVICE_TEST_DB_HOST=127.0.0.1 DC_SERVICE_TEST_DB_PORT=<port> \
+DC_SERVICE_TEST_DB_USER=root DC_SERVICE_TEST_DB_PASS= \
+php tests/php/service_quotation_create.test.php
+node tests/php/quotation_create/price-source.test.js
+```
+
+Loop #7 actions (§4.6–4.8) over HTTP against real MySQL: the three
+migrations forward / again / rollback / forward; template parity with
+`api.php`; create happy path, read-back, actor on the revision, replay, same
+key other payload, four truly parallel same-key requests (four servers), two
+keys → consecutive numbers, stale settings, core mismatch, unknown company,
+client `refNo` / `item_uid`, totals mismatch, price source, omitted lines, lock
+timeout, a failure before commit, disabled user, `lookup_by_key`. Items are
+built by `quo-quote-core.js` (needs `node`). The second command proves the
+price-source rule (§4.8.1) from QUO's own page functions, without a browser.
 
 ```
 DC_SERVICE_TEST_DB_HOST=127.0.0.1 DC_SERVICE_TEST_DB_PORT=<port> \
