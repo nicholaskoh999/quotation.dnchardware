@@ -7477,6 +7477,8 @@ const I18N={
     wqaCovBody:'A second reading of the source listed {m} item(s) that are not in this list of {n}. They have NOT been added. Compare with the drawing, then re-analyse or add the missing items yourself:',
     wqaCovAck:'I have checked the drawing. These {n} item(s) are the ones to add.',
     wqaCovUncertain:'Completeness could not be double-checked this time. Compare the number of items with the drawing before adding.',
+    wqaCovTextBody:'{m} line(s) of the pasted message look like item specifications but did not become an item in this list of {n}. They have NOT been added. Check them against the message, then correct the text and parse again, or add them yourself:',
+    wqaCovTextAck:'I have checked the message. These {n} item(s) are the ones to add.',
     wqaNoteReadFile:'Will be applied to this file:',
     wqaNoteReadAll:'Will be applied to all uploaded files:',
     wqaNoteUnrec:'Unrecognized:',
@@ -8206,6 +8208,8 @@ const I18N={
     wqaCovBody:'第二次读取原件时列出了 {m} 个项目，但不在这 {n} 个项目的列表中。系统没有自动加入它们。请对照图纸，重新分析或自行补上遗漏的项目：',
     wqaCovAck:'我已核对图纸，确认要加入这 {n} 个项目。',
     wqaCovUncertain:'这次未能复核项目是否齐全。添加前请对照图纸核对项目数量。',
+    wqaCovTextBody:'粘贴的信息中有 {m} 行看起来是产品规格，但没有成为这 {n} 个项目中的任何一项。系统没有自动加入它们。请对照原文核对，修改文字后重新解析，或自行补上：',
+    wqaCovTextAck:'我已核对原文，确认要加入这 {n} 个项目。',
     wqaNoteReadFile:'将应用于此文件：',
     wqaNoteReadAll:'将应用于所有上传文件：',
     wqaNoteUnrec:'无法识别：',
@@ -15567,7 +15571,7 @@ const wqa={raw:'',product:null,common:{},commonItem:null,commonAcc:null,commonPr
            view:'compact',rows:[],busy:false,
            /* The extraction stopped early, and whether somebody has said out
               loud that they checked the source anyway. */
-           truncated:false,truncAck:false,covMissing:[]};
+           truncated:false,truncAck:false,covMissing:[],covKind:''};
 /* Both common sections start COLLAPSED at every width, so the parsed items are
    the first thing on screen. Collapsing only hides the editor — every value
    lives in wqa.commonPrice / wqa.commonAcc and is redrawn untouched. */
@@ -17632,20 +17636,22 @@ function wqaRenderPartial(){
   if(!wqa.truncated && !miss.length){ box.hidden=true; box.innerHTML=''; box.dataset.n=''; return; }
   const n=wqa.rows.filter(r=>!r.removed).length;
   box.hidden=false;
-  const key=[n,dcLang(),wqa.truncated?1:0,miss.join('|')].join('#');
+  const key=[n,dcLang(),wqa.truncated?1:0,wqa.covKind||'',miss.join('|')].join('#');
   if(box.dataset.n===key){
     const cb=box.querySelector('input'); if(cb) cb.checked=!!wqa.truncAck;
     return;
   }
   box.dataset.n=key;
   const body=[];
-  if(miss.length) body.push(`<p class="wqa-partial-body">${escHtml(dcT('wqaCovBody').replace('{m}',miss.length).replace('{n}',n))}</p>
+  /* R3 FAST SOS: a pasted list names its own unread lines (wqa.covKind 'text'). */
+  const txt=wqa.covKind==='text';
+  if(miss.length) body.push(`<p class="wqa-partial-body">${escHtml(dcT(txt?'wqaCovTextBody':'wqaCovBody').replace('{m}',miss.length).replace('{n}',n))}</p>
     <p class="wqa-partial-body wqa-cov-list" data-i18n-skip>${escHtml(miss.join(' · '))}</p>`);
   if(wqa.truncated) body.push(`<p class="wqa-partial-body">${escHtml(dcT('wqaPartialBody').replace('{n}',n))}</p>`);
   box.innerHTML=`<span class="wqa-partial-title">${escHtml(dcT(miss.length?'wqaCovTitle':'wqaPartialTitle'))}</span>
     ${body.join('')}
     <label class="wqa-partial-ack"><input type="checkbox" id="wqaPartialAckBox"${wqa.truncAck?' checked':''}
-      onchange="wqaAckPartial(this.checked)"><span>${escHtml(dcT(miss.length?'wqaCovAck':'wqaPartialAck').replace('{n}',n))}</span></label>`;
+      onchange="wqaAckPartial(this.checked)"><span>${escHtml(dcT(miss.length?(txt?'wqaCovTextAck':'wqaCovAck'):'wqaPartialAck').replace('{n}',n))}</span></label>`;
 }
 /* Deliberate, and revocable: unticking it disables Add again. */
 function wqaAckPartial(on){ wqa.truncAck=!!on; wqaUpdateAddButton(); }
@@ -18041,6 +18047,10 @@ const WQA_TL_DIM_RE={
   after:new RegExp('(?:'+WQA_TL_WORDS+')\\s*[:=]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?','i'),
   before:new RegExp('(\\d+(?:\\.\\d+)?)\\s*(?:mm\\b)?\\s*(?:'+WQA_TL_WORDS+')\\b','i'),
 };
+/* R3 FAST SOS: "214t" — the thread written as a suffix letter, the same way
+   "210w" writes the short leg. Only the suffix form, number and letter joined,
+   so a lone "t" elsewhere on a line is never read as a thread. */
+const WQA_TL_SUFFIX_RE=/(\d+(?:\.\d+)?)t\b/i;
 function wqaDimLabelled(s,key){
   const re = key==='TL' ? WQA_TL_DIM_RE : WQA_DIM_RE[key];
   if(!re) return null;
@@ -18050,7 +18060,7 @@ function wqaDimLabelled(s,key){
     const v=m[g];
     return (v!=null && Number(v)>0) ? {v:String(Number(v)), at:m.index, len:m[0].length} : null;
   };
-  return hit(re.after,1) || hit(re.before,1);
+  return hit(re.after,1) || hit(re.before,1) || (key==='TL' ? hit(WQA_TL_SUFFIX_RE,1) : null);
 }
 /* Every labelled dimension THIS product owns, taken out of the line so what is
    left is positional. Longest/most specific keys first: ID before S before H,
@@ -18346,6 +18356,24 @@ function wqaExtractFields(rawLine,opts){
         f.size = isFrac ? key : key+'"';
         s=s.slice(hm[0].length);
       }
+    }
+  }
+  /* ── R3 FAST SOS: a metric size written without its M ──────────────────────
+     "42 x 964 x 210w x 214t" under an L Bolt heading is M42, L964, W210,
+     TL214 — the bent-bolt grammar is [SIZE] x [L] x [W] (x [TL]) and the size
+     leads the run. With no M the 42 used to become the L, the 964 was lost,
+     and the NEXT row (also size-less) was folded into this one as a
+     "continuation": a nine-line enquiry came back as one item.
+
+     Read only where nothing else can be meant: an L or J Bolt line, a whole
+     number at the head of an x-run that the diameter table holds, at least two
+     more numbers after it, and the next of them longer than the diameter. */
+  if(!f.size && f.hadX && /^(?:lbolt|jbolt)$/.test((opts&&opts.product)||'')){
+    const hm=/^\s*(\d+)\s*x\s/i.exec(s);
+    if(hm && wqaIsNominal(hm[1])){
+      const rest=s.slice(hm[0].length);
+      const vals=(rest.match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+      if(vals.length>=2 && vals[0]>Number(hm[1])){ f.size='M'+String(Number(hm[1])); s=rest; }
     }
   }
   /* Two-side thread "50/110mm": BOTH ends are kept. The calculator's threadLen
@@ -19472,6 +19500,9 @@ function wqaParseText(text,forceProduct){
      earlier and taking that section's last row with it. */
   let secFrom=0;
   const lastItem=()=>items.length>secFrom ? items[items.length-1] : null;
+  /* R3 FAST SOS — completeness of a pasted list. Which lines became a row of
+     their own, and which were read as more of the row above. See wqaTextOmitted. */
+  const itemLines=[], contLines=new Set();
 
   /* R12 is drawing notation for an undersized rod's nominal diameter, so it is
      read as a size only where the message actually shows that context: an
@@ -19582,8 +19613,16 @@ function wqaParseText(text,forceProduct){
        and took its first measurement with it as that row's bolt size. */
     const contProd=(e.d&&e.d.product)||ctx.product||common.product||'';
     const prevItem=lastItem();
-    if(prevItem && !f.size && f.dims && Object.keys(f.dims).length &&
+    /* R3 FAST SOS: "every number bound to a label" is now actually checked —
+       a line that still carries loose numbers, or that states a dimension the
+       row above already has with a DIFFERENT value, is a row of its own. Folding
+       it in kept only the empty slots and silently dropped everything else,
+       which is how "39 x 1683 x 195w x 183t" vanished into the row above. */
+    const contClash=!!(prevItem && f.dims && Object.entries(f.dims).some(([k,v])=>
+      prevItem[k]!=null && prevItem[k]!=='' && String(prevItem[k])!==String(v)));
+    if(prevItem && !f.size && f.dims && Object.keys(f.dims).length && !(f.nums||[]).length && !contClash &&
        (contProd==='lbolt'||contProd==='jbolt') && prevItem.product===contProd){
+      contLines.add(i);
       Object.entries(f.dims).forEach(([k,v])=>{
         if(prevItem[k]==null || prevItem[k]===''){ prevItem[k]=v; prevItem.conf[k]=WQA_CONF.DETECTED; }
       });
@@ -19812,6 +19851,7 @@ function wqaParseText(text,forceProduct){
     /* The row's own accessories win, per kind, over the heading's. */
     const accRow=(e.accSpec||ctx.acc) ? {...(ctx.acc||{}),
       ...Object.fromEntries(Object.entries(e.accSpec||{}).filter(([k,v])=>v!==null&&v!==''))} : null;
+    itemLines.push(i);
     items.push({...r.item, raw:e.src||e.t, specResolved:true, accSpec:accRow,
                 materialValue:pick('material'), finishValue:pick('finish'),
                 sizeTypeValue:stPick,
@@ -19902,7 +19942,60 @@ function wqaParseText(text,forceProduct){
      from this line downwards is shared by every source. */
   const norm=wqaNormalizeExtraction({product:common.product,threadEnds,items},{wording:text});
   norm.rows.forEach((r,k)=>{ const a=items[k]&&wqaAccFromSpec(items[k].accSpec,r.finish); if(a) r.accParsed=a; });
-  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread, accUnsure};
+  const omitted=wqaTextOmitted(entries,itemLines,contLines,items.length===norm.rows.length && itemLines.length===items.length);
+  return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread, accUnsure, omitted};
+}
+/* ── R3 FAST SOS: did every specification line become a row? ───────────────
+   A pasted list is checked against itself, line by line, independent of the
+   photo / PDF second reading. A SPECIFICATION LINE is one that writes a
+   dimension run: an x between numbers and at least three values (a size
+   counts as one). A heading ("4140 full size L bolt pl"), a remark, a lone
+   thread or a quantity line is never one, so none of them is ever reported
+   missing. Each such line must have become a row of its own, or have been
+   read as a labelled continuation of the row above it; any line that did
+   neither is returned, in the customer's own words, so Review can name it.
+   Nothing is added for it, and nothing is guessed from it. Repeated lines are
+   counted per line, so two identical rows must produce two rows.
+   When the normaliser did not keep one row per item, row-to-line accounting
+   is no longer exact and nothing is claimed. */
+function wqaTextOmitted(entries,itemLines,contLines,exact){
+  if(!exact) return [];
+  const made=new Set(itemLines), out=[];
+  entries.forEach((e,i)=>{
+    if(!e || e.blank || e.section || e.sizeList || e.accOnly || !e.f) return;
+    if(made.has(i) || contLines.has(i)) return;
+    const f=e.f;
+    if(!f.hadX) return;
+    const vals=(f.nums||[]).length + Object.keys(f.dims||{}).length + (f.size?1:0)
+             + (f.threadLen!==null?1:0) + (f.threadLen2!==null?1:0);
+    if(vals>=3) out.push(String(e.src||e.t).trim());
+  });
+  return out.slice(0,30);
+}
+/* The same specification-line rule, for rows that did not come from the parser
+   (the AI text fallback), where there is no line-to-row record. Each spec line
+   must be matched by its OWN row — same size when both state one, and the
+   row's length (an L Bolt's L, a J Bolt's H) written on that line. A row
+   matches one line only, so repeated lines need repeated rows. */
+function wqaTextCoverage(text,rows){
+  const prod=(wqaDetectCommon(text)||{}).product||'';
+  const pool=(rows||[]).map(r=>({M:String(r.M||r.size||'').toUpperCase().replace(/\s+/g,''),
+    L:Number(r.L!=null&&r.L!==''?r.L:(r.H!=null&&r.H!==''?r.H:(r.length||NaN))), used:false}));
+  const out=[];
+  String(text||'').split(/\r?\n/).forEach(raw=>{
+    const t=raw.trim(); if(!t) return;
+    let f; try{ f=wqaExtractFields(t,{product:prod}); }catch(e){ return; }
+    if(!f || !f.hadX) return;
+    const vals=(f.nums||[]).length + Object.keys(f.dims||{}).length + (f.size?1:0)
+             + (f.threadLen!==null?1:0) + (f.threadLen2!==null?1:0);
+    if(vals<3) return;
+    const nums=(wqaNorm(t).match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+    const fm=String(f.size||'').toUpperCase();
+    const hit=pool.find(r=>!r.used && isFinite(r.L) && r.L>0 && nums.indexOf(r.L)>=0
+                           && (!fm || !r.M || r.M===fm));
+    if(hit) hit.used=true; else out.push(t);
+  });
+  return out.slice(0,30);
 }
 
 /* Everything the LAST source told us that is not a row: the accessory wording
@@ -19919,7 +20012,8 @@ function wqaWarnText(w){
   return w.v===undefined ? dcT(w.k) : dcT(w.k).replace('{n}',w.v).replace('{v}',w.v);
 }
 function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null;
-  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null; }
+  wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null;
+  wqa.covKind=''; wqa._covKindPending=''; }
 
 /* ── review UI ─────────────────────────────────────────────────────────── */
 /* ── The entry forms are borrowed, not taken ───────────────────────────────
@@ -21136,6 +21230,14 @@ async function wqaTextFallback(text){
       return;
     }
     wqa.aiRaw = text;                           // review keeps the original message
+    /* R3 FAST SOS: the server's second reading covers photos and PDFs only, so a
+       pasted message is checked here, line by line, against the rows the AI
+       returned. Lines it cannot account for are named; nothing is added. */
+    { const cv=j.data.coverage;
+      if(!(cv && cv.state==='partial')){
+        const miss=wqaTextCoverage(text, Array.isArray(j.data.items)?j.data.items:[]);
+        if(miss.length){ j.data.coverage={state:'partial', missing:miss}; wqa._covKindPending='text'; }
+      } }
     const applied = await wqaAiApply(j.data, 'wqaParseMsg', {truncated:!!j.truncated, review:!!j.review, diag:j.meta||null});
     if(applied) wqaMsg('wqaParseMsg','',false);
   }catch(e){
@@ -21210,6 +21312,7 @@ function wqaResetState(){
   wqaClearAiFile(false);                       // revokes the object URL, clears drag + error state
   wqa.aiBusy=false; wqa.aiMeta=null; wqa.aiWarnings=[];
   wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null;
+  wqa.covKind=''; wqa._covKindPending='';
   if(el('wqaPartial')){ el('wqaPartial').hidden=true; el('wqaPartial').innerHTML=''; el('wqaPartial').dataset.n=''; }
   wqaClearNote();
   /* A new Quick Add session is never AI-assisted until it earns it again. */
@@ -21288,6 +21391,7 @@ async function wqaEnterReview(common, rows, rawText, skipped, source, srcKind){
      the first one raised, and a plain parse never inherits it. */
   wqa.truncated=!!wqa._truncPending; wqa._truncPending=false; wqa.truncAck=false;
   wqa.covMissing=Array.isArray(wqa._covPending)?wqa._covPending:[]; wqa._covPending=null;
+  wqa.covKind=wqa.covMissing.length ? (wqa._covKindPending||'') : ''; wqa._covKindPending='';
   /* Text unless the caller says otherwise, and the file is captured HERE, from
      the file that produced these very rows — so replacing image A with image B
      replaces what Review names, and a PDF followed by an image leaves no PDF
@@ -21501,6 +21605,9 @@ async function wqaParseAndReview(){
     if(parsed.accUnsure && parsed.accUnsure.length)
       wqa.aiWarnings=[{k:'wqaAccUnsure',v:parsed.accUnsure.join(', ')}];
     /* Parser understood it. No AI call, no badge, no cost. */
+    /* R3 FAST SOS: but a specification line that became no row is named, and
+       Add waits for the same "I have checked" tick a short AI list needs. */
+    if(parsed.omitted && parsed.omitted.length){ wqa._covPending=parsed.omitted.slice(); wqa._covKindPending='text'; }
     await wqaEnterReview(parsed.common, parsed.rows, text, parsed.skipped);
     return;
   }
