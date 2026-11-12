@@ -172,7 +172,7 @@ Optional core claims (§3.7), inside the signed body:
 ```json
 "client": {
   "cores": {
-    "parser":  { "version": "1.1.0", "contract": 1, "sha256": "<64 lower-case hex>" },
+    "parser":  { "version": "1.2.0", "contract": 1, "sha256": "<64 lower-case hex>" },
     "pricing": { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" },
     "quote":   { "version": "1.0.0", "contract": 1, "sha256": "<64 lower-case hex>" }
   }
@@ -294,7 +294,7 @@ Success:
 
 ```json
 { "ok": true, "data": { … },
-  "core": { "accepted": true, "parser": { "status": "current", "version": "1.1.0" },
+  "core": { "accepted": true, "parser": { "status": "current", "version": "1.2.0" },
             "pricing": { "status": "current", "version": "1.0.0" },
             "quote": { "status": "current", "version": "1.0.0" }, "reason": "accepted" },
   "meta": { "requestId": "req_EXAMPLE0001", "serverTime": "2026-11-10T03:00:00Z" } }

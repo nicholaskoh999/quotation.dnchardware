@@ -2185,6 +2185,13 @@ function wqaParseText(text,forceProduct){
   /* R3 FAST SOS — completeness of a pasted list. Which lines became a row of
      their own, and which were read as more of the row above. See wqaTextOmitted. */
   const itemLines=[], contLines=new Set();
+  /* A shared heading — "M12 x TL70/70" over a list of lengths — is not an item
+     the parser failed to make: every value on it is read as context for the
+     rows under it. Which line last set the shared size / thread, and which
+     line each row took its size / thread from, so the completeness check can
+     tell such a heading from a dropped item line. */
+  let ctxSizeLine=null, ctxTLLine=null;
+  const rowFrom=[];
 
   /* R12 is drawing notation for an undersized rod's nominal diameter, so it is
      read as a size only where the message actually shows that context: an
@@ -2383,7 +2390,7 @@ function wqaParseText(text,forceProduct){
                is a property of the product it was written under — 75/75 on a
                Sag Rod says nothing about the Studs below it. */
             ctxEnds=null;
-            ctx.threadLen=''; ctx.threadLen2=''; ctx.tlCount=0;
+            ctx.threadLen=''; ctx.threadLen2=''; ctx.tlCount=0; ctxTLLine=null;
             ctx.acc=null;
           }
           ctx.product=hp;
@@ -2407,7 +2414,10 @@ function wqaParseText(text,forceProduct){
         else { ctx.sizeType=d.sizeType; sawGroup.sizeType=true; }
         used=true;
       }
-      if(f.size){ ctx.size=f.size; used=true; }
+      /* Only a line with nothing else on it — no loose number, no labelled
+         dimension, no quantity — can be wholly heading context. */
+      const pureHead=!(f.nums||[]).length && !f.dims && f.qty===null;
+      if(f.size){ ctx.size=f.size; used=true; ctxSizeLine=pureHead?i:null; }
       /* A heading's accessories are every row's under it, per rod. */
       if(e.accSpec){ ctx.acc=e.accSpec; used=true; }
       if(f.threadLen!==null){
@@ -2424,6 +2434,7 @@ function wqaParseText(text,forceProduct){
           used=true;
         } else {
           ctx.threadLen=f.threadLen; ctx.threadLen2=f.threadLen2||''; ctx.tlCount=2; used=true;
+          ctxTLLine=pureHead?i:null;
           /* "M12 TL100/100" over a list states two ends for every row under it,
              the same as writing the words — so the rows can be read as the rods
              they are even though nothing names a product. */
@@ -2534,6 +2545,7 @@ function wqaParseText(text,forceProduct){
     const accRow=(e.accSpec||ctx.acc) ? {...(ctx.acc||{}),
       ...Object.fromEntries(Object.entries(e.accSpec||{}).filter(([k,v])=>v!==null&&v!==''))} : null;
     itemLines.push(i);
+    rowFrom[items.length]={s:f.size?null:ctxSizeLine, t:f.threadLen!==null?null:ctxTLLine};
     items.push({...r.item, raw:e.src||e.t, specResolved:true, accSpec:accRow,
                 materialValue:pick('material'), finishValue:pick('finish'),
                 sizeTypeValue:stPick,
@@ -2620,11 +2632,32 @@ function wqaParseText(text,forceProduct){
                 issues:[], defaulted:{}});
   }
 
+  /* Heading lines whose every value a following row actually took. Read from
+     the rows as they finally stand, so a value a row overrode does not count. */
+  const headUsed=new Set();
+  {
+    const took=new Map();   // line -> {s:bool, t:bool}
+    rowFrom.forEach((rf,k)=>{
+      const it=items[k]; if(!rf||!it) return;
+      [['s',rf.s],['t',rf.t]].forEach(([w,ln])=>{
+        if(ln==null) return;
+        const hf=entries[ln]&&entries[ln].f; if(!hf) return;
+        const ok = w==='s'
+          ? (!!hf.size && it.M===hf.size)
+          : (hf.threadLen!==null && String(it.TL||'')===(hf.threadLen2?hf.threadLen+'/'+hf.threadLen2:String(hf.threadLen)));
+        if(ok){ const o=took.get(ln)||{}; o[w]=true; took.set(ln,o); }
+      });
+    });
+    took.forEach((o,ln)=>{
+      const hf=entries[ln].f;
+      if((!hf.size || o.s) && (hf.threadLen===null || o.t)) headUsed.add(ln);
+    });
+  }
   /* The SAME normaliser the photo and PDF extraction goes through. Everything
      from this line downwards is shared by every source. */
   const norm=wqaNormalizeExtraction({product:common.product,threadEnds,items},{wording:text});
   norm.rows.forEach((r,k)=>{ const a=items[k]&&wqaAccFromSpec(items[k].accSpec,r.finish); if(a) r.accParsed=a; });
-  const omitted=wqaTextOmitted(entries,itemLines,contLines,items.length===norm.rows.length && itemLines.length===items.length);
+  const omitted=wqaTextOmitted(entries,itemLines,contLines,items.length===norm.rows.length && itemLines.length===items.length,headUsed);
   return {common:norm.common, rows:norm.rows, skipped, risky, numeric, unread, accUnsure, omitted};
 }
 /* ── R3 FAST SOS: did every specification line become a row? ───────────────
@@ -2638,14 +2671,19 @@ function wqaParseText(text,forceProduct){
    neither is returned, in the customer's own words, so Review can name it.
    Nothing is added for it, and nothing is guessed from it. Repeated lines are
    counted per line, so two identical rows must produce two rows.
+   A shared heading ("M12 x TL70/70") — nothing on it but a size and / or a
+   thread, every one of which a following row took — is context, not an
+   omitted item, and is not reported.
    When the normaliser did not keep one row per item, row-to-line accounting
    is no longer exact and nothing is claimed. */
-function wqaTextOmitted(entries,itemLines,contLines,exact){
+function wqaTextOmitted(entries,itemLines,contLines,exact,headUsed){
   if(!exact) return [];
   const made=new Set(itemLines), out=[];
   entries.forEach((e,i)=>{
     if(!e || e.blank || e.section || e.sizeList || e.accOnly || !e.f) return;
     if(made.has(i) || contLines.has(i)) return;
+    /* A shared heading whose every value a following row took is context. */
+    if(headUsed && headUsed.has(i)) return;
     const f=e.f;
     if(!f.hadX) return;
     const vals=(f.nums||[]).length + Object.keys(f.dims||{}).length + (f.size?1:0)
@@ -3373,7 +3411,7 @@ function wqaRowHasPricing(r){
    HOST INTERFACE — the only part of this file that did not come from index.php.
    ════════════════════════════════════════════════════════════════════════════ */
 /* Bump on every change to this file. MAJOR when a caller would have to change. */
-const QUO_PARSER_CORE_VERSION = '1.1.0';
+const QUO_PARSER_CORE_VERSION = '1.2.0';
 /* The shape of the interface below. Changes only when a name is removed or its
    meaning changes; a consumer built against another number must refuse to run. */
 const QUO_PARSER_CORE_CONTRACT = 1;

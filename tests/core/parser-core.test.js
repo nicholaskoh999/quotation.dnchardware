@@ -140,5 +140,51 @@ for (const name of ['calcSagRod', 'round05', 'roundCustom10', 'resolvePriceMode'
   ok(!new RegExp('function\\s+' + name + '\\s*\\(').test(coreSrc), 'the core does not contain ' + name);
 }
 
+/* ── 13. 1.2.0: a shared heading is context, not an omitted item ───────────
+   "M12 x TL70/70" over a list of lengths gives every row its size and thread.
+   Since 34ab583 it was reported as a line that never became a row, holding Add.
+   Synthetic inquiries only. */
+{
+  const om = (t) => core.wqaParseText(t).omitted;
+  const rows = (t) => core.wqaParseText(t).rows.map((r) => [r.size, r.threadLen, r.threadLen2, r.length, r.qty].join('|'));
+  const LIST = ['910 - 12pcs', '1180 - 30pcs', '1475 - 6 pcs', '2260 - 4pcs'];
+
+  const a = ['M/S SAG ROD UNDERSIZE (HDG)', 'M12 X TL70/70'].concat(LIST).join('\n');
+  eq(om(a), [], 'heading supplying size + TL to every row is not reported');
+  eq(rows(a), ['M12|70|70|910|12', 'M12|70|70|1180|30', 'M12|70|70|1475|6', 'M12|70|70|2260|4'], 'heading rows unchanged');
+
+  /* Two headings, each with its own rows. */
+  const two = ['SAG ROD (ZP)', 'M12 X TL70/70', '910 - 12pcs', '', 'SAG ROD (HDG)', 'M16 x TL100/100', '1300 - 6pcs', '1420 - 2pcs'].join('\n');
+  eq(om(two), [], 'two headings, both inherited: nothing reported');
+  eq(rows(two), ['M12|70|70|910|12', 'M16|100|100|1300|6', 'M16|100|100|1420|2'], 'each block takes its own heading');
+
+  /* Mixed: heading, inheriting rows, and rows that state their own size. */
+  const mixed = ['SAG ROD', 'M12 X TL70/70', '910 - 12pcs', 'M16 x 1000 x TL100/100 - 5pcs'].join('\n');
+  eq(om(mixed), [], 'mixed heading + own-size rows: heading consumed by the first row');
+  eq(rows(mixed), ['M12|70|70|910|12', 'M16|100|100|1000|5'], 'mixed rows unchanged');
+
+  /* Still reported. */
+  const orphan = ['SAG ROD (ZP)', 'M12 X TL70/70', '', 'SAG ROD (HDG)', 'M16 x TL100/100', '1300 - 6pcs'].join('\n');
+  eq(om(orphan), ['M12 X TL70/70'], 'a heading no row inherits from is still reported');
+  eq(om(['SAG ROD', '910 - 12pcs', 'M12 X TL70/70'].join('\n')), ['M12 X TL70/70'],
+     'a heading after the rows (no following row) is still reported');
+  eq(om(['SAG ROD', 'M12 X TL70/70', 'M16 x 910 - 4pcs'].join('\n')), ['M12 X TL70/70'],
+     'a heading whose size every following row overrode is still reported');
+  eq(om(['SAG ROD', 'M12 X TL70/70', '910 x TL50/50 - 4pcs'].join('\n')), ['M12 X TL70/70'],
+     'a heading whose thread every following row overrode is still reported');
+  eq(om(['STUD', 'M12 X TL70/70', '910 - 4pcs'].join('\n')), ['M12 X TL70/70'],
+     'a thread a Stud row cannot take leaves the heading reported');
+
+  /* The completeness check itself still names an item line that made no row. */
+  const fake = [{ t: 'M20 x 1500 x 10pcs', src: 'M20 x 1500 x 10pcs', f: { hadX: true, nums: [1500, 10], size: 'M20', threadLen: null, threadLen2: null } }];
+  eq(sandbox.wqaTextOmitted(fake, [], new Set(), true, new Set()), ['M20 x 1500 x 10pcs'], 'an item line with no row is still reported');
+  eq(sandbox.wqaTextOmitted(fake, [], new Set(), true, new Set([0])), [], 'only a line marked as consumed heading is skipped');
+
+  /* 34ab583's multi-line L Bolt enquiry (suite 88 notation) is unaffected. */
+  const lb = core.wqaParseText(['4140 full size L bolt pl', '42 x 964 x 210w x 214t', '39 x 1683 x 195w x 183t'].join('\n'));
+  eq(lb.rows.length, 2, 'L Bolt multi-line: 2 rows');
+  eq(lb.omitted, [], 'L Bolt multi-line: nothing omitted');
+}
+
 console.log('\n  parser core: ' + (pass + fail) + ' assertions, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

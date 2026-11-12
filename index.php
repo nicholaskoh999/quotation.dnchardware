@@ -7230,7 +7230,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
 
 <div class="toast" id="toast"></div>
 
-<script src="quo-parser-core.js?v=3a211274d1b3"></script>
+<script src="quo-parser-core.js?v=df775ae7b1c5"></script>
 <script src="quo-pricing-core.js?v=c73870824521"></script>
 <script src="quo-quote-core.js?v=eceb55d6804a"></script>
 <script>

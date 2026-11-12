@@ -159,5 +159,19 @@ module.exports = async (browser, A) => {
     A.ok(b, 'N: a row without a size is still blocked from Add');
   }
 
+  /* O — parser core 1.2.0: a shared heading ("M12 x TL70/70" over a list of
+     lengths) is context, so the real Review path raises no banner and Add is
+     not held. A heading no row inherits from is still named. Synthetic. */
+  {
+    const list = ['M/S SAG ROD UNDERSIZE (HDG)', 'M12 X TL70/70', '910 - 12pcs', '1180 - 30pcs', '1475 - 6 pcs'].join('\n');
+    await quickAddPaste(page, list);
+    const st = await page.evaluate(() => ({ hidden: el('wqaPartial').hidden, needAck: wqaNeedsSourceAck(),
+      rows: wqa.rows.filter(r => !r.removed).map(r => [r.size, r.threadLen, r.length].join('/')) }));
+    A.eq(st.rows.join(' ; '), 'M12/70/910 ; M12/70/1180 ; M12/70/1475', 'O: every row inherits the heading size and thread');
+    A.ok(st.hidden && !st.needAck, 'O: shared heading -> no partial banner, Add not held');
+    const orphan = await parse(['SAG ROD (ZP)', 'M12 X TL70/70', '', 'SAG ROD (HDG)', 'M16 x TL100/100', '1300 - 6pcs'].join('\n'));
+    A.eq(orphan.omitted.join('|'), 'M12 X TL70/70', 'O: a heading no row inherits from is still named');
+  }
+
   await page.close();
 };

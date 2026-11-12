@@ -50,7 +50,7 @@ file changes; `tests/core/parser-core.test.js` fails if it does not match.
 
 The end of the file is the only part that is new:
 
-- `QUO_PARSER_CORE_VERSION` (`1.1.0`) and `QUO_PARSER_CORE_CONTRACT` (`1`).
+- `QUO_PARSER_CORE_VERSION` (`1.2.0`) and `QUO_PARSER_CORE_CONTRACT` (`1`).
 - `quoParserCoreSetDiameterRules(rules)` — for a host that cannot assign `dsRulesCache` directly.
 - `module.exports = { … }`, guarded by `typeof module`, so the browser ignores it and Node can `require` the file.
 
@@ -61,6 +61,13 @@ The end of the file is the only part that is new:
   `wqaExtractFields`, `wqaParseText` (now also returns `omitted`), `wqaTextOmitted` (new) and the `covKind` field of
   `wqa`. `wqaTextCoverage` (AI text fallback check) is not reached by the parser and stays in `index.php`; it calls
   core functions. Contract unchanged (1).
+- **1.2.0** — completeness false positive fixed. A shared heading line that carries only a size and/or a thread
+  ("M12 x TL70/70" over a list of lengths) was reported in `omitted` because it has an x and three values, which held
+  Add. `wqaParseText` now records which heading line last set the shared size / thread and which line each row took
+  them from; `wqaTextOmitted` skips a heading line only when every value on it (size and/or thread; no loose number,
+  labelled dimension or quantity) was actually taken by at least one FOLLOWING row. A heading no following row
+  inherits from, one written after the rows, or one whose value every following row overrode is still reported.
+  No other output changes (parity: only `omitted` differs, and only for such heading lines). Contract unchanged (1).
 
 ## Deployment
 
