@@ -445,6 +445,7 @@ function dc_handoff_callback($now = null) {
 
     // 8 — Quotation's own session: drop the old one, new id, DNC identity
     $remaining = $_SESSION[DC_HANDOFF_STATES];
+    $return    = dc_return_carry($_SESSION, $now);         // a page the login gate remembered (auth.php)
     $_SESSION = [];
     session_regenerate_id(true);
     $_SESSION['dc_auth']          = true;
@@ -456,6 +457,8 @@ function dc_handoff_callback($now = null) {
     $_SESSION['dc_login_time']    = $now;
     $_SESSION['dc_user']          = $row['username'];     // compatibility alias only
     $_SESSION[DC_HANDOFF_STATES]  = $remaining;            // other tabs' pending handoffs survive
+    /* Home sends the browser on to it once; the Location below is unchanged. */
+    if ($return !== null) $_SESSION['dc_return_after_handoff'] = $return;
 
     // 9
     dc_handoff_log('auth.handoff_succeeded', ['jti' => $claims['jti'], 'sub' => $claims['sub'], 'ip' => dc_handoff_ip()]);

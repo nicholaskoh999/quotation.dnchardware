@@ -153,6 +153,15 @@ caught.
 | refuse a key equal to `APP_KEY` | Quotation has no `APP_KEY`; the Portal refuses PO key = Quotation key |
 | `.env` | environment, else `dnc_config.php` |
 
+**Return after sign-in (Open in QUO).** The callback still answers 303 to the fixed home; nothing in the wire
+protocol changed and no return parameter is read. Inside Quotation only: when the login gate (`dc_require_login`)
+turns away a signed-out request for an allow-listed page (`companies.php?openId=<digits>`), it also remembers that
+logical path in the Quotation session (`dc_return_to`, 15 min). The callback carries a fresh, re-validated value
+across its session reset (`dc_return_after_handoff`), and `index.php` sends the browser on to it once (303, value
+under 2 min old, re-validated), then forgets it. A password sign-in forgets it (its `next=` already returns there).
+It only works in the same browser and the same origin: `quo.dnchardware.com` and the `/quo` mount are separate
+sessions. Tests: `tests/php/return_to.test.php`.
+
 ## 11. Go-live (not done in this round)
 
 1. Owner confirms §12. 2. Apply §6.1, create the §6.2 user. 3. Deploy; merge §5 into `.htaccess`. 4. Set

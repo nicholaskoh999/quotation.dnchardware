@@ -374,7 +374,76 @@ function dc_safe_next($raw) {
 function dc_require_login() {
     if (dc_is_logged_in()) return;
     $next = $_SERVER['REQUEST_URI'] ?? dc_url('/index.php');
+    dc_return_remember($next);
     header('Location: login.php?next=' . rawurlencode($next), true, 302);
+    exit;
+}
+
+// ── Return after a DNC Workspace sign-in ─────────────────────────────────────
+//
+// A password sign-in already returns to the page that asked for it (login.php
+// ?next=). A DNC Workspace sign-in cannot: the handoff contract (v2 §6.1)
+// reads no return parameter and the callback always lands on home. So the
+// login gate also remembers, IN THIS SESSION, the one page worth coming back
+// to — a saved quotation opened from DNC Quick Quote (companies.php?openId=N)
+// — and home sends the browser there once, right after a handoff sign-in.
+// Nothing travels in a URL; the handoff wire behaviour is unchanged.
+
+/** Seconds a remembered page stays usable: the time to sign in on the Portal. */
+const DC_RETURN_TTL = 900;
+
+/**
+ * A request URI as an allow-listed logical page ('/companies.php?openId=123'),
+ * or null. Only the copy's own base, then exactly companies.php with one
+ * numeric openId, or index.php. Anything else — an absolute URL, '//', a
+ * backslash, any percent-encoding, CR/LF, another parameter — is null.
+ */
+function dc_return_path($raw) {
+    if (!is_string($raw) || $raw === '' || strlen($raw) > 200) return null;
+    if (preg_match('#^/[A-Za-z0-9/._?=-]*$#D', $raw) !== 1 || strpos($raw, '//') !== false) return null;
+    $base = dc_base_path();
+    if ($base !== '') {
+        if (strpos($raw, $base . '/') !== 0) return null;
+        $raw = substr($raw, strlen($base));
+    }
+    if (preg_match('#^/(?:companies\.php\?openId=[1-9][0-9]{0,9}|index\.php)$#D', $raw) !== 1) return null;
+    return $raw;
+}
+
+/** Called by the login gate: remember an allow-listed page, forget anything older. */
+function dc_return_remember($requestUri) {
+    dc_session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) return;
+    $p = dc_return_path($requestUri);
+    if ($p !== null && $p !== '/index.php') $_SESSION['dc_return_to'] = ['path' => $p, 'at' => time()];
+    else unset($_SESSION['dc_return_to']);
+}
+
+/**
+ * For the handoff callback, from the session it is about to replace: the
+ * remembered page if it is still allow-listed and fresh, else null.
+ */
+function dc_return_carry(array $old, $now) {
+    $r = $old['dc_return_to'] ?? null;
+    if (!is_array($r) || !is_string($r['path'] ?? null) || !is_int($r['at'] ?? null)) return null;
+    if ($r['at'] > $now || ($now - $r['at']) > DC_RETURN_TTL) return null;
+    if ($r['path'] === '/index.php' || dc_return_path(dc_base_path() . $r['path']) !== $r['path']) return null;
+    return ['path' => $r['path'], 'at' => $now];
+}
+
+/**
+ * Home (index.php), after the login gate: one 303 to the page remembered
+ * across a handoff sign-in, then never again. Returns when there is none.
+ */
+function dc_return_after_handoff() {
+    $r = $_SESSION['dc_return_after_handoff'] ?? null;
+    if ($r === null) return;
+    unset($_SESSION['dc_return_after_handoff']);
+    $now = time();
+    if (!is_array($r) || !is_string($r['path'] ?? null) || !is_int($r['at'] ?? null)) return;
+    if ($r['at'] > $now || ($now - $r['at']) > 120) return;
+    if ($r['path'] === '/index.php' || dc_return_path(dc_base_path() . $r['path']) !== $r['path']) return;
+    header('Location: ' . dc_url($r['path']), true, 303);
     exit;
 }
 

@@ -33,6 +33,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $error = 'Please enter both username and password.';
         $errorCode = 'errLoginMissing';
     } elseif (dc_login(dc_login_db(), $u, $p)) {
+        unset($_SESSION['dc_return_to']);   // next= already returns there (auth.php)
         header('Location: ' . $next, true, 302);
         exit;
     } else {

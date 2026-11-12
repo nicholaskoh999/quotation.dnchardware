@@ -1,4 +1,4 @@
-<?php require_once __DIR__ . '/auth.php'; dc_require_login(); ?>
+<?php require_once __DIR__ . '/auth.php'; dc_require_login(); dc_return_after_handoff(); ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
