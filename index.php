@@ -1398,6 +1398,47 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
   border:1.5px solid var(--border); border-radius:var(--r-xs); background:var(--surface);
 }
 .qi-meta-pill.qi-weight-pill{color:var(--text-2)}
+/* ── SOS Bulk Edit Pricing: Select mode + modal ── */
+.qi-sort-row .qi-sel-toggle{margin-left:auto}
+.qi-sort-row .qi-sel-toggle.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.qi-selbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:8px 0 4px;padding:8px 10px;
+  border:1.5px solid var(--accent-mid);border-radius:var(--r-xs);background:var(--accent-light)}
+.qi-selbar[hidden]{display:none}
+.qi-selall{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--text);cursor:pointer}
+.qi-selall input,.qi-chk input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;margin:0}
+.qi-seln{font-size:12px;font-weight:800;color:var(--text-2);flex:1 1 auto}
+.qi-chk{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:28px;cursor:pointer;flex-shrink:0}
+.qi-list.selecting .qi-item{cursor:pointer}
+.qi-list.selecting .qi-item.is-sel{outline:2px solid var(--accent);outline-offset:-2px}
+.bp-modal{max-width:720px}
+.bp-hint{font-size:12.5px;color:var(--text-2);margin:-6px 0 12px;line-height:1.45}
+.bp-fields{display:grid;gap:8px}
+.bp-row{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,180px);align-items:center;gap:10px;
+  padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--surface);cursor:pointer}
+.bp-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin:0;cursor:pointer}
+.bp-row input[type=text],.bp-row select{width:100%;padding:7px 10px;font-size:14px;font-weight:700;
+  border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--surface);color:var(--text)}
+.bp-row.on{border-color:var(--accent-mid);background:var(--accent-light)}
+.bp-row:not(.on) input[type=text],.bp-row:not(.on) select{opacity:.55}
+.bp-lbl{font-size:12.5px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
+.bp-err{margin-top:10px;font-size:12.5px;font-weight:800;color:var(--red)}
+.bp-err[hidden]{display:none}
+.bp-prev-head{margin:14px 0 6px;font-size:12px;font-weight:900;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em}
+.bp-prev{max-height:38vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r-xs)}
+.bp-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.bp-tbl th,.bp-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.bp-tbl th{position:sticky;top:0;background:var(--surface2);font-size:11px;font-weight:900;color:var(--text-2);text-transform:uppercase}
+.bp-tbl td.bp-d,.bp-tbl th.bp-d{text-align:left;white-space:normal;min-width:140px}
+.bp-tbl .bp-old{color:var(--text-muted);text-decoration:line-through;margin-right:4px}
+.bp-tbl .bp-new{font-weight:900;color:var(--text)}
+.bp-tbl .bp-note{display:block;font-size:11px;font-weight:700;color:var(--amber)}
+.bp-tbl tr.bp-same .bp-new{color:var(--text-2);font-weight:700}
+.bp-sum{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:13px;font-weight:800;color:var(--text)}
+.bp-sum .up{color:var(--red)} .bp-sum .down{color:var(--green,#15803d)}
+@media (max-width:520px){
+  .bp-row{grid-template-columns:22px minmax(0,1fr)}
+  .bp-row input[type=text],.bp-row select{grid-column:1/-1}
+}
 
 /* v2.23.0 — Stage 7B-18A: Master Data Tools (Excel/CSV import-export) */
 .mdt-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:14px}
@@ -6312,6 +6353,14 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
             <option value="newest" data-i18n="newestFirst">Newest First</option>
             <option value="oldest" data-i18n="oldestFirst">Oldest First</option>
           </select>
+          <!-- SOS Bulk Edit Pricing: Select mode for the Quotation List -->
+          <button type="button" class="btn btn-outline btn-sm qi-sel-toggle" id="qiSelToggle" onclick="dcBpToggleSelect()" aria-pressed="false">Select</button>
+        </div>
+        <div class="qi-selbar" id="qiSelBar" hidden>
+          <label class="qi-selall"><input type="checkbox" id="qiSelAll" onchange="dcBpSelectAll(this.checked)"> <span id="qiSelAllLbl">Select All</span></label>
+          <span class="qi-seln" id="qiSelN"></span>
+          <button type="button" class="btn btn-primary btn-sm" id="qiBpOpenBtn" onclick="dcBpOpen()" data-i18n="bpBulkEditPricing">Bulk Edit Pricing</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="dcBpToggleSelect(false)" data-i18n="done">Done</button>
         </div>
 
         <div class="review-list-panel" id="reviewListPanel">
@@ -6923,6 +6972,29 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <div class="modal-btns">
       <button class="btn btn-save" id="saveModalSubmitBtn" onclick="doSaveQuotation()" data-i18n="saveQuotation">Save Quotation</button>
       <button class="btn btn-ghost" onclick="closeModal('saveModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SOS Bulk Edit Pricing: only the ticked fields overwrite the selected items -->
+<div class="modal-overlay" id="bpModal">
+  <div class="modal bp-modal" role="dialog" aria-modal="true" aria-labelledby="bpTitle">
+    <div class="modal-title"><span id="bpTitle">Bulk Edit Pricing</span> <button class="modal-close" onclick="dcBpClose()" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
+    <div class="bp-hint" data-i18n="bpHint">Only ticked fields change. Unticked fields keep each item's own value.</div>
+    <div class="bp-fields">
+      <label class="bp-row"><input type="checkbox" id="bpOn-costRate" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpCostRate">Cost Rate (RM/kg)</span><input type="text" inputmode="decimal" id="bpVal-costRate" oninput="dcBpTick('costRate')" autocomplete="off"></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-addCost" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpAddCost">Additional Cost (RM)</span><input type="text" inputmode="decimal" id="bpVal-addCost" oninput="dcBpTick('addCost')" autocomplete="off"></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-markup" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpMarkup">Markup (%)</span><input type="text" inputmode="decimal" id="bpVal-markup" oninput="dcBpTick('markup')" autocomplete="off"></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-qty" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpQty">QTY</span><input type="text" inputmode="numeric" id="bpVal-qty" oninput="dcBpTick('qty')" autocomplete="off"></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-priceMode" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpPriceMode">Price Mode</span><select id="bpVal-priceMode" onchange="dcBpTick('priceMode')"><option value="no_round" data-i18n="pmNoRound">No Round</option><option value="auto" data-i18n="pmAutoRound">Auto Round</option></select></label>
+    </div>
+    <div class="bp-err" id="bpErr" hidden></div>
+    <div class="bp-prev-head" data-i18n="bpPreview">Preview Changes</div>
+    <div class="bp-prev" id="bpPreview"></div>
+    <div class="bp-sum" id="bpSum"></div>
+    <div class="modal-btns">
+      <button class="btn btn-save" id="bpApplyBtn" onclick="dcBpApply()" data-i18n="bpApply">Apply to Selected</button>
+      <button class="btn btn-ghost" onclick="dcBpClose()" data-i18n="cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -7869,6 +7941,16 @@ const I18N={
     tItemRemoved:'Item removed', tListCleared:'Quotation list cleared',
     tNewQuotation:'New quotation started',
     tUnlocked:'Saved quotation unlocked for editing',
+    bpSelect:'Select', bpCancelSelect:'Cancel Select', bpSelectAll:'Select All', bpDeselectAll:'Deselect All',
+    bpNSelected:'{n} of {t} selected', bpBulkEditPricing:'Bulk Edit Pricing', bpTitle:'Bulk Edit Pricing · {n} items',
+    bpHint:'Only ticked fields change. Unticked fields keep each item\'s own value. Material, size, finish and accessories are never changed.',
+    bpCostRate:'Cost Rate (RM/kg)', bpAddCost:'Additional Cost (RM)', bpMarkup:'Markup (%)', bpQty:'QTY', bpPriceMode:'Price Mode',
+    bpPreview:'Preview Changes', bpColItem:'Item', bpColUnit:'Unit Price', bpColTotal:'Line Total', bpDiff:'Difference',
+    bpNChanged:'{n} of {t} items change', bpApply:'Apply to Selected', bpApplied:'Pricing updated on {n} items — Update Quotation to save',
+    bpNoneSelected:'Select at least one item first', bpNothingTicked:'Tick at least one field to change',
+    bpErrNum:'{f}: enter a valid number', bpErrZero:'Item {n} would be priced RM 0.00 — check Cost Rate',
+    bpNoteManual:'Manual Price kept — tick Price Mode to recalculate', bpNoteWasRate:'Cost Rate not applied (set has its own steel rates)',
+    bpNoteNoBase:'No stored weight — price kept',
     tNoRefNo:'Unable to get quotation number. Please check API/database.',
     tSaveFailed:'Save failed: {e}', tTemplateSaved:'Template saved',
     tTemplateFailed:'Template save failed: {e}', tImportFailed:'Import failed: {e}',
@@ -8566,6 +8648,16 @@ const I18N={
     tItemRemoved:'项目已删除', tListCleared:'报价项目已清空',
     tNewQuotation:'已开始新的报价单',
     tUnlocked:'已解锁此报价单以供编辑',
+    bpSelect:'选择', bpCancelSelect:'取消选择', bpSelectAll:'全选', bpDeselectAll:'取消全选',
+    bpNSelected:'已选 {n} / {t} 项', bpBulkEditPricing:'批量修改价格', bpTitle:'批量修改价格 · {n} 项',
+    bpHint:'只修改已勾选的栏位。未勾选的栏位保留每项原有数值。材料、尺寸、表面处理和配件不会更改。',
+    bpCostRate:'成本价 (RM/kg)', bpAddCost:'附加成本 (RM)', bpMarkup:'加价 (%)', bpQty:'数量', bpPriceMode:'价格模式',
+    bpPreview:'预览更改', bpColItem:'项目', bpColUnit:'单价', bpColTotal:'小计', bpDiff:'差额',
+    bpNChanged:'{t} 项中 {n} 项会更改', bpApply:'应用到所选项目', bpApplied:'已更新 {n} 项价格 — 请按「更新报价单」保存',
+    bpNoneSelected:'请先选择至少一个项目', bpNothingTicked:'请至少勾选一个要修改的栏位',
+    bpErrNum:'{f}：请输入有效数字', bpErrZero:'第 {n} 项价格会变成 RM 0.00 — 请检查成本价',
+    bpNoteManual:'保留手动价格 — 勾选价格模式才会重新计算', bpNoteWasRate:'不套用成本价（此套件有各自的钢材价）',
+    bpNoteNoBase:'没有储存重量 — 保留原价',
     tNoRefNo:'无法取得报价单号，请检查 API／数据库。',
     tSaveFailed:'保存失败：{e}', tTemplateSaved:'模板已保存',
     tTemplateFailed:'模板保存失败：{e}', tImportFailed:'导入失败：{e}',
@@ -8939,6 +9031,9 @@ let acMatches=[];
 let acHighlight=-1;
 let loadedSavedQuote=false;
 let quoteLocked=false;
+/* SOS Bulk Edit Pricing: Step 3 Select mode and the selected item positions. */
+let dcBpSelecting=false;
+const dcBpSel=new Set();
 let savedQuoteDirty=false;
 let quoteStatusMode='draft';
 let savedQuoteSnapshot='';
@@ -12617,6 +12712,217 @@ function setQuoteSortOrder(v){
   quoteListSortOrder=(v==='oldest')?'oldest':'newest';
   renderQuote();
 }
+
+/* ── SOS Bulk Edit Pricing (Step 3 Quotation List) ─────────────────────────
+   Select mode picks items; the modal overwrites ONLY the ticked fields on the
+   SELECTED items and reprices each from its own stored unit weight with the
+   entry form's arithmetic:
+       raw = (weight x Cost Rate + Additional Cost) x (1 + Markup / 100)
+   then the item's price mode, exactly as resolvePriceMode does (No Round =
+   currency only; Auto Round = dcAutoRound of bolt + accessories, once).
+   Material, dimensions, finish, accessories, item order and item_uid are
+   never touched, and an unselected item is never touched at all.
+   · Price Mode is kept unless it is ticked — a No Round item stays No Round.
+   · A Manual Price item keeps its typed price unless Price Mode is ticked.
+   · Welding Anchor Set has three steel rates, so the single Cost Rate is not
+     applied to it; Additional Cost / Markup / Mode reprice it from its stored
+     pre-markup base.
+   Locked saved quotations refuse every step: unlock (Edit Saved Quotation) ->
+   select -> apply -> Update Quotation, which writes the normal revision. */
+const DC_BP_FIELDS=['costRate','addCost','markup','qty','priceMode'];
+const DC_BP_LBL={costRate:'bpCostRate',addCost:'bpAddCost',markup:'bpMarkup',qty:'bpQty',priceMode:'bpPriceMode'};
+function dcBpLocked(){ return loadedSavedQuote && quoteLocked; }
+function dcBpEndSelect(){ dcBpSelecting=false; dcBpSel.clear(); }
+function dcBpToggleSelect(force){
+  const want=force===undefined?!dcBpSelecting:!!force;
+  if(want){
+    if(dcBpLocked()){ showToast(dcT('tClickEditFirst')); return; }
+    if(editingItemIndex!==null){ showToast(dcT('tFinishItemEdit')); return; }
+    if(!quoteItems.length) return;
+    dcBpSelecting=true;
+  } else dcBpEndSelect();
+  renderQuote();
+}
+function dcBpToggleItem(i,on){
+  if(!dcBpSelecting || !quoteItems[i]) return;
+  const want=on===undefined?!dcBpSel.has(i):!!on;
+  if(want) dcBpSel.add(i); else dcBpSel.delete(i);
+  const card=document.querySelector('#quoteItemList .qi-item[data-idx="'+i+'"]');
+  if(card){ card.classList.toggle('is-sel',want); const c=card.querySelector('.qi-chk input'); if(c) c.checked=want; }
+  dcBpSyncBar();
+}
+function dcBpSelectAll(on){
+  dcBpSel.clear();
+  if(on) quoteItems.forEach((_,i)=>dcBpSel.add(i));
+  document.querySelectorAll('#quoteItemList .qi-item[data-idx]').forEach(card=>{
+    card.classList.toggle('is-sel',!!on); const c=card.querySelector('.qi-chk input'); if(c) c.checked=!!on;
+  });
+  dcBpSyncBar();
+}
+function dcBpSyncBar(){
+  const tg=el('qiSelToggle');
+  if(tg){
+    tg.classList.toggle('on',dcBpSelecting);
+    tg.setAttribute('aria-pressed',dcBpSelecting?'true':'false');
+    tg.textContent=dcT(dcBpSelecting?'bpCancelSelect':'bpSelect');
+    tg.title=dcBpLocked()?dcT('tClickEditFirst'):'';
+  }
+  const bar=el('qiSelBar'); if(!bar) return;
+  bar.hidden=!dcBpSelecting;
+  const n=dcBpSel.size, total=quoteItems.length, all=el('qiSelAll');
+  if(all){ all.checked=n>0&&n===total; all.indeterminate=n>0&&n<total; }
+  const lbl=el('qiSelAllLbl'); if(lbl) lbl.textContent=dcT(n>0&&n===total?'bpDeselectAll':'bpSelectAll');
+  const sn=el('qiSelN'); if(sn) sn.textContent=dcT('bpNSelected').replace('{n}',n).replace('{t}',total);
+  const ob=el('qiBpOpenBtn'); if(ob) ob.disabled=!n;
+}
+function dcBpSelIdx(){ return [...dcBpSel].filter(i=>!!quoteItems[i]).sort((a,b)=>a-b); }
+function dcBpOpen(){
+  if(dcBpLocked()){ showToast(dcT('tClickEditFirst')); return; }
+  if(editingItemIndex!==null){ showToast(dcT('tFinishItemEdit')); return; }
+  const idx=dcBpSelIdx();
+  if(!idx.length){ showToast(dcT('bpNoneSelected')); return; }
+  /* Unticked; a value every selected item shares is shown as a starting point. */
+  const sel=idx.map(i=>quoteItems[i]);
+  const same=get=>{ const vs=[...new Set(sel.map(it=>{ const v=get(it); return v==null?'':String(v).trim(); }))]; return vs.length===1?vs[0]:''; };
+  const fdv=(it,k)=>(it.formData||{})[k];
+  DC_BP_FIELDS.forEach(f=>{ const c=el('bpOn-'+f); if(c) c.checked=false; });
+  el('bpVal-costRate').value=same(it=>fdv(it,'costRate'));
+  el('bpVal-addCost').value=same(it=>fdv(it,'addCost'));
+  el('bpVal-markup').value=same(it=>{ const m=fdv(it,'markup'); return m!=null&&String(m).trim()!==''?m:it.markup; });
+  el('bpVal-qty').value=same(it=>parseInt(it.qty,10)||'');
+  const pm=same(it=>it.priceMode||fdv(it,'priceMode')||'auto');
+  el('bpVal-priceMode').value=pm==='auto'?'auto':'no_round';
+  el('bpTitle').textContent=dcT('bpTitle').replace('{n}',idx.length);
+  openModal('bpModal');
+  dcBpRefresh();
+}
+function dcBpClose(){ closeModal('bpModal'); }
+function dcBpTick(f){ const c=el('bpOn-'+f); if(c && !c.checked) c.checked=true; dcBpRefresh(); }
+function dcBpReadChanges(){
+  const ch={}, errs=[];
+  const on=f=>!!(el('bpOn-'+f)||{}).checked;
+  const txt=f=>String((el('bpVal-'+f)||{}).value||'').trim();
+  ['costRate','addCost','markup'].forEach(f=>{
+    if(!on(f)) return;
+    const t=txt(f), v=isReadableAmount(t)?evalExpr(t):NaN;
+    if(!isFinite(v) || v<0 || (f==='costRate' && v<=0)) errs.push(dcT('bpErrNum').replace('{f}',dcT(DC_BP_LBL[f])));
+    else ch[f]=v;
+  });
+  if(on('qty')){
+    const t=txt('qty');
+    if(!/^\d+$/.test(t) || parseInt(t,10)<1) errs.push(dcT('tQtyWholeMin')); else ch.qty=parseInt(t,10);
+  }
+  if(on('priceMode')) ch.priceMode=el('bpVal-priceMode').value==='auto'?'auto':'no_round';
+  return {ch,errs};
+}
+/* One item, repriced on a COPY. Preview and Apply both use this, so what the
+   preview shows is exactly what Apply writes. */
+function dcBpReprice(src,ch){
+  const item=JSON.parse(JSON.stringify(src));
+  const fd=item.formData=(item.formData&&typeof item.formData==='object')?item.formData:{};
+  const type=item.itemType, isWas=type==='was';
+  const has=v=>v!==undefined&&v!==null&&String(v).trim()!=='';
+  const oldUnit=dcItemFinalUnit(src), oldTotal=roundMoney2(Number(src.totalAmount)||0);
+  const pm=item.priceMode||fd.priceMode;
+  const oldMode=['auto','no_round','manual'].includes(pm)?pm:'auto';
+  const qty=ch.qty!==undefined?ch.qty:(parseInt(item.qty,10)||0);
+  const notes=[];
+  let reprice=['costRate','addCost','markup','priceMode'].some(k=>ch[k]!==undefined);
+  if(reprice && oldMode==='manual' && ch.priceMode===undefined){ reprice=false; notes.push(dcT('bpNoteManual')); }
+  let addCost=has(fd.addCost)?evalExpr(String(fd.addCost)):0;
+  let markup=parseFloat(has(fd.markup)?fd.markup:item.markup)||0;
+  let base=null;
+  if(reprice){
+    if(isWas){
+      if(ch.costRate!==undefined) notes.push(dcT('bpNoteWasRate'));
+      const raw0=Number(item.rawUnitPrice);
+      const b=raw0/(1+markup/100)-addCost;
+      if(isFinite(raw0) && raw0>0 && isFinite(b) && b>=-0.005) base=Math.max(0,b);
+    }else{
+      const w=parseFloat(item.weight)||0;
+      const rate=ch.costRate!==undefined?ch.costRate:(has(fd.costRate)?evalExpr(String(fd.costRate)):0);
+      if(w>0) base=w*rate;
+    }
+    if(base===null){ reprice=false; notes.push(dcT('bpNoteNoBase')); }
+  }
+  let repriced=false;
+  if(reprice){
+    if(ch.addCost!==undefined) addCost=ch.addCost;
+    if(ch.markup!==undefined) markup=ch.markup;
+    const mode=ch.priceMode!==undefined?ch.priceMode:oldMode;
+    const raw=(base+addCost)*(1+markup/100);
+    const accUnit=roundMoney2(accAddon(item.accessories));
+    const autoFinal=accUnit>0?dcAutoRound(type,raw+accUnit):dcAutoRound(type,raw);
+    const final=mode==='no_round'?roundMoney2(roundMoney2(raw)+accUnit):autoFinal;
+    Object.assign(item,dcLineMoney(final,item.accessories,qty));
+    item.priceMode=mode; item.manualUnitPrice='';
+    item.rawUnitPrice=Number(raw)||0;
+    item.roundedUnitPrice=Number(dcAutoRound(type,raw))||0;
+    item.autoFinalUnitPrice=Number(autoFinal)||0;
+    item.autoRoundStage=DC_AUTO_ROUND_STAGE;
+    item.markup=markup;
+    if(ch.costRate!==undefined && !isWas) fd.costRate=String(ch.costRate);
+    if(ch.addCost!==undefined) fd.addCost=String(ch.addCost);
+    if(ch.markup!==undefined) fd.markup=String(ch.markup);
+    fd.priceMode=mode; fd.manualUnitPrice='';
+    item.priceAcceptance=dcPaMeta('manual_recipe',null,item.finalUnitPrice);
+    repriced=true;
+  }else if(ch.qty!==undefined){
+    const unit=dcItemFinalUnit(item);
+    if(item.pricingModel) item.accessoryTotal=roundMoney2(dcItemAccUnit(item)*qty);
+    item.totalAmount=roundMoney2(unit*qty);
+  }
+  if(ch.qty!==undefined){
+    item.qty=qty;
+    if('qty' in fd) fd.qty=String(qty);
+    if(isWas && 'setQty' in fd) fd.setQty=String(qty);
+  }
+  const newUnit=dcItemFinalUnit(item), newTotal=roundMoney2(Number(item.totalAmount)||0);
+  return {item,oldUnit,newUnit,oldTotal,newTotal,notes,repriced,
+          changed:JSON.stringify(item)!==JSON.stringify(src)};
+}
+function dcBpCompute(){
+  const {ch,errs}=dcBpReadChanges();
+  const rows=dcBpSelIdx().map(i=>Object.assign({i},dcBpReprice(quoteItems[i],ch)));
+  rows.forEach(r=>{ if(r.repriced && !(r.newUnit>0)) errs.push(dcT('bpErrZero').replace('{n}',r.i+1)); });
+  return {ch,errs,rows,any:Object.keys(ch).length>0};
+}
+function dcBpRefresh(){
+  DC_BP_FIELDS.forEach(f=>{ const c=el('bpOn-'+f), row=c&&c.closest('.bp-row'); if(row) row.classList.toggle('on',!!c.checked); });
+  const {errs,rows,any}=dcBpCompute();
+  const err=el('bpErr');
+  if(err){ err.hidden=!errs.length; err.textContent=errs.join(' · '); }
+  const money=v=>escHtml(fmt(v));
+  const cell=(o,n)=>Math.abs(o-n)<0.005?`<span class="bp-new">${money(n)}</span>`:`<span class="bp-old">${money(o)}</span><span class="bp-new">${money(n)}</span>`;
+  el('bpPreview').innerHTML=`<table class="bp-tbl"><thead><tr><th class="bp-d">${escHtml(dcT('bpColItem'))}</th><th>${escHtml(dcT('lblQty'))}</th><th>${escHtml(dcT('bpColUnit'))}</th><th>${escHtml(dcT('bpColTotal'))}</th></tr></thead><tbody>${
+    rows.map(r=>{
+      const it=quoteItems[r.i], size=it.itemType==='was'?'':dcSizeLabelDisplay(it.size);
+      const q0=parseInt(it.qty,10)||0, q1=parseInt(r.item.qty,10)||0;
+      return `<tr class="${r.changed?'':'bp-same'}"><td class="bp-d"><b>${r.i+1}.</b> ${escHtml(displayItemDesc(it))}${size?' · '+escHtml(size):''}${r.notes.map(n=>`<span class="bp-note">${escHtml(n)}</span>`).join('')}</td>`
+        +`<td>${q0===q1?q1:`<span class="bp-old">${q0}</span><span class="bp-new">${q1}</span>`}</td><td>${cell(r.oldUnit,r.newUnit)}</td><td>${cell(r.oldTotal,r.newTotal)}</td></tr>`;
+    }).join('')}</tbody></table>`;
+  const oldGrand=roundMoney2(quoteItems.reduce((s,i)=>s+(Number(i.totalAmount)||0),0));
+  const newGrand=roundMoney2(oldGrand+rows.reduce((s,r)=>s+(r.newTotal-r.oldTotal),0));
+  const diff=roundMoney2(newGrand-oldGrand), nChanged=rows.filter(r=>r.changed).length;
+  el('bpSum').innerHTML=`<span>${escHtml(dcT('quotationTotal'))}: ${money(oldGrand)} → ${money(newGrand)}</span>`
+    +`<span class="${diff>0?'up':diff<0?'down':''}">${escHtml(dcT('bpDiff'))} ${diff>0?'+':diff<0?'−':''}${money(Math.abs(diff))}</span>`
+    +`<span>${escHtml(dcT('bpNChanged').replace('{n}',nChanged).replace('{t}',rows.length))}</span>`;
+  const b=el('bpApplyBtn'); if(b) b.disabled=!any || errs.length>0 || !nChanged;
+}
+function dcBpApply(){
+  if(dcBpLocked()){ dcBpClose(); showToast(dcT('tClickEditFirst')); return; }
+  if(editingItemIndex!==null){ showToast(dcT('tFinishItemEdit')); return; }
+  const {errs,rows,any}=dcBpCompute();
+  if(!any){ showToast(dcT('bpNothingTicked')); return; }
+  if(errs.length){ showToast(errs[0]); return; }
+  let n=0;
+  rows.forEach(r=>{ if(r.changed){ quoteItems[r.i]=r.item; n++; } });
+  dcBpClose();
+  if(!n) return;
+  markQuotationDirty();
+  renderQuote();
+  showToast(dcT('bpApplied').replace('{n}',n));
+}
 /* ── Quotation List card: what the price is made of (STAFF INTERNAL) ───────
    Display only. Reads what the item already stored — nothing is recalculated
    and no price changes. Never used by Print / WhatsApp / Copy.
@@ -12702,6 +13008,11 @@ function renderQuote(newIdx){
   const sortSelect=el('quoteSortSelect'); if(sortSelect) sortSelect.value=quoteListSortOrder;
 
   const list=el('quoteItemList'); list.innerHTML='';
+  /* Select mode never outlives the edit it serves: a locked quotation, an
+     empty list or an item open in the entry form ends it. */
+  if(dcBpSelecting && ((loadedSavedQuote&&quoteLocked) || !count || editingItemIndex!==null)) dcBpEndSelect();
+  [...dcBpSel].forEach(k=>{ if(k>=count) dcBpSel.delete(k); });
+  list.classList.toggle('selecting',dcBpSelecting);
   /* Item numbers are INSERTION ORDER (array position + 1) — the same number the
      print sheet, WhatsApp and Quotation Detail derive from the stored array, so
      "Item 3" on screen is always row 3 on paper. Sorting below is view-only and
@@ -12728,7 +13039,8 @@ function renderQuote(newIdx){
     if(runKey!==null && gk!==runKey) flushGroupWeight();
     runKey=gk; runSum+=wItemTotal(item); runCount++;
     const div=document.createElement('div');
-    div.className='qi-item'+(i===newIdx?' row-new':'')+(i===editingItemIndex?' editing':'');
+    div.className='qi-item'+(i===newIdx?' row-new':'')+(i===editingItemIndex?' editing':'')+(dcBpSelecting&&dcBpSel.has(i)?' is-sel':'');
+    if(dcBpSelecting){ div.dataset.idx=i; div.onclick=e=>{ if(e.target.closest('.qi-chk')) return; dcBpToggleItem(i); }; }
     const chip=/^\s*(n\/?a|none|-|—)?\s*$/i.test(item.finish||'')?'':makeChip(item.finish);   /* display only: no "- N/A" in the title */
     const ps=dcItemPricingSummary(item);
     const priceModeTag='<span class="price-mode-badge">'+escHtml(ps.mode==='manual'?dcT('qiManualOverride'):getPriceModeLabel(ps.mode))+'</span>';
@@ -12748,6 +13060,7 @@ function renderQuote(newIdx){
     div.innerHTML=`
       <div class="qi-item-top">
         <div class="qi-item-left">
+          ${dcBpSelecting?`<label class="qi-chk"><input type="checkbox"${dcBpSel.has(i)?' checked':''} onchange="dcBpToggleItem(${i},this.checked)" aria-label="${escHtml(dcT('wqaSelectItem').replace('{n}',i+1))}"></label>`:''}
           <div class="qi-num">${i+1}</div>
           <div class="qi-body">
             <div class="qi-titlerow"><span class="qi-desc">${escHtml(displayItemDesc(item))}</span>${chip?`<span class="qi-fin">\u00a0<span class="qi-finsep">·</span>\u00a0${chip}</span>`:''}</div>
@@ -12761,7 +13074,7 @@ function renderQuote(newIdx){
             ${pricingHtml}
           </div>
         </div>
-        ${loadedSavedQuote&&quoteLocked?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-dup-btn" onclick="duplicateItem(${i})" title="${escHtml(dcT('btnDuplicate'))}">${escHtml(dcT('btnDuplicate'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
+        ${(loadedSavedQuote&&quoteLocked)||dcBpSelecting?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-dup-btn" onclick="duplicateItem(${i})" title="${escHtml(dcT('btnDuplicate'))}">${escHtml(dcT('btnDuplicate'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
         <div class="qi-unitcol"><div class="qi-unitline"><span class="qi-unitval">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong></span> ${priceModeTag}</div>${overrideHtml}</div>
@@ -12773,6 +13086,7 @@ function renderQuote(newIdx){
     list.appendChild(div);
   });
   flushGroupWeight();
+  dcBpSyncBar();
   refreshWorkflow();
   updateQuoteLockUI();
   scheduleDraftAutosave();
