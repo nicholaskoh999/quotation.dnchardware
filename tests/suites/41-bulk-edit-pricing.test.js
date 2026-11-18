@@ -63,16 +63,28 @@ module.exports = async (browser, A) => {
     dcBpToggleItem(0); dcBpToggleItem(2);
     dcBpOpen();
     const open = document.getElementById('bpModal').classList.contains('open');
+    const t = id => document.getElementById(id).textContent;
+    const cur = { rate: t('bpCur-costRate'), add: t('bpCur-addCost'), mk: t('bpCur-markup'), pm: t('bpCur-priceMode') };
+    const qtyField = !!document.getElementById('bpOn-qty') || !!document.getElementById('bpVal-qty');
+    const blankNew = ['costRate', 'addCost', 'markup'].every(f => document.getElementById('bpVal-' + f).value === '');
     document.getElementById('bpVal-costRate').value = '6'; dcBpTick('costRate');
     document.getElementById('bpVal-markup').value = '10'; dcBpTick('markup');
     const rows = document.querySelectorAll('#bpPreview tbody tr').length;
+    const row1 = document.querySelector('#bpPreview tbody tr').textContent;
     const sum = document.getElementById('bpSum').textContent;
     const applyEnabled = !document.getElementById('bpApplyBtn').disabled;
     dcBpApply();
-    return { sel: dcBpSelecting, cards, open, rows, sum, applyEnabled, after: JSON.parse(JSON.stringify(quoteItems)) };
+    return { sel: dcBpSelecting, cards, open, cur, qtyField, blankNew, rows, row1, sum, applyEnabled, after: JSON.parse(JSON.stringify(quoteItems)) };
   });
   A.ok(r.sel && r.cards === 4, 'unlocked: Select mode shows a checkbox on every item');
+  A.ok(!r.qtyField, 'the modal has no QTY field');
   A.ok(r.open && r.rows === 2, 'the modal previews exactly the two selected items');
+  A.ok(/5\.00/.test(r.cur.rate) && !/Mixed/.test(r.cur.rate), `shared Cost Rate shown as current (${r.cur.rate})`);
+  A.ok(/1\.00/.test(r.cur.add) && /0%/.test(r.cur.mk), `shared Additional Cost and Markup shown (${r.cur.add} / ${r.cur.mk})`);
+  A.ok(/No Round/.test(r.cur.pm), `shared Price Mode shown (${r.cur.pm})`);
+  A.ok(r.blankNew, 'New boxes start empty');
+  A.ok(/5\.006\.00/.test(r.row1.replace(/\s/g, '')) && /0%10%/.test(r.row1.replace(/\s/g, '')),
+    `preview row shows old -> new Cost Rate and Markup (${r.row1})`);
   A.ok(/→/.test(r.sum) && r.applyEnabled, 'the preview shows the quotation total change and Apply is enabled');
 
   const strip = it => { const c = JSON.parse(JSON.stringify(it)); return c; };
@@ -96,16 +108,19 @@ module.exports = async (browser, A) => {
     A.eq(n.priceAcceptance.value, n.finalUnitPrice, `item ${k + 1}: accepted price matches the new unit price`);
   }
 
-  // ── QTY only on item 2: unit price stays, total follows ──────────────────
-  const q = await page.evaluate(() => {
-    dcBpSelectAll(false); dcBpToggleItem(1); dcBpOpen();
-    document.getElementById('bpVal-qty').value = '25'; dcBpTick('qty');
-    dcBpApply();
-    return JSON.parse(JSON.stringify(quoteItems[1]));
+  // ── Mixed values: items 1 (now 6 / 10%) and 2 (still 5 / 0%) ─────────────
+  const mx = await page.evaluate(() => {
+    dcBpSelectAll(false); dcBpToggleItem(0); dcBpToggleItem(1); dcBpOpen();
+    const t = id => document.getElementById(id).textContent;
+    const out = { rate: t('bpCur-costRate'), add: t('bpCur-addCost'), mk: t('bpCur-markup') };
+    dcBpClose();
+    return out;
   });
-  A.eq(q.qty, 25, 'QTY-only edit sets the new quantity');
-  A.eq(q.finalUnitPrice, before[1].finalUnitPrice, 'QTY-only edit keeps the unit price');
-  A.eq(q.totalAmount, Math.round(before[1].finalUnitPrice * 25 * 100) / 100, 'QTY-only edit recomputes the line total');
+  A.ok(/Mixed Values/.test(mx.rate) && /5\.00 – 6\.00/.test(mx.rate), `differing Cost Rates show Mixed Values with the range (${mx.rate})`);
+  A.ok(/Mixed Values/.test(mx.mk) && /0% – 10%/.test(mx.mk), `differing Markups show Mixed Values with the range (${mx.mk})`);
+  A.ok(!/Mixed/.test(mx.add) && /1\.00/.test(mx.add), `a shared Additional Cost is still one value (${mx.add})`);
+  A.eq(JSON.stringify(await page.evaluate(() => quoteItems.map(i => i.qty))),
+    JSON.stringify(before.map(i => i.qty)), 'every item quantity is unchanged');
 
   // ── Update Quotation: other items intact, order and identity intact ──────
   await page.evaluate(() => dcBpToggleSelect(false));

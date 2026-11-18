@@ -1410,10 +1410,10 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .qi-chk{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:28px;cursor:pointer;flex-shrink:0}
 .qi-list.selecting .qi-item{cursor:pointer}
 .qi-list.selecting .qi-item.is-sel{outline:2px solid var(--accent);outline-offset:-2px}
-.bp-modal{max-width:720px}
+.bp-modal{max-width:960px}
 .bp-hint{font-size:12.5px;color:var(--text-2);margin:-6px 0 12px;line-height:1.45}
 .bp-fields{display:grid;gap:8px}
-.bp-row{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,180px);align-items:center;gap:10px;
+.bp-row{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,1.3fr) 14px minmax(0,170px);align-items:center;gap:10px;
   padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--surface);cursor:pointer}
 .bp-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);margin:0;cursor:pointer}
 .bp-row input[type=text],.bp-row select{width:100%;padding:7px 10px;font-size:14px;font-weight:700;
@@ -1421,6 +1421,12 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .bp-row.on{border-color:var(--accent-mid);background:var(--accent-light)}
 .bp-row:not(.on) input[type=text],.bp-row:not(.on) select{opacity:.55}
 .bp-lbl{font-size:12.5px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em}
+.bp-cur{font-size:13px;font-weight:800;color:var(--text);line-height:1.3;min-width:0;overflow-wrap:anywhere}
+.bp-cur .bp-k{display:block;font-size:10.5px;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.bp-cur .bp-mixed{color:var(--amber)}
+.bp-cur .bp-sub{display:block;font-size:11.5px;font-weight:700;color:var(--text-2)}
+.bp-arrow{color:var(--text-muted);font-weight:900;text-align:center}
+.bp-tbl .bp-io{display:block;white-space:nowrap}
 .bp-err{margin-top:10px;font-size:12.5px;font-weight:800;color:var(--red)}
 .bp-err[hidden]{display:none}
 .bp-prev-head{margin:14px 0 6px;font-size:12px;font-weight:900;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em}
@@ -1436,8 +1442,9 @@ table.dp-table{width:100%; border-collapse:collapse; min-width:560px; font-size:
 .bp-sum{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:13px;font-weight:800;color:var(--text)}
 .bp-sum .up{color:var(--red)} .bp-sum .down{color:var(--green,#15803d)}
 @media (max-width:520px){
-  .bp-row{grid-template-columns:22px minmax(0,1fr)}
-  .bp-row input[type=text],.bp-row select{grid-column:1/-1}
+  .bp-row{grid-template-columns:22px minmax(0,1fr) 14px minmax(0,1fr)}
+  .bp-row .bp-lbl{grid-column:2/-1}
+  .bp-row .bp-cur{grid-column:1/3}
 }
 
 /* v2.23.0 — Stage 7B-18A: Master Data Tools (Excel/CSV import-export) */
@@ -6982,11 +6989,10 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
     <div class="modal-title"><span id="bpTitle">Bulk Edit Pricing</span> <button class="modal-close" onclick="dcBpClose()" aria-label="Close" data-i18n-aria="rspClose"><svg class="hi hi-20" aria-hidden="true" focusable="false"><use href="#hi-x-mark"/></svg></button></div>
     <div class="bp-hint" data-i18n="bpHint">Only ticked fields change. Unticked fields keep each item's own value.</div>
     <div class="bp-fields">
-      <label class="bp-row"><input type="checkbox" id="bpOn-costRate" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpCostRate">Cost Rate (RM/kg)</span><input type="text" inputmode="decimal" id="bpVal-costRate" oninput="dcBpTick('costRate')" autocomplete="off"></label>
-      <label class="bp-row"><input type="checkbox" id="bpOn-addCost" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpAddCost">Additional Cost (RM)</span><input type="text" inputmode="decimal" id="bpVal-addCost" oninput="dcBpTick('addCost')" autocomplete="off"></label>
-      <label class="bp-row"><input type="checkbox" id="bpOn-markup" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpMarkup">Markup (%)</span><input type="text" inputmode="decimal" id="bpVal-markup" oninput="dcBpTick('markup')" autocomplete="off"></label>
-      <label class="bp-row"><input type="checkbox" id="bpOn-qty" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpQty">QTY</span><input type="text" inputmode="numeric" id="bpVal-qty" oninput="dcBpTick('qty')" autocomplete="off"></label>
-      <label class="bp-row"><input type="checkbox" id="bpOn-priceMode" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpPriceMode">Price Mode</span><select id="bpVal-priceMode" onchange="dcBpTick('priceMode')"><option value="no_round" data-i18n="pmNoRound">No Round</option><option value="auto" data-i18n="pmAutoRound">Auto Round</option></select></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-costRate" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpCostRate">Cost Rate (RM/kg)</span><span class="bp-cur" id="bpCur-costRate"></span><span class="bp-arrow" aria-hidden="true">→</span><input type="text" inputmode="decimal" id="bpVal-costRate" oninput="dcBpTick('costRate')" autocomplete="off" placeholder="New" data-i18n-ph="bpNew"></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-addCost" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpAddCost">Additional Cost (RM)</span><span class="bp-cur" id="bpCur-addCost"></span><span class="bp-arrow" aria-hidden="true">→</span><input type="text" inputmode="decimal" id="bpVal-addCost" oninput="dcBpTick('addCost')" autocomplete="off" placeholder="New" data-i18n-ph="bpNew"></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-markup" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpMarkup">Markup (%)</span><span class="bp-cur" id="bpCur-markup"></span><span class="bp-arrow" aria-hidden="true">→</span><input type="text" inputmode="decimal" id="bpVal-markup" oninput="dcBpTick('markup')" autocomplete="off" placeholder="New" data-i18n-ph="bpNew"></label>
+      <label class="bp-row"><input type="checkbox" id="bpOn-priceMode" onchange="dcBpRefresh()"><span class="bp-lbl" data-i18n="bpPriceMode">Price Mode</span><span class="bp-cur" id="bpCur-priceMode"></span><span class="bp-arrow" aria-hidden="true">→</span><select id="bpVal-priceMode" onchange="dcBpTick('priceMode')"><option value="no_round" data-i18n="pmNoRound">No Round</option><option value="auto" data-i18n="pmAutoRound">Auto Round</option></select></label>
     </div>
     <div class="bp-err" id="bpErr" hidden></div>
     <div class="bp-prev-head" data-i18n="bpPreview">Preview Changes</div>
@@ -7944,7 +7950,9 @@ const I18N={
     bpSelect:'Select', bpCancelSelect:'Cancel Select', bpSelectAll:'Select All', bpDeselectAll:'Deselect All',
     bpNSelected:'{n} of {t} selected', bpBulkEditPricing:'Bulk Edit Pricing', bpTitle:'Bulk Edit Pricing · {n} items',
     bpHint:'Only ticked fields change. Unticked fields keep each item\'s own value. Material, size, finish and accessories are never changed.',
-    bpCostRate:'Cost Rate (RM/kg)', bpAddCost:'Additional Cost (RM)', bpMarkup:'Markup (%)', bpQty:'QTY', bpPriceMode:'Price Mode',
+    bpCostRate:'Cost Rate (RM/kg)', bpAddCost:'Additional Cost (RM)', bpMarkup:'Markup (%)', bpPriceMode:'Price Mode',
+    bpCurrent:'Current', bpNew:'New', bpMixed:'Mixed Values', bpNValues:'{n} values', bpNNotSet:'{n} not set', bpNNa:'{n} set item(s): n/a', bpNa:'n/a',
+    bpColRate:'Cost Rate', bpColAdd:'Add. Cost', bpColMarkup:'Markup', bpColMode:'Price Mode',
     bpPreview:'Preview Changes', bpColItem:'Item', bpColUnit:'Unit Price', bpColTotal:'Line Total', bpDiff:'Difference',
     bpNChanged:'{n} of {t} items change', bpApply:'Apply to Selected', bpApplied:'Pricing updated on {n} items — Update Quotation to save',
     bpNoneSelected:'Select at least one item first', bpNothingTicked:'Tick at least one field to change',
@@ -8651,7 +8659,9 @@ const I18N={
     bpSelect:'选择', bpCancelSelect:'取消选择', bpSelectAll:'全选', bpDeselectAll:'取消全选',
     bpNSelected:'已选 {n} / {t} 项', bpBulkEditPricing:'批量修改价格', bpTitle:'批量修改价格 · {n} 项',
     bpHint:'只修改已勾选的栏位。未勾选的栏位保留每项原有数值。材料、尺寸、表面处理和配件不会更改。',
-    bpCostRate:'成本价 (RM/kg)', bpAddCost:'附加成本 (RM)', bpMarkup:'加价 (%)', bpQty:'数量', bpPriceMode:'价格模式',
+    bpCostRate:'成本价 (RM/kg)', bpAddCost:'附加成本 (RM)', bpMarkup:'加价 (%)', bpPriceMode:'价格模式',
+    bpCurrent:'当前', bpNew:'新数值', bpMixed:'数值不一致', bpNValues:'{n} 种数值', bpNNotSet:'{n} 项未设定', bpNNa:'{n} 个套件：不适用', bpNa:'不适用',
+    bpColRate:'成本价', bpColAdd:'附加成本', bpColMarkup:'加价', bpColMode:'价格模式',
     bpPreview:'预览更改', bpColItem:'项目', bpColUnit:'单价', bpColTotal:'小计', bpDiff:'差额',
     bpNChanged:'{t} 项中 {n} 项会更改', bpApply:'应用到所选项目', bpApplied:'已更新 {n} 项价格 — 请按「更新报价单」保存',
     bpNoneSelected:'请先选择至少一个项目', bpNothingTicked:'请至少勾选一个要修改的栏位',
@@ -12729,8 +12739,46 @@ function setQuoteSortOrder(v){
      pre-markup base.
    Locked saved quotations refuse every step: unlock (Edit Saved Quotation) ->
    select -> apply -> Update Quotation, which writes the normal revision. */
-const DC_BP_FIELDS=['costRate','addCost','markup','qty','priceMode'];
-const DC_BP_LBL={costRate:'bpCostRate',addCost:'bpAddCost',markup:'bpMarkup',qty:'bpQty',priceMode:'bpPriceMode'};
+const DC_BP_FIELDS=['costRate','addCost','markup','priceMode'];
+const DC_BP_LBL={costRate:'bpCostRate',addCost:'bpAddCost',markup:'bpMarkup',priceMode:'bpPriceMode'};
+/* An item's pricing inputs as stored — the same reads dcBpReprice uses. null =
+   not set on the item; a Welding Anchor Set has no single Cost Rate. */
+function dcBpInputs(it){
+  const fd=(it&&it.formData)||{}, has=v=>v!==undefined&&v!==null&&String(v).trim()!=='';
+  const pm=it.priceMode||fd.priceMode;
+  return {
+    costRate: it.itemType==='was'||!has(fd.costRate) ? null : evalExpr(String(fd.costRate)),
+    addCost:  has(fd.addCost) ? evalExpr(String(fd.addCost)) : null,
+    markup:   has(fd.markup) ? (parseFloat(fd.markup)||0) : has(it.markup) ? (parseFloat(it.markup)||0) : null,
+    priceMode:['auto','no_round','manual'].includes(pm)?pm:'auto'
+  };
+}
+function dcBpFmt(f,v){
+  if(f==='priceMode') return getPriceModeLabel(v);
+  if(v===null||v===undefined||!isFinite(v)) return '—';
+  return f==='markup' ? cleanNum(v)+'%' : dcRateText(v);
+}
+/* CURRENT, read from the selected items: one shared value, or Mixed Values
+   with the real range (and how many items have it unset / not applicable). */
+function dcBpCurrentHtml(f,items){
+  const k=`<span class="bp-k">${escHtml(dcT('bpCurrent'))}</span>`;
+  const na=f==='costRate'?items.filter(it=>it.itemType==='was').length:0;
+  const vals=[]; let unset=0;
+  items.forEach(it=>{ if(f==='costRate'&&it.itemType==='was') return; const v=dcBpInputs(it)[f]; if(v===null) unset++; else vals.push(v); });
+  const extra=[]; if(unset) extra.push(dcT('bpNNotSet').replace('{n}',unset)); if(na) extra.push(dcT('bpNNa').replace('{n}',na));
+  const sub=extra.length?`<span class="bp-sub">${escHtml(extra.join(' · '))}</span>`:'';
+  if(!vals.length) return k+'—'+sub;
+  if(f==='priceMode'){
+    const n={}; vals.forEach(v=>{ n[v]=(n[v]||0)+1; });
+    const ks=Object.keys(n);
+    if(ks.length===1) return k+escHtml(dcBpFmt(f,ks[0]))+sub;
+    return k+`<span class="bp-mixed">${escHtml(dcT('bpMixed'))}</span><span class="bp-sub">${escHtml(ks.map(m=>dcBpFmt(f,m)+' ×'+n[m]).join(' · '))}</span>`+sub;
+  }
+  const shown=[...new Set(vals.map(v=>dcBpFmt(f,v)))];
+  if(shown.length===1) return k+escHtml(shown[0])+sub;
+  const lo=Math.min(...vals), hi=Math.max(...vals);
+  return k+`<span class="bp-mixed">${escHtml(dcT('bpMixed'))}</span><span class="bp-sub">${escHtml(dcBpFmt(f,lo)+' – '+dcBpFmt(f,hi)+' · '+dcT('bpNValues').replace('{n}',shown.length))}</span>`+sub;
+}
 function dcBpLocked(){ return loadedSavedQuote && quoteLocked; }
 function dcBpEndSelect(){ dcBpSelecting=false; dcBpSel.clear(); }
 function dcBpToggleSelect(force){
@@ -12781,17 +12829,16 @@ function dcBpOpen(){
   if(editingItemIndex!==null){ showToast(dcT('tFinishItemEdit')); return; }
   const idx=dcBpSelIdx();
   if(!idx.length){ showToast(dcT('bpNoneSelected')); return; }
-  /* Unticked; a value every selected item shares is shown as a starting point. */
+  /* Every field starts unticked with an empty New box; CURRENT is read from
+     the selected items themselves. */
   const sel=idx.map(i=>quoteItems[i]);
-  const same=get=>{ const vs=[...new Set(sel.map(it=>{ const v=get(it); return v==null?'':String(v).trim(); }))]; return vs.length===1?vs[0]:''; };
-  const fdv=(it,k)=>(it.formData||{})[k];
-  DC_BP_FIELDS.forEach(f=>{ const c=el('bpOn-'+f); if(c) c.checked=false; });
-  el('bpVal-costRate').value=same(it=>fdv(it,'costRate'));
-  el('bpVal-addCost').value=same(it=>fdv(it,'addCost'));
-  el('bpVal-markup').value=same(it=>{ const m=fdv(it,'markup'); return m!=null&&String(m).trim()!==''?m:it.markup; });
-  el('bpVal-qty').value=same(it=>parseInt(it.qty,10)||'');
-  const pm=same(it=>it.priceMode||fdv(it,'priceMode')||'auto');
-  el('bpVal-priceMode').value=pm==='auto'?'auto':'no_round';
+  DC_BP_FIELDS.forEach(f=>{
+    const c=el('bpOn-'+f); if(c) c.checked=false;
+    const cur=el('bpCur-'+f); if(cur) cur.innerHTML=dcBpCurrentHtml(f,sel);
+  });
+  ['costRate','addCost','markup'].forEach(f=>{ el('bpVal-'+f).value=''; });
+  const modes=[...new Set(sel.map(it=>dcBpInputs(it).priceMode))];
+  el('bpVal-priceMode').value=modes.length===1&&modes[0]==='auto'?'auto':'no_round';
   el('bpTitle').textContent=dcT('bpTitle').replace('{n}',idx.length);
   openModal('bpModal');
   dcBpRefresh();
@@ -12808,10 +12855,6 @@ function dcBpReadChanges(){
     if(!isFinite(v) || v<0 || (f==='costRate' && v<=0)) errs.push(dcT('bpErrNum').replace('{f}',dcT(DC_BP_LBL[f])));
     else ch[f]=v;
   });
-  if(on('qty')){
-    const t=txt('qty');
-    if(!/^\d+$/.test(t) || parseInt(t,10)<1) errs.push(dcT('tQtyWholeMin')); else ch.qty=parseInt(t,10);
-  }
   if(on('priceMode')) ch.priceMode=el('bpVal-priceMode').value==='auto'?'auto':'no_round';
   return {ch,errs};
 }
@@ -12825,7 +12868,7 @@ function dcBpReprice(src,ch){
   const oldUnit=dcItemFinalUnit(src), oldTotal=roundMoney2(Number(src.totalAmount)||0);
   const pm=item.priceMode||fd.priceMode;
   const oldMode=['auto','no_round','manual'].includes(pm)?pm:'auto';
-  const qty=ch.qty!==undefined?ch.qty:(parseInt(item.qty,10)||0);
+  const qty=parseInt(item.qty,10)||0;   // quantity is never changed here
   const notes=[];
   let reprice=['costRate','addCost','markup','priceMode'].some(k=>ch[k]!==undefined);
   if(reprice && oldMode==='manual' && ch.priceMode===undefined){ reprice=false; notes.push(dcT('bpNoteManual')); }
@@ -12867,18 +12910,9 @@ function dcBpReprice(src,ch){
     fd.priceMode=mode; fd.manualUnitPrice='';
     item.priceAcceptance=dcPaMeta('manual_recipe',null,item.finalUnitPrice);
     repriced=true;
-  }else if(ch.qty!==undefined){
-    const unit=dcItemFinalUnit(item);
-    if(item.pricingModel) item.accessoryTotal=roundMoney2(dcItemAccUnit(item)*qty);
-    item.totalAmount=roundMoney2(unit*qty);
-  }
-  if(ch.qty!==undefined){
-    item.qty=qty;
-    if('qty' in fd) fd.qty=String(qty);
-    if(isWas && 'setQty' in fd) fd.setQty=String(qty);
   }
   const newUnit=dcItemFinalUnit(item), newTotal=roundMoney2(Number(item.totalAmount)||0);
-  return {item,oldUnit,newUnit,oldTotal,newTotal,notes,repriced,
+  return {item,oldUnit,newUnit,oldTotal,newTotal,notes,repriced,oldIn:dcBpInputs(src),newIn:dcBpInputs(item),
           changed:JSON.stringify(item)!==JSON.stringify(src)};
 }
 function dcBpCompute(){
@@ -12894,12 +12928,20 @@ function dcBpRefresh(){
   if(err){ err.hidden=!errs.length; err.textContent=errs.join(' · '); }
   const money=v=>escHtml(fmt(v));
   const cell=(o,n)=>Math.abs(o-n)<0.005?`<span class="bp-new">${money(n)}</span>`:`<span class="bp-old">${money(o)}</span><span class="bp-new">${money(n)}</span>`;
-  el('bpPreview').innerHTML=`<table class="bp-tbl"><thead><tr><th class="bp-d">${escHtml(dcT('bpColItem'))}</th><th>${escHtml(dcT('lblQty'))}</th><th>${escHtml(dcT('bpColUnit'))}</th><th>${escHtml(dcT('bpColTotal'))}</th></tr></thead><tbody>${
+  /* Old → new pricing INPUTS per item, beside the old → new prices. */
+  const inCell=(f,r)=>{
+    const o=dcBpFmt(f,r.oldIn[f]), n=dcBpFmt(f,r.newIn[f]);
+    const na=f==='costRate'&&quoteItems[r.i].itemType==='was';
+    return o===n?`<span class="bp-io">${escHtml(na?dcT('bpNa'):n)}</span>`
+               :`<span class="bp-io"><span class="bp-old">${escHtml(o)}</span><span class="bp-new">${escHtml(n)}</span></span>`;
+  };
+  const IN_COLS=[['costRate','bpColRate'],['addCost','bpColAdd'],['markup','bpColMarkup'],['priceMode','bpColMode']];
+  el('bpPreview').innerHTML=`<table class="bp-tbl"><thead><tr><th class="bp-d">${escHtml(dcT('bpColItem'))}</th><th>${escHtml(dcT('lblQty'))}</th>${
+    IN_COLS.map(([,k])=>`<th>${escHtml(dcT(k))}</th>`).join('')}<th>${escHtml(dcT('bpColUnit'))}</th><th>${escHtml(dcT('bpColTotal'))}</th></tr></thead><tbody>${
     rows.map(r=>{
       const it=quoteItems[r.i], size=it.itemType==='was'?'':dcSizeLabelDisplay(it.size);
-      const q0=parseInt(it.qty,10)||0, q1=parseInt(r.item.qty,10)||0;
       return `<tr class="${r.changed?'':'bp-same'}"><td class="bp-d"><b>${r.i+1}.</b> ${escHtml(displayItemDesc(it))}${size?' · '+escHtml(size):''}${r.notes.map(n=>`<span class="bp-note">${escHtml(n)}</span>`).join('')}</td>`
-        +`<td>${q0===q1?q1:`<span class="bp-old">${q0}</span><span class="bp-new">${q1}</span>`}</td><td>${cell(r.oldUnit,r.newUnit)}</td><td>${cell(r.oldTotal,r.newTotal)}</td></tr>`;
+        +`<td>${parseInt(it.qty,10)||0}</td>${IN_COLS.map(([f])=>`<td>${inCell(f,r)}</td>`).join('')}<td>${cell(r.oldUnit,r.newUnit)}</td><td>${cell(r.oldTotal,r.newTotal)}</td></tr>`;
     }).join('')}</tbody></table>`;
   const oldGrand=roundMoney2(quoteItems.reduce((s,i)=>s+(Number(i.totalAmount)||0),0));
   const newGrand=roundMoney2(oldGrand+rows.reduce((s,r)=>s+(r.newTotal-r.oldTotal),0));
