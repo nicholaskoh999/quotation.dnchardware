@@ -25,7 +25,7 @@ module.exports = async (browser, A) => {
       return { rects, cols, rows, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
     });
     const r = g.rects;
-    A.eq(r.length, 11, `${w}: eleven products`);
+    A.eq(r.length, 12, `${w}: twelve products`);
     const spread = k => Math.max(...r.map(x => x[k])) - Math.min(...r.map(x => x[k]));
     A.ok(spread('w') <= 1, `${w}: every button the same width (spread ${spread('w').toFixed(1)}px)`);
     A.ok(spread('h') <= 1, `${w}: every button the same height (spread ${spread('h').toFixed(1)}px, ${Math.round(r[0].h)}px)`);
@@ -52,7 +52,7 @@ module.exports = async (browser, A) => {
       const j = document.querySelector('#typePicker .type-btn[data-type="jbolt"]'); j.focus();
       const focused = document.activeElement === j; j.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); j.click();
       return { all: out.every(Boolean), focused, now: currentType, outline: getComputedStyle(j).outlineStyle }; });
-    A.ok(sel.all, `${w}: all 11 products selectable`);
+    A.ok(sel.all, `${w}: all 12 products selectable`);
     A.ok(sel.focused && sel.now === 'jbolt', `${w}: a product button takes keyboard focus and selects`);
     await page.close();
   }

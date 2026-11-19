@@ -395,6 +395,16 @@ input,select,textarea{font-family:inherit}
   .item-form.active .others-weight-row{grid-template-columns:1fr}
   .others-weight-row>.field>select,.others-weight-row>.field>input{min-height:48px}
 }
+/* Accessories / Fasteners: the per-piece note under its pricing, and the
+   C/W Charge reference block in Pricing History (reference only, owner D3). */
+.fastener-guide{font-size:11.5px; color:var(--text-muted); line-height:1.45}
+.item-form .fastener-guide,.item-form #fastener-autoZeroWarn{grid-column:1/-1}
+.ph-cw{margin-top:12px; padding:10px 12px; border:1px dashed var(--border); border-radius:10px}
+.ph-cw-title{font-weight:700; font-size:13px}
+.ph-cw-note{font-size:11.5px; color:var(--text-muted); margin:2px 0 8px; line-height:1.45}
+.ph-cw-rec{display:flex; flex-wrap:wrap; gap:2px 10px; font-size:12.5px; padding:5px 0; border-top:1px solid var(--border); min-width:0}
+.ph-cw-price{font-weight:700}
+.ph-cw-meta,.ph-cw-ref{color:var(--text-muted); overflow-wrap:anywhere}
 
 /* Custom Dimensions — a manual annotation layer, never a calculator input.
    Two text columns and a remove button; the block only grows once a dimension
@@ -5601,6 +5611,7 @@ window.DC_SHELL_USER=<?= json_encode((function(){ $u=dc_current_user(); return $
           <button class="type-btn" data-type="plate" onclick="switchType('plate')"><span class="t-name">Plate<span style="display:block;font-size:10.5px;opacity:.65;font-weight:600" data-i18n="glossPlate"></span></span></button>
           <button class="type-btn" data-type="was" onclick="switchType('was')"><span class="t-name">Welding Anchor Set<span class="was-type-zh" data-i18n="glossWAS"></span></span></button>
           <button class="type-btn" data-type="others" onclick="switchType('others')"><span class="t-name"><span data-i18n="typeOthers">Others</span> / Special Bolt<span class="was-type-zh" data-i18n="glossOthers"></span></span></button>
+          <button class="type-btn" data-type="fastener" onclick="switchType('fastener')"><span class="t-name" data-i18n="typeFastener">Accessories / Fasteners</span></button>
         </div>
 
         <!-- SAG ROD -->
@@ -7758,6 +7769,24 @@ const I18N={
     mShowingNofM:'Showing {n} of {m} rules',
     lblHideDebug:'Hide Debug', wasCostBreakdown:'Cost Breakdown',
     typeOthers:'Others',
+    typeFastener:'Accessories / Fasteners', lblFastenerType:'Accessory Type', optFastenerOthers:'Others / Custom',
+    lblCustomProductName:'Custom Product Name', phFastenerCustom:'e.g. EYE NUT', lblMaterialGrade:'Material / Grade',
+    optMaterialOther:'Others (type below)', lblMaterialOther:'Other Material / Grade', phMaterialOther:'e.g. GRADE 8',
+    lblSizeDimension:'Size / Dimension', phFastenerSize:'e.g. M20', lblCostBasis:'Cost Basis', lblPurchaseCost:'Purchase Cost',
+    lblPcsPerKg:'PCS per KG', qiPcsPerKg:'pcs/kg',
+    fastenerGuide:'Sold per piece (PCS). Unit price is kept to 4 decimals; line total = unit price × qty, rounded to 2 decimals.',
+    tFastenerAutoZero:'Auto Round would make this price RM0.00. Use No Round or Manual Price.',
+    tFastenerNeedName:'Enter the custom product name.', tFastenerNeedMaterial:'Enter the other material / grade.',
+    tFastenerNeedSize:'Enter the size / dimension.', tFastenerNeedCost:'Enter the purchase cost.',
+    tFastenerNeedPcsPerKg:'Enter PCS per KG for an RM/KG purchase cost.',
+    bpNoteFastener:'Accessories / Fasteners are not bulk edited — the 4-decimal unit price is kept. Edit this item on its own.',
+    bpFastenerOnly:'Accessories / Fasteners cannot be bulk edited. Edit each item on its own to keep its 4-decimal unit price.',
+    bpFastenerSkipped:'{n} Accessories / Fasteners item(s) will be left unchanged — they cannot be bulk edited.',
+    phCwTitle:'C/W Charge — reference only',
+    phCwNote:'What this piece was charged inside a bolt line (c/w). Not a standalone selling price, no grade recorded, and cannot be applied.',
+    phCwNone:'No C/W charge on record for this size.',
+    wqaFastenerSkipped:'Quick Add does not read Accessories / Fasteners — {n} line(s) left out: {v}. Add them from Product Entry → Accessories / Fasteners.',
+    wqaFastenerOnly:'Quick Add does not read Accessories / Fasteners. Add nuts and washers from Product Entry → Accessories / Fasteners.',
     phEgMm200:'mm, e.g. 200', phEgMm10:'mm, e.g. 10', phEg150:'e.g. 150',
     phEgDimensionText:'e.g. M16 x L 120 x ID 35',
     phLineWas:'(quotation line was {v})',
@@ -8474,6 +8503,24 @@ const I18N={
     mShowingNofM:'显示 {n} / {m} 条规则',
     lblHideDebug:'隐藏调试信息', wasCostBreakdown:'成本拆分',
     typeOthers:'Others',
+    typeFastener:'配件 / 紧固件', lblFastenerType:'配件类型', optFastenerOthers:'其他 / 自定义',
+    lblCustomProductName:'自定义产品名称', phFastenerCustom:'例如 EYE NUT', lblMaterialGrade:'材料 / 等级',
+    optMaterialOther:'其他（在下方填写）', lblMaterialOther:'其他材料 / 等级', phMaterialOther:'例如 GRADE 8',
+    lblSizeDimension:'尺寸 / 规格', phFastenerSize:'例如 M20', lblCostBasis:'成本单位', lblPurchaseCost:'采购成本',
+    lblPcsPerKg:'每公斤个数 (PCS/KG)', qiPcsPerKg:'个/公斤',
+    fastenerGuide:'按个 (PCS) 出售。单价保留 4 位小数；行合计 = 单价 × 数量，四舍五入到 2 位小数。',
+    tFastenerAutoZero:'Auto Round 会把此价格变成 RM0.00，请使用 No Round 或手动价格。',
+    tFastenerNeedName:'请输入自定义产品名称。', tFastenerNeedMaterial:'请输入其他材料 / 等级。',
+    tFastenerNeedSize:'请输入尺寸 / 规格。', tFastenerNeedCost:'请输入采购成本。',
+    tFastenerNeedPcsPerKg:'按 RM/KG 计价时请输入每公斤个数。',
+    bpNoteFastener:'配件 / 紧固件不参与批量修改价格，保留 4 位小数单价。请单独编辑此项目。',
+    bpFastenerOnly:'配件 / 紧固件不能批量修改价格。请逐项编辑以保留 4 位小数单价。',
+    bpFastenerSkipped:'{n} 个配件 / 紧固件项目将保持不变 — 不能批量修改。',
+    phCwTitle:'C/W 配件价 — 仅供参考',
+    phCwNote:'此配件在螺栓报价中 (c/w) 的收费。不是单独售价，没有记录等级，不能套用。',
+    phCwNone:'此尺寸没有 C/W 配件价记录。',
+    wqaFastenerSkipped:'快速添加不读取配件 / 紧固件 — 已略过 {n} 行：{v}。请在产品录入 → 配件 / 紧固件中添加。',
+    wqaFastenerOnly:'快速添加不读取配件 / 紧固件。请在产品录入 → 配件 / 紧固件中添加螺母和垫片。',
     phEgMm200:'毫米，例如 200', phEgMm10:'毫米，例如 10', phEg150:'例如 150',
     phEgDimensionText:'例如 M16 x L 120 x ID 35',
     phLineWas:'（报价行为 {v}）',
@@ -9161,6 +9208,7 @@ function restoreProductEntryDraftInner(entry){
                       addCost:fv(type,'addCost'), markup:fv(type,'markup')};
   onPriceModeChange(type);
   if(type==='others') onOthersWeightModeChange();
+  if(type==='fastener') onFastenerUiSync();
   recalcCurrent(true);          // a restored draft's Total Length is its own
 }
 
@@ -9384,7 +9432,7 @@ const RATES_4140={
 };
 const ZP_SURCHARGE=1.50, HDG_SURCHARGE=3.20, HDG_THREAD_BRUSHING=1.00;
 
-const ITEM_TYPES={sagrod:'SAG ROD',stud:'STUD',anchorbolt:'ANCHOR BOLT',ubolt:'U BOLT',squbolt:'SQ U BOLT',lbolt:'L BOLT',lbolt45:'L BOLT 45DEG',jbolt:'J BOLT',plate:'PLATE',was:'WELDING ANCHOR SET',others:'OTHERS / SPECIAL BOLT'};
+const ITEM_TYPES={sagrod:'SAG ROD',stud:'STUD',anchorbolt:'ANCHOR BOLT',ubolt:'U BOLT',squbolt:'SQ U BOLT',lbolt:'L BOLT',lbolt45:'L BOLT 45DEG',jbolt:'J BOLT',plate:'PLATE',was:'WELDING ANCHOR SET',others:'OTHERS / SPECIAL BOLT',fastener:'ACCESSORIES / FASTENERS'};
 const DIA_FULLSIZE={M8:8,M10:10,M12:12,M13:13,M16:16,M18:18,M20:20,M22:22,M24:24,M25:25,M27:27,M30:30,M32:32,M33:33,M36:36,M38:38,M39:39,M40:40,M42:42,M45:45,M48:48,M50:50,M52:52,M55:55,M60:60,M65:65,'1/2':12.7,'5/8':15.875,'3/4':19.05,'7/8':22.225,'1"':25.4,'1-1/8':28.575,'1-1/4':31.75,'1-1/2':38.1};
 const DIA_FULLSIZE_SPECIAL={M12:13};
 const DIA_UNDERSIZE={M6:5.2,M8:7,M10:8.8,M12:10.6,M14:12.5,M16:14.5,M20:18,M22:20,M25:23};
@@ -9413,6 +9461,10 @@ function dcProductHasSizeType(product){ return DC_NO_SIZE_TYPE_PRODUCTS.indexOf(
 function dcMaterialHasFinish(material){ return DC_NO_FINISH_MATERIALS.indexOf(String(material||''))<0; }
 function dcSizeTypeFor(product,sizeType){ return dcProductHasSizeType(product) ? String(sizeType||'') : ''; }
 function dcFinishFor(material,finish){ return dcMaterialHasFinish(material) ? String(finish||'') : ''; }
+/* Owner decision D2 (2026-11-19): a standalone Accessories / Fasteners item
+   may carry a finish on SS304 / SS316 (default N/A, override allowed). The
+   stainless rule above is unchanged for every other product. */
+function dcItemFinishFor(itemType,material,finish){ return itemType==='fastener' ? String(finish||'') : dcFinishFor(material,finish); }
 
 function fv(type,field){const e=el(type+'-'+field);return e?e.value:''}
 function fn(type,field){return parseFloat(fv(type,field))||0}
@@ -9442,6 +9494,7 @@ function isMaterialOptionText(text){
 }
 function displayItemDesc(item){
   const desc=String(item&&item.desc?item.desc:'');
+  if(item&&item.itemType==='fastener') return desc;
   if(desc.includes('4140_HARDEN_G10_9')) return desc.replace(/4140_HARDEN_G10_9/g,'4140 QT + HARDEN = G10.9');
   if(desc.includes('S45C_HARDEN_G8_8')) return desc.replace(/S45C_HARDEN_G8_8/g,'S45C + HARDEN = G8.8');
   /* The 4140/4340 rewrites below repair very old descs that stored the raw internal
@@ -9470,6 +9523,18 @@ function dcFormMaterial(type){
   return String(type==='was' ? (fv('was-ab','material')||'') : (fv(type,'material')||''));
 }
 function updateFinishAvailability(type){
+  /* Fasteners: every finish stays selectable on stainless (owner D2); the
+     N/A default is applied by the fastener form when the material changes. */
+  if(type==='fastener'){
+    const c=el('fastener-finishPills'); if(c) c.classList.remove('ss-mode');
+    ['PL','ZP','HDG'].forEach(f=>{
+      const input=document.querySelector(`input[name="fastener-finish"][value="${f}"]`), pill=el('fastener-pill-'+f);
+      if(input) input.disabled=false;
+      if(pill){ pill.classList.remove('pill-ss-hide'); pill.classList.remove('pill-disabled'); }
+    });
+    setFinishPills(type,getFinish(type));
+    return;
+  }
   const material=dcFormMaterial(type);
   /* The rule itself, not a second copy of it. */
   const isSS = !dcMaterialHasFinish(material);
@@ -9573,6 +9638,22 @@ function roundCustom10(v){
   return roundMoney2(((cents-band)<=3 ? band : band+10)/100);
 }
 function roundMoney2(v){return Math.round((Number(v)||0)*100)/100}
+/* ── Unit-price precision (owner rule, 2026-11-19) ─────────────────────────
+   Standalone Accessories / Fasteners are sold by the piece at prices such as
+   RM0.0350 and RM0.1250, so THEIR unit selling price is kept to 4 decimals.
+   Every other product keeps the currency's own 2 decimals, exactly as before:
+   these helpers return roundMoney2 / 2 for anything that is not a fastener.
+   Line totals and the quotation total stay at 2 decimals for every product —
+   the 4-decimal unit is multiplied by the quantity first, then rounded once
+   (RM0.0350 x 1000 = RM35.00). Keyed on the item TYPE so a saved item carries
+   its own precision through load, edit, duplicate, print and WhatsApp. */
+const DC_UNIT4_TYPES=['fastener'];
+function roundMoney4(v){return Math.round((Number(v)||0)*10000)/10000}
+function dcUnitDp(type){ return DC_UNIT4_TYPES.indexOf(String(type||''))>=0 ? 4 : 2; }
+function dcRoundUnit(type,v){ return dcUnitDp(type)===4 ? roundMoney4(v) : roundMoney2(v); }
+/* Two unit prices are "the same price" within half of the last decimal kept. */
+function dcUnitTol(type){ return dcUnitDp(type)===4 ? 0.00005 : 0.005; }
+function fmtUnit(type,v){ return 'RM '+(Number(v)||0).toFixed(dcUnitDp(type)); }
 /* THE Auto Round engine — the two owner-locked rules above, in one place:
    Sag Rod nearest RM0.05, every other family the RM0.10 band rule. */
 function dcAutoRound(type,v){ return type==='sagrod' ? round05(v) : roundCustom10(v); }
@@ -9591,7 +9672,7 @@ function getPriceMode(type){
    instead of collapsing to one RM0.05 step; every other product starts on
    Auto Round. Creation-time only — restore, History, Apply-setup and the
    legacy 'auto' fallbacks never consult it. */
-function dcDefaultPriceMode(type){ return type==='sagrod'?'no_round':'auto'; }
+function dcDefaultPriceMode(type){ return (type==='sagrod'||type==='fastener')?'no_round':'auto'; }  /* fastener: owner D1, 2026-11-19 */
 function getPriceModeKey(mode){return mode==='manual'?'pmManualPrice':mode==='no_round'?'pmNoRound':'pmAutoRound'}
 function getPriceModeLabel(mode){return dcT(getPriceModeKey(mode))}
 function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost=0){
@@ -9614,9 +9695,11 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
      Both ends are recorded either way, because Previous Price compares bolts
      against bolts and staff still need to see what the RM2.00 was.           */
   let boltUnitPrice,finalUnitPrice;
+  /* dcRoundUnit IS roundMoney2 for every product except a standalone fastener,
+     whose unit price keeps 4 decimals (see DC_UNIT4_TYPES). */
   if(mode==='manual'){
-    finalUnitPrice=roundMoney2(manualUnitPrice);
-    boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
+    finalUnitPrice=dcRoundUnit(type,manualUnitPrice);
+    boltUnitPrice=dcRoundUnit(type,finalUnitPrice-accUnit);
   }else{
     /* Owner model: Sag Rod rounds to nearest 5 sen; every other family uses
        the RM0.10 band rule (x.x3 down, x.x4 up).  No Round is currency only.
@@ -9625,11 +9708,11 @@ function resolvePriceMode(type,rawUnitPrice,autoRoundedUnitPrice,accessoriesCost
        after the accessories, so final = bolt + accessories still holds. */
     const raw=Number(rawUnitPrice)||0;
     if(mode==='no_round'){
-      boltUnitPrice=roundMoney2(raw);
-      finalUnitPrice=roundMoney2(boltUnitPrice+accUnit);
+      boltUnitPrice=dcRoundUnit(type,raw);
+      finalUnitPrice=dcRoundUnit(type,boltUnitPrice+accUnit);
     }else if(accUnit>0){
       finalUnitPrice=dcAutoRound(type,raw+accUnit);
-      boltUnitPrice=roundMoney2(finalUnitPrice-accUnit);
+      boltUnitPrice=dcRoundUnit(type,finalUnitPrice-accUnit);
     }else{
       boltUnitPrice=dcAutoRound(type,raw);
       finalUnitPrice=boltUnitPrice;
@@ -9682,14 +9765,17 @@ function dcFormPaSig(type){
   });
   document.querySelectorAll('input[type=radio][name^="'+type+'-"]:checked').forEach(n=>vals.push(n.name+'='+n.value));
   const st=priceCalcState[type]||{};
-  return JSON.stringify([vals,getFinish(type),getAccessories(type),roundMoney2(st.finalUnitPrice)]);
+  return JSON.stringify([vals,getFinish(type),getAccessories(type),dcRoundUnit(type,st.finalUnitPrice)]);
 }
 /* The pricing setup and the identity it was set for. */
 function dcFormRecipeSig(type){
   const num=f=>{ const v=String(fv(type,f)||'').trim(); const n=Number(v||0); return isFinite(n)?String(n):v; };
   const mode=getPriceMode(type);
   return JSON.stringify([type,fv(type,'material'),fieldExists(type,'sizeType')?fv(type,'sizeType'):'',getFinish(type),
-    num('costRate'),num('addCost'),num('markup'),mode,mode==='manual'?String(fv(type,'manualUnitPrice')||'').trim():'']);
+    num('costRate'),num('addCost'),num('markup'),mode,mode==='manual'?String(fv(type,'manualUnitPrice')||'').trim():'']
+    /* A fastener is priced from its purchase cost, not a Cost Rate: its own
+       basis, cost, PCS per KG, type and size are the setup as well. */
+    .concat(type==='fastener'?dcFastenerSigExtra():[]));
 }
 /* Where a setup came from, in the order a person would explain it. */
 function dcSuggestSource(type){
@@ -9707,6 +9793,8 @@ function dcFormPriced(type){
   const st=priceCalcState[type]||{};
   if(!(Number(st.finalUnitPrice)>0)) return false;
   if(getPriceMode(type)==='manual') return isReadableAmount(fv(type,'manualUnitPrice'));
+  /* A fastener is priced per piece from its purchase cost; it has no weight. */
+  if(type==='fastener') return dcFastenerCostPerPc()>0;
   return type==='was' || type==='plate' || Number(st.weight)>0;
 }
 /* A setup that can price: a Cost Rate above zero (where the product has
@@ -9718,7 +9806,7 @@ function dcFormHasSetup(type){
 }
 function dcFormPaState(type){
   const st=priceCalcState[type]||{};
-  const sug=roundMoney2(st.finalUnitPrice);
+  const sug=dcRoundUnit(type,st.finalUnitPrice);
   const a=dcFormPa[type];
   if(a && a.saved && a.sig===dcFormPaSig(type)) return {state:'accepted',v:a.v,src:a.src,ref:a.ref||'',saved:true,orig:a.orig,sug};
   /* A History Use on this form records where the setup came from while it
@@ -9730,7 +9818,7 @@ function dcFormPaState(type){
 }
 function dcFormPaAccept(type,src,ref){
   if(!dcFormPriced(type)) return false;
-  dcFormPa[type]={v:roundMoney2((priceCalcState[type]||{}).finalUnitPrice),src:src||dcSuggestSource(type),ref:ref||'',sig:dcFormRecipeSig(type)};
+  dcFormPa[type]={v:dcRoundUnit(type,(priceCalcState[type]||{}).finalUnitPrice),src:src||dcSuggestSource(type),ref:ref||'',sig:dcFormRecipeSig(type)};
   return true;
 }
 /* Opening a saved item: the price it was saved with IS its price, whatever
@@ -9742,8 +9830,9 @@ function dcFormPaFromSaved(type,item){
   dcRenderFormPa(type);
 }
 function dcPaDropSaved(){ Object.keys(dcFormPa).forEach(t=>{ if(dcFormPa[t]&&dcFormPa[t].saved) delete dcFormPa[t]; }); }
-function dcPaMeta(src,ref,v){
-  const m={state:'accepted',value:roundMoney2(v),source:DC_PRICE_SOURCES.indexOf(src)>=0?src:'built_in',at:new Date().toISOString()};
+/* type: only a fastener keeps 4 decimals; omitted, the value is 2dp as before. */
+function dcPaMeta(src,ref,v,type){
+  const m={state:'accepted',value:dcRoundUnit(type,v),source:DC_PRICE_SOURCES.indexOf(src)>=0?src:'built_in',at:new Date().toISOString()};
   if(ref) m.historyRef=String(ref);
   return m;
 }
@@ -9752,21 +9841,22 @@ function dcPaMeta(src,ref,v){
    {meta, keep} — keep is the saved item whose price stands unchanged. The
    value recorded is the price the used setup calculates to NOW. */
 function dcPaCommit(type,final){
-  final=roundMoney2(final);
-  const same=v=>Math.abs(roundMoney2(v)-final)<0.005;
+  final=dcRoundUnit(type,final);
+  const tol=dcUnitTol(type);
+  const same=v=>Math.abs(dcRoundUnit(type,v)-final)<tol;
   if(dcPaGrant && dcPaGrant.type===type){
     const g=dcPaGrant; dcPaGrant=null;
     if(!same(g.v)){ showToast(dcT('tPaChanged')); return null; }
-    return {meta:dcPaMeta(g.src,g.ref,final)};
+    return {meta:dcPaMeta(g.src,g.ref,final,type)};
   }
   const st=dcFormPaState(type);
   if(st.state!=='accepted'){ showToast(dcT('tPaNotAccepted')); return null; }
   if(st.saved){
     const o=st.orig&&st.orig.priceAcceptance;
-    const meta=(o&&o.state==='accepted'&&same(o.value)) ? o : dcPaMeta(st.src,st.ref,st.v);
+    const meta=(o&&o.state==='accepted'&&same(o.value)) ? o : dcPaMeta(st.src,st.ref,st.v,type);
     return same(st.v) ? {meta:Object.assign({},meta,{value:final})} : {meta, keep:st.orig};
   }
-  return {meta:dcPaMeta(st.src,st.ref,final)};
+  return {meta:dcPaMeta(st.src,st.ref,final,type)};
 }
 /* Update Item with nothing price-affecting changed, on an item whose saved
    price today's calculation would not reproduce (an older rate, an older
@@ -9776,7 +9866,7 @@ const DC_PA_KEEP_FD=['costRate','addCost','markup','priceMode','manualUnitPrice'
   'anchorCostRate','basePlateCostRate','trianglePlateCostRate'];
 function dcPaKeepSaved(item,orig){
   const qty=parseInt(item.qty,10)||0, v=dcItemFinalUnit(orig);
-  if(item.pricingModel) Object.assign(item,dcLineMoney(v,item.accessories,qty));
+  if(item.pricingModel) Object.assign(item,dcLineMoney(v,item.accessories,qty,item.itemType));
   else { item.finalUnitPrice=v; item.totalAmount=roundMoney2(v*qty); }
   /* the rounding rule the saved price was made under travels with it */
   ['priceMode','manualUnitPrice','rawUnitPrice','roundedUnitPrice','markup','autoFinalUnitPrice','autoRoundStage'].forEach(k=>{
@@ -9795,12 +9885,12 @@ function dcRenderFormPa(type){
   if(type!==currentType) return;
   const box=el('cpAccept'); if(!box) return;
   const st=dcFormPaState(type);
-  const kept=st.state==='accepted' && st.saved && Math.abs(st.v-st.sug)>=0.005 && st.sug>0;
+  const kept=st.state==='accepted' && st.saved && Math.abs(st.v-st.sug)>=dcUnitTol(type) && st.sug>0;
   if(!kept){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false;
   box.className='cp-accept is-ok';
-  box.innerHTML=`<span class="cp-pa-ok">${escHtml(dcT('paSavedKept'))} <b>${escHtml(fmt(st.v))}</b></span>`
-    +`<span class="cp-pa-sec">${escHtml(dcT('paSuggestedPrice'))} ${escHtml(fmt(st.sug))}</span>`;
+  box.innerHTML=`<span class="cp-pa-ok">${escHtml(dcT('paSavedKept'))} <b>${escHtml(fmtUnit(type,st.v))}</b></span>`
+    +`<span class="cp-pa-sec">${escHtml(dcT('paSuggestedPrice'))} ${escHtml(fmtUnit(type,st.sug))}</span>`;
 }
 function validatePriceMode(type){
   if(getPriceMode(type)!=='manual') return true;
@@ -9855,13 +9945,13 @@ function updatePriceModePreview(type){
   if(type!==currentType) return;
   const state=priceCalcState[type]||{};
   const raw=el('pmPreviewRaw'),mode=el('pmPreviewMode'),final=el('pmPreviewFinal');
-  if(raw) raw.textContent=fmt(Number(state.rawUnitPrice)||0);
+  if(raw) raw.textContent=fmtUnit(type,Number(state.rawUnitPrice)||0);
   if(mode){
     const k=getPriceModeKey(state.priceMode||getPriceMode(type));
     mode.dataset.i18nLive=k;
     mode.textContent=dcT(k);
   }
-  if(final) final.textContent=fmt(Number(state.finalUnitPrice)||0);
+  if(final) final.textContent=fmtUnit(type,Number(state.finalUnitPrice)||0);
   dcRenderFormPa(type);
   dcCpContext(type);
 }
@@ -10088,6 +10178,7 @@ function formatSizeLabel(size,diameter,sizeType){
 function buildDesc(type){
   const mat=materialLabel(fv(type,'material'));
   if(type==='others') return [mat,fv(type,'sizeType'),fv(type,'productName').trim()].filter(Boolean).join(' ');
+  if(type==='fastener') return dcFastenerDescFor(dcFastenerMaterial(),dcFastenerProductName());
   if(type==='stud') return mat+' '+ITEM_TYPES[type];
   const sizeType=fv(type,'sizeType');
   return mat+' '+sizeType+' '+ITEM_TYPES[type];
@@ -10659,6 +10750,7 @@ function recalcCurrent(skipAuto){
   else if(currentType==='plate') calcPlate();
   else if(currentType==='was') calcWAS();
   else if(currentType==='others') calcOthers();
+  else if(currentType==='fastener') calcFastener();
 }
 /* ── The preview panel's own re-label ──────────────────────────────────────
    Both of these are COMPUTED text, written over markup that carried a
@@ -10755,6 +10847,7 @@ function refreshAccPreview(){
   else if(currentType==='plate') calcPlate();
   else if(currentType==='was') calcWAS();
   else if(currentType==='others') calcOthers();
+  else if(currentType==='fastener') calcFastener();
 }
 
 /* ── Sag Rod ── */
@@ -10830,7 +10923,8 @@ function dcItemFinalUnit(item){
     return isFinite(line)&&line>0 ? roundMoney2(line)
          : roundMoney2((Number(item.finalUnitPrice)||0)+(Number(item.accessoryUnitPrice)||0));
   }
-  return roundMoney2(Number(item.finalUnitPrice)||0);
+  /* A standalone fastener keeps its 4-decimal unit price; everything else 2dp. */
+  return dcRoundUnit(item.itemType,Number(item.finalUnitPrice)||0);
 }
 /* The internal bolt/base component — never shown as the customer's unit price,
    and the figure Previous Price compares and reuses. */
@@ -10839,12 +10933,12 @@ function dcItemBoltUnit(item){
   if(dcItemIsSeparated(item)) return roundMoney2(Number(item.finalUnitPrice)||0);
   if(dcItemIsInclusive(item)){
     const bolt=Number(item.boltUnitPrice);
-    return isFinite(bolt) ? roundMoney2(bolt)
-         : roundMoney2((Number(item.finalUnitPrice)||0)-(Number(item.accessoryUnitPrice)||0));
+    return isFinite(bolt) ? dcRoundUnit(item.itemType,bolt)
+         : dcRoundUnit(item.itemType,(Number(item.finalUnitPrice)||0)-(Number(item.accessoryUnitPrice)||0));
   }
   /* Legacy: the one figure it has. Its accessory share is not separable, which
      is exactly what dcItemAccUnit already reports by returning zero. */
-  return roundMoney2(Number(item.finalUnitPrice)||0);
+  return dcRoundUnit(item.itemType,Number(item.finalUnitPrice)||0);
 }
 /* How many manual prices the last load had to fold up. Reset by whoever is
    about to migrate a list, read by them once afterwards. */
@@ -10935,10 +11029,13 @@ function dcMigrateItemPricing(item){
    the CUSTOMER-FACING unit price — resolvePriceMode has already applied the
    price mode's rule, including the manual one — and separates the bolt back
    out of it for the record. */
-function dcLineMoney(finalUnitPrice,acc,qty){
+/* type: the product type. Only a standalone fastener keeps a 4-decimal unit
+   price; the line total is that unit times the quantity, rounded ONCE to 2dp
+   (RM0.0350 x 1000 = RM35.00). Omitted, every figure is 2dp as before. */
+function dcLineMoney(finalUnitPrice,acc,qty,type){
   const accUnit=roundMoney2(accAddon(acc));
-  const final=roundMoney2(Number(finalUnitPrice)||0);
-  const bolt=roundMoney2(final-accUnit);
+  const final=dcRoundUnit(type,Number(finalUnitPrice)||0);
+  const bolt=dcRoundUnit(type,final-accUnit);
   const n=parseInt(qty,10)||0;
   return {boltUnitPrice:bolt, accessoryUnitPrice:accUnit,
           finalUnitPrice:final,
@@ -11789,6 +11886,7 @@ function dcCanonicalFormSize(v){ return String(v==null?'':v).replace(/^(\s*\d+(?
 function captureItemFormData(type){
   const fields=['material','sizeType','size','diameter','length','threadLen','l','id','ih','oh','w','h','s','productName','dimensionText','weightMode','unitWeight','costRate','addCost','markup','qty','priceMode','manualUnitPrice',
     'plateType','t','hd','nh',
+    'fastenerType','customName','materialOther','sizeText','costBasis','purchaseCost','pcsPerKg',
     'tri-l','tri-h','tri-cl','tri-ch','tri-t'];
   const data={itemType:type,productType:ITEM_TYPES[type]||type,finish:getFinish(type),accessories:getAccessories(type)};
   fields.forEach(field=>{
@@ -11871,6 +11969,10 @@ function fillItemFormFromItemInner(item){
   }
   if(type==='was'){
     fillWASFormFromItem(item);
+    return;
+  }
+  if(type==='fastener'){
+    fillFastenerFormFromItem(item);
     return;
   }
   const saved=item.formData||{};
@@ -12042,6 +12144,7 @@ function addCurrentItem(){
   else if(currentType==='plate') addPlate();
   else if(currentType==='was') addWAS();
   else if(currentType==='others') addOthers();
+  else if(currentType==='fastener') addFastener();
 }
 function flashPreview(){ const box=el('calcPreview'); box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash'); }
 
@@ -12137,6 +12240,327 @@ function addOthers(){
   const final=resolvePriceMode('others',raw,roundMoney2(raw),accAddon(accessories));
   if(!pushItem('others',dimensionText,material,qty,final,final*qty,markup,'',sizeType,accessories,weight)) return;
   flashPreview();
+}
+
+/* ─── ACCESSORIES / FASTENERS (standalone line items) ──────────────────────
+   Owner request 2026-11-19: nuts and washers quoted as their own lines,
+   beside the bolts they go with — not the C/W accessory charge inside a bolt.
+
+     cost per pc   RM/PCS  = purchase cost
+                   RM/KG   = purchase cost / PCS per KG
+     raw unit      (cost per pc + additional cost per pc) x (1 + markup / 100)
+
+   The unit SELLING price is kept to 4 decimals (DC_UNIT4_TYPES), the line
+   total is unit x qty rounded once to 2 decimals. No Round is the default
+   (owner D1); Auto Round uses the ordinary RM0.10 band rule but is refused
+   when it would turn a positive price into RM0.00. Sold by the piece, so the
+   item carries sellingUnit:'PCS' — part of its Pricing History identity.
+   The existing C/W accessory panel on bolts is not touched by any of this. */
+const DC_FASTENER_TYPES=['HEX NUT','HT HEX NUT','FLAT WASHER','SPRING WASHER','F436 WASHER','OTHERS'];
+/* Material / Grade suggestions (owner D4). 4140 is the plain 4140 material
+   (internal 4140_PLAIN, printed "4140"), not 4140 QT. OTHER = typed below. */
+const DC_FASTENER_MATERIALS=[['MS','MS'],['S45C','S45C'],['4140_PLAIN','4140'],['SS304','SS304'],['SS316','SS316']];
+/* Which C/W accessory on a bolt is the same kind of piece — for the
+   "C/W Charge" reference in Pricing History only (owner D3). */
+const DC_FASTENER_CW_KIND={'HEX NUT':'nut','FLAT WASHER':'fw'};
+function dcFastenerUpper(id){
+  const e=el(id); if(!e) return;
+  const up=String(e.value||'').toUpperCase();
+  if(e.value===up) return;
+  const s=e.selectionStart, t=e.selectionEnd;
+  e.value=up;
+  try{ e.setSelectionRange(s,t); }catch(err){}
+}
+function dcFastenerUpperAll(){ ['fastener-customName','fastener-materialOther','fastener-sizeText'].forEach(dcFastenerUpper); }
+function dcFastenerClean(s){ return String(s==null?'':s).toUpperCase().replace(/\s+/g,' ').trim(); }
+/* The material as it is stored on the item: a suggestion's own value, or the
+   grade typed under Others. */
+function dcFastenerMaterial(){
+  const sel=fv('fastener','material');
+  return sel==='OTHER' ? dcFastenerClean(fv('fastener','materialOther')) : sel;
+}
+function dcFastenerProductName(){
+  const t=fv('fastener','fastenerType');
+  return t==='OTHERS' ? dcFastenerClean(fv('fastener','customName')) : t;
+}
+function dcFastenerSizeText(){ return dcFastenerClean(fv('fastener','sizeText')); }
+/* A bare number is a metric nominal size, as everywhere else: 20 is M20. */
+function dcFastenerCleanSize(s){
+  const v=dcFastenerClean(s);
+  return /^\d+(?:\.\d+)?$/.test(v) ? 'M'+v : v;
+}
+/* Cost per piece at full internal precision — nothing is rounded here. */
+function dcFastenerCostPerPc(){
+  const purchase=evalExpr(String(fv('fastener','purchaseCost')||''));
+  if(!(purchase>0)) return 0;
+  if(fv('fastener','costBasis')!=='KG') return purchase;
+  const pcs=fn('fastener','pcsPerKg');
+  return pcs>0 ? purchase/pcs : 0;
+}
+/* The printed description: material + product, with the material left out
+   when a custom name already says it ("SS304 EYE NUT" never "SS304 SS304 …"). */
+function dcFastenerDescFor(material,name){
+  const mat=materialLabel(material).trim().toUpperCase();
+  const n=String(name||'').trim();
+  if(!mat) return n;
+  const esc=mat.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return new RegExp('(^|[\\s/(-])'+esc+'($|[\\s/)-])').test(n.toUpperCase()) ? n : (mat+' '+n).trim();
+}
+/* Part of the pricing-setup fingerprint (dcFormRecipeSig). */
+function dcFastenerSigExtra(){
+  const num=f=>{ const v=String(fv('fastener',f)||'').trim(); const n=Number(v||0); return isFinite(n)?String(n):v; };
+  return [fv('fastener','fastenerType'),dcFastenerProductName(),dcFastenerMaterial(),dcFastenerSizeText(),
+          fv('fastener','costBasis'),num('purchaseCost'),num('pcsPerKg')];
+}
+/* What the item stores besides the common fields, so Edit, Duplicate, History
+   and a revision all read the same recipe. */
+function dcFastenerItemFields(){
+  const kg=fv('fastener','costBasis')==='KG';
+  const type=fv('fastener','fastenerType');
+  return {fastenerType:type, customName:type==='OTHERS'?dcFastenerProductName():'',
+          costBasis:kg?'KG':'PCS',
+          purchaseCost:evalExpr(String(fv('fastener','purchaseCost')||'')),
+          pcsPerKg:kg?fn('fastener','pcsPerKg'):null,
+          costPerPc:Number(dcFastenerCostPerPc().toFixed(6)),
+          sellingUnit:'PCS'};
+}
+function dcFastenerAutoZero(raw,final){
+  return getPriceMode('fastener')==='auto' && Number(raw)>0 && !(Number(final)>0);
+}
+/* Show only the fields the current choices use. */
+function onFastenerUiSync(){
+  const show=(id,on)=>{ const f=el(id); if(f) f.style.display=on?'':'none'; };
+  show('fastener-customNameField',fv('fastener','fastenerType')==='OTHERS');
+  show('fastener-materialOtherField',fv('fastener','material')==='OTHER');
+  const kg=fv('fastener','costBasis')==='KG';
+  show('fastener-pcsPerKgField',kg);
+  const hint=el('fastener-purchaseHint'); if(hint) hint.textContent=kg?'(RM/KG)':'(RM/PCS)';
+  if(currentType==='fastener') requestAnimationFrame(()=>dcPairFields(el('form-fastener')));
+}
+/* A person choosing SS304 / SS316 gets N/A by default (owner D2) — and may
+   still pick a finish afterwards. Only on their own material change. */
+function onFastenerMaterialChange(){
+  const m=fv('fastener','material');
+  if(m==='SS304'||m==='SS316') setFinishValue('fastener','');
+  onFastenerUiSync();
+  onMaterialSizeChange('fastener');
+}
+function calcFastener(){
+  const cpp=dcFastenerCostPerPc();
+  const addCost=evalExpr(String(fv('fastener','addCost')||''));
+  const markup=fn('fastener','markup');
+  const raw=(cpp+addCost)*(1+markup/100);
+  const final=resolvePriceMode('fastener',raw,dcAutoRound('fastener',raw),0);
+  if(currentType!=='fastener') return;
+  const breakdown=el('wasBreakdown'); if(breakdown) breakdown.classList.remove('show');
+  dcSetPreviewThirdLabel('lblAdditionalCost');
+  el('cpWeight').textContent='—';
+  const priced=cpp>0 || getPriceMode('fastener')==='manual';
+  el('cpBase').textContent=cpp>0?fmtUnit('fastener',cpp):'—';
+  el('cpAcc').textContent=addCost>0?fmtUnit('fastener',addCost):'—';
+  el('cpFinal').textContent=priced?fmtUnit('fastener',final):'—';
+  const lineNote=el('cpLine'); if(lineNote){ lineNote.hidden=true; delete lineNote.dataset.acc; }
+  const warn=el('fastener-autoZeroWarn'); if(warn) warn.style.display=dcFastenerAutoZero(raw,final)?'block':'none';
+  updatePriceModePreview('fastener');
+}
+function addFastener(){
+  const t='fastener';
+  dcFastenerUpperAll();
+  const type=fv(t,'fastenerType');
+  const name=dcFastenerProductName();
+  if(!type || (type==='OTHERS' && !name)){ showToast(dcT('tFastenerNeedName')); return; }
+  if(fv(t,'material')==='OTHER' && !dcFastenerMaterial()){ showToast(dcT('tFastenerNeedMaterial')); return; }
+  const sizeText=dcFastenerSizeText();
+  if(!sizeText){ showToast(dcT('tFastenerNeedSize')); return; }
+  const manual=getPriceMode(t)==='manual';
+  const purchase=validateRateEntry(t,'purchaseCost',dcT('lblPurchaseCost'));
+  if(purchase===null) return;
+  if(!manual && !(purchase>0)){ showToast(dcT('tFastenerNeedCost')); return; }
+  if(fv(t,'costBasis')==='KG' && purchase>0 && !(fn(t,'pcsPerKg')>0)){ showToast(dcT('tFastenerNeedPcsPerKg')); return; }
+  const addCost=validateRateEntry(t,'addCost',dcT('lblAdditionalCost'));
+  if(addCost===null) return;
+  const qty=validateQtyEntry(t);
+  if(qty===null) return;
+  if(!validatePriceMode(t)) return;
+  const markup=fn(t,'markup');
+  const raw=(dcFastenerCostPerPc()+addCost)*(1+markup/100);
+  const final=resolvePriceMode(t,raw,dcAutoRound(t,raw),0);
+  if(dcFastenerAutoZero(raw,final)){ showToast(dcT('tFastenerAutoZero')); return; }
+  if(!pushItem(t,sizeText,dcFastenerMaterial(),qty,final,final*qty,markup,dcFastenerCleanSize(sizeText),'',null,0)) return;
+  flashPreview();
+}
+/* Edit / Duplicate: the form is put back from the item's own recipe. */
+function fillFastenerFormFromItem(item){
+  const t='fastener', saved=item.formData||{};
+  const pick=(...v)=>{ for(const x of v){ if(x!==undefined&&x!==null) return x; } return ''; };
+  const set=(f,v)=>{ const e=el(t+'-'+f); if(e) e.value=String(v); };
+  const ftype=pick(saved.fastenerType,item.fastenerType,'HEX NUT');
+  set('fastenerType',DC_FASTENER_TYPES.indexOf(ftype)>=0?ftype:'OTHERS');
+  set('customName',pick(saved.customName,item.customName,DC_FASTENER_TYPES.indexOf(ftype)>=0?'':ftype));
+  const mat=String(pick(item.material,saved.material,''));
+  const listed=mat==='' || DC_FASTENER_MATERIALS.some(([v])=>v===mat);
+  set('material',listed?mat:'OTHER');
+  set('materialOther',listed?'':mat);
+  set('sizeText',pick(saved.sizeText,item.size,''));
+  set('costBasis',pick(saved.costBasis,item.costBasis,'PCS')==='KG'?'KG':'PCS');
+  set('purchaseCost',pick(saved.purchaseCost,item.purchaseCost,''));
+  set('pcsPerKg',pick(saved.pcsPerKg,item.pcsPerKg,''));
+  set('addCost',pick(saved.addCost,''));
+  set('markup',pick(saved.markup,item.markup,''));
+  set('qty',parseInt(item.qty,10)||1);
+  set('priceMode',pick(saved.priceMode,item.priceMode,'no_round'));
+  set('manualUnitPrice',pick(saved.manualUnitPrice,item.manualUnitPrice,''));
+  ['purchaseCost','addCost','markup'].forEach(f=>markUserPriced(t,f));
+  setFinishValue(t,pick(item.finish,saved.finish,''));
+  onFastenerUiSync();
+  onPriceModeChange(t);
+  recalcCurrent(true);
+}
+/* Pricing History: a fastener's own numbers on a record card. */
+function dcFastenerRecNums(rec){
+  const unit=v=>(v===null||v===undefined||v==='')?'—':fmtUnit('fastener',v);
+  const kg=String(rec.costBasis||'')==='KG';
+  const cost=(rec.purchaseCost===null||rec.purchaseCost===undefined)?'—'
+            :'RM '+cleanNum4(rec.purchaseCost)+(kg?'/kg':'/pc');
+  const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?rec.unitPrice:rec.boltUnitPrice;
+  return `<div class="ph-rec-nums">
+      <span><label>${escHtml(dcT('lblPurchaseCost'))}</label>${escHtml(cost)}</span>
+      ${kg?`<span><label>${escHtml(dcT('lblPcsPerKg'))}</label>${escHtml(rec.pcsPerKg===null||rec.pcsPerKg===undefined?'—':cleanNum4(rec.pcsPerKg))}</span>`:''}
+      <span><label>${escHtml(dcT('lblAddCostShort'))}</label>${escHtml(unit(rec.addCost))}</span>
+      <span><label>${escHtml(dcT('lblMarkup'))}</label>${phPct(rec.markup)}</span>
+      <span><label data-i18n="lblPriceMode">${escHtml(dcT('lblPriceMode'))}</label>${escHtml(phPriceMode(rec))}</span>
+      <span class="ph-rec-unit"><label>${escHtml(dcT('lblUnitPrice'))}</label>${escHtml(unit(bolt))}</span>
+    </div>`;
+}
+function cleanNum4(v){ const n=Number(v); return isFinite(n)?String(Number(n.toFixed(4))):String(v); }
+/* Use on a fastener record: its purchase basis, cost, PCS per KG, Additional
+   Cost, Markup and Price Mode; a Manual Price only from an exact record. The
+   price is then recalculated by calcFastener, exactly like a typed setup. */
+function dcFastenerUsePlan(rec){
+  if(!rec||!phRecordReusable(rec)||String(rec.itemType||'')!=='fastener') return null;
+  const exact=phMatchInfo(rec).match==='exact';
+  const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
+  const purchase=num(rec.purchaseCost), add=num(rec.addCost), mk=num(rec.markup);
+  const kg=String(rec.costBasis||'')==='KG', pcs=num(rec.pcsPerKg);
+  const mode=String(rec.priceMode||'');
+  const hasSetup=purchase!==null&&purchase>0&&(!kg||(pcs!==null&&pcs>0));
+  const bolt=Number(rec.boltUnitPrice);
+  const base={fastener:true,exact,purchase,add:add===null?0:add,mk:mk===null?0:mk,kg,pcs,bolt,hasSetup};
+  if(hasSetup && (mode==='auto'||mode==='no_round')) return {...base,kind:'recipe',mode};
+  if(exact && mode==='manual') return {...base,kind:'manual',mode:'manual',manual:roundMoney4(bolt)};
+  if(hasSetup) return {...base,kind:'setup',mode:'no_round',histManual:mode==='manual'};
+  return null;
+}
+function dcFastenerUseRows(p,row){
+  let rows='';
+  if(p.hasSetup){
+    rows+=row(dcT('lblCostBasis'),p.kg?'RM / KG':'RM / PCS')
+        +row(dcT('lblPurchaseCost'),'RM '+cleanNum4(p.purchase))
+        +(p.kg?row(dcT('lblPcsPerKg'),cleanNum4(p.pcs)):'')
+        +row(dcT('lblAddCostShort'),fmtUnit('fastener',p.add))
+        +row(dcT('lblMarkup'),cleanNum(p.mk)+'%');
+  }
+  return rows;
+}
+function dcFastenerApplyPlan(p){
+  const t='fastener';
+  if(p.hasSetup){
+    setFieldValue(t,'costBasis',p.kg?'KG':'PCS');
+    setFieldValue(t,'purchaseCost',cleanNum4(p.purchase)); markUserPriced(t,'purchaseCost');
+    setFieldValue(t,'pcsPerKg',p.kg?cleanNum4(p.pcs):'');
+    setFieldValue(t,'addCost',cleanNum4(p.add)); markUserPriced(t,'addCost');
+    setFieldValue(t,'markup',String(p.mk));      markUserPriced(t,'markup');
+    onFastenerUiSync();
+  }
+  el(t+'-priceMode').value=p.mode; markUserPriced(t,'priceMode');
+  const man=el(t+'-manualUnitPrice');
+  if(p.kind==='manual'){ if(man){ man.value=p.manual.toFixed(4); markUserPriced(t,'manualUnitPrice'); } }
+  else if(man){ man.value=''; productEntryTouchedFields.delete(t+'-manualUnitPrice'); }
+}
+/* ── C/W Charge reference (owner D3) ─────────────────────────────────────
+   What a nut or flat washer of this size was CHARGED inside a bolt line in
+   an earlier quotation. It is an accessory charge, not a selling price for a
+   loose piece, and it records no grade — so it is shown labelled "C/W
+   Charge", for reference only, with no way to apply it. */
+let dcFastenerCw={key:'',records:null};
+async function dcFastenerLoadCw(){
+  const kind=DC_FASTENER_CW_KIND[fv('fastener','fastenerType')];
+  const size=dcFastenerCleanSize(dcFastenerSizeText());
+  const key=kind&&size?kind+'|'+size:'';
+  if(dcFastenerCw.key===key && dcFastenerCw.records) return;
+  dcFastenerCw={key,records:null};
+  if(!key) return;
+  try{
+    const q=new URLSearchParams({action:'get_accessory_history',type:kind,cleanSize:size,all:'1'});
+    const res=await fetch('api.php?'+q.toString()).then(r=>r.json());
+    if(dcFastenerCw.key===key) dcFastenerCw.records=(res&&res.ok&&res.data&&Array.isArray(res.data.records))?res.data.records:[];
+  }catch(e){ if(dcFastenerCw.key===key) dcFastenerCw.records=[]; }
+}
+function dcFastenerCwHtml(){
+  if(currentType!=='fastener' || !dcFastenerCw.key) return '';
+  const recs=dcFastenerCw.records;
+  if(!recs) return '';
+  const body=recs.length ? recs.slice(0,10).map(r=>`<div class="ph-cw-rec">
+      <span class="ph-cw-price">${escHtml(phMoney(r.unitPrice))}</span>
+      <span class="ph-cw-meta">${escHtml([r.type,r.size,r.finish||'N/A'].filter(Boolean).join(' · '))}</span>
+      <span class="ph-cw-ref">${escHtml((r.refNo||'—')+' · '+fmtDateShort(r.date)+(r.customer?' · '+r.customer:''))}</span>
+    </div>`).join('') : `<div class="ph-empty-msg">${escHtml(dcT('phCwNone'))}</div>`;
+  return `<div class="ph-cw" data-ph-cw="1"><div class="ph-cw-title">${escHtml(dcT('phCwTitle'))}</div>
+    <div class="ph-cw-note">${escHtml(dcT('phCwNote'))}</div>${body}</div>`;
+}
+/* Enter on a cost box works out a typed sum (2*0.5+0.01) like the other
+   forms do — but keeps up to 6 decimals, where evalRateField writes 2. */
+function dcFastenerEvalField(field){
+  const input=el('fastener-'+field), raw=input?input.value.trim():'';
+  if(/^[\d\s.+\-*/]+$/.test(raw) && /\d\s*[+\-*/]/.test(raw)){
+    const v=evalExpr(raw);
+    if(isFinite(v)){ input.value=String(Number(v.toFixed(6))); showToast(raw+' = '+input.value); }
+  }
+  recalcCurrent();
+}
+function ensureFastenerForm(){
+  if(el('form-fastener')) return;
+  const anchor=el('form-others')||el('form-jbolt');
+  if(!anchor) return;
+  const typeOpts=DC_FASTENER_TYPES.map(v=>v==='OTHERS'
+    ? `<option value="OTHERS" data-i18n="optFastenerOthers">${escHtml(dcT('optFastenerOthers'))}</option>`
+    : `<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('');
+  const matOpts=`<option value="" selected data-i18n="optNone">${escHtml(dcT('optNone'))}</option>`
+    +DC_FASTENER_MATERIALS.map(([v,l])=>`<option value="${escHtml(v)}">${escHtml(l)}</option>`).join('')
+    +`<option value="OTHER" data-i18n="optMaterialOther">${escHtml(dcT('optMaterialOther'))}</option>`;
+  const pill=(key,val,code,title,checked)=>`<label class="finish-pill${checked?' selected-'+key:''}" id="fastener-pill-${key}" data-i18n-title="${title}" title="${escHtml(dcT(title))}"><input type="radio" name="fastener-finish" value="${val}"${checked?' checked':''} onchange="onFinishChange('fastener')"><span class="fp-code">${code}</span></label>`;
+  const form=document.createElement('div');
+  form.className='item-form';
+  form.id='form-fastener';
+  form.dataset.type='fastener';
+  form.innerHTML=`
+    <div class="group-label full" data-i18n="lblProductDetails">${escHtml(dcT('lblProductDetails'))}</div>
+    <div class="field"><label data-i18n="lblFastenerType">${escHtml(dcT('lblFastenerType'))}</label><select id="fastener-fastenerType" onchange="onFastenerUiSync();calcFastener()">${typeOpts}</select></div>
+    <div class="field" id="fastener-customNameField" style="display:none"><label data-i18n="lblCustomProductName">${escHtml(dcT('lblCustomProductName'))}</label><input type="text" id="fastener-customName" data-i18n-ph="phFastenerCustom" placeholder="${escHtml(dcT('phFastenerCustom'))}" style="text-transform:uppercase" oninput="dcFastenerUpper('fastener-customName');calcFastener()" onblur="dcFastenerUpper('fastener-customName')"></div>
+    <div class="field"><label data-i18n="lblMaterialGrade">${escHtml(dcT('lblMaterialGrade'))}</label><select id="fastener-material" onchange="onFastenerMaterialChange()">${matOpts}</select></div>
+    <div class="field" id="fastener-materialOtherField" style="display:none"><label data-i18n="lblMaterialOther">${escHtml(dcT('lblMaterialOther'))}</label><input type="text" id="fastener-materialOther" data-i18n-ph="phMaterialOther" placeholder="${escHtml(dcT('phMaterialOther'))}" style="text-transform:uppercase" oninput="dcFastenerUpper('fastener-materialOther');calcFastener()" onblur="dcFastenerUpper('fastener-materialOther')"></div>
+    <div class="field"><label data-i18n="lblSizeDimension">${escHtml(dcT('lblSizeDimension'))}</label><input type="text" id="fastener-sizeText" data-i18n-ph="phFastenerSize" placeholder="${escHtml(dcT('phFastenerSize'))}" autocomplete="off" style="text-transform:uppercase" oninput="dcFastenerUpper('fastener-sizeText');calcFastener()" onblur="dcFastenerUpper('fastener-sizeText')"></div>
+    <div class="field full finish-field"><label data-i18n="lblFinish">${escHtml(dcT('lblFinish'))}</label>
+      <div class="finish-pills" id="fastener-finishPills">
+        ${pill('NA','','N/A','ttNotApplicable',false)}${pill('PL','PL','PL','ttPlain',true)}${pill('ZP','ZP','ZP','ttZincPlated',false)}${pill('HDG','HDG','HDG','ttHotDipGalvanized',false)}
+      </div>
+    </div>
+    <div class="group-label full" data-i18n="pricingEntry">${escHtml(dcT('pricingEntry'))}</div>
+    <div class="field"><label data-i18n="lblCostBasis">${escHtml(dcT('lblCostBasis'))}</label><select id="fastener-costBasis" onchange="onFastenerUiSync();calcFastener()"><option value="PCS" selected>RM / PCS</option><option value="KG">RM / KG</option></select></div>
+    <div class="field"><label><span data-i18n="lblPurchaseCost">${escHtml(dcT('lblPurchaseCost'))}</span> <span class="hint" id="fastener-purchaseHint">(RM/PCS)</span></label><input type="text" class="hl" id="fastener-purchaseCost" inputmode="decimal" placeholder="0.0000" oninput="calcFastener()" onkeydown="if(event.key==='Enter'){event.preventDefault();dcFastenerEvalField('purchaseCost');}"></div>
+    <div class="field" id="fastener-pcsPerKgField" style="display:none"><label data-i18n="lblPcsPerKg">${escHtml(dcT('lblPcsPerKg'))}</label><input type="number" id="fastener-pcsPerKg" min="0" step="any" placeholder="e.g. 18" oninput="calcFastener()"></div>
+    <div class="field"><label><span data-i18n="lblAdditionalCost">${escHtml(dcT('lblAdditionalCost'))}</span> <span class="hint">(RM/PCS)</span></label><input type="text" class="hl" id="fastener-addCost" inputmode="decimal" placeholder="0" oninput="calcFastener()" onkeydown="if(event.key==='Enter'){event.preventDefault();dcFastenerEvalField('addCost');}"></div>
+    <div class="field"><label><span data-i18n="lblMarkup">${escHtml(dcT('lblMarkup'))}</span> <span class="hint">(%)</span></label><input type="number" id="fastener-markup" placeholder="0" min="0" oninput="calcFastener()"></div>
+    <div class="field"><label><span data-i18n="lblQty">${escHtml(dcT('lblQty'))}</span> <span class="hint">(PCS)</span></label><input type="number" id="fastener-qty" value="1" min="1" step="1" oninput="calcFastener()"></div>
+    <div class="warn-note full" id="fastener-autoZeroWarn" style="display:none" data-i18n="tFastenerAutoZero">${escHtml(dcT('tFastenerAutoZero'))}</div>
+    <div class="hint full fastener-guide" data-i18n="fastenerGuide">${escHtml(dcT('fastenerGuide'))}</div>`;
+  anchor.insertAdjacentElement('afterend',form);
+}
+/* After the shared Price Mode controls exist: a fastener's Manual Price is
+   typed to 4 decimals. */
+function dcFastenerAfterControls(){
+  const man=el('fastener-manualUnitPrice');
+  if(man){ man.step='0.0001'; man.placeholder='0.0350'; }
 }
 
 /* ─── PLATE (MS Plate / Triangle Plate) ─────────────────────────────── */
@@ -12617,20 +13041,22 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
      for a form whose material lives somewhere else or for a value restored from
      storage. Applied HERE it holds for every product, on the one line every
      committed item goes through, whatever the radio says. */
-  const finish=dcFinishFor(material,getFinish(type));
+  const finish=dcItemFinishFor(type,material,getFinish(type));
   const acc=accessories||{nut:{enabled:false,qty:2,finish:'',unitPrice:0},fw:{enabled:false,qty:1,finish:'',unitPrice:0},custom:{enabled:false,text:'',unitPrice:0}};
   /* The caller's totalAmount was the bolt price times the quantity. The line
      also carries the accessories, so it is settled here — one place, for every
      product that comes through this path. */
-  const money=dcLineMoney(finalUnitPrice,acc,qty);
+  const money=dcLineMoney(finalUnitPrice,acc,qty,type);
   finalUnitPrice=money.finalUnitPrice; totalAmount=money.totalAmount;
   if(!validateFinalItem(qty,finalUnitPrice,totalAmount)) return false; // Phase 1 fix: final safety net
   /* Only an ACCEPTED price is a selling price. */
   const pa=dcPaCommit(type,finalUnitPrice);
   if(!pa) return false;
-  const productType=type==='others'?(fv(type,'productName').trim()||ITEM_TYPES[type]):(ITEM_TYPES[type]||type);
+  const productType=type==='others'?(fv(type,'productName').trim()||ITEM_TYPES[type])
+                  :type==='fastener'?(dcFastenerProductName()||ITEM_TYPES[type]):(ITEM_TYPES[type]||type);
   const priceData=getPriceModeSaveData(type);
   const item={itemType:type,desc:buildDesc(type),finish,size:sizeStr,qty,markup,material,sizeCode:sizeCode||'',sizeType:sizeType||fv(type,'sizeType'),productType,cleanSize:sizeCode||'',dimensionPreview:sizeStr.includes(' x ')?sizeStr.substring(sizeStr.indexOf(' x ')+3):'',accessories:acc,weight:weight||0,customDimensions:dcReadCustomDims(),threadRef:dcReadItemThreadRef(),formData:captureItemFormData(type),...priceData,...money,priceAcceptance:pa.meta};
+  if(type==='fastener') Object.assign(item,dcFastenerItemFields());
   if(pa.keep){ dcPaKeepSaved(item,pa.keep); finalUnitPrice=item.finalUnitPrice; }
   delete dcFormPa[type];
   if(editingItemIndex!==null && quoteItems[editingItemIndex]){
@@ -12662,7 +13088,7 @@ function pushItem(type,sizeStr,material,qty,finalUnitPrice,totalAmount,markup,si
   dcKeepRecipeAfterAdd(type);
   dcClearCustomDims();
   renderQuote(quoteItems.length-1);
-  showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',sizeStr).replace('{p}',fmt(finalUnitPrice)));
+  showToast(dcT('tAddedItem').replace('{n}',quoteItems.length).replace('{d}',sizeStr).replace('{p}',fmtUnit(type,finalUnitPrice)));
   return true;
 }
 /* Reset every product type's accessory panel — Clear All and New Quotation must
@@ -12705,12 +13131,17 @@ function dcKeepRecipeAfterAdd(type){
   if(type===currentType){ recalcCurrent(); dcRenderRec(type); }
 }
 function resetAllPriceModes(){
-  ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others']
+  ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others','fastener']
     .forEach(t=>{ if(el(t+'-priceMode')) resetPriceModeAfterAdd(t); });
 }
 function resetAllPricingRecipes(){
   ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others']
     .forEach(t=>{ if(el(t+'-costRate')) dcResetPricingAfterAdd(t); });
+  /* A fastener's recipe is its purchase cost, PCS per KG, Add Cost and Markup. */
+  if(el('fastener-purchaseCost')){
+    ['purchaseCost','pcsPerKg'].forEach(f=>{ const e=el('fastener-'+f); if(e) e.value=''; productEntryTouchedFields.delete('fastener-'+f); });
+    dcResetPricingAfterAdd('fastener');
+  }
 }
 function resetAllAccPanels(){
   ['sagrod','stud','anchorbolt','ubolt','squbolt','lbolt','lbolt45','jbolt','plate','was','others'].forEach(resetAccPanel);
@@ -12831,7 +13262,11 @@ function dcBpOpen(){
   if(!idx.length){ showToast(dcT('bpNoneSelected')); return; }
   /* Every field starts unticked with an empty New box; CURRENT is read from
      the selected items themselves. */
-  const sel=idx.map(i=>quoteItems[i]);
+  /* Fasteners cannot be bulk edited (V1); say so up front. */
+  const nFast=idx.filter(i=>quoteItems[i]&&quoteItems[i].itemType==='fastener').length;
+  if(nFast===idx.length){ showToast(dcT('bpFastenerOnly')); return; }
+  if(nFast) showToast(dcT('bpFastenerSkipped').replace('{n}',nFast));
+  const sel=idx.map(i=>quoteItems[i]).filter(it=>it.itemType!=='fastener');
   DC_BP_FIELDS.forEach(f=>{
     const c=el('bpOn-'+f); if(c) c.checked=false;
     const cur=el('bpCur-'+f); if(cur) cur.innerHTML=dcBpCurrentHtml(f,sel);
@@ -12870,6 +13305,15 @@ function dcBpReprice(src,ch){
   const oldMode=['auto','no_round','manual'].includes(pm)?pm:'auto';
   const qty=parseInt(item.qty,10)||0;   // quantity is never changed here
   const notes=[];
+  /* Accessories / Fasteners are excluded from bulk repricing in V1: they are
+     priced per piece from a purchase cost (not weight x Cost Rate) and keep a
+     4-decimal unit price that this path would otherwise round. Left exactly
+     as it is, and the row says why. */
+  if(type==='fastener'){
+    const same=JSON.parse(JSON.stringify(src));
+    return {item:same,oldUnit,newUnit:oldUnit,oldTotal,newTotal:oldTotal,notes:[dcT('bpNoteFastener')],repriced:false,
+            oldIn:dcBpInputs(src),newIn:dcBpInputs(src),changed:false};
+  }
   let reprice=['costRate','addCost','markup','priceMode'].some(k=>ch[k]!==undefined);
   if(reprice && oldMode==='manual' && ch.priceMode===undefined){ reprice=false; notes.push(dcT('bpNoteManual')); }
   let addCost=has(fd.addCost)?evalExpr(String(fd.addCost)):0;
@@ -12928,6 +13372,8 @@ function dcBpRefresh(){
   if(err){ err.hidden=!errs.length; err.textContent=errs.join(' · '); }
   const money=v=>escHtml(fmt(v));
   const cell=(o,n)=>Math.abs(o-n)<0.005?`<span class="bp-new">${money(n)}</span>`:`<span class="bp-old">${money(o)}</span><span class="bp-new">${money(n)}</span>`;
+  /* The unit column at each item's own precision (a fastener's is 4dp). */
+  const cellUnit=(o,n,t)=>{ const m=v=>escHtml(fmtUnit(t,v)); return Math.abs(o-n)<dcUnitTol(t)?`<span class="bp-new">${m(n)}</span>`:`<span class="bp-old">${m(o)}</span><span class="bp-new">${m(n)}</span>`; };
   /* Old → new pricing INPUTS per item, beside the old → new prices. */
   const inCell=(f,r)=>{
     const o=dcBpFmt(f,r.oldIn[f]), n=dcBpFmt(f,r.newIn[f]);
@@ -12941,7 +13387,7 @@ function dcBpRefresh(){
     rows.map(r=>{
       const it=quoteItems[r.i], size=it.itemType==='was'?'':dcSizeLabelDisplay(it.size);
       return `<tr class="${r.changed?'':'bp-same'}"><td class="bp-d"><b>${r.i+1}.</b> ${escHtml(displayItemDesc(it))}${size?' · '+escHtml(size):''}${r.notes.map(n=>`<span class="bp-note">${escHtml(n)}</span>`).join('')}</td>`
-        +`<td>${parseInt(it.qty,10)||0}</td>${IN_COLS.map(([f])=>`<td>${inCell(f,r)}</td>`).join('')}<td>${cell(r.oldUnit,r.newUnit)}</td><td>${cell(r.oldTotal,r.newTotal)}</td></tr>`;
+        +`<td>${parseInt(it.qty,10)||0}</td>${IN_COLS.map(([f])=>`<td>${inCell(f,r)}</td>`).join('')}<td>${cellUnit(r.oldUnit,r.newUnit,it.itemType)}</td><td>${cell(r.oldTotal,r.newTotal)}</td></tr>`;
     }).join('')}</tbody></table>`;
   const oldGrand=roundMoney2(quoteItems.reduce((s,i)=>s+(Number(i.totalAmount)||0),0));
   const newGrand=roundMoney2(oldGrand+rows.reduce((s,r)=>s+(r.newTotal-r.oldTotal),0));
@@ -12992,6 +13438,7 @@ function dcDimSegmentsHtml(size){
     '<span class="dc-seg">'+(k?'<span class="dc-sep"> x </span>':'')+escHtml(p)+'</span>').join('')+'</span>';
 }
 function dcItemPricingSummary(item){
+  if(item&&item.itemType==='fastener') return dcFastenerPricingSummary(item);
   const fd=item&&item.formData||{};
   const mode=['auto','no_round','manual'].includes(item.priceMode||fd.priceMode)?(item.priceMode||fd.priceMode):'auto';
   const final=dcItemFinalUnit(item), accUnit=dcItemAccUnit(item);
@@ -13032,6 +13479,31 @@ function dcItemPricingSummary(item){
     if(tl>0) totalLength=String(Math.ceil(tl));
   }
   return {mode,final,auto,override,parts,totalLength};
+}
+/* A fastener's card: its purchase cost per PCS or per KG (with PCS per KG),
+   Add Cost, Markup, and the calculated price — all to 4 decimals. */
+function dcFastenerPricingSummary(item){
+  const fd=item.formData||{};
+  const has=v=>v!==undefined&&v!==null&&String(v).trim()!=='';
+  const mode=['auto','no_round','manual'].includes(item.priceMode||fd.priceMode)?(item.priceMode||fd.priceMode):'no_round';
+  const final=dcItemFinalUnit(item);
+  const kg=(item.costBasis||fd.costBasis)==='KG';
+  const parts=[];
+  const pc=Number(item.purchaseCost);
+  if(pc>0) parts.push(escHtml(dcT('qiCostRate'))+' '+escHtml(cleanNum4(pc)+(kg?'/kg':'/pc')));
+  if(kg && Number(item.pcsPerKg)>0) parts.push(escHtml(cleanNum4(item.pcsPerKg))+' '+escHtml(dcT('qiPcsPerKg')));
+  if(has(fd.addCost)) parts.push(escHtml(dcT('qiAddCost'))+' '+escHtml(cleanNum4(evalExpr(String(fd.addCost)))));
+  parts.push(escHtml(dcT('qiMarkup'))+' '+escHtml(cleanNum(parseFloat(has(fd.markup)?fd.markup:item.markup)||0))+'%');
+  let auto=null;
+  if(mode!=='manual') auto=final;
+  else{ const raw=Number(item.rawUnitPrice); if(isFinite(raw)&&raw>0) auto=roundMoney4(raw); }
+  if(auto!==null) parts.push('<span class="qi-pr-auto">'+escHtml(dcT('qiAuto'))+' '+escHtml(auto.toFixed(4))+'</span>');
+  let override=null;
+  if(mode==='manual' && auto!==null){
+    const diff=roundMoney4(final-auto), pct=auto>0?diff/auto*100:0, sign=diff>0?'+':diff<0?'−':'';
+    override={diff,text:`${sign}RM ${Math.abs(diff).toFixed(4)} (${sign}${Math.abs(pct).toFixed(1)}%)`};
+  }
+  return {mode,final,auto,override,parts,totalLength:''};
 }
 function renderQuote(newIdx){
   if(newIdx!==undefined) rspEntryDirty=false;   // an Add / Update just consumed the entry
@@ -13119,7 +13591,7 @@ function renderQuote(newIdx){
         ${(loadedSavedQuote&&quoteLocked)||dcBpSelecting?'':`<div class="qi-card-actions"><button class="qi-edit-btn" onclick="editItem(${i})" title="${escHtml(dcT('btnEdit'))}">${escHtml(dcT('btnEdit'))}</button><button class="qi-dup-btn" onclick="duplicateItem(${i})" title="${escHtml(dcT('btnDuplicate'))}">${escHtml(dcT('btnDuplicate'))}</button><button class="qi-del" onclick="removeItem(${i})" title="${escHtml(dcT('btnDelete'))}">${escHtml(dcT('btnDelete'))}</button></div>`}
       </div>
       <div class="qi-item-bottom">
-        <div class="qi-unitcol"><div class="qi-unitline"><span class="qi-unitval">${escHtml(dcT('qiUnitPill'))} <strong>${fmt(dcItemFinalUnit(item))}${unitSuffix}</strong></span> ${priceModeTag}</div>${overrideHtml}</div>
+        <div class="qi-unitcol"><div class="qi-unitline"><span class="qi-unitval">${escHtml(dcT('qiUnitPill'))} <strong>${fmtUnit(item.itemType,dcItemFinalUnit(item))}${unitSuffix}</strong></span> ${priceModeTag}</div>${overrideHtml}</div>
         <div class="qi-price-group">
           <span class="qi-unit">${escHtml(dcT('qiTotalPill'))}</span>
           <span class="qi-total">${fmt(item.totalAmount)}</span>
@@ -13637,8 +14109,12 @@ const DC_HIST_BLANK='—';
 function dcHistEsc(v){ const d=document.createElement('div'); d.textContent=String(v==null?'':v); return d.innerHTML; }
 
 /* A value the snapshot never carried is shown as absent, never invented. */
-function dcHistValue(field,v){
+function dcHistValue(field,v,itemType){
   if(v===null||v===undefined||v==='') return DC_HIST_BLANK;
+  /* itemType (item_changed only): a standalone fastener's unit price is
+     recorded to 4 decimals and shown that way. Every other value reads exactly
+     as before. */
+  if(field==='finalUnitPrice' && itemType==='fastener') return fmtUnit('fastener',v);
   if(DC_HIST_MONEY_FIELDS[field]) return phMoney(v);
   if(DC_HIST_DATE_FIELDS[field])  return fmtDateShort(v);
   return String(v);
@@ -13706,9 +14182,9 @@ function dcHistChange(c){
            + '<div class="hist-item-fields">';
     (c.fields||[]).forEach(f=>{
       html+='<div>'+dcHistEsc(dcT(DC_HIST_ITEM_FIELD_KEY[f.field]||'histFieldOther'))+': '
-          + '<span class="hist-from">'+dcHistEsc(dcHistValue(f.field,f.from))+'</span>'
+          + '<span class="hist-from">'+dcHistEsc(dcHistValue(f.field,f.from,c.itemType))+'</span>'
           + '<span class="hist-arrow">→</span>'
-          + '<span>'+dcHistEsc(dcHistValue(f.field,f.to))+'</span></div>';
+          + '<span>'+dcHistEsc(dcHistValue(f.field,f.to,c.itemType))+'</span></div>';
     });
     if(c.other>0) html+='<div class="hist-sub">'+dcHistEsc(dcT('histOtherDetails').replace('{n}',String(c.other)))+'</div>';
     return html+'</div></div>';
@@ -13978,8 +14454,8 @@ async function loadWATemplate(){
     else waTemplateCache=WA_DEFAULT_TPL;
   }catch(e){ waTemplateCache=WA_DEFAULT_TPL; }
 }
-function fmtWAUnitPrice(value){
-  return 'RM'+(parseFloat(value)||0).toFixed(2);
+function fmtWAUnitPrice(value,type){
+  return 'RM'+(parseFloat(value)||0).toFixed(dcUnitDp(type));
 }
 function getWAGroupTitle(item){
   const itemType=item.itemType||'';
@@ -13994,6 +14470,12 @@ function getWAGroupTitle(item){
     /* Title follows the selected Anchor Bolt material. WAS items saved before
        this change stored material:'MS', so they still read "MS WELDING ANCHOR SET". */
     const title=materialLabel(item.material||'MS')+' WELDING ANCHOR SET';
+    return finish?`${title} (${finish})`:title;
+  }
+  if(itemType==='fastener'){
+    /* The stored description already avoids repeating the material. */
+    const title=String(item.desc||item.productType||'').trim()||ITEM_TYPES.fastener;
+    const finish=(item.finish||'').trim();
     return finish?`${title} (${finish})`:title;
   }
   const material=materialLabel(item.material).trim();
@@ -14028,7 +14510,7 @@ function buildWAItemsText(emptyText='-', mergeIdentical=true, includeUnitWeight=
        message quotes M12 x L 1000 x TL 100/100mm at RM7.76 and then says
        "cw 2nut" — a description of what is included, with no second RM figure
        to add up, query or be charged twice for. */
-    const price=fmtWAUnitPrice(wasItem?item.finalUnitPrice:dcItemFinalUnit(item));
+    const price=fmtWAUnitPrice(wasItem?item.finalUnitPrice:dcItemFinalUnit(item),item.itemType);
     const cw=wasItem?wasCWLabel(item.accessories||null):accCWLabel(item.accessories||null);
     const wasComp=wasItem?wasDisplay.compLines:'';
     /* Two items are the same LINE only when everything the line shows is the
@@ -14250,7 +14732,7 @@ window.addEventListener('beforeprint',()=>{
       <td class="print-col-desc">${escHtml(getPrintItemDescription(item))}</td>
       <td class="print-item-size">${escHtml(getPrintItemDimension(item))}</td>
       <td class="print-col-qty">${qty}</td>
-      <td class="print-col-money">${formatPrintMoney(unit)}${item.itemType==='was'?'/set':''}</td>
+      <td class="print-col-money">${item.itemType==='fastener'?fmtUnit('fastener',unit):formatPrintMoney(unit)}${item.itemType==='was'?'/set':''}</td>
       <td class="print-col-money">${formatPrintMoney(total)}</td>
     </tr>`;
   }).join('');
@@ -14526,8 +15008,13 @@ function phRecordHtml(rec,onUse,extra){
   const bolt=(rec.boltUnitPrice===null||rec.boltUnitPrice===undefined)?null:Number(rec.boltUnitPrice);
   const acc=Number(rec.accessoryCost)||0;
   const dims=String(rec.dimensionPreview||'').trim();
-  const spec=[materialLabel(rec.material),rec.sizeType,rec.productType,rec.finish?'('+rec.finish+')':'']
+  const isFast=String(rec.itemType||'')==='fastener';
+  const spec=isFast
+    ? [rec.desc||dcFastenerDescFor(rec.material,rec.productType),rec.finish?'('+rec.finish+')':'','· PCS'].filter(Boolean).join(' ')
+    : [materialLabel(rec.material),rec.sizeType,rec.productType,rec.finish?'('+rec.finish+')':'']
              .filter(Boolean).join(' ');
+  /* A fastener's unit prices read to 4 decimals; everything else as before. */
+  const pmoney=isFast?(v=>(v===null||v===undefined||v==='')?'—':fmtUnit('fastener',v)):phMoney;
   const tags=[];
   /* Customer labels mean something only when a customer is chosen; with none,
      every record is simply a reference for this specification. */
@@ -14584,10 +15071,10 @@ function phRecordHtml(rec,onUse,extra){
     const quoted=bolt===null?Number(rec.unitPrice):bolt;
     const line=(k,v,c)=>`<span class="ph-mx-l${c?' '+c:''}"><label>${escHtml(dcT(k))}</label>${escHtml(v)}</span>`;
     const parts=[];
-    if(raw>0) parts.push(line('phMxCalc',phMoney(raw)));
-    if(ar>0)  parts.push(line('phMxAuto',phMoney(ar)));
-    parts.push(line('phMxQuoted',phMoney(quoted),'is-final'));
-    if(ar>0){ const d=roundMoney2(quoted-ar); parts.push(line('phMxDiff',(d>=0?'+':'−')+'RM '+Math.abs(d).toFixed(2),'is-diff')); }
+    if(raw>0) parts.push(line('phMxCalc',pmoney(raw)));
+    if(ar>0)  parts.push(line('phMxAuto',pmoney(ar)));
+    parts.push(line('phMxQuoted',pmoney(quoted),'is-final'));
+    if(ar>0){ const d=isFast?roundMoney4(quoted-ar):roundMoney2(quoted-ar); parts.push(line('phMxDiff',(d>=0?'+':'−')+'RM '+Math.abs(d).toFixed(isFast?4:2),'is-diff')); }
     manual=`<div class="ph-mx"><span class="ph-mx-t">${escHtml(dcT('phMxTitle'))}</span>${parts.join('')}</div>`;
   }
   return `<div class="ph-rec${own?' ph-rec-own':''} ph-rec-is-${cls}" data-ph-class="${cls}">
@@ -14598,14 +15085,14 @@ function phRecordHtml(rec,onUse,extra){
     <div class="ph-rec-cust">${escHtml(rec.customer||'—')}</div>
     <div class="ph-rec-spec">${escHtml(spec)}</div>
     <div class="ph-rec-dims">${escHtml(sizeDisplay(rec.cleanSize))}${dims?' × '+escHtml(dims):''} · ${escHtml(dcT('phQtyLabel').replace('{n}',parseInt(rec.qty,10)||0))}</div>
-    <div class="ph-rec-nums">
+    ${isFast?dcFastenerRecNums(rec):`<div class="ph-rec-nums">
       <span><label data-i18n="lblUnitWeight">${escHtml(dcT('lblUnitWeight'))}</label>${phWeight(rec.weight)}</span>
       <span><label data-i18n="lblCostRate">${escHtml(dcT('lblCostRate'))}</label>${phMoney(rec.costRate)}</span>
       <span><label>${escHtml(dcT('lblAddCostShort'))}</label>${phMoney(rec.addCost)}</span>
       <span><label>${escHtml(dcT('lblMarkup'))}</label>${phPct(rec.markup)}</span>
       <span><label data-i18n="lblPriceMode">${escHtml(dcT('lblPriceMode'))}</label>${escHtml(phPriceMode(rec))}</span>
       <span class="ph-rec-unit"><label>${escHtml(dcT(bolt===null?'lblUnitPrice':'phBoltUnitPrice'))}</label>${phMoney(bolt===null?rec.unitPrice:bolt)}</span>
-    </div>
+    </div>`}
     ${manual}
     ${compare.length?`<div class="ph-rec-cmp"><span class="ph-rec-cmp-k">${escHtml(dcT('phCompared'))}</span> ${escHtml(compare.join(' · '))}</div>`:''}
     ${acc>0?`<div class="ph-rec-acc">${escHtml(dcT('phAccSeparately'))} ${escHtml(rec.accessorySummary||'')} — ${phMoney(acc)}${bolt===null?'':' '+escHtml(dcT('phLineWas').replace('{v}',phMoney(rec.lineUnitPrice===undefined?rec.unitPrice:rec.lineUnitPrice)))}</div>`:''}
@@ -14733,13 +15220,18 @@ function phListHtmlBody(state,onUse,onMore,extraFor){
 let phFormState=null, phTargetState=null;
 function phFormSpec(){
   const t=currentType;
+  /* A fastener: Type + Size + Material + Finish + Selling Unit (owner rule). */
+  if(t==='fastener')
+    return {productType:dcFastenerProductName(), material:dcFastenerMaterial(), sizeType:'',
+            finish:getFinish(t), cleanSize:dcFastenerCleanSize(dcFastenerSizeText()),
+            dimensionPreview:'', sellingUnit:'PCS'};
   /* The rule, and the form's real material — a Welding Anchor Set keeps its in
      was-ab-material, and reading the wrong element asked history for a finish a
      stainless item never has. */
   const material=dcFormMaterial(t);
   return {productType:ITEM_TYPES[t]||t, material,
           sizeType:t==='stud'?'':fv(t,'sizeType'),
-          finish:dcFinishFor(material,getFinish(t)),
+          finish:dcItemFinishFor(t,material,getFinish(t)),
           cleanSize:normalizeSizeValue(fv(t,'size')),
           dimensionPreview:dcFormDimPreview(t)};
 }
@@ -14783,6 +15275,7 @@ async function checkPreviousPrice(){
   if(seq!==phAutoSeq) return;                 // a newer lookup has the floor
   phFormState=st;
   if(phFormState){ phFormState._spec=spec; phFormState._company=company; phFormState._key=key; phFormState._matchBy='overall'; phFormState._matchTarget=''; phFormState._matchTargets=phMatchDefaults(spec); }
+  if(currentType==='fastener'){ await dcFastenerLoadCw(); if(seq!==phAutoSeq) return; }
   el('phEmptyMsg').style.display='none';
   el('phResults').style.display='block';
   phRenderMatchControls();
@@ -14824,7 +15317,7 @@ function phViewHistory(){
 /* The entry form's list: the shared renderer, one ranked list (no reuse
    sections — the ranking is the order), with this form's action on a record. */
 function phFormListHtml(){
-  return phListHtml(phFormState,null,'phFormMore()',(rec,n)=>phUseButtonHtml(rec,n));
+  return phListHtml(phFormState,null,'phFormMore()',(rec,n)=>phUseButtonHtml(rec,n))+dcFastenerCwHtml();
 }
 
 /* ── Auto summary ──────────────────────────────────────────────────────────
@@ -14835,6 +15328,7 @@ function phFormListHtml(){
 let phAutoTimer=0, phAutoSeq=0, phAutoInflight=null;
 function phAutoKey(spec){ return JSON.stringify(spec)+'|'+(selectedCompanyId==null?'':selectedCompanyId); }
 function phSpecReady(t,spec){
+  if(t==='fastener') return !!(spec&&spec.cleanSize&&spec.productType);
   if(!spec||!spec.cleanSize||!spec.material) return false;
   if(t!=='stud' && dcProductHasSizeType(t) && !spec.sizeType) return false;
   if(dcMaterialHasFinish(spec.material) && !spec.finish) return false;
@@ -14911,6 +15405,7 @@ function phBadgeHtml(rec){
    touched, and nothing is added to the quotation. */
 function phUsePlan(rec){
   const t=currentType;
+  if(t==='fastener') return dcFastenerUsePlan(rec);
   if(!rec||!phRecordReusable(rec)||!el(t+'-costRate')||!el(t+'-priceMode')) return null;
   const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
   const rate=num(rec.costRate), add=num(rec.addCost), mk=num(rec.markup);
@@ -14939,15 +15434,17 @@ function phUseOpen(n){
   const row=(k,v)=>'<dt>'+escHtml(k)+'</dt><dd>'+escHtml(v)+'</dd>';
   const modeLbl=m=>dcT(m==='no_round'?'pmNoRound':m==='manual'?'pmManualPrice':'pmAutoRound');
   let rows='';
-  if(p.kind!=='manual'||p.hasSetup){
+  const um=v=>p.fastener?fmtUnit('fastener',v):phMoney(v);
+  if(p.fastener) rows+=dcFastenerUseRows(p,row);
+  else if(p.kind!=='manual'||p.hasSetup){
     rows+=row(dcT('lblCostRate'),dcRateText(p.rate))+row(dcT('lblAddCostShort'),dcRateText(p.add))+row(dcT('lblMarkup'),cleanNum(p.mk)+'%');
   }
   rows+=row(dcT('lblPriceMode'),modeLbl(p.mode));
-  rows+=row(dcT(p.kind==='manual'||p.histManual?'phCfHistManual':'phCfHistFinal'),phMoney(p.bolt));
+  rows+=row(dcT(p.kind==='manual'||p.histManual?'phCfHistManual':'phCfHistFinal'),um(p.bolt));
   el('phCfTitle').textContent=dcT(p.exact?'phCfTitleThis':'phCfTitleSetup');
   el('phCfRef').innerHTML=phBadgeHtml(rec)+' <span>'+escHtml((rec.refNo||'—')+' · '+fmtDateShort(rec.date))+'</span>';
   el('phCfRows').innerHTML=rows;
-  el('phCfNote').textContent=p.kind==='manual'?dcT('phCfNoteManual').replace('{v}',phMoney(p.manual))
+  el('phCfNote').textContent=p.kind==='manual'?dcT('phCfNoteManual').replace('{v}',um(p.manual))
                             :p.histManual?dcT('phCfNoteManualSkip'):dcT('phCfNoteRecalc');
   const cf=el('phConfirm'); cf.hidden=false;
   try{ el('phCfApplyBtn').focus({preventScroll:true}); }catch(e){}
@@ -14962,6 +15459,8 @@ function phCfApply(){
   const p=phUsePlan(rec), t=currentType;
   el('phConfirm').hidden=true; phUseIndex=null;
   if(!p) return;
+  if(p.fastener) dcFastenerApplyPlan(p);
+  else{
   if(p.kind!=='manual'||p.hasSetup){
     setFieldValue(t,'costRate',p.rate.toFixed(2)); markUserPriced(t,'costRate');
     setFieldValue(t,'addCost',p.add.toFixed(2));   markUserPriced(t,'addCost');
@@ -14971,6 +15470,7 @@ function phCfApply(){
   const man=el(t+'-manualUnitPrice');
   if(p.kind==='manual'){ if(man){ man.value=p.manual.toFixed(2); markUserPriced(t,'manualUnitPrice'); } }
   else if(man){ man.value=''; productEntryTouchedFields.delete(t+'-manualUnitPrice'); }
+  }
   onPriceModeChange(t);
   recalcCurrent();
   /* Pressing Use on a record IS the acceptance: a recipe is priced from this
@@ -14984,7 +15484,8 @@ function phCfApply(){
 function phDrawerSetSub(spec){
   const sub=el('phDrawerSub'); if(!sub) return;
   const cmp=(phFormState&&phFormState._spec&&phFormState._spec.dimensionPreview)||spec.dimensionPreview||'';
-  sub.textContent=[materialLabel(spec.material),spec.sizeType,spec.productType,sizeDisplay(spec.cleanSize),spec.finish]
+  sub.textContent=(spec.sellingUnit?[dcFastenerDescFor(spec.material,spec.productType),spec.cleanSize,spec.finish,spec.sellingUnit]
+    :[materialLabel(spec.material),spec.sizeType,spec.productType,sizeDisplay(spec.cleanSize),spec.finish])
     .filter(Boolean).join(' · ')+(cmp?' · '+dcT('phComparedWith').replace('{d}',cmp):'');
 }
 /* One line in the form, from what the lookup already returned: how many
@@ -15231,7 +15732,7 @@ function checkHandoff(){
        the rule existed, or built through a path that did not apply it, comes
        back carrying PL or HDG — and a hard rule that only applied to new items
        would not be a hard rule. */
-    finish:dcFinishFor(i&&i.material,i&&i.finish),
+    finish:dcItemFinishFor(i&&i.itemType,i&&i.material,i&&i.finish),
     customDimensions:dcNormalizeCustomDims(i&&i.customDimensions)}));
   editingItemIndex=null;
   editingQuoteId=payload.id||null;
@@ -20367,7 +20868,7 @@ function wqaWarnText(w){
   if(typeof w==='string') return w;
   return w.v===undefined ? dcT(w.k) : dcT(w.k).replace('{n}',w.v).replace('{v}',w.v);
 }
-function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null;
+function wqaClearSourceEvidence(){ wqa.aiWarnings=[]; wqa.aiMeta=null; wqa.fastenerSkipped=[];
   wqa.truncated=false; wqa.truncAck=false; wqa._truncPending=false; wqa.covMissing=[]; wqa._covPending=null;
   wqa.covKind=''; wqa._covKindPending=''; }
 
@@ -21924,12 +22425,41 @@ function wqaClearCommonPanels(){
   wqa.commonAcc=wqaEmptyAcc();
   wqa.applyScope='all';
 }
+/* ── Quick Add does not read Accessories / Fasteners (V1, owner 2026-11-19) ─
+   A line that is ONLY a nut or a washer — "M20 HEX NUT (ZP) - 20pcs",
+   "F436 WASHER 3/4 HDG 40pcs" — used to be read as a bolt row (an L Bolt
+   under the heading above it, or a Sag Rod 436 long). Such a line is set
+   aside before parsing, never mapped to another product, and Review names it
+   so it can be added from Product Entry → Accessories / Fasteners.
+   Accessory wording that belongs to a bolt is untouched: a line with c/w,
+   with, w/, complete, + or &, a line that names a bolt, and a line with a rod
+   length (x 100 or more) are all read exactly as before. */
+const WQA_FASTENER_WORD=/\b(?:HT\s+)?HEX\s+NUTS?\b|\bNUTS?\b|\b(?:FLAT|SPRING|PLAIN|LOCK|F-?436)\s+WASHERS?\b|\bWASHERS?\b/i;
+function wqaIsFastenerLine(line){
+  const s=String(line||'');
+  if(!WQA_FASTENER_WORD.test(s)) return false;
+  if(/\bc\s*\/\s*w\b|\bcw\b|\bwith\b|\bw\/|\bcomplete\b|[+&]/i.test(s)) return false;
+  if(/\b(?:BOLTS?|RODS?|STUDS?|ANCHORS?|U[\s-]?BOLTS?|J[\s-]?TYPE|L[\s-]?TYPE)\b/i.test(s)) return false;
+  if(/\d\s*[x×*]\s*\d{3,}/i.test(s)) return false;
+  return true;
+}
+function wqaSplitFastenerLines(text){
+  const removed=[], kept=[];
+  String(text||'').split(/\r?\n/).forEach(l=>{ if(wqaIsFastenerLine(l)) removed.push(l.trim()); else kept.push(l); });
+  return {text:kept.join('\n'), removed};
+}
 async function wqaParseAndReview(){
-  const text=el('wqaInput').value||'';
+  let text=el('wqaInput').value||'';
   if(!text.trim()){ wqaMsg('wqaParseMsg',dcT('wqaMsgPasteFirst'),true); return; }
   wqaMsg('wqaParseMsg','',false);
   wqaClearCommonPanels();
   wqaClearSourceEvidence();
+  const fx=wqaSplitFastenerLines(text);
+  wqa.fastenerSkipped=fx.removed;
+  if(fx.removed.length){
+    if(!fx.text.trim()){ wqaMsg('wqaParseMsg',dcT('wqaFastenerOnly'),true); return; }
+    text=fx.text;
+  }
   let parsed=wqaParseText(text);
   /* A message that never names its product is still readable — the review screen
      already asks for one, exactly as it does for an extracted photo. Re-read the
@@ -22032,8 +22562,10 @@ function wqaRenderCommon(){
      customer usually orders. */
   const matNeeded=!!wqa.product && !wqaIsMixed('material') &&
                   (live.length ? live.some(x=>!wqaRowSpec(x,'material')) : !c.material);
-  const skipNote=(wqa.skipped&&wqa.skipped.length)
-    ? `<div class="wqa-flag">${escHtml(dcT('wqaSkippedLines').replace('{n}',wqa.skipped.length))}</div>` : '';
+  const skipNote=((wqa.skipped&&wqa.skipped.length)
+    ? `<div class="wqa-flag">${escHtml(dcT('wqaSkippedLines').replace('{n}',wqa.skipped.length))}</div>` : '')
+    + ((wqa.fastenerSkipped&&wqa.fastenerSkipped.length)
+    ? `<div class="wqa-flag wqa-flag-fastener">${escHtml(dcT('wqaFastenerSkipped').replace('{n}',wqa.fastenerSkipped.length).replace('{v}',wqa.fastenerSkipped.join(' · ')))}</div>` : '');
   /* Geometry-first classification: when the customer's own wording disagrees
      with the detected product, say so — never hide the conflict. */
   /* Only when the source gave BOTH labels: a missing one is not a warning, and
@@ -26412,6 +26944,7 @@ function dcShellRunIntent(handoffLoaded){
 (async function init(){
   ensureLBolt45Form();
   ensureOthersForm();
+  ensureFastenerForm();
   document.querySelectorAll('.item-form').forEach(dcPricingExtras);
   dcBuildTypeSelect();
   dcQiRemarksInit();
@@ -26419,6 +26952,8 @@ function dcShellRunIntent(handoffLoaded){
   document.querySelectorAll('.acc-panel').forEach(dcAccEnhancePanel);
   dcPlacePhMini(currentType);
   ensurePriceModeControls();
+  dcFastenerAfterControls();
+  onFastenerUiSync();
   el('qi-date').value=todayStr();
   await Promise.all([
     loadCompaniesCache(),

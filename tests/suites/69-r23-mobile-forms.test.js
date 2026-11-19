@@ -24,7 +24,7 @@ module.exports = async (browser, A) => {
       return { shown: getComputedStyle(s.closest('.ptype-m')).display !== 'none', grid: getComputedStyle(document.getElementById('typePicker')).display,
                opts: [...s.options].map(o => o.value), labels: [...s.options].map(o => o.textContent), h: s.getBoundingClientRect().height }; });
     A.ok(sel.shown && sel.grid === 'none', `${w}: a Product select instead of the button grid`);
-    A.eq(sel.opts.length, 11, `${w}: all eleven products in it (${sel.labels.join(', ')})`);
+    A.eq(sel.opts.length, 12, `${w}: all twelve products in it (${sel.labels.join(', ')})`);
     A.ok(sel.h >= 44, `${w}: the select is a ≥44px target`);
     for (const t of sel.opts) {
       const r = await page.evaluate(async t => {
@@ -35,14 +35,16 @@ module.exports = async (browser, A) => {
         const labels = [...f.querySelectorAll('.field > label')].filter(n => n.offsetParent).map(n => parseFloat(getComputedStyle(n).fontSize));
         return { active: currentType, narrow: ins.filter(n => n.getBoundingClientRect().width < 140).map(n => n.id), short: ins.filter(n => n.getBoundingClientRect().height < 43.5).map(n => n.id),
                  minLabel: Math.min(...labels), overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-                 accCollapsed: !!f.querySelector('.acc-panel.acc-collapsed') };
+                 accCollapsed: !!f.querySelector('.acc-panel.acc-collapsed'), accAny: !!f.querySelector('.acc-panel') };
       }, t);
       A.eq(r.active, t, `${w} ${t}: the select switches the product`);
       A.eq(r.narrow, [], `${w} ${t}: no input narrower than 140px`);
       A.eq(r.short, [], `${w} ${t}: every input ≥44px tall`);
       A.ok(r.minLabel >= 11, `${w} ${t}: labels ≥11px (${r.minLabel})`);
       A.eq(r.overflow, 0, `${w} ${t}: no sideways scroll`);
-      A.ok(r.accCollapsed, `${w} ${t}: Accessories collapsed in Pricing Entry`);
+      /* A standalone fastener IS the accessory: it has no C/W panel at all. */
+      if (t === 'fastener') A.ok(!r.accAny, `${w} ${t}: no C/W accessory panel on a standalone fastener`);
+      else A.ok(r.accCollapsed, `${w} ${t}: Accessories collapsed in Pricing Entry`);
     }
     /* J Bolt and Sag Rod — the owner's layouts */
     await page.evaluate(() => switchType('jbolt')); await page.waitForTimeout(80);

@@ -318,6 +318,18 @@ function dc_history_record($item, $want, $meta) {
        same item never appeared. Normalised on BOTH sides of the comparison, so
        old records match and nothing else moves. */
     $finish = dc_finish_for((string)($item['material'] ?? ''), (string)($item['finish'] ?? ''));
+    /* ── Standalone Accessories / Fasteners (owner 2026-11-19) ─────────────
+       Identity is Type + Size + Material + Finish + SELLING UNIT. The selling
+       unit keeps a fastener sold by the piece apart from any other item that
+       happens to share its name (an Others item called "HEX NUT" has none),
+       and a bolt query sends none, so nothing that matched before changes.
+       Owner decision D2: a stainless fastener may carry a finish, so for a
+       fastener the finish is compared exactly as stored, never normalised. */
+    $isFastener = (string)($item['itemType'] ?? '') === 'fastener';
+    $itemUnit   = strtoupper(trim((string)($item['sellingUnit'] ?? '')));
+    $wantUnit   = strtoupper(trim((string)($want['sellingUnit'] ?? '')));
+    if ($itemUnit !== $wantUnit) return null;
+    if ($isFastener) $finish = (string)($item['finish'] ?? '');
 
     if ($productType !== dc_norm_product($want['productType'] ?? ''))       return null;
     if (strcasecmp($material,  (string)($want['material'] ?? '')) !== 0)    return null;
@@ -333,7 +345,8 @@ function dc_history_record($item, $want, $meta) {
        says which coating it was, and it offers no reuse button, because a
        coating is precisely what changes the cost rate: reusing a PL recipe on
        a ZP rod would quote the wrong rate with nothing on screen to say so. */
-    $wantFinish  = dc_finish_for($material, (string)($want['finish'] ?? ''));
+    $wantFinish  = $isFastener ? (string)($want['finish'] ?? '')
+                               : dc_finish_for($material, (string)($want['finish'] ?? ''));
     $finishMatch = strcasecmp($finish, $wantFinish) === 0;
     if (strcasecmp($cleanSize, (string)($want['cleanSize'] ?? '')) !== 0)   return null;
 
@@ -404,6 +417,10 @@ function dc_history_record($item, $want, $meta) {
        labels above cannot read — identical text is identical geometry. */
     $exact = ($dist !== null && $dist == 0.0)
           || ($wantDims !== '' && dc_dim_key($dimPreview) === dc_dim_key($wantDims));
+    /* A fastener has no dimensions beyond its size, and its size is already
+       part of the exact identity above: the same type, size, material, finish
+       and selling unit IS the same item. */
+    if ($isFastener && $wantDims === '' && $dimPreview === '') $exact = true;
 
     /* How the price was arrived at, in the words the screen uses. A row that
        never recorded it says so rather than being called Auto Round. */
@@ -450,6 +467,14 @@ function dc_history_record($item, $want, $meta) {
            Older quotations never did, and nothing is reconstructed for them. */
         'rawUnitPrice'       => $mode === 'manual' ? $positive($item['rawUnitPrice'] ?? ($form['rawUnitPrice'] ?? null)) : null,
         'autoRoundUnitPrice' => $mode === 'manual' ? $positive($item['roundedUnitPrice'] ?? ($form['roundedUnitPrice'] ?? null)) : null,
+        /* A fastener's own pricing inputs: it is priced per piece from a
+           purchase cost, not from a weight and a Cost Rate. Empty otherwise. */
+        'itemType'     => (string)($item['itemType'] ?? ''),
+        'sellingUnit'  => $itemUnit,
+        'costBasis'    => $isFastener ? (string)($item['costBasis'] ?? ($form['costBasis'] ?? '')) : null,
+        'purchaseCost' => $isFastener ? $num($item['purchaseCost'] ?? ($form['purchaseCost'] ?? null)) : null,
+        'pcsPerKg'     => $isFastener ? $num($item['pcsPerKg'] ?? ($form['pcsPerKg'] ?? null)) : null,
+        'desc'         => $isFastener ? (string)($item['desc'] ?? '') : null,
     ];
 }
 

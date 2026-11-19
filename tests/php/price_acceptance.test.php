@@ -67,6 +67,18 @@ ok(!$ok, 'an unknown source is refused');
 [$ok] = $save($base + ['priceAcceptance' => 'yes']);
 ok(!$ok, 'a malformed acceptance is refused');
 
+// A standalone fastener keeps a 4-decimal unit price, so its acceptance is
+// checked to 4 decimals — tighter, never looser (owner 2026-11-19).
+$fz = ['itemType' => 'fastener', 'qty' => 1000, 'finalUnitPrice' => 0.035, 'totalAmount' => 35];
+[$ok] = $save($fz + ['priceAcceptance' => ['state' => 'accepted', 'value' => 0.035, 'source' => 'manual_recipe']]);
+ok($ok, 'a fastener at its accepted 4-decimal price saves');
+[$ok, $err] = $save($fz + ['priceAcceptance' => ['state' => 'accepted', 'value' => 0.038, 'source' => 'manual_recipe']]);
+ok(!$ok && strpos($err, 'differs from the accepted') !== false, 'a fastener 0.0380 vs accepted 0.0350 is refused (the 2dp check would let it through)');
+[$ok] = $save($fz + ['priceAcceptance' => ['state' => 'accepted', 'value' => 0.03500001, 'source' => 'manual_recipe']]);
+ok($ok, 'float noise below 4 decimals is not a different fastener price');
+[$ok] = $save($base + ['priceAcceptance' => ['state' => 'accepted', 'value' => 2.754, 'source' => 'manual']]);
+ok($ok, 'every other item keeps the 2-decimal check');
+
 echo "price_acceptance: {$asserts} asserts, " . count($failures) . " failures\n";
 foreach ($failures as $f) echo "  FAIL: {$f}\n";
 exit($failures ? 1 : 0);

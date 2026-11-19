@@ -366,7 +366,11 @@ function dc_price_acceptance_ok($item, &$error, $n) {
     }
     $v = $pa['value'] ?? null;
     $p = $item['finalUnitPrice'] ?? null;
-    if (!is_numeric($v) || !is_numeric($p) || abs((float)$v - (float)$p) > 0.005) {
+    /* A standalone fastener's unit price is kept to 4 decimals (owner rule
+       2026-11-19), so its accepted price must agree to 4 decimals as well —
+       tighter, never looser. Every other item keeps the 2-decimal check. */
+    $tol = (is_array($item) && ($item['itemType'] ?? '') === 'fastener') ? 0.00005 : 0.005;
+    if (!is_numeric($v) || !is_numeric($p) || abs((float)$v - (float)$p) > $tol) {
         $error = "Item {$n}: the unit price differs from the accepted price. Review it and press Apply Price again.";
         return false;
     }
@@ -696,7 +700,10 @@ function dc_history_item_changes(array $prevItems, array $curItems) {
             if (json_encode($x) !== json_encode($y)) $other++;
         }
         if ($fields || $other) {
+            /* itemType lets the page show a fastener's 4-decimal unit price as
+               recorded; every other item is displayed exactly as before. */
             $out[] = ['kind' => 'item_changed', 'item' => dc_history_item_label($b),
+                      'itemType' => (string)($b['itemType'] ?? ''),
                       'fields' => $fields, 'other' => $other];
         }
     }
@@ -1621,6 +1628,8 @@ if ($action === 'get_next_ref') {
         'finish'           => trim($_GET['finish'] ?? ''),
         'cleanSize'        => trim($_GET['cleanSize'] ?? ''),
         'dimensionPreview' => trim($_GET['dimensionPreview'] ?? ''),
+        /* PCS for a standalone fastener; empty for every other product. */
+        'sellingUnit'      => trim($_GET['sellingUnit'] ?? ''),
         'companyId'        => intval($_GET['company_id'] ?? 0),
         'matchBy'          => trim($_GET['matchBy'] ?? 'overall'),
         'matchTarget'      => trim($_GET['matchTarget'] ?? ''),

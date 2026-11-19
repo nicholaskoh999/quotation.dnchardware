@@ -13,6 +13,11 @@ const { openApp } = require('../lib/harness');
 const WIDTHS = [1440, 1024, 820];
 const PRICE = ['costRate', 'addCost', 'markup', 'qty', 'priceMode'];
 const WAS_PRICE = ['anchorCostRate', 'basePlateCostRate', 'trianglePlateCostRate', 'addCost', 'markup', 'qty', 'priceMode'];
+/* Accessories / Fasteners (2026-11-19): priced per piece from a purchase cost,
+   so its price inputs are Cost Basis and Purchase Cost, and it has no C/W
+   accessory panel — after Price Mode comes View History alone. PCS per KG is
+   shown only for an RM/KG basis, so it is not in the default sequence. */
+const FASTENER_PRICE = ['costBasis', 'purchaseCost', 'addCost', 'markup', 'qty', 'priceMode'];
 
 const seq = (page, type) => page.evaluate(t => {
   switchType(t);
@@ -27,11 +32,11 @@ module.exports = async (browser, A) => {
   for (const w of WIDTHS) {
     const page = await openApp(browser, { viewport: { width: w, height: 900 } });
     const types = await page.evaluate(() => [...document.querySelectorAll('.item-form')].map(f => f.dataset.type));
-    A.eq(types.length, 11, `${w}: eleven product forms`);
+    A.eq(types.length, 12, `${w}: twelve product forms`);
     for (const t of types) {
       const s = await seq(page, t);
       const ids = s.map(x => x.id ? x.id.replace(t + '-', '') : x.cls);
-      const price = t === 'was' ? WAS_PRICE : PRICE;
+      const price = t === 'was' ? WAS_PRICE : t === 'fastener' ? FASTENER_PRICE : PRICE;
       const pIdx = price.map(k => ids.indexOf(k));
       A.ok(pIdx.every(i => i >= 0), `${w} ${t}: every price input is reachable (${price.join(', ')})`);
       A.ok(pIdx.every((v, i) => !i || v === pIdx[i - 1] + 1), `${w} ${t}: the price inputs follow one another`);
@@ -39,7 +44,8 @@ module.exports = async (browser, A) => {
       const before = s.slice(0, first);
       A.ok(!before.some(x => x.inPe || /acc-|ph/.test(x.cls)), `${w} ${t}: no accessory or history control before Cost Rate (${ids.slice(0, first).join(' > ')})`);
       const after = ids.slice(pIdx[pIdx.length - 1] + 1);
-      A.eq(after.filter(x => x !== 'manualUnitPrice'), ['acc-sum', 'phViewBtn'], `${w} ${t}: after Price Mode only Accessories, then View History`);
+      if (t === 'fastener') A.eq(after.filter(x => x !== 'manualUnitPrice'), ['phViewBtn'], `${w} ${t}: after Price Mode only View History (no C/W accessories on a fastener)`);
+      else A.eq(after.filter(x => x !== 'manualUnitPrice'), ['acc-sum', 'phViewBtn'], `${w} ${t}: after Price Mode only Accessories, then View History`);
       A.ok(!s.some(x => x.ro || x.hidden), `${w} ${t}: no read-only or hidden control in the sequence`);
       const dims = await page.evaluate(t => { const f = document.getElementById('form-' + t);
         const lbl = f.querySelector(':scope > .group-label .uc-open') ? [...f.querySelectorAll(':scope > .group-label')].find(g => g.querySelector('.uc-open')) : null;

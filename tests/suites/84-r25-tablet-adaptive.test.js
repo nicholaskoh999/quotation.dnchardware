@@ -48,7 +48,7 @@ module.exports = async (browser, A) => {
     const g = await p.evaluate(() => { const b = [...document.querySelectorAll('#typePicker .type-btn')].filter(x => x.offsetParent); const r = b.map(x => x.getBoundingClientRect());
       return { n: b.length, cols: new Set(r.map(x => Math.round(x.left))).size, minH: Math.min(...r.map(x => x.height)) }; });
     const cols = ew >= 600 ? 4 : 3;   /* the R2.4 grid: 4 once the card is ≥560px inside, else 3 */
-    A.ok(g.n === 11 && g.cols === cols && g.minH >= 44, `${tag}: product picker — 11 products, ${cols} to a row, ≥44px`);
+    A.ok(g.n === 12 && g.cols === cols && g.minH >= 44, `${tag}: product picker — 12 products, ${cols} to a row, ≥44px`);
     /* #19 */
     const c = await p.evaluate(async () => { if (!document.getElementById('qiEdit').classList.contains('open')) toggleQIEdit(); await new Promise(x => setTimeout(x, 100));
       const f = [...document.querySelectorAll('#qiEdit > .field')].filter(x => x.offsetParent); const rows = new Set(f.map(x => Math.round(x.getBoundingClientRect().top)));

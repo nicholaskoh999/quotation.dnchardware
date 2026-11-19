@@ -599,6 +599,50 @@ eq($zero['rawUnitPrice'], null, 'MANUAL: a zero (nothing was calculated) is not 
 $auto = dc_history_record(item(['rawUnitPrice' => 29.8, 'roundedUnitPrice' => 29.8]), $WANT, $M);
 eq($auto['rawUnitPrice'], null, 'AUTO: the manual context is only for Manual Price records');
 
+// ── Accessories / Fasteners (owner 2026-11-19) ──────────────────────────────
+// Identity = Type + Size + Material + Finish + Selling Unit; a stainless
+// fastener keeps its finish (D2); a 4-decimal price is returned as stored.
+function fastener($over = []) {
+    return array_merge([
+        'itemType' => 'fastener', 'productType' => 'HEX NUT', 'desc' => 'HEX NUT', 'fastenerType' => 'HEX NUT',
+        'material' => '', 'sizeType' => '', 'finish' => 'ZP', 'cleanSize' => 'M20', 'sizeCode' => 'M20',
+        'size' => 'M20', 'dimensionPreview' => '', 'sellingUnit' => 'PCS', 'costBasis' => 'PCS',
+        'purchaseCost' => 0.035, 'pcsPerKg' => null, 'qty' => 1000, 'finalUnitPrice' => 0.035,
+        'boltUnitPrice' => 0.035, 'accessoryUnitPrice' => 0, 'pricingModel' => 'accessory-inclusive',
+        'totalAmount' => 35.00, 'markup' => 0, 'weight' => 0, 'accessories' => null, 'priceMode' => 'no_round',
+        'formData' => ['addCost' => '', 'markup' => '0', 'priceMode' => 'no_round', 'costBasis' => 'PCS', 'purchaseCost' => '0.035'],
+    ], $over);
+}
+$FW = ['productType' => 'HEX NUT', 'material' => '', 'sizeType' => '', 'finish' => 'ZP',
+       'cleanSize' => 'M20', 'dimensionPreview' => '', 'sellingUnit' => 'PCS', 'companyId' => 0];
+$FM = meta(9, 'Q-2026-0900', '2026-11-19', 'Alpha', 0);
+$f = dc_history_record(fastener(), $FW, $FM);
+ok($f !== null, 'FASTENER: the same nut is found');
+eq($f['unitPrice'], 0.035, 'FASTENER: its 4-decimal unit price is returned as stored');
+eq($f['boltUnitPrice'], 0.035, 'FASTENER: the reusable figure is the same 0.035');
+eq($f['exactDims'], true, 'FASTENER: same type, size, material, finish and unit is an exact match');
+eq($f['sellingUnit'], 'PCS', 'FASTENER: selling unit returned');
+eq($f['purchaseCost'], 0.035, 'FASTENER: purchase cost returned for the card');
+eq($f['costBasis'], 'PCS', 'FASTENER: and its basis');
+eq(dc_history_record(fastener(['cleanSize' => 'M16']), $FW, $FM), null, 'FASTENER: another size is not the same item');
+eq(dc_history_record(fastener(['productType' => 'HT HEX NUT']), $FW, $FM), null, 'FASTENER: HT HEX NUT is not HEX NUT');
+eq(dc_history_record(fastener(['material' => 'SS304']), $FW, $FM), null, 'FASTENER: another material is not the same item');
+eq(dc_history_record(fastener(['sellingUnit' => '']), $FW, $FM), null, 'FASTENER: an item without the selling unit is not a fastener record');
+eq(dc_history_record(fastener(['itemType' => 'others', 'sellingUnit' => null]), $FW, $FM), null,
+   'FASTENER: an Others item that happens to be called HEX NUT is not matched');
+$wantNoUnit = $FW; unset($wantNoUnit['sellingUnit']);
+eq(dc_history_record(fastener(), $wantNoUnit, $FM), null, 'FASTENER: a bolt-style query (no selling unit) never sees a fastener');
+$hdg = dc_history_record(fastener(['finish' => 'HDG']), $FW, $FM);
+ok($hdg !== null && $hdg['finishMatch'] === false, 'FASTENER: another finish is a flagged reference, as for bolts');
+$ssWant = array_merge($FW, ['material' => 'SS304', 'finish' => 'ZP']);
+$ss = dc_history_record(fastener(['material' => 'SS304', 'finish' => 'ZP']), $ssWant, $FM);
+ok($ss !== null && $ss['finishMatch'] === true && $ss['finish'] === 'ZP', 'FASTENER: SS304 ZP keeps ZP and matches SS304 ZP (D2)');
+$ssNa = dc_history_record(fastener(['material' => 'SS304', 'finish' => '']), $ssWant, $FM);
+ok($ssNa !== null && $ssNa['finishMatch'] === false, 'FASTENER: SS304 N/A is a different finish from SS304 ZP — finish stays in identity');
+$boltSS = dc_history_record(item(['material' => 'SS304', 'finish' => 'HDG']), array_merge($WANT, ['material' => 'SS304', 'finish' => '']), $M);
+ok($boltSS !== null && $boltSS['finishMatch'] === true, 'BOLTS: the stainless finish rule is unchanged for every other product');
+eq(dc_history_record(item(), $WANT, $M)['sellingUnit'], '', 'BOLTS: a bolt record has no selling unit and still matches');
+
 // ── report ──────────────────────────────────────────────────────────────────
 echo "  " . (count($failures) ? 'FAIL' : 'ok  ')
    . "  pricing history — identity, accessories, ranking  ($asserts assertions"
